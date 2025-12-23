@@ -26,6 +26,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
@@ -54,6 +55,9 @@ public class AuthenticationEndpointUtilTest {
 
     @Mock
     private AxisConfiguration mockAxisConfiguration;
+
+    @Mock
+    private ConfigurationFacade mockedConfigurationFacade;
 
     final String USERNAME = "TestUser";
     final String USERSTORE_NAME = "WSO2.COM";
@@ -245,5 +249,25 @@ public class AuthenticationEndpointUtilTest {
 
         boolean validity = AuthenticationEndpointUtil.isSchemeSafeURL(url);
         Assert.assertEquals(validity, expectedValidity);
+    }
+
+    @DataProvider
+    public Object[][] provideIsConsentPageRedirectParamsAllowed() {
+        return new Object[][]{
+                {true},
+                {false}
+        };
+    }
+
+    @Test(dataProvider = "provideIsConsentPageRedirectParamsAllowed")
+    public void testIsConsentPageRedirectParamsAllowed(boolean allowConsentPageRedirectParams) {
+
+        try (MockedStatic<ConfigurationFacade> configFacadeMock = mockStatic(ConfigurationFacade.class)) {
+            configFacadeMock.when(ConfigurationFacade::getInstance).thenReturn(mockedConfigurationFacade);
+            when(mockedConfigurationFacade.isConsentPageRedirectParamsAllowed())
+                    .thenReturn(allowConsentPageRedirectParams);
+            Assert.assertEquals(AuthenticationEndpointUtil.isConsentPageRedirectParamsAllowed(),
+                    allowConsentPageRedirectParams);
+        }
     }
 }

@@ -67,6 +67,11 @@ public class RequestFilter {
             allowedHeaders.addAll(allowedHeadersInAction);
         } else if (hasServerAllowedHeaders) {
             allowedHeaders.addAll(allowedHeadersInServer);
+        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType)) {
+            // This is to preserve backward compatibility.
+            allowedHeaders.addAll(requestHeaders.stream()
+                    .map(Header::getName)
+                    .collect(Collectors.toSet()));
         }
         // Filter out excluded headers configured at server level.
         allowedHeaders.removeAll(excludedHeadersInServer);
@@ -113,6 +118,11 @@ public class RequestFilter {
             allAllowedParamsSet.addAll(allowedParamsInAction);
         } else if (hasServerAllowedParams) {
             allAllowedParamsSet.addAll(allowedParamsInServer);
+        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType)) {
+            // This is to preserve backward compatibility.
+            allAllowedParamsSet.addAll(requestParameters.stream()
+                    .map(Param::getName)
+                    .collect(Collectors.toSet()));
         }
         // Filter out excluded parameters configured at server level.
         allAllowedParamsSet.removeAll(excludedParamsInServer);

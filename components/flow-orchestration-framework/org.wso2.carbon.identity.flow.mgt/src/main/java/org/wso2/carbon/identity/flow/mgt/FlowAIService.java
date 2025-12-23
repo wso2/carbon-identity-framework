@@ -54,19 +54,23 @@ public class FlowAIService {
 
     private static final Log LOG = LogFactory.getLog(FlowAIService.class);
 
-    private static final String FLOW_AI_ENDPOINT = IdentityUtil.getProperty(Constants.FlowAIConstants.FLOW_AI_ENDPOINT);
-    private static final String FLOW_AI_GENERATE_PATH = IdentityUtil.getProperty(
-            Constants.FlowAIConstants.FLOW_AI_GENERATE_PATH);
-    private static final String FLOW_AI_STATUS_PATH = IdentityUtil.getProperty(
-            Constants.FlowAIConstants.FLOW_AI_STATUS_PATH);
-    private static final String FLOW_AI_RESULT_PATH = IdentityUtil.getProperty(
-            Constants.FlowAIConstants.FLOW_AI_RESULT_PATH);
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final FlowAIService INSTANCE = new FlowAIService();
 
     private FlowAIService() {
 
+    }
+
+    /**
+     * Holds the lazily-initialized configuration properties for the FlowAIService.
+     * This class is loaded and initialized on its first use, providing thread-safe lazy initialization.
+     */
+    private static class ConfigHolder {
+
+        static final String FLOW_AI_ENDPOINT = IdentityUtil.getProperty(Constants.FlowAIConstants.FLOW_AI_ENDPOINT);
+        static final String FLOW_AI_GENERATE_PATH = IdentityUtil.getProperty(Constants.FlowAIConstants.FLOW_AI_GENERATE_PATH);
+        static final String FLOW_AI_STATUS_PATH = IdentityUtil.getProperty(Constants.FlowAIConstants.FLOW_AI_STATUS_PATH);
+        static final String FLOW_AI_RESULT_PATH = IdentityUtil.getProperty(Constants.FlowAIConstants.FLOW_AI_RESULT_PATH);
     }
 
     /**
@@ -101,8 +105,8 @@ public class FlowAIService {
 
         try {
             Map<String, Object> requestBody = buildGenerateFlowRequestBody(flowGenerationRequestDTO);
-            Map<String, Object> response = AIHttpClientUtil.executeRequest(FLOW_AI_ENDPOINT,
-                    FLOW_AI_GENERATE_PATH, HttpPost.class, requestBody);
+            Map<String, Object> response = AIHttpClientUtil.executeRequest(ConfigHolder.FLOW_AI_ENDPOINT,
+                    ConfigHolder.FLOW_AI_GENERATE_PATH, HttpPost.class, requestBody);
 
             if (response == null || response.isEmpty()) {
                 throw FlowMgtUtils.handleServerException(ERROR_CODE_INVOKING_AI_SERVICE, tenantDomain);
@@ -143,8 +147,8 @@ public class FlowAIService {
             LOG.debug("Getting flow generation status for operation ID: " + operationId + ", tenant: " + tenantDomain);
         }
         try {
-            Map<String, Object> response = executeRequest(FLOW_AI_ENDPOINT,
-                    FLOW_AI_STATUS_PATH + PATH_SEPARATOR + operationId,
+            Map<String, Object> response = executeRequest(ConfigHolder.FLOW_AI_ENDPOINT,
+                    ConfigHolder.FLOW_AI_STATUS_PATH + PATH_SEPARATOR + operationId,
                     HttpGet.class, null);
 
             if (response == null || response.isEmpty()) {
@@ -193,8 +197,8 @@ public class FlowAIService {
         }
 
         try {
-            Map<String, Object> response = executeRequest(FLOW_AI_ENDPOINT,
-                    FLOW_AI_RESULT_PATH + PATH_SEPARATOR + operationId,
+            Map<String, Object> response = executeRequest(ConfigHolder.FLOW_AI_ENDPOINT,
+                    ConfigHolder.FLOW_AI_RESULT_PATH + PATH_SEPARATOR + operationId,
                     HttpGet.class, null);
 
             if (response == null || response.isEmpty()) {
@@ -281,14 +285,13 @@ public class FlowAIService {
      */
     private void validateAIServiceConfiguration() throws FlowMgtServerException {
 
-        if (StringUtils.isBlank(FLOW_AI_ENDPOINT)) {
+        if (StringUtils.isBlank(ConfigHolder.FLOW_AI_ENDPOINT)) {
             throw FlowMgtUtils.handleServerException(ERROR_CODE_INVOKING_AI_SERVICE,
                     IdentityTenantUtil.getTenantDomainFromContext());
         }
-
-        if (StringUtils.isBlank(FLOW_AI_GENERATE_PATH) ||
-                StringUtils.isBlank(FLOW_AI_STATUS_PATH) ||
-                StringUtils.isBlank(FLOW_AI_RESULT_PATH)) {
+        if (StringUtils.isBlank(ConfigHolder.FLOW_AI_GENERATE_PATH) ||
+                StringUtils.isBlank(ConfigHolder.FLOW_AI_STATUS_PATH) ||
+                StringUtils.isBlank(ConfigHolder.FLOW_AI_RESULT_PATH)) {
             throw FlowMgtUtils.handleServerException(ERROR_CODE_INVOKING_AI_SERVICE,
                     IdentityTenantUtil.getTenantDomainFromContext());
         }

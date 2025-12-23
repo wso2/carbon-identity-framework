@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.workflow.mgt;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,6 +26,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.bean.Property;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
@@ -47,15 +49,17 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
+import org.wso2.carbon.identity.workflow.mgt.util.Utils;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
@@ -66,9 +70,9 @@ import javax.xml.xpath.XPathFactory;
  */
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss.SSS");
     private static final int MAX_LIMIT = 1000;
-    
+    private static final String BPS_BASED_WORKFLOW_ENGINE = "ApprovalWorkflow";
+
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
     WorkflowDAO workflowDAO = new WorkflowDAO();
@@ -381,9 +385,18 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         Workflow oldWorkflow = workflowDAO.getWorkflow(workflow.getWorkflowId());
         if (oldWorkflow == null) {
             workflowDAO.addWorkflow(workflow, tenantId);
+            // The workflow role is created only for the BPS workflow engine.
+            if (BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+                WorkflowManagementUtil.createAppRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+            }
         } else {
             workflowDAO.removeWorkflowParams(workflow.getWorkflowId());
             workflowDAO.updateWorkflow(workflow);
+            if (!StringUtils.equals(oldWorkflow.getWorkflowName(), workflow.getWorkflowName()) &&
+                    BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(),
+                        workflow.getWorkflowName());
+            }
         }
         workflowDAO.addWorkflowParams(parameterList, workflow.getWorkflowId(), tenantId);
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -421,6 +434,16 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             log.error("Null or empty string given as condition expression when associating " + workflowId +
                     " to event " + eventId);
             throw new InternalWorkflowException("Condition cannot be null");
+        }
+
+        List<Association> existingAssociations = associationDAO.listAssociationsForWorkflow(workflowId);
+        if (hasDuplicateAssociation(existingAssociations, eventId, condition)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Duplicate association found for workflow: " + workflowId +
+                         " with event: " + eventId + " with the same condition.");
+            }
+            throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
+                    "event " + eventId + " with the same condition.");
         }
 
         // Check for xpath syntax errors.
@@ -550,6 +573,14 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
+        requestEntityRelationshipDAO.deleteEntityRelationsByWorkflowId(workflowId);
+        workflowRequestDAO.abortWorkflowRequests(workflowId);
+
+        // The workflow role is created for the BPS workflow engine. Hence, the role is deleted only for BPS-based
+        // workflows.
+        if (BPS_BASED_WORKFLOW_ENGINE.equals(workflow.getWorkflowImplId())) {
+            WorkflowManagementUtil.deleteWorkflowRole(StringUtils.deleteWhitespace(workflow.getWorkflowName()));
+        }
         workflowDAO.removeWorkflowParams(workflowId);
         workflowDAO.removeWorkflow(workflowId);
 
@@ -854,6 +885,19 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
+        List<Association> existingAssociations =
+                associationDAO.listAssociationsForWorkflow(association.getWorkflowId());
+        if (hasDuplicateAssociationForUpdate(existingAssociations, association.getEventId(), association.getCondition(),
+                associationId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Duplicate association found for workflow: " + association.getWorkflowId() +
+                        " with event: " + association.getEventId() + " with the same condition.");
+            }
+            throw new WorkflowClientException("The workflow " + association.getWorkflowId() +
+                    " is already associated with the " + "event " + association.getEventId() +
+                    " with the same condition.");
+        }
+
         association.setEnabled(isEnable);
         associationDAO.updateAssociation(association);
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -1060,6 +1104,36 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     }
 
     @Override
+    public void abortWorkflowRequest(String requestId) throws WorkflowException {
+
+        log.info("Aborting workflow request: " + requestId);
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreUpdateWorkflowRequest(workflowRequest);
+            }
+        }
+
+        workflowRequestDAO.updateStatusOfRequest(requestId, WorkflowRequestStatus.ABORTED.toString());
+        if (log.isDebugEnabled()) {
+            log.debug("Updated workflow request status to ABORTED for requestId: " + requestId);
+        }
+        workflowRequestAssociationDAO
+                .updateStatusOfRelationshipsOfPendingRequest(requestId, WFConstant.HT_STATE_SKIPPED);
+        requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostUpdateWorkflowRequest(workflowRequest);
+            }
+        }
+    }
+
+    @Override
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
@@ -1096,9 +1170,52 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
      *
      * @param requestId Request ID
      * @throws WorkflowException
+     * @deprecated Use {@link #softDeleteWorkflowRequestByAnyUser(String)} instead.
      */
     @Override
     public void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+        softDeleteWorkflowRequestByAnyUser(requestId);
+    }
+
+    /**
+     * Permanently delete workflow request created by any user.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    @Override
+    public void permanentlyDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        WorkflowRequest workflowRequest = new WorkflowRequest();
+        workflowRequest.setRequestId(requestId);
+        workflowRequest.setCreatedBy(workflowRequestDAO.retrieveCreatedUserOfRequest(requestId));
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+
+        workflowRequestDAO.deleteRequest(requestId);
+
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostDeleteWorkflowRequest(workflowRequest);
+            }
+        }
+    }
+
+    /**
+     * Soft delete workflow request created by any user.
+     *
+     * @param requestId Request ID
+     * @throws WorkflowException
+     */
+    @Override
+    public void softDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
@@ -1243,12 +1360,22 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        WorkflowRequest workflowRequest = null;
-        workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
+        WorkflowRequest workflowRequest = workflowRequestDAO.getWorkflowRequest(requestId);
         if (workflowRequest == null) {
             String errorMessage = "Workflow request not found with ID: " + requestId;
             log.debug(errorMessage);
             throw new WorkflowClientException(errorMessage);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieved workflow request with ID: " + requestId);
+        }
+
+        List<Property> properties = Utils.getWorkflowRequestParameters(workflowRequest);
+        if (CollectionUtils.isNotEmpty(properties)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Found " + properties.size() + " properties for workflow request: " + requestId);
+            }
+            workflowRequest.setProperties(properties);
         }
 
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -1264,5 +1391,42 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throws WorkflowException {
 
         return workflowRequestDAO.retrieveWorkflow(requestId);
+    }
+
+    /**
+     * Check if a duplicate association exists for the given event and condition.
+     * Used when adding a new association to ensure no conflicts exist.
+     *
+     * @param existingAssociations List of existing associations for the workflow.
+     * @param eventId             The event ID to check.
+     * @param condition           The condition to check.
+     * @return true if a duplicate association is found, false otherwise.
+     */
+    private boolean hasDuplicateAssociation(List<Association> existingAssociations, String eventId, String condition) {
+
+        return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(association -> StringUtils.equals(association.getEventId(), eventId) &&
+                        StringUtils.equals(association.getCondition(), condition));
+    }
+
+    /**
+     * Check if a duplicate association exists for the given event and condition during update.
+     * Excludes the current association being updated from the duplicate check.
+     *
+     * @param existingAssociations List of existing associations for the workflow.
+     * @param eventId             The event ID to check.
+     * @param condition           The condition to check.
+     * @param associationId       The ID of the association being updated (to exclude from check).
+     * @return true if a duplicate association is found, false otherwise.
+     */
+    private boolean hasDuplicateAssociationForUpdate(List<Association> existingAssociations, String eventId,
+                                                     String condition, String associationId) {
+
+        return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(association -> !StringUtils.equals(association.getAssociationId(), associationId)
+                        && StringUtils.equals(association.getEventId(), eventId)
+                        && StringUtils.equals(association.getCondition(), condition));
     }
 }

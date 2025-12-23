@@ -38,6 +38,7 @@ public class Claim {
     private Boolean required = null;
     private Boolean readOnly = null;
     private String validationRegex = null;
+    private String displayOrder = null;
 
 
     /**
@@ -176,6 +177,19 @@ public class Claim {
         this.validationRegex = validationRegex;
     }
 
+    /**
+     **/
+    @JsonProperty("display-order")
+    public String getDisplayOrder() {
+
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(String displayOrder) {
+
+        this.displayOrder = displayOrder;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -191,7 +205,8 @@ public class Claim {
                 Objects.equals(this.displayName, claim.displayName) &&
                 Objects.equals(this.dialect, claim.dialect) &&
                 Objects.equals(this.required, claim.required) &&
-                Objects.equals(this.readOnly, claim.readOnly);
+                Objects.equals(this.readOnly, claim.readOnly) &&
+                Objects.equals(this.displayOrder, claim.displayOrder);
     }
 
     @Override
@@ -211,6 +226,7 @@ public class Claim {
         sb.append("    dialect: ").append(toIndentedString(dialect)).append("\n");
         sb.append("    required: ").append(toIndentedString(required)).append("\n");
         sb.append("    readOnly: ").append(toIndentedString(readOnly)).append("\n");
+        sb.append("    displayOrder: ").append(toIndentedString(displayOrder)).append("\n");
         sb.append("}");
         return sb.toString();
     }

@@ -98,6 +98,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                     rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
                             .createdAt(rs.getTimestamp(ActionMgtSQLConstants.Column.CREATED_AT))
                             .updatedAt(rs.getTimestamp(ActionMgtSQLConstants.Column.UPDATED_AT))
+                            .actionVersion(rs.getString(ActionMgtSQLConstants.Column.ACTION_VERSION))
                             .endpoint(populateEndpoint(properties))
                             .rule(populateRule(properties, tenantId))
                             .properties(properties.entrySet().stream()
@@ -220,6 +221,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
                                 actionDTO.getDescription());
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, actionDTO.getStatus().name());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_VERSION, actionDTO.getActionVersion());
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                         statement.setTimeStamp(ActionMgtSQLConstants.Column.CREATED_AT, currentTimestamp, null);
                         statement.setTimeStamp(ActionMgtSQLConstants.Column.UPDATED_AT, currentTimestamp, null);
@@ -252,6 +254,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
                                 updatingActionDTO.getDescription() == null ? existingActionDTO.getDescription()
                                         : updatingActionDTO.getDescription());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_VERSION,
+                                updatingActionDTO.getActionVersion() == null ? existingActionDTO.getActionVersion()
+                                        : updatingActionDTO.getActionVersion());
                         statement.setTimeStamp(ActionMgtSQLConstants.Column.UPDATED_AT,
                                 new Timestamp(new Date().getTime()), null);
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, updatingActionDTO.getId());
@@ -291,7 +296,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                             .status(Action.Status.valueOf(
                                     resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
                             .createdAt(resultSet.getTimestamp(ActionMgtSQLConstants.Column.CREATED_AT))
-                            .updatedAt(resultSet.getTimestamp(ActionMgtSQLConstants.Column.UPDATED_AT)),
+                            .updatedAt(resultSet.getTimestamp(ActionMgtSQLConstants.Column.UPDATED_AT))
+                            .actionVersion(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_VERSION)),
                     statement -> {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);

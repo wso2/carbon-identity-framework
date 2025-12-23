@@ -368,12 +368,44 @@ public interface WorkflowManagementService {
     void deleteWorkflowRequest(String requestId) throws WorkflowException;
 
     /**
+     * Abort workflow request.
+     *
+     * @param requestId Request ID.
+     * @throws WorkflowException If an error occurs while aborting the request.
+     */
+    default void abortWorkflowRequest(String requestId) throws WorkflowException {
+
+    }
+
+
+    /**
      * Move workflow requests created by any user to DELETED state.
      *
      * @param requestId Request ID.
      * @throws WorkflowException
+     * @deprecated Use {@link #softDeleteWorkflowRequestByAnyUser(String)} instead.
      */
+    @Deprecated
     default void deleteWorkflowRequestCreatedByAnyUser(String requestId) throws WorkflowException {
+
+    }
+
+    /**
+     * Move workflow requests created by any user to DELETED state.
+     *
+     * @param requestId  Request ID.
+     * @throws WorkflowException
+     */
+    default void softDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
+
+    }
+    /**
+     * permanently delete workflow requests created by any user.
+     *
+     * @param requestId  Request ID.
+     * @throws WorkflowException
+     */
+    default void permanentlyDeleteWorkflowRequestByAnyUser(String requestId) throws WorkflowException {
 
     }
 

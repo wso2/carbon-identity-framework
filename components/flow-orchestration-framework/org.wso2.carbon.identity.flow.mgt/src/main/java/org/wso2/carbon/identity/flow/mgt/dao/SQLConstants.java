@@ -49,7 +49,7 @@ public class SQLConstants {
 
     public static final String GET_NODES_WITH_MAPPINGS_QUERY =
             "SELECT f.ID AS FLOW_ID, n.NODE_ID, n.NODE_TYPE, n.IS_FIRST_NODE, " +
-                    "ne.EXECUTOR_NAME, ne.ID as EXECUTOR_ID, ne.IDP_NAME, " +
+                    "ne.EXECUTOR_NAME, ne.ID as EXECUTOR_ID, " +
                     "nextNode.NODE_ID AS NEXT_NODE_ACTUAL_ID, nm.TRIGGERING_ELEMENT " +
                     "FROM IDN_FLOW f " +
                     "JOIN IDN_FLOW_NODE n ON f.ID = n.FLOW_ID " +
@@ -91,7 +91,6 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE = "IS_FIRST_NODE";
         public static final String DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT = "TRIGGERING_ELEMENT";
         public static final String DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME = "EXECUTOR_NAME";
-        public static final String DB_SCHEMA_COLUMN_NAME_IDP_NAME = "IDP_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_EXECUTOR_ID = "EXECUTOR_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_METADATA_NAME = "METADATA_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_METADATA_VALUE = "METADATA_VALUE";

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -34,6 +35,9 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.HashSet;
 import java.util.List;
@@ -53,7 +57,7 @@ public class RoleManagementUtils {
 
     private static final Log log = LogFactory.getLog(RoleManagementUtils.class);
 
-    private static final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
+    private static final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getCacheBackedRoleDAO();
 
     /**
      * Checks whether the given role is an internal or application role.
@@ -195,5 +199,61 @@ public class RoleManagementUtils {
         if (audience.equals(ORGANIZATION)) {
             RoleManagementUtils.validatePermissionsForOrganization(permissions, tenantDomain);
         }
+    }
+
+    /**
+     * Get organization id by tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return organization id.
+     * @throws IdentityRoleManagementServerException IdentityRoleManagementServerException.
+     */
+    public static String getOrganizationId(String tenantDomain) throws IdentityRoleManagementServerException {
+
+        try {
+            return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the tenant domain: " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Remove internal domain.
+     *
+     * @param roleName Role name.
+     * @return Domain removed role name.
+     */
+    public static String removeInternalDomain(String roleName) {
+
+        if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(IdentityUtil.extractDomainFromName(roleName))) {
+            return UserCoreUtil.removeDomainFromName(roleName);
+        }
+        return roleName;
+    }
+
+    /**
+     * Get everyone role name by tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return every one role name.
+     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role name.
+     */
+    public static String getEveryOneRoleName(String tenantDomain) throws IdentityRoleManagementException {
+
+        String everyOneRoleName;
+        try {
+            everyOneRoleName = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration()
+                    .getEveryOneRoleName();
+        } catch (UserStoreException e) {
+            throw new IdentityRoleManagementException("Error while retrieving everyone role name", e);
+        }
+        if (everyOneRoleName == null) {
+            String errorMessage =
+                    "Everyone role name not found for tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage);
+        }
+        return removeInternalDomain(everyOneRoleName);
     }
 }

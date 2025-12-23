@@ -79,11 +79,14 @@ public class LocalClaimDAOTest {
         claimProperties2 = new HashMap<>();
         claimProperties2.put("Description", "TestDescription2");
         claimProperties2.put("FriendlyName", "Nick Name");
+        // There can be canonical values without label value pairs. Those values should be safely ignored.
+        claimProperties2.put("canonicalValues", "NORTHERN, WEST");
 
         claimProperties3 = new HashMap<>();
         claimProperties3.put("Description", "TestDescription3");
         claimProperties3.put("FriendlyName", "UserName");
         claimProperties3.put("subAttributes", "http://wso2.org/claims/test http://wso2.org/claims/test2");
+        claimProperties3.put("canonicalValues", "[{\"label\":\"north\",\"value\":\"NORTHERN\"},{\"label\":\"west\",\"value\":\"WEST\"}]");
 
         mappedAttributes1 = new ArrayList<>();
         mappedAttributes1.add(attributeMapping1);

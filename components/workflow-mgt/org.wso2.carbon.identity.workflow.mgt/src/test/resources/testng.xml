@@ -27,6 +27,7 @@
             <class name="org.wso2.carbon.identity.workflow.mgt.bean.RoleEntityTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstantsTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.util.UtilsTest"/>
         </classes>
     </test>
 </suite>

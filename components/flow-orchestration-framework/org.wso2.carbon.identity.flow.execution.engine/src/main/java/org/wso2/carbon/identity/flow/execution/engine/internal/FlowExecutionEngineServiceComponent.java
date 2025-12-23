@@ -31,7 +31,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.FlowExecutionService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
-import org.wso2.carbon.identity.flow.execution.engine.graph.UserOnboardingExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
@@ -76,7 +75,6 @@ public class FlowExecutionEngineServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(FlowExecutionService.class.getName(),
                     FlowExecutionService.getInstance(), null);
-            bundleContext.registerService(Executor.class.getName(), new UserOnboardingExecutor(), null);
             bundleContext.registerService(FlowExecutionListener.class.getName(), new InputValidationListener(),
                     null);
             LOG.debug("Flow Engine service successfully activated.");

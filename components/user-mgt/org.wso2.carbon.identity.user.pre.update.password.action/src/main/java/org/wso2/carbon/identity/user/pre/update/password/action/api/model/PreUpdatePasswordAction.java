@@ -100,6 +100,13 @@ public class PreUpdatePasswordAction extends Action {
         }
 
         @Override
+        public ResponseBuilder actionVersion(String actionVersion) {
+
+            super.actionVersion(actionVersion);
+            return this;
+        }
+
+        @Override
         public ResponseBuilder createdAt(Timestamp createdAt) {
 
             super.createdAt(createdAt);
@@ -151,6 +158,7 @@ public class PreUpdatePasswordAction extends Action {
 
             name(action.getName());
             description(action.getDescription());
+            actionVersion(action.getActionVersion());
             endpoint(action.getEndpoint());
             rule(action.getActionRule());
         }

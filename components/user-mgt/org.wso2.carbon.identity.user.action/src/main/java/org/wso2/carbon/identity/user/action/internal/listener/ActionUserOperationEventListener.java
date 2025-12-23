@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.user.action.internal.listener;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
@@ -31,10 +30,10 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionServerException;
@@ -61,8 +60,6 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private static final Log log = LogFactory.getLog(ActionUserOperationEventListener.class);
     private static final String MANAGED_ORG_CLAIM_URI = "http://wso2.org/claims/identity/managedOrg";
-    private static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
-            "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
     @Override
     public int getExecutionOrderId() {
@@ -113,24 +110,12 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUserWithID(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || !isEnabledInRegistrationFlows() || !isRegistrationFlow()) {
+        if (!isEnable() || !isRegistrationFlow()) {
             return true;
         }
 
         return executePreUpdatePasswordAction(null, credential, userStoreManager, claims);
     }
-
-    private boolean isEnabledInRegistrationFlows() {
-
-        String propertyValue = IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW);
-
-        if (StringUtils.isNotBlank(propertyValue)) {
-            return Boolean.parseBoolean(propertyValue);
-        }
-
-        return true;
-    }
-
 
     private boolean executePreUpdatePasswordAction(String userID, Object credential, UserStoreManager userStoreManager,
                                                    Map<String, String> claims) throws UserStoreException {
@@ -198,8 +183,9 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         org.wso2.carbon.identity.core.context.model.Organization accessingOrganization =
                 IdentityContext.getThreadLocalIdentityContext().getOrganization();
         if (accessingOrganization == null) {
-            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
-                    "Accessing organization is not present in the identity context.");
+            log.warn("Accessing organization is not present in the identity context. " +
+                    "Hence cannot populate user resident organization from ActionUserOperationEventListener.");
+            return null;
         }
 
         return new Organization.Builder()
@@ -212,16 +198,15 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private Organization getUserManagedOrganization(String managedOrgId) throws UserActionExecutionServerException {
 
-        if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
-            return new Organization.Builder()
-                    .id(OrganizationManagementConstants.SUPER_ORG_ID)
-                    .name(OrganizationManagementConstants.SUPER)
-                    .orgHandle(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
-                    .depth(0)
-                    .build();
-        }
-
         try {
+            if (OrganizationManagementConstants.SUPER_ORG_ID.equals(managedOrgId)) {
+                return new Organization.Builder()
+                        .id(OrganizationManagementConstants.SUPER_ORG_ID)
+                        .name(OrganizationManagementUtil.getSuperRootOrgName())
+                        .orgHandle(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)
+                        .depth(0)
+                        .build();
+            }
             MinimalOrganization minimalOrganization = UserActionServiceComponentHolder.getInstance().
                     getOrganizationManager().getMinimalOrganization(managedOrgId, null);
             if (minimalOrganization == null) {

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -81,6 +82,27 @@ public class ConfigurationFacadeTest {
 
             String result = configurationFacade.getAuthenticationEndpointMissingClaimsURL();
             assertEquals(expectedUrl, result);
+        }
+    }
+
+    @DataProvider
+    public Object[][] provideIsConsentPageRedirectParamsAllowed() {
+        return new Object[][]{
+                {true},
+                {false}
+        };
+    }
+
+    @Test(dataProvider = "provideIsConsentPageRedirectParamsAllowed")
+    public void testIsConsentPageRedirectParamsAllowed(boolean allowConsentPageRedirectParams) {
+
+        try (MockedStatic<FileBasedConfigurationBuilder> fileBasedConfigMock =
+                     Mockito.mockStatic(FileBasedConfigurationBuilder.class)) {
+            fileBasedConfigMock.when(FileBasedConfigurationBuilder::getInstance).thenReturn(
+                    fileBasedConfigurationBuilder);
+            when(fileBasedConfigurationBuilder.isConsentPageRedirectParamsAllowed())
+                    .thenReturn(allowConsentPageRedirectParams);
+            assertEquals(configurationFacade.isConsentPageRedirectParamsAllowed(), allowConsentPageRedirectParams);
         }
     }
 }

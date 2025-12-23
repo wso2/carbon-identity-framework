@@ -1,0 +1,574 @@
+-- ------------------------------------------
+-- Procedure to cleanup tokens from IDN_OAUTH2_REFRESH_TOKEN and IDN_OAUTH2_REVOKED_TOKENS tables.
+-- Procedure to cleanup expired revoked subject entities from IDN_SUBJECT_ENTITY_REVOKED_EVENT table.
+-- !!! Note: Use this procedure only if you are using non-persistent access tokens.
+-- ------------------------------------------
+
+DROP PROCEDURE IF EXISTS `WSO2_NON_PERSISTENCE_ACCESS_TOKEN_CLEANUP_SP`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `WSO2_NON_PERSISTENCE_ACCESS_TOKEN_CLEANUP_SP`()
+
+BEGIN
+
+-- ------------------------------------------
+-- DECLARE VARIABLES
+-- ------------------------------------------
+DECLARE batchSize INT;
+DECLARE chunkSize INT;
+DECLARE checkCount INT;
+DECLARE backupTables BOOLEAN;
+DECLARE sleepTime FLOAT;
+DECLARE safePeriod INT;
+DECLARE deleteTillTime DATETIME;
+DECLARE rowCount INT;
+DECLARE userAccessTokenExpireTime BIGINT;
+DECLARE appAccessTokenExpireTime BIGINT;
+DECLARE enableLog BOOLEAN;
+DECLARE logLevel VARCHAR(10);
+DECLARE enableAudit BOOLEAN;
+DECLARE maxValidityPeriod BIGINT;
+DECLARE anlyzeTables BOOLEAN;
+DECLARE cursorTable VARCHAR(255);
+DECLARE BACKUP_TABLE VARCHAR(255);
+DECLARE cursorLoopFinished INTEGER DEFAULT 0;
+
+DECLARE backupTablesCursor CURSOR FOR
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA in (SELECT DATABASE()) AND
+TABLE_NAME IN ('IDN_OAUTH2_REFRESH_TOKEN','IDN_OAUTH2_REFRESH_TOKEN_SCOPE','IDN_OAUTH2_REVOKED_TOKENS','IDN_SUBJECT_ENTITY_REVOKED_EVENT');
+
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET cursorLoopFinished = 1;
+
+-- ------------
+SET maxValidityPeriod = 99999999999990;  -- IF THE VALIDITY PERIOD IS MORE THAN 3170.97 YEARS WILL SKIP THE CLEANUP PROCESS;
+-- ------------
+-- -----------------------------------------
+-- CONFIGURABLE ATTRIBUTES
+-- ------------------------------------------
+SET batchSize = 10000;      -- SET BATCH SIZE FOR AVOID TABLE LOCKS    [DEFAULT : 10000]
+SET chunkSize = 500000;    -- SET TEMP TABLE CHUNK SIZE FOR AVOID TABLE LOCKS    [DEFAULT : 1000000]
+SET checkCount = 100; -- SET CHECK COUNT FOR FINISH CLEANUP SCRIPT (CLEANUP ELIGIBLE TOKENS COUNT SHOULD BE HIGHER THAN checkCount TO CONTINUE) [DEFAULT : 100]
+SET backupTables = TRUE;    -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE     [DEFAULT : TRUE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+SET sleepTime = 2;          -- SET SLEEP TIME FOR AVOID TABLE LOCKS     [DEFAULT : 2]
+SET safePeriod = 2;         -- SET SAFE PERIOD OF HOURS FOR TOKEN DELETE, SINCE TOKENS COULD BE CASHED    [DEFAULT : 2]
+SET deleteTillTime = DATE_ADD(NOW(), INTERVAL -(safePeriod) HOUR);    -- SET CURRENT TIME - safePeriod FOR BEGIN THE TOKEN DELETE
+SET rowCount=0;
+SET enableLog = TRUE;       -- ENABLE LOGGING [DEFAULT : FALSE]
+SET logLevel = 'TRACE';    -- SET LOG LEVELS : TRACE , DEBUG
+SET enableAudit = FALSE;    -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED TOKENS USING A TABLE   [DEFAULT : FALSE] [IF YOU ENABLE THIS TABLE BACKUP WILL FORCEFULLY SET TO TRUE]
+SET SQL_MODE='ALLOW_INVALID_DATES';                                -- MAKE THIS UNCOMMENT IF MYSQL THROWS "ERROR 1067 (42000): Invalid default value for 'TIME_CREATED'"
+-- SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED ;      -- SET ISOLATION LEVEL TO AVOID TABLE LOCKS IN SELECT.
+SET anlyzeTables = FALSE; -- SET TRUE FOR Analyze the tables TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
+SET userAccessTokenExpireTime = 3600; -- SET THE DEFAULT VALUE FOR MAX USER ACCESS TOKEN EXPIRE TIME IN IDN_OAUTH_CONSUMER_APPS TABLE.
+SET appAccessTokenExpireTime = 3600; -- SET THE DEFAULT VALUE FOR MAX APP ACCESS TOKEN EXPIRE TIME IN IDN_OAUTH_CONSUMER_APPS TABLE.
+
+IF (enableLog)
+THEN
+SELECT 'WSO2_NON_PERSISTENCE_ACCESS_TOKEN_CLEANUP_SP STARTED ... !' AS 'INFO LOG';
+END IF;
+
+IF (enableAudit)
+THEN
+SET backupTables = TRUE;    -- BACKUP TABLES IS REQUIRED HENCE THE AUDIT IS ENABLED.
+END IF;
+
+
+IF (backupTables)
+THEN
+      IF (enableLog)
+      THEN
+      SELECT 'NON_PERSISTENCE_ACCESS_TOKEN TABLE BACKUP STARTED ... !' AS 'INFO LOG';
+      END IF;
+
+      OPEN backupTablesCursor;
+      backupLoop: loop
+              fetch backupTablesCursor into cursorTable;
+
+              IF cursorLoopFinished = 1 THEN
+              LEAVE backupLoop;
+              END IF;
+
+              SELECT CONCAT('BAK_',cursorTable) into BACKUP_TABLE;
+
+                  SET @dropTab=CONCAT("DROP TABLE IF EXISTS ", BACKUP_TABLE);
+                  PREPARE stmtDrop FROM @dropTab;
+                  EXECUTE stmtDrop;
+                  DEALLOCATE PREPARE stmtDrop;
+
+              IF (enableLog AND logLevel IN ('TRACE'))
+              THEN
+                  SET @printstate=CONCAT("SELECT 'BACKING UP ",cursorTable," TOKENS INTO ", BACKUP_TABLE, " 'AS' TRACE LOG' , COUNT(1) FROM ", cursorTable);
+                  PREPARE stmtPrint FROM @printstate;
+                  EXECUTE stmtPrint;
+                  DEALLOCATE PREPARE stmtPrint;
+              END IF;
+
+              SET @cretTab=CONCAT("CREATE TABLE ", BACKUP_TABLE," SELECT * FROM ",cursorTable);
+              PREPARE stmtDrop FROM @cretTab;
+              EXECUTE stmtDrop;
+              DEALLOCATE PREPARE stmtDrop;
+
+              IF (enableLog  AND logLevel IN ('DEBUG','TRACE') )
+              THEN
+              SET @printstate= CONCAT("SELECT 'BACKING UP ",BACKUP_TABLE," COMPLETED ! ' AS 'DEBUG LOG', COUNT(1) FROM ", BACKUP_TABLE);
+              PREPARE stmtPrint FROM @printstate;
+              EXECUTE stmtPrint;
+              DEALLOCATE PREPARE stmtPrint;
+              END IF;
+      END loop backupLoop;
+      CLOSE backupTablesCursor;
+END IF;
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- CREATING AUDITLOG TABLES FOR DELETING REFRESH TOKENS
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IF (enableAudit)
+THEN
+    IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AUDITLOG_IDN_OAUTH2_REFRESH_TOKEN_CLEANUP' and TABLE_SCHEMA in (SELECT DATABASE())))
+    THEN
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        SELECT 'CREATING AUDIT TABLE AUDITLOG_IDN_OAUTH2_REFRESH_TOKEN_CLEANUP .. !';
+        END IF;
+        CREATE TABLE AUDITLOG_IDN_OAUTH2_REFRESH_TOKEN_CLEANUP SELECT * FROM IDN_OAUTH2_REFRESH_TOKEN WHERE 1 = 2;
+    ELSE
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        SELECT 'USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_REFRESH_TOKEN_CLEANUP ..!';
+        END IF;
+    END IF;
+END IF;
+
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- CALCULATING TOKENS TYPES IN IDN_OAUTH2_REFRESH_TOKEN
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IF (enableLog)
+THEN
+    SELECT 'CALCULATING TOKENS TYPES IN IDN_OAUTH2_REFRESH_TOKEN TABLE .... !' AS 'INFO LOG';
+
+    IF (enableLog AND logLevel IN ('DEBUG','TRACE'))
+    THEN
+    SELECT  COUNT(1)  into rowcount FROM IDN_OAUTH2_REFRESH_TOKEN;
+    SELECT 'TOTAL TOKENS ON IDN_OAUTH2_REFRESH_TOKEN TABLE BEFORE DELETE' AS 'DEBUG LOG',rowcount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE'))
+    THEN
+    SELECT COUNT(1) into @cleanupCount  FROM IDN_OAUTH2_REFRESH_TOKEN WHERE TOKEN_STATE IN ('INACTIVE','REVOKED','EXPIRED') OR (TOKEN_STATE IN ('ACTIVE') AND (REFRESH_TOKEN_VALIDITY_PERIOD > 0 AND REFRESH_TOKEN_VALIDITY_PERIOD < maxValidityPeriod) AND (deleteTillTime > DATE_ADD(REFRESH_TOKEN_TIME_CREATED,INTERVAL +(REFRESH_TOKEN_VALIDITY_PERIOD/60000) MINUTE)));
+    SELECT 'TOTAL TOKENS SHOULD BE DELETED FROM IDN_OAUTH2_REFRESH_TOKEN' AS 'TRACE LOG', @cleanupCount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE'))
+    THEN
+    set rowcount  = (rowcount - @cleanupCount);
+    SELECT 'TOTAL TOKENS SHOULD BE RETAIN IN IDN_OAUTH2_REFRESH_TOKEN' AS 'TRACE LOG', rowcount;
+    END IF;
+END IF;
+
+-- ------------------------------------------------------
+-- BATCH DELETE IDN_OAUTH2_REFRESH_TOKEN
+-- ------------------------------------------------------
+IF (enableLog)
+THEN
+SELECT 'TOKEN DELETE ON IDN_OAUTH2_REFRESH_TOKEN STARTED .... !' AS 'INFO LOG';
+END IF;
+
+TOKE_CHUNK_LOOP: REPEAT
+
+      DROP TEMPORARY TABLE IF EXISTS CHUNK_IDN_OAUTH2_REFRESH_TOKEN;
+
+      CREATE TEMPORARY TABLE CHUNK_IDN_OAUTH2_REFRESH_TOKEN SELECT REFRESH_TOKEN_ID FROM IDN_OAUTH2_REFRESH_TOKEN WHERE TOKEN_STATE IN ('INACTIVE','REVOKED','EXPIRED') OR (TOKEN_STATE IN ('ACTIVE') AND (REFRESH_TOKEN_VALIDITY_PERIOD > 0 AND REFRESH_TOKEN_VALIDITY_PERIOD < maxValidityPeriod) AND (deleteTillTime > DATE_ADD(REFRESH_TOKEN_TIME_CREATED,INTERVAL +(REFRESH_TOKEN_VALIDITY_PERIOD/60000) MINUTE))) LIMIT chunkSize;
+
+      SELECT COUNT(1) INTO @chunkCount FROM CHUNK_IDN_OAUTH2_REFRESH_TOKEN;
+
+      IF (@chunkCount<checkCount)
+      THEN
+      LEAVE TOKE_CHUNK_LOOP;
+      END IF;
+
+      CREATE INDEX IDX_CHK_IDN_OATH_REFRESH_TOK ON CHUNK_IDN_OAUTH2_REFRESH_TOKEN(REFRESH_TOKEN_ID);
+
+      IF (enableLog AND logLevel IN ('TRACE'))
+      THEN
+      SELECT 'PROCESSING CHUNK IDN_OAUTH2_REFRESH_TOKEN STARTED .... !' AS 'TRACE LOG',@chunkCount ;
+      END IF;
+
+      IF (enableAudit)
+      THEN
+      INSERT INTO AUDITLOG_IDN_OAUTH2_REFRESH_TOKEN_CLEANUP SELECT TOK.* FROM  IDN_OAUTH2_REFRESH_TOKEN AS TOK INNER JOIN  CHUNK_IDN_OAUTH2_REFRESH_TOKEN AS CHK WHERE TOK.REFRESH_TOKEN_ID = CHK.REFRESH_TOKEN_ID;
+      END IF;
+
+
+      TOKE_BATCH_LOOP: REPEAT
+
+            DROP TEMPORARY TABLE IF EXISTS BATCH_IDN_OAUTH2_REFRESH_TOKEN;
+
+            CREATE TEMPORARY TABLE BATCH_IDN_OAUTH2_REFRESH_TOKEN SELECT REFRESH_TOKEN_ID FROM CHUNK_IDN_OAUTH2_REFRESH_TOKEN LIMIT batchSize;
+
+            SELECT COUNT(1) INTO @batchCount FROM BATCH_IDN_OAUTH2_REFRESH_TOKEN;
+
+            IF (@batchCount=0 )
+            THEN
+            LEAVE TOKE_BATCH_LOOP;
+            END IF;
+
+            IF (enableLog AND logLevel IN ('TRACE'))
+            THEN
+            SELECT 'BATCH DELETE STARTED ON IDN_OAUTH2_REFRESH_TOKEN :' AS 'TRACE LOG',  @batchCount;
+            END IF;
+
+            DELETE A
+            FROM IDN_OAUTH2_REFRESH_TOKEN AS A
+            INNER JOIN BATCH_IDN_OAUTH2_REFRESH_TOKEN AS B
+            ON A.REFRESH_TOKEN_ID = B.REFRESH_TOKEN_ID;
+
+            SELECT row_count() INTO rowCount;
+
+            IF (enableLog)
+            THEN
+            SELECT 'BATCH DELETE FINISHED ON IDN_OAUTH2_REFRESH_TOKEN :' AS 'INFO LOG', rowCount;
+            END IF;
+
+            DELETE A
+            FROM CHUNK_IDN_OAUTH2_REFRESH_TOKEN AS A
+            INNER JOIN BATCH_IDN_OAUTH2_REFRESH_TOKEN AS B
+            ON A.REFRESH_TOKEN_ID = B.REFRESH_TOKEN_ID;
+
+            IF ((rowCount > 0))
+            THEN
+            DO SLEEP(sleepTime);
+            END IF;
+      UNTIL rowCount=0 END REPEAT;
+UNTIL @chunkCount=0 END REPEAT;
+
+IF (enableLog )
+THEN
+SELECT 'TOKEN DELETE ON IDN_OAUTH2_REFRESH_TOKEN COMPLETED .... !' AS 'INFO LOG';
+END IF;
+
+
+-- ------------------------------------------------------
+-- BATCH DELETE IDN_OAUTH2_REFRESH_TOKEN
+-- ------------------------------------------------------
+IF (enableLog)
+THEN
+SELECT 'TOKEN DELETE ON IDN_OAUTH2_REFRESH_TOKEN STARTED .... !' AS 'INFO LOG';
+END IF;
+
+TOKE_CHUNK_LOOP: REPEAT
+
+      DROP TEMPORARY TABLE IF EXISTS CHUNK_IDN_OAUTH2_REFRESH_TOKEN;
+
+      CREATE TEMPORARY TABLE CHUNK_IDN_OAUTH2_REFRESH_TOKEN SELECT REFRESH_TOKEN_ID FROM IDN_OAUTH2_REFRESH_TOKEN WHERE TOKEN_STATE IN ('INACTIVE','REVOKED','EXPIRED') OR (TOKEN_STATE IN ('ACTIVE') AND (REFRESH_TOKEN_VALIDITY_PERIOD > 0 AND REFRESH_TOKEN_VALIDITY_PERIOD < maxValidityPeriod) AND (deleteTillTime > DATE_ADD(REFRESH_TOKEN_TIME_CREATED,INTERVAL +(REFRESH_TOKEN_VALIDITY_PERIOD/60000) MINUTE))) LIMIT chunkSize;
+
+      SELECT COUNT(1) INTO @chunkCount FROM CHUNK_IDN_OAUTH2_REFRESH_TOKEN;
+
+      IF (@chunkCount<checkCount)
+      THEN
+      LEAVE TOKE_CHUNK_LOOP;
+      END IF;
+
+      CREATE INDEX IDX_CHK_IDN_OATH_REFRESH_TOK ON CHUNK_IDN_OAUTH2_REFRESH_TOKEN(REFRESH_TOKEN_ID);
+
+      IF (enableLog AND logLevel IN ('TRACE'))
+      THEN
+      SELECT 'PROCESSING CHUNK IDN_OAUTH2_REFRESH_TOKEN STARTED .... !' AS 'TRACE LOG',@chunkCount ;
+      END IF;
+
+      IF (enableAudit)
+      THEN
+      INSERT INTO AUDITLOG_IDN_OAUTH2_REFRESH_TOKEN_CLEANUP SELECT TOK.* FROM  IDN_OAUTH2_REFRESH_TOKEN AS TOK INNER JOIN  CHUNK_IDN_OAUTH2_REFRESH_TOKEN AS CHK WHERE TOK.REFRESH_TOKEN_ID = CHK.REFRESH_TOKEN_ID;
+      END IF;
+
+
+      TOKE_BATCH_LOOP: REPEAT
+
+            DROP TEMPORARY TABLE IF EXISTS BATCH_IDN_OAUTH2_REFRESH_TOKEN;
+
+            CREATE TEMPORARY TABLE BATCH_IDN_OAUTH2_REFRESH_TOKEN SELECT REFRESH_TOKEN_ID FROM CHUNK_IDN_OAUTH2_REFRESH_TOKEN LIMIT batchSize;
+
+            SELECT COUNT(1) INTO @batchCount FROM BATCH_IDN_OAUTH2_REFRESH_TOKEN;
+
+            IF (@batchCount=0 )
+            THEN
+            LEAVE TOKE_BATCH_LOOP;
+            END IF;
+
+            IF (enableLog AND logLevel IN ('TRACE'))
+            THEN
+            SELECT 'BATCH DELETE STARTED ON IDN_OAUTH2_REFRESH_TOKEN :' AS 'TRACE LOG',  @batchCount;
+            END IF;
+
+            DELETE A
+            FROM IDN_OAUTH2_REFRESH_TOKEN AS A
+            INNER JOIN BATCH_IDN_OAUTH2_REFRESH_TOKEN AS B
+            ON A.REFRESH_TOKEN_ID = B.REFRESH_TOKEN_ID;
+
+            SELECT row_count() INTO rowCount;
+
+            IF (enableLog)
+            THEN
+            SELECT 'BATCH DELETE FINISHED ON IDN_OAUTH2_REFRESH_TOKEN :' AS 'INFO LOG', rowCount;
+            END IF;
+
+            DELETE A
+            FROM CHUNK_IDN_OAUTH2_REFRESH_TOKEN AS A
+            INNER JOIN BATCH_IDN_OAUTH2_REFRESH_TOKEN AS B
+            ON A.REFRESH_TOKEN_ID = B.REFRESH_TOKEN_ID;
+
+            IF ((rowCount > 0))
+            THEN
+            DO SLEEP(sleepTime);
+            END IF;
+      UNTIL rowCount=0 END REPEAT;
+UNTIL @chunkCount=0 END REPEAT;
+
+IF (enableLog )
+THEN
+SELECT 'TOKEN DELETE ON IDN_OAUTH2_REFRESH_TOKEN COMPLETED .... !' AS 'INFO LOG';
+END IF;
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- CALCULATING TOKENS IN IDN_OAUTH2_REVOKED_TOKENS
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IF (enableLog)
+THEN
+    SELECT 'CALCULATING TOKENS IN IDN_OAUTH2_REVOKED_TOKENS TABLE .... !' AS 'INFO LOG';
+
+    IF (enableLog AND logLevel IN ('DEBUG','TRACE'))
+    THEN
+    SELECT  COUNT(1)  into rowcount FROM IDN_OAUTH2_REVOKED_TOKENS;
+    SELECT 'TOTAL TOKENS ON IDN_OAUTH2_REVOKED_TOKENS TABLE BEFORE DELETE' AS 'DEBUG LOG',rowcount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE'))
+    THEN
+    SELECT COUNT(1) into @cleanupCount FROM IDN_OAUTH2_REVOKED_TOKENS WHERE deleteTillTime > EXPIRY_TIMESTAMP;
+    SELECT 'TOTAL TOKENS SHOULD BE DELETED FROM IDN_OAUTH2_REVOKED_TOKENS' AS 'TRACE LOG', @cleanupCount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE'))
+    THEN
+    set rowcount  = (rowcount - @cleanupCount);
+    SELECT 'TOTAL TOKENS SHOULD BE RETAIN IN IDN_OAUTH2_REVOKED_TOKENS' AS 'TRACE LOG', rowcount;
+    END IF;
+END IF;
+
+-- ------------------------------------------------------
+-- BATCH DELETE IDN_OAUTH2_REVOKED_TOKENS
+-- ------------------------------------------------------
+IF (enableLog)
+THEN
+SELECT 'TOKEN DELETE ON IDN_OAUTH2_REVOKED_TOKENS STARTED .... !' AS 'INFO LOG';
+END IF;
+
+TOKE_CHUNK_LOOP: REPEAT
+
+      DROP TEMPORARY TABLE IF EXISTS CHUNK_IDN_OAUTH2_REVOKED_TOKENS;
+
+      CREATE TEMPORARY TABLE CHUNK_IDN_OAUTH2_REVOKED_TOKENS SELECT UUID FROM IDN_OAUTH2_REVOKED_TOKENS WHERE deleteTillTime > EXPIRY_TIMESTAMP LIMIT chunkSize;
+
+      SELECT COUNT(1) INTO @chunkCount FROM CHUNK_IDN_OAUTH2_REVOKED_TOKENS;
+
+      IF (@chunkCount<checkCount)
+      THEN
+      LEAVE TOKE_CHUNK_LOOP;
+      END IF;
+
+      CREATE INDEX IDX_CHK_IDN_OATH_REVOKED_TOK ON CHUNK_IDN_OAUTH2_REVOKED_TOKENS(UUID);
+
+      IF (enableLog AND logLevel IN ('TRACE'))
+      THEN
+      SELECT 'PROCESSING CHUNK CHUNK_IDN_OAUTH2_REVOKED_TOKENS STARTED .... !' AS 'TRACE LOG',@chunkCount ;
+      END IF;
+
+      TOKE_BATCH_LOOP: REPEAT
+
+            DROP TEMPORARY TABLE IF EXISTS BATCH_IDN_OAUTH2_REVOKED_TOKENS;
+
+            CREATE TEMPORARY TABLE BATCH_IDN_OAUTH2_REVOKED_TOKENS SELECT UUID FROM CHUNK_IDN_OAUTH2_REVOKED_TOKENS LIMIT batchSize;
+
+            SELECT COUNT(1) INTO @batchCount FROM BATCH_IDN_OAUTH2_REVOKED_TOKENS;
+
+            IF (@batchCount=0 )
+            THEN
+            LEAVE TOKE_BATCH_LOOP;
+            END IF;
+
+            IF (enableLog AND logLevel IN ('TRACE'))
+            THEN
+            SELECT 'BATCH DELETE STARTED ON IDN_OAUTH2_REVOKED_TOKENS :' AS 'TRACE LOG',  @batchCount;
+            END IF;
+
+            DELETE A
+            FROM IDN_OAUTH2_REVOKED_TOKENS AS A
+            INNER JOIN BATCH_IDN_OAUTH2_REVOKED_TOKENS AS B
+            ON A.UUID = B.UUID;
+
+            SELECT row_count() INTO rowCount;
+
+            IF (enableLog)
+            THEN
+            SELECT 'BATCH DELETE FINISHED ON IDN_OAUTH2_REVOKED_TOKENS :' AS 'INFO LOG', rowCount;
+            END IF;
+
+            DELETE A
+            FROM CHUNK_IDN_OAUTH2_REVOKED_TOKENS AS A
+            INNER JOIN BATCH_IDN_OAUTH2_REVOKED_TOKENS AS B
+            ON A.UUID = B.UUID;
+
+            IF ((rowCount > 0))
+            THEN
+            DO SLEEP(sleepTime);
+            END IF;
+      UNTIL rowCount=0 END REPEAT;
+UNTIL @chunkCount=0 END REPEAT;
+
+IF (enableLog )
+THEN
+SELECT 'TOKEN DELETE ON IDN_OAUTH2_REVOKED_TOKENS COMPLETED .... !' AS 'INFO LOG';
+END IF;
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- CALCULATING ENTRIES IN IDN_SUBJECT_ENTITY_REVOKED_EVENT
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IF (enableLog)
+THEN
+    SELECT 'CALCULATING MAX(APP_ACCESS_TOKEN_EXPIRE_TIME) IN IDN_OAUTH_CONSUMER_APPS TABLE .... !' AS 'INFO LOG';
+
+    IF (enableLog AND logLevel IN ('DEBUG','TRACE'))
+    THEN
+    SELECT MAX(APP_ACCESS_TOKEN_EXPIRE_TIME) INTO appAccessTokenExpireTime FROM IDN_OAUTH_CONSUMER_APPS;
+    SELECT 'MAX appAccessTokenExpireTime TOTAL ON IDN_OAUTH_CONSUMER_APPS TABLE ' AS 'DEBUG LOG',appAccessTokenExpireTime;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('DEBUG','TRACE'))
+    THEN
+    SELECT MAX(USER_ACCESS_TOKEN_EXPIRE_TIME) INTO userAccessTokenExpireTime FROM IDN_OAUTH_CONSUMER_APPS;
+    SELECT 'MAX userAccessTokenExpireTime TOTAL ON IDN_OAUTH_CONSUMER_APPS TABLE ' AS 'DEBUG LOG', userAccessTokenExpireTime;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('DEBUG','TRACE'))
+    THEN
+    SELECT  COUNT(1)  into rowcount FROM IDN_SUBJECT_ENTITY_REVOKED_EVENT;
+    SELECT 'TOTAL ENTRIES ON IDN_SUBJECT_ENTITY_REVOKED_EVENT TABLE BEFORE DELETE' AS 'DEBUG LOG',rowcount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE'))
+    THEN
+    SELECT COUNT(1) into @cleanupCount FROM IDN_SUBJECT_ENTITY_REVOKED_EVENT WHERE (deleteTillTime > DATE_ADD(TIME_REVOKED,INTERVAL -(appAccessTokenExpireTime/60) MINUTE)) AND (deleteTillTime > DATE_ADD(TIME_REVOKED,INTERVAL -(userAccessTokenExpireTime/60) MINUTE));
+    SELECT 'TOTAL ENTRIES SHOULD BE DELETED FROM IDN_SUBJECT_ENTITY_REVOKED_EVENT' AS 'TRACE LOG', @cleanupCount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE'))
+    THEN
+    set rowcount  = (rowcount - @cleanupCount);
+    SELECT 'TOTAL ENTRIES SHOULD BE RETAIN IN IDN_SUBJECT_ENTITY_REVOKED_EVENT' AS 'TRACE LOG', rowcount;
+    END IF;
+END IF;
+
+-- ------------------------------------------------------
+-- BATCH DELETE IDN_SUBJECT_ENTITY_REVOKED_EVENT
+-- ------------------------------------------------------
+IF (enableLog)
+THEN
+SELECT 'TOKEN DELETE ON IDN_SUBJECT_ENTITY_REVOKED_EVENT STARTED .... !' AS 'INFO LOG';
+END IF;
+
+TOKE_CHUNK_LOOP: REPEAT
+
+      DROP TEMPORARY TABLE IF EXISTS CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT;
+
+      CREATE TEMPORARY TABLE CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT SELECT EVENT_ID FROM IDN_SUBJECT_ENTITY_REVOKED_EVENT WHERE (deleteTillTime > DATE_ADD(TIME_REVOKED,INTERVAL (appAccessTokenExpireTime/60) MINUTE)) AND (deleteTillTime > DATE_ADD(TIME_REVOKED,INTERVAL (userAccessTokenExpireTime/60) MINUTE)) LIMIT chunkSize;
+
+      SELECT COUNT(1) INTO @chunkCount FROM CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT;
+
+      IF (@chunkCount<checkCount)
+      THEN
+      LEAVE TOKE_CHUNK_LOOP;
+      END IF;
+
+      CREATE INDEX IDX_CHK_IDN_OATH_REVOKED_ENTITIES ON CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT(EVENT_ID);
+
+      IF (enableLog AND logLevel IN ('TRACE'))
+      THEN
+      SELECT 'PROCESSING CHUNK CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT STARTED .... !' AS 'TRACE LOG',@chunkCount ;
+      END IF;
+
+      TOKE_BATCH_LOOP: REPEAT
+
+            DROP TEMPORARY TABLE IF EXISTS BATCH_IDN_SUBJECT_ENTITY_REVOKED_EVENT;
+
+            CREATE TEMPORARY TABLE BATCH_IDN_SUBJECT_ENTITY_REVOKED_EVENT SELECT EVENT_ID FROM CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT LIMIT batchSize;
+
+            SELECT COUNT(1) INTO @batchCount FROM BATCH_IDN_SUBJECT_ENTITY_REVOKED_EVENT;
+
+            IF (@batchCount=0 )
+            THEN
+            LEAVE TOKE_BATCH_LOOP;
+            END IF;
+
+            IF (enableLog AND logLevel IN ('TRACE'))
+            THEN
+            SELECT 'BATCH DELETE STARTED ON BATCH_IDN_SUBJECT_ENTITY_REVOKED_EVENT :' AS 'TRACE LOG',  @batchCount;
+            END IF;
+
+            DELETE A
+            FROM IDN_SUBJECT_ENTITY_REVOKED_EVENT AS A
+            INNER JOIN BATCH_IDN_SUBJECT_ENTITY_REVOKED_EVENT AS B
+            ON A.EVENT_ID = B.EVENT_ID;
+
+            SELECT row_count() INTO rowCount;
+
+            IF (enableLog)
+            THEN
+            SELECT 'BATCH DELETE FINISHED ON IDN_SUBJECT_ENTITY_REVOKED_EVENT :' AS 'INFO LOG', rowCount;
+            END IF;
+
+            DELETE A
+            FROM CHUNK_IDN_SUBJECT_ENTITY_REVOKED_EVENT AS A
+            INNER JOIN BATCH_IDN_SUBJECT_ENTITY_REVOKED_EVENT AS B
+            ON A.EVENT_ID = B.EVENT_ID;
+
+            IF ((rowCount > 0))
+            THEN
+            DO SLEEP(sleepTime);
+            END IF;
+      UNTIL rowCount=0 END REPEAT;
+UNTIL @chunkCount=0 END REPEAT;
+
+IF (enableLog )
+THEN
+SELECT 'TOKEN DELETE ON IDN_SUBJECT_ENTITY_REVOKED_EVENT COMPLETED .... !' AS 'INFO LOG';
+END IF;
+
+
+-- ------------------------------------------------------
+-- OPTIMIZING TABLES FOR BETTER PERFORMANCE
+-- ------------------------------------------------------
+
+IF (anlyzeTables)
+THEN
+
+    IF (enableLog)
+    THEN
+    SELECT 'TABLE ANALYZING STARTED .... !' AS 'INFO LOG';
+    END IF;
+
+    ANALYZE TABLE IDN_OAUTH2_REFRESH_TOKEN;
+    ANALYZE TABLE IDN_OAUTH2_REFRESH_TOKEN_SCOPE;
+    ANALYZE TABLE IDN_OAUTH2_REVOKED_TOKENS;
+    ANALYZE TABLE IDN_SUBJECT_ENTITY_REVOKED_EVENT;
+
+END IF;
+
+IF (enableLog)
+THEN
+SELECT 'WSO2_NON_PERSISTENCE_ACCESS_TOKEN_CLEANUP_SP() COMPLETED .... !' AS 'INFO LOG';
+END IF;
+
+END$$
+
+DELIMITER ;

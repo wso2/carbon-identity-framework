@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.workflow.mgt.callback;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.model.ParameterDO;
 import org.wso2.carbon.identity.workflow.mgt.WorkFlowExecutorManager;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
@@ -37,17 +36,16 @@ public class WSWorkflowCallBackService {
     private static final Log log = LogFactory.getLog(WSWorkflowCallBackService.class);
 
     /**
-     * The callback operation to be called on the completion of the workflow executor service.
+     * The callback operation to be called on the completion of the workflow executor service
      *
-     * @param response  Response received from workflow engine.
+     * @param response  Response received from workflow engine
      */
     public void onCallback(WSWorkflowResponse response) {
-
         if (response != null) {
             Map<String, Object> outputParams;
             if (response.getOutputParams() != null) {
                 outputParams = new HashMap<>(response.getOutputParams().length);
-                for (ParameterDO parameter : response.getOutputParams()) {
+                for (WSParameter parameter : response.getOutputParams()) {
                     outputParams.put(parameter.getName(), parameter.getValue());
                 }
             } else {

@@ -44,9 +44,6 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
 
         // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION_INVITE_WITH_PASSWORD,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-        // Deprecated: To be removed when migration is complete.
         FLOW_DEFINITIONS.put(Name.INVITED_USER_REGISTRATION,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
@@ -54,17 +51,10 @@ public class Flow {
         // -------------------------------- Direct and self-registration flows ---------------------------
         FLOW_DEFINITIONS.put(Name.REGISTER,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
-
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------------- JIT Provisioning flows ----------------------------------------
         FLOW_DEFINITIONS.put(Name.JUST_IN_TIME_PROVISION, EnumSet.of(InitiatingPersona.USER));
-
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.JIT_PROVISION, EnumSet.of(InitiatingPersona.USER));
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------------- Authentication flows -----------------------------------------
@@ -87,19 +77,6 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         FLOW_DEFINITIONS.put(Name.USER_ACCOUNT_DISABLE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.USER_DELETE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.ACCOUNT_LOCK,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.ACCOUNT_UNLOCK,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.SYSTEM, InitiatingPersona.APPLICATION));
-        // Deprecated: To be removed when migration is complete.
-        FLOW_DEFINITIONS.put(Name.ACCOUNT_DISABLE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------- Credential management flows -------------------------------------
@@ -119,6 +96,13 @@ public class Flow {
 
         // ----------------------------- Session management flows ----------------------------------------
         FLOW_DEFINITIONS.put(Name.SESSION_REVOKE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
+                        InitiatingPersona.SYSTEM));
+        // -----------------------------------------------------------------------------------------------
+
+        // ------------------------------------- Token flows --------------------------------------------
+        FLOW_DEFINITIONS.put(Name.TOKEN_ISSUE, EnumSet.of(InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.TOKEN_REVOKE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER,
                         InitiatingPersona.SYSTEM));
         // -----------------------------------------------------------------------------------------------
@@ -145,21 +129,15 @@ public class Flow {
         // ------------ Invited registration flows ----------
         INVITE,
         @Deprecated // Use INVITE instead.
-        USER_REGISTRATION_INVITE_WITH_PASSWORD,
-        @Deprecated // Use INVITE instead.
         INVITED_USER_REGISTRATION,
         // --------------------------------------------------
 
         // --------Direct and self-registration flows--------
         REGISTER,
-        @Deprecated // Use REGISTER instead.
-        USER_REGISTRATION,
         // --------------------------------------------------
 
         // -------------JIT Provisioning flows---------------
         JUST_IN_TIME_PROVISION,
-        @Deprecated // Use JUST_IN_TIME_PROVISION instead.
-        JIT_PROVISION,
         // --------------------------------------------------
 
         // -------------Authentication flows-----------------
@@ -169,25 +147,11 @@ public class Flow {
 
         // -----------User management flows------------------
         PROFILE_UPDATE,
-
         USER_ACCOUNT_DELETE,
-        @Deprecated // Use USER_ACCOUNT_DELETE instead.
-        USER_DELETE,
-
         USER_ACCOUNT_LOCK,
-        @Deprecated // Use USER_ACCOUNT_LOCK instead.
-
-        ACCOUNT_LOCK,
-
         USER_ACCOUNT_UNLOCK,
-        @Deprecated // Use USER_ACCOUNT_UNLOCK instead.
-        ACCOUNT_UNLOCK,
-
         USER_ACCOUNT_ENABLE,
-
         USER_ACCOUNT_DISABLE,
-        @Deprecated // Use USER_ACCOUNT_DISABLE instead.
-        ACCOUNT_DISABLE,
         // --------------------------------------------------
 
         // -------------Credential management flows----------
@@ -205,6 +169,11 @@ public class Flow {
 
         // ---------Session management flows-----------------
         SESSION_REVOKE,
+        // --------------------------------------------------
+
+        // ---------Token flows-----------------
+        TOKEN_ISSUE,
+        TOKEN_REVOKE,
         // --------------------------------------------------
 
         // ---------Bulk resource management flows-----------

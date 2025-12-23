@@ -206,6 +206,21 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
     public List<ApplicationPermission> loadPermissions(String applicationName)
             throws IdentityApplicationManagementException {
 
+        int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+        try {
+            tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            IdentityTenantUtil.initializeRegistry(tenantId);
+        } catch (IdentityException e) {
+            /*
+             * The getRegistry() method in CarbonContext lazily initializes the registry for tenant-specific paths
+             * if it has not been initialized yet. However, under concurrent access, race conditions can cause this
+             * method to return null. To prevent such scenarios, the registry is explicitly initialized here.
+             * The IdentityException is caught and logged without rethrowing to preserve existing flow behavior.
+             */
+            log.error("Error loading tenant registry for tenant domain: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId), e);
+        }
+
         String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.USER_GOVERNANCE);
         List<String> paths = new ArrayList<>();

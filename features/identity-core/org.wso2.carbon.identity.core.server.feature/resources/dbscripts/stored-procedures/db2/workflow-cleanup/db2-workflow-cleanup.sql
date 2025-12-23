@@ -1,0 +1,194 @@
+CREATE OR REPLACE PROCEDURE WSO2_WF_REQUEST_CLEANUP
+
+BEGIN
+
+-- ------------------------------------------
+-- DECLARE VARIABLES
+-- ------------------------------------------
+DECLARE batchSize INT;
+DECLARE chunkSize INT;
+DECLARE batchCount INT;
+DECLARE chunkCount INT;
+DECLARE rowCount INT;
+DECLARE v_rowCount INT;
+DECLARE totalDeleted INT;
+DECLARE enableLog SMALLINT;
+DECLARE backupTables SMALLINT;
+DECLARE cleanUpRequestsTimeLimit INT;
+DECLARE cleanUpDateTimeLimit DATETIME;
+
+-- ------------------------------------------
+-- CONFIGURABLE VARIABLES
+-- ------------------------------------------
+SET batchSize    = 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
+SET chunkSize    = 500000; -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
+SET enableLog    = 1; -- ENABLE LOGGING [DEFAULT : 1]
+SET backupTables = 0; -- SET IF WF TABLES NEED TO BE BACKED-UP BEFORE DELETE [DEFAULT : 0]. WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+SET cleanUpRequestsTimeLimit = 1440;  -- SET SAFE PERIOD OF HOURS FOR REQUEST DELETE [DEFAULT : 1440 hrs (60 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
+
+SET rowCount = 0;
+SET totalDeleted = 0;
+SET batchCount = 1;
+SET chunkCount = 1;
+SET cleanUpDateTimeLimit = CURRENT TIMESTAMP - cleanUpRequestsTimeLimit HOUR;
+
+IF (enableLog = 1) THEN
+	CALL DBMS_OUTPUT.PUT_LINE('========================================');
+	CALL DBMS_OUTPUT.PUT_LINE('WSO2_WF_REQUEST_CLEANUP() STARTED...!');
+	CALL DBMS_OUTPUT.PUT_LINE('Cleanup Period: ' || cleanUpRequestsTimeLimit || ' hours');
+	CALL DBMS_OUTPUT.PUT_LINE('Target Statuses: APPROVED, REJECTED, FAILED, ABORTED');
+	CALL DBMS_OUTPUT.PUT_LINE('========================================');
+END IF;
+
+-- ------------------------------------------
+-- BACKUP DATA
+-- ------------------------------------------
+
+IF (backupTables = 1)
+THEN
+    IF (enableLog = 1)
+    THEN
+    	CALL DBMS_OUTPUT.PUT_LINE('TABLE BACKUP STARTED...!');
+    END IF;
+
+    -- BACKUP WF_REQUEST TABLE
+    IF (EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME = 'BAK_WF_REQUEST'))
+    THEN
+        IF (enableLog = 1)
+        THEN
+            CALL DBMS_OUTPUT.PUT_LINE('DELETING OLD WF_REQUEST BACKUP...');
+        END IF;
+        DROP TABLE BAK_WF_REQUEST;
+    END IF;
+    CREATE TABLE BAK_WF_REQUEST AS (SELECT * FROM WF_REQUEST 
+                                   WHERE STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED', 'ABORTED') 
+                                   AND UPDATED_AT < cleanUpDateTimeLimit) WITH DATA;
+    
+    -- BACKUP WF_WORKFLOW_REQUEST_RELATION TABLE
+    IF (EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME = 'BAK_WF_WORKFLOW_REQUEST_RELATION'))
+    THEN
+        IF (enableLog = 1)
+        THEN
+            CALL DBMS_OUTPUT.PUT_LINE('DELETING OLD WF_WORKFLOW_REQUEST_RELATION BACKUP...');
+        END IF;
+        DROP TABLE BAK_WF_WORKFLOW_REQUEST_RELATION;
+    END IF;
+    CREATE TABLE BAK_WF_WORKFLOW_REQUEST_RELATION AS (
+        SELECT t.* FROM WF_WORKFLOW_REQUEST_RELATION t
+        WHERE EXISTS (
+            SELECT 1 FROM WF_REQUEST r 
+            WHERE r.UUID = t.REQUEST_ID
+            AND r.STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED', 'ABORTED')
+            AND r.UPDATED_AT < cleanUpDateTimeLimit
+        )
+    ) WITH DATA;
+    
+    -- BACKUP WF_WORKFLOW_APPROVAL_RELATION TABLE
+    IF (EXISTS (SELECT NAME FROM SYSIBM.SYSTABLES WHERE NAME = 'BAK_WF_WORKFLOW_APPROVAL_RELATION'))
+    THEN
+        IF (enableLog = 1)
+        THEN
+            CALL DBMS_OUTPUT.PUT_LINE('DELETING OLD WF_WORKFLOW_APPROVAL_RELATION BACKUP...');
+        END IF;
+        DROP TABLE BAK_WF_WORKFLOW_APPROVAL_RELATION;
+    END IF;
+    CREATE TABLE BAK_WF_WORKFLOW_APPROVAL_RELATION AS (
+        SELECT t.* FROM WF_WORKFLOW_APPROVAL_RELATION t
+        WHERE EXISTS (
+            SELECT 1 FROM WF_REQUEST r 
+            WHERE r.UUID = t.EVENT_ID
+            AND r.STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED', 'ABORTED')
+            AND r.UPDATED_AT < cleanUpDateTimeLimit
+        )
+    ) WITH DATA;
+    
+    IF (enableLog = 1)
+    THEN
+    	CALL DBMS_OUTPUT.PUT_LINE('TABLE BACKUP COMPLETED...!');
+    END IF;
+END IF;
+
+-- ------------------------------------------
+-- CLEANUP DATA
+-- ------------------------------------------
+
+IF (enableLog = 1)
+THEN
+	CALL DBMS_OUTPUT.PUT_LINE('CLEANUP PROCESS STARTED...!');
+END IF;
+
+WHILE (chunkCount > 0)
+DO
+	-- CREATE CHUNK TABLE WITH ELIGIBLE REQUEST IDs
+	DROP TABLE IF EXISTS WF_REQUEST_CHUNK_TMP;
+	CREATE TABLE WF_REQUEST_CHUNK_TMP AS (SELECT UUID FROM WF_REQUEST) WITH NO DATA;
+	INSERT INTO WF_REQUEST_CHUNK_TMP 
+	SELECT UUID FROM WF_REQUEST 
+	WHERE STATUS IN ('APPROVED', 'REJECTED', 'FAILED', 'DELETED', 'ABORTED')
+	AND UPDATED_AT < cleanUpDateTimeLimit
+	LIMIT chunkSize;
+	GET DIAGNOSTICS v_rowCount = ROW_COUNT;
+	SET chunkCount = v_rowCount;
+	
+	IF (chunkCount > 0)
+	THEN
+		CREATE INDEX WF_REQUEST_CHUNK_TMP_INDX on WF_REQUEST_CHUNK_TMP (UUID);
+	END IF;
+
+	IF (enableLog = 1)
+    THEN
+    	CALL DBMS_OUTPUT.PUT_LINE('CREATED WF_REQUEST_CHUNK_TMP WITH ' || chunkCount || ' RECORDS');
+    END IF;
+
+    -- BATCH LOOP
+    SET batchCount = 1;
+    WHILE (batchCount > 0)
+    DO
+    	-- CREATE BATCH TABLE
+        DROP TABLE IF EXISTS WF_REQUEST_BATCH_TMP;
+        CREATE TABLE WF_REQUEST_BATCH_TMP(UUID VARCHAR(255));
+        INSERT INTO WF_REQUEST_BATCH_TMP SELECT UUID FROM WF_REQUEST_CHUNK_TMP LIMIT batchSize;
+        GET DIAGNOSTICS v_rowCount = ROW_COUNT;
+        SET batchCount = v_rowCount;
+
+        IF (batchCount > 0)
+        THEN
+        	CREATE INDEX WF_REQUEST_BATCH_TMP_INDX on WF_REQUEST_BATCH_TMP (UUID);
+        END IF;
+
+        IF (enableLog = 1)
+	    THEN
+	    	CALL DBMS_OUTPUT.PUT_LINE('PROCESSING BATCH WITH ' || batchCount || ' RECORDS...');
+	    END IF;
+
+	    -- BATCH DELETION FROM WF_REQUEST (CASCADE DELETE will handle child tables automatically)
+	    IF (batchCount > 0)
+	    THEN
+		    DELETE FROM WF_REQUEST WHERE UUID IN (SELECT UUID FROM WF_REQUEST_BATCH_TMP);
+		    GET DIAGNOSTICS rowCount = ROW_COUNT;
+		    SET totalDeleted = totalDeleted + rowCount;
+		    
+		    IF (enableLog = 1)
+		    THEN
+		    	CALL DBMS_OUTPUT.PUT_LINE('  DELETED ' || rowCount || ' RECORDS FROM WF_REQUEST (and cascaded to child tables)');
+		    END IF;
+
+		    -- DELETE FROM CHUNK
+		    DELETE FROM WF_REQUEST_CHUNK_TMP WHERE UUID IN (SELECT UUID FROM WF_REQUEST_BATCH_TMP);
+		END IF;
+    END WHILE;
+END WHILE;
+
+-- DELETE TEMP TABLES
+DROP TABLE IF EXISTS WF_REQUEST_BATCH_TMP;
+DROP TABLE IF EXISTS WF_REQUEST_CHUNK_TMP;
+
+IF (enableLog = 1)
+THEN
+	CALL DBMS_OUTPUT.PUT_LINE('========================================');
+	CALL DBMS_OUTPUT.PUT_LINE('WSO2_WF_REQUEST_CLEANUP() COMPLETED!');
+	CALL DBMS_OUTPUT.PUT_LINE('Total WF_REQUEST records deleted: ' || totalDeleted);
+	CALL DBMS_OUTPUT.PUT_LINE('========================================');
+END IF;
+
+END/

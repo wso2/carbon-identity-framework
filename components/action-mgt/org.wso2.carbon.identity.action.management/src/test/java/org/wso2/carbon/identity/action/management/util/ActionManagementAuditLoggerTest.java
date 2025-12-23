@@ -50,7 +50,11 @@ import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +68,8 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.PASSWORD_
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_ACTION_ID;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_ACTION_ID;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACCESS_TOKEN;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_ALLOWED_HEADER_1;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_ALLOWED_PARAMETER_1;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION_UPDATED;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_NAME;
@@ -74,9 +80,12 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CREATED_AT;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_DELETED_PROPERTY;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_UPDATED_AT;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USERNAME;
 
 /**
@@ -96,6 +105,8 @@ public class ActionManagementAuditLoggerTest {
     private static final String ADD_ACTION = "add-action";
     private static final String UPDATE_ACTION = "update-action";
     private static final String DELETE_ACTION = "delete-action";
+    private static final String ACTIVATE_ACTION = "activate-action";
+    private static final String DEACTIVATE_ACTION = "deactivate-action";
 
     @BeforeMethod
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -133,6 +144,8 @@ public class ActionManagementAuditLoggerTest {
                 .status(Action.Status.ACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_ACTION_URI)
+                        .allowedHeaders(Collections.singletonList(TEST_ACTION_ALLOWED_HEADER_1))
+                        .allowedParameters(Collections.singletonList(TEST_ACTION_ALLOWED_PARAMETER_1))
                         .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
                         .build())
                 .properties(actionProperties)
@@ -151,7 +164,7 @@ public class ActionManagementAuditLoggerTest {
     }
 
     @DataProvider
-    public Object[][] actionDataProvider() {
+    public Object[][] addActionDataProvider() {
 
         Map<String, ActionProperty> actionProperties = new HashMap<>();
         actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
@@ -160,123 +173,250 @@ public class ActionManagementAuditLoggerTest {
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE).build()).build());
 
+        return new Object[][]{
+                // CREATE/ADD Operations - Test cases for ADD operation
+                {ActionManagementAuditLogger.Operation.ADD,
+                        new ActionDTOBuilder()
+                                .id(PRE_UPDATE_PASSWORD_ACTION_ID)
+                                .name(TEST_ACTION_NAME)
+                                .description(TEST_ACTION_DESCRIPTION)
+                                .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
+                                .status(Action.Status.ACTIVE)
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
+                                .updatedAt(Timestamp.valueOf(TEST_UPDATED_AT))
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI)
+                                        .allowedHeaders(List.of(TEST_ACTION_ALLOWED_HEADER_1))
+                                        .allowedParameters(List.of(TEST_ACTION_ALLOWED_PARAMETER_1))
+                                        .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
+                                        .build())
+                                .properties(actionProperties)
+                                .rule(ActionRule.create(buildMockORCombinedRule()))
+                                .build()
+                },
+                // ADD operation without properties
+                {ActionManagementAuditLogger.Operation.ADD,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .name(TEST_ACTION_NAME)
+                                .description(TEST_ACTION_DESCRIPTION)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .status(Action.Status.ACTIVE)
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
+                                .updatedAt(Timestamp.valueOf(TEST_UPDATED_AT))
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI)
+                                        .allowedHeaders(new ArrayList<>())
+                                        .allowedParameters(new ArrayList<>())
+                                        .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME,
+                                                TEST_PASSWORD).build())
+                                        .build())
+                                .build()
+                },
+                // Add operation without allowed headers and parameters
+                {ActionManagementAuditLogger.Operation.ADD,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .name(TEST_ACTION_NAME)
+                                .description(TEST_ACTION_DESCRIPTION)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .status(Action.Status.ACTIVE)
+                                .createdAt(Timestamp.valueOf(TEST_CREATED_AT))
+                                .updatedAt(Timestamp.valueOf(TEST_UPDATED_AT))
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI)
+                                        .authentication(new Authentication.NoneAuthBuilder().build())
+                                        .build())
+                                .build()
+                }
+        };
+    }
+
+    @DataProvider
+    public Object[][] updateActionDataProvider() {
+
         Map<String, ActionProperty> updatedActionProperties = new HashMap<>();
+        Map<String, ActionProperty> deleteActionProperties = new HashMap<>();
         updatedActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
                 new ActionProperty.BuilderForService(TEST_PASSWORD_SHARING_TYPE_UPDATED).build());
         updatedActionProperties.put(CERTIFICATE_PROPERTY_NAME, new ActionProperty.BuilderForService(new Certificate
                 .Builder().id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE_UPDATED).build()).build());
 
+        deleteActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
+                new ActionProperty.BuilderForService(TEST_DELETED_PROPERTY).build());
+        deleteActionProperties.put(CERTIFICATE_PROPERTY_NAME,
+                new ActionProperty.BuilderForService(TEST_DELETED_PROPERTY).build());
+
         return new Object[][]{
-                // Create object with all the fields.
-                {ActionManagementAuditLogger.Operation.ADD,
-                        new ActionDTOBuilder()
-                        .id(PRE_UPDATE_PASSWORD_ACTION_ID)
-                        .name(TEST_ACTION_NAME)
-                        .description(TEST_ACTION_DESCRIPTION)
-                        .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
-                        .status(Action.Status.ACTIVE)
-                        .endpoint(new EndpointConfig.EndpointConfigBuilder()
-                                .uri(TEST_ACTION_URI)
-                                .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
-                                .build())
-                        .properties(actionProperties)
-                        .rule(ActionRule.create(buildMockORCombinedRule()))
-                        .build()
-                },
-                // Create object without properties
-                {ActionManagementAuditLogger.Operation.ADD,
-                        new ActionDTOBuilder()
-                        .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
-                        .name(TEST_ACTION_NAME)
-                        .description(TEST_ACTION_DESCRIPTION)
-                        .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
-                        .status(Action.Status.ACTIVE)
-                        .endpoint(new EndpointConfig.EndpointConfigBuilder()
-                                .uri(TEST_ACTION_URI)
-                                .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME, TEST_PASSWORD)
-                                        .build())
-                                .build())
-                        .build()
-                },
-                // Update Objects
+                // UPDATE Operations - Test cases for UPDATE operation
+                // full action update
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
-                        .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
-                        .name(TEST_ACTION_NAME_UPDATED)
-                        .description(TEST_ACTION_DESCRIPTION_UPDATED)
-                        .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
-                        .status(Action.Status.ACTIVE)
-                        .endpoint(new EndpointConfig.EndpointConfigBuilder()
-                                .uri(TEST_ACTION_URI_UPDATED)
-                                .authentication(new Authentication.APIKeyAuthBuilder(TEST_API_KEY_HEADER,
-                                        TEST_API_KEY_VALUE).build())
-                                .build())
-                        .properties(updatedActionProperties)
-                        .rule(ActionRule.create(buildMockORCombinedRule()))
-                        .build()
+                                .id(PRE_UPDATE_PASSWORD_ACTION_ID)
+                                .name(TEST_ACTION_NAME_UPDATED)
+                                .description(TEST_ACTION_DESCRIPTION_UPDATED)
+                                .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
+                                .status(Action.Status.ACTIVE)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI_UPDATED)
+                                        .allowedHeaders(List.of(TEST_ACTION_ALLOWED_HEADER_1))
+                                        .allowedParameters(List.of(TEST_ACTION_ALLOWED_PARAMETER_1))
+                                        .authentication(new Authentication.APIKeyAuthBuilder(TEST_API_KEY_HEADER,
+                                                TEST_API_KEY_VALUE).build())
+                                        .build())
+                                .properties(updatedActionProperties)
+                                .rule(ActionRule.create(buildMockORCombinedRule()))
+                                .build()
                 },
+                // Update action name
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .name(TEST_ACTION_NAME_UPDATED)
                                 .build()
                 },
+                // Update action description
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .description(TEST_ACTION_DESCRIPTION_UPDATED)
                                 .build()
                 },
+                // Update action endpoint
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .uri(TEST_ACTION_URI)
                                         .authentication(new Authentication.NoneAuthBuilder().build())
                                         .build())
                                 .build()
                 },
+                // Update action endpoint with allowed headers and parameters
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI_UPDATED)
+                                        .allowedHeaders(List.of(TEST_ACTION_ALLOWED_HEADER_1))
+                                        .allowedParameters(List.of(TEST_ACTION_ALLOWED_PARAMETER_1))
+                                        .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME,
+                                                TEST_PASSWORD).build())
+                                        .build())
+                                .build()
+                },
+                // Update action endpoint uri
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .uri(TEST_ACTION_URI)
                                         .build())
                                 .build()
                 },
+                // Update action endpoint authentication
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                                         .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
                                         .build())
                                 .build()
                 },
+                // Update allowed headers and parameters
                 {ActionManagementAuditLogger.Operation.UPDATE,
                         new ActionDTOBuilder()
                                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .allowedHeaders(List.of(TEST_ACTION_ALLOWED_HEADER_1))
+                                        .allowedParameters(List.of(TEST_ACTION_ALLOWED_PARAMETER_1))
+                                        .build())
+                                .build()
+                },
+                // Deleted allowed headers and parameters
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .allowedHeaders(new ArrayList<>())
+                                        .allowedParameters(new ArrayList<>())
+                                        .build())
+                                .build()
+                },
+                // Update action properties
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_UPDATE_PASSWORD_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                                 .properties(updatedActionProperties)
+                                .build()
+                },
+                // Delete action properties
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_UPDATE_PASSWORD_ACTION_ID)
+                                .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
+                                .properties(deleteActionProperties)
                                 .build()
                 }
         };
     }
 
-    @Test(dataProvider = "actionDataProvider")
-    public void testPrintAuditLogWithAction(ActionManagementAuditLogger.Operation operation, ActionDTO actionDTO)
+    @DataProvider
+    public Object[][] activateAndDeactivateActionDataProvider() {
+
+        return new Object[][]{
+
+                {ActionManagementAuditLogger.Operation.ACTIVATE,
+                        Timestamp.valueOf(TEST_UPDATED_AT)
+                },
+                {ActionManagementAuditLogger.Operation.DEACTIVATE,
+                        Timestamp.valueOf(TEST_UPDATED_AT)
+                }
+        };
+    }
+
+    @Test(dataProvider = "addActionDataProvider")
+    public void testPrintAddActionAuditLog(ActionManagementAuditLogger.Operation operation, ActionDTO creatingActionDTO)
             throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
-        auditLogger.printAuditLog(operation, actionDTO);
+        Timestamp createdAt = Timestamp.valueOf(TestUtil.TEST_CREATED_AT);
+        Timestamp updatedAt = Timestamp.valueOf(TestUtil.TEST_UPDATED_AT);
+        auditLogger.printAuditLog(operation, creatingActionDTO, createdAt, updatedAt);
+
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+        Assert.assertEquals(extractMapByField("CreatedAt", capturedArg), String.valueOf(createdAt));
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
+        assertActionData(capturedArg, creatingActionDTO);
+        assertAuditLoggerData(capturedArg, ADD_ACTION);
+    }
 
+    @Test(dataProvider = "updateActionDataProvider")
+    public void testPrintUpdateActionAuditLog(ActionManagementAuditLogger.Operation operation,
+                                              ActionDTO updatingActionDTO)
+            throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
+
+        Timestamp updatedAt = Timestamp.valueOf(TEST_UPDATED_AT);
+        auditLogger.printAuditLog(operation, updatingActionDTO, null, updatedAt);
+
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
         Assert.assertNotNull(capturedArg);
-        assertActionData(capturedArg, actionDTO);
-        assertAuditLoggerData(capturedArg, operation.getLogAction());
-
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
+        assertActionData(capturedArg, updatingActionDTO);
+        assertAuditLoggerData(capturedArg, UPDATE_ACTION);
     }
 
     @Test
-    public void testPrintAuditLogWithActionTypeAndId() throws NoSuchFieldException, IllegalAccessException {
+    public void testPrintDeleteActionAuditLog() throws NoSuchFieldException, IllegalAccessException {
 
         ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.DELETE;
         auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId());
@@ -287,7 +427,26 @@ public class ActionManagementAuditLoggerTest {
         Assert.assertEquals(extractMapByField("ActionType", capturedArg),
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
         assertAuditLoggerData(capturedArg, DELETE_ACTION);
+    }
 
+    @Test(dataProvider = "activateAndDeactivateActionDataProvider")
+    public void testPrintActivateAndDeactivateActionAuditLog(ActionManagementAuditLogger.Operation operation,
+                                                             Timestamp updatedAt) throws
+            NoSuchFieldException, IllegalAccessException {
+
+        auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId(), updatedAt);
+        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+
+        Assert.assertNotNull(capturedArg);
+        Assert.assertEquals(extractMapByField("ActionId", capturedArg), actionDTO.getId());
+        Assert.assertEquals(extractMapByField("ActionType", capturedArg), actionDTO.getType().name());
+        Assert.assertEquals(extractMapByField("UpdatedAt", capturedArg), String.valueOf(updatedAt));
+
+        if (operation.equals(ActionManagementAuditLogger.Operation.ACTIVATE)) {
+            assertAuditLoggerData(capturedArg, ACTIVATE_ACTION);
+        } else if (operation.equals(ActionManagementAuditLogger.Operation.DEACTIVATE)) {
+            assertAuditLoggerData(capturedArg, DEACTIVATE_ACTION);
+        }
     }
 
     /**
@@ -362,8 +521,14 @@ public class ActionManagementAuditLoggerTest {
         String description = actionDTO.getDescription();
         String type = actionDTO.getType() != null ? actionDTO.getType().name() : null;
         String status = actionDTO.getStatus() != null ? actionDTO.getStatus().name() : null;
+
         String uri = actionDTO.getEndpoint() != null && actionDTO.getEndpoint().getUri() != null ?
                 actionDTO.getEndpoint().getUri() : null;
+        String allowedHeaders = actionDTO.getEndpoint() != null && actionDTO.getEndpoint().getAllowedHeaders() != null ?
+                actionDTO.getEndpoint().getAllowedHeaders().toString() : null;
+        String allowedParameters = actionDTO.getEndpoint() != null &&
+                actionDTO.getEndpoint().getAllowedParameters() != null ?
+                actionDTO.getEndpoint().getAllowedParameters().toString() : null;
         String authenticationScheme = actionDTO.getEndpoint() != null &&
                 actionDTO.getEndpoint().getAuthentication() != null &&
                 actionDTO.getEndpoint().getAuthentication().getType() != null ?
@@ -377,6 +542,8 @@ public class ActionManagementAuditLoggerTest {
         assertField(type != null, dataMap, "ActionType", type);
         assertField(status != null, dataMap, "ActionStatus", status);
         assertField(uri != null, endpointConfigMap, "EndpointUri", uri);
+        assertField(allowedHeaders != null, endpointConfigMap, "AllowedHeaders", allowedHeaders);
+        assertField(allowedParameters != null, endpointConfigMap, "AllowedParameters", allowedParameters);
         assertField(authenticationScheme != null, endpointConfigMap, "AuthenticationScheme",
                 authenticationScheme);
         assertField(rule != null, dataMap, "Rule", rule);
@@ -465,6 +632,12 @@ public class ActionManagementAuditLoggerTest {
                 break;
             case DELETE_ACTION:
                 Assert.assertEquals(extractField("action", auditLogBuilder), "delete-action");
+                break;
+            case ACTIVATE_ACTION:
+                Assert.assertEquals(extractField("action", auditLogBuilder), "activate-action");
+                break;
+            case DEACTIVATE_ACTION:
+                Assert.assertEquals(extractField("action", auditLogBuilder), "deactivate-action");
                 break;
         }
     }

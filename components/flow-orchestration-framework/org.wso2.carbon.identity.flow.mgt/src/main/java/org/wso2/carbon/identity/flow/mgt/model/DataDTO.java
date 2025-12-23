@@ -33,6 +33,7 @@ public class DataDTO implements Serializable {
     private String redirectURL;
     private List<ComponentDTO> components;
     private List<String> requiredParams;
+    private List<String> optionalParams;
     private Map<String, String> additionalData;
     private Map<String, Object> webAuthnData;
 
@@ -46,6 +47,7 @@ public class DataDTO implements Serializable {
         this.action = builder.action;
         this.redirectURL = builder.redirectURL;
         this.requiredParams = builder.requiredParams;
+        this.optionalParams = builder.optionalParams;
         this.additionalData = builder.additionalData;
         this.webAuthnData = builder.webAuthnData;
     }
@@ -88,6 +90,11 @@ public class DataDTO implements Serializable {
         return requiredParams;
     }
 
+    public List<String> getOptionalParams() {
+
+        return optionalParams;
+    }
+
     public Map<String, String> getAdditionalData() {
 
         return additionalData;
@@ -109,6 +116,14 @@ public class DataDTO implements Serializable {
         this.requiredParams.add(param);
     }
 
+    public void addOptionalParam(String param) {
+
+        if (this.optionalParams == null) {
+            this.optionalParams = new ArrayList<>();
+        }
+        this.optionalParams.add(param);
+    }
+
     public Map<String, Object> getWebAuthnData() {
 
         return webAuthnData;
@@ -123,6 +138,7 @@ public class DataDTO implements Serializable {
         private ActionDTO action;
         private String redirectURL;
         private List<String> requiredParams;
+        private List<String> optionalParams;
         private Map<String, String> additionalData;
         private Map<String, Object> webAuthnData;
 
@@ -147,6 +163,12 @@ public class DataDTO implements Serializable {
         public Builder requiredParams(List<String> requiredParams) {
 
             this.requiredParams = requiredParams;
+            return this;
+        }
+
+        public Builder optionalParams(List<String> optionalParams) {
+
+            this.optionalParams = optionalParams;
             return this;
         }
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.webhook.management.dao;
 
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -25,6 +26,9 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
+import org.wso2.carbon.identity.webhook.management.api.core.cache.ActiveWebhooksCache;
+import org.wso2.carbon.identity.webhook.management.api.core.cache.ActiveWebhooksCacheEntry;
+import org.wso2.carbon.identity.webhook.management.api.core.cache.ActiveWebhooksCacheKey;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCache;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheEntry;
 import org.wso2.carbon.identity.webhook.management.api.core.cache.WebhookCacheKey;
@@ -33,10 +37,12 @@ import org.wso2.carbon.identity.webhook.management.api.model.Webhook;
 import org.wso2.carbon.identity.webhook.management.internal.dao.WebhookManagementDAO;
 import org.wso2.carbon.identity.webhook.management.internal.dao.impl.CacheBackedWebhookManagementDAO;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -271,5 +277,86 @@ public class CacheBackedWebhookManagementDAOTest {
 
         verify(webhookManagementDAO).getWebhooksCount(TENANT_ID);
         assertEquals(count, 5);
+    }
+
+    /**
+     * Test getActiveWebhooks returns from cache when cache hit occurs.
+     */
+    @Test
+    public void testGetActiveWebhooks_CacheHit() throws WebhookMgtException {
+
+        String eventProfileName = "profile";
+        String eventProfileVersion = "v1";
+        String channelUri = "http://channel";
+        int tenantId = TENANT_ID;
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCacheKey
+                cacheKey = new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        ActiveWebhooksCacheEntry cacheEntry = mock(ActiveWebhooksCacheEntry.class);
+
+        // Use reflection to set the private activeWebhooksCache field.
+        ActiveWebhooksCache activeWebhooksCache = Mockito.mock(ActiveWebhooksCache.class);
+        Field field = null;
+        try {
+            field = cacheBackedWebhookManagementDAO.getClass().getDeclaredField("activeWebhooksCache");
+            field.setAccessible(true);
+            field.set(cacheBackedWebhookManagementDAO, activeWebhooksCache);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        when(activeWebhooksCache.getValueFromCache(cacheKey, tenantId)).thenReturn(cacheEntry);
+        when(cacheEntry.getWebhooks()).thenReturn(webhooks);
+
+        List<Webhook> result =
+                cacheBackedWebhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri,
+                        tenantId);
+
+        assertEquals(result, webhooks);
+        verify(activeWebhooksCache).getValueFromCache(cacheKey, tenantId);
+        verify(cacheEntry, atLeastOnce()).getWebhooks();
+        verify(webhookManagementDAO, never()).getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri,
+                tenantId);
+    }
+
+    /**
+     * Test getActiveWebhooks retrieves from DAO and updates cache when cache miss occurs.
+     */
+    @Test
+    public void testGetActiveWebhooks_CacheMiss() throws WebhookMgtException {
+
+        String eventProfileName = "profile";
+        String eventProfileVersion = "v1";
+        String channelUri = "http://channel";
+        int tenantId = TENANT_ID;
+        List<Webhook> webhooks = Arrays.asList(mock(Webhook.class), mock(Webhook.class));
+        ActiveWebhooksCacheKey cacheKey =
+                new ActiveWebhooksCacheKey(eventProfileName, eventProfileVersion, channelUri, tenantId);
+
+        // Use reflection to set the private activeWebhooksCache field.
+        ActiveWebhooksCache activeWebhooksCache = Mockito.mock(ActiveWebhooksCache.class);
+        Field field = null;
+        try {
+            field = cacheBackedWebhookManagementDAO.getClass().getDeclaredField("activeWebhooksCache");
+            field.setAccessible(true);
+            field.set(cacheBackedWebhookManagementDAO, activeWebhooksCache);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        when(activeWebhooksCache.getValueFromCache(cacheKey, tenantId)).thenReturn(null);
+        when(webhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri,
+                tenantId)).thenReturn(webhooks);
+
+        List<Webhook> result =
+                cacheBackedWebhookManagementDAO.getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri,
+                        tenantId);
+
+        assertEquals(result, webhooks);
+        verify(activeWebhooksCache).getValueFromCache(cacheKey, tenantId);
+        verify(webhookManagementDAO).getActiveWebhooks(eventProfileName, eventProfileVersion, channelUri, tenantId);
+        verify(activeWebhooksCache).addToCache(org.mockito.ArgumentMatchers.eq(cacheKey),
+                org.mockito.ArgumentMatchers.any(ActiveWebhooksCacheEntry.class),
+                org.mockito.ArgumentMatchers.eq(tenantId));
     }
 }

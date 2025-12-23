@@ -21,9 +21,11 @@
 <suite name="org.wso2.carbon.identity.user.pre.update.password.action">
         <test name="pre-update-password-action-mgt-tests" preserve-order="true" parallel="false">
                 <classes>
-                        <class name="org.wso2.carbon.identity.user.pre.update.password.action.execution.PreUpdatePasswordActionRequestBuilderTest"></class>
+                        <class name="org.wso2.carbon.identity.user.pre.update.password.action.execution.versioning.v1.PreUpdatePasswordActionRequestBuilderV1Test"></class>
+                        <class name="org.wso2.carbon.identity.user.pre.update.password.action.execution.versioning.v2.PreUpdatePasswordActionRequestBuilderV2Test"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.execution.PreUpdatePasswordActionExecutorTest"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.execution.PreUpdatePasswordResponseProcessorTest"></class>
+                        <class name="org.wso2.carbon.identity.user.pre.update.password.action.execution.PreUpdatePasswordActionVersioningHandlerTest"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionConverterTest"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionDTOModelResolverTest"></class>
                         <class name="org.wso2.carbon.identity.user.pre.update.password.action.rule.PreUpdatePasswordActionRuleEvaluationDataProviderTest"></class>

@@ -34,6 +34,7 @@ public class NodeResponse implements Serializable {
 
     private static final long serialVersionUID = 123456789L;
     private final List<String> requiredData;
+    private final List<String> optionalData;
     private String status;
     private String type;
     private String error;
@@ -46,6 +47,7 @@ public class NodeResponse implements Serializable {
         this.error = builder.error;
         this.requiredData = builder.requiredData;
         this.additionalInfo = builder.additionalInfo;
+        this.optionalData = builder.optionalData;
     }
 
     public String getStatus() {
@@ -61,6 +63,11 @@ public class NodeResponse implements Serializable {
     public List<String> getRequiredData() {
 
         return requiredData;
+    }
+
+    public List<String> getOptionalData() {
+
+        return optionalData;
     }
 
     public Map<String, String> getAdditionalInfo() {
@@ -107,6 +114,8 @@ public class NodeResponse implements Serializable {
         private String error;
         @JsonProperty("requiredData")
         private List<String> requiredData;
+        @JsonProperty("optionalData")
+        private List<String> optionalData;
         @JsonProperty("additionalInfo")
         private Map<String, String> additionalInfo;
 
@@ -131,6 +140,12 @@ public class NodeResponse implements Serializable {
         public Builder requiredData(List<String> requiredData) {
 
             this.requiredData = requiredData;
+            return this;
+        }
+
+        public Builder optionalData(List<String> optionalData) {
+
+            this.optionalData = optionalData;
             return this;
         }
 

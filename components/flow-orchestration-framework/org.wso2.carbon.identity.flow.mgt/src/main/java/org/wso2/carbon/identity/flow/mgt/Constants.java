@@ -18,6 +18,11 @@
 
 package org.wso2.carbon.identity.flow.mgt;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Constants for the orchestration flow.
  */
@@ -66,6 +71,8 @@ public class Constants {
                 "Unexpected server error while updating the flow config for tenant, %s"),
         ERROR_CODE_INVOKING_AI_SERVICE("65012", "Error while invoking the AI service.",
                 "Unexpected server error while invoking the AI service for tenant, %s"),
+        ERROR_CODE_DELETE_FLOW("65013", "Error while deleting the flow.",
+                "Unexpected server error while deleting the flow for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -134,20 +141,31 @@ public class Constants {
 
     public enum FlowTypes {
 
-        REGISTRATION("REGISTRATION"),
-        PASSWORD_RECOVERY("PASSWORD_RECOVERY"),
-        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION");
+        REGISTRATION("REGISTRATION", FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
+                FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED, FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
+        PASSWORD_RECOVERY("PASSWORD_RECOVERY", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
+        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+                FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
 
         private final String type;
+        private final ArrayList<FlowCompletionConfig> supportedFlowCompletionConfigs = new ArrayList<>();
 
-        FlowTypes(String type) {
+        FlowTypes(String type, FlowCompletionConfig... requiredFlowCompletionConfigs) {
 
             this.type = type;
+            this.supportedFlowCompletionConfigs.addAll(Arrays.asList(requiredFlowCompletionConfigs));
         }
 
         public String getType() {
 
             return type;
+        }
+
+        public ArrayList<FlowCompletionConfig> getSupportedFlowCompletionConfigs() {
+
+            return supportedFlowCompletionConfigs;
         }
     }
 
@@ -176,6 +194,7 @@ public class Constants {
         public static final String EXECUTION = "EXECUTION";
         public static final String WEBAUTHN = "WEBAUTHN";
         public static final String USER_ONBOARD = "USER_ONBOARD";
+        public static final String END = "END";
 
         private StepTypes() {
 
@@ -257,6 +276,58 @@ public class Constants {
 
         private FlowAIConstants() {
 
+        }
+    }
+
+    /**
+     * Constants for the flow completion configs.
+     */
+    public enum FlowCompletionConfig {
+
+        IS_AUTO_LOGIN_ENABLED("isAutoLoginEnabled"),
+        IS_EMAIL_VERIFICATION_ENABLED("isEmailVerificationEnabled"),
+        IS_ACCOUNT_LOCK_ON_CREATION_ENABLED("isAccountLockOnCreationEnabled"),
+        IS_FLOW_COMPLETION_NOTIFICATION_ENABLED("isFlowCompletionNotificationEnabled");
+
+        private final String config;
+        private final String defaultValue;
+
+        private static final Map<String, FlowCompletionConfig> LOOKUP = new HashMap<>();
+
+        static {
+            for (FlowCompletionConfig constant : values()) {
+                LOOKUP.put(constant.config, constant);
+            }
+        }
+
+        FlowCompletionConfig(String config) {
+
+            this.config = config;
+            this.defaultValue = "false";
+        }
+
+        FlowCompletionConfig(String config, String defaultValue) {
+
+            this.config = config;
+            this.defaultValue = defaultValue;
+        }
+
+        public String getConfig() {
+
+            return config;
+        }
+
+        public String getDefaultValue() {
+
+            return defaultValue;
+        }
+
+        public static FlowCompletionConfig fromConfig(String config) {
+
+            if (LOOKUP.containsKey(config)) {
+                return LOOKUP.get(config);
+            }
+            return null;
         }
     }
 }

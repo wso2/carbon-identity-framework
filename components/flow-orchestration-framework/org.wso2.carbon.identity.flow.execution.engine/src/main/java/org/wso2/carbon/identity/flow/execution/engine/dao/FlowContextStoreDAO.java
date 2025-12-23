@@ -36,6 +36,17 @@ public interface FlowContextStoreDAO {
     void storeContext(FlowExecutionContext context, long ttlSeconds) throws FlowEngineException;
 
     /**
+     * Store a FlowExecutionContext with a specified TTL.
+     *
+     * @param contextIdentifier Unique identifier for the context.
+     * @param context FlowExecutionContext to store.
+     * @param ttlSeconds Time to live in seconds.
+     * @throws FlowEngineException if an error occurs while storing the context.
+     */
+    void storeContext(String contextIdentifier, FlowExecutionContext context, long ttlSeconds)
+            throws FlowEngineException;
+
+    /**
      * Retrieve a FlowExecutionContext by its context ID.
      *
      * @param contextId The unique identifier of the FlowExecutionContext.

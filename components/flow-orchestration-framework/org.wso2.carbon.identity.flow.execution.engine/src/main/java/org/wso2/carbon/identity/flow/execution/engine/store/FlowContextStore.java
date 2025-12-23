@@ -61,14 +61,19 @@ public class FlowContextStore {
 
     public void storeContext(FlowExecutionContext context) throws FlowEngineException {
 
+        storeContext(context.getContextIdentifier(), context);
+    }
+
+    public void storeContext(String contextIdentifier, FlowExecutionContext context) throws FlowEngineException {
+
         String flowType = context.getFlowType();
-        long ttlMinutes = resolveTTL(flowType);
+        long ttlSecs = resolveTTL(flowType) * 60;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Storing context: " + context.getContextIdentifier() + " with TTL: " + ttlMinutes + " mins");
+            LOG.debug("Storing context: " + contextIdentifier + " with TTL: " + ttlSecs + " secs");
         }
 
-        flowContextStoreDAO.storeContext(context, ttlMinutes * 60);
+        flowContextStoreDAO.storeContext(contextIdentifier, context, ttlSecs);
     }
 
     public Optional<FlowExecutionContext> getContext(String contextId) throws FlowEngineException {

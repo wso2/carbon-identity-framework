@@ -22,6 +22,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.AbstractAppAuthSkipRetryTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandlerTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
@@ -32,6 +33,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandlerTest"/>

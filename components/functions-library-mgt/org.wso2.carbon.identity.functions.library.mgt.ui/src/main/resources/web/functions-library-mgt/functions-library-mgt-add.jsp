@@ -78,7 +78,6 @@
                     location.href = '#';
                 } else {
                     try {
-                        eval(prepareScript(content));
                         encodeFunctionLibScript();
                         $("#add-functionlib-form").submit();
                         return true;

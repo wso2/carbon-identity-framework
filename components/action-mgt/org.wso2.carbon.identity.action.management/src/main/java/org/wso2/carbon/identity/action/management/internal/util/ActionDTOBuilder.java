@@ -38,6 +38,7 @@ public class ActionDTOBuilder {
     private String name;
     private String description;
     private Action.Status status;
+    private String actionVersion;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private EndpointConfig endpoint;
@@ -55,6 +56,7 @@ public class ActionDTOBuilder {
         this.name = actionDTO.getName();
         this.description = actionDTO.getDescription();
         this.status = actionDTO.getStatus();
+        this.actionVersion = actionDTO.getActionVersion();
         this.createdAt = actionDTO.getCreatedAt();
         this.updatedAt = actionDTO.getUpdatedAt();
         this.endpoint = actionDTO.getEndpoint();
@@ -69,6 +71,7 @@ public class ActionDTOBuilder {
         this.name = action.getName();
         this.description = action.getDescription();
         this.status = action.getStatus();
+        this.actionVersion = action.getActionVersion();
         this.createdAt = action.getCreatedAt();
         this.updatedAt = action.getUpdatedAt();
         this.endpoint = action.getEndpoint();
@@ -128,6 +131,12 @@ public class ActionDTOBuilder {
     public Action.Status getStatus() {
 
         return this.status;
+    }
+
+    public ActionDTOBuilder actionVersion(String actionVersion) {
+
+        this.actionVersion = actionVersion;
+        return this;
     }
 
     public ActionDTOBuilder createdAt(Timestamp createdAt) {
@@ -192,6 +201,7 @@ public class ActionDTOBuilder {
                 .name(this.name)
                 .description(this.description)
                 .status(this.status)
+                .actionVersion(this.actionVersion)
                 .createdAt(this.createdAt)
                 .updatedAt(this.updatedAt)
                 .endpoint(this.endpoint)

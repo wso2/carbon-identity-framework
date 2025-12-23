@@ -23,6 +23,7 @@ package org.wso2.carbon.identity.flow.execution.engine.exception;
  */
 public class FlowEngineException extends Exception {
 
+    private String flowType = null;
     private String errorCode;
     private String description;
 
@@ -43,6 +44,38 @@ public class FlowEngineException extends Exception {
         super(message);
         this.errorCode = errorCode;
         this.description = description;
+    }
+
+    public FlowEngineException(String flowType, String message) {
+
+        super(message);
+        this.flowType = flowType;
+    }
+
+    public FlowEngineException(String flowType, String errorCode, String message, String description, Throwable cause) {
+
+        super(message, cause);
+        this.flowType = flowType;
+        this.errorCode = errorCode;
+        this.description = description;
+    }
+
+    public FlowEngineException(String flowType, String errorCode, String message, String description) {
+
+        super(message);
+        this.flowType = flowType;
+        this.errorCode = errorCode;
+        this.description = description;
+    }
+
+    public String getFlowType() {
+
+        return flowType;
+    }
+
+    public void setFlowType(String flowType) {
+
+        this.flowType = flowType;
     }
 
     public String getErrorCode() {

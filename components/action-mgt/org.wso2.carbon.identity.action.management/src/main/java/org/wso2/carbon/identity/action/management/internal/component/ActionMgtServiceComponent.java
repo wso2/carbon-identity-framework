@@ -31,8 +31,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionDTOModelResolverFactory;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionConverterFactory;
+import org.wso2.carbon.identity.action.management.internal.service.impl.ActionValidatorFactory;
 import org.wso2.carbon.identity.action.management.internal.service.impl.CacheBackedActionManagementService;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
@@ -178,5 +180,26 @@ public class ActionMgtServiceComponent {
 
         ActionMgtServiceComponentHolder.getInstance().setRuleManagementService(null);
         LOG.debug("RuleManagementService unset in ActionMgtServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "action.ActionValidator",
+            service = ActionValidator.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionValidator"
+    )
+    protected void setActionValidator(ActionValidator actionValidator) {
+
+        LOG.debug("Registering ActionValidator: " + actionValidator.getClass().getName() +
+                " in the ActionMgtServiceComponent.");
+        ActionValidatorFactory.registerActionValidatorFactory(actionValidator);
+    }
+
+    protected void unsetActionValidator(ActionValidator actionValidator) {
+
+        LOG.debug("Unregistering ActionValidator: " + actionValidator.getClass().getName() +
+                " in the ActionMgtServiceComponent.");
+        ActionValidatorFactory.unregisterActionValidatorFactory(actionValidator);
     }
 }

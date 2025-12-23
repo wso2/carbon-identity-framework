@@ -205,7 +205,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.SUBSCRIPTION_ERROR);
             if (allError) {
                 throw WebhookManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ERROR);
+                        ErrorMessage.ERROR_CODE_WEBHOOK_ACTIVATION_ERROR, webhook.getId());
             }
             List<Subscription> updatedSubscriptions =
                     mergeSubscriptions(webhook.getEventsSubscribed(), allResults);
@@ -253,7 +253,7 @@ public class PublisherSubscriberAdapterTypeHandler extends AdapterTypeHandler {
                     .allMatch(r -> r.getStatus() == SubscriptionStatus.UNSUBSCRIPTION_ERROR);
             if (allError) {
                 throw WebhookManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR);
+                        ErrorMessage.ERROR_CODE_WEBHOOK_DEACTIVATION_ERROR, webhook.getId());
             }
             List<Subscription> updatedUnsubscriptions =
                     mergeSubscriptions(webhook.getEventsSubscribed(), allResults);

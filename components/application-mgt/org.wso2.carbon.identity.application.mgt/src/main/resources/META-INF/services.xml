@@ -45,7 +45,8 @@
             </parameter>
         </operation>
         <operation name="getAllIdentityProviders">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
         </operation>
         <operation name="getAllLocalAuthenticators">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view

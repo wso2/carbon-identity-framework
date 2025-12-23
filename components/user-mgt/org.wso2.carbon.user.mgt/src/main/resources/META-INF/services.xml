@@ -259,7 +259,7 @@
         </operation>
 
         <operation name="hasMultipleUserStores">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view
             </parameter>
         </operation>
 

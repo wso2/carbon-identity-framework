@@ -112,9 +112,16 @@ public class ClaimDAOTest {
                         2
                 },
                 {
-                        new String[]{"Description", "subAttribute.1", "AnotherProperty"},
-                        new String[]{"desc", "http://wso2.org/claims/subattribute1", "anotherValue"},
-                        3
+                        new String[]{"DisplayName", "canonicalValue.1", "canonicalValue.2"},
+                        new String[]{"value1", "http://wso2.org/claims/canonicalValue1",
+                                "http://wso2.org/claims/canonicalValue2"},
+                        2
+                },
+                {
+                        new String[]{"subAttribute.1", "canonicalValue.1", "canonicalValue.2"},
+                        new String[]{"http://wso2.org/claims/subattribute1",
+                                "http://wso2.org/claims/canonicalValue1", "http://wso2.org/claims/canonicalValue2"},
+                        2
                 },
                 {
                         new String[]{"DisplayName", "Description", "dataType"},

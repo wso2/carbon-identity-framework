@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.management.internal.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -35,6 +36,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.sql.Timestamp;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
@@ -45,17 +47,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
  */
 public class ActionManagementAuditLogger {
 
-    /**
-     * Print action audit log related to the operation.
-     *
-     * @param operation Operation associated with the state change.
-     * @param actionDTO Action object to be logged.
-     */
-    public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
-
-        JSONObject data = createAuditLogEntry(actionDTO);
-        buildAuditLog(operation, data);
-    }
+    private static final Log LOG = org.apache.commons.logging.LogFactory.getLog(ActionManagementAuditLogger.class);
 
     /**
      * Print action audit log related to the operation by the action type and action ID.
@@ -68,6 +60,43 @@ public class ActionManagementAuditLogger {
 
         JSONObject data = createAuditLogEntry(actionType, actionId);
         buildAuditLog(operation, data);
+    }
+
+    /**
+     * Print action audit log related to the operation by the action type and action ID with updated time.
+     *
+     * @param operation  Operation associated with the state change.
+     * @param actionType Type of the action to be logged.
+     * @param actionId   ID of the action to be logged.
+     * @param updatedAt  Time of the update.
+     */
+    public void printAuditLog(Operation operation, String actionType, String actionId, Timestamp updatedAt) {
+
+        JSONObject data = createAuditLogEntry(actionType, actionId);
+        data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+        buildAuditLog(operation, data);
+    }
+
+    /**
+     * Print action audit log related to the operation with created/updated time.
+     *
+     * @param operation  Operation associated with the state change.
+     * @param actionDTO  Action object to be logged.
+     * @param createdAt  Time of creation.
+     * @param updatedAt  Time of update.
+     */
+    public void printAuditLog(Operation operation, ActionDTO actionDTO,
+                              Timestamp createdAt, Timestamp updatedAt) {
+
+        try {
+            JSONObject data = createAuditLogEntry(actionDTO);
+            data.put(LogConstants.CREATED_AT_FIELD, createdAt != null ? createdAt : JSONObject.NULL);
+            data.put(LogConstants.UPDATED_AT_FIELD, updatedAt != null ? updatedAt : JSONObject.NULL);
+            buildAuditLog(operation, data);
+        } catch (ActionMgtException e) {
+            LOG.warn(String.format("Failed to publish audit log for %s. Action id: %s",
+                    operation.name().toLowerCase(), actionDTO.getId()), e);
+        }
     }
 
     /**
@@ -104,6 +133,10 @@ public class ActionManagementAuditLogger {
                 actionDTO.getDescription() != null ? actionDTO.getDescription() : JSONObject.NULL);
         data.put(LogConstants.ACTION_STATUS_FIELD, actionDTO.getStatus() != null ? actionDTO.getStatus()
                 : JSONObject.NULL);
+        data.put(LogConstants.CREATED_AT_FIELD, actionDTO.getCreatedAt() != null ?
+                actionDTO.getCreatedAt() : JSONObject.NULL);
+        data.put(LogConstants.UPDATED_AT_FIELD, actionDTO.getUpdatedAt() != null ?
+                actionDTO.getUpdatedAt() : JSONObject.NULL);
         if (actionDTO.getEndpoint() != null) {
             data.put(LogConstants.ENDPOINT_CONFIG_FIELD, getEndpointData(actionDTO.getEndpoint()));
         }
@@ -169,6 +202,10 @@ public class ActionManagementAuditLogger {
         JSONObject endpointData = new JSONObject();
         endpointData.put(LogConstants.ENDPOINT_URI_FIELD, endpointConfig.getUri() != null ? endpointConfig.getUri() :
                 JSONObject.NULL);
+        endpointData.put(LogConstants.ALLOWED_HEADERS_FIELD, endpointConfig.getAllowedHeaders() != null ?
+                endpointConfig.getAllowedHeaders() : JSONObject.NULL);
+        endpointData.put(LogConstants.ALLOWED_PARAMETERS_FIELD, endpointConfig.getAllowedParameters() != null ?
+                endpointConfig.getAllowedParameters() : JSONObject.NULL);
         if (endpointConfig.getAuthentication() != null) {
             Authentication authentication = endpointConfig.getAuthentication();
             endpointData.put(LogConstants.AUTHENTICATION_SCHEME_FIELD, authentication.getType());
@@ -277,6 +314,10 @@ public class ActionManagementAuditLogger {
         public static final String API_KEY_HEADER_FIELD = "ApiKeyHeader";
         public static final String API_KEY_VALUE_FIELD = "ApiKeyValue";
         public static final String ACTION_RULE = "Rule";
+        public static final String ALLOWED_HEADERS_FIELD = "AllowedHeaders";
+        public static final String ALLOWED_PARAMETERS_FIELD = "AllowedParameters";
+        public static final String CREATED_AT_FIELD = "CreatedAt";
+        public static final String UPDATED_AT_FIELD = "UpdatedAt";
     }
 }
 

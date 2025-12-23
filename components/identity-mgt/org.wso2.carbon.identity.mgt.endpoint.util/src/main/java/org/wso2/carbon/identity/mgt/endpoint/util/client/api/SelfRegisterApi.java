@@ -25,6 +25,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client.api;
 
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -126,8 +127,11 @@ public class SelfRegisterApi {
         GenericType<String> localVarReturnType = new GenericType<String>() {
         };
 
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
-
+        String response = apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+        if (apiClient.getStatusCode() == ClientResponse.Status.ACCEPTED.getStatusCode()) {
+            response =  IdentityManagementEndpointConstants.PENDING_APPROVAL;
+        }
+        return response;
     }
 
     /**

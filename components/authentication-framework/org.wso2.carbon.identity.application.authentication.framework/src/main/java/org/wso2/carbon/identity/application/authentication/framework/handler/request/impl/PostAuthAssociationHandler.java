@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,6 +75,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
      * @return instance of PostAuthAssociationHandler
      */
     public static PostAuthAssociationHandler getInstance() {
+
         return instance;
     }
 
@@ -120,49 +121,47 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
-                if (stepConfig.isSubjectIdentifierStep()) {
+            if (authenticator instanceof FederatedApplicationAuthenticator &&
+                    !FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(authenticator.getName()) &&
+                    stepConfig.isSubjectIdentifierStep()) {
+                if (log.isDebugEnabled()) {
+                    log.debug(authenticator.getName() + " has been set up for subject identifier step.");
+                }
+                /* If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
+                 * federated idp.
+                 */
+                String associatedLocalUserName = null;
+                if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
+                    associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
+                }
+                if (StringUtils.isNotEmpty(associatedLocalUserName)) {
                     if (log.isDebugEnabled()) {
-                        log.debug(authenticator.getName() + " has been set up for subject identifier step.");
+                        log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
+                                + "equavlent local user : " + associatedLocalUserName);
                     }
-                     /*
-                    If AlwaysSendMappedLocalSubjectId is selected, need to get the local user associated with the
-                    federated idp.
-                     */
-                    String associatedLocalUserName = null;
-                    if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
-                        associatedLocalUserName = getUserNameAssociatedWith(context, stepConfig);
-                    }
-                    if (StringUtils.isNotEmpty(associatedLocalUserName)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("AlwaysSendMappedLocalSubjectID is selected in service provider level, "
-                                    + "equavlent local user : " + associatedLocalUserName);
-                        }
-                        setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
-                    } else {
-                        String tenantDomain = context.getTenantDomain();
-                        String spName = context.getServiceProviderName();
-                        try {
-                            ServiceProvider serviceProvider =
-                                    FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
-                                            .getServiceProvider(spName, tenantDomain);
+                    setAssociatedLocalUserToContext(associatedLocalUserName, context, stepConfig);
+                } else {
+                    String tenantDomain = context.getTenantDomain();
+                    String spName = context.getServiceProviderName();
+                    try {
+                        ServiceProvider serviceProvider =
+                                FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                                        .getServiceProvider(spName, tenantDomain);
 
-                            if (FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider)) {
-                                ClaimConfig serviceProviderClaimConfig = serviceProvider.getClaimConfig();
-                                UserLinkStrategy userLinkStrategy =
-                                        resolveLocalUserLinkingStrategy(serviceProviderClaimConfig);
-                                if (userLinkStrategy == UserLinkStrategy.MANDATORY) {
-                                    throw new PostAuthenticationFailedException(
-                                            ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode(),
-                                            "Federated user is not associated with any local user.");
-                                }
+                        if (FrameworkUtils.isLoginFailureWithNoLocalAssociationEnabledForApp(serviceProvider)) {
+                            ClaimConfig serviceProviderClaimConfig = serviceProvider.getClaimConfig();
+                            UserLinkStrategy userLinkStrategy =
+                                    resolveLocalUserLinkingStrategy(serviceProviderClaimConfig);
+                            if (userLinkStrategy == UserLinkStrategy.MANDATORY) {
+                                throw new PostAuthenticationFailedException(
+                                        ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND.getErrorCode(),
+                                        "Federated user is not associated with any local user.");
                             }
-
-                        } catch (IdentityApplicationManagementException e) {
-                            throw new PostAuthenticationFailedException(
-                                    ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS.getErrorCode(),
-                                    "Error while retrieving service provider.", e);
                         }
+                    } catch (IdentityApplicationManagementException e) {
+                        throw new PostAuthenticationFailedException(
+                                ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS.getErrorCode(),
+                                "Error while retrieving service provider.", e);
                     }
                 }
             }
@@ -216,6 +215,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
         }
     }
+
     /**
      * To get the local user name associated with the given federated IDP and the subject identifier.
      *
@@ -267,8 +267,8 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     /**
      * To get the claim mapping based on user local.
      *
-     * @param context    Authentication Context.
-     * @param mappedAttrs    Mapped user attributes.
+     * @param context     Authentication Context.
+     * @param mappedAttrs Mapped user attributes.
      * @return claim mapping.
      */
     @SuppressWarnings("unchecked")

@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +117,8 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
         idp.setIdentityProviderName("testIdp");
         idp.setFederatedAuthenticatorConfigs(fedAuthConfig);
 
-        when(identityProviderManager.getAllFederatedAuthenticators(TENANT_DOMAIN)).thenReturn(fedAuthConfig);
+        when(identityProviderManager.getAllUserDefinedFederatedAuthenticators(TENANT_DOMAIN))
+                .thenReturn(Arrays.asList(fedAuthConfig));
         when(identityProviderManager.getIdPByResourceId(anyString(), anyString(), anyBoolean())).thenReturn(idp);
         mockedIdentityProviderManager.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
         FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(identityProviderManager);

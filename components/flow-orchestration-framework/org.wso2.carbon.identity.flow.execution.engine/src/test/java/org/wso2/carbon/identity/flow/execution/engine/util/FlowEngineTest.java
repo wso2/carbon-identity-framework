@@ -246,7 +246,7 @@ public class FlowEngineTest {
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
             assertEquals(step.getStepType(), WEBAUTHN);
             assertEquals(step.getData().getRequiredParams().size(), 2);
-            assertEquals(step.getData().getWebAuthnData().size(),2);
+            assertEquals(step.getData().getWebAuthnData().size(), 2);
             assertEquals(step.getData().getWebAuthnData().get("field1"), "value1");
         }
     }
@@ -404,6 +404,47 @@ public class FlowEngineTest {
         }
         // Set the first node id back.
         defaultGraph.setFirstNodeId(firstNodeId);
+    }
+
+    @Test
+    public void testEndNodeCompletion() throws Exception {
+
+        // Create END node config.
+        NodeConfig endNode = new NodeConfig.Builder()
+                .id(org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID)
+                .type(PROMPT_ONLY)
+                .build();
+
+        // Create page mapping for END node.
+        org.wso2.carbon.identity.flow.mgt.model.StepDTO endPage = new org.wso2.carbon.identity.flow.mgt.model.StepDTO.Builder()
+                .id(org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID)
+                .data(new org.wso2.carbon.identity.flow.mgt.model.DataDTO.Builder().build())
+                .build();
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        nodeMap.put(org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID, endNode);
+        Map<String, org.wso2.carbon.identity.flow.mgt.model.StepDTO> pageMappings = new HashMap<>();
+        pageMappings.put(org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID, endPage);
+
+        GraphConfig graph = new GraphConfig();
+        graph.setNodeConfigs(nodeMap);
+        graph.setNodePageMappings(pageMappings);
+        graph.setFirstNodeId(org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID);
+
+        FlowExecutionContext context = initiateFlowContext();
+        context.setGraphConfig(graph);
+
+        try (MockedStatic<org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils> utilsMockedStatic =
+                     mockStatic(org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.class)) {
+            utilsMockedStatic.when(() -> org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
+                    .thenReturn("https://localhost:3000/myapp/callback");
+            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
+            assertNotNull(step);
+            assertEquals(step.getFlowStatus(), "COMPLETE");
+            assertEquals(step.getStepType(), "REDIRECTION");
+            assertNotNull(step.getData());
+            assertEquals(step.getData().getRedirectURL(), "https://localhost:3000/myapp/callback");
+        }
     }
 
     private GraphConfig buildGraphWithDecision() {

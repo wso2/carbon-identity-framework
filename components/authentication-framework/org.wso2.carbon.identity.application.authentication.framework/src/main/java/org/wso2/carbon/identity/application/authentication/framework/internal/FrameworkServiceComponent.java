@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -128,6 +129,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import javax.servlet.Servlet;
 
@@ -398,6 +400,19 @@ public class FrameworkServiceComponent {
             }
         }
 
+        String timeOutEnabledString = IdentityUtil.getProperty(
+                FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE);
+        boolean timeOutEnabled = FrameworkConstants.AdaptiveAuthentication
+                .DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT_ENABLE;
+        if (StringUtils.isNotBlank(timeOutEnabledString)) {
+            try {
+                timeOutEnabled = BooleanUtils.toBoolean(timeOutEnabledString.toLowerCase(Locale.ROOT),
+                        Boolean.TRUE.toString(), Boolean.FALSE.toString());
+            } catch (IllegalArgumentException e) {
+                log.error("Error while parsing adaptive authentication execution supervisor timeout enable config: "
+                        + timeOutEnabledString + ", setting timeout enable to default value: " + timeOutEnabled, e);
+            }
+        }
         String timeoutString = IdentityUtil.getProperty(
                 FrameworkConstants.AdaptiveAuthentication.CONF_EXECUTION_SUPERVISOR_TIMEOUT);
         long timeoutInMillis = FrameworkConstants.AdaptiveAuthentication.DEFAULT_EXECUTION_SUPERVISOR_TIMEOUT;
@@ -423,7 +438,8 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance()
-                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeoutInMillis, memoryLimitInBytes));
+                .setJsExecutionSupervisor(new JSExecutionSupervisor(threadCount, timeOutEnabled, timeoutInMillis,
+                        memoryLimitInBytes));
     }
 
     @Deactivate

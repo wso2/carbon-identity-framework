@@ -25,8 +25,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.api.service.impl.DefaultActionValidator;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
-import org.wso2.carbon.identity.action.management.internal.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class ActionValidatorTest {
     private static final String ERROR_INVALID_REQUEST = "Invalid request.";
     private static final String ERROR_NOT_ALLOWED_HEADER = "Provided Headers are not allowed.";
     private static final String ERROR_NOT_ALLOWED_PARAMETER = "Provided Parameters are not allowed.";
-    private ActionValidator actionValidator;
+    private DefaultActionValidator actionValidator;
     private ActionManagementConfig actionManagementConfigMock;
     private IdentityConfigParser identityConfigParserMock;
     private MockedStatic<IdentityConfigParser> identityConfigParserMockedStatic;
@@ -54,7 +54,7 @@ public class ActionValidatorTest {
     @BeforeClass
     public void setUp() {
 
-        actionValidator = new ActionValidator();
+        actionValidator = new DefaultActionValidator();
 
         actionManagementConfigMock = mock(ActionManagementConfig.class);
         identityConfigParserMockedStatic = mockStatic(IdentityConfigParser.class);

@@ -36,6 +36,7 @@ import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -375,11 +376,15 @@ public class AuthenticationEndpointUtil {
      */
     public static String sendGetRequest(String backendURL) {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        return HTTPClientManager.executeWithHttpClient(httpClient ->
+                sendGetRequest(backendURL, httpClient));
+    }
 
+    private static String sendGetRequest(String backendURL, CloseableHttpClient httpclient) {
+
+        try {
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);
-
             return httpclient.execute(httpGet, response -> {
                 if (log.isDebugEnabled()) {
                     log.debug("HTTP status " + response.getCode() +
@@ -511,5 +516,15 @@ public class AuthenticationEndpointUtil {
                 !url.toLowerCase().contains("file:") &&
                 !url.toLowerCase().contains("ftp:") &&
                 !url.toLowerCase().contains("data:");
+    }
+
+    /**
+     * Return whether the consent page redirect parameters are allowed in the authentication endpoint.
+     *
+     * @return true if the consent page redirect parameters are allowed in the authentication endpoint.
+     */
+    public static boolean isConsentPageRedirectParamsAllowed() {
+
+        return ConfigurationFacade.getInstance().isConsentPageRedirectParamsAllowed();
     }
 }

@@ -60,7 +60,13 @@ public class Action {
                 "AUTHENTICATION",
                 "Authentication",
                 "Configure an extension point for user authentication via a custom service.",
-                Category.IN_FLOW);
+                Category.IN_FLOW),
+        PRE_ISSUE_ID_TOKEN(
+                "preIssueIdToken",
+                "PRE_ISSUE_ID_TOKEN",
+                "Pre Issue ID Token",
+                "Configure an extension point for modifying ID token via a custom service.",
+                Category.PRE_POST);
 
         private final String pathParam;
         private final String actionType;
@@ -134,6 +140,7 @@ public class Action {
     private String name;
     private String description;
     private Status status;
+    private String actionVersion;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private EndpointConfig endpointConfig;
@@ -146,6 +153,7 @@ public class Action {
         this.name = actionResponseBuilder.name;
         this.description = actionResponseBuilder.description;
         this.status = actionResponseBuilder.status;
+        this.actionVersion = actionResponseBuilder.actionVersion;
         this.createdAt = actionResponseBuilder.createdAt;
         this.updatedAt = actionResponseBuilder.updatedAt;
         this.endpointConfig = actionResponseBuilder.endpointConfig;
@@ -155,6 +163,7 @@ public class Action {
     public Action(ActionRequestBuilder actionRequestBuilder) {
 
         this.name = actionRequestBuilder.name;
+        this.actionVersion = actionRequestBuilder.actionVersion;
         this.description = actionRequestBuilder.description;
         this.endpointConfig = actionRequestBuilder.endpointConfig;
         this.rule = actionRequestBuilder.rule;
@@ -183,6 +192,11 @@ public class Action {
     public Status getStatus() {
 
         return status;
+    }
+
+    public String getActionVersion() {
+
+        return actionVersion;
     }
 
     public Timestamp getCreatedAt() {
@@ -215,6 +229,7 @@ public class Action {
         private String name;
         private String description;
         private Status status;
+        private String actionVersion;
         private Timestamp createdAt;
         private Timestamp updatedAt;
         private EndpointConfig endpointConfig;
@@ -247,6 +262,12 @@ public class Action {
         public ActionResponseBuilder status(Status status) {
 
             this.status = status;
+            return this;
+        }
+
+        public ActionResponseBuilder actionVersion(String actionVersion) {
+
+            this.actionVersion = actionVersion;
             return this;
         }
 
@@ -287,6 +308,7 @@ public class Action {
 
         private String name;
         private String description;
+        private String actionVersion;
         private EndpointConfig endpointConfig;
         private ActionRule rule;
 
@@ -299,6 +321,12 @@ public class Action {
         public ActionRequestBuilder description(String description) {
 
             this.description = description;
+            return this;
+        }
+
+        public ActionRequestBuilder actionVersion(String actionVersion) {
+
+            this.actionVersion = actionVersion;
             return this;
         }
 

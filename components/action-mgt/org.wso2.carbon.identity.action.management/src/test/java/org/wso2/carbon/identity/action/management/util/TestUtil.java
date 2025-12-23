@@ -59,6 +59,8 @@ public class TestUtil {
     public static final String TEST_ACTION_DESCRIPTION_UPDATED = "Updated Test Action description";
     public static final String TEST_ACTION_URI = "https://example.com";
     public static final String TEST_ACTION_URI_UPDATED = "https://sample.com";
+    public static final String TEST_CREATED_AT = "2025-08-21 15:25:41.388";
+    public static final String TEST_UPDATED_AT = "2025-08-22 15:25:41.388";
 
     public static final String TEST_USERNAME = "sampleUsername";
     public static final String TEST_USERNAME_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
@@ -89,6 +91,7 @@ public class TestUtil {
     public static final String PASSWORD_SHARING_TYPE_PROPERTY_NAME = "passwordSharingType";
     public static final String TEST_PASSWORD_SHARING_TYPE = "PLAIN_TEXT";
     public static final String TEST_PASSWORD_SHARING_TYPE_UPDATED = "SHA256_HASHED";
+    public static final String TEST_DELETED_PROPERTY = "__DELETED__";
     public static final String CERTIFICATE_PROPERTY_NAME = "certificate";
     public static final String TEST_CERTIFICATE = "sampleCertificate";
     public static final String TEST_CERTIFICATE_UPDATED = "UpdatedSampleCertificate";
@@ -102,11 +105,24 @@ public class TestUtil {
     public static final String TEST_ACTION_ALLOWED_PARAMETER_2 = "testParam_2";
     public static final String TEST_ACTION_ALLOWED_PARAMETER_3 = "testParam_3";
 
+    public static final String TEST_DEFAULT_LATEST_ACTION_VERSION = "v1";
+
     public static Action buildMockAction(String name, String description, String uri, Authentication authentication) {
 
         return new Action.ActionRequestBuilder()
                 .name(name)
                 .description(description)
+                .endpoint(buildMockEndpointConfig(uri, authentication))
+                .build();
+    }
+
+    public static Action buildMockActionWithVersion(String name, String description, String version, String uri,
+                                                    Authentication authentication) {
+
+        return new Action.ActionRequestBuilder()
+                .name(name)
+                .description(description)
+                .actionVersion(version)
                 .endpoint(buildMockEndpointConfig(uri, authentication))
                 .build();
     }

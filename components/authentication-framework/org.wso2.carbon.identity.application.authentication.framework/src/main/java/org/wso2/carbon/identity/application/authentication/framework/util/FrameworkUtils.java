@@ -2466,9 +2466,28 @@ public class FrameworkUtils {
         cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 
+    /**
+     * Get the multi attribute separator.
+     *
+     * @return Multi attribute separator.
+     * @deprecated This method is deprecated and may be removed in future releases.
+     */
+    @Deprecated
     public static String getMultiAttributeSeparator() {
 
+        return getMultiAttributeSeparator(null);
+    }
+
+    /**
+     * Retrieves the multi-attribute separator for a given user store domain.
+     *
+     * @param userStoreDomain The user store domain.
+     * @return The multi-attribute separator.
+     */
+    public static String getMultiAttributeSeparator(String userStoreDomain) {
+
         String multiAttributeSeparator = null;
+        // Check if org-wise multi attribute separator is enabled.
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED))) {
             try {
                 Attribute configAttribute = FrameworkServiceDataHolder.getInstance().getConfigurationManager()
@@ -2490,29 +2509,49 @@ public class FrameworkUtils {
             }
         }
 
+        // Retrieve the multi-attribute separator from the user store configuration if not found in the org config.
         if (StringUtils.isBlank(multiAttributeSeparator)) {
             try {
-                multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                        getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-            } catch (UserStoreException e) {
-                log.error("Error while retrieving MultiAttributeSeparator from UserRealm.");
-                if (log.isDebugEnabled()) {
-                    log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
+                AbstractUserStoreManager userStoreManager = getUserStoreManager(userStoreDomain);
+                if (userStoreManager != null) {
+                    multiAttributeSeparator = userStoreManager.getRealmConfiguration()
+                            .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
                 }
+            } catch (UserStoreException e) {
+                log.error("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
             }
         }
 
+        // If multi-attribute separator is not found through the above methods, use the default value.
         if (StringUtils.isBlank(multiAttributeSeparator)) {
             multiAttributeSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
             if (log.isDebugEnabled()) {
                 log.debug("Multi Attribute Separator is defaulting to " + multiAttributeSeparator);
             }
         }
-
         return multiAttributeSeparator;
     }
 
+    /**
+     * Retrieves the user store manager for the given user store domain.
+     *
+     * @param userStoreDomain The user store domain.
+     * @return The user store manager, or null if not found.
+     * @throws UserStoreException If an error occurs while retrieving the user store manager.
+     */
+    private static AbstractUserStoreManager getUserStoreManager(String userStoreDomain) throws UserStoreException {
+
+        if (userStoreDomain != null) {
+            return (AbstractUserStoreManager) ((AbstractUserStoreManager)
+                    CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager())
+                    .getSecondaryUserStoreManager(userStoreDomain);
+        }
+        return (AbstractUserStoreManager) CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                .getUserStoreManager();
+    }
+
     public static String getPASTRCookieName (String sessionDataKey) {
+
         return FrameworkConstants.PASTR_COOKIE + "-" + sessionDataKey;
     }
 
@@ -3996,6 +4035,39 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering authentication context.
+     * This version uses context.getTenantDomain() instead of context.getUserTenantDomain() which is used in
+     * public static String preprocessUsername(String username, AuthenticationContext context) method.
+     *
+     * @param username Username of the user.
+     * @param context  Authentication context.
+     * @return preprocessed username with context tenant domain.
+     */
+    public static String preprocessUsernameWithContextTenantDomain(String username, AuthenticationContext context) {
+
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + context.getUserTenantDomain();
+            }
+        } else if (!username.endsWith(context.getUserTenantDomain())) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + context.getTenantDomain();
+        }
+        return username;
+    }
+
+    /**
      * Pre-process user's username considering the service provider.
      *
      * @param username Username of the user.
@@ -4282,6 +4354,17 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.
                     getProperty(FrameworkConstants.ENABLE_JIT_PROVISION_ENHANCE_FEATURE));
+    }
+
+    /**
+     * Check whether non-standard claim URIs are allowed.
+     *
+     * @return true if non-standard claim URIs are allowed, false otherwise.
+     */
+    public static boolean allowNonStandardClaimUri() {
+
+        return Boolean.parseBoolean(IdentityUtil.
+                getProperty(FrameworkConstants.ALLOW_NON_STANDARD_CLAIM_URI));
     }
 
     /**
@@ -4871,5 +4954,58 @@ public class FrameworkUtils {
     public static boolean isNestedRedirectParamsInLogoutReturnUrlEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_NESTED_REDIRECT_PARAMS_IN_LOGOUT_RETURN_URL));
+    }
+
+    /**
+     * Check whether the request or the context has a user assertion. This indicates that the request is initiated
+     * after a flow completion.
+     *
+     * @param request HttpServletRequest
+     * @param context AuthenticationContext
+     * @return true if the request or the context has a user assertion, false otherwise.
+     */
+    public static boolean contextHasUserAssertion(HttpServletRequest request, AuthenticationContext context) {
+
+        Object contextUserAssertion = context.getProperty(FrameworkConstants.USER_ASSERTION);
+        String userAssertion = contextUserAssertion != null ? contextUserAssertion.toString()
+                : request.getParameter(FrameworkConstants.USER_ASSERTION);
+        return StringUtils.isNotEmpty(userAssertion);
+    }
+
+    /**
+     * Resolves application resident tenant domain from organization id.
+     *
+     * @param appResidentOrgId Organization id of the application resident tenant.
+     * @return Resolved tenant domain.
+     * @throws FrameworkException Error while resolving tenant domain.
+     */
+    public static String resolveTenantDomainFromOrganizationId(String appResidentOrgId) throws FrameworkException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolving tenant domain from organization id: " + appResidentOrgId);
+            }
+            String appResidentTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(appResidentOrgId);
+            if (StringUtils.isBlank(appResidentTenantDomain)) {
+                throw new FrameworkException("Tenant domain not found for organization id: "
+                        + appResidentOrgId + ".");
+            }
+            return appResidentTenantDomain;
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while resolving tenant domain from organization id: "
+                    + appResidentOrgId + ".", e);
+        }
+    }
+
+    /**
+     * Check whether to mark the step as completed on interrupt in an authentication flow.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean markStepCompletedOnInterrupt() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
     }
 }

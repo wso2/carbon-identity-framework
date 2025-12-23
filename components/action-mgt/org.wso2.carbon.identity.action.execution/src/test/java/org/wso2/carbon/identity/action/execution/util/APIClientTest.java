@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -58,6 +59,7 @@ import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -84,9 +86,16 @@ public class APIClientTest {
 
     private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
     private MockedStatic<LoggerUtils> loggerUtils;
+    private final Map<String, String> headers = new HashMap<>();
 
     @InjectMocks
     private APIClient apiClient;
+
+    @BeforeClass
+    public void init() {
+
+        headers.put("x-wso2-api-version", "v1");
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -122,7 +131,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
         assertNotNull(apiResponse);
         assertNull(apiResponse.getResponse());
         assertFalse(apiResponse.isRetry());
@@ -151,7 +160,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         assertFalse(apiResponse.isRetry());
@@ -178,7 +187,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -218,7 +227,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -258,7 +267,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
@@ -289,7 +298,7 @@ public class APIClientTest {
                 .build();
         AuthMethods.AuthMethod bearAuth = new AuthMethods.BearerAuth(Collections.singletonList(authProperty));
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", bearAuth, "{}");
+                "http://example.com", bearAuth, headers, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -334,7 +343,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         assertFalse(apiResponse.isRetry());
@@ -385,7 +394,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         if ((int) statusCode == 500 || (int) statusCode == 502) { // This is a retry
@@ -430,7 +439,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -466,7 +475,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse response = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(response);
         assertTrue(response.isSuccess());
@@ -491,7 +500,7 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse response = apiClient.callAPI(ActionType.AUTHENTICATION,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(response);
         assertTrue(response.isSuccess());
@@ -504,7 +513,7 @@ public class APIClientTest {
                 .thenThrow(new SocketTimeoutException("Read Timeout"));
 
         ActionInvocationResponse response = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
 
         assertNotNull(response);
         assertTrue(response.isError());
@@ -518,7 +527,7 @@ public class APIClientTest {
         when(httpClient.execute(any(HttpPost.class))).thenThrow(new ClientProtocolException("Unexpected exception"));
 
         ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
-                "http://example.com", null, "{}");
+                "http://example.com", null, headers, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         assertEquals(apiResponse.getErrorLog(),

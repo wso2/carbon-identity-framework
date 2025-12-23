@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -66,6 +68,8 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
  * and application based role management.
  */
 public class DefaultRoleManagementListener extends AbstractApplicationMgtListener implements RoleManagementListener {
+
+    private static final Log LOG = LogFactory.getLog(DefaultRoleManagementListener.class);
 
     @Override
     public int getExecutionOrderId() {
@@ -523,15 +527,19 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throws IdentityRoleManagementException {
 
         try {
-            ServiceProvider app = ApplicationManagementService.getInstance()
-                    .getApplicationByResourceId(applicationId, tenantDomain);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Validating application type and role audience for applicationId: " + applicationId +
+                        " in tenant: " + tenantDomain);
+            }
+            ApplicationBasicInfo app = ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
             if (app == null) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Invalid audience. No application found with application id: " + applicationId +
                                 " and tenant domain : " + tenantDomain);
             }
             String allowedAudienceForRoleAssociation = ApplicationManagementService.getInstance()
-                    .getAllowedAudienceForRoleAssociation(app.getApplicationResourceId(), tenantDomain);
+                    .getAllowedAudienceForRoleAssociation(applicationId, tenantDomain);
             if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation.toLowerCase())) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Application: " + applicationId + " does not have Application role audience type");
@@ -542,9 +550,13 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
                 IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
             }
-            if (app.getSpProperties() != null && Arrays.stream(app.getSpProperties())
-                    .anyMatch(property -> ApplicationConstants.IS_FRAGMENT_APP.equals(property.getName())
-                            && Boolean.parseBoolean(property.getValue()))) {
+            // If the mainAppId is not null, the passed applicationId is a fragment application.
+            String mainAppId = ApplicationManagementService.getInstance().getMainAppId(applicationId);
+            if (mainAppId != null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Application: " + applicationId +
+                            " is identified as a fragment application with mainAppId: " + mainAppId);
+                }
                 IdentityUtil.threadLocalProperties.get().put(ApplicationConstants.IS_FRAGMENT_APP, Boolean.TRUE);
             }
         } catch (IdentityApplicationManagementException e) {

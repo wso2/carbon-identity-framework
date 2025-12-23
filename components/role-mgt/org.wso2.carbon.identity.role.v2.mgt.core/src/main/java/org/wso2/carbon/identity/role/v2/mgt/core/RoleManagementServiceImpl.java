@@ -69,7 +69,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
 public class RoleManagementServiceImpl implements RoleManagementService {
 
     private static final Log log = LogFactory.getLog(RoleManagementServiceImpl.class);
-    private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
+    private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getCacheBackedRoleDAO();
     private final UserIDResolver userIDResolver = new UserIDResolver();
     private static final String IS_FRAGMENT_APP = "isFragmentApp";
 
@@ -429,6 +429,16 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     getUser(tenantDomain), roleId));
         }
         return userBasicInfoList;
+    }
+
+    @Override
+    public List<UserBasicInfo> getUserListOfRoles(String filter, Integer limit, Integer offset,
+                                                  String sortBy, String sortOrder, String tenantDomain,
+                                                  String userStoreDomain) throws IdentityRoleManagementException {
+
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        return roleDAO.getUserListOfRoles(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain,
+                userStoreDomain);
     }
 
     @Override
@@ -863,6 +873,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             }
         }
         List<String> roles = roleDAO.getRoleIdListOfUser(userId, tenantDomain);
+        addEveryoneRoleToRoleList(roles, tenantDomain);
+
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postGetRoleIdListOfUser(roles, userId, tenantDomain);
@@ -1164,5 +1176,33 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             throws IdentityRoleManagementException {
 
         return userIDResolver.getNamesByIDs(userIDs, tenantDomain);
+    }
+
+    /**
+     * Get everyone role id by tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return every one role id.
+     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role id.
+     */
+    private String getEveryoneRoleId(String tenantDomain) throws IdentityRoleManagementException {
+
+        String everyOneRoleName = RoleManagementUtils.getEveryOneRoleName(tenantDomain);
+        String orgId = RoleManagementUtils.getOrganizationId(tenantDomain);
+        return getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
+    }
+
+    private void addEveryoneRoleToRoleList(List<String> roles, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                log.debug("Adding everyone role of tenant to the user role list.");
+                roles.add(getEveryoneRoleId(tenantDomain));
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRoleManagementException(String.format("Error while checking whether the tenant domain: " +
+                    "%s is an organization.", tenantDomain), e);
+        }
     }
 }

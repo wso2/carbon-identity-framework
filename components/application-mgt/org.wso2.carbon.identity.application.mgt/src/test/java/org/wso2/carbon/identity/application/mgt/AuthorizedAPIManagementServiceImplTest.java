@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -80,6 +79,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
@@ -117,7 +117,7 @@ public class AuthorizedAPIManagementServiceImplTest {
     @AfterMethod
     public void tearDown() throws Exception {
 
-        try (MockedStatic<LoggerUtils> loggerUtils = Mockito.mockStatic(LoggerUtils.class)) {
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
             loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
 
             applicationManagementService.deleteApplication("TestApp", tenantDomain, "user 1");
@@ -393,7 +393,7 @@ public class AuthorizedAPIManagementServiceImplTest {
 
     private String addApplication() throws Exception {
 
-        try (MockedStatic<LoggerUtils> loggerUtils = Mockito.mockStatic(LoggerUtils.class)) {
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
             loggerUtils.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
 
             ServiceProvider serviceProvider = new ServiceProvider();

@@ -74,12 +74,14 @@ public class ActionExecutorConfigTest {
         configMap.put("Actions.Types.PreIssueAccessToken.Enable", "true");
         configMap.put("Actions.Types.Authentication.Enable", "true");
         configMap.put("Actions.Types.PreUpdatePassword.Enable", "true");
+        configMap.put("Actions.Types.PreIssueIdToken.Enable", "true");
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
         assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_ISSUE_ACCESS_TOKEN));
         assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION));
         assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_UPDATE_PASSWORD));
+        assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_ISSUE_ID_TOKEN));
     }
 
     @Test
@@ -89,12 +91,14 @@ public class ActionExecutorConfigTest {
         configMap.put("Actions.Types.PreIssueAccessToken.Enable", "false");
         configMap.put("Actions.Types.Authentication.Enable", "false");
         configMap.put("Actions.Types.PreUpdatePassword.Enable", "false");
+        configMap.put("Actions.Types.PreIssueIdToken.Enable", "false");
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
         assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_ISSUE_ACCESS_TOKEN));
         assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION));
         assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_UPDATE_PASSWORD));
+        assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_ISSUE_ID_TOKEN));
     }
 
     @Test
@@ -470,5 +474,15 @@ public class ActionExecutorConfigTest {
         configMap.put("Actions.HTTPClient.HTTPRequestRetryCount", "value");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(2, actionExecutorConfig.getHttpRequestRetryCount());
+    }
+
+    @Test
+    public void testGetRetiredUpToVersion() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreUpdatePassword.Version.RetiredUpTo", "v2");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.PRE_UPDATE_PASSWORD), "v2");
+        Assert.assertNull(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION));
     }
 }

@@ -69,8 +69,6 @@ public class ActionUserOperationEventListenerTest {
     public static final String TEST_MANAGED_BY_ORG_NAME = "mySubOrg2";
     public static final String TEST_MANAGED_BY_ORG_HANDLE = "mySubOrg2.com";
     public static final int TEST_MANAGED_BY_ORG_DEPTH = 10;
-    private static final String ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW =
-            "Actions.Types.PreUpdatePassword.EnableInRegistrationFlows";
 
     private UniqueIDUserStoreManager userStoreManager;
     private UserActionExecutor mockExecutor;
@@ -441,9 +439,7 @@ public class ActionUserOperationEventListenerTest {
     public void  testPreUpdatePasswordActionExecutionWithRegistrationFlowsDisabled()
             throws UserStoreException, UnsupportedSecretTypeException {
 
-        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
-            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(ENABLE_PRE_UPDATE_PASSWORD_REGISTRATION_FLOW))
-                    .thenReturn("false");
+        try {
 
             boolean result = listener.doPreAddUserWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     null, null, null, userStoreManager);

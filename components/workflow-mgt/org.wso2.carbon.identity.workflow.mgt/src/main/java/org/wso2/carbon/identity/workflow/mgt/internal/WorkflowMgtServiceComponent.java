@@ -29,10 +29,13 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
+import org.wso2.carbon.identity.workflow.mgt.handler.WorkflowPendingUserAuthnHandler;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowAuditLogger;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorAuditLogger;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
@@ -63,6 +66,10 @@ public class WorkflowMgtServiceComponent {
             WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
             bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
             WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
+
+            AbstractEventHandler workflowPendingUserAuthnHandler = new WorkflowPendingUserAuthnHandler();
+            bundleContext.registerService(AbstractEventHandler.class, workflowPendingUserAuthnHandler, null);
+
             WorkflowServiceDataHolder.getInstance().setBundleContext(bundleContext);
             ServiceRegistration serviceRegistration = context.getBundleContext()
                     .registerService(WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);
@@ -219,5 +226,22 @@ public class WorkflowMgtServiceComponent {
     /* Reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started. */
     }
+
+    @Reference(
+            name = "claim.metadata.mgt.component",
+            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        WorkflowServiceDataHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        WorkflowServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
 }
 

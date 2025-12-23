@@ -158,14 +158,15 @@ public class UserAssertionUtils {
             if (StringUtils.isBlank(issuer)) {
                 throw new FrameworkException("Issuer is missing in the user assertion.");
             }
-            if (!issuer.equals(IdentityUtil.getServerURL(StringUtils.EMPTY, true, true))) {
+            String serverURL = ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();
+            if (!issuer.equals(serverURL)) {
                 throw new FrameworkException("Invalid issuer in the user assertion.");
             }
             RSAPublicKey publicKey = (RSAPublicKey) getCertificate(tenantDomain).getPublicKey();
             if (!signedJWT.verify(new RSASSAVerifier(publicKey))) {
                 throw new FrameworkException("Signature verification failed for the user assertion.");
             }
-        } catch (JOSEException | ParseException e) {
+        } catch (JOSEException | ParseException | URLBuilderException e) {
             throw new FrameworkException("Error while verifying the user assertion signature.", e);
         }
     }

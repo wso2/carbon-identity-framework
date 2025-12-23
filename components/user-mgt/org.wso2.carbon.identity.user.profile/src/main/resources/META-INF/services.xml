@@ -42,6 +42,26 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user/association/view
             </parameter>
         </operation>
+        <operation name="isReadOnlyUserStore">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view
+            </parameter>
+        </operation>
+        <operation name="getProfileFieldsForInternalStore">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view
+            </parameter>
+        </operation>
+        <operation name="isAddProfileEnabled">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view
+            </parameter>
+        </operation>
+        <operation name="isAddProfileEnabledForDomain">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view
+            </parameter>
+        </operation>
+        <operation name="getNameAssociatedWith">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user/association/view
+            </parameter>
+        </operation>
 
     </service>
 

@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUES_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUE_PREFIX;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTE_PREFIX;
 
@@ -307,6 +309,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             prepStmt.setInt(3, tenantId);
             rs = prepStmt.executeQuery();
 
+            Map<Integer, List<String>> canonicalValuesMap = new HashMap<>();
             while (rs.next()) {
                 String claimPropertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
                 String claimPropertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
@@ -318,6 +321,12 @@ public class ExternalClaimDAO extends ClaimDAO {
                     if (claimPropertyName != null) {
                         if (claimPropertyName.startsWith(SUB_ATTRIBUTE_PREFIX)) {
                             claimPropertyName = SUB_ATTRIBUTES_PROPERTY;
+                        } else if (claimPropertyName.startsWith(CANONICAL_VALUE_PREFIX)) {
+                            claimPropertyName = CANONICAL_VALUES_PROPERTY;
+                            List<String> canonicalValues = new ArrayList<>();
+                            canonicalValues.add(claimPropertyValue);
+                            canonicalValuesMap.put(localId, canonicalValues);
+                            claimPropertyValue = canonicalValues.toString();
                         }
                         propmap.put(claimPropertyName, claimPropertyValue);
                     }
@@ -333,6 +342,15 @@ public class ExternalClaimDAO extends ClaimDAO {
                         }
                         claimPropertyValue = subAttributes + claimPropertyValue;
                         claimPropertyName = SUB_ATTRIBUTES_PROPERTY;
+                    } else if (claimPropertyName.startsWith(CANONICAL_VALUE_PREFIX)) {
+                        List<String> canonicalValuesList = canonicalValuesMap.get(localId);
+                        if (canonicalValuesList == null) {
+                            canonicalValuesList = new ArrayList<>();
+                        }
+                        canonicalValuesList.add(claimPropertyValue);
+                        canonicalValuesMap.put(localId, canonicalValuesList);
+                        claimPropertyName = CANONICAL_VALUES_PROPERTY;
+                        claimPropertyValue = canonicalValuesList.toString();
                     }
                     claimMap.get(localId).getClaimProperties().put(claimPropertyName, claimPropertyValue);
                 }

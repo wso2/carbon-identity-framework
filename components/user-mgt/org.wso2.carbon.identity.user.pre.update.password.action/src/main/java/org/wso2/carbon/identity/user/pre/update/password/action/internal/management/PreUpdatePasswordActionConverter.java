@@ -91,6 +91,7 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
                 .name(actionDTO.getName())
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
+                .actionVersion(actionDTO.getActionVersion())
                 .createdAt(actionDTO.getCreatedAt())
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
