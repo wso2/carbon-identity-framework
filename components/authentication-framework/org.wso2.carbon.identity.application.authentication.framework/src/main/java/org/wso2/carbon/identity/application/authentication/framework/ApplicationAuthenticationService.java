@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 
@@ -29,6 +30,14 @@ import java.util.List;
 /**
  * Application authentication service.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework." +
+                        "ApplicationAuthenticationService",
+                "service.scope=singleton"
+        }
+)
 public class ApplicationAuthenticationService {
 
     private static final Log log = LogFactory.getLog(ApplicationAuthenticationService.class);

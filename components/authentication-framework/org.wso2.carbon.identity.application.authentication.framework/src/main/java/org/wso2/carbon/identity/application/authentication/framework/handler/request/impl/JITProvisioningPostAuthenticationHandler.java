@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
@@ -97,6 +98,14 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 /**
  * This is post authentication handler responsible for JIT provisioning.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(JITProvisioningPostAuthenticationHandler.class);

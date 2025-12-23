@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.cors.mgt.core.internal.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
@@ -52,6 +53,13 @@ import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.ha
 /**
  * Implementation of the CORSService.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.cors.mgt.core.CORSManagementService",
+                "service.scope=singleton"
+        }
+)
 public class CORSManagementServiceImpl implements CORSManagementService {
 
     private static final Log log = LogFactory.getLog(CORSManagementServiceImpl.class);

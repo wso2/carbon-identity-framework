@@ -36,8 +36,6 @@ public class JsWrapperFactoryProvider {
         if (FrameworkServiceDataHolder.getInstance().
                 getJsGraphBuilderFactory() instanceof JsOpenJdkNashornGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsOpenJdkNashornWrapperFactory();
-        } else {
-            jsWrapperBaseFactory = new JsWrapperFactory();
         }
     }
 
