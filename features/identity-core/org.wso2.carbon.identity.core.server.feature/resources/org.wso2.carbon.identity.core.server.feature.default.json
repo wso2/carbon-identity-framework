@@ -2117,8 +2117,8 @@
   "actions.types.pre_update_password.version.latest": "v2",
 
   "external_api_client.http_client.connection_timeout": "2000",
-  "external_api_client.http_client.read_timeout": "2000",
-  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "3000",
+  "external_api_client.http_client.connection_request_timeout": "1000",
   "external_api_client.http_client.connection_pool_size": "20",
   "external_api_client.http_client.max_connection_per_route": "3",
   "external_api_client.retry_count": "0",
