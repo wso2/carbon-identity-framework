@@ -21,12 +21,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.lang.management.ManagementFactory;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Supervises the execution of any script engine, and kills the thread if the time taken is too much.
@@ -39,8 +40,9 @@ public class JSExecutionSupervisor {
     private final long memoryLimitInBytes;
     private final boolean timeoutCheckEnabled;
     private long taskExecutionRateInMillis = 50L;
-    private Map<String, TaskHolder> currentScriptExecutions = new HashMap<>();
+    private Map<String, TaskHolder> currentScriptExecutions = new ConcurrentHashMap<>();
     private ScheduledExecutorService monitoringService;
+    private JSExecutionEnforcer executionEnforcer;
     private static final int MONITOR_TYPE_TIME = 0;
     private static final int MONITOR_TYPE_MEMORY = 1;
     private static final int WARN_THRESHOLD = 70;
@@ -90,6 +92,26 @@ public class JSExecutionSupervisor {
     public void shutdown() {
 
         monitoringService.shutdown();
+    }
+
+    /**
+     * Set the execution enforcer.
+     *
+     * @param executionEnforcer Alert service instance.
+     */
+    public void setExecutionEnforcer(JSExecutionEnforcer executionEnforcer) {
+
+        this.executionEnforcer = executionEnforcer;
+    }
+
+    /**
+     * Get the execution enforcer.
+     *
+     * @return JSExecutionEnforcer instance.
+     */
+    public JSExecutionEnforcer getExecutionEnforcer() {
+
+        return executionEnforcer;
     }
 
     /**
@@ -192,6 +214,8 @@ public class JSExecutionSupervisor {
         private long startMemoryInBytes;
         private long consumedMemoryInBytes;
         private ThreadMXBean memoryCounter = null;
+        private final AtomicBoolean terminated = new AtomicBoolean(false);
+        private final AtomicBoolean warningLogged = new AtomicBoolean(false);
 
         public MonitoringTask(Thread originalThread, String id, String serviceProvider, String tenantDomain,
                               long elapsedTimeInMillis) {
@@ -264,29 +288,52 @@ public class JSExecutionSupervisor {
 
         private void terminateScriptExecutingThread(int monitorType, long consumedResourceValue) {
 
+            if (terminated.getAndSet(true)) {
+                return;
+            }
+
             String warnLog;
+            JSExecutionAlert.AlertType alertType;
+
             if (MONITOR_TYPE_TIME == monitorType) {
                 warnLog = String.format("The script took too much time to execute. Thread: %s, service provider: %s, " +
                                 "tenant: %s, execution duration: %s(ms).", originalThread.getName(), serviceProvider,
                         tenantDomain, consumedResourceValue);
+                alertType = JSExecutionAlert.AlertType.TIMEOUT_EXCEEDED;
             } else {
                 warnLog = String.format("The script took too much memory to execute. Thread: %s, service provider: " +
                                 "%s, tenant: %s, consumed memory: %s(bytes).", originalThread.getName(),
                         serviceProvider, tenantDomain, consumedResourceValue);
+                alertType = JSExecutionAlert.AlertType.MEMORY_LIMIT_EXCEEDED;
             }
 
             StackTraceElement[] stackTraceElements = originalThread.getStackTrace();
             Throwable throwable = new Throwable();
             throwable.setStackTrace(stackTraceElements);
-            LOG.warn(warnLog, throwable);
+            LOG.warn(warnLog);
             originalThread.interrupt();
-            originalThread.stop();
 
-            // Marking current monitoring task as complete.
+
+            // Push alert to the enforcer.
+            if (executionEnforcer != null) {
+                long threshold = (monitorType == MONITOR_TYPE_TIME) ? timeoutInMillis : memoryLimitInBytes;
+                JSExecutionAlert alert = new JSExecutionAlert(tenantDomain, serviceProvider, alertType,
+                        consumedResourceValue, threshold, originalThread.getName());
+                executionEnforcer.pushAlert(alert);
+            }
+
+            // Marking current monitoring task as complete to clean up resources.
+            // The AtomicBoolean terminated flag ensures this section runs only once,
+            // so even if completed(id) is called from another thread, the task will
+            // already be removed from the map by the first caller.
             completed(id);
         }
 
         private void printThresholdReachedWarnLog(int monitorType, long consumedResourceValue) {
+
+            if (warningLogged.get()) {
+                return;
+            }
 
             String warnLog;
             if (MONITOR_TYPE_TIME == monitorType) {
@@ -300,6 +347,7 @@ public class JSExecutionSupervisor {
             }
 
             LOG.warn(warnLog);
+            warningLogged.set(true);
         }
 
         private long getTotalElapsedTime() {
