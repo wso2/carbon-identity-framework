@@ -121,7 +121,7 @@
                         <Import-Package>
                             javax.xml.bind; version="[0.0.0, 1.0.0)",
                             javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
-                            javax.activation; version="${javax.activation.import.pkg.version}",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             javax.xml.xpath,
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.apache.axiom.om.impl.*; version="${axiom.osgi.version.range}",

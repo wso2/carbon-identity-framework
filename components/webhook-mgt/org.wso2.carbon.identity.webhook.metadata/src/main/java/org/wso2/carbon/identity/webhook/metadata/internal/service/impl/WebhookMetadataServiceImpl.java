@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.resource.sharing.policy.management.constant.PolicyEnum;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
@@ -47,6 +48,13 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorM
 /**
  * Implementation of WebhookMetadataService.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.webhook.metadata.api.service.WebhookMetadataService",
+                "service.scope=singleton"
+        }
+)
 public class WebhookMetadataServiceImpl implements WebhookMetadataService {
 
     private static final Log log = LogFactory.getLog(WebhookMetadataServiceImpl.class);

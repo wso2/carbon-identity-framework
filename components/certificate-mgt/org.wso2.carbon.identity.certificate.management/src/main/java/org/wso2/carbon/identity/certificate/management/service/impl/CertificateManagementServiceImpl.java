@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.certificate.management.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.dao.impl.CacheBackedCertificateMgtDAO;
 import org.wso2.carbon.identity.certificate.management.dao.impl.CertificateManagementDAOImpl;
@@ -36,6 +37,13 @@ import java.util.UUID;
 /**
  * This class is responsible for managing trusted certificates of a tenant.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.certificate.management.service.CertificateManagementService",
+                "service.scope=singleton"
+        }
+)
 public class CertificateManagementServiceImpl implements CertificateManagementService {
 
     private static final Log LOG = LogFactory.getLog(CertificateManagementServiceImpl.class);

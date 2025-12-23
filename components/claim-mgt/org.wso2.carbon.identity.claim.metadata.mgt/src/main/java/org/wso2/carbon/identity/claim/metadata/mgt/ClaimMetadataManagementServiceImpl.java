@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
@@ -102,6 +103,13 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtil
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
  * interface.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService",
+                "service.scope=singleton"
+        }
+)
 public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManagementService {
 
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementServiceImpl.class);
