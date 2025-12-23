@@ -95,6 +95,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
+    private Object debugService = null;
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -853,5 +854,25 @@ public class FrameworkServiceDataHolder {
     public void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
 
         this.organizationDiscoveryHandler = organizationDiscoveryHandler;
+    }
+
+    /**
+     * Get {@link DebugService}.
+     *
+     * @return Debug service instance.
+     */
+    public Object getDebugService() {
+
+        return debugService;
+    }
+
+    /**
+     * Set {@link DebugService}.
+     *
+     * @param debugService Instance of debug service.
+     */
+    public void setDebugService(Object debugService) {
+
+        this.debugService = debugService;
     }
 }
