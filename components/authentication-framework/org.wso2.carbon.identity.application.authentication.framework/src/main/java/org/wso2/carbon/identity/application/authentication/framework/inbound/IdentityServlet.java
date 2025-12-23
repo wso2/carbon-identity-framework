@@ -41,12 +41,11 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Identity Servlet.
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,
         property = {
-                "osgi.http.whiteboard.servlet.pattern=/identity",
+                "osgi.http.whiteboard.servlet.pattern=/identity/*",
                 "osgi.http.whiteboard.servlet.name=IdentityServlet",
                 "osgi.http.whiteboard.servlet.asyncSupported=true"
         }
