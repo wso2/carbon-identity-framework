@@ -62,6 +62,10 @@ public class AuthenticationRequest implements Serializable {
      */
     private String relyingParty;
     /**
+     * Organization id of the accessing party.
+     */
+    private String accessingOrgId;
+    /**
      * used to store query params which should be sent to Authentication Framework
      */
     private Map<String, String[]> requestQueryParams = new HashMap<String, String[]>();
@@ -262,4 +266,18 @@ public class AuthenticationRequest implements Serializable {
         this.passiveAuth = passiveAuth;
     }
 
+    /**
+     * Get the organization id of the accessing party.
+     *
+     * @return organization id of the accessing party.
+     */
+    public String getAccessingOrgId() {
+
+        return accessingOrgId;
+    }
+
+    public void setAccessingOrgId(String accessingOrgId) {
+
+        this.accessingOrgId = accessingOrgId;
+    }
 }
