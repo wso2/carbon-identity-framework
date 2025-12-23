@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 import org.wso2.carbon.identity.rule.metadata.internal.provider.impl.StaticRuleMetadataProvider;
+import org.wso2.carbon.identity.rule.metadata.internal.provider.impl.DynamicRuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.internal.service.impl.RuleMetadataManager;
 import org.wso2.carbon.identity.rule.metadata.internal.service.impl.RuleMetadataServiceImpl;
 
@@ -53,6 +54,7 @@ public class RuleMetadataServiceComponent {
 
             RuleMetadataManager ruleMetadataManager = RuleMetadataManager.getInstance();
             ruleMetadataManager.registerMetadataProvider(StaticRuleMetadataProvider.loadStaticMetadata());
+            ruleMetadataManager.registerMetadataProvider(new DynamicRuleMetadataProvider());
             bundleCtx.registerService(RuleMetadataService.class.getName(),
                     new RuleMetadataServiceImpl(ruleMetadataManager),
                     null);
