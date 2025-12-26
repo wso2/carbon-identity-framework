@@ -162,13 +162,31 @@ public class UserStoreUtil {
             } else {
                 cipher = Cipher.getInstance("RSA", "BC");
             }
-            cipher.init(Cipher.ENCRYPT_MODE, certificate.getPublicKey());
+            // For RSA-OAEP algorithms, use WRAP_MODE for FIPS compliance, otherwise use ENCRYPT_MODE.
+            if (cipherTransformation != null &&
+                (cipherTransformation.toUpperCase().contains("OAEP") ||
+                 cipherTransformation.toUpperCase().contains("RSA/ECB/OAEPWITHSHA"))) {
+                cipher.init(Cipher.WRAP_MODE, certificate.getPublicKey());
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, certificate.getPublicKey());
+            }
         } catch (NoSuchPaddingException | NoSuchProviderException | InvalidKeyException | NoSuchAlgorithmException e) {
             throw new CryptoException("Error occurred while creating the cipher.", e);
         }
 
         try {
-            byte[] cipherText = cipher.doFinal(plainTextBytes);
+            byte[] cipherText;
+            // For WRAP_MODE, we need to wrap the data as a key, then extract the wrapped bytes.
+            if (cipherTransformation != null &&
+                (cipherTransformation.toUpperCase().contains("OAEP") ||
+                 cipherTransformation.toUpperCase().contains("RSA/ECB/OAEPWITHSHA"))) {
+                // Create a temporary secret key from the plaintext bytes for wrapping.
+                javax.crypto.spec.SecretKeySpec tempKey =
+                    new javax.crypto.spec.SecretKeySpec(plainTextBytes, "AES");
+                cipherText = cipher.wrap(tempKey);
+            } else {
+                cipherText = cipher.doFinal(plainTextBytes);
+            }
             // Check whether custom transformation is configured.
             if (cipherTransformation != null) {
                 cipherText = CryptoUtil.getDefaultCryptoUtil()
@@ -176,7 +194,7 @@ public class UserStoreUtil {
             }
             return cipherText;
         } catch (BadPaddingException | NoSuchAlgorithmException | CertificateEncodingException |
-                IllegalBlockSizeException e) {
+                IllegalBlockSizeException | InvalidKeyException e) {
             throw new CryptoException("Error occurred while encrypting.", e);
         }
     }
