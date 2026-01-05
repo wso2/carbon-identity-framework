@@ -306,6 +306,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
         boolean isShowRoleClaimOnGroupRoleSeparation = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
+        boolean userStoreBasedIdentityDataStore = isUserStoreBasedIdentityDataStore();
         List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
 
         for (LocalClaim claim : localClaims) {
@@ -322,6 +323,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 updateScopeFromIsUnique(properties,
                         properties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY));
             }
+
+            setManagedInUserStoreProperty(claim, userStoreBasedIdentityDataStore);
             filteredLocalClaims.add(claim);
         }
         return filteredLocalClaims;
@@ -344,7 +347,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         LocalClaim claimCopy = copyLocalClaim(localClaim.get());
-        setManagedInUserStoreProperty(claimCopy, tenantDomain);
+        setManagedInUserStorePropertyAndExcludedUserStoresProperty(claimCopy, tenantDomain);
         return Optional.of(claimCopy);
     }
 
@@ -1046,13 +1049,45 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     /**
+     * Set the managed in user store property for the given local claim.
+     *
+     * @param localClaim                      Local claim.
+     * @param userStoreBasedIdentityDataStore Whether the identity data store is user store based.
+     */
+    private void setManagedInUserStoreProperty(LocalClaim localClaim, boolean userStoreBasedIdentityDataStore) {
+
+        if (localClaim.getClaimProperties().containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)) {
+            if (log.isDebugEnabled()) {
+                log.debug("ManagedInUserStore property is already set for claim: " + localClaim.getClaimURI() +
+                        ". Skipping setting default value.");
+            }
+            return;
+        }
+
+        if (userStoreBasedIdentityDataStore) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Identity data store is user store based. Setting ManagedInUserStore=true " +
+                        "for claim: %s", localClaim.getClaimURI()));
+            }
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, Boolean.TRUE.toString());
+        } else {
+            String defaultManagedInUserStoreValue = getDefaultManagedInUserStoreValue(isIdentityClaim(localClaim));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Setting default ManagedInUserStore=%s for claim: %s",
+                        defaultManagedInUserStoreValue, localClaim.getClaimURI()));
+            }
+            localClaim.setClaimProperty(MANAGED_IN_USER_STORE_PROPERTY, defaultManagedInUserStoreValue);
+        }
+    }
+
+    /**
      * Configure managed in user store related properties for the given local claim.
      *
      * @param localClaim   Local claim.
      * @param tenantDomain Tenant domain.
      * @throws ClaimMetadataException If an error occurs while getting UserStoreManager.
      */
-    private void setManagedInUserStoreProperty(LocalClaim localClaim, String tenantDomain)
+    private void setManagedInUserStorePropertyAndExcludedUserStoresProperty(LocalClaim localClaim, String tenantDomain)
             throws ClaimMetadataException {
 
         if (log.isDebugEnabled()) {

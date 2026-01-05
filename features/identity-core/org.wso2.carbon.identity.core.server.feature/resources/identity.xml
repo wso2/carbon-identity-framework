@@ -2594,6 +2594,7 @@
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2947,5 +2948,6 @@
         </SMS>
     </NotificationChannel>
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
+    <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
 </Server>

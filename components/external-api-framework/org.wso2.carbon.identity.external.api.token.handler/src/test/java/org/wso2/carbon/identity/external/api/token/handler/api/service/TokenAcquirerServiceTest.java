@@ -441,6 +441,133 @@ public class TokenAcquirerServiceTest {
     }
 
     /**
+     * Test getNewAccessToken with valid refresh token should use refresh grant.
+     */
+    @Test
+    public void testGetNewAccessTokenWithValidRefreshToken() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString())).thenReturn(mockRequestContext);
+
+        String newAccessToken = "new-access-token-from-refresh";
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", newAccessToken);
+        APIResponse apiResponse = new APIResponse(200, responseBody);
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken(REFRESH_TOKEN);
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), newAccessToken);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString()), times(1));
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)),
+                times(0));
+    }
+
+    /**
+     * Test getNewAccessToken with null refresh token should use the configured grant type.
+     */
+    @Test
+    public void testGetNewAccessTokenWithNullRefreshToken() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockRequestContext);
+
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", ACCESS_TOKEN);
+        APIResponse apiResponse = new APIResponse(200, responseBody);
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken(null);
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)),
+                times(1));
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString()), times(0));
+    }
+
+    /**
+     * Test getNewAccessToken with refresh token that fails should fallback to the configured grant type.
+     */
+    @Test
+    public void testGetNewAccessTokenWithRefreshTokenFallbackToClientCredentials() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        APIRequestContext mockRequestContextForClientCreds = Mockito.mock(APIRequestContext.class);
+
+        // First call for refresh grant throws exception.
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                        any(TokenRequestContext.class), anyString()))
+                .thenReturn(mockRequestContext);
+
+        // Second call for client credentials succeeds.
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockRequestContextForClientCreds);
+
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", ACCESS_TOKEN);
+        APIResponse successResponse = new APIResponse(200, responseBody);
+        APIResponse errorResponse = new APIResponse(400, "{\"error\":\"invalid_grant\"}");
+
+        // Create a testable service that returns error first, then success.
+        tokenAcquirerService = new MultiResponseTokenAcquirerService(apiClientConfig, errorResponse, successResponse);
+        tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken(REFRESH_TOKEN);
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString()), times(1));
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)),
+                times(1));
+    }
+
+    /**
+     * Test getNewAccessToken with refresh token when both refresh grant and client credentials fail.
+     */
+    @Test
+    public void testGetNewAccessTokenWithRefreshTokenBothGrantsFail() {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                        any(TokenRequestContext.class), anyString()))
+                .thenReturn(mockRequestContext);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockRequestContext);
+
+        APIResponse errorResponse = new APIResponse(401, "{\"error\":\"unauthorized\"}");
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, errorResponse);
+        tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        try {
+            tokenAcquirerService.getNewAccessToken(REFRESH_TOKEN);
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65012");
+            assertEquals(e.getDescription(),
+                    "Unexpected response status code: 401. Expected: 200.");
+        }
+    }
+
+    /**
      * Test setting API invocation config.
      */
     @Test
@@ -495,6 +622,35 @@ public class TokenAcquirerServiceTest {
                 throw mockException;
             }
             return mockResponse;
+        }
+    }
+
+    /**
+     * Testable subclass to simulate multiple different responses for fallback testing.
+     */
+    private static class MultiResponseTokenAcquirerService extends TokenAcquirerService {
+
+        private final APIResponse firstResponse;
+        private final APIResponse secondResponse;
+        private int callCount = 0;
+
+        public MultiResponseTokenAcquirerService(APIClientConfig apiClientConfig, APIResponse firstResponse,
+                                                  APIResponse secondResponse) {
+
+            super(apiClientConfig);
+            this.firstResponse = firstResponse;
+            this.secondResponse = secondResponse;
+        }
+
+        @Override
+        public APIResponse callAPI(APIRequestContext requestContext, APIInvocationConfig apiInvocationConfig)
+                throws APIClientException {
+
+            callCount++;
+            if (callCount == 1) {
+                return firstResponse;
+            }
+            return secondResponse;
         }
     }
 }

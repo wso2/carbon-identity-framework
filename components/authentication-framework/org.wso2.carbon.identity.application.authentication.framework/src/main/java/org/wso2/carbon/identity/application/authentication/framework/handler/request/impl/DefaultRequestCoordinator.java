@@ -946,6 +946,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
 
+        String appResidentOrganization = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrganization)) {
+            return FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrganization);
+        }
+
         String tenantDomain = getTenantDomainFromContext();
         if (StringUtils.isNotBlank(tenantDomain)) {
             if (log.isDebugEnabled()) {

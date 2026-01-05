@@ -284,6 +284,10 @@ public abstract class FrameworkConstants {
     public static final String AMR = "amr";
     public static final String USER_ASSERTION = "userAssertion";
 
+    // Authentication entity constants.
+    public static final String AUTH_ENTITY = "auth_entity";
+    public static final String AUTH_ENTITY_AGENT = "agent";
+
     private FrameworkConstants() {
 
     }
@@ -427,6 +431,11 @@ public abstract class FrameworkConstants {
          * JIT Provisioning configurations.
          */
         public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
+
+        /**
+         * Configuration to mark the step as completed on interrupt.
+         */
+        public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
 
         private Config() {
         }

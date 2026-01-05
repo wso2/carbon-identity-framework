@@ -4971,4 +4971,41 @@ public class FrameworkUtils {
                 : request.getParameter(FrameworkConstants.USER_ASSERTION);
         return StringUtils.isNotEmpty(userAssertion);
     }
+
+    /**
+     * Resolves application resident tenant domain from organization id.
+     *
+     * @param appResidentOrgId Organization id of the application resident tenant.
+     * @return Resolved tenant domain.
+     * @throws FrameworkException Error while resolving tenant domain.
+     */
+    public static String resolveTenantDomainFromOrganizationId(String appResidentOrgId) throws FrameworkException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolving tenant domain from organization id: " + appResidentOrgId);
+            }
+            String appResidentTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(appResidentOrgId);
+            if (StringUtils.isBlank(appResidentTenantDomain)) {
+                throw new FrameworkException("Tenant domain not found for organization id: "
+                        + appResidentOrgId + ".");
+            }
+            return appResidentTenantDomain;
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while resolving tenant domain from organization id: "
+                    + appResidentOrgId + ".", e);
+        }
+    }
+
+    /**
+     * Check whether to mark the step as completed on interrupt in an authentication flow.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean markStepCompletedOnInterrupt() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
+    }
 }

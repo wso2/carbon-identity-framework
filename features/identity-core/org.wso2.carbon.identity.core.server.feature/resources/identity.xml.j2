@@ -1877,6 +1877,7 @@
                 questions.
              -->
             <MinQuestionsToAnswer>{{identity_mgt.challenge_questions.min_required_answers}}</MinQuestionsToAnswer>
+            <SkipSendingQuestionsInUrl>{{identity_mgt.challenge_questions.skip_sending_questions_in_url}}</SkipSendingQuestionsInUrl>
         </Question>
         <ExpiryTime>{{identity_mgt.password_reset_email.reset_mail_validity}}</ExpiryTime>
         <NotifySuccess>{{identity_mgt.password_reset_email.notify_on_reset}}</NotifySuccess>
@@ -2336,6 +2337,35 @@
                     </AllowedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <PreIssueIdToken>
+                <Enable>{{actions.types.pre_issue_id_token.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_issue_id_token.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_issue_id_token.version.retired_up_to}}</RetiredUpTo>
+                </Version>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.pre_issue_id_token.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.pre_issue_id_token.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                    <AllowedHeaders>
+                        {% for header in actions.types.pre_issue_id_token.action_request.allowed_headers %}
+                            <Header>{{header}}</Header>
+                        {% endfor %}
+                    </AllowedHeaders>
+                    <AllowedParameters>
+                        {% for param in actions.types.pre_issue_id_token.action_request.allowed_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </AllowedParameters>
+                </ActionRequest>
+            </PreIssueIdToken>
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
                 <Version>
@@ -2364,7 +2394,7 @@
         <HTTPClient>
             <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{external_api_client.http_client.read_timeout}}</HTTPReadTimeout>
-            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.connection_request_timeout}}</HTTPConnectionRequestTimeout>
             <HTTPConnectionPoolSize>{{external_api_client.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
             <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
         </HTTPClient>
@@ -4097,6 +4127,7 @@
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -4407,6 +4438,11 @@
         <X509RequestHeaderEncoded>{{x509.request_header_encoded}}</X509RequestHeaderEncoded>
         {% endif %}
     </X509>
+
+    <!-- Configuration to use internal hostname for X509 certificate authenticator redirects. -->
+    {% if authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect is defined %}
+        <UseInternalHostnameForRedirect>{{authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect}}</UseInternalHostnameForRedirect>
+    {% endif %}
 
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
     {% if audit.log.loggable_user_claim is defined %}
@@ -4988,9 +5024,21 @@
                     Supported versions : IS 7.2.0 onwards
                 -->
                 <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+                <RetryCountAtAuthFailure>{{notificationChannel.sms.custom.retry_count_at_auth_failure}}</RetryCountAtAuthFailure>
+                <Authentication>
+                    <OauthTokenRetrieval>
+                        <HTTPConnectionTimeout>{{notificationChannel.sms.custom.authentication.http_client.connection_timeout}}</HTTPConnectionTimeout>
+                        <HTTPReadTimeout>{{notificationChannel.sms.custom.authentication.http_client.read_timeout}}</HTTPReadTimeout>
+                        <HTTPConnectionRequestTimeout>{{notificationChannel.sms.custom.authentication.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+                        <HTTPConnectionPoolSize>{{notificationChannel.sms.custom.authentication.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+                        <HTTPConnectionMaxPerRoute>{{notificationChannel.sms.custom.authentication.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
+                    </OauthTokenRetrieval>
+                </Authentication>
             </Custom>
         </SMS>
     </NotificationChannel>
     <PASTRCookieMaxAge>{{pastr_cookie.max_age}}</PASTRCookieMaxAge>
+    <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
+    <MarkStepCompletedOnInterrupt>{{authentication.mark_step_completed_on_interrupt}}</MarkStepCompletedOnInterrupt>
 
 </Server>

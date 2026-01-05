@@ -48,7 +48,11 @@ public class ActionTypesTest {
                         Action.ActionTypes.Category.PRE_POST},
                 {Action.ActionTypes.AUTHENTICATION, "authentication", "AUTHENTICATION", "Authentication",
                         "Configure an extension point for user authentication via a custom service.",
-                        Action.ActionTypes.Category.IN_FLOW}
+                        Action.ActionTypes.Category.IN_FLOW},
+                {Action.ActionTypes.PRE_ISSUE_ID_TOKEN, "preIssueIdToken", "PRE_ISSUE_ID_TOKEN",
+                        "Pre Issue ID Token",
+                        "Configure an extension point for modifying ID token via a custom service.",
+                        Action.ActionTypes.Category.PRE_POST}
         };
     }
 
@@ -71,7 +75,7 @@ public class ActionTypesTest {
                 {Action.ActionTypes.Category.PRE_POST,
                         new Action.ActionTypes[]{Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN,
                                 Action.ActionTypes.PRE_UPDATE_PASSWORD, Action.ActionTypes.PRE_UPDATE_PROFILE,
-                                Action.ActionTypes.PRE_REGISTRATION}},
+                                Action.ActionTypes.PRE_REGISTRATION, Action.ActionTypes.PRE_ISSUE_ID_TOKEN}},
                 {Action.ActionTypes.Category.IN_FLOW, new Action.ActionTypes[]{Action.ActionTypes.AUTHENTICATION}}
         };
     }

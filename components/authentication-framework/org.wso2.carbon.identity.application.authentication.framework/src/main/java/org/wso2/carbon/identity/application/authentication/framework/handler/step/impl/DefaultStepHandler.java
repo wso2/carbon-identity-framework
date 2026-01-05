@@ -817,6 +817,20 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
 
+            if (FrameworkUtils.markStepCompletedOnInterrupt()) {
+                /*
+                 * If the authenticator flow status is FAIL_COMPLETED, USER_ABORT, UNKNOWN or FALLBACK,
+                 * we mark the step as completed to avoid skipping the step in the next iterations.
+                 * This is done to avoid setting the authentication step status as SUCCESS when there is an invalid
+                 * authentication status returned from the authenticator.
+                 */
+                if (status != AuthenticatorFlowStatus.SUCCESS_COMPLETED) {
+                    stepConfig.setCompleted(true);
+                    context.setRequestAuthenticated(false);
+                    return;
+                }
+            }
+
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
@@ -1279,28 +1293,28 @@ public class DefaultStepHandler implements StepHandler {
                             reCaptchaParamString.toString();
                 } else if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                     String redirectURL;
+                    String baseURL;
                     if (isRedirectionToRetryPageOnAccountLock(context)) {
-                        String retryPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
-                        redirectURL = response.encodeRedirectURL(retryPage
-                                + ("?" + context.getContextIdIncludedQueryParams()))
-                                + errorParamString;
+                        // Redirect to the retry page.
+                        baseURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
                     } else {
-                        redirectURL = response.encodeRedirectURL(loginPage
-                                + ("?" + context.getContextIdIncludedQueryParams()))
-                                + String.format(
-                                "&errorCode=%s&authenticators=%s",
-                                errorCode, URLEncoder.encode(authenticatorNames, "UTF-8"))
-                                + retryParam + reCaptchaParamString;
-                        if (remainingAttempts == 0) {
-                            redirectURL = String.format("%s&remainingAttempts=0", redirectURL);
-                        }
-                        if (!StringUtils.isBlank(reason)) {
-                            redirectURL = String.format("%s&lockedReason=%s", redirectURL, reason);
-                        }
-                        if (username != null) {
-                            redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
-                                    "UTF-8"));
-                        }
+                        baseURL = loginPage;
+                    }
+                    redirectURL = response.encodeRedirectURL(baseURL
+                            + ("?" + context.getContextIdIncludedQueryParams()))
+                            + String.format(
+                            "&errorCode=%s&authenticators=%s",
+                            errorCode, URLEncoder.encode(authenticatorNames, "UTF-8"))
+                            + retryParam + reCaptchaParamString;
+                    if (remainingAttempts == 0) {
+                        redirectURL = String.format("%s&remainingAttempts=0", redirectURL);
+                    }
+                    if (!StringUtils.isBlank(reason)) {
+                        redirectURL = String.format("%s&lockedReason=%s", redirectURL, reason);
+                    }
+                    if (username != null) {
+                        redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
+                                "UTF-8"));
                     }
                     return redirectURL;
                 } else if (IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(errorCode)) {

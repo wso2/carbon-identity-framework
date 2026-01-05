@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
@@ -75,6 +76,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
         .ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_INVALID_RESOURCE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOLVING_TENANT_DOMAIN;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOLVING_TENANT_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_RESOURCE_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
@@ -628,13 +631,34 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private int getTenantId() {
+    private int getTenantId() throws ConfigurationManagementException {
 
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                String tenantDomain = ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(appResidentOrgId);
+                return IdentityTenantUtil.getTenantId(tenantDomain);
+            } catch (OrganizationManagementException | IdentityRuntimeException e) {
+                throw handleServerException(ERROR_CODE_RESOLVING_TENANT_ID, appResidentOrgId, e);
+            }
+        }
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
-    private String getTenantDomain() {
+    private String getTenantDomain() throws ConfigurationManagementException {
 
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                return ConfigurationManagerComponentDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(appResidentOrgId);
+            } catch (OrganizationManagementException e) {
+                throw handleServerException(ERROR_CODE_RESOLVING_TENANT_DOMAIN, appResidentOrgId, e);
+            }
+        }
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
@@ -657,7 +681,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private Resource generateResourceFromRequest(String resourceTypeName, ResourceAdd resourceAdd) {
+    private Resource generateResourceFromRequest(String resourceTypeName, ResourceAdd resourceAdd)
+            throws ConfigurationManagementException {
 
         Resource resource = new Resource();
         resource.setTenantDomain(getTenantDomain());
