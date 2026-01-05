@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -70,6 +71,10 @@ public class RoleManagementOrganizationHandler extends AbstractEventHandler {
     private void clearRoleBasicInfoCache(Map<String, Object> eventProperties) {
 
         String organizationId = (String) eventProperties.get(EVENT_PROP_ORGANIZATION_ID);
+        if (StringUtils.isBlank(organizationId)) {
+            LOG.warn("Organization ID is missing in event properties. Cannot clear role basic info cache.");
+            return;
+        }
         try {
             OrganizationManager organizationManager = RoleManagementServiceComponentHolder.getInstance()
                     .getOrganizationManager();
