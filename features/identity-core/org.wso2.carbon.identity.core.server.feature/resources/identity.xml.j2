@@ -2695,6 +2695,14 @@
                       orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
                       enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
 
+        <!-- Privileged User Authenticator -->
+        <EventListener id="privileged_user_authenticator"
+            type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+            name="org.wso2.carbon.identity.oauth2.clientauth.privilegeduser.PrivilegedUserAuthenticator"
+            orderId="{{event.default_listener.privileged_user_authenticator.order}}"
+            enable="{{event.default_listener.privileged_user_authenticator.enable}}">
+        </EventListener>
+
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
