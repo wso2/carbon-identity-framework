@@ -395,5 +395,11 @@
   "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
     "PRE_AUTHENTICATE_CLAIM_WITH_ID"
   ],
-  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable": "$ref{identity_mgt.workflow_pending_user_authn_handler.enable}"
+  "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable": "$ref{identity_mgt.workflow_pending_user_authn_handler.enable}",
+  "identity_mgt.events.schemes.RoleManagementOrganizationHandler.module_index": "62",
+  "identity_mgt.events.schemes.RoleManagementOrganizationHandler.subscriptions": [
+    "POST_UPDATE_ORGANIZATION",
+    "POST_PATCH_ORGANIZATION",
+    "PRE_DELETE_ORGANIZATION"
+  ]
 }
