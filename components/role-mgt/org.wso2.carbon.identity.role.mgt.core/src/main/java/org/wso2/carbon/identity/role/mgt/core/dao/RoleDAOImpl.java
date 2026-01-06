@@ -875,7 +875,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
 
                 // Update the role name in IDN_SCIM_GROUP table.
-                updateSCIMRoleName(roleName, newRoleName, tenantDomain);
+                updateSCIMRoleName(roleName, newRoleName, tenantDomain, connection);
 
                 /* UM_ROLE_PERMISSION Table, roles are associated with Domain ID.
                    At this moment Role name doesn't contain the Domain prefix.
@@ -913,33 +913,28 @@ public class RoleDAOImpl implements RoleDAO {
         return new RoleBasicInfo(roleID, newRoleName);
     }
 
-    protected void updateSCIMRoleName(String roleName, String newRoleName, String tenantDomain)
+    protected void updateSCIMRoleName(String roleName, String newRoleName, String tenantDomain, Connection connection)
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         // Append internal domain in order to maintain the backward compatibility.
         roleName = appendInternalDomain(roleName);
         newRoleName = appendInternalDomain(newRoleName);
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    UPDATE_SCIM_ROLE_NAME_SQL)) {
-                statement.setString(RoleTableColumns.NEW_ROLE_NAME, newRoleName);
-                statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
-                statement.setString(RoleTableColumns.ROLE_NAME, roleName);
-                statement.executeUpdate();
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                UPDATE_SCIM_ROLE_NAME_SQL)) {
+            statement.setString(RoleTableColumns.NEW_ROLE_NAME, newRoleName);
+            statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
+            statement.setString(RoleTableColumns.ROLE_NAME, roleName);
+            statement.executeUpdate();
 
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                String errorMessage = "Error while updating the the roleName: %s in the tenantDomain: " + "%s";
-                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                        String.format(errorMessage, roleName, tenantDomain), e);
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessage = "Error while updating the the roleName: %s in the tenantDomain: " + "%s";
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, tenantDomain), e);
         }
+
     }
 
     @Override
@@ -973,7 +968,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
 
                 // Delete the role from IDN_SCIM_GROUP table.
-                deleteSCIMRole(roleName, tenantDomain);
+                deleteSCIMRole(roleName, tenantDomain, connection);
 
                 /* UM_ROLE_PERMISSION Table, roles are associated with Domain ID.
                    At this moment Role name doesn't contain the Domain prefix.
@@ -1005,7 +1000,8 @@ public class RoleDAOImpl implements RoleDAO {
         clearUserRolesCacheByTenant(tenantId);
     }
 
-    protected void deleteSCIMRole(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+    protected void deleteSCIMRole(String roleName, String tenantDomain, Connection connection)
+            throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         // Append internal domain in order to maintain the backward compatibility.
@@ -1014,22 +1010,15 @@ public class RoleDAOImpl implements RoleDAO {
             LOG.debug("Deleting the role: " + roleName + " for the role: " + roleName + " in the tenantDomain: "
                     + tenantDomain);
         }
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                DELETE_SCIM_ROLE_SQL)) {
+            statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
+            statement.setString(RoleTableColumns.ROLE_NAME, roleName);
+            statement.executeUpdate();
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    DELETE_SCIM_ROLE_SQL)) {
-                statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
-                statement.setString(RoleTableColumns.ROLE_NAME, roleName);
-                statement.executeUpdate();
-
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                String errorMessage = "Error while deleting the the role: %s for the role: %s in the tenantDomain: %s";
-                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                        String.format(errorMessage, roleName, roleName, tenantDomain), e);
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessage = "Error while deleting the the role: %s for the role: %s in the tenantDomain: %s";
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, roleName, tenantDomain), e);

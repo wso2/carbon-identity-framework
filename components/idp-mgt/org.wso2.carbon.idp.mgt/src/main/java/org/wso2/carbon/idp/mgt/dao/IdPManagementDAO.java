@@ -1057,8 +1057,10 @@ public class IdPManagementDAO {
         boolean isAdminForcePasswordResetOfflineEnabled = false;
 
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
             rs = prepStmt.executeQuery();
@@ -1124,7 +1126,7 @@ public class IdPManagementDAO {
                     && !isAdminForcePasswordResetSMSOTPEnabled && !isAdminForcePasswordResetOfflineEnabled) {
                 performConfigCorrectionForAdminForcedPasswordResetConfigs(idpProperties);
             }
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
@@ -1146,8 +1148,9 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt = null;
         try {
-            boolean isOracleDB = isOracleDB();
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            boolean isOracleDB = isOracleDB(databaseProductName);
+            String sqlStmt = isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
                     IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
@@ -1169,7 +1172,7 @@ public class IdPManagementDAO {
             }
             prepStmt.executeBatch();
 
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding IDP properties for IDP ID: " + idpId + " and tenant ID:" + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
@@ -6420,8 +6423,10 @@ public class IdPManagementDAO {
             dbConnectionInitialized = false;
         }
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, property);
             prepStmt.setString(2, value);
@@ -6433,7 +6438,7 @@ public class IdPManagementDAO {
                 idPName = rs.getString(1);
             }
             return idPName;
-        } catch (DataAccessException | SQLException e) {
+        } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for IDP metadata property name: " + property + " value: " + value, e);
         } finally {
