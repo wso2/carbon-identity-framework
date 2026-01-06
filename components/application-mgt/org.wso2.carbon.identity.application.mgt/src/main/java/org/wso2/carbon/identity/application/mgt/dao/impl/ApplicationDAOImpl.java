@@ -319,7 +319,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement prepStmt = null;
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
-            prepStmt = isH2DB(databaseProductName) ? dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA);
             for (ServiceProviderProperty property : properties) {
                 if (StringUtils.isNotBlank(property.getValue())) {
