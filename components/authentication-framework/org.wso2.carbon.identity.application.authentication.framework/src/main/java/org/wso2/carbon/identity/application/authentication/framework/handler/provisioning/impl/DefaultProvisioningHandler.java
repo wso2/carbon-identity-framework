@@ -501,46 +501,66 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
-                try {
-                    if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                        roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
-                                new ArrayList<>(), tenantDomain);
-                    }
-                } catch (IdentityRoleManagementException e) {
-                    // If a workflow is triggered, log it and continue to the next role.
-                    if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
-                            ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Workflow engaged for assigning role: " + roleId + " to user: " +
-                                    LoggerUtils.getMaskedContent(username));
-                        }
-                        continue;
-                    }
-                    throw e;
-                }
+                assignUserToRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
             // Remove the assignment of the user from the deleting roles.
             for (String roleId : rolesToDelete) {
-                try {
-                    if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                        roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
-                                Arrays.asList(userId), tenantDomain);
-                    }
-                } catch (IdentityRoleManagementException e) {
-                    if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
-                            ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Workflow engaged for removing role: " + roleId + " from user: " +
-                                    LoggerUtils.getMaskedContent(username));
-                        }
-                        continue;
-                    }
-                    throw e;
-                }
+                removeUserFromRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
             throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
+    }
+
+    /**
+     * Helper method to assign a user to a V2 role and handle workflow engagement.
+     */
+    private void assignUserToRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                    RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
+                        new ArrayList<>(), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "assigning role");
+        }
+    }
+
+    /**
+     * Helper method to remove a user from a V2 role and handle workflow engagement.
+     */
+    private void removeUserFromRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                      RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
+                        Arrays.asList(userId), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "removing role");
+        }
+    }
+
+    /**
+     * Handles the workflow exception check.
+     */
+    private void handleWorkflowEngagement(IdentityRoleManagementException e, String roleId, String username,
+                                          String actionContext) throws IdentityRoleManagementException {
+
+        if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Workflow engaged for " + actionContext + ": " + roleId + " to user: " +
+                        LoggerUtils.getMaskedContent(username));
+            }
+            return;
+        }
+        throw e;
     }
 
     /**
