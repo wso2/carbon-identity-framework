@@ -1265,6 +1265,9 @@ public class RoleDAOImpl implements RoleDAO {
         List<String> roleIds = new ArrayList<>();
 
         boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreInUsernameCaseSensitive(userName, tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Getting role ID list for user: " + userId + " with case sensitivity: " + isUsernameCaseSensitive);
+        }
         String query;
         if (isUsernameCaseSensitive) {
             query = GET_ROLE_ID_LIST_OF_USER_SQL;
