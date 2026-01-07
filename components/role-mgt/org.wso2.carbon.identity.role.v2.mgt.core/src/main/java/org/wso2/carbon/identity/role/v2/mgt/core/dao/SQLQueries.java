@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -160,6 +160,11 @@ public class SQLQueries {
     public static final String GET_ROLE_ID_LIST_OF_USER_SQL = "SELECT r.UM_UUID FROM UM_HYBRID_ROLE r INNER " +
             "JOIN UM_HYBRID_USER_ROLE ur ON r.UM_ID = ur.UM_ROLE_ID INNER JOIN UM_DOMAIN d ON " +
             "ur.UM_DOMAIN_ID = d.UM_DOMAIN_ID WHERE ur.UM_USER_NAME =:UM_USER_NAME; AND " +
+            "ur.UM_TENANT_ID =:UM_TENANT_ID; AND d.UM_TENANT_ID =:UM_TENANT_ID; AND d.UM_DOMAIN_NAME =:UM_DOMAIN_NAME;";
+
+    public static final String GET_ROLE_ID_LIST_OF_USER_SQL_CASE_INSENSITIVE = "SELECT r.UM_UUID FROM UM_HYBRID_ROLE r INNER " +
+            "JOIN UM_HYBRID_USER_ROLE ur ON r.UM_ID = ur.UM_ROLE_ID INNER JOIN UM_DOMAIN d ON " +
+            "ur.UM_DOMAIN_ID = d.UM_DOMAIN_ID WHERE LOWER(ur.UM_USER_NAME) = LOWER(:UM_USER_NAME;) AND " +
             "ur.UM_TENANT_ID =:UM_TENANT_ID; AND d.UM_TENANT_ID =:UM_TENANT_ID; AND d.UM_DOMAIN_NAME =:UM_DOMAIN_NAME;";
 
     public static final String GET_ROLE_LIST_OF_GROUP_SQL = "SELECT r.UM_ROLE_NAME, r.UM_UUID, ra.UM_AUDIENCE, " +
