@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -79,7 +80,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
 
 /**
  * Default provisioning handler.
@@ -498,16 +501,41 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
-                            new ArrayList<>(), tenantDomain);
+                try {
+                    if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                        roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
+                                new ArrayList<>(), tenantDomain);
+                    }
+                } catch (IdentityRoleManagementException e) {
+                    // If a workflow is triggered, log it and continue to the next role.
+                    if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
+                            ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Workflow engaged for assigning role: " + roleId + " to user: " +
+                                    LoggerUtils.getMaskedContent(username));
+                        }
+                        continue;
+                    }
+                    throw e;
                 }
             }
             // Remove the assignment of the user from the deleting roles.
             for (String roleId : rolesToDelete) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
-                            Arrays.asList(userId), tenantDomain);
+                try {
+                    if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                        roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
+                                Arrays.asList(userId), tenantDomain);
+                    }
+                } catch (IdentityRoleManagementException e) {
+                    if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
+                            ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Workflow engaged for removing role: " + roleId + " from user: " +
+                                    LoggerUtils.getMaskedContent(username));
+                        }
+                        continue;
+                    }
+                    throw e;
                 }
             }
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
