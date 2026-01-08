@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.core.persistence.registry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -32,6 +33,13 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 /**
  * A Util OSGi service that exposes Registry resource management functionality based on locale.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService",
+                "service.scope=singleton"
+        }
+)
 public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtService {
 
     private static final Log log = LogFactory.getLog(RegistryResourceMgtServiceImpl.class);

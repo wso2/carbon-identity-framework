@@ -25,6 +25,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
@@ -83,6 +84,13 @@ import java.util.stream.Collectors;
  * It is responsible for building the request payload, calling the API, processing the response and
  * returning the status of the action execution.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService",
+                "service.scope=singleton"
+        }
+)
 public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private static final Log LOG = LogFactory.getLog(ActionExecutorServiceImpl.class);

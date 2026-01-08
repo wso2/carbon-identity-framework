@@ -34,8 +34,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
@@ -104,17 +102,13 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         configurationLoader = new UIBasedConfigurationLoader();
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
 
-        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.NASHORN)) {
-            graphBuilderFactory = new JsGraphBuilderFactory();
-        } else if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
+        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
             graphBuilderFactory = new JsGraalGraphBuilderFactory();
         }
 
         Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
         wrapperFactory.setAccessible(true);
-        if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
-            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
-        } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
+        if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
             wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
         }
 
