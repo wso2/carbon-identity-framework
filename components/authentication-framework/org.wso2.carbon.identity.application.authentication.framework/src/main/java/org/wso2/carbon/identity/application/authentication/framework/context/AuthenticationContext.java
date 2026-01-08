@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
@@ -88,6 +89,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean returning;
     private boolean retrying;
     private boolean previousSessionFound;
+    private boolean orgLoginContextUpdateRequired;
 
     //Adaptive Authentication control and status
     private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
@@ -124,6 +126,9 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * This attribute holds the context expiry time in epoch timestamp (nanoseconds).
      */
     private long expiryTimeNano = 0L;
+
+    private boolean organizationLogin;
+    private OrganizationLoginData organizationLoginData;
 
     public String getCallerPath() {
         return callerPath;
@@ -846,6 +851,36 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setExpiryTime(long expiryTimeNano) {
 
         this.expiryTimeNano = expiryTimeNano;
+    }
+
+    public boolean isOrgLoginContextUpdateRequired() {
+
+        return this.orgLoginContextUpdateRequired;
+    }
+
+    public void setOrgLoginContextUpdateRequired(boolean orgLoginContextUpdateRequired) {
+
+        this.orgLoginContextUpdateRequired = orgLoginContextUpdateRequired;
+    }
+
+    public boolean isOrganizationLogin() {
+
+        return this.organizationLogin;
+    }
+
+    public void setOrganizationLogin(boolean organizationLogin) {
+
+        this.organizationLogin = organizationLogin;
+    }
+
+    public OrganizationLoginData getOrganizationLoginData() {
+
+        return this.organizationLoginData;
+    }
+
+    public void setOrganizationLoginData(OrganizationLoginData organizationLoginData) {
+
+        this.organizationLoginData = organizationLoginData;
     }
 
     /**
