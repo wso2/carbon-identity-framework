@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,21 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core.model;
+package org.wso2.carbon.identity.role.v2.mgt.core.cache;
+
+import org.wso2.carbon.identity.core.cache.BaseCache;
 
 /**
- * Represents the basic attributes of user.
+ * Cache to maintain the role ID - role basic info mapping.
  */
-public class UserBasicInfo extends Entity {
+public class RoleBasicInfoCache extends BaseCache<RoleBasicInfoCacheKey, RoleBasicInfoCacheEntry> {
 
-    private static final long serialVersionUID = 1L;
+    private static final String CACHE_NAME = "RoleBasicInfoCache";
 
-    public UserBasicInfo() {
+    private static final RoleBasicInfoCache instance = new RoleBasicInfoCache();
 
+    private RoleBasicInfoCache() {
+
+        super(CACHE_NAME);
     }
 
-    public UserBasicInfo(String id, String name) {
+    public static RoleBasicInfoCache getInstance() {
 
-        super(id, name);
+        return instance;
     }
 }
