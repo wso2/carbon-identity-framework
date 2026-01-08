@@ -123,6 +123,8 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_A
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SINGLE_CHARACTER_WILDCARD;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.UNDERSCORE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
@@ -2370,5 +2372,31 @@ public class IdentityUtil {
             return;
         }
         log.debug("Validated JSON depth successfully.");
+    }
+
+    /**
+     * Handles SQL LIKE single-character wildcard based on 'api.filters.single_character_wildcard' configuration.
+     * - If set to "_" (default): underscore acts as a wildcard, no escaping is applied.
+     * - If set to any other single character: that character is used as the wildcard (mapped to "_"),
+     *   and actual underscores are escaped.
+     * - If set to empty string: underscore is escaped to prevent wildcard behavior.
+     *
+     * @param value The user input value to process.
+     * @return The processed value with wildcard handling applied.
+     */
+    public static String processSingleCharWildcard(String value) {
+
+        String wildcardChar = getProperty(SINGLE_CHARACTER_WILDCARD);
+        if (StringUtils.isBlank(value) || UNDERSCORE.equals(wildcardChar)) {
+            return value;
+        }
+        // Escape backslash first to avoid double-escaping.
+        String escaped = value.replace("\\", "\\\\");
+        escaped = escaped.replace(UNDERSCORE, "\\_");
+
+        if (StringUtils.isNotBlank(wildcardChar) && wildcardChar.length() == 1) {
+            escaped = escaped.replace(wildcardChar, UNDERSCORE);
+        }
+        return escaped;
     }
 }
