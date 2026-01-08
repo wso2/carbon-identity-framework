@@ -43,6 +43,61 @@ public class CommonAuthenticationHandler {
         ConfigurationFacade.getInstance();
     }
 
+    /**
+     * Handles debug flow by loading DebugRequestCoordinator via reflection.
+     * This avoids hard dependency on debug-framework module while allowing
+     * debug flow processing if the framework is available.
+     * 
+     * @param request HttpServletRequest.
+     * @param response HttpServletResponse.
+     * @return true if debug flow was handled, false otherwise.
+     */
+    private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {        
+        try {
+            // Load DebugRequestCoordinator via reflection to avoid hard dependency
+            Class<?> debugCoordinatorClass = Class.forName(
+                    "org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator");
+            
+            // Create instance of DebugRequestCoordinator
+            Object debugCoordinator = debugCoordinatorClass.getDeclaredConstructor().newInstance();
+            
+            // Get the handleCommonAuthRequest method
+            java.lang.reflect.Method handleMethod = debugCoordinatorClass.getMethod(
+                    "handleCommonAuthRequest",
+                    HttpServletRequest.class,
+                    HttpServletResponse.class);
+            
+            // Invoke the method and get result
+            Object result = handleMethod.invoke(debugCoordinator, request, response);
+            
+            if (result instanceof Boolean) {
+                boolean handled = (Boolean) result;
+                if (handled && log.isDebugEnabled()) {
+                    log.debug("Debug flow callback processed by DebugRequestCoordinator");
+                }
+                return handled;
+            }
+            
+            return false;
+            
+        } catch (ClassNotFoundException e) {
+            // Debug framework not available - this is OK, debug flows won't be supported
+            if (log.isDebugEnabled()) {
+                log.debug("DebugRequestCoordinator not available (debug-framework not deployed)");
+            }
+            return false;
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            // Exception in debug processing
+            log.error("Error in debug flow processing: " + 
+                (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                e.getCause() != null ? e.getCause() : e);
+            return false;
+        } catch (Exception e) {
+            log.error("Error discovering/invoking DebugRequestCoordinator: " + e.getMessage(), e);
+            return false;
+        }
+    }
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doPost(request, response);
@@ -56,6 +111,15 @@ public class CommonAuthenticationHandler {
         }
 
         try {
+            boolean debugHandled = handleDebugFlow(request, response);
+            
+            if (debugHandled) {
+                // Debug flow handled, return without proceeding to regular authentication.
+                log.info("Debug flow handled by DebugService.");
+                return;
+            }
+
+            // If not a debug flow, proceed with regular WSO2 authentication.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
 
@@ -67,6 +131,11 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (UserAssertionFailedException e) {
 
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (Exception e) {
+            // Handle any exceptions from debug coordinator.
+            log.error("Exception in CommonAuthenticationHandler: " + e.getMessage(), e);
+            // Fallback to regular authentication if debug processing fails.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
     }
