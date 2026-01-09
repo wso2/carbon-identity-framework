@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -184,7 +184,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_GROUP_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_USER_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_USER_SQL_CASE_INSENSITIVE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_GROUP_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_USER_SQL;
@@ -1263,20 +1262,8 @@ public class RoleDAOImpl implements RoleDAO {
         String nameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<String> roleIds = new ArrayList<>();
-
-        boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreInUsernameCaseSensitive(userName, tenantId);
-        if (log.isDebugEnabled()) {
-            log.debug("Getting role ID list for user: " + userId + " with case sensitivity: " + isUsernameCaseSensitive);
-        }
-        String query;
-        if (isUsernameCaseSensitive) {
-            query = GET_ROLE_ID_LIST_OF_USER_SQL;
-        } else {
-            query = GET_ROLE_ID_LIST_OF_USER_SQL_CASE_INSENSITIVE;
-        }
-
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_LIST_OF_USER_SQL)) {
 
             statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
