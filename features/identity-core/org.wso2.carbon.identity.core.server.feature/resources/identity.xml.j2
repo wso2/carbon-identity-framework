@@ -1093,6 +1093,9 @@
                         <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
+                {% if oauth.oidc.fapi.version is defined %}
+                <FAPIVersion>{{oauth.oidc.fapi.version}}</FAPIVersion>
+                {% endif %}
             </FAPI>
 
             <SupportedTokenEndpointSigningAlgorithms>
