@@ -1495,15 +1495,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (StringUtils.isNotBlank(redirectURL) && StringUtils.isNotBlank(serviceProviderID)) {
                 URI uri = new URI(redirectURL);
                 String query = uri.getRawQuery();
-                if (StringUtils.isNotBlank(query)) {
-                    if (!query.contains(FrameworkConstants.REQUEST_PARAM_SP_UUID + "=")) {
-                        redirectURL = redirectURL + "&" + FrameworkConstants.REQUEST_PARAM_SP_UUID
-                                + "=" + URLEncoder.encode(serviceProviderID,
-                                StandardCharsets.UTF_8.name());
+                if ((StringUtils.isNotBlank(query) && !query.contains(FrameworkConstants.REQUEST_PARAM_SP_UUID + "="))
+                        || StringUtils.isBlank(query)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Adding service provider ID to redirect URL for SP: "
+                                + context.getServiceProviderName());
                     }
-                } else {
-                    redirectURL = redirectURL + "?" + FrameworkConstants.REQUEST_PARAM_SP_UUID
-                            + "=" + URLEncoder.encode(serviceProviderID, StandardCharsets.UTF_8.name());
+                    redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL,
+                            FrameworkConstants.REQUEST_PARAM_SP_UUID + "=" +
+                                    URLEncoder.encode(serviceProviderID, StandardCharsets.UTF_8.name()));
                 }
                 responseWrapper.sendRedirect(redirectURL);
             }
