@@ -94,7 +94,21 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
     public FlowExecutionContext getContext(String contextId) throws FlowEngineException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+//        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+//        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+//                .getApplicationResidentOrganizationId();
+//        if (StringUtils.isNotBlank(appResidentOrgId)) {
+//            try {
+//                tenantId = IdentityTenantUtil.getTenantId(FrameworkUtils
+//                        .resolveTenantDomainFromOrganizationId(appResidentOrgId));
+//            } catch (FrameworkException e) {
+//                throw FlowExecutionEngineUtils.handleServerException(
+//                        Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE, e,
+//                        appResidentOrgId);
+//            }
+//        }
         try {
+//            int finalTenantId = tenantId;
             return jdbcTemplate.fetchSingleRecord(SELECT_CONTEXT_SQL, (LambdaExceptionUtils.rethrowRowMapper(
                             (resultSet, rowNumber) -> {
                                 String json = resultSet.getString(FLOW_STATE_JSON);

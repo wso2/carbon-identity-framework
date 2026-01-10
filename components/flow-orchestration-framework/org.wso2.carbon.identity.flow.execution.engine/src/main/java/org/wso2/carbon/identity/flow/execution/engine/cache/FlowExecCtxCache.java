@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.flow.execution.engine.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.store.FlowContextStore;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 
 import java.util.Optional;
 
@@ -61,7 +61,7 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
      */
     public void addToCache(FlowExecCtxCacheKey key, FlowExecCtxCacheEntry entry) throws FlowEngineException {
 
-        String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
+        String tenantName = FlowExecutionEngineUtils.resolveTenantDomain();
         if (tenantName != null) {
             super.addToCache(key, entry, tenantName);
             FlowContextStore.getInstance().storeContext(key.getContextId(), entry.getContext());
@@ -77,7 +77,7 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
      */
     public FlowExecCtxCacheEntry getValueFromCache(FlowExecCtxCacheKey key) throws FlowEngineException {
 
-        String tenantName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String tenantName = FlowExecutionEngineUtils.resolveTenantDomain();
         FlowExecCtxCacheEntry entry = super.getValueFromCache(key, tenantName);
         if (entry == null) {
             Optional<FlowExecutionContext> context = FlowContextStore.getInstance().getContext(key.getContextId());

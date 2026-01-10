@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.flow.execution.engine.util;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
@@ -65,6 +67,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 /**
  * Unit tests for FlowExecutionEngine.
  */
+@Test(singleThreaded = true)
 public class FlowEngineTest {
 
     private FlowExecutionContext context;
@@ -76,6 +79,15 @@ public class FlowEngineTest {
 
         defaultGraph = buildGraphWithDecision();
         listeners.add(new InputValidationListener());
+    }
+
+    @AfterClass
+    public void tearDown() {
+        // Clean up class-level resources if any
+        context = null;
+        defaultGraph = null;
+        listeners = null;
+        org.mockito.Mockito.framework().clearInlineMocks();
     }
 
     @Test

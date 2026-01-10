@@ -25,6 +25,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
@@ -55,14 +58,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.*;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 
 /**
@@ -552,5 +548,26 @@ public class FlowExecutionEngineUtils {
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, e, tenantDomain);
         }
         return usernameValidators;
+    }
+
+    /**
+     * Resolve tenant domain from the current carbon context.
+     *
+     * @return Tenant domain.
+     * @throws FlowEngineServerException Flow engine server exception.
+     */
+    public static String resolveTenantDomain() throws FlowEngineServerException {
+
+        String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                tenantName = FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrgId);
+            } catch (FrameworkException e) {
+                throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE, e, appResidentOrgId);
+            }
+        }
+        return tenantName;
     }
 }

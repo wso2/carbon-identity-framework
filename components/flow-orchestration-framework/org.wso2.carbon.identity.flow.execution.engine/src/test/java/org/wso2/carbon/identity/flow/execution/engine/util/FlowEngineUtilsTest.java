@@ -87,11 +87,12 @@ public class FlowEngineUtilsTest {
     private FlowExecCtxCache flowContextCacheMock;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+//    private AutoCloseable mockAutoCloseable;
 
     @BeforeClass
     public void setup() throws Exception {
 
-        MockitoAnnotations.openMocks(this);
+//        mockAutoCloseable = MockitoAnnotations.openMocks(this);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
 
@@ -364,10 +365,14 @@ public class FlowEngineUtilsTest {
     }
 
     @AfterClass
-    public void teardown() {
+    public void teardown() throws Exception {
 
         if (identityTenantUtil != null) {
             identityTenantUtil.close();
         }
+
+//        if (mockAutoCloseable != null) {
+//            mockAutoCloseable.close();
+//        }
     }
 }

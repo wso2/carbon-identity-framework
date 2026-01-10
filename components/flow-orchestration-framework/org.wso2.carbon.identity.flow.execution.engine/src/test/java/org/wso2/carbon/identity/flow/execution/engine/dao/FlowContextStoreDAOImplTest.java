@@ -63,13 +63,15 @@ public class FlowContextStoreDAOImplTest {
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    private AutoCloseable autoCloseable;
+
     private MockedStatic<JdbcUtils> jdbcUtils;
     private MockedStatic<FlowExecutionEngineUtils> flowEngineUtils;
 
     @BeforeMethod
     public void setup() throws Exception {
 
-        MockitoAnnotations.openMocks(this);
+        autoCloseable = MockitoAnnotations.openMocks(this);
         flowContextStoreDAO = new FlowContextStoreDAOImpl();
 
         jdbcUtils = mockStatic(JdbcUtils.class);
@@ -79,13 +81,16 @@ public class FlowContextStoreDAOImplTest {
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws Exception {
 
         if (jdbcUtils != null) {
             jdbcUtils.close();
         }
         if (flowEngineUtils != null) {
             flowEngineUtils.close();
+        }
+        if (autoCloseable != null) {
+            autoCloseable.close();
         }
     }
 
