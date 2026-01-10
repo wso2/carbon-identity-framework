@@ -63,6 +63,7 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
 
         String tenantName = FrameworkUtils.getLoginTenantDomainFromContext();
         if (tenantName != null) {
+            LOG.info("Adding FlowExecCtxCacheEntry to cache.");
             super.addToCache(key, entry, tenantName);
             FlowContextStore.getInstance().storeContext(key.getContextId(), entry.getContext());
             LOG.debug("Added FlowExecutionContext to cache for key: " + key);
@@ -82,6 +83,7 @@ public class FlowExecCtxCache extends BaseCache<FlowExecCtxCacheKey, FlowExecCtx
         if (entry == null) {
             Optional<FlowExecutionContext> context = FlowContextStore.getInstance().getContext(key.getContextId());
             if (context.isPresent()) {
+                LOG.info("Retrieved FlowExecutionContext from cache.");
                 entry = new FlowExecCtxCacheEntry(context.get());
                 super.addToCache(key, entry, tenantName);
                 LOG.debug("FlowExecutionContext found in store and added to cache for key: " + key.getContextId());

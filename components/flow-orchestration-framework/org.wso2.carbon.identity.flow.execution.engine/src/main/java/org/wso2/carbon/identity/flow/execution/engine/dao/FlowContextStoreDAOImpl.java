@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.flow.execution.engine.dao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -46,6 +48,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.SQLConsta
 public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    private static final Log LOG = LogFactory.getLog(FlowContextStoreDAOImpl.class);
 
     @Override
     public void storeContext(FlowExecutionContext context, long ttlSeconds) throws FlowEngineException {
@@ -93,6 +97,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
     @Override
     public FlowExecutionContext getContext(String contextId) throws FlowEngineException {
 
+        LOG.info("Getting FlowExecutionContext for context id : " + contextId);
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             return jdbcTemplate.fetchSingleRecord(SELECT_CONTEXT_SQL, (LambdaExceptionUtils.rethrowRowMapper(
