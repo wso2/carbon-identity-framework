@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -4095,6 +4095,35 @@ public class FrameworkUtils {
                 return username;
             }
             return username + "@" + appTenantDomain;
+        }
+        return username;
+    }
+
+    /**
+     * Pre-process user's username considering given tenant domain and isSaaSApp flag.
+     *
+     * @param username      Username of the user.
+     * @param tenantDomain  Tenant domain.
+     * @param isSaaSApp     Is the application a SaaS application.
+     * @return              Preprocessed username with the given details.
+     */
+    public static String preprocessUsername(String username, String tenantDomain, boolean isSaaSApp) {
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + tenantDomain;
+            }
+        } else if (!username.endsWith(tenantDomain)) {
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the tenant domain provided.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + tenantDomain;
         }
         return username;
     }
