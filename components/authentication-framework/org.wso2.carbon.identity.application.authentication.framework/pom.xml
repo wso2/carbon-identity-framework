@@ -283,6 +283,9 @@
                         <ListenerManager-RequiredServices>
                             org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService
                         </ListenerManager-RequiredServices>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>
