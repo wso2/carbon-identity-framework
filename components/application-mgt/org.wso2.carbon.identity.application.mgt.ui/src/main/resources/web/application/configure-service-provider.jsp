@@ -373,9 +373,7 @@
         }
     }
 
-    boolean multipleSecretsAllowed =
-        IdentityUtil.getProperty(ApplicationMgtUIConstants.MULTIPLE_CLIENT_SECRETS_ENABLED) != null &&
-            Boolean.parseBoolean(IdentityUtil.getProperty(ApplicationMgtUIConstants.MULTIPLE_CLIENT_SECRETS_ENABLED));
+    boolean multipleSecretsAllowed = ApplicationMgtUIUtil.isMultipleClientSecretsEnabled();
 
 %>
 
@@ -2311,21 +2309,20 @@
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
                                                             <% if (!(appBean.getOauthConsumerSecret() == null || "false".equals(isHashDisabled))) {
-                                                                // If multiple secrets is allowed, mask the secret
+                                                                // If multiple secrets are allowed, mask the secret
                                                                 String displayValue = oauthConsumerSecret;
                                                                 if (multipleSecretsAllowed) {
-                                                                    displayValue = "*".repeat(16);
+                                                                    displayValue = ApplicationMgtUIUtil.mask();
                                                                 }
                                                             %>
                                                             <div>
                                                                 <input style="border: none; background: white;"
-                                                                       type="<%= multipleSecretsAllowed ? "text" : "password" %>"
-                                                                       autocomplete="off"
+                                                                       type="password" autocomplete="off"
                                                                        id="oauthConsumerSecret"
                                                                        name="oauthConsumerSecret"
                                                                        value="<%=Encode.forHtmlAttribute(displayValue)%>"
                                                                        readonly="readonly">
-                                                                <%-- Show/Hide button only if multiple Secrets is NOT allowed --%>
+                                                                <%-- Show/hide button only if multiple secrets are NOT allowed --%>
                                                                 <% if (!multipleSecretsAllowed) { %>
                                                                 <span style="float: right;">
                                                                     <a style="margin-top: 5px;" class="showHideBtn"
