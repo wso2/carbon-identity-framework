@@ -4105,7 +4105,7 @@ public class FrameworkUtils {
      * @param username      Username of the user.
      * @param tenantDomain  Tenant domain.
      * @param isSaaSApp     Is the application a SaaS application.
-     * @return              Preprocessed username with the given details.
+     * @return Preprocessed username with the given details.
      */
     public static String preprocessUsername(String username, String tenantDomain, boolean isSaaSApp) {
 
