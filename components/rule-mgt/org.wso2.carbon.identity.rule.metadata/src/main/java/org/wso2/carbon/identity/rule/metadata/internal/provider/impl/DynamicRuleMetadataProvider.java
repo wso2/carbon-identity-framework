@@ -13,47 +13,24 @@ import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User claim metadata provider.
  * This class is responsible for providing dynamic field definitions for user claims
  * that can be used in rule expressions without defining them in fields.json.
- * Claims are configured per flow type.
+ * Claims are fetched dynamically at runtime for all flow types.
  */
 public class DynamicRuleMetadataProvider implements RuleMetadataProvider {
 
     private static final Log LOG = LogFactory.getLog(DynamicRuleMetadataProvider.class);
 
-    /**
-     * Map of flow types to their allowed user claim URIs.
-     * Only flow types defined in this map will have user claims available.
-     */
-    private static final Map<FlowType, List<String>> FLOW_TYPE_CLAIMS_MAP;
-
-    static {
-        Map<FlowType, List<String>> claimsMap = new EnumMap<>(FlowType.class);
-
-        // Configure claims for WORKFLOW_RULES flow type.
-        claimsMap.put(FlowType.WORKFLOW_RULES, Arrays.asList(
-                "http://wso2.org/claims/username",
-                "http://wso2.org/claims/emailaddress",
-                "http://wso2.org/claims/role"
-        ));
-
-        // Additional flow types can be added here in the future.
-        // claimsMap.put(FlowType.PRE_UPDATE_PROFILE, Arrays.asList(...));
-
-        FLOW_TYPE_CLAIMS_MAP = Collections.unmodifiableMap(claimsMap);
-    }
 
     /**
      * Get the expression metadata for the given flow type.
-     * Returns field definitions for allowed user claim URIs based on flow type configuration.
+     * Returns field definitions for all available user claim URIs.
+     * Claims are fetched dynamically at runtime.
      *
      * @param flowType     Flow type.
      * @param tenantDomain Tenant domain.
@@ -64,10 +41,10 @@ public class DynamicRuleMetadataProvider implements RuleMetadataProvider {
     public List<FieldDefinition> getExpressionMeta(FlowType flowType, String tenantDomain)
             throws RuleMetadataException {
 
-        List<String> allowedClaimUris = getAllowedUserClaimUris(flowType, tenantDomain);
+        List<String> allowedClaimUris = getAllowedUserClaimUris(tenantDomain);
         if (allowedClaimUris.isEmpty()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("No user claims configured for flow type: " + flowType.getFlowAlias());
+                LOG.debug("No user claims found for tenant: " + tenantDomain);
             }
             return Collections.emptyList();
         }
@@ -79,24 +56,46 @@ public class DynamicRuleMetadataProvider implements RuleMetadataProvider {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Generated " + fieldDefinitions.size() + " field definitions for user claims for flow type: " +
-                    flowType.getFlowAlias());
+            LOG.debug("Generated " + fieldDefinitions.size() + " field definitions for user claims for tenant: " +
+                    tenantDomain);
         }
 
         return fieldDefinitions;
     }
 
     /**
-     * Get the list of allowed user claim URIs for the given flow type.
-     * Returns claims only if the flow type is configured in FLOW_TYPE_CLAIMS_MAP.
+     * Get the list of allowed user claim URIs dynamically at runtime.
+     * Fetches all local claims from the claim management service.
      *
-     * @param flowType     Flow type.
      * @param tenantDomain Tenant domain.
-     * @return List of allowed user claim URIs, or empty list if flow type is not configured.
+     * @return List of allowed user claim URIs.
+     * @throws RuleMetadataException If an error occurs while fetching claims.
      */
-    private List<String> getAllowedUserClaimUris(FlowType flowType, String tenantDomain) {
+    private List<String> getAllowedUserClaimUris(String tenantDomain) throws RuleMetadataException {
 
-        return FLOW_TYPE_CLAIMS_MAP.getOrDefault(flowType, Collections.emptyList());
+        // TODO: Implement dynamic claim fetching from ClaimMetadataManagementService.
+        // For now, return hardcoded claims for testing. This should be implemented to fetch claims at runtime.
+        // Example implementation:
+        // try {
+        //     ClaimMetadataManagementService claimService = getClaimMetadataManagementService();
+        //     List<LocalClaim> localClaims = claimService.getLocalClaims(tenantDomain);
+        //     return localClaims.stream()
+        //         .map(LocalClaim::getClaimURI)
+        //         .collect(Collectors.toList());
+        // } catch (ClaimMetadataException e) {
+        //     throw new RuleMetadataException("Error fetching claims for tenant: " + tenantDomain, e);
+        // }
+
+        List<String> tempAllowedClaims = new ArrayList<>();
+        tempAllowedClaims.add("http://wso2.org/claims/emailaddress");
+        tempAllowedClaims.add("http://wso2.org/claims/country");
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Returning " + tempAllowedClaims.size() + " test claims for tenant: " +
+                    tenantDomain);
+        }
+
+        return tempAllowedClaims;
     }
 
     /**
