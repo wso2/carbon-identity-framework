@@ -318,7 +318,6 @@
       "oauth.jwt_x5t_s256_enabled": false,
       "oauth.jwt_x5t_enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
-      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
       "saml.artifact.disable_double_encoding": false,
       "identity_mgt.recovery.enable_normalized_retry_error_response": false
     },
