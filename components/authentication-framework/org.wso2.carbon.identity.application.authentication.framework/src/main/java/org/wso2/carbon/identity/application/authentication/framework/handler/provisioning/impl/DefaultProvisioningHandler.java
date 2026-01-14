@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -79,7 +80,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
 
 /**
  * Default provisioning handler.
@@ -498,21 +501,66 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
-                            new ArrayList<>(), tenantDomain);
-                }
+                assignUserToRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
             // Remove the assignment of the user from the deleting roles.
             for (String roleId : rolesToDelete) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
-                            Arrays.asList(userId), tenantDomain);
-                }
+                removeUserFromRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
             throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
+    }
+
+    /**
+     * Helper method to assign a user to a V2 role and handle workflow engagement.
+     */
+    private void assignUserToRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                    RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
+                        new ArrayList<>(), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "assigning role");
+        }
+    }
+
+    /**
+     * Helper method to remove a user from a V2 role and handle workflow engagement.
+     */
+    private void removeUserFromRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                      RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
+                        Arrays.asList(userId), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "removing role");
+        }
+    }
+
+    /**
+     * Handles the workflow exception check.
+     */
+    private void handleWorkflowEngagement(IdentityRoleManagementException e, String roleId, String username,
+                                          String actionContext) throws IdentityRoleManagementException {
+
+        if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Workflow engaged for " + actionContext + ": " + roleId + " to user: " +
+                        LoggerUtils.getMaskedContent(username));
+            }
+            return;
+        }
+        throw e;
     }
 
     /**

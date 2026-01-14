@@ -338,6 +338,7 @@
   "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
+  "saml.artifact.disable_double_encoding": true,
   "saml.use_tenant_key_of": "user",
   "saml.tenant_partitioning.enable": false,
   "saml.signing_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
@@ -429,6 +430,7 @@
   "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.recovery.notify_recovery_email_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
+  "identity_mgt.recovery.enable_normalized_retry_error_response": true,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -714,6 +716,9 @@
 
   "event.default_listener.identity_role_workflow_operation.enable": true,
   "event.default_listener.identity_role_workflow_operation.priority": "11",
+
+  "event.default_listener.privileged_user_authenticator.priority": "200",
+  "event.default_listener.privileged_user_authenticator.enable": false,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
