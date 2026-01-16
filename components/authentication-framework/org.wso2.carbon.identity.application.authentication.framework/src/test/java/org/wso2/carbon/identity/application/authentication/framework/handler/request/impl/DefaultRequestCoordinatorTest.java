@@ -554,8 +554,21 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         }
     }
 
-    @Test
-    public void testHandlePromptRequest() {
+    @DataProvider(name = "handlePromptRequestProvider")
+    public Object[][] provideHandlePromptRequestData() {
+
+        return new Object[][]{
+                // {requestTemplateId, currentNodeTemplateId, parentNodeTemplateId, description}.
+                {null, null, null}, // No templateId in request or nodes
+                {"template-123", "template-123", null}, // TemplateId matches in current node
+                {"template-123", "template-456", "template-123"}, // TemplateId matches in parent node
+                {"template-123", "template-456", "template-789"} // TemplateId mismatch in all nodes
+        };
+    }
+
+    @Test(dataProvider = "handlePromptRequestProvider")
+    public void testHandlePromptRequest(String requestTemplateId, String currentNodeTemplateId,
+                                        String parentNodeTemplateId) {
 
         try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
              MockedStatic<ApplicationManagementService> applicationManagementService =
@@ -565,9 +578,21 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             String tenantDomain = "carbon.super";
             String restartLoginFlow = TRUE;
 
-            AuthGraphNode showPromptNode = mock(ShowPromptNode.class);
-            AuthGraphNode authGraphNode = mock(AuthGraphNode.class);
-            when(authGraphNode.getParent()).thenReturn(showPromptNode);
+            // Setup node hierarchy for multiple iterations.
+            ShowPromptNode currentShowPromptNode = mock(ShowPromptNode.class);
+            if (currentNodeTemplateId != null) {
+                when(currentShowPromptNode.getTemplateId()).thenReturn(currentNodeTemplateId);
+            }
+
+            AuthGraphNode currentAuthGraphNode = mock(AuthGraphNode.class);
+            when(currentAuthGraphNode.getParent()).thenReturn(currentShowPromptNode);
+
+            // Setup parent node if provided for second iteration case.
+            if (parentNodeTemplateId != null) {
+                ShowPromptNode parentShowPromptNode = mock(ShowPromptNode.class);
+                when(parentShowPromptNode.getTemplateId()).thenReturn(parentNodeTemplateId);
+                when(currentShowPromptNode.getParent()).thenReturn(parentShowPromptNode);
+            }
 
             HttpServletRequest requestMock = spy(HttpServletRequest.class);
             HttpServletResponse responseMock = spy(HttpServletResponse.class);
@@ -578,22 +603,25 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
             DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
 
-            // Mocking request parameters
+            // Mocking request parameters.
             when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(relyingParty);
             when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
             when(request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW)).thenReturn(restartLoginFlow);
             when(request.getParameter(AUTHENTICATOR)).thenReturn("BasicAuthenticator");
             when(request.getParameter("promptResp")).thenReturn(TRUE);
             when(request.getParameter("promptId")).thenReturn("97d506f3-fd3c-4...");
+            if (requestTemplateId != null) {
+                when(request.getParameter("templateId")).thenReturn(requestTemplateId);
+            }
 
-            // Creating a new AuthenticationContext
+            // Creating a new AuthenticationContext.
             AuthenticationContext context = new AuthenticationContext();
             context.setTenantDomain(tenantDomain);
             context.setServiceProviderName("consoleApplication");
             context.setRequestType("oidc");
             context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
             context.setCurrentStep(1);
-            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, authGraphNode);
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentAuthGraphNode);
 
             frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
                     .thenThrow(new NullPointerException("Error occurred"));
@@ -602,22 +630,23 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(FrameworkUtils.getAuthenticationRequestHandler()).thenReturn(authenticationRequestHandler);
             doNothing().when(authenticationRequestHandler).handle(request, response, context);
 
-            // Mocking ApplicationManagementService behavior
+            // Mocking ApplicationManagementService behavior.
             ApplicationManagementServiceImpl mockApplicationManagementService =
                     mock(ApplicationManagementServiceImpl.class);
             applicationManagementService.when(ApplicationManagementService::getInstance)
                     .thenReturn(mockApplicationManagementService);
 
-            // Mocking ServiceProvider and its properties
+            // Mocking ServiceProvider and its properties.
             ServiceProvider serviceProvider = mock(ServiceProvider.class);
             when(serviceProvider.isApplicationEnabled()).thenReturn(true);
             when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
                     .thenReturn(serviceProvider);
 
-            // Invoke handle method
+            // Invoke handle method.
             defaultRequestCoordinator.handle(request, response);
-        } catch (NullPointerException e) {
-            Assert.fail("NullPointerException occurred: " + e.getMessage());
+
+            verify(authenticationRequestHandler, times(1)).handle(any(), any(), any(AuthenticationContext.class));
+            
         } catch (Exception e) {
             Assert.fail("Exception occurred: " + e.getMessage());
         }
