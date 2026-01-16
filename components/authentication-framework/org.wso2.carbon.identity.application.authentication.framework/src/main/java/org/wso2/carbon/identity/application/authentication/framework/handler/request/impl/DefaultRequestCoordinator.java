@@ -420,6 +420,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     // by changing context to previous step.
                     if (!(currentNode instanceof ShowPromptNode)) {
                         String templateId = request.getParameter(TEMPLATE_ID_PARAM);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Handling browser back to dynamic prompt page request with templateId: " +
+                                    templateId);
+                        }
                         currentNode = moveToPreviousShowPromptNode(currentNode, templateId);
                         // If ShowPromptNode is not found, current node will be null.
                         if (currentNode != null) {
