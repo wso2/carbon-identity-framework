@@ -145,6 +145,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String PROMPT_ID_PARAM = "promptId";
     private static final String PROMPT_RESP_PARAM = "promptResp";
     private static final String SESSION_LIMIT_HANDLER_PARAM = "terminateActiveSessionsAction";
+    private static final String TEMPLATE_ID_PARAM = "templateId";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -418,7 +419,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     // If the request is a prompt request returning from browser's back button, we need to handle it
                     // by changing context to previous step.
                     if (!(currentNode instanceof ShowPromptNode)) {
-                        currentNode = moveToPreviousShowPromptNode(currentNode);
+                        String templateId = request.getParameter(TEMPLATE_ID_PARAM);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Handling browser back to dynamic prompt page request with templateId: " +
+                                    templateId);
+                        }
+                        currentNode = moveToPreviousShowPromptNode(currentNode, templateId);
                         // If ShowPromptNode is not found, current node will be null.
                         if (currentNode != null) {
                             context.setCurrentStep(Math.max(0, context.getCurrentStep() - 1));
@@ -613,11 +619,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * Move to the previous node in the authentication graph until show prompt node is reached.
      *
      * @param currentNode The current node in the authentication graph.
+     * @param currentTemplateId The dynamic prompt template identifier of current execution.
      * @return The previous node in the authentication graph.
      */
-    private AuthGraphNode moveToPreviousShowPromptNode(AuthGraphNode currentNode) {
+    private AuthGraphNode moveToPreviousShowPromptNode(AuthGraphNode currentNode, String currentTemplateId) {
 
-        while (currentNode != null && !(currentNode instanceof ShowPromptNode)) {
+        while (currentNode != null && !(currentNode instanceof ShowPromptNode && (currentTemplateId == null
+                || StringUtils.equals(((ShowPromptNode) currentNode).getTemplateId(), currentTemplateId)))) {
             currentNode = currentNode.getParent();
         }
         return currentNode;
