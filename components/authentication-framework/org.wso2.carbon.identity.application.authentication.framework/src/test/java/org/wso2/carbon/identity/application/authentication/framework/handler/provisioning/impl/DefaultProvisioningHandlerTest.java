@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2017-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserRealm;
@@ -44,15 +45,23 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SUPER_ORG_ID;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
 
 @Listeners(MockitoTestNGListener.class)
 public class DefaultProvisioningHandlerTest {
@@ -193,5 +202,180 @@ public class DefaultProvisioningHandlerTest {
                     tenantDomain);
         }
 
+    }
+
+    @Test
+    public void testAssignUserToRoleV2_WorkflowEngaged() throws Exception {
+
+        String subject = "testUser";
+        String userId = "user-id-123";
+        String tenantDomain = "carbon.super";
+        String roleIdToAdd = "roleId1";
+        String idp = "testIdp";
+        String associatedId = "assocId1";
+
+        List<String> rolesToAdd = new ArrayList<>(Collections.singletonList(roleIdToAdd));
+
+        // 1. Prepare Attributes (Crucial for the association check)
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FrameworkConstants.IDP_ID, idp);
+        attributes.put(FrameworkConstants.ASSOCIATED_ID, associatedId);
+
+        setupHappyPathMocks(subject, userId, tenantDomain);
+
+        // 2. Mock: The user currently has NO roles
+        when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain))
+                .thenReturn(new ArrayList<>());
+
+        // 3. Mock: The role exists
+        when(mockRoleManagementService.isExistingRole(eq(roleIdToAdd), eq(tenantDomain)))
+                .thenReturn(true);
+
+        // 4. Mock: Simulate Workflow Engagement Exception
+        org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException workflowException =
+                new org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException(
+                        ROLE_WORKFLOW_CREATED.getCode(), "Workflow created");
+
+        doThrow(workflowException).when(mockRoleManagementService).updateUserListOfRole(
+                eq(roleIdToAdd),
+                eq(Collections.singletonList(userId)),
+                anyList(),
+                eq(tenantDomain));
+
+        // 5. Mock: Federated Association (This fixes the "User already exists" error)
+        // Since isExistingUser returns true, we must say this user is already associated.
+        when(mockFederatedAssociationManager.getUserForFederatedAssociation(tenantDomain, idp, associatedId))
+                .thenReturn(subject);
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            setupFrameworkUtilsMocks(frameworkUtils, subject, userId);
+
+            // Execute
+            provisioningHandler.handleWithV2Roles(rolesToAdd, subject, attributes, "PRIMARY", tenantDomain);
+
+            // Assertion: Verify role update was attempted despite workflow exception
+            verify(mockRoleManagementService).updateUserListOfRole(
+                    eq(roleIdToAdd), eq(Collections.singletonList(userId)), anyList(), eq(tenantDomain));
+        }
+    }
+
+    @Test
+    public void testRemoveUserFromRoleV2_WorkflowPendingApproval() throws Exception {
+
+        String subject = "testUser";
+        String userId = "user-id-123";
+        String tenantDomain = "carbon.super";
+        String roleIdToRemove = "roleIdOld";
+        String idp = "testIdp";
+        String associatedId = "assocId1";
+
+        // 1. Prepare Attributes (Crucial for the association check in handleUserProvisioning)
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FrameworkConstants.IDP_ID, idp);
+        attributes.put(FrameworkConstants.ASSOCIATED_ID, associatedId);
+
+        // The input roles list is empty, implying we want to remove existing roles
+        List<String> rolesToAdd = new ArrayList<>();
+
+        setupHappyPathMocks(subject, userId, tenantDomain);
+
+        // 2. Mock: User currently HAS this role
+        when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain))
+                .thenReturn(Collections.singletonList(roleIdToRemove));
+
+        // 3. Mock: The role exists
+        when(mockRoleManagementService.isExistingRole(eq(roleIdToRemove), eq(tenantDomain)))
+                .thenReturn(true);
+
+        // 4. Mock: Simulate "Pending Approval" exception using the V2 EXCEPTION
+        org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException pendingException =
+                new org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException(
+                        ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode(), "Pending");
+
+        doThrow(pendingException).when(mockRoleManagementService).updateUserListOfRole(
+                eq(roleIdToRemove),
+                anyList(), // adding users (empty)
+                eq(Collections.singletonList(userId)), // removing user
+                eq(tenantDomain));
+
+        // 5. Mock: Federated Association (Fixes the "User already exists" error)
+        when(mockFederatedAssociationManager.getUserForFederatedAssociation(tenantDomain, idp, associatedId))
+                .thenReturn(subject);
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            setupFrameworkUtilsMocks(frameworkUtils, subject, userId);
+
+            // Execute
+            provisioningHandler.handleWithV2Roles(rolesToAdd, subject, attributes, "PRIMARY", tenantDomain);
+
+            // Assertion: Verify remove role was attempted despite the exception
+            verify(mockRoleManagementService).updateUserListOfRole(
+                    eq(roleIdToRemove), anyList(), eq(Collections.singletonList(userId)), eq(tenantDomain));
+        }
+    }
+
+    @Test(expectedExceptions = FrameworkException.class)
+    public void testAssignUserToRoleV2_GenericException() throws Exception {
+
+        String subject = "testUser";
+        String userId = "user-id-123";
+        String tenantDomain = "carbon.super";
+        List<String> rolesToAdd = Collections.singletonList("roleId1");
+
+        setupHappyPathMocks(subject, userId, tenantDomain);
+        when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain)).thenReturn(new ArrayList<>());
+        when(mockRoleManagementService.isExistingRole(anyString(), anyString())).thenReturn(true);
+
+        // CASE: Generic Role Exception (Not a workflow one)
+        // This targets: handleWorkflowEngagement (re-throw logic)
+        IdentityRoleManagementException genericException =
+                new IdentityRoleManagementException("UNEXPECTED_ERROR", "Something went wrong");
+
+        doThrow(genericException).when(mockRoleManagementService).updateUserListOfRole(
+                anyString(), anyList(), anyList(), anyString());
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            setupFrameworkUtilsMocks(frameworkUtils, subject, userId);
+
+            // Execute - Expecting FrameworkException
+            provisioningHandler.handleWithV2Roles(rolesToAdd, subject, new HashMap<>(), "PRIMARY", tenantDomain);
+        }
+    }
+
+    // --- Helper methods to reduce boilerplate in the specific tests above ---
+
+    private void setupHappyPathMocks(String subject, String userId, String tenantDomain) throws Exception {
+        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+        when(mockTenantManager.getTenantId(tenantDomain)).thenReturn(-1234);
+        when(mockRealmService.getTenantUserRealm(-1234)).thenReturn(mockUserRealm);
+
+        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockUserStoreManager);
+
+        // Realm Config mocks
+        when(mockUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockUserRealm.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockRealmConfiguration.isPrimary()).thenReturn(true);
+        when(mockRealmConfiguration.getAdminUserName()).thenReturn("admin");
+
+        // Everyone role logic mocks
+        when(mockRealmConfiguration.getEveryOneRoleName()).thenReturn("everyone");
+        when(mockRoleManagementService.isExistingRoleName(eq("everyone"), anyString(), anyString(), anyString()))
+                .thenReturn(false); // Simplify by pretending everyone role isn't mapped V2 for this test
+
+        when(mockUserStoreManager.isExistingUser(subject)).thenReturn(true);
+        when(mockOrganizationManager.resolveOrganizationId(tenantDomain)).thenReturn(SUPER_ORG_ID);
+
+        // ThreadLocal Setup
+        Map<String, Object> threadLocalProperties = new HashMap<>();
+        threadLocalProperties.put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD, FrameworkConstants.OVERRIDE_ALL);
+        IdentityUtil.threadLocalProperties.set(threadLocalProperties);
+    }
+
+    private void setupFrameworkUtilsMocks(MockedStatic<FrameworkUtils> frameworkUtils, String subject, String userId) {
+        frameworkUtils.when(() -> FrameworkUtils.resolveUserIdFromUsername(mockUserStoreManager, subject))
+                .thenReturn(userId);
+        frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager)
+                .thenReturn(mockFederatedAssociationManager);
     }
 }

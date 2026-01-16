@@ -1483,6 +1483,7 @@
         <SLOHostNameVerificationEnabled>{{saml.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>{{saml.artifact.validity}}</SAML2ArtifactValidityPeriodInMinutes>
+        <SAML2ArtifactDoubleEncodingDisabled>{{saml.artifact.disable_double_encoding}}</SAML2ArtifactDoubleEncodingDisabled>
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
@@ -1876,6 +1877,7 @@
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
         <ErrorMessage>
             <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
+            <EnableNormalizedRetryErrorResponse>{{identity_mgt.recovery.enable_normalized_retry_error_response}}</EnableNormalizedRetryErrorResponse>
         </ErrorMessage>
         <AutoLogin>
             <Enable>{{identity_mgt.recovery.enable_auto_login}}</Enable>
@@ -2373,7 +2375,7 @@
         <HTTPClient>
             <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{external_api_client.http_client.read_timeout}}</HTTPReadTimeout>
-            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.connection_request_timeout}}</HTTPConnectionRequestTimeout>
             <HTTPConnectionPoolSize>{{external_api_client.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
             <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
         </HTTPClient>
@@ -2693,6 +2695,13 @@
                       name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
                       orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
                       enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
+
+        <!-- Privileged User Authenticator -->
+        <EventListener id="privileged_user_authenticator"
+            type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+            name="org.wso2.carbon.identity.oauth2.clientauth.privilegeduser.PrivilegedUserAuthenticator"
+            orderId="{{event.default_listener.privileged_user_authenticator.priority}}"
+            enable="{{event.default_listener.privileged_user_authenticator.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}

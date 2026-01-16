@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.flow.execution.engine.dao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -27,6 +26,7 @@ import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 
@@ -95,6 +95,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            int tenantId = getTenantId();
             return jdbcTemplate.fetchSingleRecord(SELECT_CONTEXT_SQL, (LambdaExceptionUtils.rethrowRowMapper(
                             (resultSet, rowNumber) -> {
                                 String json = resultSet.getString(FLOW_STATE_JSON);
@@ -102,8 +103,7 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
                             })),
                     preparedStatement -> {
                         preparedStatement.setString(1, contextId);
-                        preparedStatement.setInt(2, PrivilegedCarbonContext
-                                .getThreadLocalCarbonContext().getTenantId());
+                        preparedStatement.setInt(2, tenantId);
                         preparedStatement.setTimestamp(3, Timestamp.from(Instant.now()));
                     }
             );
@@ -123,6 +123,20 @@ public class FlowContextStoreDAOImpl implements FlowContextStoreDAO {
         } catch (DataAccessException e) {
             throw FlowExecutionEngineUtils.handleServerException(
                     Constants.ErrorMessages.ERROR_CODE_FLOW_CONTEXT_DELETION_FAILURE, e, contextId);
+        }
+    }
+
+    private int getTenantId() throws FlowEngineServerException {
+
+        try {
+            return IdentityTenantUtil.getTenantId(FlowExecutionEngineUtils.resolveTenantDomain());
+        } catch (FlowEngineServerException e) {
+            // Re-throw FlowEngineServerException.
+            throw e;
+        } catch (Exception e) {
+            // Catch unchecked exceptions.
+            throw FlowExecutionEngineUtils.handleServerException(
+                    Constants.ErrorMessages.ERROR_CODE_TENANT_ID_RETRIEVE_FAILURE, e);
         }
     }
 }
