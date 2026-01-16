@@ -557,12 +557,12 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     @DataProvider(name = "handlePromptRequestProvider")
     public Object[][] provideHandlePromptRequestData() {
 
+        // {requestTemplateId, currentNodeTemplateId, parentNodeTemplateId, description}.
         return new Object[][]{
-                // {requestTemplateId, currentNodeTemplateId, parentNodeTemplateId, description}.
-                {null, null, null}, // No templateId in request or nodes
-                {"template-123", "template-123", null}, // TemplateId matches in current node
-                {"template-123", "template-456", "template-123"}, // TemplateId matches in parent node
-                {"template-123", "template-456", "template-789"} // TemplateId mismatch in all nodes
+                {null, null, null},                                 // No templateId in request or nodes.
+                {"template-123", "template-123", null},             // TemplateId matches in current node.
+                {"template-123", "template-456", "template-123"},   // TemplateId matches in parent node.
+                {"template-123", "template-456", "template-789"}    // TemplateId mismatch in all nodes.
         };
     }
 
@@ -576,7 +576,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
             String relyingParty = "console";
             String tenantDomain = "carbon.super";
-            String restartLoginFlow = TRUE;
+            String restartLoginFlow = "false";
 
             // Setup node hierarchy for multiple iterations.
             ShowPromptNode currentShowPromptNode = mock(ShowPromptNode.class);
