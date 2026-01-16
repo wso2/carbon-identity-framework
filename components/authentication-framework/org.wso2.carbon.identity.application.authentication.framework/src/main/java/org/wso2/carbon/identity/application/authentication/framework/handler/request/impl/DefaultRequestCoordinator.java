@@ -624,7 +624,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      */
     private AuthGraphNode moveToPreviousShowPromptNode(AuthGraphNode currentNode, String currentTemplateId) {
 
-        while (currentNode != null && !(currentNode instanceof ShowPromptNode && (currentTemplateId == null
+        while (currentNode != null && !(currentNode instanceof ShowPromptNode && (StringUtils.isEmpty(currentTemplateId)
                 || StringUtils.equals(((ShowPromptNode) currentNode).getTemplateId(), currentTemplateId)))) {
             currentNode = currentNode.getParent();
         }
