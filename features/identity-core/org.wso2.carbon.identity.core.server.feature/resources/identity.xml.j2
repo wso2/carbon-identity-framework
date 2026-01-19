@@ -194,6 +194,13 @@
         </ChallengeQuestions>
     </Connectors>
 
+    <CustomerDataService>
+        <Enable>{{ customer_data_service.enable | default("false") }}</Enable>
+        <ServerURL>{{ customer_data_service.server_url | default("") }}</ServerURL>
+        <AdminUsername>{{ customer_data_service.admin_username | default("") }}</AdminUsername>
+        <AdminPassword>{{ customer_data_service.admin_password | default("") }}</AdminPassword>
+    </CustomerDataService>
+
     <OpenID>
         <!--
             Default values for OpenIDServerUrl and OpenIDUSerPattern are built in following format
