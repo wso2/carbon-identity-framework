@@ -761,6 +761,12 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>true</EnableJWTTokenValidationDuringIntrospection>
 
+        <!-- Configuration for allowing users to enable the x5t#s256 parameter in JWT token -->
+        <JWTX5tS256Enabled>true</JWTX5tS256Enabled>
+
+        <!-- Configuration for allowing users to enable the x5t parameter in JWT token -->
+        <JWTX5tEnabled>false</JWTX5tEnabled>
+
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
         passed in a OAuth based authz request will be dropped.
