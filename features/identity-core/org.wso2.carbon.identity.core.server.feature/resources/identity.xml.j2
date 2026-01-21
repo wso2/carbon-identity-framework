@@ -4257,6 +4257,7 @@
             <IsThumbprintHexifyRequired>{{oauth.jwks_endpoint.is_thumbprint_hexify_required}}</IsThumbprintHexifyRequired>
             <!-- Configuration for allowing users to enable x5c parameter in JWKS response -->
             <EnableX5CInResponse>{{oauth.jwks_endpoint.enable_x5c_in_response | default(true)}}</EnableX5CInResponse>
+            <IsX5tRequired>{{oauth.jwks_endpoint.is_x5t_required}}</IsX5tRequired>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
