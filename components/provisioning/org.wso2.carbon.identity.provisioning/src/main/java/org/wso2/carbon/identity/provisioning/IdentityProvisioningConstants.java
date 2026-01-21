@@ -41,6 +41,8 @@ public class IdentityProvisioningConstants {
     public static final String JIT_PROVISIONING_ENABLED = "jitProvisioningEnabled";
     public static final String LAST_MODIFIED_CLAIM = "http://wso2.org/claims/modified";
     public static final String ASK_PASSWORD_CLAIM = "http://wso2.org/claims/identity/askPassword";
+    public static final String LAST_PASSWORD_UPDATE_TIME_CLAIM =
+            "http://wso2.org/claims/identity/lastPasswordUpdateTime";
     public static final String SELF_SIGNUP_ROLE = "Internal/selfsignup";
 
     public static final String IS_TRUE_VALUE = "1";
