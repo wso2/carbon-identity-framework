@@ -432,6 +432,16 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public List<UserBasicInfo> getUserListOfRoles(String filter, Integer limit, Integer offset,
+                                                  String sortBy, String sortOrder, String tenantDomain,
+                                                  String userStoreDomain) throws IdentityRoleManagementException {
+
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        return roleDAO.getUserListOfRoles(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain,
+                userStoreDomain);
+    }
+
+    @Override
     public RoleBasicInfo updateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
 

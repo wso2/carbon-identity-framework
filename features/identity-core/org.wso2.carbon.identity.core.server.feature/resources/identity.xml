@@ -761,6 +761,12 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>true</EnableJWTTokenValidationDuringIntrospection>
 
+        <!-- Configuration for allowing users to enable the x5t#s256 parameter in JWT token -->
+        <JWTX5tS256Enabled>true</JWTX5tS256Enabled>
+
+        <!-- Configuration for allowing users to enable the x5t parameter in JWT token -->
+        <JWTX5tEnabled>false</JWTX5tEnabled>
+
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
         passed in a OAuth based authz request will be dropped.
@@ -801,6 +807,13 @@
         <ImpersonatedRefreshToken>
             <Enable>false</Enable>
         </ImpersonatedRefreshToken>
+        <!--
+            By enabling this property, the "Internal" prefix will be removed from the mapped roles attribute in the issued JWT tokens.
+            Enable this setting if your applications do not require the Internal prefix when default attribute mapping
+            for http://wso2.org/claims/roles claim is changed.
+            Default value : true
+        -->
+        <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1300,6 +1313,7 @@
         <EnableRoleValidation>false</EnableRoleValidation>
         <SkipEnforceAuthorizedAPIUpdatePermission>false</SkipEnforceAuthorizedAPIUpdatePermission>
         <SkipEnforceClientSecretPermission>false</SkipEnforceClientSecretPermission>
+        <EnableCrossTenantAuthorizedApiValidation>true</EnableCrossTenantAuthorizedApiValidation>
     </ApplicationMgt>
 
     <JITProvisioning>
@@ -1392,8 +1406,8 @@
         <EventListener id="email_domain_validation_handler"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
-                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
-                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+                       orderId="15"
+                       enable="true"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -2579,6 +2593,8 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
+                    <Path>/api/identity/auth/v1.1/data</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2588,9 +2604,33 @@
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
                     <Path>/oauth2/userinfo</Path>
+                    <Path>/oauth2/authorize</Path>
+                    <Path>/oauth2/jwks</Path>
                 </SubPaths>
             </Context>
+            <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/.well-known/</BasePath>
+            </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
+            <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
+        </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
@@ -2830,6 +2870,8 @@
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
 
+    <AddUserStoreDomainToGroupClaims>false</AddUserStoreDomainToGroupClaims>
+
     <UserProfileExport>
         <AdditionalClaims>
         </AdditionalClaims>
@@ -2905,5 +2947,7 @@
             </Custom>
         </SMS>
     </NotificationChannel>
+    <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
+    <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
 </Server>

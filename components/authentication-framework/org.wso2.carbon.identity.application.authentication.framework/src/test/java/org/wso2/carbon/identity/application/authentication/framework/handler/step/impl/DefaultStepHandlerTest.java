@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -416,6 +417,71 @@ public class DefaultStepHandlerTest {
             ).thenReturn(true);
             // Should throw FrameworkException
             handler.handleResponse(request, response, context);
+        }
+    }
+
+    @DataProvider
+    public Object[][] accountLockBaseUrlProvider() {
+        return new Object[][]{
+                {true, "/authenticationendpoint/login.do",
+                        "/authenticationendpoint/retry.do", "/authenticationendpoint/retry.do"},
+                {false, "/authenticationendpoint/login.do",
+                        "/authenticationendpoint/retry.do", "/authenticationendpoint/login.do"}
+        };
+    }
+    @Test(dataProvider = "accountLockBaseUrlProvider")
+    public void testAccountLockBaseUrlSelection(boolean isRetryEnabled, String loginPage,
+                                                String configRetryUrl, String expectedBaseUrl)
+            throws URISyntaxException, IOException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<ConfigurationFacade> configurationFacade = mockStatic(ConfigurationFacade.class)) {
+
+            ConfigurationFacade mockConfigInstance = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigInstance);
+            when(mockConfigInstance.getAuthenticationEndpointRetryURL()).thenReturn(configRetryUrl);
+
+            AuthenticationContext context = spy(new AuthenticationContext());
+            context.setSendToMultiOptionPage(false);
+
+            Map<String, String> authParameters = new HashMap<>();
+            authParameters.put(
+                    FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF,
+                    String.valueOf(isRetryEnabled));
+
+            AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
+            when(defaultStepHandler.getAuthenticatorConfig()).thenReturn(authenticatorConfig);
+            when(defaultStepHandler.getAuthenticatorConfig().getParameterMap()).thenReturn(authParameters);
+
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode()).thenReturn(UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            when(errorMsgContext.getMaximumLoginAttempts()).thenReturn(5);
+            when(errorMsgContext.getFailedLoginAttempts()).thenReturn(5);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+
+            URIBuilder basicAuthRedirectUrlBuilder =
+                    new URIBuilder("https://localhost:9443/authenticationendpoint/login.do");
+            basicAuthRedirectUrlBuilder
+                    .addParameter(FrameworkConstants.ERROR_CODE, UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            String basicAuthRedirectUrl = basicAuthRedirectUrlBuilder.build().toString();
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn(basicAuthRedirectUrl);
+
+            String retryParam = "";
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+            String authenticatorNames = "BasicAuthenticator";
+            String showAuthFailureReason = "true"; // Must be true to enter the logic block
+
+            defaultStepHandler.getRedirectUrl(request, response, context, authenticatorNames,
+                    showAuthFailureReason, retryParam, loginPage);
+
+            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+            verify(response).encodeRedirectURL(urlCaptor.capture());
+
+            String actualUrl = urlCaptor.getValue();
+
+            Assert.assertTrue(actualUrl.startsWith(expectedBaseUrl),
+                    "Expected URL to start with " + expectedBaseUrl + " but found " + actualUrl);
         }
     }
 }

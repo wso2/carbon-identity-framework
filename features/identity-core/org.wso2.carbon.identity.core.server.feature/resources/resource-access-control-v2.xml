@@ -1118,6 +1118,19 @@
         </Operations>
     </Resource>
 
+    <!-- [Organization] Application API resources Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE, PATCH">
+        <Scopes>internal_org_application_mgt_update</Scopes>
+        <Operations mandatory="true">
+            <Operation name="updateInternalAuthorizedAPI">
+                <scope>internal_org_application_internal_api_update</scope>
+            </Operation>
+            <Operation name="updateBusinessAuthorizedAPI">
+                <scope>internal_org_application_business_api_update</scope>
+            </Operation>
+        </Operations>
+    </Resource>
+
     <!-- Application API resources Management API -->
     <Resource context="(.*)/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE, PATCH">
         <Scopes>internal_application_mgt_update</Scopes>
@@ -1868,6 +1881,42 @@
         <Scopes>internal_workflow_instance_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] User Credential Management API -->
+    <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
+        <Scopes>internal_org_user_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_user_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- User Credential Management API -->
+    <Resource context="(.*)/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
+        <Scopes>internal_user_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_user_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- VC Template Management API -->
+    <Resource context="(.*)/api/server/v1/vc-templates/(.*)/offer" secured="true" http-method="POST">
+        <Scopes>internal_vc_template_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-templates/(.*)/offer" secured="true" http-method="DELETE">
+        <Scopes>internal_vc_template_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="GET">
+        <Scopes>internal_vc_template_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="POST">
+        <Scopes>internal_vc_template_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_vc_template_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_vc_template_delete</Scopes>
+    </Resource>
+
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
@@ -1941,6 +1990,9 @@
     <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
     <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
+    <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
+    <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

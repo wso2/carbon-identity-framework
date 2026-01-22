@@ -1784,6 +1784,22 @@ public class IdentityUtil {
      */
     public static Map<String, Set<String>> getSystemRolesWithScopes() {
 
+        return getSystemRolesWithScopes(true);
+    }
+
+    /**
+     * This will return a map of system roles and the list of scopes configured for each system role
+     * in original case.
+     *
+     * @return A map of system roles against the scopes list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithScopesInOriginalCase() {
+
+        return getSystemRolesWithScopes(false);
+    }
+
+    private static Map<String, Set<String>> getSystemRolesWithScopes(boolean requireLowerCaseScopes) {
+
         Map<String, Set<String>> systemRolesWithScopes = new HashMap<>(Collections.emptyMap());
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
         OMElement systemRolesConfig = configParser
@@ -1822,7 +1838,7 @@ public class IdentityUtil {
                 OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
                 String scopeName = scopeIdentifierConfig.getText();
                 if (StringUtils.isNotBlank(scopeName)) {
-                    scopes.add(scopeName.trim().toLowerCase());
+                    scopes.add(requireLowerCaseScopes ? scopeName.trim().toLowerCase() : scopeName.trim());
                 }
             }
             if (StringUtils.isNotBlank(roleName)) {
@@ -2327,11 +2343,17 @@ public class IdentityUtil {
 
                 if (token == JsonToken.BEGIN_OBJECT) {
                     depth++;
-                    if (depth > maxDepth) throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    if (depth > maxDepth) {
+                        log.error("Maximum allowed JSON depth exceeded.");
+                        throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    }
                     reader.beginObject();
                 } else if (token == JsonToken.BEGIN_ARRAY) {
                     depth++;
-                    if (depth > maxDepth) throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    if (depth > maxDepth) {
+                        log.error("Maximum allowed JSON depth exceeded.");
+                        throw new ParseException("Maximum allowed JSON depth exceeded.", 0);
+                    }
                     reader.beginArray();
                 } else if (token == JsonToken.END_OBJECT) {
                     depth--;

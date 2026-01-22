@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -4100,6 +4100,35 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering given tenant domain and isSaaSApp flag.
+     *
+     * @param username      Username of the user.
+     * @param tenantDomain  Tenant domain.
+     * @param isSaaSApp     Is the application a SaaS application.
+     * @return Preprocessed username with the given details.
+     */
+    public static String preprocessUsername(String username, String tenantDomain, boolean isSaaSApp) {
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + tenantDomain;
+            }
+        } else if (!username.endsWith(tenantDomain)) {
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the tenant domain provided.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + tenantDomain;
+        }
+        return username;
+    }
+
+    /**
      * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
      *
      * @param loginIdentifier login identifier for multi attribute login
@@ -4970,5 +4999,42 @@ public class FrameworkUtils {
         String userAssertion = contextUserAssertion != null ? contextUserAssertion.toString()
                 : request.getParameter(FrameworkConstants.USER_ASSERTION);
         return StringUtils.isNotEmpty(userAssertion);
+    }
+
+    /**
+     * Resolves application resident tenant domain from organization id.
+     *
+     * @param appResidentOrgId Organization id of the application resident tenant.
+     * @return Resolved tenant domain.
+     * @throws FrameworkException Error while resolving tenant domain.
+     */
+    public static String resolveTenantDomainFromOrganizationId(String appResidentOrgId) throws FrameworkException {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolving tenant domain from organization id: " + appResidentOrgId);
+            }
+            String appResidentTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(appResidentOrgId);
+            if (StringUtils.isBlank(appResidentTenantDomain)) {
+                throw new FrameworkException("Tenant domain not found for organization id: "
+                        + appResidentOrgId + ".");
+            }
+            return appResidentTenantDomain;
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while resolving tenant domain from organization id: "
+                    + appResidentOrgId + ".", e);
+        }
+    }
+
+    /**
+     * Check whether to mark the step as completed on interrupt in an authentication flow.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean markStepCompletedOnInterrupt() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
     }
 }

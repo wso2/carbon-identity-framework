@@ -94,24 +94,43 @@ public class SessionDataStore {
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_BY_OPERATION_MYSQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_DB2SQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
     private static final String SQL_DESERIALIZE_OBJECT_MSSQL =
             "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL =
+            "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC";
     private static final String SQL_DESERIALIZE_OBJECT_POSTGRESQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL =
+            "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
+                    " SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_INFORMIX =
             "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
                     "WHERE SESSION_ID =? AND " +
                     "SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX =
+            "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE " +
+                    "WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_ORACLE =
             "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
                     "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
                     "SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
-
+    private static final String SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE =
+            "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED " +
+                    "FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND " +
+                    "SESSION_TYPE=? AND OPERATION=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
     private static final String SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL =
             "SELECT OPERATION FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
@@ -172,6 +191,7 @@ public class SessionDataStore {
     private String sqlDeleteTempDataTask;
     private String sqlDeleteDELETETask;
     private String sqlSelect;
+    private String sqlOperationSelect;
     private String sqlDeleteExpiredDataTask;
     private String sqlGetLastOperation;
     private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
@@ -349,6 +369,20 @@ public class SessionDataStore {
         return sessionContextDO != null ? sessionContextDO.getEntry() : null;
     }
 
+    /**
+     * Get session data for a given key, type and operation.
+     *
+     * @param key       Key
+     * @param type      Type
+     * @param operation Operation
+     * @return Session data object
+     */
+    public Object getSessionData(String key, String type, String operation) {
+
+        SessionContextDO sessionContextDO = getSessionContextData(key, type, operation);
+        return sessionContextDO != null ? sessionContextDO.getEntry() : null;
+    }
+
     public SessionContextDO getSessionContextData(String key, String type) {
 
         if (log.isDebugEnabled()) {
@@ -398,12 +432,71 @@ public class SessionDataStore {
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
-                IdentityApplicationManagementException e) {
+                 IdentityApplicationManagementException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while retrieving session data", e);
             }
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+        return null;
+    }
+
+    /**
+     * Get Session context data for a given key, type and operation.
+     *
+     * @param key       Key
+     * @param type      Type
+     * @param operation Operation
+     * @return SessionContextDO
+     */
+    public SessionContextDO getSessionContextData(String key, String type, String operation) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type + " operation : " +
+                    operation);
+        }
+        if (!enablePersist) {
+            return null;
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+            if (StringUtils.isBlank(sqlOperationSelect)) {
+                String driverName = connection.getMetaData().getDriverName();
+                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
+                        || driverName.contains(H2_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_BY_OPERATION_MYSQL;
+                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_DB2SQL;
+                } else if (driverName.contains(MS_SQL_DATABASE)
+                        || driverName.contains(MICROSOFT_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_MSSQL;
+                } else if (driverName.contains(POSTGRESQL_DATABASE)) {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_POSTGRESQL;
+                } else if (driverName.contains(INFORMIX_DATABASE)) {
+                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_INFORMIX;
+                } else {
+                    sqlOperationSelect = SQL_DESERIALIZE_OBJECT_BY_OPERATION_ORACLE;
+                }
+            }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(
+                    getSessionStoreDBQuery(sqlOperationSelect, type))) {
+                preparedStatement.setString(1, key);
+                preparedStatement.setString(2, type);
+                preparedStatement.setString(3, operation);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        long nanoTime = resultSet.getLong(3);
+                        return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | IOException | SQLException | SessionSerializerException |
+                 IdentityApplicationManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving session data", e);
+            }
         }
         return null;
     }

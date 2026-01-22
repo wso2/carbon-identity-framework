@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
@@ -49,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.COMMA_SEPARATOR;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
 
@@ -57,7 +60,11 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UN
  */
 public class ClaimMetadataUtils {
 
+    private static final Log log = LogFactory.getLog(ClaimMetadataUtils.class);
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
+    private static final String IDENTITY_DATA_STORE_TYPE = "IdentityDataStore.DataStoreType";
+    private static final String DEFAULT_USER_STORE_BASED_IDENTITY_DATA_STORE =
+            "org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore";
 
     private ClaimMetadataUtils() {
     }
@@ -282,6 +289,20 @@ public class ClaimMetadataUtils {
             claim.setMultiValued(Boolean.parseBoolean(claimProperties.get(ClaimConstants.MULTI_VALUED_PROPERTY)));
         }
 
+        if (claimProperties.containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)) {
+            claim.setManagedInUserStore(
+                    Boolean.parseBoolean(claimProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)));
+        } else {
+            claim.setManagedInUserStore(null);
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY)) {
+            String excludedUserStoresStr = claimProperties.get(ClaimConstants.EXCLUDED_USER_STORES_PROPERTY);
+            Set<String> excludedUserStores =
+                    new HashSet<>(Arrays.asList(StringUtils.split(excludedUserStoresStr, COMMA_SEPARATOR)));
+            claim.setExcludedUserStores(excludedUserStores);
+        }
+
         claimMapping.setClaim(claim);
 
         List<AttributeMapping> mappedAttributes = localClaim.getMappedAttributes();
@@ -467,5 +488,45 @@ public class ClaimMetadataUtils {
         }
 
         return Collections.unmodifiableSet(new HashSet<>(uniqueProfilesMap.values()));
+    }
+
+    /**
+     * Check whether the configured identity data store is user store based. Then all identity claim data will be
+     * stored in the user store.
+     *
+     * @return True if the configured identity data store is user store based. Else false.
+     */
+    public static boolean isUserStoreBasedIdentityDataStore() {
+
+        log.debug("Checking whether the configured identity data store is user store based.");
+        return StringUtils.equalsIgnoreCase(DEFAULT_USER_STORE_BASED_IDENTITY_DATA_STORE,
+                IdentityUtil.getProperty(IDENTITY_DATA_STORE_TYPE));
+    }
+
+    /**
+     * Check whether the given local claim is an identity claim.
+     *
+     * @param localClaim Local claim to be checked.
+     * @return True if the given local claim is an identity claim. Else false.
+     */
+    public static boolean isIdentityClaim(LocalClaim localClaim) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Checking whether the claim: %s is an identity claim.", localClaim.getClaimURI()));
+        }
+        return StringUtils.startsWith(localClaim.getClaimURI(),
+                UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX);
+    }
+
+    /**
+     * Check if a set contains a string in a case-insensitive manner.
+     *
+     * @param set    Set of strings to search.
+     * @param value  Value to find.
+     * @return True if the set contains the value (case-insensitive), false otherwise.
+     */
+    public static boolean containsIgnoreCase(Set<String> set, String value) {
+
+        return set.stream().anyMatch(item -> item.equalsIgnoreCase(value));
     }
 }
