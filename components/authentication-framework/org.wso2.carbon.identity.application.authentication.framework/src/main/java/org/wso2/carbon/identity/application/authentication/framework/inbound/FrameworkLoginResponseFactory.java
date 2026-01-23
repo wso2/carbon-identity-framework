@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +26,14 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Framework login response factory.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.inbound." +
+                        "HttpIdentityResponseFactory",
+                "service.scope=singleton"
+        }
+)
 public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
