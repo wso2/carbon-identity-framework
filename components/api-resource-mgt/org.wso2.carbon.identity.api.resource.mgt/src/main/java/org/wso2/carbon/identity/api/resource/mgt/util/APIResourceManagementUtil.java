@@ -101,9 +101,13 @@ public class APIResourceManagementUtil {
                 // Remove the existing system APIs from the configs.
                 // Existing system APIs will be evaluated using the identifier.
                 HashMap<String, APIResource> tempConfigs = new HashMap<>(configs);
-                List<APIResource> systemAPIs = getSystemAPIs(tenantDomain);
-                for (APIResource systemAPI : systemAPIs) {
-                    tempConfigs.remove(systemAPI.getIdentifier());
+
+                Map<String, List<String>> systemAPIsWithScopes = getAllSystemAPIResourcesWithScopes();
+                for (String apiIdentifier : systemAPIsWithScopes.keySet()) {
+                    APIResource apiResource = tempConfigs.remove(apiIdentifier);
+                    if (apiResource.getScopes().size() != systemAPIsWithScopes.get(apiIdentifier).size()) {
+                        duplicateConfigs.put(apiResource.getIdentifier(), apiResource);
+                    }
                 }
                 // Register the new system APIs.
                 registerAPIResources(new ArrayList<>(tempConfigs.values()), tenantDomain);
@@ -173,12 +177,14 @@ public class APIResourceManagementUtil {
     public static List<APIResource> getSystemAPIs(String tenantDomain) throws APIResourceMgtException {
 
         // Get APIs with SYSTEM type.
-        int systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        return new ArrayList<>(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                        APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
-                        tenantDomain).getAPIResources());
+        return new ArrayList<>(APIResourceManagerImpl.getInstance().getAPIResources(null, null,
+                Integer.MAX_VALUE, APIResourceManagementConstants.NON_BUSINESS_API_FILTER,
+                APIResourceManagementConstants.ASC, tenantDomain).getAPIResources());
+    }
+
+    public static Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+
+        return APIResourceManagerImpl.getInstance().getAllSystemAPIResourcesWithScopes();
     }
 
     /**

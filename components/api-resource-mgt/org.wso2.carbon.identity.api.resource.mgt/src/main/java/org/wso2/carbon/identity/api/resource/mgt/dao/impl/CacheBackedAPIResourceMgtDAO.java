@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class implements the {@link APIResourceManagementDAO} interface.
@@ -308,6 +309,12 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
             return apiResourceManagementDAO.getScopeMetadata(scopeNames, tenantId);
+    }
+
+    @Override
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+
+        return apiResourceManagementDAO.getAllSystemAPIResourcesWithScopes();
     }
 
     private void clearAPIResourceCache(String identifier, String resourceId, int tenantId) throws

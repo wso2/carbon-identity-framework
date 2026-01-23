@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This interface performs CRUD operations for {@link APIResource} and {@link Scope}
@@ -270,4 +271,12 @@ public interface APIResourceManagementDAO {
      * @throws APIResourceMgtException If an error occurs while retrieving the scope metadata.
      */
     List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId) throws APIResourceMgtException;
+
+    /**
+     * Retrieve all system API resources with their scopes.
+     *
+     * @return Map of system API resource identifiers and their scopes.
+     * @throws APIResourceMgtException If an error occurs while retrieving the system API resources.
+     */
+    Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException;
 }

@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.organization.management.service.exception.Organi
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * API resource management service.
@@ -254,4 +255,9 @@ public class APIResourceManagerImpl implements APIResourceManager {
         return systemScopes;
     }
 
+    @Override
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+
+        return CACHE_BACKED_DAO.getAllSystemAPIResourcesWithScopes();
+    }
 }
