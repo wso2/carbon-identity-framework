@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.provisioning.listener;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -153,13 +152,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     public boolean doPreSetUserClaimValues(String userName, Map<String, String> inboundAttributes,
                                            String profileName, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || MapUtils.isEmpty(inboundAttributes)) {
-            return true;
-        }
-
-        if (inboundAttributes.size() == 1 &&
-                inboundAttributes.containsKey(IdentityProvisioningConstants.LAST_PASSWORD_UPDATE_TIME_CLAIM)) {
-            // No need to provision user if only last password update time claim is updated.
+        if (!isEnable()) {
             return true;
         }
 
