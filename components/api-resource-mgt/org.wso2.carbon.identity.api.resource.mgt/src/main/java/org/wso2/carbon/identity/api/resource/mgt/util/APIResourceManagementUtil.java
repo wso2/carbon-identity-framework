@@ -107,6 +107,11 @@ public class APIResourceManagementUtil {
                     APIResource apiResource = tempConfigs.remove(apiIdentifier);
                     if (apiResource != null &&
                             apiResource.getScopes().size() != systemAPIsWithScopes.get(apiIdentifier).size()) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(String.format("Scope mismatch detected for API: %s. Expected: %d, Found: %d",
+                                    apiIdentifier, systemAPIsWithScopes.get(apiIdentifier).size(),
+                                    apiResource.getScopes().size()));
+                        }
                         duplicateConfigs.put(apiResource.getIdentifier(), apiResource);
                     }
                 }

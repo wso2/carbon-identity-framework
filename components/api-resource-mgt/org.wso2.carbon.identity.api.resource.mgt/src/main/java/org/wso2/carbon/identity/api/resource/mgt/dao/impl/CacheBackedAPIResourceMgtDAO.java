@@ -314,6 +314,9 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     @Override
     public Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Fetching all system API resources with scopes for tenantId: " + tenantId);
+        }
         return apiResourceManagementDAO.getAllSystemAPIResourcesWithScopes(tenantId);
     }
 
