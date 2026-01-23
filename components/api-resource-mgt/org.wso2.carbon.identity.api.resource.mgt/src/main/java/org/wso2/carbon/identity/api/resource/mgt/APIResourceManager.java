@@ -211,8 +211,9 @@ public interface APIResourceManager {
     /**
      * Get all System API resources with scopes.
      *
+     * @param tenantId Tenant ID.
      * @return Map of API Resource Identifier and List of Scopes.
      * @throws APIResourceMgtException If an error occurs while retrieving System API resources with scopes.
      */
-    Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException;
+    Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException;
 }

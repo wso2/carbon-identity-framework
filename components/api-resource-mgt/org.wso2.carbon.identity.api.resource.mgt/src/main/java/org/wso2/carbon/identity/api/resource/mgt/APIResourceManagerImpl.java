@@ -256,8 +256,8 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
-    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException {
 
-        return CACHE_BACKED_DAO.getAllSystemAPIResourcesWithScopes();
+        return CACHE_BACKED_DAO.getAllSystemAPIResourcesWithScopes(tenantId);
     }
 }

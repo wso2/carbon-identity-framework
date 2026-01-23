@@ -768,18 +768,20 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     @Override
-    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException {
 
         String sqlStmt = SQLConstants.GET_SYSTEM_API_RESOURCES_WITH_SCOPES;
         Map<String, List<String>> apiScopesMap = new HashMap<>();
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt);
-            ResultSet rs = prepStmt.executeQuery();
-            while (rs.next()) {
-                String apiIdentifier = rs.getString(1);
-                String scope = rs.getString(2);
-                apiScopesMap.computeIfAbsent(apiIdentifier, k -> new ArrayList<>()).add(scope);
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+            prepStmt.setInt(1, tenantId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    String apiIdentifier = rs.getString(1);
+                    String scope = rs.getString(2);
+                    apiScopesMap.computeIfAbsent(apiIdentifier, k -> new ArrayList<>()).add(scope);
+                }
             }
         } catch (SQLException e) {
             throw new APIResourceMgtServerException(

@@ -102,7 +102,7 @@ public class APIResourceManagementUtil {
                 // Existing system APIs will be evaluated using the identifier.
                 HashMap<String, APIResource> tempConfigs = new HashMap<>(configs);
 
-                Map<String, List<String>> systemAPIsWithScopes = getAllSystemAPIResourcesWithScopes();
+                Map<String, List<String>> systemAPIsWithScopes = getAllSystemAPIResourcesWithScopes(-1234);
                 for (String apiIdentifier : systemAPIsWithScopes.keySet()) {
                     APIResource apiResource = tempConfigs.remove(apiIdentifier);
                     if (apiResource != null &&
@@ -186,12 +186,14 @@ public class APIResourceManagementUtil {
     /**
      * Fetch all system API identifiers with their scopes.
      *
+     * @param tenantId tenant ID.
      * @return Map of system API identifiers with their scopes.
      * @throws APIResourceMgtException if an error occurs while fetching system APIs.
      */
-    public static Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+    public static Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId)
+            throws APIResourceMgtException {
 
-        return APIResourceManagerImpl.getInstance().getAllSystemAPIResourcesWithScopes();
+        return APIResourceManagerImpl.getInstance().getAllSystemAPIResourcesWithScopes(tenantId);
     }
 
     /**

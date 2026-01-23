@@ -275,8 +275,9 @@ public interface APIResourceManagementDAO {
     /**
      * Retrieve all system API resources with their scopes.
      *
+     * @param tenantId Tenant ID.
      * @return Map of system API resource identifiers and their scopes.
      * @throws APIResourceMgtException If an error occurs while retrieving the system API resources.
      */
-    Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException;
+    Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException;
 }

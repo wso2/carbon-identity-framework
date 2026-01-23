@@ -312,9 +312,9 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     }
 
     @Override
-    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException {
 
-        return apiResourceManagementDAO.getAllSystemAPIResourcesWithScopes();
+        return apiResourceManagementDAO.getAllSystemAPIResourcesWithScopes(tenantId);
     }
 
     private void clearAPIResourceCache(String identifier, String resourceId, int tenantId) throws
