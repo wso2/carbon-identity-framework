@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2025-2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -45,16 +46,22 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
@@ -577,5 +584,71 @@ public class FlowExecutionEngineUtils {
             }
         }
         return tenantName;
+    }
+
+    /**
+     * Preprocess the step inputs for the current node if user input data is available and current step inputs are empty.
+     *
+     * @param context Flow execution context.
+     * @return true if preprocessing is successful.
+     * @throws FlowEngineException If an error occurs during preprocessing.
+     */
+    public static boolean preprocessStepInputs(FlowExecutionContext context)
+            throws FlowEngineException {
+
+        if (MapUtils.isNotEmpty(context.getUserInputData()) && MapUtils.isEmpty(context.getCurrentStepInputs())) {
+            GraphConfig graphConfig = context.getGraphConfig();
+            NodeConfig currentNode = graphConfig.getNodeConfigs().get(graphConfig.getFirstNodeId());
+
+            Map<String, StepDTO> mappings = Optional.ofNullable(context.getGraphConfig())
+                    .map(GraphConfig::getNodePageMappings)
+                    .orElse(null);
+            StepDTO stepDTO = null;
+            if (mappings != null && currentNode != null) {
+                stepDTO = mappings.get(currentNode.getId());
+            }
+
+            DataDTO dataDTO = (stepDTO != null) ? stepDTO.getData() : null;
+            if (currentNode != null && Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
+                if (currentNode.getEdges() != null && !currentNode.getEdges().isEmpty()) {
+                    currentNode.setNextNodeId(currentNode.getEdges().get(0).getTargetNodeId());
+                }
+                currentNode = moveToNextNode(graphConfig, currentNode);
+                context.setCurrentNode(currentNode);
+            }
+            InputValidationService.getInstance().prepareStepInputs(dataDTO, context);
+        }
+        return true;
+    }
+
+    /**
+     * Postprocess the step inputs for the current step.
+     *
+     * @param step                 Flow execution step.
+     * @param FlowExecutionContext Flow execution context.
+     * @return true if postprocessing is successful.
+     * @throws FlowEngineException If an error occurs during postprocessing.
+     */
+    public static boolean postprocessStepInputs(FlowExecutionStep step, FlowExecutionContext FlowExecutionContext)
+            throws FlowEngineException {
+
+        InputValidationService.getInstance().prepareStepInputs(step.getData(), FlowExecutionContext);
+        return true;
+    }
+
+    /**
+     * Set the current node as the previous node of the next node and return the next node.
+     *
+     * @param currentNode Current node.
+     * @return Next node.
+     */
+    private static NodeConfig moveToNextNode(GraphConfig graphConfig, NodeConfig currentNode) {
+
+        String nextNodeId = currentNode.getNextNodeId();
+        NodeConfig nextNode = graphConfig.getNodeConfigs().get(nextNodeId);
+        if (nextNode != null) {
+            nextNode.setPreviousNodeId(currentNode.getId());
+        }
+        return nextNode;
     }
 }

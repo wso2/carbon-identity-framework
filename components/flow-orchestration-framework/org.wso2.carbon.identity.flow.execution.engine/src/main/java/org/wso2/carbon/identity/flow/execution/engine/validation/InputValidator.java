@@ -24,8 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.mgt.Constants;
-import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
@@ -34,16 +32,18 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 
 /**
- * Centralized input validation helper used by InputValidationService and executors.
- * The class consolidates preprocessing, validation and postprocessing logic.
+ * Validates user input for flow execution nodes and manages validation retry scenarios.
+ * This class is implemented as a thread-safe singleton to provide consistent validation
+ * logic across the application.
  */
 public class InputValidator {
 
     private static final Log LOG = LogFactory.getLog(InputValidator.class);
     private static final InputValidator INSTANCE = new InputValidator();
 
-    private InputValidator() {
+    private static final int DEFAULT_MAX_TRAVERSAL_DEPTH = 10;
 
+    private InputValidator() {
     }
 
     /**
@@ -60,16 +60,17 @@ public class InputValidator {
      * Validates user input and returns a prompt step if validation fails.
      * If validation passes or no input is present, returns null.
      *
-     * @param context The flow execution context.
+     * @param context The flow execution context containing user input and current node state.
      * @return NodeResponse for re-rendering if validation fails, otherwise null.
      */
-    public static NodeResponse executeInputValidation(FlowExecutionContext context) {
+    public NodeResponse executeInputValidation(FlowExecutionContext context) {
 
-        if (MapUtils.isEmpty(context.getUserInputData()) && !END.equals(context.getCurrentNode().getId())) {
-            return new NodeResponse.Builder()
-                    .status(STATUS_INCOMPLETE)
-                    .type(VIEW)
-                    .build();
+        if (MapUtils.isEmpty(context.getUserInputData()) &&!END.equals(context.getCurrentNode().getId())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User input is required but missing for node: " + context.getCurrentNode().getId() +
+                        " in flow: " + context.getContextIdentifier());
+            }
+            return buildIncompleteResponse();
         }
 
         ExecutorResponse validationResponse = InputValidationService.getInstance()
@@ -81,44 +82,20 @@ public class InputValidator {
     }
 
     /**
-     * Validates user input and returns a prompt step if validation fails.
-     * If validation passes or no input is present, returns null.
-     *
-     * @param context The flow execution context.
-     * @return FlowExecutionStep for prompt if validation fails, otherwise null.
-     */
-    public static NodeConfig resolveStepOnInputValidation(FlowExecutionContext context) {
-
-        NodeConfig nodeForValidationError = context.getCurrentNode();
-        GraphConfig graph = context.getGraphConfig();
-        String previousNodeId = context.getCurrentNode().getPreviousNodeId();
-        if (previousNodeId != null) {
-            NodeConfig previousNode = graph.getNodeConfigs().get(previousNodeId);
-            if (previousNode != null && Constants.NodeTypes.PROMPT_ONLY.equals(previousNode.getType())) {
-                nodeForValidationError = previousNode;
-            }
-        }
-        return nodeForValidationError;
-    }
-
-    /**
      * Handles the validation retry scenario by finding the appropriate node with page mapping
      * and setting up the context for re-rendering.
-     *
-     * This method supports multiple flow configurations:
-     * 1. Decision node -> TaskExecution node -> End node
-     * 2. TaskExecution node -> TaskExecution node -> End node
      *
      * @param context          The flow execution context.
      * @param executorResponse The executor response containing validation error details.
      * @return NodeResponse configured for re-rendering with error information.
      */
-    private static NodeResponse buildValidationRetryResponse(FlowExecutionContext context,
-                                                            ExecutorResponse executorResponse) {
+    private NodeResponse buildValidationRetryResponse(FlowExecutionContext context,
+                                                      ExecutorResponse executorResponse) {
 
         NodeConfig currentNodeConfig = context.getCurrentNode();
         NodeConfig nodeWithPageMapping = findClosestNodeWithPageMapping(context, currentNodeConfig);
-        if (!nodeWithPageMapping.getId().equals(currentNodeConfig.getId())) {
+        if (nodeWithPageMapping != null &&
+                !nodeWithPageMapping.getId().equals(currentNodeConfig.getId())) {
             context.setCurrentNode(nodeWithPageMapping);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Validation failed. Rolling back to node: " + nodeWithPageMapping.getId() +
@@ -142,21 +119,33 @@ public class InputValidator {
      * @param currentConfig The current node configuration.
      * @return The node configuration with page mapping, or the current node if none found.
      */
-    private static NodeConfig findClosestNodeWithPageMapping(FlowExecutionContext context, NodeConfig currentConfig) {
+    private NodeConfig findClosestNodeWithPageMapping(FlowExecutionContext context,
+                                                      NodeConfig currentConfig) {
 
+        if (currentConfig == null) {
+            LOG.warn("Current node config is null for flow: " + context.getContextIdentifier());
+            return null;
+        }
         if (hasPageMapping(context, currentConfig.getId())) {
             return currentConfig;
         }
 
         String previousNodeId = currentConfig.getPreviousNodeId();
-        int maxTraversalDepth = 10;
         int depth = 0;
-        while (previousNodeId != null && depth < maxTraversalDepth) {
+        while (previousNodeId != null && depth < DEFAULT_MAX_TRAVERSAL_DEPTH) {
             NodeConfig previousNode = context.getGraphConfig().getNodeConfigs().get(previousNodeId);
             if (previousNode == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Previous node " + previousNodeId + " not found in graph for flow: " +
+                            context.getContextIdentifier());
+                }
                 break;
             }
             if (hasPageMapping(context, previousNode.getId())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Found node with page mapping: " + previousNode.getId() +
+                            " at depth " + depth + " for flow: " + context.getContextIdentifier());
+                }
                 return previousNode;
             }
             previousNodeId = previousNode.getPreviousNodeId();
@@ -176,9 +165,25 @@ public class InputValidator {
      * @param nodeId  The node ID to check.
      * @return true if the node has a page mapping, false otherwise.
      */
-    private static boolean hasPageMapping(FlowExecutionContext context, String nodeId) {
+    private boolean hasPageMapping(FlowExecutionContext context, String nodeId) {
 
+        if (context == null || context.getGraphConfig() == null) {
+            return false;
+        }
         return context.getGraphConfig().getNodePageMappings() != null &&
                 context.getGraphConfig().getNodePageMappings().containsKey(nodeId);
+    }
+
+    /**
+     * Builds a standard incomplete response when user input is missing.
+     *
+     * @return NodeResponse with incomplete status.
+     */
+    private NodeResponse buildIncompleteResponse() {
+
+        return new NodeResponse.Builder()
+                .status(STATUS_INCOMPLETE)
+                .type(VIEW)
+                .build();
     }
 }

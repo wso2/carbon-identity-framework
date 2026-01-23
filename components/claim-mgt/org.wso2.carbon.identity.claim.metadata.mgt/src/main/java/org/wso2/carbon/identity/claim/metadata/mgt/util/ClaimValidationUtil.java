@@ -125,7 +125,9 @@ public class ClaimValidationUtil {
         try {
             return userStoreManager.getClaimManager().getClaim(claimUri);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            LOG.debug("Error while retrieving claim from claimUri: " + claimUri + ".", e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while retrieving claim from claimUri: " + claimUri + ".", e);
+            }
         }
         return null;
     }
