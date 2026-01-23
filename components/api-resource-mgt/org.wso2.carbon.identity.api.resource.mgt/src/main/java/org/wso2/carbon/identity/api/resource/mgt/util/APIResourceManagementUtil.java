@@ -105,7 +105,8 @@ public class APIResourceManagementUtil {
                 Map<String, List<String>> systemAPIsWithScopes = getAllSystemAPIResourcesWithScopes();
                 for (String apiIdentifier : systemAPIsWithScopes.keySet()) {
                     APIResource apiResource = tempConfigs.remove(apiIdentifier);
-                    if (apiResource.getScopes().size() != systemAPIsWithScopes.get(apiIdentifier).size()) {
+                    if (apiResource != null &&
+                            apiResource.getScopes().size() != systemAPIsWithScopes.get(apiIdentifier).size()) {
                         duplicateConfigs.put(apiResource.getIdentifier(), apiResource);
                     }
                 }
@@ -182,6 +183,12 @@ public class APIResourceManagementUtil {
                 APIResourceManagementConstants.ASC, tenantDomain).getAPIResources());
     }
 
+    /**
+     * Fetch all system API identifiers with their scopes.
+     *
+     * @return Map of system API identifiers with their scopes.
+     * @throws APIResourceMgtException if an error occurs while fetching system APIs.
+     */
     public static Map<String, List<String>> getAllSystemAPIResourcesWithScopes() throws APIResourceMgtException {
 
         return APIResourceManagerImpl.getInstance().getAllSystemAPIResourcesWithScopes();
