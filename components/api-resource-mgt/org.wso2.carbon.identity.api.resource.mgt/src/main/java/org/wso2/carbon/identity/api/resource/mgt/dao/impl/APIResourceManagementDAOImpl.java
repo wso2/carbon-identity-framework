@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -765,6 +765,33 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA, e);
         }
+    }
+
+    @Override
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException {
+
+        String sqlStmt = SQLConstants.GET_SYSTEM_API_RESOURCES_WITH_SCOPES;
+        Map<String, List<String>> apiScopesMap = new HashMap<>();
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+            prepStmt.setInt(1, tenantId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    String apiIdentifier = rs.getString(1);
+                    String scope = rs.getString(2);
+                    apiScopesMap.computeIfAbsent(apiIdentifier, k -> new ArrayList<>()).add(scope);
+                }
+            }
+        } catch (SQLException e) {
+            throw new APIResourceMgtServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES
+                            .getCode(),
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES
+                            .getMessage(), e);
+        }
+
+        return apiScopesMap;
     }
 
     /**

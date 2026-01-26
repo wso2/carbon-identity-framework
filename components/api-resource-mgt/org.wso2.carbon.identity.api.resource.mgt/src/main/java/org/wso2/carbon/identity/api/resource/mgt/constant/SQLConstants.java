@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -242,4 +242,8 @@ public class SQLConstants {
             " WHERE API_ID = ? AND TYPE = ? AND ( TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String UPDATE_AUTHORIZATION_DETAILS_TYPES = "UPDATE AUTHORIZATION_DETAILS_TYPES" +
             " SET NAME = ?, TYPE = ?, DESCRIPTION = ?, JSON_SCHEMA = ? WHERE API_ID = ? AND ID = ? AND TENANT_ID = ?";
+    public static final String GET_SYSTEM_API_RESOURCES_WITH_SCOPES = "SELECT API_RESOURCE.IDENTIFIER, SCOPE.NAME " +
+            "FROM API_RESOURCE INNER JOIN SCOPE ON API_RESOURCE.ID = SCOPE.API_ID WHERE " +
+            "(API_RESOURCE.TENANT_ID = ? OR API_RESOURCE.TENANT_ID IS NULL) AND API_RESOURCE.TYPE IN " +
+            "('TENANT', 'ORGANIZATION', 'CONSOLE_FEATURE', 'CONSOLE_ORG_FEATURE', 'CONSOLE_ORG_LEVEL')";
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class implements the {@link APIResourceManagementDAO} interface.
@@ -308,6 +309,15 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
             return apiResourceManagementDAO.getScopeMetadata(scopeNames, tenantId);
+    }
+
+    @Override
+    public Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Fetching all system API resources with scopes for tenantId: " + tenantId);
+        }
+        return apiResourceManagementDAO.getAllSystemAPIResourcesWithScopes(tenantId);
     }
 
     private void clearAPIResourceCache(String identifier, String resourceId, int tenantId) throws
