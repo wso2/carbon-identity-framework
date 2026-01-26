@@ -413,7 +413,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                                                        ServiceProvider application,
                                                                        String tenantDomain)
             throws IdentityApplicationManagementException, SQLException {
-
+        String resourceId;
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         String qualifiedUsername;
         if (LOCAL_SP.equals(application.getApplicationName())) {
@@ -439,7 +439,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
                 templatedAccessUrl = ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(templatedAccessUrl);
             }
-            String resourceId = generateApplicationResourceId(application);
+            if (application.getApplicationResourceId() != null) {
+                resourceId = application.getApplicationResourceId();
+            } else {
+                resourceId = generateApplicationResourceId(application);
+            }
             String dbProductName = connection.getMetaData().getDatabaseProductName();
             storeAppPrepStmt = connection.prepareStatement(
                     ApplicationMgtDBQueries.STORE_BASIC_APPINFO,
