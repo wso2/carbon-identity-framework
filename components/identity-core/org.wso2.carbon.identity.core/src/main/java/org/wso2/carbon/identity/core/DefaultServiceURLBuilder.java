@@ -24,11 +24,15 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -547,7 +551,17 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             return;
         } else if (StringUtils.isNotBlank(accessingOrganization)) {
             // If the accessing organization is available, build the URL in the form of /t/<tenant-domain>/o/<org-id>
-            resolvedUrlStringBuilder.append("/t/").append(tenantDomain).append("/o/").append(accessingOrganization);
+            String primaryTenantDomain;
+            try {
+                // Caching needed here to avoid multiple calls to organization management component.
+                String primaryOrgId = IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
+                        .getPrimaryOrganizationId(accessingOrganization);
+                primaryTenantDomain = IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveTenantDomain(primaryOrgId);
+            } catch (OrganizationManagementException e) {
+                throw new IdentityRuntimeException(e.getMessage(), e);
+            }
+            resolvedUrlStringBuilder.append("/t/").append(primaryTenantDomain).append("/o/").append(accessingOrganization);
             return;
         }
         // ####### Tenant perspective resource URL building.

@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -1081,7 +1082,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     log.debug("Resolving cookie path for application resides in organization: "
                             + appResidentOrgId + " by using the primary organization");
                 }
-                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                try {
+                    // Need caching primary org id
+                    String primaryOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                            .getPrimaryOrganizationId(appResidentOrgId);
+                    tenantDomain = FrameworkUtils.resolveTenantDomainFromOrganizationId(primaryOrgId);
+                } catch (OrganizationManagementException e) {
+                    throw new FrameworkException("Error while retrieving primary organization id for the " +
+                            "organization: " + appResidentOrgId, e);
+                }
                 if (!IdentityTenantUtil.isSuperTenantAppendInCookiePath() &&
                         MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                     path = "/";
