@@ -65,7 +65,7 @@ public class InputValidator {
      */
     public NodeResponse executeInputValidation(FlowExecutionContext context) {
 
-        if (MapUtils.isEmpty(context.getUserInputData()) &&!END.equals(context.getCurrentNode().getId())) {
+        if (MapUtils.isEmpty(context.getUserInputData()) && !END.equals(context.getCurrentNode().getId())) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("User input is required but missing for node: " + context.getCurrentNode().getId() +
                         " in flow: " + context.getContextIdentifier());

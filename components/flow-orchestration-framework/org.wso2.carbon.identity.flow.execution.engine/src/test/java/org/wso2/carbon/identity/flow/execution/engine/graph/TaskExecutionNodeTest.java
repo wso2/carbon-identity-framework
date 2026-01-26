@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -54,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -70,6 +73,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 
 /**
@@ -84,10 +88,17 @@ public class TaskExecutionNodeTest {
     private TaskExecutionNode taskExecutionNode;
     private FlowExecutionContext context;
     private NodeConfig nodeConfig;
+    private NodeResponse validationResponse;
     private AutoCloseable closeable;
 
     @Mock
     private AuthenticationExecutor executor;
+
+    @Mock
+    private InputValidator inputValidator;
+
+    @Mock
+    private InputValidationService inputValidationService;
 
     @BeforeClass
     public void setUp() {
@@ -111,6 +122,11 @@ public class TaskExecutionNodeTest {
                 .type("TASK_EXECUTION")
                 .executorConfig(executorDTO)
                 .edges(edges)
+                .build();
+
+        validationResponse = new NodeResponse.Builder()
+                .status(STATUS_INCOMPLETE)
+                .type("VIEW")
                 .build();
     }
 
@@ -156,10 +172,21 @@ public class TaskExecutionNodeTest {
 
         ExecutorResponse executorResponse = new ExecutorResponse();
         executorResponse.setResult(STATUS_COMPLETE);
+        context.setCurrentNode(nodeConfig);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
+             MockedStatic<InputValidationService> validationServiceStatic = mockStatic(
+                     InputValidationService.class)) {
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
+            validationServiceStatic.when(InputValidationService::getInstance)
+                    .thenReturn(inputValidationService);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
+            verify(inputValidationService).clearUserInputs(context);
         }
     }
 
@@ -171,8 +198,13 @@ public class TaskExecutionNodeTest {
         Map<String, Object> updatedClaims = new HashMap<>();
         updatedClaims.put("email", "test@example.com");
         executorResponse.setUpdatedUserClaims(updatedClaims);
+        context.setCurrentNode(nodeConfig);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
             assertEquals(context.getFlowUser().getClaims().get("email"), "test@example.com");
@@ -186,8 +218,13 @@ public class TaskExecutionNodeTest {
         executorResponse.setResult(STATUS_RETRY);
         executorResponse.setRequiredData(new ArrayList<>());
         executorResponse.setErrorMessage("Retry error");
+        context.setCurrentNode(nodeConfig);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
             assertEquals(nodeResponse.getType(), "VIEW");
@@ -205,8 +242,14 @@ public class TaskExecutionNodeTest {
         requiredData.add("attribute2");
         executorResponse.setRequiredData(requiredData);
         executorResponse.setAdditionalInfo(new HashMap<>());
+        context.setCurrentNode(nodeConfig);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
             assertEquals(nodeResponse.getType(), "VIEW");
@@ -225,7 +268,12 @@ public class TaskExecutionNodeTest {
         additionalInfo.put("redirectUrl", "https://example.com");
         executorResponse.setAdditionalInfo(additionalInfo);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
             assertEquals(nodeResponse.getType(), "REDIRECTION");
@@ -299,7 +347,12 @@ public class TaskExecutionNodeTest {
         additionalInfo.put("clientKey", "clientValue");
         executorResponse.setAdditionalInfo(additionalInfo);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
             assertEquals(nodeResponse.getType(), INTERNAL_PROMPT);
@@ -322,7 +375,12 @@ public class TaskExecutionNodeTest {
         additionalInfo.put("interactionData", "{\"form\":\"data\"}");
         executorResponse.setAdditionalInfo(additionalInfo);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_INCOMPLETE);
             assertEquals(nodeResponse.getType(), WEBAUTHN);
@@ -373,7 +431,11 @@ public class TaskExecutionNodeTest {
         IdentityProviderManager idpManager = mock(IdentityProviderManager.class);
 
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
-             MockedStatic<IdentityProviderManager> idpManagerStatic = mockStatic(IdentityProviderManager.class)) {
+             MockedStatic<IdentityProviderManager> idpManagerStatic = mockStatic(IdentityProviderManager.class);
+            MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(any())).thenReturn(null);
+
             idpManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(idpManager);
             when(idpManager.getIdPByName("validIdp", TENANT_DOMAIN)).thenReturn(idp);
 
@@ -422,6 +484,20 @@ public class TaskExecutionNodeTest {
             assertEquals(e.getMessage(), "Server error occurred");
             assertEquals(e.getDescription(), "This is a server-side error");
             assertNotNull(e.getCause());
+        }
+    }
+
+    @Test
+    public void testInputValidationReturnsValidationError() throws Exception {
+
+        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
+            context.setCurrentNode(nodeConfig);
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidator);
+            when(inputValidator.executeInputValidation(context)).thenReturn(validationResponse);
+
+            NodeResponse result = taskExecutionNode.execute(context, nodeConfig);
+            assertEquals(result.getStatus(), STATUS_INCOMPLETE);
+            assertEquals(result.getType(), VIEW);
         }
     }
 

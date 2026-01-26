@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -71,13 +70,14 @@ public class TaskExecutionNode implements Node {
     public NodeResponse execute(FlowExecutionContext context, NodeConfig configs)
             throws FlowEngineException {
 
-        NodeResponse validationResponse = InputValidator.getInstance().executeInputValidation(context);
-        if (validationResponse != null) {
-            return validationResponse;
-        }
         if (configs.getExecutorConfig() == null) {
             throw handleServerException(context.getFlowType(), ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
+        }
+
+        NodeResponse validationResponse = InputValidator.getInstance().executeInputValidation(context);
+        if (validationResponse != null) {
+            return validationResponse;
         }
         return triggerExecutor(context, configs);
     }
