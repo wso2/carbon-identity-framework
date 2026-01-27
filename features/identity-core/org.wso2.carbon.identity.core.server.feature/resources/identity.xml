@@ -1323,6 +1323,14 @@
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
         <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
+        <SCIM2Client>
+            <HttpRetryCount>1</HttpRetryCount>
+            <HttpReadTimeout>5000</HttpReadTimeout>
+            <HttpConnectionTimeout>2000</HttpConnectionTimeout>
+            <HttpConnectionRequestTimeout>2000</HttpConnectionRequestTimeout>
+            <HttpConnectionPoolSize>20</HttpConnectionPoolSize>
+            <NioThreadCount>4</NioThreadCount>
+        </SCIM2Client>
     </OutboundProvisioning>
 
     <Webhooks>
