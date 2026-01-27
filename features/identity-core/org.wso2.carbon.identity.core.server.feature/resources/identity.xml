@@ -1329,7 +1329,6 @@
             <HttpConnectionTimeout>2000</HttpConnectionTimeout>
             <HttpConnectionRequestTimeout>2000</HttpConnectionRequestTimeout>
             <HttpConnectionPoolSize>20</HttpConnectionPoolSize>
-            <NioThreadCount>4</NioThreadCount>
         </SCIM2Client>
     </OutboundProvisioning>
 

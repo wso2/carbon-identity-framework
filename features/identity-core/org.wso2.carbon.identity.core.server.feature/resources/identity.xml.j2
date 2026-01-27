@@ -2285,12 +2285,6 @@
             <HttpConnectionTimeout>{{outbound_provisioning_management.scim2_client.http_connection_timeout}}</HttpConnectionTimeout>
             <HttpConnectionRequestTimeout>{{outbound_provisioning_management.scim2_client.http_connection_request_timeout}}</HttpConnectionRequestTimeout>
             <HttpConnectionPoolSize>{{outbound_provisioning_management.scim2_client.http_connection_pool_size}}</HttpConnectionPoolSize>
-            <!--
-                NIO thread count for the I/O reactor used in async HTTP operations.
-                Determines the number of I/O dispatch threads for non-blocking HTTP client.
-                Recommended: Set based on available CPU cores.
-            -->
-            <NioThreadCount>{{outbound_provisioning_management.scim2_client.nio_thread_count}}</NioThreadCount>
         </SCIM2Client>
     </OutboundProvisioning>
 
