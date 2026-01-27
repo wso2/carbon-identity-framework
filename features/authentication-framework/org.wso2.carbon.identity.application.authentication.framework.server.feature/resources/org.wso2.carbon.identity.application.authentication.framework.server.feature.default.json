@@ -221,6 +221,7 @@
   "authentication.authenticator.x509_certificate.enable": true,
   "authentication.authenticator.x509_certificate.parameters.AuthenticationEndpoint": "https://localhost:8443/x509-certificate-servlet",
   "authentication.authenticator.x509_certificate.parameters.username": "CN",
+  "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": false,
 
   "authentication.authenticator.github.name": "GithubAuthenticator",
   "authentication.authenticator.github.parameters.Tags": "Social-Login",

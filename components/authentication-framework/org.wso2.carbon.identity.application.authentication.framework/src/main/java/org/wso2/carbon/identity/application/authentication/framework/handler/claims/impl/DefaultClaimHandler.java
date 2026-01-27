@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
@@ -78,6 +79,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
@@ -810,6 +812,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         handleRoleClaim(context, allLocalClaims);
 
+        handleGroupClaim(context, allLocalClaims);
+
         // if standard dialect get all claim mappings from standard dialect to carbon dialect
         spToLocalClaimMappings = getStandardDialectToCarbonMapping(spStandardDialect, context, spToLocalClaimMappings,
                 tenantDomain);
@@ -1356,6 +1360,44 @@ public class DefaultClaimHandler implements ClaimHandler {
                 mappedAttrs.put(getLocalGroupsClaimURI(), FrameworkUtils
                         .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
             }
+        }
+    }
+
+    /**
+     * Specially handle group claim values.
+     *
+     * @param context Authentication context.
+     * @param mappedAttrs Mapped claim attributes.
+     */
+    private void handleGroupClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
+
+        if (!IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ||
+                !Boolean.parseBoolean(IdentityUtil.getProperty(ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM))) {
+            if (log.isDebugEnabled()) {
+                log.debug("Appending user store for groups claim is skipped: feature disabled or property not set.");
+            }
+            return;
+        }
+
+        if (!mappedAttrs.containsKey(UserCoreConstants.USER_STORE_GROUPS_CLAIM) ||
+                context.getLastAuthenticatedUser() == null) {
+            return;
+        }
+
+        String userStoreDomain = context.getLastAuthenticatedUser().getUserStoreDomain();
+        if (IdentityUtil.getPrimaryDomainName().equals(userStoreDomain)) {
+            return;
+        }
+        String domainPrefix = userStoreDomain + "/";
+        String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator(userStoreDomain);
+        String[] groups = mappedAttrs.get(UserCoreConstants.USER_STORE_GROUPS_CLAIM).split(multiAttributeSeparator);
+
+        List<String> groupList = Arrays.stream(groups).filter(group -> !group.trim().isEmpty())
+                .map(group -> domainPrefix + group).collect(Collectors.toList());
+        mappedAttrs.put(UserCoreConstants.USER_STORE_GROUPS_CLAIM, String.join(multiAttributeSeparator, groupList));
+        if (log.isDebugEnabled()) {
+            log.debug("Updated group claim with user store domain prefix for user: " +
+                    context.getLastAuthenticatedUser().getLoggableMaskedUserId() + ", domain: " + userStoreDomain);
         }
     }
 

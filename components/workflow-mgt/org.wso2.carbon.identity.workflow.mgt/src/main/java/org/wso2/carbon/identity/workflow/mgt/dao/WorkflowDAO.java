@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.workflow.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
@@ -98,6 +99,7 @@ public class WorkflowDAO {
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowId);
+            prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
             rs = prepStmt.executeQuery();
             while (rs.next()) {
                 String workflowName = rs.getString(SQLConstants.WF_NAME_COLUMN);
@@ -176,6 +178,7 @@ public class WorkflowDAO {
         try {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowId);
+            prepStmt.setInt(2, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
             prepStmt.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
@@ -227,6 +230,7 @@ public class WorkflowDAO {
             prepStmt.setString(3, workflow.getTemplateId());
             prepStmt.setString(4, workflow.getWorkflowImplId());
             prepStmt.setString(5, workflow.getWorkflowId());
+            prepStmt.setInt(6, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
             prepStmt.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {

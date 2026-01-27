@@ -98,6 +98,21 @@ public interface ClaimMetadataManagementService {
      *
      * @param localClaimURI Local claim URI.
      * @param tenantDomain Tenant domain.
+     * @param includeManagedInUserStoreInfo Whether to include managed in user store information.
+     * @return Local claim.
+     * @throws ClaimMetadataException If an error occurred while retrieving local claims.
+     */
+    default Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain,
+                                               boolean includeManagedInUserStoreInfo) throws ClaimMetadataException {
+
+        return Optional.empty();
+    }
+
+    /**
+     * Get local claim for specified claim URI and tenant.
+     *
+     * @param localClaimURI Local claim URI.
+     * @param tenantDomain Tenant domain.
      * @return Local claim.
      * @throws ClaimMetadataException If an error occurred while retrieving local claims.
      */

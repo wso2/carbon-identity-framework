@@ -88,6 +88,7 @@ public abstract class FrameworkConstants {
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
     public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
+    public static final String ADD_USER_STORE_DOMAIN_TO_GROUPS_CLAIM = "AddUserStoreDomainToGroupClaims";
     public static final String IS_OTP_VERIFICATION_TRIGGERED = "isOtpVerificationTriggered";
     public static final String OTP_VERIFICATION_PENDING_CLAIM = "otpVerificationPendingClaim";
     public static final String CLAIM_FOR_PENDING_OTP_VERIFICATION = "claimForPendingOtpVerification";
@@ -283,6 +284,10 @@ public abstract class FrameworkConstants {
     public static final String AMR = "amr";
     public static final String USER_ASSERTION = "userAssertion";
 
+    // Authentication entity constants.
+    public static final String AUTH_ENTITY = "auth_entity";
+    public static final String AUTH_ENTITY_AGENT = "agent";
+
     private FrameworkConstants() {
 
     }
@@ -426,6 +431,11 @@ public abstract class FrameworkConstants {
          * JIT Provisioning configurations.
          */
         public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
+
+        /**
+         * Configuration to mark the step as completed on interrupt.
+         */
+        public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
 
         private Config() {
         }
@@ -616,6 +626,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FEDERATED_IDP = "federated";
         public static final String JS_COMMON_OPTIONS = "common";
         public static final String JS_OPTIONS_USERNAME = "username";
+        public static final String JS_IDENTIFIER_FIRST_USER_INPUT = "identifierFirstUserInput";
 
         public static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
         public static final String PROP_USERNAME_UPDATED_EXTERNALLY = "usernameUpdatedExternally";

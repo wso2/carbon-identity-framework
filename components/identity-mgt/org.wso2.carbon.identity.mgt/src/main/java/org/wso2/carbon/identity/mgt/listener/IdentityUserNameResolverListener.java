@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
@@ -890,6 +891,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             tempUserNamesList.clear();
         }
 
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         // Reflect newly add users by listeners in returnUsersList
         if (CollectionUtils.isNotEmpty(returnUserNamesList)) {
             tempUserNamesList.addAll(returnUserNamesList);
@@ -897,8 +899,11 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             for (String username : tempUserNamesList) {
                 User newUser = new User();
                 newUser.setUsername(username);
+                newUser.setPreferredUsername(username);
+                newUser.setTenantDomain(tenantDomain);
                 try {
                     newUser.setUserID(FrameworkUtils.resolveUserIdFromUsername(userStoreManager, username));
+                    newUser.setUserStoreDomain(IdentityUtil.extractDomainFromName(username));
                 } catch (UserSessionException e) {
                     if (log.isDebugEnabled()) {
                         log.debug("Error occurred while resolving Id for the user: " + username, e);

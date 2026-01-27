@@ -58,8 +58,10 @@
   "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
+  "authenticationendpoint.authenticator_validation.enabled": false,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
+  "recovery.v0_9_api.include_display_order_property_in_claims": false,
   "accounts.hostname": "$ref{server.hostname}",
   "accounts.path": "/accounts",
 
@@ -319,6 +321,7 @@
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
+  "oauth.callback.restrict_fragment_components": true,
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
 
@@ -335,6 +338,7 @@
   "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
+  "saml.artifact.disable_double_encoding": true,
   "saml.use_tenant_key_of": "user",
   "saml.tenant_partitioning.enable": false,
   "saml.signing_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
@@ -427,6 +431,7 @@
   "identity_mgt.recovery.notify_recovery_email_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
   "identity_mgt.recovery.hide_user_existence": false,
+  "identity_mgt.recovery.enable_normalized_retry_error_response": true,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -468,6 +473,7 @@
 
   "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
   "identity_mgt.challenge_questions.min_required_answers": "1",
+  "identity_mgt.challenge_questions.skip_sending_questions_in_url": true,
 
   "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
   "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
@@ -555,6 +561,8 @@
     "http://wso2.org/claims/identity/usedTOTPTimeWindows"
   ],
 
+  "identity_mgt.claims.add_userstore_domain_to_group_claims": false,
+
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
 
@@ -595,6 +603,7 @@
   "application_mgt.enable_role_validation": false,
   "application_mgt.trusted_app_consent_required": false,
   "application_mgt.trusted_app_max_thumbprint_count": "20",
+  "application_mgt.enable_cross_tenant_authorized_api_validation": true,
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
@@ -708,6 +717,9 @@
 
   "event.default_listener.identity_role_workflow_operation.enable": true,
   "event.default_listener.identity_role_workflow_operation.priority": "11",
+
+  "event.default_listener.privileged_user_authenticator.priority": "200",
+  "event.default_listener.privileged_user_authenticator.enable": false,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
@@ -838,7 +850,8 @@
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
     "/totpauthenticationendpoint/",
-    "/accounts/"
+    "/accounts/",
+    "/oid4vci/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -1777,7 +1790,8 @@
   "console.users.enabled": true,
   "console.users.disabled_features": [
     "users.add.legacy",
-    "users.profile.legacy"
+    "users.profile.legacy",
+    "users.totalUserCount"
   ],
   "console.users.scopes.feature": ["console:users"],
   "console.users.scopes.create": ["internal_user_mgt_create", "internal_workflow_association_view"],
@@ -2099,12 +2113,21 @@
   "actions.maximum_actions_per_action_type": "1",
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.pre_issue_access_token.version.latest": "v1",
+  "actions.types.pre_issue_id_token.enable": true,
+  "actions.types.pre_issue_id_token.version.latest": "v1",
   "actions.types.authentication.enable": true,
   "actions.types.authentication.version.latest": "v1",
   "actions.types.authentication.default_userstore": "PRIMARY",
   "actions.types.pre_update_profile.enable": true,
   "actions.types.pre_update_profile.version.latest": "v1",
   "actions.types.pre_update_password.version.latest": "v2",
+
+  "external_api_client.http_client.connection_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "3000",
+  "external_api_client.http_client.connection_request_timeout": "1000",
+  "external_api_client.http_client.connection_pool_size": "20",
+  "external_api_client.http_client.max_connection_per_route": "3",
+  "external_api_client.retry_count": "0",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
@@ -2162,5 +2185,11 @@
   "notificationChannel.sms.custom.connection_timeout": "5000",
   "notificationChannel.sms.custom.connection_read_timeout": "20000",
 
-  "configs.endpoint.elevate_permission": true
+  "configs.endpoint.elevate_permission": true,
+
+  "identifier_first.preserve_case_sensitivity.enabled": true,
+  "pastr_cookie.max_age": "-1",
+
+  "resolve_tenant_domain_from_username.enabled": false,
+  "authentication.mark_step_completed_on_interrupt": true
 }

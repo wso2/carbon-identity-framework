@@ -194,6 +194,15 @@
         </ChallengeQuestions>
     </Connectors>
 
+    {% if customer_data_service is defined %}
+        <CustomerDataService>
+            <Enable>{{ customer_data_service.enable | default("false") }}</Enable>
+            <ServerURL>{{ customer_data_service.server_url | default("") }}</ServerURL>
+            <AdminUsername>{{ customer_data_service.admin_username | default("") }}</AdminUsername>
+            <AdminPassword>{{ customer_data_service.admin_password | default("") }}</AdminPassword>
+        </CustomerDataService>
+    {% endif %}
+
     <OpenID>
         <!--
             Default values for OpenIDServerUrl and OpenIDUSerPattern are built in following format
@@ -1250,6 +1259,27 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
 
+        <!-- Configuration for allowing users to hexify the x5t, x5t#s256 parameters in JWT token -->
+        {% if oauth.jwt_x5t_hexify_required is defined %}
+        <JWTX5tHexifyingRequired>{{oauth.jwt_x5t_hexify_required}}</JWTX5tHexifyingRequired>
+        {% else %}
+        <JWTX5tHexifyingRequired>false</JWTX5tHexifyingRequired>
+        {% endif %}
+
+        <!-- Configuration for allowing users to enable the x5t#s256 parameter in JWT token -->
+        {% if oauth.jwt_x5t_s256_enabled is defined %}
+        <JWTX5tS256Enabled>{{oauth.jwt_x5t_s256_enabled}}</JWTX5tS256Enabled>
+        {% else %}
+        <JWTX5tS256Enabled>true</JWTX5tS256Enabled>
+        {% endif %}
+
+        <!-- Configuration for allowing users to enable the x5t parameter in JWT token -->
+        {% if oauth.jwt_x5t_enabled is defined %}
+        <JWTX5tEnabled>{{oauth.jwt_x5t_enabled}}</JWTX5tEnabled>
+        {% else %}
+        <JWTX5tEnabled>false</JWTX5tEnabled>
+        {% endif %}
+
         <!--
         By enabling this property, client id will be used as the sub claim for the access tokens issued for the
         authenticated applications.
@@ -1394,6 +1424,7 @@
         <ReturnOnlyAppAssociatedRolesInJWTToken>{{oauth.jwt.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInJWTToken>
         <Callback>
             <EnforceLiteralCharacters>{{oauth.callback.enforce_literal_characters}}</EnforceLiteralCharacters>
+            <RestrictFragmentComponents>{{oauth.callback.restrict_fragment_components}}</RestrictFragmentComponents>
         </Callback>
         <!--
         By enabling this config, the refresh token will be issued during impersonation flow.
@@ -1482,6 +1513,7 @@
         <SLOHostNameVerificationEnabled>{{saml.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>{{saml.artifact.validity}}</SAML2ArtifactValidityPeriodInMinutes>
+        <SAML2ArtifactDoubleEncodingDisabled>{{saml.artifact.disable_double_encoding}}</SAML2ArtifactDoubleEncodingDisabled>
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
@@ -1742,6 +1774,17 @@
             Supported versions : IS 7.2.0 onwards
         -->
         <ThrowUserStoreExceptionOnUserCreationError>{{scim2.throw_userstore_exception_on_user_creation_error}}</ThrowUserStoreExceptionOnUserCreationError>
+
+        {% if scim2.console_roles.enable_custom_roles is defined || scim2.console_roles.require_feature_permissions is defined %}
+        <ConsoleRoles>
+            {% if scim2.console_roles.enable_custom_roles is defined %}
+            <EnableCustomRoles>{{scim2.console_roles.enable_custom_roles}}</EnableCustomRoles>
+            {% endif %}
+            {% if scim2.console_roles.require_feature_permissions is defined %}
+            <RequireFeaturePermissions>{{scim2.console_roles.require_feature_permissions}}</RequireFeaturePermissions>
+            {% endif %}
+        </ConsoleRoles>
+        {% endif %}
     </SCIM2>
 
     <Captcha>
@@ -1844,6 +1887,7 @@
                 questions.
              -->
             <MinQuestionsToAnswer>{{identity_mgt.challenge_questions.min_required_answers}}</MinQuestionsToAnswer>
+            <SkipSendingQuestionsInUrl>{{identity_mgt.challenge_questions.skip_sending_questions_in_url}}</SkipSendingQuestionsInUrl>
         </Question>
         <ExpiryTime>{{identity_mgt.password_reset_email.reset_mail_validity}}</ExpiryTime>
         <NotifySuccess>{{identity_mgt.password_reset_email.notify_on_reset}}</NotifySuccess>
@@ -1864,10 +1908,14 @@
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
         <ErrorMessage>
             <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
+            <EnableNormalizedRetryErrorResponse>{{identity_mgt.recovery.enable_normalized_retry_error_response}}</EnableNormalizedRetryErrorResponse>
         </ErrorMessage>
         <AutoLogin>
             <Enable>{{identity_mgt.recovery.enable_auto_login}}</Enable>
         </AutoLogin>
+        <V09Api>
+            <IncludeDisplayOrderPropertyInClaims>{{recovery.v0_9_api.include_display_order_property_in_claims}}</IncludeDisplayOrderPropertyInClaims>
+        </V09Api>
     </Recovery>
 
     <AccountLock>
@@ -2212,6 +2260,7 @@
         {% if operation_permission_enforcement.skip_enforce_script_update_permission is defined %}
         <SkipEnforceScriptUpdatePermission>{{operation_permission_enforcement.skip_enforce_script_update_permission}}</SkipEnforceScriptUpdatePermission>
         {% endif %}
+        <EnableCrossTenantAuthorizedApiValidation>{{application_mgt.enable_cross_tenant_authorized_api_validation}}</EnableCrossTenantAuthorizedApiValidation>
     </ApplicationMgt>
 
     <!--Role management service configurations-->
@@ -2300,6 +2349,35 @@
                     </AllowedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <PreIssueIdToken>
+                <Enable>{{actions.types.pre_issue_id_token.enable}}</Enable>
+                <Version>
+                    <Latest>{{actions.types.pre_issue_id_token.version.latest}}</Latest>
+                    <RetiredUpTo>{{actions.types.pre_issue_id_token.version.retired_up_to}}</RetiredUpTo>
+                </Version>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.pre_issue_id_token.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.pre_issue_id_token.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                    <AllowedHeaders>
+                        {% for header in actions.types.pre_issue_id_token.action_request.allowed_headers %}
+                            <Header>{{header}}</Header>
+                        {% endfor %}
+                    </AllowedHeaders>
+                    <AllowedParameters>
+                        {% for param in actions.types.pre_issue_id_token.action_request.allowed_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </AllowedParameters>
+                </ActionRequest>
+            </PreIssueIdToken>
             <PreUpdateProfile>
                 <Enable>{{actions.types.pre_update_profile.enable}}</Enable>
                 <Version>
@@ -2323,6 +2401,17 @@
             </Authentication>
         </Types>
     </Actions>
+
+    <ExternalAPIClient>
+        <HTTPClient>
+            <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>
+            <HTTPReadTimeout>{{external_api_client.http_client.read_timeout}}</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>{{external_api_client.http_client.connection_request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>{{external_api_client.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+            <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
+        </HTTPClient>
+        <DefaultRetryCount>{{external_api_client.retry_count}}</DefaultRetryCount>
+    </ExternalAPIClient>
 
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
@@ -2637,6 +2726,13 @@
                       name="org.wso2.carbon.user.mgt.workflow.userstore.RoleManagementActionListener"
                       orderId="{{event.default_listener.identity_role_workflow_operation.priority}}"
                       enable="{{event.default_listener.identity_role_workflow_operation.enable}}"/>
+
+        <!-- Privileged User Authenticator -->
+        <EventListener id="privileged_user_authenticator"
+            type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+            name="org.wso2.carbon.identity.oauth2.clientauth.privilegeduser.PrivilegedUserAuthenticator"
+            orderId="{{event.default_listener.privileged_user_authenticator.priority}}"
+            enable="{{event.default_listener.privileged_user_authenticator.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -4049,6 +4145,8 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/identity/oauth2/dcr/</Path>
+                    <Path>/api/identity/auth/v1.1/data</Path>
+                    <Path>/api/server/v1/flow/execute</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -4058,9 +4156,33 @@
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
                     <Path>/oauth2/userinfo</Path>
+                    <Path>/oauth2/authorize</Path>
+                    <Path>/oauth2/jwks</Path>
                 </SubPaths>
             </Context>
+            <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/accounts/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/.well-known/</BasePath>
+            </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
+            <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
+        </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
@@ -4145,6 +4267,7 @@
             <IsThumbprintHexifyRequired>{{oauth.jwks_endpoint.is_thumbprint_hexify_required}}</IsThumbprintHexifyRequired>
             <!-- Configuration for allowing users to enable x5c parameter in JWKS response -->
             <EnableX5CInResponse>{{oauth.jwks_endpoint.enable_x5c_in_response | default(true)}}</EnableX5CInResponse>
+            <IsX5tRequired>{{oauth.jwks_endpoint.is_x5t_required | default(false)}}</IsX5tRequired>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
@@ -4336,6 +4459,11 @@
         {% endif %}
     </X509>
 
+    <!-- Configuration to use internal hostname for X509 certificate authenticator redirects. -->
+    {% if authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect is defined %}
+        <UseInternalHostnameForRedirect>{{authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect}}</UseInternalHostnameForRedirect>
+    {% endif %}
+
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
     {% if audit.log.loggable_user_claim is defined %}
         {% if audit.log.loggable_user_claim.claims is defined %}
@@ -4497,6 +4625,13 @@
         <DisallowedCharacters>{{user_identifier.disallowed.characters.regex}}</DisallowedCharacters>
     </UserIdentifier>
     {% endif %}
+
+    <!-- Configuration for the identifier first input case sensitivity. -->
+    <IdentifierFirst>
+        <PreserveCaseSensitivity>
+            <Enabled>{{ identifier_first.preserve_case_sensitivity.enabled }}</Enabled>
+        </PreserveCaseSensitivity>
+    </IdentifierFirst>
 
     <!-- CORS -->
     <CORS>
@@ -4674,6 +4809,8 @@
     <IdentityDataStore>
         <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
     </IdentityDataStore>
+
+    <AddUserStoreDomainToGroupClaims>{{identity_mgt.claims.add_userstore_domain_to_group_claims}}</AddUserStoreDomainToGroupClaims>
 
     <UserProfileExport>
         <AdditionalClaims>
@@ -4907,8 +5044,21 @@
                     Supported versions : IS 7.2.0 onwards
                 -->
                 <ConnectionReadTimeout>{{notificationChannel.sms.custom.connection_read_timeout}}</ConnectionReadTimeout>
+                <RetryCountAtAuthFailure>{{notificationChannel.sms.custom.retry_count_at_auth_failure}}</RetryCountAtAuthFailure>
+                <Authentication>
+                    <OauthTokenRetrieval>
+                        <HTTPConnectionTimeout>{{notificationChannel.sms.custom.authentication.http_client.connection_timeout}}</HTTPConnectionTimeout>
+                        <HTTPReadTimeout>{{notificationChannel.sms.custom.authentication.http_client.read_timeout}}</HTTPReadTimeout>
+                        <HTTPConnectionRequestTimeout>{{notificationChannel.sms.custom.authentication.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+                        <HTTPConnectionPoolSize>{{notificationChannel.sms.custom.authentication.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+                        <HTTPConnectionMaxPerRoute>{{notificationChannel.sms.custom.authentication.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
+                    </OauthTokenRetrieval>
+                </Authentication>
             </Custom>
         </SMS>
     </NotificationChannel>
+    <PASTRCookieMaxAge>{{pastr_cookie.max_age}}</PASTRCookieMaxAge>
+    <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
+    <MarkStepCompletedOnInterrupt>{{authentication.mark_step_completed_on_interrupt}}</MarkStepCompletedOnInterrupt>
 
 </Server>

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.graph;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -83,13 +84,15 @@ public class TaskExecutionNodeTest {
     private TaskExecutionNode taskExecutionNode;
     private FlowExecutionContext context;
     private NodeConfig nodeConfig;
+    private AutoCloseable closeable;
+
     @Mock
     private AuthenticationExecutor executor;
 
     @BeforeClass
     public void setUp() {
 
-        MockitoAnnotations.openMocks(this);
+        closeable = MockitoAnnotations.openMocks(this);
         taskExecutionNode = new TaskExecutionNode();
 
         context = new FlowExecutionContext();
@@ -109,6 +112,14 @@ public class TaskExecutionNodeTest {
                 .executorConfig(executorDTO)
                 .edges(edges)
                 .build();
+    }
+
+    @AfterClass
+    public void tearDown() throws Exception {
+
+        if (closeable != null) {
+            closeable.close();
+        }
     }
 
     @Test
