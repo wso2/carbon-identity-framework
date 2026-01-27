@@ -1328,6 +1328,7 @@
         <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
+        <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
     </OutboundProvisioning>
 
     <Webhooks>

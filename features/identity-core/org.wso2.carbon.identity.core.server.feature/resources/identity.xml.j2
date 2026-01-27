@@ -2292,6 +2292,14 @@
         {% endif %}
         <enableApplicationBasedOutboundProvisioning>{{outbound_provisioning_management.enable_application_based_outbound_provisioning}}</enableApplicationBasedOutboundProvisioning>
         <FailOnBlockingOutboundProvisionFailure>{{outbound_provisioning_management.fail_on_blocking_outbound_provision_failure}}</FailOnBlockingOutboundProvisionFailure>
+        {% if outbound_provisioning_management.enable_scim_patch_for_updates is defined %}
+            <!--
+                Enabling this configuration will use SCIM PATCH requests instead of PUT requests for user update
+                operations during outbound provisioning. This is useful when the target SCIM endpoint requires
+                PATCH operations for partial updates.
+            -->
+            <EnableSCIMPatchForUpdates>{{outbound_provisioning_management.enable_scim_patch_for_updates}}</EnableSCIMPatchForUpdates>
+        {% endif %}
     </OutboundProvisioning>
 
     <Actions>
