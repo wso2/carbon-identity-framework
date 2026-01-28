@@ -1328,7 +1328,6 @@
             <HttpReadTimeout>5000</HttpReadTimeout>
             <HttpConnectionTimeout>2000</HttpConnectionTimeout>
             <HttpConnectionRequestTimeout>2000</HttpConnectionRequestTimeout>
-            <HttpConnectionPoolSize>20</HttpConnectionPoolSize>
         </SCIM2Client>
     </OutboundProvisioning>
 
