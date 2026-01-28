@@ -2351,27 +2351,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 int offset = 1;
                 int maximumPage = IdentityUtil.getMaximumItemPerPage();
                 List<RoleBasicInfo> allRoles = new ArrayList<>();
+                String filter = RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE + RoleConstants.ORGANIZATION;
                 if (roleManagementService != null) {
                     do {
-                        chunkOfRoles = roleManagementService.
-                                getRoles(RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE +
-                                                RoleConstants.ORGANIZATION, maximumPage, offset, null, null,
-                                        tenantDomain);
+                        chunkOfRoles = roleManagementService.getRoles(filter, maximumPage, offset, null, null,
+                                tenantDomain);
                         if (!chunkOfRoles.isEmpty()) {
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
                     } while (chunkOfRoles.size() == maximumPage);
 
-                    List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
-                            toList());
-                    associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(roleIds, tenantDomain));
+                    RoleV2[] roles = allRoles.stream().map(role -> new RoleV2(role.getId(), role.getName()))
+                            .toArray(RoleV2[]::new);
+                    associatedRolesConfig.setRoles(roles);
                 }
             } catch (IdentityRoleManagementException e) {
                 throw new IdentityApplicationManagementException("Error while retrieving associated roles for " +
                         "application ID: " + applicationId, e);
             }
-
         }
 
         associatedRolesConfig.setAllowedAudience(
