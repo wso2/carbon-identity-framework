@@ -2,6 +2,9 @@ package org.wso2.carbon.identity.rule.metadata.internal.provider.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.Field;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
@@ -10,11 +13,13 @@ import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
+import org.wso2.carbon.identity.rule.metadata.internal.component.RuleMetadataServiceDataHolder;
 import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * User claim metadata provider.
@@ -73,29 +78,37 @@ public class DynamicRuleMetadataProvider implements RuleMetadataProvider {
      */
     private List<String> getAllowedUserClaimUris(String tenantDomain) throws RuleMetadataException {
 
-        // TODO: Implement dynamic claim fetching from ClaimMetadataManagementService.
-        // For now, return hardcoded claims for testing. This should be implemented to fetch claims at runtime.
-        // Example implementation:
-        // try {
-        //     ClaimMetadataManagementService claimService = getClaimMetadataManagementService();
-        //     List<LocalClaim> localClaims = claimService.getLocalClaims(tenantDomain);
-        //     return localClaims.stream()
-        //         .map(LocalClaim::getClaimURI)
-        //         .collect(Collectors.toList());
-        // } catch (ClaimMetadataException e) {
-        //     throw new RuleMetadataException("Error fetching claims for tenant: " + tenantDomain, e);
-        // }
+        ClaimMetadataManagementService claimService = RuleMetadataServiceDataHolder.getInstance()
+                .getClaimMetadataManagementService();
 
-        List<String> tempAllowedClaims = new ArrayList<>();
-        tempAllowedClaims.add("http://wso2.org/claims/emailaddress");
-        tempAllowedClaims.add("http://wso2.org/claims/country");
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Returning " + tempAllowedClaims.size() + " test claims for tenant: " +
-                    tenantDomain);
+        if (claimService == null) {
+            LOG.warn("ClaimMetadataManagementService is not available. Returning empty claim list.");
+            return Collections.emptyList();
         }
 
-        return tempAllowedClaims;
+        try {
+            List<LocalClaim> localClaims = claimService.getLocalClaims(tenantDomain);
+            if (localClaims == null || localClaims.isEmpty()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No local claims found for tenant: " + tenantDomain);
+                }
+                return Collections.emptyList();
+            }
+
+            List<String> claimUris = localClaims.stream()
+                    .map(LocalClaim::getClaimURI)
+                    .collect(Collectors.toList());
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved " + claimUris.size() + " local claims for tenant: " + tenantDomain);
+            }
+
+            return claimUris;
+        } catch (ClaimMetadataException e) {
+            throw new RuleMetadataException("RULE_METADATA_ERROR_50001",
+                    "Error fetching local claims for tenant: " + tenantDomain,
+                    "An error occurred while retrieving local claims from the claim metadata service.", e);
+        }
     }
 
     /**
