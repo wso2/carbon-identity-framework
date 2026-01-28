@@ -1809,7 +1809,7 @@
     <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
         <Scopes>internal_org_shared_user_access_update</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="GET">
+    <Resource context="(.*)/o/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
         <Scopes>internal_org_shared_user_access_view</Scopes>
     </Resource>
 
@@ -1829,7 +1829,7 @@
     <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
         <Scopes>internal_shared_user_access_update</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="GET">
+    <Resource context="(.*)/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
         <Scopes>internal_shared_user_access_view</Scopes>
     </Resource>
 
