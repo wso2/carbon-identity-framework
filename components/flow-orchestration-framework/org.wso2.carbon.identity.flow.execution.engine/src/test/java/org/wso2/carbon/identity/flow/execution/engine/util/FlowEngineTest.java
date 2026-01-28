@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,29 +18,26 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
+import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
-import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
@@ -72,13 +69,14 @@ public class FlowEngineTest {
 
     private FlowExecutionContext context;
     private GraphConfig defaultGraph;
-    private List<FlowExecutionListener> listeners = new ArrayList<>();
+
+    @Mock
+    private InputValidator inputValidator;
 
     @BeforeClass
     public void setup() {
 
         defaultGraph = buildGraphWithDecision();
-        listeners.add(new InputValidationListener());
     }
 
     @AfterClass
@@ -86,7 +84,6 @@ public class FlowEngineTest {
         // Clean up class-level resources if any
         context = null;
         defaultGraph = null;
-        listeners = null;
         org.mockito.Mockito.framework().clearInlineMocks();
     }
 
@@ -132,16 +129,24 @@ public class FlowEngineTest {
     @Test(dependsOnMethods = {"testContinueAfterPrompt"})
     public void testContinueTaskExecution() throws Exception {
 
+        context = initiateFlowContext();
+        context.setGraphConfig(defaultGraph);
+        context.setCurrentNode(defaultGraph.getNodeConfigs().get("taskNode"));
+        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
+        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
+
         try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
                 FlowExecutionEngineUtils.class);
+             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
              MockedConstruction<TaskExecutionNode> mocked =
-                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
+                     mockConstruction(TaskExecutionNode.class, (mock, constructionCtx) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status("COMPLETE")
                                  .build();
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
+            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             utilsMockedStatic.when(() -> FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
                     .thenReturn("https://localhost:3000/myapp/callback");
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
