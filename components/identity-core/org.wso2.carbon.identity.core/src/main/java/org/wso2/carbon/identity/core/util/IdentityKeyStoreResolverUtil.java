@@ -73,7 +73,7 @@ public class IdentityKeyStoreResolverUtil {
         }
 
         // Add the keystore extension
-        return ksName + KeystoreUtils.getKeyStoreFileExtension(tenantDomain);
+        return ksName + KeystoreUtils.getKeyStoreFileExtension(ksName, tenantDomain);
     }
 
     /**
