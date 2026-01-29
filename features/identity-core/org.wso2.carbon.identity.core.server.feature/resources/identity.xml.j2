@@ -5005,6 +5005,11 @@
         <Userstore>{{agent_identity.userstore}}</Userstore>
         <Datasource>{{agent_identity.datasource}}</Datasource>
         <UserstoreManagerClass>{{agent_identity.userstore_manager_class}}</UserstoreManagerClass>
+        <ApplicationCreatorListener>
+            <Enabled>{{oauth.listener.agent_application_creator.enable}}</Enabled>
+            <ListenerClass>{{oauth.listener.agent_application_creator.class}}</ListenerClass>
+            <Order>{{oauth.listener.agent_application_creator.order}}</Order>
+        </ApplicationCreatorListener>
     </AgentIdentity>
 
     {% if platform_idp is defined %}

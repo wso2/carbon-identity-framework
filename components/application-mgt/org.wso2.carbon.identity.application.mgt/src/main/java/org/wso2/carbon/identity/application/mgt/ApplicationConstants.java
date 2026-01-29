@@ -82,6 +82,7 @@ public class ApplicationConstants {
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
     public static final String IS_FRAGMENT_APP = "isFragmentApp";
+    public static final String IS_AGENT_APP = "isAgentApplication";
     public static final String NAME = "name";
     public static final String DEFAULT_BACKCHANNEL_LOGOUT_URL = "/identity/oidc/slo";
 
