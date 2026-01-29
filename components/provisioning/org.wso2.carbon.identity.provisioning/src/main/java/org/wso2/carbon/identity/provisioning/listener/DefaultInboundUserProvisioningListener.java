@@ -717,6 +717,71 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     }
 
     @Override
+    public boolean doPostUpdateRoleName(String roleName, String newRoleName,
+                                        UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
+        if (roleName != null) {
+            outboundAttributes.put(ClaimMapping.build(
+                    IdentityProvisioningConstants.OLD_GROUP_NAME_CLAIM_URI, null,
+                    null, false), Arrays.asList(new String[]{roleName}));
+        }
+
+        if (newRoleName != null) {
+            outboundAttributes.put(ClaimMapping.build(
+                    IdentityProvisioningConstants.NEW_GROUP_NAME_CLAIM_URI, null, null,
+                    false), Arrays.asList(new String[]{newRoleName}));
+            outboundAttributes.put(ClaimMapping.build(
+                    IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null,
+                    false), Arrays.asList(new String[]{newRoleName}));
+        }
+
+        String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
+        String domainAwareName = UserCoreUtil.addDomainToName(roleName, domainName);
+        ProvisioningEntity provisioningEntity = new ProvisioningEntity(
+                ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.PATCH,
+                outboundAttributes);
+
+        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
+        threadLocalServiceProvider = IdentityApplicationManagementUtil
+                .getThreadLocalProvisioningServiceProvider();
+
+        if (threadLocalServiceProvider != null) {
+            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
+            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
+            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
+                try {
+                    serviceProvider = ApplicationManagementService.getInstance()
+                            .getServiceProviderNameByClientId(
+                                    threadLocalServiceProvider.getServiceProviderName(),
+                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                } catch (IdentityApplicationManagementException e) {
+                    log.error("Error while provisioning", e);
+                    return true;
+                }
+            }
+
+            // call framework method to provision the user.
+            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
+                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
+                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
+        } else {
+            // call framework method to provision the group.
+            OutboundProvisioningManager.getInstance()
+                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
+                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager)
             throws UserStoreException {
 

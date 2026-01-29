@@ -536,7 +536,7 @@ public class ProvisioningManagementDAO {
 
         Connection dbConnection = null;
         String provisioningEntityName = null;
-        String entityLocalID = null;
+        String provisioningIdentifier = null;
         PreparedStatement prepStmt = null;
         try {
             dbConnection = JDBCPersistenceManager.getInstance().getDBConnection();
@@ -546,18 +546,19 @@ public class ProvisioningManagementDAO {
 
             provisioningEntityName = ProvisioningUtil.getAttributeValue(provisioningEntity,
                                                                         IdentityProvisioningConstants.NEW_GROUP_NAME_CLAIM_URI);
-            entityLocalID = ProvisioningUtil.getAttributeValue(provisioningEntity,
-                                                               IdentityProvisioningConstants.ID_CLAIM_URI);
+            if (provisioningEntity.getIdentifier() != null) {
+                provisioningIdentifier = provisioningEntity.getIdentifier().getIdentifier();
+            }
 
             prepStmt.setString(1, provisioningEntityName);
-            prepStmt.setString(2, entityLocalID);
+            prepStmt.setString(2, provisioningIdentifier);
 
             prepStmt.execute();
             JDBCPersistenceManager.getInstance().commitTransaction(dbConnection);
         } catch (SQLException e) {
             JDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);
             String msg = "Error occurred while Updating Provisioning entity name to " + provisioningEntityName +
-                         " for Entity Local Id :" + entityLocalID;
+                         " for Provisioning Id :" + provisioningIdentifier;
             throw new IdentityApplicationManagementException(msg, e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, prepStmt);

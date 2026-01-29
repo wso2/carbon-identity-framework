@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -106,8 +106,8 @@ public class ProvisioningThread implements Callable<Boolean> {
                 storeProvisionedEntityIdentifier(idPName, connectorType, provisioningEntity,
                         tenantDomainName);
             } else if (provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP &&
-                       provisioningEntity.getOperation() == ProvisioningOperation.PUT) {
-
+                    (provisioningEntity.getOperation() == ProvisioningOperation.PUT
+                            || provisioningEntity.getOperation() == ProvisioningOperation.PATCH)) {
                 String newGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity,
                                                                 IdentityProvisioningConstants.NEW_GROUP_NAME_CLAIM_URI);
                 if(newGroupName != null){
