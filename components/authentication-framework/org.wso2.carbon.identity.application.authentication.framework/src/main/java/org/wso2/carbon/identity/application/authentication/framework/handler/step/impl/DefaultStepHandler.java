@@ -336,6 +336,15 @@ public class DefaultStepHandler implements StepHandler {
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             authenticatedStepIdps.get(idp));
                     stepConfig.setCompleted(true);
+                    // Update the context with authenticated user.
+                    if (stepConfig.getAuthenticatedUser() != null) {
+                        AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Updating authentication context with authenticated user: " +
+                                    authenticatedUser.getLoggableMaskedUserId());
+                        }
+                        context.setSubject(authenticatedUser);
+                    }
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
                     return;
