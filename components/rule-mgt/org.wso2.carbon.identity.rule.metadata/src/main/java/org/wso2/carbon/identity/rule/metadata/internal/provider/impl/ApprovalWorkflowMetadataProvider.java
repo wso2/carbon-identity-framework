@@ -28,9 +28,9 @@ import java.util.List;
  * that can be used in rule expressions without defining them in fields.json.
  * Claims are fetched dynamically at runtime for all flow types.
  */
-public class DynamicRuleMetadataProvider implements RuleMetadataProvider {
+public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
-    private static final Log LOG = LogFactory.getLog(DynamicRuleMetadataProvider.class);
+    private static final Log LOG = LogFactory.getLog(ApprovalWorkflowMetadataProvider.class);
 
 
     /**

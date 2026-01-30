@@ -140,7 +140,7 @@ public class WorkFlowExecutorManager {
                         }
                     }
 
-                    FlowContext flowContext = new FlowContext(FlowType.WORKFLOW_RULES, ruleContextData);
+                    FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleContextData);
 
                     // Evaluate the rule using the ID stored in associationCondition
                     RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
