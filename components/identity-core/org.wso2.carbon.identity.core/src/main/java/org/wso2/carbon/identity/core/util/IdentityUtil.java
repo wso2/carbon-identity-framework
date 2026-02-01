@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
@@ -2298,6 +2302,8 @@ public class IdentityUtil {
             return;
         }
 
+        validateX5CLength(jwt);
+
         byte[] payloadBytes;
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
@@ -2370,5 +2376,47 @@ public class IdentityUtil {
             return;
         }
         log.debug("Validated JSON depth successfully.");
+    }
+
+    // Remove this after monitoring the X5C length issue is resolved.
+    // Adding this with deprecated tag to avoid usage in new code since this will be removed in the future.
+    @Deprecated
+    public static void validateX5CLength(String jwt) {
+
+        log.debug("Initiating X5C length validation.");
+
+        // Extract and decode JWT header.
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            log.debug("Invalid JWT format. Skipping X5C length validation.");
+            return;
+        }
+
+        byte[] headerBytes;
+        try {
+            try {
+                headerBytes = Base64.getUrlDecoder().decode(parts[0]);
+            } catch (IllegalArgumentException e) {
+                log.debug("Invalid Base64 encoding in JWT header.");
+                return;
+            }
+            String jsonHeader = new String(headerBytes, StandardCharsets.UTF_8);
+
+            try {
+                JsonObject headerObj = JsonParser.parseString(jsonHeader).getAsJsonObject();
+                if (headerObj.has("x5c")) {
+                    JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
+                    if (x5cArray.toString().length() > 20000) {
+                        log.error("X5C length exceeds the maximum allowed limit.");
+                    }
+                }
+            } catch (JsonSyntaxException e) {
+                log.debug("Error occurred while parsing JWT header JSON.", e);
+            }
+        } catch (Exception e) {
+            log.debug("Error occurred while validating X5C length.", e);
+            return;
+        }
+        log.debug("Validated X5C length successfully.");
     }
 }
