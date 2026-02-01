@@ -1294,18 +1294,6 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
         assertFalse(enabled, "Should return false when agent identity config is not set");
 }
 
-    /**
-     * Test the validateX5CLength function to cover all code paths.
-     * This test covers:
-     * 1. Invalid JWT format (less than 2 parts)
-     * 2. Invalid Base64 encoding in JWT header
-     * 3. Valid header with non-JSON content
-     * 4. Valid header with malformed JSON
-     * 5. Valid header with no x5c field
-     * 6. Valid header with x5c field under limit
-     * 7. Valid header with x5c field over limit
-     * 8. Exception handling scenarios
-     */
     @Test
     public void testValidateX5CLength() {
 
