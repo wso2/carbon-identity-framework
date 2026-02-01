@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013- 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013- 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -99,6 +100,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
@@ -800,6 +802,7 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         try {
+            validateAuthenticatorForAPIBasedFlow(request, context, authenticator);
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status;
             if (isAuthenticationRequired) {
@@ -1096,6 +1099,7 @@ public class DefaultStepHandler implements StepHandler {
                 LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
+            handleUnsupportedAuthenticatorForAPIBasedFlow(request, context, e);
         } catch (LogoutFailedException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
@@ -1703,5 +1707,58 @@ public class DefaultStepHandler implements StepHandler {
                     "accountrecoveryendpoint/confirmrecovery.do", e);
         }
         return null;
+    }
+
+    /**
+     * Validates if the given authenticator supports API based authentication flow.
+     * Sets error details in context and throws AuthenticationFailedException if validation fails.
+     *
+     * @param request       HTTP servlet request.
+     * @param context       Authentication context.
+     * @param authenticator Application authenticator to validate.
+     * @throws AuthenticationFailedException If authenticator doesn't support API based authentication.
+     */
+    private void validateAuthenticatorForAPIBasedFlow(HttpServletRequest request, AuthenticationContext context,
+                                                      ApplicationAuthenticator authenticator)
+            throws AuthenticationFailedException {
+
+        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request) && !authenticator.isAPIBasedAuthenticationSupported()) {
+            String errorCode = AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH.getCode();
+            String errorMessage = String.format(AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH.getMessage(),
+                    authenticator.getName());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authenticator '" + authenticator.getName() + "' does not support API based authentication.");
+            }
+            context.setProperty(FrameworkConstants.AUTH_ERROR_CODE,
+                    FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+            context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
+            throw new AuthenticationFailedException(errorCode, errorMessage);
+        }
+    }
+
+    /**
+     * Sets up the error response for API based authentication flow when an unsupported authenticator error occurs.
+     * Marks the flow as concluded and creates an AuthenticationResult with error details.
+     * Context properties (AUTH_ERROR_CODE, AUTH_ERROR_MSG) should already be set before calling this method.
+     *
+     * @param request HTTP servlet request.
+     * @param context Authentication context containing error properties.
+     * @param e       The AuthenticationFailedException to check.
+     */
+    private void handleUnsupportedAuthenticatorForAPIBasedFlow(HttpServletRequest request,
+                                                               AuthenticationContext context,
+                                                               AuthenticationFailedException e) {
+
+        if (!AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH.getCode().equals(e.getErrorCode())) {
+            return;
+        }
+        request.setAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED, true);
+        AuthenticationResult authenticationResult = new AuthenticationResult();
+        authenticationResult.setAuthenticated(false);
+        authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_CODE,
+                context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
+        authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_MSG,
+                context.getProperty(FrameworkConstants.AUTH_ERROR_MSG));
+        request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
     }
 }
