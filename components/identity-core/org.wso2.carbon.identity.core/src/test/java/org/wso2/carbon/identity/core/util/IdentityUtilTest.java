@@ -62,6 +62,8 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -1291,4 +1293,72 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
         boolean enabled = IdentityUtil.isAgentIdentityEnabled();
         assertFalse(enabled, "Should return false when agent identity config is not set");
 }
+
+    @Test
+    public void testValidateX5CLength() {
+
+        // Test case 1: Invalid JWT format (less than 2 parts).
+        String invalidJwt = "invalidjwt";
+        IdentityUtil.validateX5CLength(invalidJwt); // Should return early without error.
+
+        // Test case 2: JWT with only header part.
+        String onlyHeaderJwt = "eyJhbGciOiJSUzI1NiJ9";
+        IdentityUtil.validateX5CLength(onlyHeaderJwt); // Should return early without error.
+
+        // Test case 3: Invalid Base64 encoding in JWT header.
+        String invalidBase64Jwt = "invalid@base64!.payload.signature";
+        IdentityUtil.validateX5CLength(invalidBase64Jwt); // Should handle exception and return.
+
+        // Test case 4: Valid Base64 but non-JSON header.
+        String nonJsonHeader = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("not json".getBytes(StandardCharsets.UTF_8));
+        String nonJsonJwt = nonJsonHeader + ".payload.signature";
+        IdentityUtil.validateX5CLength(nonJsonJwt); // Should handle JSON syntax exception.
+
+        // Test case 5: Valid JSON header but malformed JSON.
+        String malformedJsonHeader = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"alg\":\"RS256\", \"incomplete\":".getBytes(StandardCharsets.UTF_8));
+        String malformedJsonJwt = malformedJsonHeader + ".payload.signature";
+        IdentityUtil.validateX5CLength(malformedJsonJwt); // Should handle JSON syntax exception.
+
+        // Test case 6: Valid header without x5c field.
+        String validHeaderWithoutX5c = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
+        String encodedValidHeader = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(validHeaderWithoutX5c.getBytes(StandardCharsets.UTF_8));
+        String jwtWithoutX5c = encodedValidHeader + ".payload.signature";
+        IdentityUtil.validateX5CLength(jwtWithoutX5c); // Should pass without issues.
+
+        // Test case 7: Valid header with x5c field under limit (should pass).
+        String validHeaderWithSmallX5c = "{\"alg\":\"RS256\",\"typ\":\"JWT\",\"x5c\":[\"smallcert\"]}";
+        String encodedValidHeaderWithSmallX5c = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(validHeaderWithSmallX5c.getBytes(StandardCharsets.UTF_8));
+        String jwtWithSmallX5c = encodedValidHeaderWithSmallX5c + ".payload.signature";
+        IdentityUtil.validateX5CLength(jwtWithSmallX5c); // Should pass validation.
+
+        // Test case 8: Valid header with x5c field over limit (should log error).
+        // Create a large x5c array that exceeds 20000 characters.
+        StringBuilder largeX5cArray = new StringBuilder("[");
+        for (int i = 0; i < 100; i++) {
+            if (i > 0) largeX5cArray.append(",");
+            largeX5cArray.append("\"");
+            // Create a string of 200 'a' characters.
+            for (int j = 0; j < 200; j++) {
+                largeX5cArray.append("a");
+            }
+            largeX5cArray.append("\"");
+        }
+        largeX5cArray.append("]");
+        String validHeaderWithLargeX5c = "{\"alg\":\"RS256\",\"typ\":\"JWT\",\"x5c\":" +
+                                         largeX5cArray + "}";
+        String encodedValidHeaderWithLargeX5c = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(validHeaderWithLargeX5c.getBytes(StandardCharsets.UTF_8));
+        String jwtWithLargeX5c = encodedValidHeaderWithLargeX5c + ".payload.signature";
+        IdentityUtil.validateX5CLength(jwtWithLargeX5c); // Should log error for exceeding limit.
+
+        // Test case 10: Empty string input.
+        IdentityUtil.validateX5CLength("");
+
+        // Test case 11: Single dot JWT format.
+        IdentityUtil.validateX5CLength(".");
+    }
 }
