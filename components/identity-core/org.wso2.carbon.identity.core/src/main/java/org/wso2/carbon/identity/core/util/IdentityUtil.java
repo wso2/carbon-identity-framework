@@ -2412,6 +2412,8 @@ public class IdentityUtil {
                     JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
                     if (x5cArray.toString().length() > 20000) {
                         log.error("X5C length exceeds the maximum allowed limit.");
+                    } else {
+                        log.debug("X5C length is within acceptable limits: " + x5cArray.toString().length());
                     }
                 }
             } catch (JsonSyntaxException e) {
