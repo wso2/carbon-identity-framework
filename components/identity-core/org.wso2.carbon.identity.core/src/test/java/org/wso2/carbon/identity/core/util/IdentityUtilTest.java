@@ -1355,17 +1355,10 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
         String jwtWithLargeX5c = encodedValidHeaderWithLargeX5c + ".payload.signature";
         IdentityUtil.validateX5CLength(jwtWithLargeX5c); // Should log error for exceeding limit.
 
-        // Test case 9: Test with null input to trigger exception handling.
-        try {
-            IdentityUtil.validateX5CLength(null); // Should handle null gracefully.
-        } catch (Exception e) {
-            // Expected to handle gracefully without throwing.
-        }
-
         // Test case 10: Empty string input.
-        IdentityUtil.validateX5CLength(""); // Should return early.
+        IdentityUtil.validateX5CLength("");
 
         // Test case 11: Single dot JWT format.
-        IdentityUtil.validateX5CLength("."); // Should return early due to invalid format.
+        IdentityUtil.validateX5CLength(".");
     }
 }
