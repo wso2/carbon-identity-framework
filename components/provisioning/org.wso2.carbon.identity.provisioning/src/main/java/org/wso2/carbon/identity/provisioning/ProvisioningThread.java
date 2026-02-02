@@ -110,7 +110,7 @@ public class ProvisioningThread implements Callable<Boolean> {
                             || provisioningEntity.getOperation() == ProvisioningOperation.PATCH)) {
                 String newGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity,
                                                                 IdentityProvisioningConstants.NEW_GROUP_NAME_CLAIM_URI);
-                if(newGroupName != null){
+                if (newGroupName != null){
                     // update provisioned entity name for future reference. this is applicable for only
                     // group name update
                     dao.updateProvisionedEntityName(provisioningEntity);

@@ -114,38 +114,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -179,38 +148,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -249,38 +187,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -315,38 +222,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -374,36 +250,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -556,37 +403,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -622,37 +439,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the group.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -683,37 +470,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the group.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -748,37 +505,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the group.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -814,38 +541,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    "oauth2", tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
-            }
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider,
-                    threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName,
-                    threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
-
-        return true;
+        return provisionEntity(provisioningEntity, tenantDomainName);
     }
 
     @Override
@@ -856,5 +552,48 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
             return true;
         }
         return doPostUpdateCredential(userName, credential, userStoreManager);
+    }
+
+    /**
+     * Provisions the entity to outbound provisioning connectors.
+     *
+     * @param provisioningEntity The provisioning entity to be provisioned.
+     * @param tenantDomainName   The tenant domain name.
+     * @return True if provisioning is successful.
+     * @throws UserStoreException If an error occurs during provisioning.
+     */
+    private boolean provisionEntity(ProvisioningEntity provisioningEntity, String tenantDomainName)
+            throws UserStoreException {
+
+        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider =
+                IdentityApplicationManagementUtil.getThreadLocalProvisioningServiceProvider();
+
+        if (threadLocalServiceProvider != null) {
+            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
+            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
+            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
+                try {
+                    serviceProvider = ApplicationManagementService.getInstance()
+                            .getServiceProviderNameByClientId(
+                                    threadLocalServiceProvider.getServiceProviderName(),
+                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                } catch (IdentityApplicationManagementException e) {
+                    log.error("Error while provisioning", e);
+                    return true;
+                }
+            }
+
+            // Call framework method to provision the entity.
+            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
+                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
+                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
+        } else {
+            // Call framework method to provision the entity.
+            OutboundProvisioningManager.getInstance()
+                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
+                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
+        }
+
+        return true;
     }
 }
