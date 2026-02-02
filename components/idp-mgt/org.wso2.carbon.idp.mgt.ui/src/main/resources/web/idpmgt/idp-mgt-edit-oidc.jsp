@@ -35,7 +35,7 @@
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
                    topPage="true" request="<%=request%>"/>
-<jsp:include page="../dialog/display_messages.jsp"/>
+<jsp:include page="/carbon/dialog/display_messages.jsp"/>
 
 <%
     boolean isOpenidconnectAuthenticatorActive = Boolean.parseBoolean(request.getParameter(

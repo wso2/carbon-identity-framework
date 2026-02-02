@@ -4589,7 +4589,7 @@
                         }
                     </script>
                     <% } %>
-                    <jsp:include page="idp-mgt-edit-oidc.jsp">
+                    <jsp:include page="/carbon/idpmgt/idp-mgt-edit-oidc.jsp">
                         <jsp:param name="isOpenidconnectAuthenticatorActive"
                                    value="<%=Encode.forHtmlAttribute(
                                            Boolean.toString(isOpenidconnectAuthenticatorActive))%>"/>
