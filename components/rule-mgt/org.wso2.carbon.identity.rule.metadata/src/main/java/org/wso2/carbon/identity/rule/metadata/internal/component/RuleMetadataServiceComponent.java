@@ -28,10 +28,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
-import org.wso2.carbon.identity.rule.metadata.internal.provider.impl.ApprovalWorkflowMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.internal.provider.impl.StaticRuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.internal.service.impl.RuleMetadataManager;
 import org.wso2.carbon.identity.rule.metadata.internal.service.impl.RuleMetadataServiceImpl;
@@ -55,7 +53,6 @@ public class RuleMetadataServiceComponent {
 
             RuleMetadataManager ruleMetadataManager = RuleMetadataManager.getInstance();
             ruleMetadataManager.registerMetadataProvider(StaticRuleMetadataProvider.loadStaticMetadata());
-            ruleMetadataManager.registerMetadataProvider(new ApprovalWorkflowMetadataProvider());
             bundleCtx.registerService(RuleMetadataService.class.getName(),
                     new RuleMetadataServiceImpl(ruleMetadataManager),
                     null);
@@ -100,28 +97,5 @@ public class RuleMetadataServiceComponent {
                     " in the RuleMetadataComponent.");
         }
         RuleMetadataManager.getInstance().unregisterMetadataProvider(ruleMetadataProvider);
-    }
-
-    @Reference(
-            name = "claim.metadata.management.service",
-            service = ClaimMetadataManagementService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetClaimMetadataManagementService"
-    )
-    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Setting ClaimMetadataManagementService in RuleMetadataServiceComponent.");
-        }
-        RuleMetadataServiceDataHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
-    }
-
-    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unsetting ClaimMetadataManagementService in RuleMetadataServiceComponent.");
-        }
-        RuleMetadataServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }

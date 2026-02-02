@@ -1,4 +1,22 @@
-package org.wso2.carbon.identity.rule.metadata.internal.provider.impl;
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.workflow.mgt.rule;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -15,23 +33,21 @@ import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
-import org.wso2.carbon.identity.rule.metadata.internal.component.RuleMetadataServiceDataHolder;
-import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
+import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * User claim metadata provider.
+ * Approval workflow rule metadata provider.
  * This class is responsible for providing dynamic field definitions for user claims
- * that can be used in rule expressions without defining them in fields.json.
- * Claims are fetched dynamically at runtime for all flow types.
+ * that can be used in workflow approval rule expressions.
+ * Claims are fetched dynamically at runtime for workflow flow types.
  */
 public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
     private static final Log LOG = LogFactory.getLog(ApprovalWorkflowMetadataProvider.class);
-
 
     /**
      * Get the expression metadata for the given flow type.
@@ -60,6 +76,7 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
             FieldDefinition fieldDefinition = createFieldDefinitionForClaim(localClaim);
             fieldDefinitions.add(fieldDefinition);
         }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("Generated " + fieldDefinitions.size() + " field definitions for user claims for tenant: " +
                     tenantDomain);
@@ -78,7 +95,7 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
      */
     private List<LocalClaim> getAllowedUserClaims(String tenantDomain) throws RuleMetadataException {
 
-        ClaimMetadataManagementService claimService = RuleMetadataServiceDataHolder.getInstance()
+        ClaimMetadataManagementService claimService = WorkflowServiceDataHolder.getInstance()
                 .getClaimMetadataManagementService();
 
         if (claimService == null) {
@@ -95,10 +112,13 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
                 return Collections.emptyList();
             }
 
-            return localClaims;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved " + localClaims.size() + " local claims for tenant: " + tenantDomain);
+            }
 
+            return localClaims;
         } catch (ClaimMetadataException e) {
-            throw new RuleMetadataException("RULE_METADATA_ERROR_50001",
+            throw new RuleMetadataException("WORKFLOW_METADATA_ERROR_50001",
                     "Error fetching local claims for tenant: " + tenantDomain,
                     "An error occurred while retrieving local claims from the claim metadata service.", e);
         }
@@ -107,8 +127,8 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
     /**
      * Create a field definition for a user claim.
      *
-     * @param localClaim Local claim
-     * @return FieldDefinition for the claim
+     * @param localClaim Local claim.
+     * @return FieldDefinition for the claim.
      */
     private FieldDefinition createFieldDefinitionForClaim(LocalClaim localClaim) {
 
@@ -122,6 +142,13 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
         return new FieldDefinition(field, operators, valueMeta);
     }
 
+    /**
+     * Get the display name of a claim.
+     * Returns the DisplayName property if available, otherwise falls back to the claim URI.
+     *
+     * @param localClaim Local claim.
+     * @return Display name of the claim.
+     */
     private String getClaimDisplayName(LocalClaim localClaim) {
 
         String displayName = localClaim.getClaimProperty(ClaimConstants.DISPLAY_NAME_PROPERTY);
@@ -129,34 +156,26 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
             return displayName;
         }
 
+        // Fallback to claim URI if display name is not available.
         return localClaim.getClaimURI();
     }
 
     /**
      * Get the list of operators applicable for claim fields.
-     * Currently, returns equals and notEquals operators.
+     * Returns basic comparison operators: equals and notEquals.
      *
-     * @return List of operators
+     * @return List of operators.
      */
     private List<Operator> getOperatorsForClaim() {
 
         List<Operator> operators = new ArrayList<>();
 
-        // Get operators from the operator config.
-        Operator equalsOperator = RuleMetadataConfigFactory.getOperatorConfig()
-                .getOperatorsMap().get("equals");
-        Operator notEqualsOperator = RuleMetadataConfigFactory.getOperatorConfig()
-                .getOperatorsMap().get("notEquals");
-
-        if (equalsOperator != null) {
-            operators.add(equalsOperator);
-        }
-
-        if (notEqualsOperator != null) {
-            operators.add(notEqualsOperator);
-        }
+        // Add equals operator.
+        operators.add(new Operator("equals", "Equals"));
+        
+        // Add notEquals operator.
+        operators.add(new Operator("notEquals", "Not Equals"));
 
         return operators;
     }
 }
-
