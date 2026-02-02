@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013- 2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -99,8 +99,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
@@ -1722,12 +1722,14 @@ public class DefaultStepHandler implements StepHandler {
                                                       ApplicationAuthenticator authenticator)
             throws AuthenticationFailedException {
 
-        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request) && !authenticator.isAPIBasedAuthenticationSupported()) {
+        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request) &&
+                !authenticator.isAPIBasedAuthenticationSupported()) {
             String errorCode = AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH.getCode();
             String errorMessage = String.format(AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH.getMessage(),
                     authenticator.getName());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Authenticator '" + authenticator.getName() + "' does not support API based authentication.");
+                LOG.debug("Authenticator '" + authenticator.getName() +
+                        "' does not support API based authentication.");
             }
             context.setProperty(FrameworkConstants.AUTH_ERROR_CODE,
                     FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);

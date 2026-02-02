@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -553,6 +554,97 @@ public class DefaultStepHandlerTest {
                     "Subject username should match the authenticated user.");
             Assert.assertEquals(context.getSubject().getTenantDomain(), "carbon.super",
                     "Subject tenant domain should match the authenticated user.");
+        }
+    }
+
+    @Test
+    public void testAPIBasedFlowWithUnsupportedAuthenticatorSetsErrorProperties() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            StepConfig stepConfig = mock(StepConfig.class);
+            AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+            ApplicationAuthenticator authenticator = mock(ApplicationAuthenticator.class);
+
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(context.getCurrentStep()).thenReturn(1);
+            Map<Integer, StepConfig> stepMap = new HashMap<>();
+            stepMap.put(1, stepConfig);
+            when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(authenticator);
+            when(authenticator.getName()).thenReturn("UnsupportedAuthenticator");
+            when(authenticator.getFriendlyName()).thenReturn("Unsupported Authenticator");
+            when(authenticator.isAPIBasedAuthenticationSupported()).thenReturn(false);
+            when(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE))
+                    .thenReturn(FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+            when(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG))
+                    .thenReturn("Authenticator UnsupportedAuthenticator does not support API based authentication.");
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(true);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
+            verify(context).setProperty(FrameworkConstants.AUTH_ERROR_CODE,
+                    FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+            verify(context).setProperty(
+                    org.mockito.ArgumentMatchers.eq(FrameworkConstants.AUTH_ERROR_MSG),
+                    org.mockito.ArgumentMatchers.anyString());
+        }
+    }
+
+    @Test
+    public void testUnsupportedAuthenticatorSetsAuthResultAttributes() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            StepConfig stepConfig = mock(StepConfig.class);
+            AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+            ApplicationAuthenticator authenticator = mock(ApplicationAuthenticator.class);
+
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(context.getCurrentStep()).thenReturn(1);
+            when(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE))
+                    .thenReturn(FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+            when(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG))
+                    .thenReturn("Authenticator TestAuth does not support API based authentication.");
+            Map<Integer, StepConfig> stepMap = new HashMap<>();
+            stepMap.put(1, stepConfig);
+            when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(authenticator);
+            when(authenticator.getName()).thenReturn("TestAuth");
+            when(authenticator.getFriendlyName()).thenReturn("Test Authenticator");
+            when(authenticator.isAPIBasedAuthenticationSupported()).thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(true);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
+
+            ArgumentCaptor<Boolean> flowConcludedCaptor = ArgumentCaptor.forClass(Boolean.class);
+            verify(request).setAttribute(
+                    org.mockito.ArgumentMatchers.eq(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED),
+                    flowConcludedCaptor.capture());
+            Assert.assertTrue(flowConcludedCaptor.getValue(),
+                    "Expected IS_AUTH_FLOW_CONCLUDED to be true");
+            ArgumentCaptor<AuthenticationResult> authResultCaptor =
+                    ArgumentCaptor.forClass(AuthenticationResult.class);
+            verify(request).setAttribute(
+                    org.mockito.ArgumentMatchers.eq(FrameworkConstants.RequestAttribute.AUTH_RESULT),
+                    authResultCaptor.capture());
+
+            AuthenticationResult authResult = authResultCaptor.getValue();
+            Assert.assertFalse(authResult.isAuthenticated(),
+                    "Expected authentication result to be not authenticated");
+            Assert.assertEquals(authResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE),
+                    FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
         }
     }
 }
