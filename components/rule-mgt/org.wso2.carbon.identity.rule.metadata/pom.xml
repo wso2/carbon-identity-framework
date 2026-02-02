@@ -43,10 +43,6 @@
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
@@ -96,12 +92,6 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.claim.metadata.mgt;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.claim.metadata.mgt.exception;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.claim.metadata.mgt.model;
                             version="${carbon.identity.package.import.version.range}",
                             com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
                             com.fasterxml.jackson.databind.*;
