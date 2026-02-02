@@ -85,5 +85,34 @@
     {
       "fieldName": "claim"
     }
+  ],
+  "approvalWorkflow": [
+    {
+      "fieldName": "user.domain"
+    },
+    {
+      "fieldName": "user.groups"
+    },
+    {
+      "fieldName": "user.roles"
+    },
+    {
+      "fieldName": "initiator.domain"
+    },
+    {
+      "fieldName": "initiator.groups"
+    },
+    {
+      "fieldName": "initiator.roles"
+    },
+    {
+      "fieldName": "role.name"
+    },
+    {
+      "fieldName": "role.audience"
+    },
+    {
+      "fieldName": "role.permissions"
+    }
   ]
 }
