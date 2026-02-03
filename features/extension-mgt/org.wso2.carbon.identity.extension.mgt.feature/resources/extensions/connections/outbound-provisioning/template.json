@@ -1,0 +1,46 @@
+{
+    "category": "DEFAULT",
+    "description": "Provision users and groups to external systems",
+    "displayOrder": 8,
+    "id": "outbound-provisioning-connection",
+    "idp": {
+        "alias": "",
+        "idpIssuerName": "",
+        "certificate": {},
+        "claims": {
+            "provisioningClaims": [],
+            "roleClaim": {
+                "uri": ""
+            },
+            "userIdClaim": {
+                "uri": ""
+            }
+        },
+        "description": "",
+        "federatedAuthenticators": {
+            "authenticators": [],
+            "defaultAuthenticatorId": ""
+        },
+        "homeRealmIdentifier": "",
+        "image": "",
+        "isFederationHub": false,
+        "isPrimary": false,
+        "name": "Outbound Provisioning",
+        "provisioning": {
+            "outboundConnectors": {
+                "connectors": [],
+                "defaultConnectorId": ""
+            }
+        },
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        }
+    },
+    "image": "assets/images/logos/outbound-provisioning.svg",
+    "name": "Outbound Provisioning",
+    "services": [],
+    "disabled": false,
+    "templateId": "outbound-provisioning",
+    "type": "PROVISIONING"
+}
