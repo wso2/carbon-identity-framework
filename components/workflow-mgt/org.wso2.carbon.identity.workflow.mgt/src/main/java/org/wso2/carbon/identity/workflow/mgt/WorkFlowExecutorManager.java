@@ -118,13 +118,11 @@ public class WorkFlowExecutorManager {
                 // Check for Default Condition "boolean(1)"
                 if (StringUtils.isNotBlank(ruleIdForEvaluation) && "boolean(1)".equals(ruleIdForEvaluation.trim())) {
                     // Default condition found, proceed without calling Rule Engine
-                    if (log.isDebugEnabled()) {
-                        log.debug("Default association condition found (boolean(1)). engaging workflow.");
-                    }
+                    log.debug("Default association condition found (boolean(1)). engaging workflow.");
                     ruleSatisfied = true;
                 }
-                // else treat it as a Rule ID and evaluate via Rule Engine
                 else {
+                    // else treat it as a Rule ID and evaluate via Rule Engine
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
                     Map<String, Object> ruleContextData = new HashMap<>();
@@ -173,9 +171,8 @@ public class WorkFlowExecutorManager {
                                     .getUuid(), WorkflowRequestStatus.PENDING
                                     .toString(), workFlowRequest.getTenantId());
                 }else {
-                    // to do: remove the info level log and keep debug level log only
                     if (log.isDebugEnabled()) {
-                        log.info("Workflow association with id: " + association.getAssociationId() +
+                        log.debug("Workflow association with id: " + association.getAssociationId() +
                                 " not engaged for the request with id: " + workFlowRequest.getUuid() +
                                 " as the rule condition did not satisfy");
                     }
