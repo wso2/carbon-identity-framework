@@ -29,6 +29,13 @@ import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilityS
 public interface CompatibilitySettingConfigurationProvider {
 
     /**
+     * Get name of the provider.
+     *
+     * @return Name of the provider.
+     */
+    String getName();
+
+    /**
      * Get priority of the provider.
      *
      * @return Priority of the provider.
