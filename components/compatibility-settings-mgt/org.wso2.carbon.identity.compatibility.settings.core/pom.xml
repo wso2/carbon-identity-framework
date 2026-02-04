@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>compatibility-settings-mgt</artifactId>
-        <version>7.8.668-SNAPSHOT</version>
+        <version>7.8.673-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -91,7 +91,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.compatibility.settings.core.internal
+                            org.wso2.carbon.identity.compatibility.settings.core.internal
                         </Private-Package>
                         <Import-Package>
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
@@ -101,8 +101,8 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.compatibility.settings.core.internal,
-                            org.wso2.carbon.compatibility.settings.core.*;version="${project.version}"
+                            !org.wso2.carbon.identity.compatibility.settings.core.internal,
+                            org.wso2.carbon.identity.compatibility.settings.core.*;version="${project.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

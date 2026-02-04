@@ -4,7 +4,3 @@ org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../r
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/identity); \
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/identity/compatibilitysettings); \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.compatibility.settings.management.server_${feature.version}/identity/compatibilitysettings/,target:${installFolder}/../../../repository/resources/identity/compatibilitysettings,overwrite:true);
-
-instructions.unconfigure = \
-org.eclipse.equinox.p2.touchpoint.natives.remove(path:${installFolder}/../../../repository/resources/identity/compatibilitysettings/compatibility-settings-metadata.json); \
-org.eclipse.equinox.p2.touchpoint.natives.remove(path:${installFolder}/../../../repository/resources/identity/compatibilitysettings/compatibility-settings-metadata.json.j2);
