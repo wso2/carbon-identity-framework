@@ -983,6 +983,7 @@
                 Default value for IDTokenIssuerID, is OAuth2TokenEPUrl.
                 If that doesn't satisfy uncomment the following config and explicitly configure the value
             -->
+            <UseEntityIdAsIssuer>{{ oauth.oidc.id_token.use_entityid_as_issuer }}</UseEntityIdAsIssuer>
             <IDTokenIssuerID>{{oauth.oidc.id_token.issuer}}</IDTokenIssuerID>
             <IDTokenCustomClaimsCallBackHandler>{{oauth.oidc.extensions.claim_callback_handler}}</IDTokenCustomClaimsCallBackHandler>
             <IDTokenExpiration>{{oauth.oidc.token_validation.id_token_validity}}</IDTokenExpiration>
@@ -2300,6 +2301,22 @@
             -->
             <EnableSCIMPatchForUpdates>{{outbound_provisioning_management.enable_scim_patch_for_updates}}</EnableSCIMPatchForUpdates>
         {% endif %}
+        <SCIM2Client>
+            <!--
+                HTTP retry count for SCIM2 outbound provisioning client.
+                Retry count of 0 means no retries (only original request).
+                Retry count of N means original request + N retries.
+                Controls retry behavior for transient network failures and server errors.
+            -->
+            <HttpRetryCount>{{outbound_provisioning_management.scim2_client.http_retry_count}}</HttpRetryCount>
+            <!--
+                HTTP timeout configurations for SCIM2 outbound provisioning client.
+                All timeout values are in milliseconds.
+            -->
+            <HttpReadTimeout>{{outbound_provisioning_management.scim2_client.http_read_timeout}}</HttpReadTimeout>
+            <HttpConnectionTimeout>{{outbound_provisioning_management.scim2_client.http_connection_timeout}}</HttpConnectionTimeout>
+            <HttpConnectionRequestTimeout>{{outbound_provisioning_management.scim2_client.http_connection_request_timeout}}</HttpConnectionRequestTimeout>
+        </SCIM2Client>
     </OutboundProvisioning>
 
     <Actions>
@@ -4989,6 +5006,11 @@
         <Userstore>{{agent_identity.userstore}}</Userstore>
         <Datasource>{{agent_identity.datasource}}</Datasource>
         <UserstoreManagerClass>{{agent_identity.userstore_manager_class}}</UserstoreManagerClass>
+        <ApplicationCreatorListener>
+            <Enabled>{{oauth.listener.agent_application_creator.enable}}</Enabled>
+            <ListenerClass>{{oauth.listener.agent_application_creator.class}}</ListenerClass>
+            <Order>{{oauth.listener.agent_application_creator.order}}</Order>
+        </ApplicationCreatorListener>
     </AgentIdentity>
 
     {% if platform_idp is defined %}
