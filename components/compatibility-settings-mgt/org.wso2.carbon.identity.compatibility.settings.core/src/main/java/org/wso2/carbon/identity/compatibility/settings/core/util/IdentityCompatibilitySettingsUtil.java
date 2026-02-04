@@ -56,7 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class for loading and managing feature compatibility settings.
+ * Utility class for compatibility settings which provides common utility functionalities.
  */
 public class IdentityCompatibilitySettingsUtil {
 
@@ -258,10 +258,11 @@ public class IdentityCompatibilitySettingsUtil {
             try {
                 String parentTenantDomain =
                         OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
+                // Start a tenant flow as thr root org to access parent organization details since organizational
+                // manager does no support accessing super organization details in a sub-organization tenant flow.
                 FrameworkUtils.startTenantFlow(parentTenantDomain);
                 String rootOrgId = organizationManager.resolveOrganizationId(parentTenantDomain);
                 if (rootOrgId != null && !rootOrgId.equals(organization.getId())) {
-                    // Get the root organization.
                     Organization rootorganization =
                             organizationManager.getOrganization(rootOrgId, false, false);
                     if (rootorganization != null) {
@@ -274,7 +275,7 @@ public class IdentityCompatibilitySettingsUtil {
 
         }
 
-        if (organization != null && organization.getCreated() != null) {
+        if (organization.getCreated() != null) {
             return organization.getCreated();
         }
         return null;
@@ -378,6 +379,7 @@ public class IdentityCompatibilitySettingsUtil {
         if (existingSetting != null) {
             existingSetting.updateCompatibilitySetting(compatibilitySetting);
             CompatibilitySettingCacheEntry cacheEntry = new CompatibilitySettingCacheEntry(existingSetting);
+            // Note {@link CompatibilitySettingCache#updateCache} clears the existing cache entry and adds the new one.
             CompatibilitySettingCache.getInstance().updateCache(tenantDomain, cacheEntry);
         } else {
             CompatibilitySettingCacheEntry cacheEntry = new CompatibilitySettingCacheEntry(compatibilitySetting);

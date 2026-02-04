@@ -25,8 +25,7 @@ import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilityS
 
 /**
  * Interface for managing compatibility settings evaluation.
- * This manager coordinates evaluators and providers to determine compatibility settings
- * based on various factors such as organization creation time and configurations.
+ * This manager coordinates evaluators and providers to determine compatibility settings.
  */
 public interface CompatibilitySettingsManager {
 
@@ -65,7 +64,6 @@ public interface CompatibilitySettingsManager {
 
     /**
      * Get the compatibility settings for a tenant.
-     * This method loads metadata and evaluates settings for the given tenant domain.
      *
      * @param tenantDomain Tenant domain.
      * @return Evaluated compatibility settings for the tenant.
@@ -98,7 +96,6 @@ public interface CompatibilitySettingsManager {
 
     /**
      * Update compatibility settings for a tenant.
-     * This method executes update operation on all configuration providers in priority order.
      *
      * @param tenantDomain         Tenant domain.
      * @param compatibilitySetting Compatibility settings to update.
@@ -110,12 +107,11 @@ public interface CompatibilitySettingsManager {
 
     /**
      * Update compatibility settings for a specific setting group within a tenant.
-     * This method executes update operation on all configuration providers in priority order.
      *
      * @param tenantDomain              Tenant domain.
      * @param settingGroup              Setting group to update.
      * @param compatibilitySettingGroup Compatibility setting group to update.
-     * @return Updated compatibility settingw.
+     * @return Updated compatibility settings.
      * @throws CompatibilitySettingException If an error occurs during update.
      */
     CompatibilitySetting updateCompatibilitySettings(String tenantDomain, String settingGroup,

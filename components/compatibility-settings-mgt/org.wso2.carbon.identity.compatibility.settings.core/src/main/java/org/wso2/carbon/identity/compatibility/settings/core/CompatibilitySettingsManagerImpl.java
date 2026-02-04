@@ -41,9 +41,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Default implementation of CompatibilitySettingsManager.
- * This class coordinates evaluators and providers to determine compatibility settings
- * based on various factors such as organization creation time and configurations.
+ * Default implementation of {@link CompatibilitySettingsManager}.
+ * This class coordinates evaluators and providers to determine compatibility settings.
  */
 public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsManager {
 
@@ -54,7 +53,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
 
     /**
      * Constructor that initializes metadata from providers.
-     * Metadata is loaded once at construction time since it's static.
+     * Metadata is static hence loaded once at construction time.
      */
     public CompatibilitySettingsManagerImpl() {
 
@@ -75,7 +74,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     /**
      * Get the list of metadata providers from data holder.
      *
-     * @return List of metadata providers sorted by priority (highest first).
+     * @return List of metadata providers.
      */
     private List<CompatibilitySettingMetaDataProvider> getMetaDataProviders() {
 
@@ -85,7 +84,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     /**
      * Get the list of configuration providers from data holder.
      *
-     * @return List of configuration providers sorted by priority (highest first).
+     * @return List of configuration providers.
      */
     private List<CompatibilitySettingConfigurationProvider> getConfigurationProviders() {
 
@@ -119,7 +118,8 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
                     mergedMetaData.update(providerMetaData);
                 }
             } catch (CompatibilitySettingException e) {
-                LOG.error("Error loading metadata from provider.", e);
+                // Log and Continue without interrupting server startup.
+                LOG.error("Error loading metadata from provider " + provider.getName(), e);
             }
         }
         return mergedMetaData;
@@ -151,7 +151,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     }
 
     /**
-     * Get the supported settings from metadata.
+     * Get the supported settings.
      * Returns a map where keys are setting group names and values are arrays of supported setting names.
      *
      * @return Map of setting group names to their supported setting names.
@@ -247,7 +247,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
                                                                  CompatibilitySettingGroup compatibilitySettingGroup)
             throws CompatibilitySettingException {
 
-        validateSettingGroup(compatibilitySettingGroup, getSupportedSettings());
+        validateSettingGroup(settingGroup, compatibilitySettingGroup, getSupportedSettings());
         List<CompatibilitySettingConfigurationProvider> configurationProviders = getConfigurationProviders();
         for (CompatibilitySettingConfigurationProvider provider : configurationProviders) {
             provider.updateConfiguration(settingGroup, compatibilitySettingGroup, tenantDomain);
@@ -298,12 +298,13 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     /**
      * Validate that the setting group and its settings are supported.
      *
+     * @param groupName         The name of the setting group.
      * @param settingGroup       The setting group to validate.
      * @param supportedSettings  Map of supported setting groups to their supported settings.
      * @throws CompatibilitySettingClientException If the setting group or any setting is not supported.
      */
-    private void validateSettingGroup(CompatibilitySettingGroup settingGroup, Map<String, String[]> supportedSettings)
-            throws CompatibilitySettingException {
+    private void validateSettingGroup(String groupName, CompatibilitySettingGroup settingGroup, Map<String,
+            String[]> supportedSettings) throws CompatibilitySettingException {
 
         if (supportedSettings == null || supportedSettings.isEmpty()) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
@@ -314,7 +315,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
             throw IdentityCompatibilitySettingsUtil.handleClientException(
                     ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP);
         }
-        String groupName = settingGroup.getSettingGroup();
+
         String[] supportedValues = supportedSettings.get(groupName);
         if (supportedValues == null) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
@@ -349,7 +350,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
                     ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING);
         }
         for (CompatibilitySettingGroup settingGroup : setting.getCompatibilitySettings().values()) {
-            validateSettingGroup(settingGroup, supportedSettings);
+            validateSettingGroup(settingGroup.getSettingGroup(), settingGroup, supportedSettings);
         }
     }
 }

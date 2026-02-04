@@ -29,6 +29,13 @@ import org.wso2.carbon.identity.compatibility.settings.core.model.metadata.Compa
 public interface CompatibilitySettingMetaDataProvider {
 
     /**
+     * Get name of the provider.
+     *
+     * @return Name of the provider.
+     */
+    String getName();
+
+    /**
      * Get priority of the provider.
      *
      * @return Priority of the provider.

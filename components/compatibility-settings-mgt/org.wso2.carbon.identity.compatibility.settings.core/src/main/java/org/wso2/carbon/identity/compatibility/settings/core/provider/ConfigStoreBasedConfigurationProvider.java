@@ -58,6 +58,12 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
     private static final Log log = LogFactory.getLog(ConfigStoreBasedConfigurationProvider.class);
 
     @Override
+    public String getName() {
+
+        return "ConfigStoreBasedConfigurationProvider";
+    }
+
+    @Override
     public int getPriority() {
 
         return 100;

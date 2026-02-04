@@ -46,9 +46,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -458,7 +463,9 @@ public class IdentityCompatibilitySettingsUtilTest {
         compatibilitySetting.addCompatibilitySetting(group);
 
         IdentityCompatibilitySettingsUtil.addToCache(TENANT_DOMAIN, compatibilitySetting);
-        // Verify cache.addToCache was called - no exception means success.
+
+        // Verify cache.addToCache was called with correct parameters.
+        verify(cache, times(1)).addToCache(eq(TENANT_DOMAIN), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -468,8 +475,10 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testAddToCacheWithNullTenantDomain() {
 
         CompatibilitySetting compatibilitySetting = new CompatibilitySetting();
-        // Should return early without exception.
         IdentityCompatibilitySettingsUtil.addToCache(null, compatibilitySetting);
+
+        // Verify cache was never accessed when tenant domain is null.
+        verify(cache, never()).addToCache(anyString(), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -478,8 +487,10 @@ public class IdentityCompatibilitySettingsUtilTest {
     @Test
     public void testAddToCacheWithNullSetting() {
 
-        // Should return early without exception.
         IdentityCompatibilitySettingsUtil.addToCache(TENANT_DOMAIN, null);
+
+        // Verify cache was never accessed when setting is null.
+        verify(cache, never()).addToCache(anyString(), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -500,7 +511,10 @@ public class IdentityCompatibilitySettingsUtilTest {
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(TENANT_DOMAIN);
 
         assertNotNull(result);
+        assertNotNull(result.getCompatibilitySettings());
+        assertEquals(result.getCompatibilitySettings().size(), 1);
         assertEquals(result.getCompatibilitySetting(SETTING_GROUP).getSettingValue(SETTING_KEY), SETTING_VALUE);
+        verify(cache, times(1)).getFromCache(TENANT_DOMAIN);
     }
 
     /**
@@ -510,7 +524,9 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testGetFromCacheWithNullTenantDomain() {
 
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(null);
+
         assertNull(result);
+        verify(cache, never()).getFromCache(anyString());
     }
 
     /**
@@ -522,7 +538,9 @@ public class IdentityCompatibilitySettingsUtilTest {
         when(cache.getFromCache(TENANT_DOMAIN)).thenReturn(null);
 
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(TENANT_DOMAIN);
+
         assertNull(result);
+        verify(cache, times(1)).getFromCache(TENANT_DOMAIN);
     }
 
     /**
@@ -543,7 +561,11 @@ public class IdentityCompatibilitySettingsUtilTest {
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(TENANT_DOMAIN, SETTING_GROUP);
 
         assertNotNull(result);
+        assertNotNull(result.getCompatibilitySettings());
+        assertEquals(result.getCompatibilitySettings().size(), 1);
         assertNotNull(result.getCompatibilitySettings().get(SETTING_GROUP));
+        assertEquals(result.getCompatibilitySetting(SETTING_GROUP).getSettingValue(SETTING_KEY), SETTING_VALUE);
+        verify(cache, times(1)).getFromCache(TENANT_DOMAIN);
     }
 
     /**
@@ -553,7 +575,9 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testGetFromCacheWithSettingGroupNullTenantDomain() {
 
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(null, SETTING_GROUP);
+
         assertNull(result);
+        verify(cache, never()).getFromCache(anyString());
     }
 
     /**
@@ -563,7 +587,9 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testGetFromCacheWithNullSettingGroup() {
 
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(TENANT_DOMAIN, null);
+
         assertNull(result);
+        verify(cache, never()).getFromCache(anyString());
     }
 
     /**
@@ -581,7 +607,9 @@ public class IdentityCompatibilitySettingsUtilTest {
         when(cache.getFromCache(TENANT_DOMAIN)).thenReturn(cacheEntry);
 
         CompatibilitySetting result = IdentityCompatibilitySettingsUtil.getFromCache(TENANT_DOMAIN, SETTING_GROUP);
+
         assertNull(result);
+        verify(cache, times(1)).getFromCache(TENANT_DOMAIN);
     }
 
     /**
@@ -606,7 +634,11 @@ public class IdentityCompatibilitySettingsUtilTest {
         newSetting.addCompatibilitySetting(newGroup);
 
         IdentityCompatibilitySettingsUtil.updateCache(TENANT_DOMAIN, newSetting);
-        // Verify no exception thrown.
+
+        // Verify cache was retrieved and updateCache was called (not addToCache).
+        verify(cache, times(1)).getFromCache(TENANT_DOMAIN);
+        verify(cache, times(1)).updateCache(eq(TENANT_DOMAIN), any(CompatibilitySettingCacheEntry.class));
+        verify(cache, never()).addToCache(anyString(), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -624,7 +656,11 @@ public class IdentityCompatibilitySettingsUtilTest {
         newSetting.addCompatibilitySetting(newGroup);
 
         IdentityCompatibilitySettingsUtil.updateCache(TENANT_DOMAIN, newSetting);
-        // Verify no exception thrown.
+
+        // Verify cache was retrieved and addToCache was called (not updateCache).
+        verify(cache, times(1)).getFromCache(TENANT_DOMAIN);
+        verify(cache, times(1)).addToCache(eq(TENANT_DOMAIN), any(CompatibilitySettingCacheEntry.class));
+        verify(cache, never()).updateCache(anyString(), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -634,8 +670,11 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testUpdateCacheWithNullTenantDomain() {
 
         CompatibilitySetting setting = new CompatibilitySetting();
-        // Should return early without exception.
         IdentityCompatibilitySettingsUtil.updateCache(null, setting);
+
+        // Verify cache was never accessed when tenant domain is null.
+        verify(cache, never()).getFromCache(anyString());
+        verify(cache, never()).addToCache(anyString(), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -644,8 +683,11 @@ public class IdentityCompatibilitySettingsUtilTest {
     @Test
     public void testUpdateCacheWithNullSetting() {
 
-        // Should return early without exception.
         IdentityCompatibilitySettingsUtil.updateCache(TENANT_DOMAIN, null);
+
+        // Verify cache was never accessed when setting is null.
+        verify(cache, never()).getFromCache(anyString());
+        verify(cache, never()).addToCache(anyString(), any(CompatibilitySettingCacheEntry.class));
     }
 
     /**
@@ -655,7 +697,9 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testClearCache() {
 
         IdentityCompatibilitySettingsUtil.clearCache(TENANT_DOMAIN);
-        // Verify no exception thrown.
+
+        // Verify cache clear was called with correct tenant domain.
+        verify(cache, times(1)).clearFromCache(TENANT_DOMAIN);
     }
 
     /**
@@ -664,8 +708,10 @@ public class IdentityCompatibilitySettingsUtilTest {
     @Test
     public void testClearCacheWithNullTenantDomain() {
 
-        // Should return early without exception.
         IdentityCompatibilitySettingsUtil.clearCache(null);
+
+        // Verify cache clear was never called when tenant domain is null.
+        verify(cache, never()).clearFromCache(anyString());
     }
 
     /**
@@ -674,7 +720,9 @@ public class IdentityCompatibilitySettingsUtilTest {
     @Test
     public void testClearCacheWithEmptyTenantDomain() {
 
-        // Should return early without exception.
         IdentityCompatibilitySettingsUtil.clearCache("");
+
+        // Verify cache clear was never called when tenant domain is empty.
+        verify(cache, never()).clearFromCache(anyString());
     }
 }

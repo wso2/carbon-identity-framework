@@ -74,9 +74,7 @@ public class CompatibilitySettingsService {
             return cachedSettings;
         }
         CompatibilitySettingsManager manager = getCompatibilitySettingsManager();
-        CompatibilitySetting settings = manager.getCompatibilitySettings(tenantDomain, settingGroup);
-        IdentityCompatibilitySettingsUtil.updateCache(tenantDomain, settings);
-        return settings;
+        return manager.getCompatibilitySettings(tenantDomain, settingGroup);
     }
 
     /**

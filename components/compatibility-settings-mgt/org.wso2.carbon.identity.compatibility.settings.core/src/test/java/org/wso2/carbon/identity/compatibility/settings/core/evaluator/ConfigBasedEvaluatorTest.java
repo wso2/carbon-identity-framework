@@ -124,6 +124,7 @@ public class ConfigBasedEvaluatorTest {
         context.setTenantDomain(TENANT_DOMAIN);
         context.setCompatibilitySettings(null);
 
+        // Ideally this scenario should not occur as canHandle would return false.
         CompatibilitySetting result = evaluator.evaluate(context);
 
         assertNotNull(result);

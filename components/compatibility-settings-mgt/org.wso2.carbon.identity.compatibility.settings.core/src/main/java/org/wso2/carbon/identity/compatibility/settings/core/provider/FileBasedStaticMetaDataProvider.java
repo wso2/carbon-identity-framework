@@ -85,6 +85,12 @@ public class FileBasedStaticMetaDataProvider implements CompatibilitySettingMeta
     }
 
     @Override
+    public String getName() {
+
+        return "FileBasedStaticMetaDataProvider";
+    }
+
+    @Override
     public int getPriority() {
 
         return PRIORITY;
