@@ -1,0 +1,16 @@
+{
+  "flow_execution" : {
+      "enable_legacy_flows" : {
+          "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_flows.timestampReference | default('2026-01-01T00:00:00Z')}}",
+          "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.targetValue | default('true')}},
+          "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.defaultValue | default('false')}}
+    }
+  },
+  "scim2" : {
+      "enable_legacy_scim_attributes" : {
+          "timestampReference" : "{{compatibility_setting.scim2.enable_legacy_scim_attributes.timestampReference | default('2026-03-02T00:00:00Z')}}",
+          "targetValue" : {{compatibility_setting.scim2.enable_legacy_scim_attributes.targetValue | default('true')}},
+          "defaultValue" : {{compatibility_setting.scim2.enable_legacy_scim_attributes.defaultValue | default('false')}}
+    }
+  }
+}
