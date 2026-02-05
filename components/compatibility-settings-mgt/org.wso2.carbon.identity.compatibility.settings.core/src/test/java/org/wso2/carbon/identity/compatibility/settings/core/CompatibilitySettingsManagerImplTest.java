@@ -332,7 +332,9 @@ public class CompatibilitySettingsManagerImplTest {
     @Test
     public void testGetCompatibilitySettingsWithSettingGroup() throws CompatibilitySettingException {
 
-        when(dataHolder.getMetaDataProviders()).thenReturn(new ArrayList<>());
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
         when(dataHolder.getCompatibilitySettingsEvaluators()).thenReturn(Arrays.asList(evaluator1));
 
 
@@ -354,7 +356,9 @@ public class CompatibilitySettingsManagerImplTest {
     @Test
     public void testGetCompatibilitySettingsWithSettingGroupAndSetting() throws CompatibilitySettingException {
 
-        when(dataHolder.getMetaDataProviders()).thenReturn(new ArrayList<>());
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
         when(dataHolder.getCompatibilitySettingsEvaluators()).thenReturn(Arrays.asList(evaluator1));
 
 
@@ -603,6 +607,240 @@ public class CompatibilitySettingsManagerImplTest {
         } catch (CompatibilitySettingServerException e) {
             assertTrue(e.getErrorCode().contains(
                     ErrorMessages.ERROR_CODE_SUPPORTED_SETTINGS_NOT_CONFIGURED.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with null setting group throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithNullSettingGroupThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, (String) null);
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(
+                    ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with empty setting group throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithEmptySettingGroupThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, "");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(
+                    ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with unsupported setting group throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithUnsupportedSettingGroupThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with setting group and null setting throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithNullSettingThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, null);
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with setting group and empty setting throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithEmptySettingThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with unsupported setting throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithUnsupportedSettingThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with setting group and unsupported group throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithUnsupportedGroupForSettingThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup", SETTING_KEY);
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with whitespace-only setting group throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithWhitespaceSettingGroupThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, "   ");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(
+                    ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with whitespace-only setting throws exception.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithWhitespaceSettingThrowsException()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "   ");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings validates before building context.
+     */
+    @Test
+    public void testGetCompatibilitySettingsValidatesBeforeBuildingContext()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
+        }
+    }
+
+    /**
+     * Test getCompatibilitySettings with setting validates before building context.
+     */
+    @Test
+    public void testGetCompatibilitySettingsWithSettingValidatesBeforeBuildingContext()
+            throws CompatibilitySettingException {
+
+        CompatibilitySettingMetaData metaData = createMetaData();
+        when(metaDataProvider.getMetaData()).thenReturn(metaData);
+        when(dataHolder.getMetaDataProviders()).thenReturn(Arrays.asList(metaDataProvider));
+
+        CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
+
+        try {
+            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
+            fail("Expected CompatibilitySettingClientException to be thrown");
+        } catch (CompatibilitySettingClientException e) {
+            assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING.getCode()));
         }
     }
 

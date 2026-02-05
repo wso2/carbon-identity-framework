@@ -217,6 +217,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     public CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup)
             throws CompatibilitySettingException {
 
+        validateSettingGroupRequest(settingGroup, getSupportedSettings());
         CompatibilitySettingContext context = buildContext(tenantDomain);
         return evaluate(settingGroup, context);
     }
@@ -225,6 +226,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     public CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup, String setting)
             throws CompatibilitySettingException {
 
+        validateSettingRequest(settingGroup, setting, getSupportedSettings());
         CompatibilitySettingContext context = buildContext(tenantDomain);
         return evaluate(settingGroup, setting, context);
     }
@@ -293,6 +295,56 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
             }
         }
         return context;
+    }
+
+    /**
+     * Validate that the setting group name is supported.
+     *
+     * @param groupName         The name of the setting group to validate.
+     * @param supportedSettings Map of supported setting groups to their supported settings.
+     * @throws CompatibilitySettingClientException If the setting group is not supported.
+     */
+    private void validateSettingGroupRequest(String groupName, Map<String, String[]> supportedSettings)
+            throws CompatibilitySettingException {
+
+        if (supportedSettings == null || supportedSettings.isEmpty()) {
+            throw IdentityCompatibilitySettingsUtil.handleServerException(
+                    ErrorMessages.ERROR_CODE_SUPPORTED_SETTINGS_NOT_CONFIGURED);
+        }
+        if (groupName == null || groupName.trim().isEmpty()) {
+            throw IdentityCompatibilitySettingsUtil.handleClientException(
+                    ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP);
+        }
+        if (!supportedSettings.containsKey(groupName)) {
+            throw IdentityCompatibilitySettingsUtil.handleClientException(
+                    ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP, groupName);
+        }
+    }
+
+    /**
+     * Validate that the setting group and setting name are supported.
+     *
+     * @param groupName         The name of the setting group.
+     * @param settingName       The name of the setting to validate.
+     * @param supportedSettings Map of supported setting groups to their supported settings.
+     * @throws CompatibilitySettingClientException If the setting group or setting is not supported.
+     */
+    private void validateSettingRequest(String groupName, String settingName, Map<String, String[]> supportedSettings)
+            throws CompatibilitySettingException {
+
+        validateSettingGroupRequest(groupName, supportedSettings);
+
+        if (settingName == null || settingName.trim().isEmpty()) {
+            throw IdentityCompatibilitySettingsUtil.handleClientException(
+                    ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING);
+        }
+
+        String[] supportedValues = supportedSettings.get(groupName);
+        Set<String> supportedValuesSet = new HashSet<>(Arrays.asList(supportedValues));
+        if (!supportedValuesSet.contains(settingName)) {
+            throw IdentityCompatibilitySettingsUtil.handleClientException(
+                    ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING, settingName, groupName);
+        }
     }
 
     /**
