@@ -95,6 +95,11 @@
             <artifactId>commons-logging</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>${json-smart.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.ops4j.pax.logging</groupId>
             <artifactId>pax-logging-api</artifactId>
         </dependency>
@@ -179,6 +184,8 @@
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             javax.xml.stream; version="${equinox.osgi.stax-api.imp.pkg.version.range}",
+
+                            net.minidev.json; version="${json-smart.version.range}",
 
                             org.apache.axiom.om.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
