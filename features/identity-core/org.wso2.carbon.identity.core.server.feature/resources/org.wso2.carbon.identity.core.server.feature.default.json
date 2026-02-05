@@ -1370,6 +1370,7 @@
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvals": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.attributeDialects": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.attributeUpdateVerificationSettings": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
