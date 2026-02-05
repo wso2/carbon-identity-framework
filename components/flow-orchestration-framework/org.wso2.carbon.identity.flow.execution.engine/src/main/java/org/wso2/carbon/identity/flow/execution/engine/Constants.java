@@ -166,6 +166,9 @@ public class Constants {
         ERROR_CODE_POLICY_CONSENT_FAILURE("65033",
                 "Error occurred during policy consent processing.",
                 "Error occurred while processing policy consent for the %s request of flow id: %s."),
+        ERROR_CODE_INFLOW_EXTENSION_ERROR("65034",
+                "%s",
+                "%s"),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",

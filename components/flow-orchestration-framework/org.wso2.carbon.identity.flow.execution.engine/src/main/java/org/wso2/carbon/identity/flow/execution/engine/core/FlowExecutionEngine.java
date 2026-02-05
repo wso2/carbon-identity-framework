@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
 import java.util.Map;
 
@@ -233,18 +234,19 @@ public class FlowExecutionEngine {
     private FlowExecutionStep resolveStepForPrompt(GraphConfig graph, NodeConfig currentNode,
                                                    FlowExecutionContext context, NodeResponse nodeResponse) throws FlowEngineServerException {
 
-        DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
+        StepDTO stepDTO = graph.getNodePageMappings().get(currentNode.getId());
 
-        DataDTO finalDataDTO = null;
-        if (dataDTO != null) {
-            finalDataDTO = new DataDTO.Builder()
-                    .components(dataDTO.getComponents())
-                    .requiredParams(nodeResponse.getRequiredData())
-                    .optionalParams(nodeResponse.getOptionalData())
-                    .additionalData(nodeResponse.getAdditionalInfo())
-                    .build();
-            handleError(finalDataDTO, nodeResponse);
+        DataDTO.Builder dataDTOBuilder = new DataDTO.Builder()
+                .requiredParams(nodeResponse.getRequiredData())
+                .optionalParams(nodeResponse.getOptionalData())
+                .additionalData(nodeResponse.getAdditionalInfo());
+
+        if (stepDTO != null && stepDTO.getData() != null) {
+            dataDTOBuilder.components(stepDTO.getData().getComponents());
         }
+
+        DataDTO finalDataDTO = dataDTOBuilder.build();
+        handleError(finalDataDTO, nodeResponse);
 
         // When the END node is reached, mark the flow status as COMPLETE, set the step type to REDIRECTION,
         // and assign the redirect URL. Note: all END nodes are expected to be of type PROMPT_ONLY.
@@ -253,9 +255,6 @@ public class FlowExecutionEngine {
                 LOG.debug("Flow: " + context.getContextIdentifier() + " has reached the explicitly defined " +
                         "end node. Changing the flow status to COMPLETE, step type to REDIRECTION and setting " +
                         "the redirect URL.");
-            }
-            if (finalDataDTO == null ) {
-                finalDataDTO = new DataDTO();
             }
             finalDataDTO.setRedirectURL(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
             return new FlowExecutionStep.Builder()

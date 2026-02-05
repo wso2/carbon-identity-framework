@@ -123,6 +123,14 @@ public class FlowUser implements Serializable {
         this.claims.putAll(claims);
     }
 
+    public void setClaims(Map<String, String> claims) {
+
+        this.claims.clear();
+        if (claims != null) {
+            this.claims.putAll(claims);
+        }
+    }
+
     public Object getClaim(String claimUri) {
 
         return this.claims.get(claimUri);
@@ -172,6 +180,14 @@ public class FlowUser implements Serializable {
     public void addFederatedAssociation(String idpName, String idpSubject) {
 
         this.federatedAssociations.put(idpName, idpSubject);
+    }
+
+    public void setFederatedAssociations(Map<String, String> federatedAssociations) {
+
+        this.federatedAssociations.clear();
+        if (federatedAssociations != null) {
+            this.federatedAssociations.putAll(federatedAssociations);
+        }
     }
 
     /**

@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientE
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
@@ -78,6 +79,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
+        // Check whether the action name is unique within the action type for in-flow extensions.
+        if (resolvedActionType.equals(ActionTypes.IN_FLOW_EXTENSION.getActionType())) {
+            validateActionNameUniqueness(resolvedActionType, action.getName(), null, tenantId);
+        }
         String generatedActionId = UUID.randomUUID().toString();
         ActionDTO creatingActionDTO = buildActionDTOForCreation(resolvedActionType, generatedActionId, action);
 
@@ -161,6 +166,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
                 castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
+        if (action.getName() != null &&
+                Action.ActionTypes.IN_FLOW_EXTENSION.equals(castedActionType)) {
+            validateActionNameUniqueness(resolvedActionType, action.getName(), actionId, tenantId);
+        }
         ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
@@ -169,6 +178,25 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 null, updatedActionDTO.getUpdatedAt());
 
         return buildAction(resolvedActionType, updatedActionDTO);
+    }
+
+    @Override
+    public boolean isActionNameAvailable(String actionType, String name, String excludeActionId,
+                                         String tenantDomain) throws ActionMgtException {
+
+        if (name == null) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, "Action name");
+        }
+        // actionType is the URL path param (e.g., "inFlowExtension"); resolve to the internal enum name.
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<ActionDTO> actionDTOS = DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId);
+        // noneMatch returns true when no existing action has this name → name is available.
+        // When excludeActionId is null (creation), no action is excluded from the check.
+        return actionDTOS.stream()
+                .noneMatch(dto -> name.equalsIgnoreCase(dto.getName()) &&
+                        (excludeActionId == null || !excludeActionId.equals(dto.getId())));
     }
 
     private String resolveActionVersionAtUpdating(Action updatingAction, ActionDTO existingActionDTO) {
@@ -317,8 +345,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private void validateMaxActionsPerType(String actionType, String tenantDomain) throws ActionMgtException {
 
-        // In-flow actions are not limited by the maximum actions per action type; eg: AUTHENTICATION action type.
-        if (Action.ActionTypes.Category.IN_FLOW.equals(Action.ActionTypes.valueOf(actionType).getCategory())) {
+        // In-flow and extension actions are not limited by the maximum actions per action type.
+        Action.ActionTypes.Category category = Action.ActionTypes.valueOf(actionType).getCategory();
+        if (Action.ActionTypes.Category.IN_FLOW.equals(category)
+                || Action.ActionTypes.Category.IN_FLOW_EXTENSION.equals(category)) {
             return;
         }
         Map<String, Integer> actionsCountPerType = getActionsCountPerType(tenantDomain);
@@ -352,6 +382,29 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     /**
+     * Validate that the action name is unique within the given action type.
+     *
+     * @param actionType Action type.
+     * @param name       Action name to validate.
+     * @param excludeId  Action ID to exclude (for update). Null for creation.
+     * @param tenantId   Tenant ID.
+     * @throws ActionMgtException If a duplicate name is found.
+     */
+    private void validateActionNameUniqueness(String actionType, String name, String excludeId, int tenantId)
+            throws ActionMgtException {
+
+        List<ActionDTO> existingActions = DAO_FACADE.getActionsByActionType(actionType, tenantId);
+        boolean duplicateExists = existingActions.stream()
+                .filter(dto -> excludeId == null || !excludeId.equals(dto.getId()))
+                .anyMatch(dto -> name.equalsIgnoreCase(dto.getName()));
+
+        if (duplicateExists) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_ACTION_NAME_ALREADY_EXISTS, name);
+        }
+    }
+
+    /**
      * For action creation operation, builds an `ActionDTO` object based on the provided action type, action ID, and
      * action model. This method resolves the action type and status, applies necessary transformations, and constructs
      * the `ActionDTO` object using the provided data.
@@ -365,8 +418,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
-        Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
-                Action.Status.ACTIVE : Action.Status.INACTIVE;
+        // PRE_POST actions start INACTIVE (require explicit activation).
+        // IN_FLOW and IN_FLOW_EXTENSION category actions (e.g., AUTHENTICATION, IN_FLOW_EXTENSION)
+        // start ACTIVE and can be used immediately.
+        Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.PRE_POST ?
+                Action.Status.INACTIVE : Action.Status.ACTIVE;
 
         String actionVersion = ActionManagementConfig.getInstance().getLatestVersion(resolvedActionType);
 

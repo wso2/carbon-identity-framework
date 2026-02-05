@@ -44,7 +44,13 @@ public enum ErrorMessage {
     ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED("60011", "Maximum attributes limit exceeded.",
             "The number of configured attributes: %s exceeds the maximum allowed limit: %s"),
     ERROR_INVALID_ATTRIBUTES("60012", "Invalid attribute provided.",
-            "%s"),
+            "The provided %s attribute is not available in the system."),
+    ERROR_EMPTY_ATTRIBUTE_VALUE("60013", "Invalid attribute provided.",
+            "Each attribute must be a non-empty string."),
+    ERROR_UNSUPPORTED_ATTRIBUTE("60014", "Unsupported attribute provided.",
+            "The attribute %s is not supported to be shared with the extension."),
+    ERROR_ACTION_NAME_ALREADY_EXISTS("60015", "Action name already exists.",
+            "An action with the name '%s' already exists for the given action type."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
