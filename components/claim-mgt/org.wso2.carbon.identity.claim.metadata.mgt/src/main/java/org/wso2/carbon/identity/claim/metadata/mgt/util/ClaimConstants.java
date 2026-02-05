@@ -181,6 +181,7 @@ public class ClaimConstants {
          * @return Error message.
          */
         public String getMessage(Object... args) {
+
             return String.format(message, args);
         }
     }
