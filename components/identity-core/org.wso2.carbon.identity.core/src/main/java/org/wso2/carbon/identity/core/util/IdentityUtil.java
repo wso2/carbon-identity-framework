@@ -2422,6 +2422,10 @@ public class IdentityUtil {
      */
     public static Object convertToJson(Object unknownJsonObj) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Converting object to JSON. Object type: " + (unknownJsonObj != null ? unknownJsonObj.getClass().getSimpleName() : "null"));
+        }
+
         if (unknownJsonObj instanceof List) {
             return convertToJSONArray((List)unknownJsonObj);
         } else if (unknownJsonObj instanceof Map) {
