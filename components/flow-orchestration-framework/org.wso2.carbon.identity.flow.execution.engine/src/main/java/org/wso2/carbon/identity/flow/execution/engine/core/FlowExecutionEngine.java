@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.graph.UserChoiceDecisionNode;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants;
@@ -190,6 +191,11 @@ public class FlowExecutionEngine {
      */
     private NodeResponse triggerNode(NodeConfig nodeConfig, FlowExecutionContext context)
             throws FlowEngineException {
+
+        NodeResponse validationResponse = InputValidator.getInstance().executeInputValidation(context);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
 
         switch (nodeConfig.getType()) {
             case Constants.NodeTypes.DECISION:

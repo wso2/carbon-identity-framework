@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClient
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
@@ -46,13 +47,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
@@ -179,7 +181,7 @@ public class InputValidationServiceTest {
     }
 
     @Test
-    public void testHandleUserInputs() throws FlowEngineServerException {
+    public void testHandleUserInputs() {
 
         FlowExecutionContext = initiateFlowContext();
         FlowExecutionContext.setGraphConfig(defaultGraph);
@@ -425,6 +427,57 @@ public class InputValidationServiceTest {
             List<?> validationsList = (List<?>) validations;
             Assert.assertFalse(validationsList.isEmpty(), "Password field should have at least one validation rule");
         }
+    }
+
+    @Test
+    public void testResolveInputValidationResponseWithEmptyUserInput() {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+        Assert.assertEquals(response.getResult(), STATUS_USER_INPUT_REQUIRED);
+    }
+
+    @Test
+    public void testResolveInputValidationResponseWithValidInput() {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put("input1", "value1");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+        Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+    }
+
+    @Test
+    public void testClearUserInputs() {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put("input1", "value1");
+        userInputData.put("input2", "value2");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        Assert.assertEquals(FlowExecutionContext.getUserInputData().size(), 2);
+
+        inputValidationService.clearUserInputs(FlowExecutionContext);
+
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testClearUserInputsWithNullContext() {
+
+        // Should not throw any exception when context is null.
+        inputValidationService.clearUserInputs(null);
     }
 
     private FlowExecutionContext initiateFlowContext() {

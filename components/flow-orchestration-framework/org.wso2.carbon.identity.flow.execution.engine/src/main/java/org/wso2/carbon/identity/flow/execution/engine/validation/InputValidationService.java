@@ -243,8 +243,8 @@ public class InputValidationService {
             }
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("User input data is empty or current step inputs are already prepared for flow: "
-                        + context.getFlowType());
+                LOG.debug("User input data is empty for flow: " + context.getFlowType() +
+                        ". Requesting user input.");
             }
             executorResponse.setResult(STATUS_USER_INPUT_REQUIRED);
         }

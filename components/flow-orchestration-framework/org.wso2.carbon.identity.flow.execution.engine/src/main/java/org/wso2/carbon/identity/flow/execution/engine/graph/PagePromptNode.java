@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
@@ -40,10 +39,6 @@ public class PagePromptNode implements Node {
     public NodeResponse execute(FlowExecutionContext context, NodeConfig nodeConfig)
             throws FlowEngineException {
 
-        NodeResponse validationResponse = InputValidator.getInstance().executeInputValidation(context);
-        if (validationResponse != null) {
-            return validationResponse;
-        }
         if (nodeConfig.getEdges() != null && !nodeConfig.getEdges().isEmpty()) {
             nodeConfig.setNextNodeId(nodeConfig.getEdges().get(0).getTargetNodeId());
         }
