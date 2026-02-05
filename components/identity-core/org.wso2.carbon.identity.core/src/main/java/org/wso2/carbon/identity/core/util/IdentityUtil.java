@@ -2380,7 +2380,6 @@ public class IdentityUtil {
         log.debug("Validated JSON depth successfully.");
     }
 
-
     /**
      * Check whether the X5C length in the JWT header exceeds the allowed limit.
      * Remove this after monitoring the X5C length issue is resolved.
