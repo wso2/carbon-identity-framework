@@ -84,8 +84,6 @@ public class FrameworkErrorConstants {
                 "Multiple matching local accounts found during account lookup."),
         ERROR_INVALID_USER_ASSERTION("80038", "Invalid user assertion."),
         ERROR_INVALID_AUTHENTICATOR("80039", "Invalid authenticator: %s"),
-        AUTHENTICATOR_NOT_SUPPORTED_FOR_API_BASED_AUTH("80039",
-                "Authenticator %s does not support API based authentication."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");

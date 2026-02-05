@@ -583,16 +583,11 @@ public class DefaultStepHandlerTest {
             when(authenticator.isAPIBasedAuthenticationSupported()).thenReturn(false);
             when(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE))
                     .thenReturn(FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
-            when(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG))
-                    .thenReturn("Authenticator UnsupportedAuthenticator does not support API based authentication.");
             frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(true);
             loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
             defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
             verify(context).setProperty(FrameworkConstants.AUTH_ERROR_CODE,
                     FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
-            verify(context).setProperty(
-                    org.mockito.ArgumentMatchers.eq(FrameworkConstants.AUTH_ERROR_MSG),
-                    org.mockito.ArgumentMatchers.anyString());
         }
     }
 
@@ -614,8 +609,6 @@ public class DefaultStepHandlerTest {
             when(context.getCurrentStep()).thenReturn(1);
             when(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE))
                     .thenReturn(FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
-            when(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG))
-                    .thenReturn("Authenticator TestAuth does not support API based authentication.");
             Map<Integer, StepConfig> stepMap = new HashMap<>();
             stepMap.put(1, stepConfig);
             when(sequenceConfig.getStepMap()).thenReturn(stepMap);

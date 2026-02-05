@@ -270,7 +270,8 @@ public abstract class FrameworkConstants {
     public static final String ERROR_STATUS_APP_DISABLED = "authentication.flow.app.disabled";
     public static final String ERROR_STATUS_INVALID_AUTHENTICATOR = "authentication.invalid.authenticator";
     public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
-    public static final String ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED = "authenticator.not.supported.for.api.auth";
+    public static final String ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED = "authentication.api.based.unsupported" +
+            ".authenticator";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
