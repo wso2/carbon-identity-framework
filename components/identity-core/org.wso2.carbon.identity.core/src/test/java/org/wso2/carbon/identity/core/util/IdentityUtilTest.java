@@ -1426,5 +1426,49 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
 
         Object nullResult = IdentityUtil.convertToJson(null);
         assertNull(nullResult, "Null input should return null.");
+
+        // Test case 4: Empty Map should be converted to an empty JSONObject.
+        Map<String, Object> emptyMap = new HashMap<>();
+        Object result5 = IdentityUtil.convertToJson(emptyMap);
+        assertTrue(result5 instanceof JSONObject, "Empty map should be converted to JSONObject.");
+        JSONObject emptyJsonObject = (JSONObject) result5;
+        assertTrue(emptyJsonObject.isEmpty(), "Converted JSONObject should be empty.");
+
+        // Test case 5: Empty List should be converted to an empty JSONArray.
+        List<Object> emptyList = new ArrayList<>();
+        Object result6 = IdentityUtil.convertToJson(emptyList);
+        assertTrue(result6 instanceof JSONArray, "Empty list should be converted to JSONArray.");
+        JSONArray emptyJsonArray = (JSONArray) result6;
+        assertTrue(emptyJsonArray.isEmpty(), "Converted JSONArray should be empty.");
+
+        // Test case 6: Map with null values should handle null values correctly.
+        Map<String, Object> mapWithNulls = new HashMap<>();
+        mapWithNulls.put("key1", "value1");
+        mapWithNulls.put("key2", null);
+        mapWithNulls.put("key3", "value3");
+
+        Object result7 = IdentityUtil.convertToJson(mapWithNulls);
+        assertTrue(result7 instanceof JSONObject, "Map with null values should be converted to JSONObject.");
+        JSONObject jsonWithNulls = (JSONObject) result7;
+        assertEquals(jsonWithNulls.size(), 3, "JSONObject should have 3 entries.");
+        assertEquals(jsonWithNulls.get("key1"), "value1");
+        assertNull(jsonWithNulls.get("key2"), "Null value in map should remain null in JSONObject.");
+        assertEquals(jsonWithNulls.get("key3"), "value3");
+
+        // Test case 7: List with null elements should handle null elements correctly.
+        List<Object> listWithNulls = new ArrayList<>();
+        listWithNulls.add("element1");
+        listWithNulls.add(null);
+        listWithNulls.add("element3");
+        listWithNulls.add(null);
+
+        Object result8 = IdentityUtil.convertToJson(listWithNulls);
+        assertTrue(result8 instanceof JSONArray, "List with null elements should be converted to JSONArray.");
+        JSONArray jsonArrayWithNulls = (JSONArray) result8;
+        assertEquals(jsonArrayWithNulls.size(), 4, "JSONArray should have 4 elements.");
+        assertEquals(jsonArrayWithNulls.get(0), "element1");
+        assertNull(jsonArrayWithNulls.get(1), "Null element in list should remain null in JSONArray.");
+        assertEquals(jsonArrayWithNulls.get(2), "element3");
+        assertNull(jsonArrayWithNulls.get(3), "Null element in list should remain null in JSONArray.");
     }
 }
