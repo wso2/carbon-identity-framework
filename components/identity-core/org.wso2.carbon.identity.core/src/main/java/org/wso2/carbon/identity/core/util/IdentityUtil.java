@@ -2390,50 +2390,29 @@ public class IdentityUtil {
     @Deprecated
     public static void validateX5CLength(String jwt) {
 
-        log.debug("Initiating X5C length validation.");
-
         if (StringUtils.isBlank(jwt)) {
-            log.debug("JWT is blank, skipping X5C length validation.");
             return;
         }
 
-        // Extract and decode JWT header. 1
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
-            log.debug("Invalid JWT format. Skipping X5C length validation.");
             return;
         }
 
         byte[] headerBytes;
         try {
-            try {
-                headerBytes = Base64.getUrlDecoder().decode(parts[0]);
-            } catch (IllegalArgumentException e) {
-                log.debug("Invalid Base64 encoding in JWT header.");
-                return;
-            }
+            headerBytes = Base64.getUrlDecoder().decode(parts[0]);
             String jsonHeader = new String(headerBytes, StandardCharsets.UTF_8);
-
-            try {
-                JsonObject headerObj = JsonParser.parseString(jsonHeader).getAsJsonObject();
-                if (headerObj.has("x5c")) {
-                    JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
-                    if (x5cArray.toString().length() > 20000) {
-                        log.error("X5C length exceeds the maximum allowed limit.");
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("X5C length is within acceptable limits: " + x5cArray.toString().length());
-                        }
-                    }
+            JsonObject headerObj = JsonParser.parseString(jsonHeader).getAsJsonObject();
+            if (headerObj.has("x5c")) {
+                JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
+                if (x5cArray.toString().length() > 20000) {
+                    log.error("X5C length exceeds the maximum allowed limit.");
                 }
-            } catch (JsonSyntaxException e) {
-                log.debug("Error occurred while parsing JWT header JSON.", e);
             }
         } catch (Exception e) {
             log.debug("Error occurred while validating X5C length.", e);
-            return;
         }
-        log.debug("Validated X5C length successfully.");
     }
 
     /**
