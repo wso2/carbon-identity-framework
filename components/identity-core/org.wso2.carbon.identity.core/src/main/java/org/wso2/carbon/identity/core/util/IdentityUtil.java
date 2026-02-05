@@ -2416,14 +2416,15 @@ public class IdentityUtil {
     }
 
     /**
-     * Convert object to JSON object or array when type is unknown.
+     * The resulting JSONObject, JSONArray, or the original object if it is neither a List nor a Map.
      * @param unknownJsonObj The object to convert.
      * @return The resulting JSON object.
      */
     public static Object convertToJson(Object unknownJsonObj) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Converting object to JSON. Object type: " + (unknownJsonObj != null ? unknownJsonObj.getClass().getSimpleName() : "null"));
+            log.debug("Converting object to JSON. Object type: "
+                    + (unknownJsonObj != null ? unknownJsonObj.getClass().getSimpleName() : "null"));
         }
 
         if (unknownJsonObj instanceof List) {
