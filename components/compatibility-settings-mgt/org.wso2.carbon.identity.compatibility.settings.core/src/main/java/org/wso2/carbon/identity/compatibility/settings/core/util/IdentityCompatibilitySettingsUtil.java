@@ -253,11 +253,10 @@ public class IdentityCompatibilitySettingsUtil {
             return null;
         }
 
-        if (enableInheritance) {
-
+        if (enableInheritance && organization.getParent() != null) {
+            String parentTenantDomain =
+                    OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
             try {
-                String parentTenantDomain =
-                        OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
                 // Start a tenant flow as thr root org to access parent organization details since organizational
                 // manager does no support accessing super organization details in a sub-organization tenant flow.
                 FrameworkUtils.startTenantFlow(parentTenantDomain);
