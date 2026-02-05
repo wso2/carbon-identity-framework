@@ -80,4 +80,23 @@ public class DebugSessionData implements Serializable {
     public void setExpiryTime(long expiryTime) {
         this.expiryTime = expiryTime;
     }
+
+    private String resourceType;
+    private String resourceId;
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
+    }
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
 }

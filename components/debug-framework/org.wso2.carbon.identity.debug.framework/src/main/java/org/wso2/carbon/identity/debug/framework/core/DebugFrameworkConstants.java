@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.debug.framework.core;
 
 /**
  * Constants for the Debug Framework.
- * Provides centralized definition of all string constants used throughout the framework
+ * Provides centralized definition of all string constants used throughout the
+ * framework
  * to ensure consistency and reduce duplication.
  */
 public final class DebugFrameworkConstants {
@@ -50,7 +51,6 @@ public final class DebugFrameworkConstants {
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 15;
 
-
     // Debug Result Context Properties.
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
     public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
@@ -64,5 +64,12 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_PREFIX = "debug-";
     public static final String TRUE = "true";
     public static final String FALSE = "false";
-}
 
+    // Session Status Constants.
+    public static final String SESSION_STATUS_PENDING = "PENDING";
+    public static final String SESSION_STATUS_COMPLETED = "COMPLETED";
+    public static final String SESSION_STATUS_ERROR = "ERROR";
+
+    // Session Cleanup Property.
+    public static final String CLEANUP_ENABLED = "cleanupEnabled";
+}

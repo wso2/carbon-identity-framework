@@ -29,6 +29,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionCleanupListener;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventManager;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 
 /**
@@ -42,6 +44,8 @@ import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkExceptio
 public class DebugServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
+
+    private DebugSessionCleanupListener cleanupListener;
 
     @Activate
     protected void activate(ComponentContext context) throws DebugFrameworkException {
@@ -61,9 +65,15 @@ public class DebugServiceComponent {
                     requestCoordinator,
                     null);
 
+            // Register the cleanup listener to delete database records after flow
+            // completion
+            cleanupListener = new DebugSessionCleanupListener();
+            DebugSessionEventManager.getInstance().registerListener(cleanupListener);
+
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugRequestCoordinator registered as OSGi service (deprecated, use DebugFlowOrchestrator)");
+                LOG.debug("DebugSessionCleanupListener registered for automatic database cleanup on flow completion");
             }
 
         } catch (Exception e) {
@@ -74,6 +84,14 @@ public class DebugServiceComponent {
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
+
+        // Unregister the cleanup listener
+        if (cleanupListener != null) {
+            DebugSessionEventManager.getInstance().unregisterListener(cleanupListener);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugSessionCleanupListener unregistered");
+            }
+        }
 
         LOG.info("Debug Framework OSGi component deactivated");
     }

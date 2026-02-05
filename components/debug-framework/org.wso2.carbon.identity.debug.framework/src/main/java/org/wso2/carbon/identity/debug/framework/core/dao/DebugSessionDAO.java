@@ -62,4 +62,13 @@ public interface DebugSessionDAO {
      *                                       session.
      */
     void deleteDebugSession(String sessionId) throws DebugFrameworkServerException;
+
+    /**
+     * Upserts a debug session (Insert or Update).
+     *
+     * @param sessionData Session data object.
+     * @throws DebugFrameworkServerException If an error occurs while upserting the
+     *                                       session.
+     */
+    void upsertDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException;
 }

@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.debug.framework.core.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventContext;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventManager;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionLifecycleEvent;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -47,7 +50,25 @@ public final class DebugResultCache {
     // service reference)
     private static final org.wso2.carbon.identity.debug.framework.core.dao.DebugSessionDAO DAO = new org.wso2.carbon.identity.debug.framework.core.dao.impl.DebugSessionDAOImpl();
 
+    /**
+     * persistent cache for debug results.
+     * 
+     * @param state
+     * @param result
+     */
     public static void add(String state, String result) {
+        add(state, result, null, null);
+    }
+
+    /**
+     * persistent cache for debug results.
+     * 
+     * @param state
+     * @param result
+     * @param resourceType
+     * @param resourceId
+     */
+    public static void add(String state, String result, String resourceType, String resourceId) {
 
         if (state == null || result == null) {
             LOG.warn("Cache.add: state and result cannot be null");
@@ -59,29 +80,21 @@ public final class DebugResultCache {
             org.wso2.carbon.identity.debug.framework.model.DebugSessionData sessionData = new org.wso2.carbon.identity.debug.framework.model.DebugSessionData();
             sessionData.setSessionId(normalizedState);
             sessionData.setResultJson(result);
-            sessionData.setStatus("COMPLETED"); // Mark as completed
+            sessionData.setStatus("COMPLETED");
+            sessionData.setCreatedTime(System.currentTimeMillis());
+            sessionData.setExpiryTime(System.currentTimeMillis() + (15 * 60 * 1000));
+            sessionData.setResourceType(resourceType);
+            sessionData.setResourceId(resourceId);
 
             try {
-                // First, try to update the existing session
-                DAO.updateDebugSession(sessionData);
+                // Use atomic upsert logic
+                DAO.upsertDebugSession(sessionData);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result persisted to DB (updated) for state: " + state + ", normalized: " + normalizedState);
+                    LOG.debug("Debug result persisted to DB (upserted) for state: "
+                            + state + ", normalized: " + normalizedState);
                 }
-            } catch (Exception updateException) {
-                // If update fails, try to create the session
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Update failed for session: " + normalizedState + ", attempting to create: " + updateException.getMessage());
-                }
-                try {
-                    sessionData.setCreatedTime(System.currentTimeMillis());
-                    sessionData.setExpiryTime(System.currentTimeMillis() + (15 * 60 * 1000));
-                    DAO.createDebugSession(sessionData);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Debug result persisted to DB (created) for state: " + state + ", normalized: " + normalizedState);
-                    }
-                } catch (Exception createException) {
-                    LOG.error("Error creating debug session after update failed: " + createException.getMessage(), createException);
-                }
+            } catch (Exception e) {
+                LOG.error("Error upserting debug session: " + e.getMessage(), e);
             }
         } catch (Exception e) {
             LOG.error("Error persisting debug result: " + e.getMessage(), e);
@@ -95,19 +108,28 @@ public final class DebugResultCache {
         }
         try {
             String normalizedState = normalizeSessionId(state);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Retrieving debug result from cache - original: " + state + ", normalized: " + normalizedState);
-            }
+            LOG.info("Retrieving debug result from DB - original: "
+                    + state + ", normalized: " + normalizedState);
             org.wso2.carbon.identity.debug.framework.model.DebugSessionData data = DAO.getDebugSession(normalizedState);
             if (data != null && data.getResultJson() != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result found for state: " + normalizedState);
+                LOG.info("Debug result found in DB for state: " + normalizedState);
+
+                // Fire ON_RETRIEVED event
+                try {
+                    DebugSessionEventContext context = DebugSessionEventContext.builder()
+                            .sessionId(normalizedState)
+                            .event(DebugSessionLifecycleEvent.ON_RETRIEVED)
+                            .successful(true)
+                            .build();
+                    DebugSessionEventManager.getInstance().fireEvent(context);
+                } catch (Exception evtException) {
+                    LOG.error("Error firing ON_RETRIEVED event for session: " + normalizedState, evtException);
                 }
+
                 return data.getResultJson();
             } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No debug result found for state: " + normalizedState + " (data: " + (data != null ? "exists" : "null") + ")");
-                }
+                LOG.info("No debug result found in DB for state: " + normalizedState
+                        + " (data: " + (data != null ? "exists but null result" : "null") + ")");
             }
         } catch (Exception e) {
             LOG.error("Error retrieving debug result from DB: " + e.getMessage(), e);

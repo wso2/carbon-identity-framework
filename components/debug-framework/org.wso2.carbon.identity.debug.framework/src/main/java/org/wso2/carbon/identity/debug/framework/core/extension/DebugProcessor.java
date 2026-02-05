@@ -22,6 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.core.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventContext;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventManager;
+import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionLifecycleEvent;
 
 import java.io.IOException;
 import java.util.Map;
@@ -61,6 +64,12 @@ public abstract class DebugProcessor {
      * Template method that orchestrates: validation -> authentication -> data
      * extraction -> response.
      * All specific implementations are delegated to subclass methods.
+     * 
+     * Fires lifecycle events:
+     * - ON_CREATING: At the start of callback processing
+     * - ON_COMPLETING: Before sending the final response
+     * - ON_COMPLETION: After successful completion
+     * - ON_ERROR: When an error occurs during processing
      *
      * @param request  HttpServletRequest containing callback parameters.
      * @param response HttpServletResponse for sending results.
@@ -70,24 +79,36 @@ public abstract class DebugProcessor {
     public void processCallback(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws IOException {
 
+        String sessionId = null;
+        String state = null;
+        String resourceId = null;
+
         try {
             // Extract protocol-specific parameters (OAuth2: state, SAML: RelayState, etc.)
-            String state = request.getParameter("state");
+            state = request.getParameter("state");
             if (state == null || state.trim().isEmpty()) {
                 state = (String) context.getProperty("DEBUG_STATE");
             }
 
+            // Extract session ID from state (state format: "debug-{sessionId}")
+            sessionId = extractSessionIdFromState(state);
+
             // Extract resource identifier (IdP ID, API ID, etc.)
-            String resourceId = extractResourceId(context);
+            resourceId = extractResourceId(context);
+
+            // Fire ON_CREATING event at the start of processing
+            fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_CREATING, true, null);
 
             // Step 1: Validate callback (protocol/resource-specific).
             if (!validateCallback(request, context, response, state, resourceId)) {
+                fireCompletionEvents(sessionId, false, "Callback validation failed");
                 return;
             }
 
             // Step 2: Process authentication/authorization (protocol/resource-specific).
             if (!processAuthentication(request, context, response, state, resourceId)) {
                 // Authentication failed - error details already cached by subclass.
+                fireCompletionEvents(sessionId, false, "Authentication failed");
                 sendDebugResponse(response, state, resourceId);
                 return;
             }
@@ -97,27 +118,116 @@ public abstract class DebugProcessor {
 
             // Step 4: Validate extracted data (protocol/resource-specific).
             if (!validateDebugData(debugData, context, response, state, resourceId)) {
+                fireCompletionEvents(sessionId, false, "Debug data validation failed");
                 return;
             }
 
             // Step 5: Build and cache final debug result (protocol/resource-specific).
             buildAndCacheDebugResult(context, state);
 
+            // Fire ON_COMPLETING event before sending response
+            fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETING, true, null);
+
             // Step 6: Send response to client.
             sendDebugResponse(response, state, resourceId);
+
+            // Fire ON_COMPLETION event after successful completion
+            fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETION, true, null);
 
         } catch (Exception e) {
             LOG.error("Unexpected error processing debug callback.", e);
             handleUnexpectedError(e, context);
 
+            // Fire ON_ERROR event
+            fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_ERROR, false, e.getMessage());
+
             // Try to extract state for error response
-            String state = request.getParameter("state");
-            if (state == null || state.trim().isEmpty()) {
-                state = (String) context.getProperty("DEBUG_STATE");
+            if (state == null) {
+                state = request.getParameter("state");
+                if (state == null || state.trim().isEmpty()) {
+                    state = (String) context.getProperty("DEBUG_STATE");
+                }
             }
-            String resourceId = extractResourceId(context);
+            if (resourceId == null) {
+                resourceId = extractResourceId(context);
+            }
             sendDebugResponse(response, state, resourceId);
+
+            // Fire ON_COMPLETION event even on error (for cleanup)
+            fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETION, false, e.getMessage());
         }
+    }
+
+    /**
+     * Fires completion events (ON_COMPLETING followed by ON_COMPLETION).
+     *
+     * @param sessionId    The session ID.
+     * @param successful   Whether the operation was successful.
+     * @param errorMessage Error message if not successful.
+     */
+    private void fireCompletionEvents(String sessionId, boolean successful, String errorMessage) {
+
+        fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETING, successful, errorMessage);
+        fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETION, successful, errorMessage);
+    }
+
+    /**
+     * Fires a lifecycle event to all registered listeners.
+     *
+     * @param sessionId    The session ID.
+     * @param event        The lifecycle event type.
+     * @param successful   Whether the operation was successful.
+     * @param errorMessage Error message if applicable.
+     */
+    private void fireLifecycleEvent(String sessionId, DebugSessionLifecycleEvent event,
+            boolean successful, String errorMessage) {
+
+        if (sessionId == null || sessionId.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cannot fire lifecycle event: session ID is null or empty");
+            }
+            return;
+        }
+
+        try {
+            DebugSessionEventContext.Builder builder = DebugSessionEventContext.builder()
+                    .sessionId(sessionId)
+                    .event(event)
+                    .successful(successful);
+
+            if (errorMessage != null) {
+                builder.errorMessage(errorMessage);
+            }
+
+            DebugSessionEventManager.getInstance().fireEvent(builder.build());
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Fired lifecycle event: " + event.getEventName() + " for session: " + sessionId);
+            }
+        } catch (Exception e) {
+            LOG.error("Error firing lifecycle event: " + event.getEventName() + " for session: " + sessionId, e);
+        }
+    }
+
+    /**
+     * Extracts session ID from state parameter.
+     * State format is expected to be "debug-{sessionId}".
+     *
+     * @param state The state parameter.
+     * @return Session ID or the full state if not in expected format.
+     */
+    private String extractSessionIdFromState(String state) {
+
+        if (state == null || state.isEmpty()) {
+            return null;
+        }
+
+        // State format: "debug-{sessionId}"
+        if (state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
+            return state; // Return the full state as session ID (includes prefix)
+        }
+
+        return state;
     }
 
     /**
