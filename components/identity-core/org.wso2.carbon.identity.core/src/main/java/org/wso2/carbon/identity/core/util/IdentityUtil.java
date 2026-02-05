@@ -2463,17 +2463,16 @@ public class IdentityUtil {
 
     private static void recursivelyConvertToJSONObject(JSONObject jsonObject) {
 
-        for (String key : jsonObject.keySet()) {
-            Object value = jsonObject.get(key);
-            if (value instanceof Map) {
-                JSONObject child = new JSONObject((Map<String, Object>) value);
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            if (entry.getValue() instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) entry.getValue());
                 recursivelyConvertToJSONObject(child);
-                jsonObject.put(key, child);
-            } else if (value instanceof List) {
+                jsonObject.put(entry.getKey(), child);
+            } else if (entry.getValue() instanceof List) {
                 JSONArray jsonArray = new JSONArray();
-                jsonArray.addAll((List<?>) value);
+                jsonArray.addAll((List<?>) entry.getValue());
                 recursivelyConvertToJSONArray(jsonArray);
-                jsonObject.put(key, jsonArray);
+                jsonObject.put(entry.getKey(), jsonArray);
             }
         }
     }
