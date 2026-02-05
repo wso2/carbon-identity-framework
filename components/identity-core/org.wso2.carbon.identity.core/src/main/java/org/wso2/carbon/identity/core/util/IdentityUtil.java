@@ -25,6 +25,8 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
@@ -2378,6 +2380,7 @@ public class IdentityUtil {
         log.debug("Validated JSON depth successfully.");
     }
 
+
     /**
      * Check whether the X5C length in the JWT header exceeds the allowed limit.
      * Remove this after monitoring the X5C length issue is resolved.
@@ -2389,7 +2392,12 @@ public class IdentityUtil {
 
         log.debug("Initiating X5C length validation.");
 
-        // Extract and decode JWT header.
+        if (StringUtils.isBlank(jwt)) {
+            log.debug("JWT is blank, skipping X5C length validation.");
+            return;
+        }
+
+        // Extract and decode JWT header. 1
         String[] parts = jwt.split("\\.");
         if (parts.length < 2) {
             log.debug("Invalid JWT format. Skipping X5C length validation.");
@@ -2426,5 +2434,80 @@ public class IdentityUtil {
             return;
         }
         log.debug("Validated X5C length successfully.");
+    }
+
+    /**
+     * Convert object to JSON object or array when type is unknown.
+     * @param unknownJsonObj The object to convert.
+     * @return The resulting JSON object.
+     */
+    public static Object convertToJson(Object unknownJsonObj) {
+
+        if (unknownJsonObj instanceof List) {
+            return convertToJSONArray((List)unknownJsonObj);
+        } else if (unknownJsonObj instanceof Map) {
+            return convertToJSONObject((Map)unknownJsonObj);
+        } else {
+            return unknownJsonObj;
+        }
+    }
+
+    /**
+     * Convert a List to a JSONArray, recursively converting any nested Maps or Lists.
+     * @param list The List to convert.
+     * @return The resulting JSONArray.
+     */
+    public static JSONArray convertToJSONArray(List<Object> list) {
+
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(list);
+        recursivelyConvertToJSONArray(jsonArray);
+        return jsonArray;
+    }
+
+    /**
+     * Convert a Map to a JSONObject, recursively converting any nested Maps or Lists.
+     * @param map The Map to convert.
+     * @return The resulting JSONObject.
+     */
+    public static JSONObject convertToJSONObject(Map<String, Object> map) {
+
+        JSONObject jsonObject = new JSONObject(map);
+        recursivelyConvertToJSONObject(jsonObject);
+        return jsonObject;
+    }
+
+    private static void recursivelyConvertToJSONObject(JSONObject jsonObject) {
+
+        for (String key : jsonObject.keySet()) {
+            Object value = jsonObject.get(key);
+            if (value instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) value);
+                recursivelyConvertToJSONObject(child);
+                jsonObject.put(key, child);
+            } else if (value instanceof List) {
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.addAll((List<?>) value);
+                recursivelyConvertToJSONArray(jsonArray);
+                jsonObject.put(key, jsonArray);
+            }
+        }
+    }
+
+    private static void recursivelyConvertToJSONArray(JSONArray jsonArray) {
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            Object element = jsonArray.get(i);
+            if (element instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) element);
+                recursivelyConvertToJSONObject(child);
+                jsonArray.set(i, child);
+            } else if (element instanceof List) {
+                JSONArray childArray = new JSONArray();
+                childArray.addAll((List<?>) element);
+                recursivelyConvertToJSONArray(childArray);
+                jsonArray.set(i, childArray);
+            }
+        }
     }
 }

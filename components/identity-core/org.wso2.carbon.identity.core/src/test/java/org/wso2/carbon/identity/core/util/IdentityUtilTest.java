@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
@@ -76,11 +78,13 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -1360,5 +1364,67 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
 
         // Test case 11: Single dot JWT format.
         IdentityUtil.validateX5CLength(".");
+    }
+
+    @Test
+    public void testConvertToJson() {
+
+        // Test case 1: Valid JSON string with complex object with depth 3.
+        // This object contains nested objects and arrays.
+        Map<String, Object> level3Map = new HashMap<>();
+        level3Map.put("deepKey", "deepValue");
+        level3Map.put("deepNumber", 42);
+
+        Map<String, Object> level2Map = new HashMap<>();
+        level2Map.put("nestedKey", "nestedValue");
+        level2Map.put("level3", level3Map);
+        level2Map.put("nestedArray", Arrays.asList("item1", "item2", 100));
+
+        Map<String, Object> level1Map = new HashMap<>();
+        level1Map.put("topKey", "topValue");
+        level1Map.put("level2", level2Map);
+        level1Map.put("topArray", Arrays.asList(1, 2, 3));
+
+        Object result1 = IdentityUtil.convertToJson(level1Map);
+        assertTrue(result1 instanceof JSONObject, "Result should be a JSONObject.");
+        JSONObject jsonResult1 = (JSONObject) result1;
+        assertEquals(jsonResult1.get("topKey"), "topValue");
+        assertTrue(jsonResult1.get("level2") instanceof JSONObject, "Nested map should be converted to JSONObject.");
+        JSONObject level2Json = (JSONObject) jsonResult1.get("level2");
+        assertTrue(level2Json.get("level3") instanceof JSONObject, "Deep nested map should be converted to JSONObject.");
+        assertTrue(level2Json.get("nestedArray") instanceof JSONArray,
+                "Nested array should be converted to JSONArray.");
+
+        // Test case 2: Valid JSON array string with multiple elements which can be objects, primitives, or arrays.
+        Map<String, Object> arrayElementMap = new HashMap<>();
+        arrayElementMap.put("name", "John");
+        arrayElementMap.put("age", 30);
+
+        List<Object> inputList = new ArrayList<>();
+        inputList.add(arrayElementMap);
+        inputList.add("stringElement");
+        inputList.add(123);
+        inputList.add(Arrays.asList("nested", "array"));
+
+        Object result2 = IdentityUtil.convertToJson(inputList);
+        assertTrue(result2 instanceof JSONArray, "Result should be a JSONArray.");
+        JSONArray jsonResult2 = (JSONArray) result2;
+        assertEquals(jsonResult2.size(), 4, "Array should have 4 elements.");
+        assertTrue(jsonResult2.get(0) instanceof JSONObject, "First element should be converted to JSONObject.");
+        assertEquals(jsonResult2.get(1), "stringElement");
+        assertEquals(jsonResult2.get(2), 123);
+        assertTrue(jsonResult2.get(3) instanceof JSONArray, "Nested list should be converted to JSONArray.");
+
+        // Test case 3: Invalid JSON string (non-map, non-list object should be returned as-is).
+        String primitiveString = "simpleString";
+        Object result3 = IdentityUtil.convertToJson(primitiveString);
+        assertEquals(result3, primitiveString, "Primitive string should be returned as-is.");
+
+        Integer primitiveInt = 42;
+        Object result4 = IdentityUtil.convertToJson(primitiveInt);
+        assertEquals(result4, primitiveInt, "Primitive integer should be returned as-is.");
+
+        Object nullResult = IdentityUtil.convertToJson(null);
+        assertNull(nullResult, "Null input should return null.");
     }
 }
