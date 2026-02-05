@@ -2416,22 +2416,22 @@ public class IdentityUtil {
 
     /**
      * The resulting JSONObject, JSONArray, or the original object if it is neither a List nor a Map.
-     * @param unknownJsonObj The object to convert.
+     * @param object The object to convert.
      * @return The resulting JSON object.
      */
-    public static Object convertToJson(Object unknownJsonObj) {
+    public static Object convertToJson(Object object) {
 
         if (log.isDebugEnabled()) {
             log.debug("Converting object to JSON. Object type: "
-                    + (unknownJsonObj != null ? unknownJsonObj.getClass().getSimpleName() : "null"));
+                    + (object != null ? object.getClass().getSimpleName() : "null"));
         }
 
-        if (unknownJsonObj instanceof List) {
-            return convertToJSONArray((List)unknownJsonObj);
-        } else if (unknownJsonObj instanceof Map) {
-            return convertToJSONObject((Map)unknownJsonObj);
+        if (object instanceof List) {
+            return convertToJSONArray((List)object);
+        } else if (object instanceof Map) {
+            return convertToJSONObject((Map)object);
         } else {
-            return unknownJsonObj;
+            return object;
         }
     }
 
