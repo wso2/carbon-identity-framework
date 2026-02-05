@@ -33,12 +33,16 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResp
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.execution.api.service.ActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
+import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionExecutor;
+import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionRequestBuilder;
+import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutorServiceImpl;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionVersioningHandlerFactory;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
+import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
 /**
@@ -57,8 +61,23 @@ public class ActionExecutionServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.registerService(ActionExecutorService.class.getName(), ActionExecutorServiceImpl.getInstance(),
-                    null);
+
+            // Register ActionExecutorService
+            ActionExecutorService actionExecutorService = ActionExecutorServiceImpl.getInstance();
+            bundleCtx.registerService(ActionExecutorService.class.getName(), actionExecutorService, null);
+
+            // Store reference for internal use
+            ActionExecutionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
+
+            // Register In-Flow Extension services
+            bundleCtx.registerService(ActionExecutionRequestBuilder.class.getName(),
+                    new InFlowExtensionRequestBuilder(), null);
+            bundleCtx.registerService(ActionExecutionResponseProcessor.class.getName(),
+                    new InFlowExtensionResponseProcessor(), null);
+
+            // Register InFlowExtensionExecutor for the flow engine
+            bundleCtx.registerService(Executor.class.getName(), new InFlowExtensionExecutor(), null);
+
             LOG.debug("Action execution bundle is activated.");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action execution service component.", e);
