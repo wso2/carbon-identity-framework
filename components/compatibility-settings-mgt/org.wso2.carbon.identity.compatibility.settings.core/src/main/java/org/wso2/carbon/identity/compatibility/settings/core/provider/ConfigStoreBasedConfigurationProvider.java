@@ -146,7 +146,7 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
         if (!retrievedSettingGroup.getSettings().containsKey(setting)) {
             if (log.isDebugEnabled()) {
                 log.debug("No compatibility settings found for setting: " +
-                        setting + ",for group: " + settingGroup + ", tenant: " + tenantDomain);
+                        setting + ", for group: " + settingGroup + ", tenant: " + tenantDomain);
             }
             return null;
         }
@@ -243,7 +243,7 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
                     ConfigurationConstants.ErrorMessages
                             .ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 if (log.isDebugEnabled()) {
-                    log.debug("No compatibility settings found for group: " + settingGroup + ",in tenant: " +
+                    log.debug("No compatibility settings found for group: " + settingGroup + ", in tenant: " +
                             tenantDomain);
                 }
                 return null;
@@ -275,7 +275,9 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
             return;
         }
         try {
-            configurationManager.addResource(COMPATIBILITY_SETTINGS_RESOURCE_TYPE, newResource);
+            if (configurationManager != null) {
+                configurationManager.addResource(COMPATIBILITY_SETTINGS_RESOURCE_TYPE, newResource);
+            }
         } catch (ConfigurationManagementException e) {
             if (ConfigurationConstants
                     .ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
