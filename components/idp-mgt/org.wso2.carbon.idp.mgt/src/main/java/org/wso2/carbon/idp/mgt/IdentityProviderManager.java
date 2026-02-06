@@ -280,7 +280,7 @@ public class IdentityProviderManager implements IdpManager {
                     .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
             if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[4];
 
                 IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
                 String rememberMeTimeout =
@@ -303,8 +303,33 @@ public class IdentityProviderManager implements IdpManager {
                 sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
                 sessionIdletimeOutProperty.setValue(idleTimeout);
 
+                IdentityProviderProperty enableMaximumSessionTimeOutProperty = new IdentityProviderProperty();
+                String enableMaximumSessionTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+                if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                        !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                    log.warn("EnableMaximumSessionTimeout in identity.xml should be a boolean value");
+                    enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+                }
+                enableMaximumSessionTimeOutProperty.setName(
+                        IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+                enableMaximumSessionTimeOutProperty.setValue(enableMaximumSessionTimeout);
+
+                IdentityProviderProperty maximumSessionTimeOutProperty = new IdentityProviderProperty();
+                String maximumSessionTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+                if (StringUtils.isBlank(maximumSessionTimeout) || !StringUtils.isNumeric(maximumSessionTimeout) ||
+                        Integer.parseInt(maximumSessionTimeout) <= 0) {
+                    log.warn("MaximumSessionTimeout in identity.xml should be a numeric value");
+                    maximumSessionTimeout = IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+                }
+                maximumSessionTimeOutProperty.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+                maximumSessionTimeOutProperty.setValue(maximumSessionTimeout);
+
                 idpProperties[0] = rememberMeTimeoutProperty;
                 idpProperties[1] = sessionIdletimeOutProperty;
+                idpProperties[2] = enableMaximumSessionTimeOutProperty;
+                idpProperties[3] = maximumSessionTimeOutProperty;
                 identityProvider.setIdpProperties(idpProperties);
             }
         } catch (OrganizationManagementException e) {

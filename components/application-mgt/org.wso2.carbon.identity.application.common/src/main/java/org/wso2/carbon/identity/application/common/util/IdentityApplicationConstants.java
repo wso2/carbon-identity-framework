@@ -67,8 +67,11 @@ public class IdentityApplicationConstants {
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
+    public static final String ENABLE_MAXIMUM_SESSION_TIME_OUT = "EnableMaximumSessionTimeout";
+    public static final String MAXIMUM_SESSION_TIME_OUT = "MaximumSessionTimeout";
     public static final String SESSION_IDLE_TIME_OUT_DEFAULT = "15";
     public static final String REMEMBER_ME_TIME_OUT_DEFAULT = "20160";
+    public static final String MAXIMUM_SESSION_TIME_OUT_DEFAULT = "43200";
 
     public static final String NAME = "IDPProperties";
     public static final String CLEAN_UP_TIMEOUT = "CleanUpTimeout";
