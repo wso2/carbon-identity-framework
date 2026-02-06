@@ -416,6 +416,21 @@ public class IdentityProviderManager implements IdpManager {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
+            } else if (StringUtils.equals(idpProp.getName(),
+                    IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(),
+                        idpProp.getValue()) && !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(),
+                        idpProp.getValue()))) {
+                    throw new IdentityProviderManagementException(
+                            IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT
+                                    + " of ResidentIdP should be a boolean value ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
+                        Integer.parseInt(idpProp.getValue().trim()) <= 0) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT
+                            + " of ResidentIdP should be a numeric value greater than 0 ");
+                }
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_VALIDITY_PERIOD)) {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||

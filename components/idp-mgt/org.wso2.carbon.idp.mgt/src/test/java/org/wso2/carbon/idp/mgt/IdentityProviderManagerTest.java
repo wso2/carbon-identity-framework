@@ -42,6 +42,7 @@ import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -202,6 +203,115 @@ public class IdentityProviderManagerTest {
                     .orElse(null);
             assertNotNull("Maximum session timeout property should exist", timeoutProp);
             assertEquals("Timeout value should match expected", expectedTimeoutValue, timeoutProp.getValue());
+        }
+    }
+
+    /**
+     * Provides test data for update resident IdP validation tests.
+     *
+     * @return Test data with property values and expected validation results.
+     */
+    @DataProvider(name = "updateResidentIdPValidationProvider")
+    public Object[][] updateResidentIdPValidationProvider() {
+
+        return new Object[][]{
+                // Valid boolean and numeric values should pass.
+                {"true", "43200", true},
+                {"false", "86400", true},
+                // Invalid boolean values should fail.
+                {"invalid", "43200", false},
+                {"", "43200", false},
+                // Invalid numeric values should fail.
+                {"true", "0", false},
+                {"true", "-100", false},
+                {"true", "invalid", false},
+                {"true", "", false}
+        };
+    }
+
+    @Test(description = "Tests updateResidentIdP validation for maximum session timeout properties.",
+            dataProvider = "updateResidentIdPValidationProvider")
+    public void testUpdateResidentIdPWithSessionTimeoutValidation(String enableMaxSessionTimeout,
+                                                                   String maxSessionTimeout,
+                                                                   boolean shouldPass)
+            throws Exception {
+
+        // Create existing resident IdP with default properties.
+        IdentityProvider existingResidentIdP = new IdentityProvider();
+        existingResidentIdP.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+        IdentityProviderProperty[] existingProps = new IdentityProviderProperty[4];
+
+        IdentityProviderProperty rememberMeProp = new IdentityProviderProperty();
+        rememberMeProp.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+        rememberMeProp.setValue("20160");
+        existingProps[0] = rememberMeProp;
+
+        IdentityProviderProperty sessionIdleProp = new IdentityProviderProperty();
+        sessionIdleProp.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+        sessionIdleProp.setValue("15");
+        existingProps[1] = sessionIdleProp;
+
+        IdentityProviderProperty enableMaxSessionProp = new IdentityProviderProperty();
+        enableMaxSessionProp.setName(IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+        enableMaxSessionProp.setValue("false");
+        existingProps[2] = enableMaxSessionProp;
+
+        IdentityProviderProperty maxSessionProp = new IdentityProviderProperty();
+        maxSessionProp.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+        maxSessionProp.setValue("43200");
+        existingProps[3] = maxSessionProp;
+
+        existingResidentIdP.setIdpProperties(existingProps);
+
+        // Create updated IdP with new property values.
+        IdentityProvider updatedIdP = new IdentityProvider();
+        updatedIdP.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+        IdentityProviderProperty[] updatedProps = new IdentityProviderProperty[2];
+
+        IdentityProviderProperty updatedEnableProp = new IdentityProviderProperty();
+        updatedEnableProp.setName(IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+        updatedEnableProp.setValue(enableMaxSessionTimeout);
+        updatedProps[0] = updatedEnableProp;
+
+        IdentityProviderProperty updatedTimeoutProp = new IdentityProviderProperty();
+        updatedTimeoutProp.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+        updatedTimeoutProp.setValue(maxSessionTimeout);
+        updatedProps[1] = updatedTimeoutProp;
+
+        updatedIdP.setIdpProperties(updatedProps);
+
+        when(dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME, 1, TENANT_DOMAIN))
+                .thenReturn(existingResidentIdP);
+        doNothing().when(dao).updateIdP(any(IdentityProvider.class), any(IdentityProvider.class), anyInt(),
+                anyString());
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN)).thenReturn(false);
+
+            if (shouldPass) {
+                // Should not throw exception.
+                identityProviderManager.updateResidentIdP(updatedIdP, TENANT_DOMAIN);
+
+                // Verify properties are set correctly.
+                IdentityProviderProperty[] finalProps = updatedIdP.getIdpProperties();
+                assertNotNull("IdP properties should not be null", finalProps);
+                assertEquals("Should have 4 properties", 4, finalProps.length);
+            } else {
+                // Should throw IdentityProviderManagementException.
+                try {
+                    identityProviderManager.updateResidentIdP(updatedIdP, TENANT_DOMAIN);
+                    fail("Expected IdentityProviderManagementException to be thrown");
+                } catch (IdentityProviderManagementException e) {
+                    // Expected exception - verify it mentions the session timeout property.
+                    assertNotNull("Exception message should not be null", e.getMessage());
+                    assertTrue("Exception message should mention session timeout property. Message: " + e.getMessage(),
+                            e.getMessage().toLowerCase().contains("session") ||
+                                    e.getMessage().toLowerCase().contains("timeout"));
+                }
+            }
         }
     }
 
