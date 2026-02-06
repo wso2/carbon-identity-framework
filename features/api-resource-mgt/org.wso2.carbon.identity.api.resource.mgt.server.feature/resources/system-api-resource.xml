@@ -1187,13 +1187,13 @@
                  requiresAuthorization="true"
                  description="API representation of the user share API V2" type="TENANT">
         <Scopes>
-            <Scope displayName="Share Users" name="internal_share_user"
+            <Scope displayName="Share Users" name="internal_user_share"
                    description="Share users with organizations"/>
-            <Scope displayName="Unshare users" name="internal_unshare_user"
+            <Scope displayName="Unshare users" name="internal_user_unshare"
                    description="Unshare users from organizations"/>
-            <Scope displayName="View Shared Users" name="internal_shared_user_access_view"
+            <Scope displayName="View Shared Users" name="internal_user_shared_access_view"
                    description="View users shared with organizations"/>
-            <Scope displayName="Update Shared Users Attributes" name="internal_shared_user_access_update"
+            <Scope displayName="Update Shared Users Attributes" name="internal_user_shared_access_update"
                    description="Update the attributes of users shared with organizations"/>
         </Scopes>
     </APIResource>
@@ -1201,13 +1201,13 @@
                  requiresAuthorization="true"
                  description="API representation of the user share API V2" type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="Share Users" name="internal_org_share_user"
+            <Scope displayName="Share Users" name="internal_org_user_share"
                    description="Share users with organizations"/>
-            <Scope displayName="Unshare users" name="internal_org_unshare_user"
+            <Scope displayName="Unshare users" name="internal_org_user_unshare"
                    description="Unshare users from organizations"/>
-            <Scope displayName="View Shared Users" name="internal_org_shared_user_access_view"
+            <Scope displayName="View Shared Users" name="internal_org_user_shared_access_view"
                    description="View users shared with organizations"/>
-            <Scope displayName="Update Shared Users Attributes" name="internal_org_shared_user_access_update"
+            <Scope displayName="Update Shared Users Attributes" name="internal_org_user_shared_access_update"
                    description="Update the attributes of users shared with organizations"/>
         </Scopes>
     </APIResource>
