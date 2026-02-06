@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -3459,6 +3459,24 @@ public class IdPManagementDAO {
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
 
+                // Decrypt provisioning connector secrets.
+                if (federatedIdp.getProvisioningConnectorConfigs() != null &&
+                        federatedIdp.getProvisioningConnectorConfigs().length > 0) {
+                    try {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                        }
+                        federatedIdp = idpSecretsProcessorService.decryptProvisioningConnectorSecrets(federatedIdp);
+                    } finally {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.endTenantFlow();
+                        }
+                    }
+                }
+
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
                         dbConnection, idPName, idpId, tenantId));
@@ -4388,6 +4406,7 @@ public class IdPManagementDAO {
             // add provisioning connectors.
             if (identityProvider.getProvisioningConnectorConfigs() != null
                     && identityProvider.getProvisioningConnectorConfigs().length > 0) {
+                identityProvider = idpSecretsProcessorService.encryptProvisioningConnectorSecrets(identityProvider);
                 addProvisioningConnectorConfigs(identityProvider.getProvisioningConnectorConfigs(),
                         dbConnection, idPId, tenantId);
             }
@@ -4757,6 +4776,13 @@ public class IdPManagementDAO {
                 if (newIdentityProvider.getFederatedAuthenticatorConfigs().length > 0 && newIdentityProvider
                         .getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
                     newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
+                }
+
+                // Update secrets of provisioning connectors in IDN_SECRET table.
+                if (newIdentityProvider.getProvisioningConnectorConfigs() != null
+                        && newIdentityProvider.getProvisioningConnectorConfigs().length > 0) {
+                    newIdentityProvider =
+                            idpSecretsProcessorService.encryptProvisioningConnectorSecrets(newIdentityProvider);
                 }
 
                 // update federated authenticators.

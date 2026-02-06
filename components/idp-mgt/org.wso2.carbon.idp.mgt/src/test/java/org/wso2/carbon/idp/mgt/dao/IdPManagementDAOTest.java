@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -201,6 +201,10 @@ public class IdPManagementDAOTest {
         when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptProvisioningConnectorSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptProvisioningConnectorSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
         Field idpSecretsProcessorField = IdPManagementDAO.class.getDeclaredField("idpSecretsProcessorService");

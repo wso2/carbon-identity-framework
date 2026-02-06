@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -110,6 +110,12 @@ public class IdPManagementConstants {
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
+
+    // Outbound Provisioning confidential data protection. When enabled, confidential properties (e.g., credentials)
+    // are stored in the secret store and are not exposed in API responses.
+    public static final String OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED =
+            "OutboundProvisioning.ConfidentialDataProtectionEnabled";
+
     public static final String DEFAULT_SYNC_ATTRIBUTE = "OVERRIDE_ALL";
     public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
     public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";

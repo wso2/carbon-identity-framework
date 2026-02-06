@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -192,6 +192,10 @@ public class CacheBackedIdPMgtDAOTest {
         when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptProvisioningConnectorSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptProvisioningConnectorSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
         idPManagementDAOForException = mock(IdPManagementDAO.class);
