@@ -55,7 +55,7 @@ public interface CompatibilitySettingMetaDataProvider {
      * @param settingGroup Group of the settings.
      * @return A map of compatibility settings for the specified resource.
      */
-    CompatibilitySettingMetaDataGroup getMetaData(String settingGroup) throws CompatibilitySettingException;
+    CompatibilitySettingMetaDataGroup getMetaDataByGroup(String settingGroup) throws CompatibilitySettingException;
 
     /**
      * Get metadata for a specific compatibility setting.
@@ -64,7 +64,7 @@ public interface CompatibilitySettingMetaDataProvider {
      * @param setting Name of the setting.
      * @return The compatibility setting for the specified settingGroup and setting.
      */
-    CompatibilitySettingMetaDataEntry getMetaData(String settingGroup, String setting)
+    CompatibilitySettingMetaDataEntry getMetaDataByGroupAndSetting(String settingGroup, String setting)
             throws CompatibilitySettingException;
 }
 

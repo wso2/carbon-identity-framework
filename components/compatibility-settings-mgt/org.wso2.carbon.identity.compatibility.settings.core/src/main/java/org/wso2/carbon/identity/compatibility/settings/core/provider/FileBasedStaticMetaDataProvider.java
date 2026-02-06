@@ -40,6 +40,7 @@ import static org.wso2.carbon.identity.compatibility.settings.core.util.Identity
 public class FileBasedStaticMetaDataProvider implements CompatibilitySettingMetaDataProvider {
 
     private static final int PRIORITY = 10;
+    private static final String PROVIDER_NAME = "FileBasedStaticMetaDataProvider";
     private static final String DEFAULT_COMPATIBILITY_SETTING_FILE_NAME = "compatibility-settings-metadata.json";
     private static final String[] DEFAULT_COMPATIBILITY_SETTING_FILE_PATH = { "repository", "conf" };
 
@@ -47,23 +48,97 @@ public class FileBasedStaticMetaDataProvider implements CompatibilitySettingMeta
     private final String fileName;
     private final String[] filePath;
 
-    public FileBasedStaticMetaDataProvider() {
+    /**
+     * Default constructor that loads metadata from the default file location.
+     *
+     * @throws CompatibilitySettingServerException If an error occurs while loading metadata.
+     */
+    public FileBasedStaticMetaDataProvider() throws CompatibilitySettingServerException {
 
         this.fileName = DEFAULT_COMPATIBILITY_SETTING_FILE_NAME;
         this.filePath = DEFAULT_COMPATIBILITY_SETTING_FILE_PATH;
+        loadMetaData();
     }
 
-    public FileBasedStaticMetaDataProvider(String fileName, String[] filePath) {
+    /**
+     * Constructor with custom file name and path.
+     *
+     * @param fileName The name of the metadata file.
+     * @param filePath Array of path segments to the file location.
+     * @throws CompatibilitySettingServerException If an error occurs while loading metadata.
+     */
+    public FileBasedStaticMetaDataProvider(String fileName, String[] filePath)
+            throws CompatibilitySettingServerException {
 
         this.fileName = fileName;
         this.filePath = filePath;
+        loadMetaData();
     }
 
+    /**
+     * Constructor with custom file name and path string with separator.
+     *
+     * @param fileName  The name of the metadata file.
+     * @param filePath  The path to the file location as a string.
+     * @param separator The separator to split the path string.
+     * @throws CompatibilitySettingServerException If an error occurs while loading metadata.
+     */
     public FileBasedStaticMetaDataProvider(String fileName, String filePath, String separator)
             throws CompatibilitySettingServerException {
 
         this.fileName = fileName;
         this.filePath = filePath.split(separator);
+        loadMetaData();
+    }
+
+    @Override
+    public String getName() {
+
+        return PROVIDER_NAME;
+    }
+
+    @Override
+    public int getPriority() {
+
+        return PRIORITY;
+    }
+
+    @Override
+    public CompatibilitySettingMetaData getMetaData() throws CompatibilitySettingException {
+
+        return this.metaData;
+    }
+
+    @Override
+    public CompatibilitySettingMetaDataGroup getMetaDataByGroup(String settingGroup)
+            throws CompatibilitySettingException {
+
+        return this.metaData.getSettingMetaDataGroup(settingGroup);
+    }
+
+    @Override
+    public CompatibilitySettingMetaDataEntry getMetaDataByGroupAndSetting(String settingGroup, String setting)
+            throws CompatibilitySettingException {
+
+        return this.metaData.getSettingMetaDataEntry(settingGroup, setting);
+    }
+
+    /**
+     * Get the file path of the compatibility settings metadata JSON file.
+     *
+     * @return The full file path as a string.
+     */
+    public String getFilePath() {
+
+        StringBuilder filePath = new StringBuilder();
+        for (String pathSegment : this.filePath) {
+            filePath.append(pathSegment).append(File.separator);
+        }
+        filePath.append(this.fileName);
+        return filePath.toString();
+    }
+
+    private void loadMetaData() throws CompatibilitySettingServerException {
 
         try {
             this.metaData = IdentityCompatibilitySettingsUtil.parseCompatibilitySettingsFromJSONFile(getFilePath());
@@ -82,46 +157,5 @@ public class FileBasedStaticMetaDataProvider implements CompatibilitySettingMeta
                     getFilePath()
             );
         }
-    }
-
-    @Override
-    public String getName() {
-
-        return "FileBasedStaticMetaDataProvider";
-    }
-
-    @Override
-    public int getPriority() {
-
-        return PRIORITY;
-    }
-
-    @Override
-    public CompatibilitySettingMetaData getMetaData() throws CompatibilitySettingException {
-
-        return this.metaData;
-    }
-
-    @Override
-    public CompatibilitySettingMetaDataGroup getMetaData(String settingGroup) throws CompatibilitySettingException {
-
-        return this.metaData.getSettingMetaDataGroup(settingGroup);
-    }
-
-    @Override
-    public CompatibilitySettingMetaDataEntry getMetaData(String settingGroup, String setting)
-            throws CompatibilitySettingException {
-
-        return this.metaData.getSettingMetaDataEntry(settingGroup, setting);
-    }
-
-    public String getFilePath() {
-
-        StringBuilder filePath = new StringBuilder();
-        for (String pathSegment : this.filePath) {
-            filePath.append(pathSegment).append(File.separator);
-        }
-        filePath.append(this.fileName);
-        return filePath.toString();
     }
 }

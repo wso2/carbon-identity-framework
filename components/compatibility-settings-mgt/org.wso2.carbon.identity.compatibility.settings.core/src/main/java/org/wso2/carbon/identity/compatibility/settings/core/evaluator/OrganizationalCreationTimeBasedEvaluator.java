@@ -107,7 +107,7 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
     }
 
     @Override
-    public CompatibilitySetting evaluate(String settingGroup, CompatibilitySettingContext context)
+    public CompatibilitySetting evaluateByGroup(String settingGroup, CompatibilitySettingContext context)
             throws CompatibilitySettingException {
 
         String tenantDomain = context.getTenantDomain();
@@ -148,8 +148,8 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
     }
 
     @Override
-    public CompatibilitySetting evaluate(String settingGroup, String setting,
-                                        CompatibilitySettingContext context)
+    public CompatibilitySetting evaluateByGroupAndSetting(String settingGroup, String setting,
+                                                          CompatibilitySettingContext context)
             throws CompatibilitySettingException {
 
         String tenantDomain = context.getTenantDomain();
@@ -193,7 +193,7 @@ public class OrganizationalCreationTimeBasedEvaluator extends AbstractCompatibil
     private String evaluateSetting(Instant orgCreationTime, CompatibilitySettingMetaDataEntry metaDataEntry) {
 
         Instant timestampReference = metaDataEntry.getTimestampReference();
-        if (timestampReference != null  && orgCreationTime.isBefore(timestampReference)) {
+        if (timestampReference != null  && orgCreationTime != null && orgCreationTime.isBefore(timestampReference)) {
             return metaDataEntry.getTargetValue();
         }
         return metaDataEntry.getDefaultValue();

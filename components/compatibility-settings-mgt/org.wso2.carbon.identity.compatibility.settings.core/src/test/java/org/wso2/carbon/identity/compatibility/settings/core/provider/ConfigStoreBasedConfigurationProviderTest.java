@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants.ErrorMessages;
 import org.wso2.carbon.identity.compatibility.settings.core.exception.CompatibilitySettingException;
@@ -60,7 +61,7 @@ import static org.wso2.carbon.identity.compatibility.settings.core.constant.Iden
 /**
  * Unit tests for {@link ConfigStoreBasedConfigurationProvider}.
  */
-@org.testng.annotations.Listeners(MockitoTestNGListener.class)
+@Listeners(MockitoTestNGListener.class)
 public class ConfigStoreBasedConfigurationProviderTest {
 
     private static final String TENANT_DOMAIN = "carbon.super";
@@ -230,10 +231,10 @@ public class ConfigStoreBasedConfigurationProviderTest {
     @Test
     public void testGetConfigurationsWithBlankSettingGroup() throws CompatibilitySettingException {
 
-        CompatibilitySettingGroup result = provider.getConfigurations("", TENANT_DOMAIN);
+        CompatibilitySettingGroup result = provider.getConfigurationsByGroup("", TENANT_DOMAIN);
         assertNull(result);
 
-        result = provider.getConfigurations(null, TENANT_DOMAIN);
+        result = provider.getConfigurationsByGroup(null, TENANT_DOMAIN);
         assertNull(result);
     }
 
@@ -245,7 +246,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
 
         when(dataHolder.getConfigurationManager()).thenReturn(null);
 
-        CompatibilitySettingGroup result = provider.getConfigurations(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
+        CompatibilitySettingGroup result = provider.getConfigurationsByGroup(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
 
         assertNull(result);
     }
@@ -264,7 +265,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         when(configurationManager.getResource(eq(COMPATIBILITY_SETTINGS_RESOURCE_TYPE),
                 eq(formattedResourceName), eq(true))).thenReturn(resource);
 
-        CompatibilitySettingGroup result = provider.getConfigurations(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
+        CompatibilitySettingGroup result = provider.getConfigurationsByGroup(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
 
         assertNotNull(result);
         assertEquals(result.getSettingGroup(), SETTING_GROUP_SCIM2);
@@ -285,7 +286,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         when(configurationManager.getResource(eq(COMPATIBILITY_SETTINGS_RESOURCE_TYPE),
                 eq(formattedResourceName), eq(true))).thenReturn(resource);
 
-        String result = provider.getConfigurations(SETTING_GROUP_SCIM2, SETTING_KEY_1, TENANT_DOMAIN);
+        String result = provider.getConfigurationsByGroupAndSetting(SETTING_GROUP_SCIM2, SETTING_KEY_1, TENANT_DOMAIN);
 
         assertEquals(result, SETTING_VALUE_TRUE);
     }
@@ -296,13 +297,13 @@ public class ConfigStoreBasedConfigurationProviderTest {
     @Test
     public void testGetConfigurationsWithBlankSettingOrGroup() throws CompatibilitySettingException {
 
-        String result = provider.getConfigurations("", SETTING_KEY_1, TENANT_DOMAIN);
+        String result = provider.getConfigurationsByGroupAndSetting("", SETTING_KEY_1, TENANT_DOMAIN);
         assertNull(result);
 
-        result = provider.getConfigurations(SETTING_GROUP_SCIM2, "", TENANT_DOMAIN);
+        result = provider.getConfigurationsByGroupAndSetting(SETTING_GROUP_SCIM2, "", TENANT_DOMAIN);
         assertNull(result);
 
-        result = provider.getConfigurations(null, SETTING_KEY_1, TENANT_DOMAIN);
+        result = provider.getConfigurationsByGroupAndSetting(null, SETTING_KEY_1, TENANT_DOMAIN);
         assertNull(result);
     }
 
@@ -318,9 +319,11 @@ public class ConfigStoreBasedConfigurationProviderTest {
         String formattedResourceName = COMPATIBILITY_SETTINGS_RESOURCE_PREFIX + SETTING_GROUP_SCIM2;
 
         when(configurationManager.getResource(eq(COMPATIBILITY_SETTINGS_RESOURCE_TYPE),
-                eq(formattedResourceName), eq(true))).thenReturn(resource);
+                eq(formattedResourceName), eq(true)))
+                .thenReturn(resource);
 
-        String result = provider.getConfigurations(SETTING_GROUP_SCIM2, "nonExistentSetting", TENANT_DOMAIN);
+        String result = provider.getConfigurationsByGroupAndSetting(SETTING_GROUP_SCIM2, "nonExistentSetting",
+                TENANT_DOMAIN);
 
         assertNull(result);
     }
@@ -334,10 +337,10 @@ public class ConfigStoreBasedConfigurationProviderTest {
         CompatibilitySettingGroup settingGroup = new CompatibilitySettingGroup();
         settingGroup.setSettingGroup(SETTING_GROUP_SCIM2);
 
-        CompatibilitySettingGroup result = provider.updateConfiguration("", settingGroup, TENANT_DOMAIN);
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup("", settingGroup, TENANT_DOMAIN);
         assertNull(result);
 
-        result = provider.updateConfiguration(null, settingGroup, TENANT_DOMAIN);
+        result = provider.updateConfigurationGroup(null, settingGroup, TENANT_DOMAIN);
         assertNull(result);
     }
 
@@ -347,7 +350,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
     @Test
     public void testUpdateConfigurationWithNullSetting() throws CompatibilitySettingException {
 
-        CompatibilitySettingGroup result = provider.updateConfiguration(
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup(
                 SETTING_GROUP_SCIM2, null, TENANT_DOMAIN);
         assertNull(result);
     }
@@ -364,7 +367,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.setSettingGroup(SETTING_GROUP_SCIM2);
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
-        CompatibilitySettingGroup result = provider.updateConfiguration(
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup(
                 SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
 
         assertNull(result);
@@ -393,7 +396,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.setSettingGroup(SETTING_GROUP_SCIM2);
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
-        CompatibilitySettingGroup result = provider.updateConfiguration(
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup(
                 SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
 
         assertNotNull(result);
@@ -421,7 +424,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.setSettingGroup(SETTING_GROUP_SCIM2);
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
-        CompatibilitySettingGroup result = provider.updateConfiguration(
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup(
                 SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
 
         assertNotNull(result);
@@ -459,7 +462,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.setSettingGroup(SETTING_GROUP_SCIM2);
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
-        CompatibilitySettingGroup result = provider.updateConfiguration(
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup(
                 SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
 
         assertNotNull(result);
@@ -551,7 +554,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
         try {
-            provider.updateConfiguration(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
+            provider.updateConfigurationGroup(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),
@@ -579,7 +582,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.setSettingGroup(SETTING_GROUP_SCIM2);
         // No settings added - empty attributes.
 
-        CompatibilitySettingGroup result = provider.updateConfiguration(
+        CompatibilitySettingGroup result = provider.updateConfigurationGroup(
                 SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
 
         assertNotNull(result);
@@ -602,7 +605,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
                 eq(formattedResourceName), eq(true))).thenThrow(unknownException);
 
         try {
-            provider.getConfigurations(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
+            provider.getConfigurationsByGroup(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),
@@ -626,7 +629,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         when(configurationManager.getResource(eq(COMPATIBILITY_SETTINGS_RESOURCE_TYPE),
                 eq(formattedResourceName), eq(true))).thenThrow(notFoundException);
 
-        CompatibilitySettingGroup result = provider.getConfigurations(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
+        CompatibilitySettingGroup result = provider.getConfigurationsByGroup(SETTING_GROUP_SCIM2, TENANT_DOMAIN);
 
         assertNull(result);
     }
@@ -658,7 +661,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
         try {
-            provider.updateConfiguration(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
+            provider.updateConfigurationGroup(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),
@@ -700,7 +703,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
         try {
-            provider.updateConfiguration(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
+            provider.updateConfigurationGroup(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),
@@ -743,7 +746,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         settingGroup.addSetting(SETTING_KEY_1, SETTING_VALUE_TRUE);
 
         try {
-            provider.updateConfiguration(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
+            provider.updateConfigurationGroup(SETTING_GROUP_SCIM2, settingGroup, TENANT_DOMAIN);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),

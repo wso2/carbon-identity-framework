@@ -76,7 +76,7 @@ public class ConfigBasedEvaluator extends AbstractCompatibilitySettingEvaluator 
     }
 
     @Override
-    public CompatibilitySetting evaluate(String settingGroup, CompatibilitySettingContext context)
+    public CompatibilitySetting evaluateByGroup(String settingGroup, CompatibilitySettingContext context)
             throws CompatibilitySettingException {
 
         CompatibilitySetting contextSettings = context.getCompatibilitySettings();
@@ -103,7 +103,8 @@ public class ConfigBasedEvaluator extends AbstractCompatibilitySettingEvaluator 
     }
 
     @Override
-    public CompatibilitySetting evaluate(String settingGroup, String setting, CompatibilitySettingContext context)
+    public CompatibilitySetting evaluateByGroupAndSetting(String settingGroup, String setting,
+                                                          CompatibilitySettingContext context)
             throws CompatibilitySettingException {
 
         CompatibilitySetting contextSettings = context.getCompatibilitySettings();

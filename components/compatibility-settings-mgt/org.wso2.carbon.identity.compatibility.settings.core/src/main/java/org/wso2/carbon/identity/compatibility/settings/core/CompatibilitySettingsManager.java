@@ -23,6 +23,8 @@ import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilityS
 import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilitySettingContext;
 import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilitySettingGroup;
 
+import java.util.Map;
+
 /**
  * Interface for managing compatibility settings evaluation.
  * This manager coordinates evaluators and providers to determine compatibility settings.
@@ -47,7 +49,7 @@ public interface CompatibilitySettingsManager {
      * @return Evaluated compatibility settings for the specified group.
      * @throws CompatibilitySettingException If an error occurs during evaluation.
      */
-    CompatibilitySetting evaluate(String settingGroup, CompatibilitySettingContext context)
+    CompatibilitySetting evaluateByGroup(String settingGroup, CompatibilitySettingContext context)
             throws CompatibilitySettingException;
 
     /**
@@ -59,7 +61,9 @@ public interface CompatibilitySettingsManager {
      * @return Evaluated compatibility setting.
      * @throws CompatibilitySettingException If an error occurs during evaluation.
      */
-    CompatibilitySetting evaluate(String settingGroup, String setting, CompatibilitySettingContext context)
+    CompatibilitySetting evaluateByGroupAndSetting(String settingGroup,
+                                                   String setting,
+                                                   CompatibilitySettingContext context)
             throws CompatibilitySettingException;
 
     /**
@@ -79,7 +83,7 @@ public interface CompatibilitySettingsManager {
      * @return Evaluated compatibility settings for the specified group and tenant.
      * @throws CompatibilitySettingException If an error occurs during retrieval or evaluation.
      */
-    CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup)
+    CompatibilitySetting getCompatibilitySettingsByGroup(String tenantDomain, String settingGroup)
             throws CompatibilitySettingException;
 
     /**
@@ -91,8 +95,9 @@ public interface CompatibilitySettingsManager {
      * @return Evaluated compatibility setting.
      * @throws CompatibilitySettingException If an error occurs during retrieval or evaluation.
      */
-    CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup, String setting)
-            throws CompatibilitySettingException;
+    CompatibilitySetting getCompatibilitySettingsGroupAndSetting(String tenantDomain,
+                                                                 String settingGroup,
+                                                                 String setting) throws CompatibilitySettingException;
 
     /**
      * Update compatibility settings for a tenant.
@@ -114,7 +119,15 @@ public interface CompatibilitySettingsManager {
      * @return Updated compatibility settings.
      * @throws CompatibilitySettingException If an error occurs during update.
      */
-    CompatibilitySetting updateCompatibilitySettings(String tenantDomain, String settingGroup,
+    CompatibilitySetting updateCompatibilitySettingsGroup(String tenantDomain, String settingGroup,
                                                           CompatibilitySettingGroup compatibilitySettingGroup)
             throws CompatibilitySettingException;
+
+    /**
+     * Get the supported settings.
+     * Returns a map where keys are setting group names and values are arrays of supported setting names.
+     *
+     * @return Map of setting group names to their supported setting names.
+     */
+    Map<String, String[]> getSupportedSettings();
 }

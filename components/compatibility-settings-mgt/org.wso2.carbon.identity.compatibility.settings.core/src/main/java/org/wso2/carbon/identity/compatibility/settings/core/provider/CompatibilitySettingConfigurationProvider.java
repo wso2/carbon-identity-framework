@@ -59,7 +59,7 @@ public interface CompatibilitySettingConfigurationProvider {
      * @return A map of compatibility settings for the specified resource.
      * @throws CompatibilitySettingException If an error occurs while retrieving the configuration.
      */
-    CompatibilitySettingGroup getConfigurations(String settingGroup, String tenantDomain)
+    CompatibilitySettingGroup getConfigurationsByGroup(String settingGroup, String tenantDomain)
             throws CompatibilitySettingException;
 
     /**
@@ -71,21 +71,8 @@ public interface CompatibilitySettingConfigurationProvider {
      * @return The compatibility setting for the specified settingGroup and setting.
      * @throws CompatibilitySettingException If an error occurs while retrieving the configuration.
      */
-    String getConfigurations(String settingGroup, String setting, String tenantDomain)
+    String getConfigurationsByGroupAndSetting(String settingGroup, String setting, String tenantDomain)
             throws CompatibilitySettingException;
-
-    /**
-     * Update configuration for a specific compatibility setting.
-     *
-     * @param settingGroup       Name of the settingGroup.
-     * @param compatibilitySettingGroup Compatibility setting to be updated.
-     * @param tenantDomain       Tenant domain that data is requested for.
-     * @return The updated compatibility setting.
-     * @throws CompatibilitySettingException If an error occurs while updating the configuration.
-     */
-    CompatibilitySettingGroup updateConfiguration(String settingGroup,
-                                                  CompatibilitySettingGroup compatibilitySettingGroup,
-                                                  String tenantDomain) throws CompatibilitySettingException;
 
     /**
      * Update configurations for compatibility settings.
@@ -97,5 +84,18 @@ public interface CompatibilitySettingConfigurationProvider {
      */
     CompatibilitySetting updateConfiguration(CompatibilitySetting compatibilitySetting, String tenantDomain)
             throws CompatibilitySettingException;
+
+    /**
+     * Update configuration for a specific compatibility setting group.
+     *
+     * @param settingGroup       Name of the settingGroup.
+     * @param compatibilitySettingGroup Compatibility setting to be updated.
+     * @param tenantDomain       Tenant domain that data is requested for.
+     * @return The updated compatibility setting.
+     * @throws CompatibilitySettingException If an error occurs while updating the configuration.
+     */
+    CompatibilitySettingGroup updateConfigurationGroup(String settingGroup,
+                                                       CompatibilitySettingGroup compatibilitySettingGroup,
+                                                       String tenantDomain) throws CompatibilitySettingException;
 }
 

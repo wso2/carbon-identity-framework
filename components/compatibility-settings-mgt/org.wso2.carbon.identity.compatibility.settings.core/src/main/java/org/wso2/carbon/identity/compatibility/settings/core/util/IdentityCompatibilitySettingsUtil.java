@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+* Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
 *
 * WSO2 LLC. licenses this file to you under the Apache License,
 * Version 2.0 (the "License"); you may not use this file except
@@ -149,6 +149,9 @@ public class IdentityCompatibilitySettingsUtil {
             Type type = new TypeToken<Map<String, Map<String, CompatibilitySettingMetaDataEntry>>>() { }.getType();
             Map<String, Map<String, CompatibilitySettingMetaDataEntry>> rawMetaData = gson.fromJson(reader, type);
 
+            if (rawMetaData == null) {
+                return new CompatibilitySettingMetaData();
+            }
             return convertToCompatibilitySettingMetaData(rawMetaData);
         }
     }

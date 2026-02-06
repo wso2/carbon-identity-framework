@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -123,7 +123,7 @@ public class FileBasedStaticMetaDataProviderTest {
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
                 TEST_METADATA_FILE_NAME, testResourcePath, File.separator);
 
-        CompatibilitySettingMetaDataGroup authGroup = provider.getMetaData(SETTING_GROUP_AUTHENTICATION);
+        CompatibilitySettingMetaDataGroup authGroup = provider.getMetaDataByGroup(SETTING_GROUP_AUTHENTICATION);
 
         assertNotNull(authGroup);
         assertNotNull(authGroup.getSettingMetaDataEntry(SETTING_LEGACY_AUTH_FLOW));
@@ -131,7 +131,7 @@ public class FileBasedStaticMetaDataProviderTest {
     }
 
     /**
-     * Test getMetaData with non-existent settingGroup returns null.
+     * Test getMetaData with settingGroup returns null when setting group doesn't exist.
      */
     @Test
     public void testGetMetaDataWithNonExistentSettingGroup() throws CompatibilitySettingException {
@@ -139,7 +139,7 @@ public class FileBasedStaticMetaDataProviderTest {
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
                 TEST_METADATA_FILE_NAME, testResourcePath, File.separator);
 
-        CompatibilitySettingMetaDataGroup result = provider.getMetaData(SETTING_GROUP_NON_EXISTENT);
+        CompatibilitySettingMetaDataGroup result = provider.getMetaDataByGroup(SETTING_GROUP_NON_EXISTENT);
 
         assertNull(result);
     }
@@ -153,7 +153,7 @@ public class FileBasedStaticMetaDataProviderTest {
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
                 TEST_METADATA_FILE_NAME, testResourcePath, File.separator);
 
-        CompatibilitySettingMetaDataEntry entry = provider.getMetaData(
+        CompatibilitySettingMetaDataEntry entry = provider.getMetaDataByGroupAndSetting(
                 SETTING_GROUP_AUTHENTICATION, SETTING_LEGACY_AUTH_FLOW);
 
         assertNotNull(entry);
@@ -172,7 +172,7 @@ public class FileBasedStaticMetaDataProviderTest {
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
                 TEST_METADATA_FILE_NAME, testResourcePath, File.separator);
 
-        CompatibilitySettingMetaDataEntry entry = provider.getMetaData(
+        CompatibilitySettingMetaDataEntry entry = provider.getMetaDataByGroupAndSetting(
                 SETTING_GROUP_AUTHENTICATION, SETTING_NON_EXISTENT);
 
         assertNull(entry);
@@ -187,7 +187,7 @@ public class FileBasedStaticMetaDataProviderTest {
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
                 TEST_METADATA_FILE_NAME, testResourcePath, File.separator);
 
-        CompatibilitySettingMetaDataEntry entry = provider.getMetaData(
+        CompatibilitySettingMetaDataEntry entry = provider.getMetaDataByGroupAndSetting(
                 SETTING_GROUP_USER_MANAGEMENT, SETTING_LEGACY_USER_STORE);
 
         assertNotNull(entry);
@@ -249,8 +249,8 @@ public class FileBasedStaticMetaDataProviderTest {
     /**
      * Test default constructor creates provider with default values.
      */
-    @Test
-    public void testDefaultConstructor() {
+    @Test(expectedExceptions = CompatibilitySettingServerException.class)
+    public void testDefaultConstructor() throws CompatibilitySettingServerException {
 
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider();
 
@@ -265,12 +265,12 @@ public class FileBasedStaticMetaDataProviderTest {
     /**
      * Test constructor with fileName and filePath array.
      */
-    @Test
-    public void testConstructorWithFileNameAndPathArray() {
+    @Test(expectedExceptions = CompatibilitySettingServerException.class)
+    public void testConstructorWithFileNameAndPathArray() throws CompatibilitySettingServerException {
 
         String[] pathSegments = {"test", "resources"};
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
-                "test-file.json", pathSegments);
+                TEST_METADATA_FILE_NAME, pathSegments);
 
         assertNotNull(provider);
         String filePath = provider.getFilePath();
@@ -300,7 +300,7 @@ public class FileBasedStaticMetaDataProviderTest {
         FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
                 TEST_METADATA_FILE_NAME, testResourcePath, File.separator);
 
-        CompatibilitySettingMetaDataGroup authGroup = provider.getMetaData(SETTING_GROUP_AUTHENTICATION);
+        CompatibilitySettingMetaDataGroup authGroup = provider.getMetaDataByGroup(SETTING_GROUP_AUTHENTICATION);
 
         assertNotNull(authGroup);
 

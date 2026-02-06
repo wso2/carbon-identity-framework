@@ -55,34 +55,35 @@ import static org.wso2.carbon.identity.compatibility.settings.core.util.Identity
  */
 public class ConfigStoreBasedConfigurationProvider implements CompatibilitySettingConfigurationProvider {
 
+    private static final int PRIORITY = 100;
+    private static final String PROVIDER_NAME = "ConfigStoreBasedConfigurationProvider";
     private static final Log log = LogFactory.getLog(ConfigStoreBasedConfigurationProvider.class);
 
     @Override
     public String getName() {
 
-        return "ConfigStoreBasedConfigurationProvider";
+        return PROVIDER_NAME;
     }
 
     @Override
     public int getPriority() {
 
-        return 100;
+        return PRIORITY;
     }
 
     @Override
     public CompatibilitySetting getConfigurations(String tenantDomain) throws CompatibilitySettingException {
 
         CompatibilitySetting settings = new CompatibilitySetting();
+        ConfigurationManager configurationManager = getConfigurationManager();
+        if (configurationManager == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("ConfigurationManager is not available. Returning empty settings.");
+            }
+            return settings;
+        }
 
         try {
-            ConfigurationManager configurationManager = getConfigurationManager();
-            if (configurationManager == null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("ConfigurationManager is not available. Returning empty settings.");
-                }
-                return settings;
-            }
-
             Resources resources = configurationManager.getResourcesByType(COMPATIBILITY_SETTINGS_RESOURCE_TYPE);
 
             if (resources.getResources() == null || resources.getResources().isEmpty()) {
@@ -117,14 +118,14 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
     }
 
     @Override
-    public CompatibilitySettingGroup getConfigurations(String settingGroup, String tenantDomain)
+    public CompatibilitySettingGroup getConfigurationsByGroup(String settingGroup, String tenantDomain)
             throws CompatibilitySettingException {
 
-        return getConfigurations(settingGroup, tenantDomain, true);
+        return getConfigurationsByGroup(settingGroup, tenantDomain, true);
     }
 
     @Override
-    public String getConfigurations(String settingGroup, String setting, String tenantDomain)
+    public String getConfigurationsByGroupAndSetting(String settingGroup, String setting, String tenantDomain)
             throws CompatibilitySettingException {
 
         if (StringUtils.isBlank(settingGroup) || StringUtils.isBlank(setting)) {
@@ -134,7 +135,7 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
             return null;
         }
 
-        CompatibilitySettingGroup retrievedSettingGroup  = getConfigurations(settingGroup, tenantDomain);
+        CompatibilitySettingGroup retrievedSettingGroup  = getConfigurationsByGroup(settingGroup, tenantDomain);
         if (retrievedSettingGroup == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No compatibility settings found for group: " + settingGroup + ", in tenant: " +
@@ -153,9 +154,10 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
     }
 
     @Override
-    public CompatibilitySettingGroup updateConfiguration(String settingGroup,
-                                                         CompatibilitySettingGroup compatibilitySettingGroup,
-                                                         String tenantDomain) throws CompatibilitySettingException {
+    public CompatibilitySettingGroup updateConfigurationGroup(String settingGroup,
+                                                              CompatibilitySettingGroup compatibilitySettingGroup,
+                                                              String tenantDomain)
+            throws CompatibilitySettingException {
 
         if (StringUtils.isBlank(settingGroup) || compatibilitySettingGroup == null) {
             if (log.isDebugEnabled()) {
@@ -193,22 +195,23 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
         }
 
         for (CompatibilitySettingGroup setting : compatibilitySetting.getCompatibilitySettings().values()) {
-            updateConfiguration(setting.getSettingGroup(), setting, tenantDomain);
+            updateConfigurationGroup(setting.getSettingGroup(), setting, tenantDomain);
         }
 
         return compatibilitySetting;
     }
 
     /**
-     * Fetch compatibility settings for a specific setting group.
+     * Get compatibility settings for a specific setting group from the configuration store.
      *
-     * @param settingGroup  The setting group name.
+     * @param settingGroup  The name of the setting group.
      * @param tenantDomain  The tenant domain.
      * @param getInherited  Flag to indicate if inherited resources should be fetched.
      * @return CompatibilitySettingGroup for the specified setting group, or null if not found.
      * @throws CompatibilitySettingException If an error occurs during retrieval.
      */
-    private CompatibilitySettingGroup getConfigurations(String settingGroup, String tenantDomain, boolean getInherited)
+    private CompatibilitySettingGroup getConfigurationsByGroup(String settingGroup, String tenantDomain,
+                                                               boolean getInherited)
             throws CompatibilitySettingException {
 
         if (StringUtils.isBlank(settingGroup)) {
@@ -277,34 +280,11 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
             if (ConfigurationConstants
                     .ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 createCompatibilityResourceType(tenantDomain);
-                addResource(COMPATIBILITY_SETTINGS_RESOURCE_TYPE, newResource, tenantDomain);
+                addResourceToConfigStore(settingGroup, compatibilitySettingGroup, tenantDomain);
                 return;
             }
             if (log.isDebugEnabled()) {
                 log.debug("Error while adding new resource for group: " + settingGroup, e);
-            }
-            throw handleServerException(IdentityCompatibilitySettingsConstants
-                    .ErrorMessages.ERROR_CODE_ERROR_UPDATING_COMPATIBILITY_SETTINGS, e, tenantDomain);
-        }
-    }
-
-    /**
-     * Helper method to add a resource to the configuration store.
-     *
-     * @param resourceType  The resource type.
-     * @param resource      The resource to be added.
-     * @param tenantDomain  The tenant domain.
-     * @throws CompatibilitySettingException If an error occurs during resource addition.
-     */
-    private void addResource(String resourceType, Resource resource, String tenantDomain)
-            throws CompatibilitySettingException {
-
-        ConfigurationManager configurationManager = getConfigurationManager();
-        try {
-            configurationManager.addResource(resourceType, resource);
-        } catch (ConfigurationManagementException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error while adding new resource: " + resource.getResourceName(), e);
             }
             throw handleServerException(IdentityCompatibilitySettingsConstants
                     .ErrorMessages.ERROR_CODE_ERROR_UPDATING_COMPATIBILITY_SETTINGS, e, tenantDomain);
@@ -382,7 +362,7 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
             throws CompatibilitySettingException {
 
         // Fetch without inheritance to check existence in the specific tenant.
-        CompatibilitySettingGroup resource = getConfigurations(settingGroup, tenantDomain, false);
+        CompatibilitySettingGroup resource = getConfigurationsByGroup(settingGroup, tenantDomain, false);
         return resource != null;
     }
 

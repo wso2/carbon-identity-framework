@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.Organization;
+import org.wso2.carbon.identity.organization.management.service.model.ParentOrganizationDO;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.time.Instant;
@@ -413,11 +414,13 @@ public class IdentityCompatibilitySettingsUtilTest {
     public void testGetOrganizationCreationTimeWithInheritance() throws Exception {
 
         Instant rootCreatedTime = Instant.now().minusSeconds(3600);
+        ParentOrganizationDO parentOrganization = mock(ParentOrganizationDO.class);
 
         when(dataHolder.getOrganizationManager()).thenReturn(organizationManager);
         when(organizationManager.resolveOrganizationId(TENANT_DOMAIN)).thenReturn(ORGANIZATION_ID);
         when(organizationManager.getOrganization(ORGANIZATION_ID, false, false)).thenReturn(organization);
         when(organization.getId()).thenReturn(ORGANIZATION_ID);
+        when(organization.getParent()).thenReturn(parentOrganization);
 
         when(organizationManager.resolveOrganizationId(ROOT_TENANT_DOMAIN)).thenReturn(ROOT_ORG_ID);
         when(organizationManager.getOrganization(ROOT_ORG_ID, false, false)).thenReturn(rootOrganization);

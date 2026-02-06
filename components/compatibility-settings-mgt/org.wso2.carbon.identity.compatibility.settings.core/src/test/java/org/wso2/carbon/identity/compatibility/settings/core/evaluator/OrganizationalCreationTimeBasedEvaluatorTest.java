@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -347,7 +347,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
         utilMockedStatic.when(() -> IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(
                 anyString(), anyBoolean())).thenReturn(orgCreationTime);
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, context);
+        CompatibilitySetting result = evaluator.evaluateByGroup(SETTING_GROUP, context);
 
         assertNotNull(result);
         CompatibilitySettingGroup resultGroup = result.getCompatibilitySetting(SETTING_GROUP);
@@ -369,7 +369,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
         utilMockedStatic.when(() -> IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(
                 anyString(), anyBoolean())).thenReturn(orgCreationTime);
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, context);
+        CompatibilitySetting result = evaluator.evaluateByGroup(SETTING_GROUP, context);
 
         assertNotNull(result);
         CompatibilitySettingGroup resultGroup = result.getCompatibilitySetting(SETTING_GROUP);
@@ -385,7 +385,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContext(Instant.now());
 
-        CompatibilitySetting result = evaluator.evaluate("nonExistentGroup", context);
+        CompatibilitySetting result = evaluator.evaluateByGroup("nonExistentGroup", context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -421,7 +421,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
                 orgException, TENANT_DOMAIN)).thenReturn(expectedException);
 
         try {
-            evaluator.evaluate(SETTING_GROUP, context);
+            evaluator.evaluateByGroup(SETTING_GROUP, context);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),
@@ -444,7 +444,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
         utilMockedStatic.when(() -> IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(
                 anyString(), anyBoolean())).thenReturn(orgCreationTime);
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
 
         assertNotNull(result);
         CompatibilitySettingGroup resultGroup = result.getCompatibilitySetting(SETTING_GROUP);
@@ -466,7 +466,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
         utilMockedStatic.when(() -> IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(
                 anyString(), anyBoolean())).thenReturn(orgCreationTime);
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
 
         assertNotNull(result);
         CompatibilitySettingGroup resultGroup = result.getCompatibilitySetting(SETTING_GROUP);
@@ -482,7 +482,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContext(Instant.now());
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, "nonExistentSetting", context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, "nonExistentSetting", context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -496,7 +496,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContext(Instant.now());
 
-        CompatibilitySetting result = evaluator.evaluate("nonExistentGroup", SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting("nonExistentGroup", SETTING_KEY, context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -532,7 +532,7 @@ public class OrganizationalCreationTimeBasedEvaluatorTest {
                 orgException, TENANT_DOMAIN)).thenReturn(expectedException);
 
         try {
-            evaluator.evaluate(SETTING_GROUP, SETTING_KEY, context);
+            evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
             fail("Expected CompatibilitySettingServerException to be thrown");
         } catch (CompatibilitySettingServerException e) {
             assertEquals(e.getErrorCode(),

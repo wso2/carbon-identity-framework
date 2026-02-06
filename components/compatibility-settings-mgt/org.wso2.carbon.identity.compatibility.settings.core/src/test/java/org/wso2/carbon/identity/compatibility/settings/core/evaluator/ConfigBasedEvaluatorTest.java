@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -195,7 +195,7 @@ public class ConfigBasedEvaluatorTest {
         context.setTenantDomain(TENANT_DOMAIN);
         context.setCompatibilitySettings(null);
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, context);
+        CompatibilitySetting result = evaluator.evaluateByGroup(SETTING_GROUP, context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -210,7 +210,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithSettings();
 
-        CompatibilitySetting result = evaluator.evaluate("nonExistentGroup", context);
+        CompatibilitySetting result = evaluator.evaluateByGroup("nonExistentGroup", context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -224,7 +224,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithMultipleGroups();
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, context);
+        CompatibilitySetting result = evaluator.evaluateByGroup(SETTING_GROUP, context);
 
         assertNotNull(result);
         assertEquals(result.getCompatibilitySettings().size(), 1);
@@ -241,7 +241,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithMultipleGroups();
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP_2, context);
+        CompatibilitySetting result = evaluator.evaluateByGroup(SETTING_GROUP_2, context);
 
         assertNotNull(result);
         assertEquals(result.getCompatibilitySettings().size(), 1);
@@ -262,7 +262,7 @@ public class ConfigBasedEvaluatorTest {
         context.setTenantDomain(TENANT_DOMAIN);
         context.setCompatibilitySettings(null);
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -277,7 +277,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithSettings();
 
-        CompatibilitySetting result = evaluator.evaluate("nonExistentGroup", SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting("nonExistentGroup", SETTING_KEY, context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -292,7 +292,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithSettings();
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, "nonExistentSetting", context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, "nonExistentSetting", context);
 
         assertNotNull(result);
         assertTrue(result.getCompatibilitySettings().isEmpty());
@@ -307,7 +307,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithSettings();
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
 
         assertNotNull(result);
         assertEquals(result.getCompatibilitySettings().size(), 1);
@@ -326,7 +326,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithMultipleSettingsInGroup();
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP, SETTING_KEY, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
 
         assertNotNull(result);
         assertEquals(result.getCompatibilitySettings().size(), 1);
@@ -346,7 +346,7 @@ public class ConfigBasedEvaluatorTest {
 
         CompatibilitySettingContext context = createContextWithMultipleGroups();
 
-        CompatibilitySetting result = evaluator.evaluate(SETTING_GROUP_2, SETTING_KEY_2, context);
+        CompatibilitySetting result = evaluator.evaluateByGroupAndSetting(SETTING_GROUP_2, SETTING_KEY_2, context);
 
         assertNotNull(result);
         assertEquals(result.getCompatibilitySettings().size(), 1);

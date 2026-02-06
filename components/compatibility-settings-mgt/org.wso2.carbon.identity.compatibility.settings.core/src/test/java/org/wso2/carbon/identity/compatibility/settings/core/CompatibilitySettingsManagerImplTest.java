@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -260,7 +260,7 @@ public class CompatibilitySettingsManagerImplTest {
     }
 
     /**
-     * Test evaluate with settingGroup invokes evaluators correctly.
+     * Test evaluate with settingGroup invokes all evaluators that can handle the context.
      */
     @Test
     public void testEvaluateWithSettingGroupInvokesEvaluators() throws CompatibilitySettingException {
@@ -270,20 +270,20 @@ public class CompatibilitySettingsManagerImplTest {
 
 
         when(evaluator1.canHandle(any())).thenReturn(true);
-        when(evaluator1.evaluate(eq(SETTING_GROUP), any(CompatibilitySettingContext.class)))
+        when(evaluator1.evaluateByGroup(eq(SETTING_GROUP), any(CompatibilitySettingContext.class)))
                 .thenReturn(createSettingsWithGroup1());
 
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
         CompatibilitySettingContext context = createContext();
 
-        CompatibilitySetting result = manager.evaluate(SETTING_GROUP, context);
+        CompatibilitySetting result = manager.evaluateByGroup(SETTING_GROUP, context);
 
         assertNotNull(result);
-        verify(evaluator1, times(1)).evaluate(eq(SETTING_GROUP), any(CompatibilitySettingContext.class));
+        verify(evaluator1, times(1)).evaluateByGroup(eq(SETTING_GROUP), any(CompatibilitySettingContext.class));
     }
 
     /**
-     * Test evaluate with settingGroup and setting invokes evaluators correctly.
+     * Test evaluate with settingGroup merges results from all evaluators.
      */
     @Test
     public void testEvaluateWithSettingGroupAndSettingInvokesEvaluators() throws CompatibilitySettingException {
@@ -292,16 +292,17 @@ public class CompatibilitySettingsManagerImplTest {
         when(dataHolder.getCompatibilitySettingsEvaluators()).thenReturn(Arrays.asList(evaluator1));
 
         when(evaluator1.canHandle(any())).thenReturn(true);
-        when(evaluator1.evaluate(eq(SETTING_GROUP), eq(SETTING_KEY), any(CompatibilitySettingContext.class)))
+        when(evaluator1.evaluateByGroupAndSetting(eq(SETTING_GROUP), eq(SETTING_KEY),
+                any(CompatibilitySettingContext.class)))
                 .thenReturn(createSettingsWithGroup1());
 
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
         CompatibilitySettingContext context = createContext();
 
-        CompatibilitySetting result = manager.evaluate(SETTING_GROUP, SETTING_KEY, context);
+        CompatibilitySetting result = manager.evaluateByGroupAndSetting(SETTING_GROUP, SETTING_KEY, context);
 
         assertNotNull(result);
-        verify(evaluator1, times(1)).evaluate(eq(SETTING_GROUP), eq(SETTING_KEY),
+        verify(evaluator1, times(1)).evaluateByGroupAndSetting(eq(SETTING_GROUP), eq(SETTING_KEY),
                 any(CompatibilitySettingContext.class));
     }
 
@@ -339,15 +340,15 @@ public class CompatibilitySettingsManagerImplTest {
 
 
         when(evaluator1.canHandle(any())).thenReturn(true);
-        when(evaluator1.evaluate(eq(SETTING_GROUP), any(CompatibilitySettingContext.class)))
+        when(evaluator1.evaluateByGroup(eq(SETTING_GROUP), any(CompatibilitySettingContext.class)))
                 .thenReturn(createSettingsWithGroup1());
 
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
-        CompatibilitySetting result = manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP);
+        CompatibilitySetting result = manager.getCompatibilitySettingsByGroup(TENANT_DOMAIN, SETTING_GROUP);
 
         assertNotNull(result);
-        verify(evaluator1, times(1)).evaluate(eq(SETTING_GROUP), any(CompatibilitySettingContext.class));
+        verify(evaluator1, times(1)).evaluateByGroup(eq(SETTING_GROUP), any(CompatibilitySettingContext.class));
     }
 
     /**
@@ -363,15 +364,17 @@ public class CompatibilitySettingsManagerImplTest {
 
 
         when(evaluator1.canHandle(any())).thenReturn(true);
-        when(evaluator1.evaluate(eq(SETTING_GROUP), eq(SETTING_KEY), any(CompatibilitySettingContext.class)))
+        when(evaluator1.evaluateByGroupAndSetting(eq(SETTING_GROUP), eq(SETTING_KEY),
+                any(CompatibilitySettingContext.class)))
                 .thenReturn(createSettingsWithGroup1());
 
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
-        CompatibilitySetting result = manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, SETTING_KEY);
+        CompatibilitySetting result = manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP,
+                SETTING_KEY);
 
         assertNotNull(result);
-        verify(evaluator1, times(1)).evaluate(eq(SETTING_GROUP), eq(SETTING_KEY),
+        verify(evaluator1, times(1)).evaluateByGroupAndSetting(eq(SETTING_GROUP), eq(SETTING_KEY),
                 any(CompatibilitySettingContext.class));
     }
 
@@ -531,15 +534,15 @@ public class CompatibilitySettingsManagerImplTest {
         when(dataHolder.getConfigurationProviders()).thenReturn(Arrays.asList(configurationProvider));
 
         when(evaluator1.canHandle(any())).thenReturn(true);
-        when(evaluator1.evaluate(eq(SETTING_GROUP), any(CompatibilitySettingContext.class)))
+        when(evaluator1.evaluateByGroup(eq(SETTING_GROUP), any(CompatibilitySettingContext.class)))
                 .thenReturn(createSettingsWithGroup1());
 
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
         CompatibilitySettingGroup groupToUpdate = createSettingsGroup1();
 
-        manager.updateCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, groupToUpdate);
+        manager.updateCompatibilitySettingsGroup(TENANT_DOMAIN, SETTING_GROUP, groupToUpdate);
 
-        verify(configurationProvider, times(1)).updateConfiguration(eq(SETTING_GROUP), eq(groupToUpdate),
+        verify(configurationProvider, times(1)).updateConfigurationGroup(eq(SETTING_GROUP), eq(groupToUpdate),
                 eq(TENANT_DOMAIN));
     }
 
@@ -561,7 +564,7 @@ public class CompatibilitySettingsManagerImplTest {
         unsupportedGroup.addSetting("someSetting", "someValue");
 
         try {
-            manager.updateCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup", unsupportedGroup);
+            manager.updateCompatibilitySettingsGroup(TENANT_DOMAIN, "unsupportedGroup", unsupportedGroup);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
@@ -582,7 +585,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.updateCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, null);
+            manager.updateCompatibilitySettingsGroup(TENANT_DOMAIN, SETTING_GROUP, null);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(
@@ -624,7 +627,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, (String) null);
+            manager.getCompatibilitySettingsByGroup(TENANT_DOMAIN, (String) null);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(
@@ -646,7 +649,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, "");
+            manager.getCompatibilitySettingsByGroup(TENANT_DOMAIN, "");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(
@@ -668,7 +671,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup");
+            manager.getCompatibilitySettingsByGroup(TENANT_DOMAIN, "unsupportedGroup");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
@@ -689,7 +692,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, null);
+            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, null);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
@@ -710,7 +713,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "");
+            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
@@ -731,7 +734,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
+            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING.getCode()));
@@ -752,7 +755,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup", SETTING_KEY);
+            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, "unsupportedGroup", SETTING_KEY);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
@@ -773,7 +776,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, "   ");
+            manager.getCompatibilitySettingsByGroup(TENANT_DOMAIN, "   ");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(
@@ -795,7 +798,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "   ");
+            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "   ");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
@@ -816,7 +819,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, "unsupportedGroup");
+            manager.getCompatibilitySettingsByGroup(TENANT_DOMAIN, "unsupportedGroup");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
@@ -837,7 +840,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettings(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
+            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING.getCode()));

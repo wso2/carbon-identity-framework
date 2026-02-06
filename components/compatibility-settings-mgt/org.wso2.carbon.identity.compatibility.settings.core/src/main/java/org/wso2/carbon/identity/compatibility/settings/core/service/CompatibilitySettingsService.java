@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.compatibility.settings.core.service;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants;
 import org.wso2.carbon.identity.compatibility.settings.core.exception.CompatibilitySettingException;
@@ -33,8 +31,6 @@ import org.wso2.carbon.identity.compatibility.settings.core.util.IdentityCompati
  * Provides functionality to get and update compatibility settings for tenants.
  */
 public class CompatibilitySettingsService {
-
-    private static final Log LOG = LogFactory.getLog(CompatibilitySettingsService.class);
 
     /**
      * Get compatibility settings for a tenant.
@@ -65,7 +61,7 @@ public class CompatibilitySettingsService {
      * @return Compatibility settings for the specified group.
      * @throws CompatibilitySettingException If an error occurs while retrieving settings.
      */
-    public CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup)
+    public CompatibilitySetting getCompatibilitySettingsByGroup(String tenantDomain, String settingGroup)
             throws CompatibilitySettingException {
 
         CompatibilitySetting cachedSettings =
@@ -74,7 +70,7 @@ public class CompatibilitySettingsService {
             return cachedSettings;
         }
         CompatibilitySettingsManager manager = getCompatibilitySettingsManager();
-        return manager.getCompatibilitySettings(tenantDomain, settingGroup);
+        return manager.getCompatibilitySettingsByGroup(tenantDomain, settingGroup);
     }
 
     /**
@@ -86,7 +82,8 @@ public class CompatibilitySettingsService {
      * @return Compatibility settings for the specified setting.
      * @throws CompatibilitySettingException If an error occurs while retrieving settings.
      */
-    public CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup, String setting)
+    public CompatibilitySetting getCompatibilitySettingsByGroupAndSetting(String tenantDomain, String settingGroup,
+                                                                          String setting)
             throws CompatibilitySettingException {
 
         CompatibilitySetting cachedSettings =
@@ -95,7 +92,7 @@ public class CompatibilitySettingsService {
             return cachedSettings;
         }
         CompatibilitySettingsManager manager = getCompatibilitySettingsManager();
-        return manager.getCompatibilitySettings(tenantDomain, settingGroup, setting);
+        return manager.getCompatibilitySettingsGroupAndSetting(tenantDomain, settingGroup, setting);
     }
 
     /**
@@ -130,7 +127,7 @@ public class CompatibilitySettingsService {
             throws CompatibilitySettingException {
 
         CompatibilitySettingsManager manager = getCompatibilitySettingsManager();
-        CompatibilitySetting updatedSettings = manager.updateCompatibilitySettings(
+        CompatibilitySetting updatedSettings = manager.updateCompatibilitySettingsGroup(
                 tenantDomain, settingGroup, compatibilitySettingGroup);
         IdentityCompatibilitySettingsUtil.clearCache(tenantDomain);
         return updatedSettings;

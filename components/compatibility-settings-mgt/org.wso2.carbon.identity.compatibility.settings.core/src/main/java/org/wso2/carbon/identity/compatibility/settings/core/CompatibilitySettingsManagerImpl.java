@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.compatibility.settings.core;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants.ErrorMessages;
@@ -35,6 +38,7 @@ import org.wso2.carbon.identity.compatibility.settings.core.provider.Compatibili
 import org.wso2.carbon.identity.compatibility.settings.core.util.IdentityCompatibilitySettingsUtil;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -133,15 +137,15 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
      */
     private Map<String, String[]> buildSupportedSettings(CompatibilitySettingMetaData metaData) {
 
-        Map<String, String[]> settings = new java.util.HashMap<>();
+        Map<String, String[]> settings = new HashMap<>();
 
-        if (metaData != null && metaData.getSettingsMetaData() != null) {
+        if (metaData != null && MapUtils.isNotEmpty(metaData.getSettingsMetaData())) {
             for (Map.Entry<String, CompatibilitySettingMetaDataGroup> groupEntry :
                     metaData.getSettingsMetaData().entrySet()) {
                 String groupName = groupEntry.getKey();
                 CompatibilitySettingMetaDataGroup group = groupEntry.getValue();
 
-                if (group.getSettingsMetaData() != null) {
+                if (MapUtils.isNotEmpty(group.getSettingsMetaData())) {
                     String[] settingNames = group.getSettingsMetaData().keySet().toArray(new String[0]);
                     settings.put(groupName, settingNames);
                 }
@@ -150,12 +154,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
         return settings;
     }
 
-    /**
-     * Get the supported settings.
-     * Returns a map where keys are setting group names and values are arrays of supported setting names.
-     *
-     * @return Map of setting group names to their supported setting names.
-     */
+    @Override
     public Map<String, String[]> getSupportedSettings() {
 
         return supportedSettings;
@@ -177,13 +176,13 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     }
 
     @Override
-    public CompatibilitySetting evaluate(String settingGroup, CompatibilitySettingContext context)
+    public CompatibilitySetting evaluateByGroup(String settingGroup, CompatibilitySettingContext context)
             throws CompatibilitySettingException {
 
         CompatibilitySetting finalEvaluationResult = new CompatibilitySetting();
         for (CompatibilitySettingsEvaluator evaluator : getEvaluators()) {
             if (evaluator.canHandle(context)) {
-                CompatibilitySetting evaluationResult = evaluator.evaluate(settingGroup, context);
+                CompatibilitySetting evaluationResult = evaluator.evaluateByGroup(settingGroup, context);
                 finalEvaluationResult.updateCompatibilitySetting(evaluationResult);
             }
         }
@@ -191,14 +190,15 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     }
 
     @Override
-    public CompatibilitySetting evaluate(String settingGroup, String setting,
-                                        CompatibilitySettingContext context)
+    public CompatibilitySetting evaluateByGroupAndSetting(String settingGroup, String setting,
+                                                          CompatibilitySettingContext context)
             throws CompatibilitySettingException {
 
         CompatibilitySetting finalEvaluationResult = new CompatibilitySetting();
         for (CompatibilitySettingsEvaluator evaluator : getEvaluators()) {
             if (evaluator.canHandle(context)) {
-                CompatibilitySetting evaluationResult = evaluator.evaluate(settingGroup, setting, context);
+                CompatibilitySetting evaluationResult =
+                        evaluator.evaluateByGroupAndSetting(settingGroup, setting, context);
                 finalEvaluationResult.updateCompatibilitySetting(evaluationResult);
             }
         }
@@ -214,21 +214,22 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     }
 
     @Override
-    public CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup)
+    public CompatibilitySetting getCompatibilitySettingsByGroup(String tenantDomain, String settingGroup)
             throws CompatibilitySettingException {
 
         validateSettingGroupRequest(settingGroup, getSupportedSettings());
         CompatibilitySettingContext context = buildContext(tenantDomain);
-        return evaluate(settingGroup, context);
+        return evaluateByGroup(settingGroup, context);
     }
 
     @Override
-    public CompatibilitySetting getCompatibilitySettings(String tenantDomain, String settingGroup, String setting)
+    public CompatibilitySetting getCompatibilitySettingsGroupAndSetting(String tenantDomain, String settingGroup,
+                                                                        String setting)
             throws CompatibilitySettingException {
 
         validateSettingRequest(settingGroup, setting, getSupportedSettings());
         CompatibilitySettingContext context = buildContext(tenantDomain);
-        return evaluate(settingGroup, setting, context);
+        return evaluateByGroupAndSetting(settingGroup, setting, context);
     }
 
     @Override
@@ -245,16 +246,16 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     }
 
     @Override
-    public CompatibilitySetting updateCompatibilitySettings(String tenantDomain, String settingGroup,
+    public CompatibilitySetting updateCompatibilitySettingsGroup(String tenantDomain, String settingGroup,
                                                                  CompatibilitySettingGroup compatibilitySettingGroup)
             throws CompatibilitySettingException {
 
         validateSettingGroup(settingGroup, compatibilitySettingGroup, getSupportedSettings());
         List<CompatibilitySettingConfigurationProvider> configurationProviders = getConfigurationProviders();
         for (CompatibilitySettingConfigurationProvider provider : configurationProviders) {
-            provider.updateConfiguration(settingGroup, compatibilitySettingGroup, tenantDomain);
+            provider.updateConfigurationGroup(settingGroup, compatibilitySettingGroup, tenantDomain);
         }
-        return getCompatibilitySettings(tenantDomain, settingGroup);
+        return getCompatibilitySettingsByGroup(tenantDomain, settingGroup);
     }
 
     /**
@@ -282,7 +283,8 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
 
             for (CompatibilitySettingConfigurationProvider provider : configurationProviders) {
                 CompatibilitySetting providerConfiguration = provider.getConfigurations(tenantDomain);
-                if (providerConfiguration != null) {
+                if (providerConfiguration != null
+                        && MapUtils.isNotEmpty(providerConfiguration.getCompatibilitySettings())) {
                     for (Map.Entry<String, CompatibilitySettingGroup> entry :
                             providerConfiguration.getCompatibilitySettings().entrySet()) {
                         mergedConfiguration.addCompatibilitySetting(entry.getValue());
@@ -290,7 +292,7 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
                 }
             }
 
-            if (!mergedConfiguration.getCompatibilitySettings().isEmpty()) {
+            if (MapUtils.isNotEmpty(mergedConfiguration.getCompatibilitySettings())) {
                 context.setCompatibilitySettings(mergedConfiguration);
             }
         }
@@ -307,11 +309,8 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     private void validateSettingGroupRequest(String groupName, Map<String, String[]> supportedSettings)
             throws CompatibilitySettingException {
 
-        if (supportedSettings == null || supportedSettings.isEmpty()) {
-            throw IdentityCompatibilitySettingsUtil.handleServerException(
-                    ErrorMessages.ERROR_CODE_SUPPORTED_SETTINGS_NOT_CONFIGURED);
-        }
-        if (groupName == null || groupName.trim().isEmpty()) {
+        validateSupportedSettings(supportedSettings);
+        if (StringUtils.isBlank(groupName)) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
                     ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP);
         }
@@ -334,12 +333,16 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
 
         validateSettingGroupRequest(groupName, supportedSettings);
 
-        if (settingName == null || settingName.trim().isEmpty()) {
+        if (StringUtils.isBlank(settingName)) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
                     ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING);
         }
 
         String[] supportedValues = supportedSettings.get(groupName);
+        if (ArrayUtils.isEmpty(supportedValues)) {
+            throw IdentityCompatibilitySettingsUtil.handleClientException(
+                    ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP, groupName);
+        }
         Set<String> supportedValuesSet = new HashSet<>(Arrays.asList(supportedValues));
         if (!supportedValuesSet.contains(settingName)) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
@@ -358,18 +361,15 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     private void validateSettingGroup(String groupName, CompatibilitySettingGroup settingGroup, Map<String,
             String[]> supportedSettings) throws CompatibilitySettingException {
 
-        if (supportedSettings == null || supportedSettings.isEmpty()) {
-            throw IdentityCompatibilitySettingsUtil.handleClientException(
-                    ErrorMessages.ERROR_CODE_SUPPORTED_SETTINGS_NOT_CONFIGURED);
-        }
-        if (settingGroup == null || settingGroup.getSettingGroup() == null
-                || settingGroup.getSettings().isEmpty()) {
+       validateSupportedSettings(supportedSettings);
+        if (settingGroup == null || StringUtils.isBlank(settingGroup.getSettingGroup())
+                || MapUtils.isEmpty(settingGroup.getSettings())) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
                     ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING_GROUP);
         }
 
         String[] supportedValues = supportedSettings.get(groupName);
-        if (supportedValues == null) {
+        if (ArrayUtils.isEmpty(supportedValues)) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
                     ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP, groupName);
         }
@@ -392,17 +392,28 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     private void validateSetting(CompatibilitySetting setting, Map<String, String[]> supportedSettings)
             throws CompatibilitySettingException {
 
-        if (supportedSettings == null || supportedSettings.isEmpty()) {
-            throw IdentityCompatibilitySettingsUtil.handleServerException(
-                    ErrorMessages.ERROR_CODE_SUPPORTED_SETTINGS_NOT_CONFIGURED);
-        }
-        if (setting == null || setting.getCompatibilitySettings() == null
-                || setting.getCompatibilitySettings().isEmpty()) {
+        validateSupportedSettings(supportedSettings);
+        if (setting == null || MapUtils.isEmpty(setting.getCompatibilitySettings())) {
             throw IdentityCompatibilitySettingsUtil.handleClientException(
                     ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING);
         }
         for (CompatibilitySettingGroup settingGroup : setting.getCompatibilitySettings().values()) {
             validateSettingGroup(settingGroup.getSettingGroup(), settingGroup, supportedSettings);
+        }
+    }
+
+    /**
+     * Validate that the supported settings are configured.
+     *
+     * @param supportedSettings Map of supported setting groups to their supported settings.
+     * @throws CompatibilitySettingException If supported settings are not configured.
+     */
+    private void validateSupportedSettings(Map<String, String[]> supportedSettings)
+            throws CompatibilitySettingException {
+
+        if (MapUtils.isEmpty(supportedSettings)) {
+            throw IdentityCompatibilitySettingsUtil.handleServerException(
+                    ErrorMessages.ERROR_CODE_SUPPORTED_SETTINGS_NOT_CONFIGURED);
         }
     }
 }

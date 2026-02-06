@@ -74,7 +74,7 @@ public interface CompatibilitySettingsEvaluator {
      * @return Compatibility settings DTO.
      * @throws CompatibilitySettingException If an error occurs during evaluation.
      */
-    CompatibilitySetting evaluate(String settingGroup, CompatibilitySettingContext context)
+    CompatibilitySetting evaluateByGroup(String settingGroup, CompatibilitySettingContext context)
             throws CompatibilitySettingException;
 
     /**
@@ -86,6 +86,7 @@ public interface CompatibilitySettingsEvaluator {
      * @return Compatibility settings DTO.
      * @throws CompatibilitySettingException If an error occurs during evaluation.
      */
-    CompatibilitySetting evaluate(String settingGroup, String setting, CompatibilitySettingContext context)
+    CompatibilitySetting evaluateByGroupAndSetting(String settingGroup, String setting,
+                                                   CompatibilitySettingContext context)
             throws CompatibilitySettingException;
 }
