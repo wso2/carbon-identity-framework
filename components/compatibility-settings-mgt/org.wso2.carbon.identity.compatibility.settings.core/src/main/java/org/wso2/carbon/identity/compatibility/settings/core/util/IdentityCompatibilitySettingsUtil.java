@@ -135,8 +135,8 @@ public class IdentityCompatibilitySettingsUtil {
      *
      * @param filePath The path to the compatibility settings file.
      * @return CompatibilitySettingMetaData parsed from the file.
-     * @throws IllegalArgumentException      If the path is not a valid file.
-     * @throws FileNotFoundException         If the file is not found.
+     * @throws IOException            If an error occurs while reading the file.
+     * @throws DateTimeParseException If an error occurs while parsing date time values in the
      */
     public static CompatibilitySettingMetaData parseCompatibilitySettingsFromJSONFile(String filePath)
             throws IOException, DateTimeParseException {
@@ -260,7 +260,7 @@ public class IdentityCompatibilitySettingsUtil {
             String parentTenantDomain =
                     OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
             try {
-                // Start a tenant flow as thr root org to access parent organization details since organizational
+                // Start a tenant flow as the root org to access parent organization details since organizational
                 // manager does no support accessing super organization details in a sub-organization tenant flow.
                 FrameworkUtils.startTenantFlow(parentTenantDomain);
                 String rootOrgId = organizationManager.resolveOrganizationId(parentTenantDomain);

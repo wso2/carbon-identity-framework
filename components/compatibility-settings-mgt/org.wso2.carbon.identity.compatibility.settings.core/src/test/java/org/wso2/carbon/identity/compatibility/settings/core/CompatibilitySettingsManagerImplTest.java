@@ -370,7 +370,7 @@ public class CompatibilitySettingsManagerImplTest {
 
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
-        CompatibilitySetting result = manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP,
+        CompatibilitySetting result = manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP,
                 SETTING_KEY);
 
         assertNotNull(result);
@@ -692,7 +692,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, null);
+            manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, null);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
@@ -713,7 +713,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "");
+            manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
@@ -734,7 +734,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
+            manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING.getCode()));
@@ -755,7 +755,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, "unsupportedGroup", SETTING_KEY);
+            manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, "unsupportedGroup", SETTING_KEY);
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING_GROUP.getCode()));
@@ -798,7 +798,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "   ");
+            manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "   ");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_INVALID_COMPATIBILITY_SETTING.getCode()));
@@ -840,7 +840,7 @@ public class CompatibilitySettingsManagerImplTest {
         CompatibilitySettingsManagerImpl manager = new CompatibilitySettingsManagerImpl();
 
         try {
-            manager.getCompatibilitySettingsGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
+            manager.getCompatibilitySettingsByGroupAndSetting(TENANT_DOMAIN, SETTING_GROUP, "unsupportedSetting");
             fail("Expected CompatibilitySettingClientException to be thrown");
         } catch (CompatibilitySettingClientException e) {
             assertTrue(e.getErrorCode().contains(ErrorMessages.ERROR_CODE_UNSUPPORTED_SETTING.getCode()));

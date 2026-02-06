@@ -67,7 +67,7 @@ public interface CompatibilitySettingConfigurationProvider {
      *
      * @param settingGroup  Name of the settingGroup.
      * @param setting Name of the setting.
-     * @param tenantDomain Tenant domain that data is requested for.               `
+     * @param tenantDomain Tenant domain that data is requested for.
      * @return The compatibility setting for the specified settingGroup and setting.
      * @throws CompatibilitySettingException If an error occurs while retrieving the configuration.
      */

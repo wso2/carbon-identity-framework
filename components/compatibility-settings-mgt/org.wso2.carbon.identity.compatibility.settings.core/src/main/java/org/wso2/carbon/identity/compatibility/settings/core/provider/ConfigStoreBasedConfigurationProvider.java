@@ -230,7 +230,7 @@ public class ConfigStoreBasedConfigurationProvider implements CompatibilitySetti
                 return null;
             }
 
-            // Inherited resources are fetch to ensure the root organization's behaviour is preserved in
+            // Inherited resources are fetched to ensure the root organization's behaviour is preserved in
             // sub organizations unless explicitly overridden.
             Resource resource = configurationManager.getResource(COMPATIBILITY_SETTINGS_RESOURCE_TYPE,
                     formatResourceName(settingGroup), getInherited);

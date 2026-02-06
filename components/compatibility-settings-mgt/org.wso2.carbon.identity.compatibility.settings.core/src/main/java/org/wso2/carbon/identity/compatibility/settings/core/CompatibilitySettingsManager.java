@@ -95,9 +95,9 @@ public interface CompatibilitySettingsManager {
      * @return Evaluated compatibility setting.
      * @throws CompatibilitySettingException If an error occurs during retrieval or evaluation.
      */
-    CompatibilitySetting getCompatibilitySettingsGroupAndSetting(String tenantDomain,
-                                                                 String settingGroup,
-                                                                 String setting) throws CompatibilitySettingException;
+    CompatibilitySetting getCompatibilitySettingsByGroupAndSetting(String tenantDomain,
+                                                                   String settingGroup,
+                                                                   String setting) throws CompatibilitySettingException;
 
     /**
      * Update compatibility settings for a tenant.

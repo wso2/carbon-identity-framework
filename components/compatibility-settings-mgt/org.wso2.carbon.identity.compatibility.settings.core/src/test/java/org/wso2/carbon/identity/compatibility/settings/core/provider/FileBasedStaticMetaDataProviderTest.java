@@ -247,36 +247,22 @@ public class FileBasedStaticMetaDataProviderTest {
     }
 
     /**
-     * Test default constructor creates provider with default values.
+     * Test default constructor throws exception when default file doesn't exist.
      */
     @Test(expectedExceptions = CompatibilitySettingServerException.class)
     public void testDefaultConstructor() throws CompatibilitySettingServerException {
 
-        FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider();
-
-        assertNotNull(provider);
-        assertEquals(provider.getPriority(), 10);
-        String filePath = provider.getFilePath();
-        assertTrue(filePath.contains("repository"));
-        assertTrue(filePath.contains("conf"));
-        assertTrue(filePath.endsWith("compatibility-settings-metadata.json"));
+        new FileBasedStaticMetaDataProvider();
     }
 
     /**
-     * Test constructor with fileName and filePath array.
+     * Test constructor with fileName and filePath array throws exception when file doesn't exist.
      */
     @Test(expectedExceptions = CompatibilitySettingServerException.class)
     public void testConstructorWithFileNameAndPathArray() throws CompatibilitySettingServerException {
 
         String[] pathSegments = {"test", "resources"};
-        FileBasedStaticMetaDataProvider provider = new FileBasedStaticMetaDataProvider(
-                TEST_METADATA_FILE_NAME, pathSegments);
-
-        assertNotNull(provider);
-        String filePath = provider.getFilePath();
-        assertTrue(filePath.contains("test"));
-        assertTrue(filePath.contains("resources"));
-        assertTrue(filePath.endsWith("test-file.json"));
+        new FileBasedStaticMetaDataProvider("non-existent-file.json", pathSegments);
     }
 
     /**

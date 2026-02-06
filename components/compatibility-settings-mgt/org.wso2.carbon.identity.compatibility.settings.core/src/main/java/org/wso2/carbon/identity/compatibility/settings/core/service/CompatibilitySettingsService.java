@@ -92,7 +92,7 @@ public class CompatibilitySettingsService {
             return cachedSettings;
         }
         CompatibilitySettingsManager manager = getCompatibilitySettingsManager();
-        return manager.getCompatibilitySettingsGroupAndSetting(tenantDomain, settingGroup, setting);
+        return manager.getCompatibilitySettingsByGroupAndSetting(tenantDomain, settingGroup, setting);
     }
 
     /**

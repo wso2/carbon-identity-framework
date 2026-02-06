@@ -223,8 +223,8 @@ public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsMa
     }
 
     @Override
-    public CompatibilitySetting getCompatibilitySettingsGroupAndSetting(String tenantDomain, String settingGroup,
-                                                                        String setting)
+    public CompatibilitySetting getCompatibilitySettingsByGroupAndSetting(String tenantDomain, String settingGroup,
+                                                                          String setting)
             throws CompatibilitySettingException {
 
         validateSettingRequest(settingGroup, setting, getSupportedSettings());
