@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
@@ -369,6 +370,64 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         if (currentTime - createdTime > rememberMeSessionTimeOut) {
             if (log.isDebugEnabled()) {
                 log.debug("Context ID : " + contextId + " :: Remember me session expiry");
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check whether the given session context is valid according to maximum session lifetime restrictions.
+     *
+     * @param key        Session context cache key.
+     * @param cacheEntry Session context cache entry.
+     * @return true if the session context is valid as per maximum session lifetime configs; false otherwise.
+     */
+    private boolean isValidMaximumSessionLifetime(SessionContextCacheKey key, SessionContextCacheEntry cacheEntry) {
+
+        // Use for the logging.
+        String contextId = key.getContextId();
+
+        if (cacheEntry == null) {
+            return false;
+        }
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        Optional<Integer> maximumSessionTimeoutInSeconds = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+        if (!maximumSessionTimeoutInSeconds.isPresent()) {
+            // The Maximum session timeout is not set, hence consider the session as valid.
+            return true;
+        }
+        long maximumSessionTimeout = TimeUnit.SECONDS.toMillis(maximumSessionTimeoutInSeconds.get());
+
+        long currentTime = System.currentTimeMillis();
+        Long createdTime = null;
+
+        if (cacheEntry.getContext() != null) {
+            Object createdTimestampObj = cacheEntry.getContext().getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+            if (createdTimestampObj != null) {
+                createdTime = (Long) createdTimestampObj;
+            }
+        }
+
+        if (createdTime == null) {
+            // If created time is not available, consider the session as invalid.
+            if (log.isDebugEnabled()) {
+                log.debug("Created time is not available for the context ID : " + contextId +
+                        ". Hence considering the session as invalid.");
+            }
+            return false;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Context ID : " + contextId + " :: maximum session life time : " + maximumSessionTimeout
+                    + ", current time : " + currentTime + ", created time : " + createdTime);
+        }
+
+        if (currentTime - createdTime > maximumSessionTimeout) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session expired due to maximum session lifetime for the context ID : " + contextId);
             }
             return false;
         }
