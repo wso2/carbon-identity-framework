@@ -131,7 +131,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
                 log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found.");
             }
             return null;
-        } else if ((isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) ||
+        } else if ((isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) &&
                 isValidMaximumSessionLifetime(key, cacheEntry)) {
             if (log.isDebugEnabled()) {
                 log.debug("Found a valid session corresponding to the key : " + key.getContextId());
