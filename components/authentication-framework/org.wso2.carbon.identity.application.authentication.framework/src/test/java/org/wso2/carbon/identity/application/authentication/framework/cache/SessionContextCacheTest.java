@@ -30,16 +30,17 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 /**
  * Unit tests for SessionContextCache.
@@ -76,7 +77,6 @@ public class SessionContextCacheTest {
         long threeHoursAgo = currentTime - TimeUnit.HOURS.toMillis(3);
 
         return new Object[][]{
-                // {maxTimeoutPresent, maxTimeoutMinutes, createdTime, shouldBeValid, description}
                 {false, 0, oneHourAgo, true, "No max timeout configured - should be valid"},
                 {true, 120, oneHourAgo, true, "Session within 2-hour limit"},
                 {true, 60, oneHourAgo, false, "Session exceeds 1-hour limit"},
@@ -97,7 +97,7 @@ public class SessionContextCacheTest {
              MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class)) {
 
             // Setup CarbonContext mock.
-            CarbonContext mockCarbonContext = mock(CarbonContext.class, withSettings().lenient());
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
             carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
             when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
 
@@ -149,17 +149,16 @@ public class SessionContextCacheTest {
              MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class)) {
 
             // Setup CarbonContext mock.
-            CarbonContext mockCarbonContext = mock(CarbonContext.class,
-                    withSettings().lenient());
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
             carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
-            when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            lenient().when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
 
             // Setup IdPManagementUtil mock with max timeout enabled.
             idpManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
                     .thenReturn(Optional.of(7200)); // 2 hours in seconds
 
             // Setup created timestamp as null.
-            when(mockSessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP)).thenReturn(null);
+            lenient().when(mockSessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP)).thenReturn(null);
 
             // Use reflection to invoke the private method.
             Method method = SessionContextCache.class.getDeclaredMethod("isValidMaximumSessionLifetime",
@@ -182,10 +181,9 @@ public class SessionContextCacheTest {
              MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class)) {
 
             // Setup CarbonContext mock.
-            CarbonContext mockCarbonContext = mock(CarbonContext.class,
-                    withSettings().lenient());
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
             carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
-            when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            lenient().when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
 
             // Setup IdPManagementUtil mock with max timeout enabled.
             idpManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
@@ -203,6 +201,204 @@ public class SessionContextCacheTest {
             boolean result = (boolean) method.invoke(sessionContextCache, cacheKey, nullContextEntry);
 
             Assert.assertFalse(result, "Should return false when session context is null");
+        }
+    }
+
+    /**
+     * Test isSessionExpired when maximum session lifetime is exceeded.
+     * This test verifies that even if idle session checks pass, an expired maximum lifetime will cause expiration.
+     */
+    @Test
+    public void testIsSessionExpiredWhenMaxLifetimeExceeded() throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            // Setup CarbonContext mock.
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+            // Setup IdPManagementUtil mock - max session timeout of 1 hour.
+            idpManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                    .thenReturn(Optional.of(3600));
+            
+            // Setup idle session timeout (large value so idle check passes).
+            idpManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(TENANT_DOMAIN))
+                    .thenReturn(600);
+
+            // Setup remember me timeout (not a remember me session).
+            idpManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(TENANT_DOMAIN))
+                    .thenReturn(1800);
+
+            // Session created 2 hours ago - exceeds maximum lifetime of 1 hour.
+            long currentTime = System.currentTimeMillis();
+            long twoHoursAgo = currentTime - TimeUnit.HOURS.toMillis(2);
+            // Accessed 5 minutes ago (idle is valid).
+            long recentAccess = currentTime - TimeUnit.MINUTES.toMillis(5);
+            
+            lenient().when(mockSessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP))
+                    .thenReturn(twoHoursAgo);
+            lenient().when(mockSessionContext.getProperty("tenantDomain")).thenReturn(TENANT_DOMAIN);
+            lenient().when(mockSessionContext.isRememberMe()).thenReturn(false);
+            
+            // Use reflection to set accessed time.
+            Method setAccessedTimeMethod = SessionContextCacheEntry.class.getDeclaredMethod("setAccessedTime",
+                    long.class);
+            setAccessedTimeMethod.setAccessible(true);
+            setAccessedTimeMethod.invoke(cacheEntry, recentAccess);
+
+            boolean result = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
+
+            Assert.assertTrue(result,
+                    "Session should be expired when maximum lifetime is exceeded even if idle is valid");
+        }
+    }
+
+    /**
+     * Test isSessionExpired when maximum session lifetime is valid and idle session is valid.
+     */
+    @Test
+    public void testIsSessionExpiredWhenMaxLifetimeAndIdleSessionAreValid() throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class)) {
+
+            // Setup CarbonContext mock.
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            lenient().when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+            // Setup IdPManagementUtil mock - max session timeout of 2 hours.
+            idpManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                    .thenReturn(Optional.of(7200));
+            
+            // Setup idle session timeout.
+            idpManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(TENANT_DOMAIN))
+                    .thenReturn(1800);
+            
+            // Setup remember me timeout.
+            idpManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(TENANT_DOMAIN))
+                    .thenReturn(3600);
+
+            // Session created 30 minutes ago - within maximum lifetime of 2 hours.
+            long currentTime = System.currentTimeMillis();
+            long thirtyMinutesAgo = currentTime - TimeUnit.MINUTES.toMillis(30);
+            // Accessed 5 minutes ago (idle is valid).
+            long recentAccess = currentTime - TimeUnit.MINUTES.toMillis(5);
+            
+            lenient().when(mockSessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP))
+                    .thenReturn(thirtyMinutesAgo);
+            lenient().when(mockSessionContext.isRememberMe()).thenReturn(false);
+            
+            // Use reflection to set accessed time.
+            Method setAccessedTimeMethod = SessionContextCacheEntry.class.getDeclaredMethod("setAccessedTime",
+                    long.class);
+            setAccessedTimeMethod.setAccessible(true);
+            setAccessedTimeMethod.invoke(cacheEntry, recentAccess);
+
+            boolean result = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
+
+            Assert.assertFalse(result,
+                    "Session should not be expired when both max lifetime and idle session are valid");
+        }
+    }
+
+    /**
+     * Test isSessionExpired when maximum session lifetime check fails due to null created time.
+     */
+    @Test
+    public void testIsSessionExpiredWithNullCreatedTimeInMaxLifetimeCheck() throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            // Setup CarbonContext mock.
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+            // Setup IdPManagementUtil mock with max timeout enabled.
+            idpManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                    .thenReturn(Optional.of(7200));
+            
+            // Setup idle session timeout (large value so idle check passes).
+            idpManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(TENANT_DOMAIN))
+                    .thenReturn(1800);
+            
+            // Setup remember me timeout.
+            idpManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(TENANT_DOMAIN))
+                    .thenReturn(3600);
+
+            // Created timestamp is null - should cause max lifetime check to fail.
+            lenient().when(mockSessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP)).thenReturn(null);
+            lenient().when(mockSessionContext.getProperty("tenantDomain")).thenReturn(TENANT_DOMAIN);
+            lenient().when(mockSessionContext.isRememberMe()).thenReturn(false);
+            
+            long currentTime = System.currentTimeMillis();
+            long recentAccess = currentTime - TimeUnit.MINUTES.toMillis(5); // Recent access.
+            
+            // Use reflection to set accessed time.
+            Method setAccessedTimeMethod = SessionContextCacheEntry.class.getDeclaredMethod("setAccessedTime",
+                    long.class);
+            setAccessedTimeMethod.setAccessible(true);
+            setAccessedTimeMethod.invoke(cacheEntry, recentAccess);
+
+            boolean result = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
+
+            Assert.assertTrue(result,
+                    "Session should be expired when created time is null and max timeout is enabled");
+        }
+    }
+
+    /**
+     * Test isSessionExpired when maximum session lifetime feature is disabled.
+     */
+    @Test
+    public void testIsSessionExpiredWhenMaxLifetimeFeatureDisabled() throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdPManagementUtil> idpManagementUtil = mockStatic(IdPManagementUtil.class)) {
+
+            // Setup CarbonContext mock.
+            CarbonContext mockCarbonContext = mock(CarbonContext.class);
+            carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+            lenient().when(mockCarbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+            // Setup IdPManagementUtil mock - max timeout feature disabled.
+            idpManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                    .thenReturn(Optional.empty()); // Feature disabled
+            
+            // Setup idle session timeout.
+            idpManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(TENANT_DOMAIN))
+                    .thenReturn(1800); // 30 minutes in seconds
+            
+            // Setup remember me timeout.
+            idpManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(TENANT_DOMAIN))
+                    .thenReturn(7200); // 2 hours in seconds
+
+            // Session created 5 hours ago - would exceed any reasonable max lifetime if it were enabled.
+            long currentTime = System.currentTimeMillis();
+            long fiveHoursAgo = currentTime - TimeUnit.HOURS.toMillis(5);
+            // Recent access (idle is valid).
+            long recentAccess = currentTime - TimeUnit.MINUTES.toMillis(5);
+            
+            lenient().when(mockSessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP))
+                    .thenReturn(fiveHoursAgo);
+            lenient().when(mockSessionContext.isRememberMe()).thenReturn(false);
+            
+            // Use reflection to set accessed time.
+            Method setAccessedTimeMethod = SessionContextCacheEntry.class.getDeclaredMethod("setAccessedTime",
+                    long.class);
+            setAccessedTimeMethod.setAccessible(true);
+            setAccessedTimeMethod.invoke(cacheEntry, recentAccess);
+
+            boolean result = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
+
+            Assert.assertFalse(result,
+                    "Session should not be expired when max lifetime feature is disabled and idle is valid");
         }
     }
 }

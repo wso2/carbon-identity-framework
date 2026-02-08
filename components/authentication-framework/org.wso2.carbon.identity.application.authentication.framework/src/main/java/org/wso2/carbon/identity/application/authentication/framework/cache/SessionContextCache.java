@@ -131,7 +131,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
                 log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found.");
             }
             return null;
-        } else if (isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) {
+        } else if ((isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) ||
+                isValidMaximumSessionLifetime(key, cacheEntry)) {
             if (log.isDebugEnabled()) {
                 log.debug("Found a valid session corresponding to the key : " + key.getContextId());
             }
@@ -241,7 +242,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
      */
     public boolean isSessionExpired(SessionContextCacheKey cachekey, SessionContextCacheEntry cacheEntry) {
 
-        if (isValidIdleSession(cachekey, cacheEntry) || isValidRememberMeSession(cachekey, cacheEntry)) {
+        if ((isValidIdleSession(cachekey, cacheEntry) || isValidRememberMeSession(cachekey, cacheEntry)) &&
+                isValidMaximumSessionLifetime(cachekey, cacheEntry)) {
             if (log.isDebugEnabled()) {
                 log.debug("A valid session is available corresponding to the key : " + cachekey.getContextId());
             }
