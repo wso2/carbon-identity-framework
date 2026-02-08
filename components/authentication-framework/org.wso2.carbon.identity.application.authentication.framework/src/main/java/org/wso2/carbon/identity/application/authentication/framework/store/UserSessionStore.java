@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -1284,19 +1285,36 @@ public class UserSessionStore {
 
         Set<String> activeSessionIds = new HashSet<>();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
         long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
         long currentTime = System.currentTimeMillis();
-        long minTimestamp = currentTime - idleSessionTimeOut;
+        long minIdleTimestamp = currentTime - idleSessionTimeOut;
+
+        Optional<Integer> maxSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+        Long minSessionTimestamp = maxSessionTimeout.isPresent()
+                ? currentTime - TimeUnit.SECONDS.toMillis(maxSessionTimeout.get()) : null;
 
         try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
-            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
-                    ? SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT_H2
-                    : SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT;
+            String sqlStmt;
+            if (minSessionTimestamp != null) {
+                sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                        ? SQLQueries.SQL_GET_SESSION_OPS_BY_TENANT_WITH_IDLE_AND_MAX_TIMEOUT_H2
+                        : SQLQueries.SQL_GET_SESSION_OPS_BY_TENANT_WITH_IDLE_AND_MAX_TIMEOUT;
+            } else {
+                sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                        ? SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT_H2
+                        : SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT;
+            }
             try (PreparedStatement preparedStatement = connection.prepareStatement(sqlStmt)) {
                 preparedStatement.setInt(1, tenantId);
                 preparedStatement.setString(2, SessionMgtConstants.LAST_ACCESS_TIME);
-                preparedStatement.setString(3, String.valueOf(minTimestamp));
+                preparedStatement.setString(3, String.valueOf(minIdleTimestamp));
                 preparedStatement.setString(4, String.valueOf(currentTime));
+                if (minSessionTimestamp != null) {
+                    preparedStatement.setString(5, SessionMgtConstants.LOGIN_TIME);
+                    preparedStatement.setString(6, String.valueOf(minSessionTimestamp));
+                    preparedStatement.setString(7, String.valueOf(currentTime));
+                }
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
                         String sessionId = resultSet.getString(1);

@@ -30,6 +30,7 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
@@ -41,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -83,6 +85,9 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         mockedIdPManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(TENANT_DOMAIN)).
                 thenReturn(IDLE_SESSION_TIMEOUT);
+        // Default: max session timeout not configured.
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                .thenReturn(Optional.empty());
     }
 
     @AfterClass
@@ -309,7 +314,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         UserSessionStore.getInstance().storeSessionMetaData(sessionId, metaData);
     }
 
-    @Test()
+    @Test(dependsOnMethods = {"testStoreSessionMetaData"})
     public void testGetActiveSessionCount() throws Exception {
 
         mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), true, mockedIdentityDatabaseUtil);
@@ -317,6 +322,52 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         populateTestDataForActiveSessions();
 
         Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 2);
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionCount when maximum session lifetime is configured and sessions exceed it.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionCount"})
+    public void testGetActiveSessionCountWithMaxSessionTimeoutExceeded() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), true, mockedIdentityDatabaseUtil);
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+
+        cleanupTestData();
+        // Set max session timeout to 900 seconds (15 minutes).
+        int maxSessionTimeout = 900;
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                .thenReturn(Optional.of(maxSessionTimeout));
+
+        populateTestDataWithMaxSessionTimeout(maxSessionTimeout);
+
+        // Only session3 and session4 should be active (not expired by idle or max lifetime).
+        // session1 is expired by idle timeout.
+        // session2 is deleted.
+        // session5 is expired by max lifetime (created 400 seconds ago, max is 300 seconds).
+        Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 2);
+        cleanupTestData();
+    }
+
+    /**
+     * Test getActiveSessionCount when maximum session lifetime is not configured.
+     */
+    @Test(dependsOnMethods = {"testGetActiveSessionCountWithMaxSessionTimeoutExceeded"})
+    public void testGetActiveSessionCountWithoutMaxSessionTimeout() throws Exception {
+
+        mockIdentityDataBaseUtilConnection(getConnection(DB_NAME), true, mockedIdentityDatabaseUtil);
+        mockJdbcUtilsTemplate(getDatasource(DB_NAME), mockedJdbcUtils);
+
+        cleanupTestData();
+        // Max session timeout not configured.
+        mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN))
+                .thenReturn(Optional.empty());
+
+        populateTestDataWithMaxSessionTimeout(900);
+
+        // Should work same as before - only idle timeout is checked.
+        Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 3);
         cleanupTestData();
     }
 
@@ -368,6 +419,52 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         addSessionMetadata("session4", String.valueOf(System.currentTimeMillis() - 30000));
     }
 
+    /**
+     * Populate test data for active sessions with max session timeout testing.
+     * Creates sessions where some exceed the max session lifetime.
+     *
+     * @param maxSessionTimeoutSeconds Maximum session timeout in seconds.
+     * @throws SQLException If an error occurs during data population.
+     */
+    private void populateTestDataWithMaxSessionTimeout(int maxSessionTimeoutSeconds) throws SQLException {
+
+        createUserSessionMapping("user1", "session1");
+        createUserSessionMapping("user2", "session2");
+        createUserSessionMapping("user3", "session3");
+        createUserSessionMapping("user4", "session4");
+        createUserSessionMapping("user5", "session5");
+
+        long currentTime = System.currentTimeMillis();
+        long idleTimeoutMillis = TimeUnit.SECONDS.toMillis(IDLE_SESSION_TIMEOUT);
+        long maxSessionTimeoutMillis = TimeUnit.SECONDS.toMillis(maxSessionTimeoutSeconds);
+
+        // session1: Expired by idle timeout (created before idle timeout threshold).
+        createSession("session1", "CREATE", currentTime - idleTimeoutMillis - 20000);
+        createSessionWithLoginTime("session1", currentTime - idleTimeoutMillis - 20000);
+        addSessionMetadata("session1", String.valueOf(currentTime - idleTimeoutMillis - 20000));
+
+        // session2: Created recently but deleted (should not be counted).
+        createSession("session2", "CREATE", currentTime - 10000);
+        createSessionWithLoginTime("session2", currentTime - 10000);
+        addSessionMetadata("session2", String.valueOf(currentTime - 10000));
+        createSession("session2", "DELETE", currentTime - 5000);
+
+        // session3: Active within both idle and max lifetime.
+        createSession("session3", "CREATE", currentTime - 20000);
+        createSessionWithLoginTime("session3", currentTime - 20000);
+        addSessionMetadata("session3", String.valueOf(currentTime - 20000));
+
+        // session4: Active within both idle and max lifetime.
+        createSession("session4", "CREATE", currentTime - 30000);
+        createSessionWithLoginTime("session4", currentTime - 30000);
+        addSessionMetadata("session4", String.valueOf(currentTime - 30000));
+
+        // session5: Expired by max lifetime (created beyond max session timeout).
+        createSession("session5", "CREATE", currentTime - maxSessionTimeoutMillis - 100000);
+        createSessionWithLoginTime("session5", currentTime - maxSessionTimeoutMillis - 100000);
+        addSessionMetadata("session5", String.valueOf(currentTime - 50000)); // Last access recent.
+    }
+
     private void createUserSessionMapping(String userId, String sessionId) throws SQLException {
 
         try (Connection connection = getConnection(DB_NAME)) {
@@ -406,6 +503,27 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
                 stmt.setString(1, sessionId);
                 stmt.setString(2, "Last Access Time");
                 stmt.setString(3, value);
+                stmt.executeUpdate();
+            }
+            connection.commit();
+        }
+    }
+
+    /**
+     * Add login time metadata for a session (used for max session timeout validation).
+     *
+     * @param sessionId Session ID.
+     * @param loginTime Login time in milliseconds.
+     * @throws SQLException If an error occurs during data insertion.
+     */
+    private void createSessionWithLoginTime(String sessionId, long loginTime) throws SQLException {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            String sql = "INSERT INTO IDN_AUTH_SESSION_META_DATA (SESSION_ID, PROPERTY_TYPE, `VALUE`) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1, sessionId);
+                stmt.setString(2, SessionMgtConstants.LOGIN_TIME);
+                stmt.setString(3, String.valueOf(loginTime));
                 stmt.executeUpdate();
             }
             connection.commit();
