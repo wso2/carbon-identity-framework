@@ -90,6 +90,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -109,6 +110,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -133,6 +136,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CREATED_TIMESTAMP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.GROUPS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
@@ -1650,6 +1654,225 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             String processedUsername = FrameworkUtils.preprocessUsername(username, userTenantDomain, isSaaSApp);
 
             assertEquals(processedUsername, expectedOutput);
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when max session timeout is not configured")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenMaxTimeoutNotConfigured() {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        long timeout = TimeUnit.SECONDS.toNanos(3600);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.empty());
+
+            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
+                    timeout);
+
+            assertEquals(result, timeout, "Should return the original timeout when max session timeout is not " +
+                    "configured");
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when session creation time is null")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenCreationTimeIsNull() {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        long timeout = TimeUnit.SECONDS.toNanos(3600);
+        int maxSessionTimeout = 7200;
+
+        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(null);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
+                    timeout);
+
+            assertEquals(result, 0L, "Should return 0 when session creation time is null");
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when timeout exceeds max session lifetime")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutExceedsMax() {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        int maxSessionTimeout = 3600;
+        long timeout = TimeUnit.SECONDS.toNanos(2400);
+
+        // Set session creation time to 30 minutes ago.
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30);
+
+        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(sessionCreationTime);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
+                    timeout);
+
+            // Expected: max lifetime (1 hour) - session age (30 minutes) = 30 minutes remaining.
+            long expectedTimeout = TimeUnit.MINUTES.toNanos(30);
+            // Allow small delta for timing differences.
+            assertTrue(Math.abs(result - expectedTimeout) < TimeUnit.SECONDS.toNanos(1),
+                    "Should return remaining time until max lifetime is reached");
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when timeout is within max session lifetime")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutWithinMax() {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        int maxSessionTimeout = 7200;
+        long timeout = TimeUnit.SECONDS.toNanos(1800);
+
+        // Set session creation time to 30 minutes ago.
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30);
+
+        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(sessionCreationTime);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
+                    timeout);
+
+            assertEquals(result, timeout, "Should return the original timeout when it is within max session " +
+                    "lifetime");
+        }
+    }
+
+    @Test(description = "Test addSessionContextToCache applies max session lifetime validation for idle timeout")
+    public void testAddSessionContextToCacheWithIdleTimeoutAndMaxLifetime() {
+
+        String key = "test-session-key";
+        String tenantDomain = "test.com";
+        SessionContext sessionContext = new SessionContext();
+        sessionContext.setRememberMe(false);
+        
+        // Set session creation time to 30 minutes ago.
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(35);
+        sessionContext.addProperty(CREATED_TIMESTAMP, sessionCreationTime);
+
+        int idleSessionTimeout = 1800; // 30 minutes in seconds
+        int maxSessionTimeout = 3600; // 1 hour in seconds
+
+        try (MockedStatic<SessionContextCache> mockedSessionContextCache = mockStatic(SessionContextCache.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+
+            SessionContextCache sessionContextCacheInstance = mock(SessionContextCache.class);
+            mockedSessionContextCache.when(SessionContextCache::getInstance)
+                    .thenReturn(sessionContextCacheInstance);
+
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(tenantDomain))
+                    .thenReturn(idleSessionTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            FrameworkUtils.addSessionContextToCache(key, sessionContext, tenantDomain, tenantDomain);
+
+            // Verify addToCache was called with reduced timeout (25 minutes remaining until max lifetime).
+            ArgumentCaptor<SessionContextCacheEntry> entryCaptor = ArgumentCaptor.forClass(
+                    SessionContextCacheEntry.class);
+            verify(sessionContextCacheInstance).addToCache(any(SessionContextCacheKey.class), entryCaptor.capture(),
+                    eq(tenantDomain));
+
+            long capturedTimeout = entryCaptor.getValue().getValidityPeriod();
+            long expectedTimeout = TimeUnit.MINUTES.toNanos(25); // Remaining time until max lifetime.
+            // Allow small delta for timing differences.
+            assertTrue(Math.abs(capturedTimeout - expectedTimeout) < TimeUnit.SECONDS.toNanos(1),
+                    "Timeout should be limited to remaining time until max lifetime (25 minutes)");
+        }
+    }
+
+    @Test(description = "Test addSessionContextToCache applies max session lifetime validation for remember me")
+    public void testAddSessionContextToCacheWithRememberMeAndMaxLifetime() {
+
+        String key = "test-session-key";
+        String tenantDomain = "test.com";
+        SessionContext sessionContext = new SessionContext();
+        sessionContext.setRememberMe(true);
+        
+        // Set session creation time to 4 days ago.
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(4);
+        sessionContext.addProperty(CREATED_TIMESTAMP, sessionCreationTime);
+
+        int rememberMeTimeout = 432000; // 5 days in seconds.
+        int maxSessionTimeout = 691200; // 8 days in seconds.
+
+        try (MockedStatic<SessionContextCache> mockedSessionContextCache = mockStatic(SessionContextCache.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+
+            SessionContextCache sessionContextCacheInstance = mock(SessionContextCache.class);
+            mockedSessionContextCache.when(SessionContextCache::getInstance)
+                    .thenReturn(sessionContextCacheInstance);
+
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            FrameworkUtils.addSessionContextToCache(key, sessionContext, tenantDomain, tenantDomain);
+
+            // Verify addToCache was called with reduced timeout (4 day remaining until max lifetime).
+            ArgumentCaptor<SessionContextCacheEntry> entryCaptor = ArgumentCaptor.forClass(
+                    SessionContextCacheEntry.class);
+            verify(sessionContextCacheInstance).addToCache(any(SessionContextCacheKey.class), entryCaptor.capture(),
+                    eq(tenantDomain));
+
+            long capturedTimeout = entryCaptor.getValue().getValidityPeriod();
+            long expectedTimeout = TimeUnit.DAYS.toNanos(4); // Remaining time until max lifetime.
+            // Allow small delta for timing differences.
+            assertTrue(Math.abs(capturedTimeout - expectedTimeout) < TimeUnit.SECONDS.toNanos(1),
+                    "Timeout should be limited to remaining time until max lifetime (4 days)");
+        }
+    }
+
+    @Test(description = "Test addSessionContextToCache when max session timeout is not configured")
+    public void testAddSessionContextToCacheWithoutMaxLifetime() {
+
+        String key = "test-session-key";
+        String tenantDomain = "test.com";
+        SessionContext sessionContext = new SessionContext();
+        sessionContext.setRememberMe(false);
+
+        // Created 30 minutes ago.
+        sessionContext.addProperty(CREATED_TIMESTAMP, System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(20));
+
+        int idleSessionTimeout = 1800; // 30 minutes in seconds.
+
+        try (MockedStatic<SessionContextCache> mockedSessionContextCache = mockStatic(SessionContextCache.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+
+            SessionContextCache sessionContextCacheInstance = mock(SessionContextCache.class);
+            mockedSessionContextCache.when(SessionContextCache::getInstance)
+                    .thenReturn(sessionContextCacheInstance);
+
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(tenantDomain))
+                    .thenReturn(idleSessionTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.empty());
+
+            FrameworkUtils.addSessionContextToCache(key, sessionContext, tenantDomain, tenantDomain);
+
+            // Verify addToCache was called with original idle timeout (not reduced).
+            ArgumentCaptor<SessionContextCacheEntry> entryCaptor = ArgumentCaptor.forClass(
+                    SessionContextCacheEntry.class);
+            verify(sessionContextCacheInstance).addToCache(any(SessionContextCacheKey.class), entryCaptor.capture(),
+                    eq(tenantDomain));
+
+            long capturedTimeout = entryCaptor.getValue().getValidityPeriod();
+            long expectedTimeout = TimeUnit.SECONDS.toNanos(idleSessionTimeout);
+            assertEquals(capturedTimeout, expectedTimeout,
+                    "Timeout should be the original idle timeout when max lifetime is not configured");
         }
     }
 }
