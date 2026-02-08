@@ -331,6 +331,11 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION =
                 "EnableAuthenticationContextExpiryValidation";
 
+        /**
+         * Configuration to mark the step as completed on interrupt.
+         */
+        public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
+
         private Config() {
         }
 
