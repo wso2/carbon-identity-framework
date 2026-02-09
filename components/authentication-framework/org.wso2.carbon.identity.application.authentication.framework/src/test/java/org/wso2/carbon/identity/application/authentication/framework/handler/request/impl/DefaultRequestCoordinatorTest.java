@@ -322,7 +322,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(request.getParameter("sessionDataKey")).thenReturn("sdKey");
             when(request.getParameter("type")).thenReturn("sso");
             HttpServletResponse response = mock(HttpServletResponse.class);
-            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(), any()))
                     .thenAnswer(invocation -> {
                         ((HttpServletResponse) invocation.getArgument(1)).sendRedirect("dummyUrl");
                         return null;

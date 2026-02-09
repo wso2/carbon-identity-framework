@@ -29,7 +29,6 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -43,7 +42,6 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 import org.wso2.carbon.identity.external.api.client.internal.util.APIRequestBuildingUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -52,8 +50,6 @@ import java.util.Map;
 public class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
-    private static final String ACCEPT_HEADER = "Accept";
-    private static final String CONTENT_TYPE_HEADER = "Content-Type";
 
     private final CloseableHttpClient httpClient;
 
@@ -120,8 +116,7 @@ public class APIClient {
             case POST:
                 HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase =
                         new HttpPost(requestContext.getEndpointUrl());
-                StringEntity entity = new StringEntity(requestContext.getPayload(), StandardCharsets.UTF_8);
-                httpEntityEnclosingRequestBase.setEntity(entity);
+                httpEntityEnclosingRequestBase.setEntity(requestContext.getPayload());
                 httpRequestBase = httpEntityEnclosingRequestBase;
                 break;
             case GET:
@@ -142,33 +137,17 @@ public class APIClient {
 
     private void setRequestHeaders(HttpRequestBase httpRequestBase, APIRequestContext requestContext) {
 
-        boolean isAcceptHeaderExists = false;
-        boolean isContentTypeHeaderExists = false;
         Header authHeader = APIRequestBuildingUtils.buildAuthenticationHeader(requestContext.getApiAuthentication());
         if (authHeader != null) {
             httpRequestBase.setHeader(authHeader);
         }
         for (Map.Entry<String, String> header : requestContext.getHeaders().entrySet()) {
-            if (header.getKey().equalsIgnoreCase(ACCEPT_HEADER)) {
-                isAcceptHeaderExists = true;
-            }
-            if (header.getKey().equalsIgnoreCase(CONTENT_TYPE_HEADER)) {
-                isContentTypeHeaderExists = true;
-            }
             httpRequestBase.setHeader(header.getKey(), header.getValue());
-        }
-        if (!isAcceptHeaderExists) {
-            httpRequestBase.setHeader(ACCEPT_HEADER, "application/json");
-        }
-        if (!isContentTypeHeaderExists) {
-            httpRequestBase.setHeader(CONTENT_TYPE_HEADER, "application/json");
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Request entity configured successfully for endpoint: %s with payload length: " +
-                            "%d and headers count: %d",
+            LOG.debug(String.format("Request entity configured successfully for endpoint: %s with headers count: %d",
                     requestContext.getEndpointUrl(),
-                    requestContext.getPayload() != null ? requestContext.getPayload().length() : 0,
                     requestContext.getHeaders().size()
             ));
         }

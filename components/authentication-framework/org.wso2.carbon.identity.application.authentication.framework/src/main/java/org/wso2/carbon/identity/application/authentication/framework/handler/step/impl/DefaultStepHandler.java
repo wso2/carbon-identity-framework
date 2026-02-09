@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
@@ -97,6 +98,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
@@ -334,6 +336,15 @@ public class DefaultStepHandler implements StepHandler {
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             authenticatedStepIdps.get(idp));
                     stepConfig.setCompleted(true);
+                    // Update the context with authenticated user.
+                    if (stepConfig.getAuthenticatedUser() != null) {
+                        AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Updating authentication context with authenticated user: " +
+                                    authenticatedUser.getLoggableMaskedUserId());
+                        }
+                        context.setSubject(authenticatedUser);
+                    }
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
                     return;
@@ -635,25 +646,31 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
-        for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
-            ApplicationAuthenticator authenticator = authenticatorConfig
-                    .getApplicationAuthenticator();
-            if (authenticator != null && authenticator.getName().equalsIgnoreCase(
-                    request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
-                if (StringUtils.isNotBlank(selectedIdp) && authenticatorConfig.getIdps().get(selectedIdp) == null) {
-                    // If the selected idp name is not configured for the application, throw error since
-                    // this is an invalid case.
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Application authenticators: '%s' do not contain the user selected " +
-                                "idp: '%s'", authenticatorConfig.getIdpNames(), selectedIdp));
-                    }
-                    throw new FrameworkException("Authenticators configured for application and user selected idp " +
-                            "does not match. Possible tampering of parameters in login page.");
-                }
-                doAuthentication(request, response, context, authenticatorConfig);
-                return;
+        // Get the requested authenticator name parameter.
+        String requestedAuthenticator = request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR);
+
+        AuthenticatorConfig stepAuthenticatorConfig = stepConfig.getAuthenticatorList().stream()
+                .filter(ac -> {
+                    ApplicationAuthenticator authenticator = ac.getApplicationAuthenticator();
+                    return authenticator != null &&
+                            authenticator.getName().equalsIgnoreCase(requestedAuthenticator);
+                })
+                .findFirst()
+                .orElseThrow(() -> new FrameworkClientException(ERROR_INVALID_AUTHENTICATOR.getCode(),
+                String.format(ERROR_INVALID_AUTHENTICATOR.getMessage(), requestedAuthenticator)));
+
+        if (StringUtils.isNotBlank(selectedIdp) && stepAuthenticatorConfig.getIdps().get(selectedIdp) == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(
+                        "Application authenticators: '%s' do not contain the user selected idp: '%s'",
+                        stepAuthenticatorConfig.getIdpNames(), selectedIdp));
             }
+            throw new FrameworkException(
+                    "Authenticators configured for application and user selected idp do not match. " +
+                            "Possible tampering of parameters in login page.");
         }
+
+        doAuthentication(request, response, context, stepAuthenticatorConfig);
     }
 
     protected void handleResponse(HttpServletRequest request, HttpServletResponse response,
