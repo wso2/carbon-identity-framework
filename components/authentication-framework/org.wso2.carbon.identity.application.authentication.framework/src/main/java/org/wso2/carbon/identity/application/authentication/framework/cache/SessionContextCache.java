@@ -411,15 +411,15 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
             if (createdTimestampObj != null) {
                 createdTime = (Long) createdTimestampObj;
             }
+        } else {
+            return false;
         }
 
         if (createdTime == null) {
-            // If created time is not available, consider the session as invalid.
-            if (log.isDebugEnabled()) {
-                log.debug("Created time is not available for the context ID : " + contextId +
-                        ". Hence considering the session as invalid.");
-            }
-            return false;
+            // If created time is not available, fallback to the previous behavior.
+            log.warn("Created time is not available in the session context cache entry for context ID : " + contextId +
+                    ". Hence maximum session lifetime restrictions cannot be applied.");
+            return true;
         }
 
         if (log.isDebugEnabled()) {

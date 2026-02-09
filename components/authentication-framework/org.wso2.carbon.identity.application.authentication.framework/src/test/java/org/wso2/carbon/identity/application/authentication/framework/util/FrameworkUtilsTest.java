@@ -1658,7 +1658,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when max session timeout is not configured")
-    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenMaxTimeoutNotConfigured() {
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenMaxTimeoutNotConfigured() throws Exception {
 
         SessionContext sessionContext = mock(SessionContext.class);
         String tenantDomain = "test.com";
@@ -1668,8 +1668,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
                     .thenReturn(Optional.empty());
 
-            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
-                    timeout);
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, timeout);
 
             assertEquals(result, timeout, "Should return the original timeout when max session timeout is not " +
                     "configured");
@@ -1677,7 +1679,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when session creation time is null")
-    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenCreationTimeIsNull() {
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenCreationTimeIsNull() throws Exception {
 
         SessionContext sessionContext = mock(SessionContext.class);
         String tenantDomain = "test.com";
@@ -1690,15 +1692,17 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
                     .thenReturn(Optional.of(maxSessionTimeout));
 
-            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
-                    timeout);
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, timeout);
 
-            assertEquals(result, 0L, "Should return 0 when session creation time is null");
+            assertEquals(result, timeout, "Should return the original timeout when session creation time is null");
         }
     }
 
     @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when timeout exceeds max session lifetime")
-    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutExceedsMax() {
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutExceedsMax() throws Exception {
 
         SessionContext sessionContext = mock(SessionContext.class);
         String tenantDomain = "test.com";
@@ -1714,8 +1718,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
                     .thenReturn(Optional.of(maxSessionTimeout));
 
-            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
-                    timeout);
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, timeout);
 
             // Expected: max lifetime (1 hour) - session age (30 minutes) = 30 minutes remaining.
             long expectedTimeout = TimeUnit.MINUTES.toNanos(30);
@@ -1726,7 +1732,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when timeout is within max session lifetime")
-    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutWithinMax() {
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutWithinMax() throws Exception {
 
         SessionContext sessionContext = mock(SessionContext.class);
         String tenantDomain = "test.com";
@@ -1742,11 +1748,102 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
                     .thenReturn(Optional.of(maxSessionTimeout));
 
-            long result = FrameworkUtils.validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain,
-                    timeout);
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, timeout);
 
             assertEquals(result, timeout, "Should return the original timeout when it is within max session " +
                     "lifetime");
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when max equals idle timeout")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenMaxEqualsIdle() throws Exception {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        int maxSessionTimeout = 1800; // 30 minutes.
+        long idleTimeout = TimeUnit.SECONDS.toNanos(1800); // 30 minutes.
+
+        // Set session creation time to 10 minutes ago.
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
+
+        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(sessionCreationTime);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, idleTimeout);
+
+            // Expected: max lifetime (30 min) - session age (10 min) = 20 minutes remaining.
+            long expectedTimeout = TimeUnit.MINUTES.toNanos(20);
+            // Allow small delta for timing differences.
+            assertTrue(Math.abs(result - expectedTimeout) < TimeUnit.SECONDS.toNanos(1),
+                    "Should return remaining time (20 min) when max equals idle and session is 10 min old");
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime with very long remember me and moderate max")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeVeryLongRememberMeModerateMax() throws Exception {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        int maxSessionTimeout = 604800; // 7 days in seconds.
+        long rememberMeTimeout = TimeUnit.SECONDS.toNanos(2592000); // 30 days.
+
+        // Set session creation time to 6 days ago.
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(6);
+
+        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(sessionCreationTime);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, rememberMeTimeout);
+
+            // Expected: max lifetime (7 days) - session age (6 days) = 1 day remaining.
+            long expectedTimeout = TimeUnit.DAYS.toNanos(1);
+            // Allow small delta for timing differences.
+            assertTrue(Math.abs(result - expectedTimeout) < TimeUnit.SECONDS.toNanos(2),
+                    "Should return remaining max lifetime (1 day) instead of full remember me timeout (30 days)");
+        }
+    }
+
+    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime with very long idle timeout and moderate max")
+    public void testValidateTimeoutUsingMaxSessionLifeTimeVeryLongIdleAndModerateMax() throws Exception {
+
+        SessionContext sessionContext = mock(SessionContext.class);
+        String tenantDomain = "test.com";
+        int maxSessionTimeout = 1800;
+        long idleTimeout = TimeUnit.SECONDS.toNanos(3600);
+
+        long sessionCreationTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(20);
+
+        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(sessionCreationTime);
+
+        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+
+            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
+                    SessionContext.class, String.class, long.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(null, sessionContext, tenantDomain, idleTimeout);
+
+            // Expected: max lifetime (30 mins) - session age (20 mins) = 10 mins remaining.
+            long expectedTimeout = TimeUnit.MINUTES.toNanos(10);
+            // Allow small delta for timing differences.
+            assertTrue(Math.abs(result - expectedTimeout) < TimeUnit.SECONDS.toNanos(1),
+                    "Should return remaining max lifetime (10 mins) instead of full remember me timeout (1 hour)");
         }
     }
 

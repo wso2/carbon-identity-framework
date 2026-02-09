@@ -1352,7 +1352,7 @@ public class FrameworkUtils {
      * @param timeout        Session context timeout to be validated.
      * @return Valid session context timeout.
      */
-    public static long validateTimeoutUsingMaxSessionLifeTime(SessionContext sessionContext, String tenantDomain,
+    private static long validateTimeoutUsingMaxSessionLifeTime(SessionContext sessionContext, String tenantDomain,
                                                               long timeout) {
 
         Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
@@ -1368,7 +1368,7 @@ public class FrameworkUtils {
             log.warn("Session creation time is not available in the session context. Hence cannot validate the " +
                     "session context timeout with the maximum session lifetime configured for the tenant: " +
                     tenantDomain);
-            return 0;
+            return timeout;
         }
 
         // Convert session creation time to nanos for the timeout comparison.
