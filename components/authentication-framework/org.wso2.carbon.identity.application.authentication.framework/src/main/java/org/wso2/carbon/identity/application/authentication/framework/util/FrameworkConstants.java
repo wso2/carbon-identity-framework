@@ -269,6 +269,7 @@ public abstract class FrameworkConstants {
     public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
     public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
     public static final String ERROR_STATUS_APP_DISABLED = "authentication.flow.app.disabled";
+    public static final String ERROR_STATUS_INVALID_AUTHENTICATOR = "authentication.invalid.authenticator";
     public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
@@ -432,6 +433,11 @@ public abstract class FrameworkConstants {
          * JIT Provisioning configurations.
          */
         public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
+
+        /**
+         * Configuration to mark the step as completed on interrupt.
+         */
+        public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
 
         private Config() {
         }

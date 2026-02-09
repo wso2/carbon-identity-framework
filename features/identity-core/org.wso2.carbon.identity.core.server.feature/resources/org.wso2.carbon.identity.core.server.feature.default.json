@@ -258,6 +258,7 @@
 
   "oauth.oidc.id_token.signature_algorithm": "SHA256withRSA",
   "oauth.oidc.id_token.issuer": "$ref{oauth.endpoints.oauth2_token_url}",
+  "oauth.oidc.id_token.use_entityid_as_issuer": false,
   "oauth.oidc.extensions.claim_callback_handler": "org.wso2.carbon.identity.openidconnect.SAMLAssertionClaimsCallback",
   "oauth.oidc.token_validation.id_token_validity": "1h",
   "oauth.oidc.id_token.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
@@ -327,6 +328,9 @@
 
   "oauth.enable_legacy_session_bound_token_behaviour": false,
   "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
+  "oauth.listener.agent_application_creator.enable": false,
+  "oauth.listener.agent_application_creator.class": "org.wso2.carbon.identity.oauth.listener.UserApplicationCreationListener",
+  "oauth.listener.agent_application_creator.order": "99",
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -338,6 +342,7 @@
   "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
+  "saml.artifact.disable_double_encoding": true,
   "saml.use_tenant_key_of": "user",
   "saml.tenant_partitioning.enable": false,
   "saml.signing_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
@@ -429,6 +434,8 @@
   "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.recovery.notify_recovery_email_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
+  "identity_mgt.recovery.hide_user_existence": false,
+  "identity_mgt.recovery.enable_normalized_retry_error_response": true,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -470,6 +477,7 @@
 
   "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
   "identity_mgt.challenge_questions.min_required_answers": "1",
+  "identity_mgt.challenge_questions.skip_sending_questions_in_url": true,
 
   "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
   "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
@@ -586,6 +594,11 @@
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
   "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
+  "outbound_provisioning_management.enable_scim_patch_for_updates": true,
+  "outbound_provisioning_management.scim2_client.http_retry_count": "1",
+  "outbound_provisioning_management.scim2_client.http_read_timeout": "5000",
+  "outbound_provisioning_management.scim2_client.http_connection_timeout": "2000",
+  "outbound_provisioning_management.scim2_client.http_connection_request_timeout": "2000",
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
@@ -713,6 +726,9 @@
 
   "event.default_listener.identity_role_workflow_operation.enable": true,
   "event.default_listener.identity_role_workflow_operation.priority": "11",
+
+  "event.default_listener.privileged_user_authenticator.priority": "200",
+  "event.default_listener.privileged_user_authenticator.enable": false,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
@@ -843,7 +859,8 @@
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
     "/totpauthenticationendpoint/",
-    "/accounts/"
+    "/accounts/",
+    "/oid4vci/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -1353,6 +1370,7 @@
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvals": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.attributeDialects": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.attributeUpdateVerificationSettings": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
@@ -2115,8 +2133,8 @@
   "actions.types.pre_update_password.version.latest": "v2",
 
   "external_api_client.http_client.connection_timeout": "2000",
-  "external_api_client.http_client.read_timeout": "2000",
-  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "3000",
+  "external_api_client.http_client.connection_request_timeout": "1000",
   "external_api_client.http_client.connection_pool_size": "20",
   "external_api_client.http_client.max_connection_per_route": "3",
   "external_api_client.retry_count": "0",
@@ -2182,5 +2200,6 @@
   "identifier_first.preserve_case_sensitivity.enabled": true,
   "pastr_cookie.max_age": "-1",
 
-  "resolve_tenant_domain_from_username.enabled": false
+  "resolve_tenant_domain_from_username.enabled": false,
+  "authentication.mark_step_completed_on_interrupt": true
 }

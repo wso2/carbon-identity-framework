@@ -857,9 +857,11 @@ public class IdentityManagementEndpointUtil {
                     } else if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
                         String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                 .getOrganizationId();
-                        basePath = basePath.replace(
-                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
-                                FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                        if (StringUtils.isNotBlank(organizationId)) {
+                            basePath = basePath.replace(
+                                    FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
+                                    FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                        }
                     }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();

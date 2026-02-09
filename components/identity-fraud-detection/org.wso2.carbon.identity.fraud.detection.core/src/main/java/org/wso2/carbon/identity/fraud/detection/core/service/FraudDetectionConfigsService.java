@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.fraud.detection.core.service;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
@@ -25,15 +26,11 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.fraud.detection.core.constant.FraudDetectionConstants;
 import org.wso2.carbon.identity.fraud.detection.core.exception.FraudDetectionConfigServerException;
 import org.wso2.carbon.identity.fraud.detection.core.internal.IdentityFraudDetectionDataHolder;
 import org.wso2.carbon.identity.fraud.detection.core.model.EventConfigDTO;
 import org.wso2.carbon.identity.fraud.detection.core.model.FraudDetectionConfigDTO;
-import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -117,7 +114,8 @@ public class FraudDetectionConfigsService {
         Resource newResource = buildResourceFromDTO(dto);
 
         Resource updatedResource;
-        if (existingResource == null) {
+        if (existingResource == null
+                || (StringUtils.isNotEmpty(tenantDomain) && !tenantDomain.equals(existingResource.getTenantDomain()))) {
             LOG.debug("Creating new Fraud Detection config resource for tenant: " + tenantDomain);
             updatedResource = addResource(newResource, tenantDomain);
         } else {
@@ -139,17 +137,13 @@ public class FraudDetectionConfigsService {
 
         Resource resource = null;
         try {
-            int tenantId = OrganizationManagementUtil.isOrganization(tenantDomain) ?
-                    getPrimaryTenantId(tenantDomain) : IdentityTenantUtil.getTenantId(tenantDomain);
             resource = IdentityFraudDetectionDataHolder.getInstance().getConfigurationManager()
-                    .getResourceByTenantId(tenantId, RESOURCE_TYPE, RESOURCE_NAME);
+                    .getResource(RESOURCE_TYPE, RESOURCE_NAME, true);
         } catch (ConfigurationManagementException e) {
             if (!ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) &&
                     !ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
                 throw handleServerException(ERROR_CODE_GETTING_FRAUD_DETECTOR_CONFIG, e, tenantDomain);
             }
-        } catch (OrganizationManagementException e) {
-            throw handleServerException(ERROR_CODE_GETTING_FRAUD_DETECTOR_CONFIG, e, tenantDomain);
         }
         return resource;
     }
@@ -305,23 +299,6 @@ public class FraudDetectionConfigsService {
         eventConfigMap.put(LOGOUT_EVENT_PROP_KEY, new EventConfigDTO(false));
 
         return eventConfigMap;
-    }
-
-    /**
-     * Retrieves the primary tenant ID for the given tenant domain.
-     *
-     * @param tenantDomain Tenant domain.
-     * @return Primary tenant ID.
-     * @throws OrganizationManagementException If an error occurs while retrieving the primary tenant ID.
-     */
-    private int getPrimaryTenantId(String tenantDomain) throws OrganizationManagementException {
-
-        OrganizationManager organizationManager = IdentityFraudDetectionDataHolder.getInstance()
-                .getOrganizationManager();
-        String orgId = organizationManager.resolveOrganizationId(tenantDomain);
-        String primaryOrgId = organizationManager.getPrimaryOrganizationId(orgId);
-        String primaryTenantDomain = organizationManager.resolveTenantDomain(primaryOrgId);
-        return IdentityTenantUtil.getTenantId(primaryTenantDomain);
     }
 
     /**

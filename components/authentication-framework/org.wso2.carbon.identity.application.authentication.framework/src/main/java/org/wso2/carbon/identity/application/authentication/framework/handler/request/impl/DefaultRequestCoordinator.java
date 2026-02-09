@@ -504,6 +504,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
         } catch (Exception e) {
+            String errorMsg = null;
+            String status = null;
+            boolean isClientError = false;
             if (e instanceof FrameworkException) {
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
@@ -524,9 +527,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
                     throw new UserAssertionFailedException(((FrameworkException) e).getErrorCode(), e.getMessage());
                 }
+                if (FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR.getCode()
+                        .equals(((FrameworkException) e).getErrorCode())) {
+                    errorMsg = e.getMessage();
+                    status = FrameworkConstants.ERROR_STATUS_INVALID_AUTHENTICATOR;
+                    isClientError = true;
+                }
             }
-            log.error("Exception in Authentication Framework", e);
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
+            if (!isClientError) {
+                log.error("Exception in Authentication Framework", e);
+            }
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, context, status, errorMsg);
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
