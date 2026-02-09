@@ -291,7 +291,7 @@ public class InputValidationService {
                 }
             }
         } catch (ClaimMetadataException e) {
-            throw handleServerException(ERROR_CODE_CLAIM_META_DATA_NOT_FOUND, e, tenantDomain);
+            throw handleServerException(ERROR_CODE_CLAIM_META_DATA_NOT_FOUND, e, claimUri, tenantDomain);
         } catch (UserStoreException e) {
             throw handleServerException(ERROR_CODE_GET_CLAIM_META_DATA_FAILURE, e, tenantDomain);
         } catch (FlowEngineClientException e) {
