@@ -1738,8 +1738,6 @@ public class DefaultStepHandler implements StepHandler {
             authenticationResult.setAuthenticated(false);
             authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_CODE,
                     context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
-            authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_MSG,
-                    context.getProperty(FrameworkConstants.AUTH_ERROR_MSG));
             request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
             return false;
         }
