@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>external-api-framework</artifactId>
-        <version>7.8.675-SNAPSHOT</version>
+        <version>7.8.680-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -40,6 +40,11 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.external.api.client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.wso2</groupId>
+            <artifactId>httpcore</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.json.wso2</groupId>
@@ -100,6 +105,9 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.json.*; version="${json.wso2.version.range}",
+                            org.apache.http; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.message.*; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.client.*; version="${httpcomponents-httpclient.imp.pkg.version.range}",
 
                             org.wso2.carbon.identity.external.api.client.api.model; version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.external.api.client.api.exception; version="${carbon.identity.package.export.version}",

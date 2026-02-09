@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014-2025 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -3085,6 +3085,17 @@ public class IdPManagementDAO {
         Property discoveryUrlProp = resolveFedAuthnProperty(oIDCDiscoveryEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
         propertiesList.add(discoveryUrlProp);
+
+        Property jwtScopeAsArrayProp = IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+        if (jwtScopeAsArrayProp == null) {
+            jwtScopeAsArrayProp = new Property();
+            jwtScopeAsArrayProp.setName(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            jwtScopeAsArrayProp.setValue(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT);
+        }
+        propertiesList.add(jwtScopeAsArrayProp);
 
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[0]));
         fedAuthnConfigs.add(oidcFedAuthn);

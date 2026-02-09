@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.675-SNAPSHOT</version>
+    <version>7.8.680-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -81,6 +81,7 @@
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>components/identity-fraud-detection</module>
+        <module>components/compatibility-settings-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
@@ -130,6 +131,7 @@
         <module>features/workflow-mgt</module>
         <module>features/identity-fraud-detection</module>
         <module>features/external-api-framework</module>
+        <module>features/compatibility-settings-mgt</module>
     </modules>
 
 
@@ -393,6 +395,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.fraud.detection.core.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.compatibility.settings.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.compatibility.settings.management.server.feature</artifactId>
                 <version>${project.version}</version>
                 <type>zip</type>
             </dependency>
