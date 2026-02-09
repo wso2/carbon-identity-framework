@@ -29,10 +29,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-<<<<<<< max-session-life
 import org.wso2.carbon.identity.base.IdentityConstants;
-=======
->>>>>>> master
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -134,7 +131,6 @@ public class IdentityProviderManagerTest {
         }
     }
 
-<<<<<<< max-session-life
     /**
      * Provides test data for maximum session timeout configuration tests.
      *
@@ -323,7 +319,6 @@ public class IdentityProviderManagerTest {
         }
     }
 
-=======
     @Test(description = "Tests addResidentIdP includes ENABLE_JWT_SCOPE_AS_ARRAY property for root organization.")
     public void testAddResidentIdPIncludesJwtScopeAsArrayForNonOrganization() throws Exception {
 
@@ -397,5 +392,4 @@ public class IdentityProviderManagerTest {
                 .findFirst()
                 .orElse(null);
     }
->>>>>>> master
 }
