@@ -1374,7 +1374,7 @@ public class FrameworkUtils {
         // Convert session creation time to nanos for the timeout comparison.
         sessionCreationTime = TimeUnit.MILLISECONDS.toNanos(sessionCreationTime);
 
-        long currentTimeInNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
+        long currentTimeInNanos = FrameworkUtils.getCurrentStandardNano();
         long sessionFutureAgeInNanos = currentTimeInNanos + timeout;
         if (sessionFutureAgeInNanos - sessionCreationTime > maxSessionLifeTimeInNanos) {
             return maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime);

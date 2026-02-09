@@ -1813,7 +1813,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             // Expected: max lifetime (7 days) - session age (6 days) = 1 day remaining.
             long expectedTimeout = TimeUnit.DAYS.toNanos(1);
             // Allow small delta for timing differences.
-            assertTrue(Math.abs(result - expectedTimeout) < TimeUnit.SECONDS.toNanos(2),
+            assertTrue(Math.abs(result - expectedTimeout) < TimeUnit.SECONDS.toNanos(1),
                     "Should return remaining max lifetime (1 day) instead of full remember me timeout (30 days)");
         }
     }
