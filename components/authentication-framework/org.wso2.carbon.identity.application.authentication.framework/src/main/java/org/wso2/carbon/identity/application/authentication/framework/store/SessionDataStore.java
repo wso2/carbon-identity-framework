@@ -42,6 +42,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -938,7 +939,13 @@ public class SessionDataStore {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
         } else if (tenantId != MultitenantConstants.INVALID_TENANT_ID) {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            return TimeUnit.SECONDS.toNanos(IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+            int timeout = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
+            Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+            if (maximumSessionTimeout.isPresent()) {
+                // Get the max value from remember me timeout and maximum session timeout to set the validity period.
+                timeout = Math.max(timeout, maximumSessionTimeout.get());
+            }
+            return TimeUnit.SECONDS.toNanos(timeout);
         } else {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         }
