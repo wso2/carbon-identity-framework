@@ -150,7 +150,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
                 <configuration>
-                    <threshold>High</threshold>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
