@@ -46,11 +46,20 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
+import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -59,6 +68,8 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW_FAILURE;
@@ -427,6 +438,127 @@ public class FlowEngineUtilsTest {
                     .thenThrow(frameworkException);
 
             FlowExecutionEngineUtils.resolveTenantDomain();
+        }
+    }
+
+    @Test
+    public void testPreprocessStepInputsWithEmptyUserInputData() throws Exception {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+
+        boolean result = FlowExecutionEngineUtils.preprocessStepInputs(context);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void testPreprocessStepInputsWithUserInputDataAndEmptyStepInputs() throws Exception {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+        context.getUserInputData().put("input1", "value1");
+
+        // Create graph config with prompt-only node.
+        GraphConfig graphConfig = new GraphConfig();
+        NodeConfig promptNode = new NodeConfig.Builder()
+                .id("promptNode")
+                .type(Constants.NodeTypes.PROMPT_ONLY)
+                .build();
+        promptNode.addEdge(new NodeEdge("promptNode", "nextNode", "button1"));
+
+        NodeConfig nextNode = new NodeConfig.Builder()
+                .id("nextNode")
+                .type(Constants.NodeTypes.TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeConfigs = new HashMap<>();
+        nodeConfigs.put("promptNode", promptNode);
+        nodeConfigs.put("nextNode", nextNode);
+        graphConfig.setNodeConfigs(nodeConfigs);
+        graphConfig.setFirstNodeId("promptNode");
+
+        Map<String, StepDTO> pageMappings = new HashMap<>();
+        pageMappings.put("promptNode", new StepDTO.Builder().build());
+        graphConfig.setNodePageMappings(pageMappings);
+
+        context.setGraphConfig(graphConfig);
+
+        InputValidationService mockInputValidationService = mock(InputValidationService.class);
+
+        try (MockedStatic<InputValidationService> inputValidationServiceMock =
+                     mockStatic(InputValidationService.class)) {
+            inputValidationServiceMock.when(InputValidationService::getInstance)
+                    .thenReturn(mockInputValidationService);
+
+            boolean result = FlowExecutionEngineUtils.preprocessStepInputs(context);
+
+            assertTrue(result);
+            assertEquals(context.getCurrentNode().getId(), "nextNode");
+        }
+    }
+
+    @Test
+    public void testPostprocessStepInputs() throws Exception {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+
+        DataDTO dataDTO = new DataDTO.Builder().build();
+        FlowExecutionStep step = new FlowExecutionStep.Builder()
+                .flowId("test-flow-id")
+                .data(dataDTO)
+                .build();
+
+        InputValidationService mockInputValidationService = mock(InputValidationService.class);
+
+        try (MockedStatic<InputValidationService> inputValidationServiceMock =
+                     mockStatic(InputValidationService.class)) {
+            inputValidationServiceMock.when(InputValidationService::getInstance)
+                    .thenReturn(mockInputValidationService);
+
+            boolean result = FlowExecutionEngineUtils.postprocessStepInputs(step, context);
+
+            assertTrue(result);
+        }
+    }
+
+    @Test
+    public void testPreprocessStepInputsWithNonPromptOnlyNode() throws Exception {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+        context.getUserInputData().put("input1", "value1");
+
+        // Create graph config with task execution node (not prompt-only).
+        GraphConfig graphConfig = new GraphConfig();
+        NodeConfig taskNode = new NodeConfig.Builder()
+                .id("taskNode")
+                .type(Constants.NodeTypes.TASK_EXECUTION)
+                .build();
+
+        Map<String, NodeConfig> nodeConfigs = new HashMap<>();
+        nodeConfigs.put("taskNode", taskNode);
+        graphConfig.setNodeConfigs(nodeConfigs);
+        graphConfig.setFirstNodeId("taskNode");
+
+        Map<String, StepDTO> pageMappings = new HashMap<>();
+        pageMappings.put("taskNode", new StepDTO.Builder().build());
+        graphConfig.setNodePageMappings(pageMappings);
+
+        context.setGraphConfig(graphConfig);
+
+        InputValidationService mockInputValidationService = mock(InputValidationService.class);
+
+        try (MockedStatic<InputValidationService> inputValidationServiceMock =
+                     mockStatic(InputValidationService.class)) {
+            inputValidationServiceMock.when(InputValidationService::getInstance)
+                    .thenReturn(mockInputValidationService);
+
+            boolean result = FlowExecutionEngineUtils.preprocessStepInputs(context);
+
+            assertTrue(result);
+            assertNull(context.getCurrentNode());
         }
     }
 
