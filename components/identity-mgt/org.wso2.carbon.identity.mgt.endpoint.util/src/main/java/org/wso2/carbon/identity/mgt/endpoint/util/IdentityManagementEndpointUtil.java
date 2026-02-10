@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -856,9 +857,11 @@ public class IdentityManagementEndpointUtil {
                     } else if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
                         String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                 .getOrganizationId();
-                        basePath = basePath.replace(
-                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
-                                FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                        if (StringUtils.isNotBlank(organizationId)) {
+                            basePath = basePath.replace(
+                                    FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
+                                    FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                        }
                     }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
@@ -1062,7 +1065,14 @@ public class IdentityManagementEndpointUtil {
      */
     public static String getHttpClientResponseString(HttpUriRequestBase request) throws IOException {
 
-        try (CloseableHttpClient httpClient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        CloseableHttpClient httpClient = HTTPClientManager.isConnectionPoolEnabled() ?
+                HTTPClientManager.getHttpClient() :
+                HTTPClientUtils.createClientWithCustomHostnameVerifier().build();
+        if (log.isDebugEnabled()) {
+            log.debug("Using " + (HTTPClientManager.isConnectionPoolEnabled() ? "pooled" : "new")
+                    + " HTTP client for request: " + request.getMethod() + " " + request.getPath());
+        }
+        try {
             return httpClient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
                     try (InputStream inputStream = response.getEntity().getContent();
@@ -1079,6 +1089,10 @@ public class IdentityManagementEndpointUtil {
                 }
                 return null;
             });
+        } finally {
+            if (!HTTPClientManager.isConnectionPoolEnabled()) {
+                httpClient.close();
+            }
         }
     }
 }

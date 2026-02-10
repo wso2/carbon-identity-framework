@@ -32,15 +32,22 @@ import javax.servlet.http.HttpServletRequest;
 public class Request {
 
     private final List<Header> headers = new ArrayList<>();
+    private final String ipAddress;
 
     private Request(Builder builder) {
 
         this.headers.addAll(builder.headers);
+        this.ipAddress = builder.ipAddress;
     }
 
     public List<Header> getHeaders() {
 
         return Collections.unmodifiableList(headers);
+    }
+
+    public String getIpAddress() {
+
+        return ipAddress;
     }
 
     /**
@@ -49,11 +56,13 @@ public class Request {
     public static class Builder {
 
         private final List<Header> headers = new ArrayList<>();
+        private String ipAddress;
 
         public Builder fromHttpRequest(HttpServletRequest request) {
 
             if (request != null) {
                 resolveHeaders(request);
+                this.ipAddress = request.getRemoteAddr();
             }
 
             return this;

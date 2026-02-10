@@ -28,6 +28,7 @@ public enum FlowType {
     PRE_ISSUE_ACCESS_TOKEN("preIssueAccessToken"),
     PRE_UPDATE_PASSWORD("preUpdatePassword"),
     PRE_UPDATE_PROFILE("preUpdateProfile"),
+    PRE_ISSUE_ID_TOKEN("preIssueIdToken"),
     APPROVAL_WORKFLOW("approvalWorkflow");
 
     private final String flowAlias;

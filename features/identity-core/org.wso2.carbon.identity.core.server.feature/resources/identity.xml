@@ -761,6 +761,12 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>true</EnableJWTTokenValidationDuringIntrospection>
 
+        <!-- Configuration for allowing users to enable the x5t#s256 parameter in JWT token -->
+        <JWTX5tS256Enabled>true</JWTX5tS256Enabled>
+
+        <!-- Configuration for allowing users to enable the x5t parameter in JWT token -->
+        <JWTX5tEnabled>false</JWTX5tEnabled>
+
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
         passed in a OAuth based authz request will be dropped.
@@ -1322,6 +1328,13 @@
         <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
+        <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
+        <SCIM2Client>
+            <HttpRetryCount>1</HttpRetryCount>
+            <HttpReadTimeout>5000</HttpReadTimeout>
+            <HttpConnectionTimeout>2000</HttpConnectionTimeout>
+            <HttpConnectionRequestTimeout>2000</HttpConnectionRequestTimeout>
+        </SCIM2Client>
     </OutboundProvisioning>
 
     <Webhooks>
@@ -2942,5 +2955,6 @@
         </SMS>
     </NotificationChannel>
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
+    <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
 </Server>

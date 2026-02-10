@@ -79,7 +79,11 @@ public class ConfigurationConstants {
         INPUT_VALIDATION_CONFIGURATIONS("input-validation-configurations", true),
         FLOW_MGT_CONFIG("flow-mgt-config", true),
         IMPERSONATION_CONFIGURATION("IMPERSONATION_CONFIGURATION", true),
-        COMPATIBILITY_SETTINGS("compatibility-settings", false);
+        // Resource Type for compatibility settings managed through /config-mgt endpoint.
+        COMPATIBILITY_SETTINGS("compatibility-settings", false),
+        FRAUD_DETECTION_CONFIG("fraud-detection", false),
+        // Resource Type for compatibility settings managed through /compatibility-settings endpoint.
+        COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true);
 
         private final String resourceTypeName;
         private final boolean checkOrgVersionWhenInheriting;

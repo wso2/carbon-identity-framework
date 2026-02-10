@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
@@ -62,6 +64,8 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -74,11 +78,13 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -1291,4 +1297,178 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
         boolean enabled = IdentityUtil.isAgentIdentityEnabled();
         assertFalse(enabled, "Should return false when agent identity config is not set");
 }
+
+    @Test
+    public void testValidateX5CLength() {
+
+        // Test case 1: Invalid JWT format (less than 2 parts).
+        String invalidJwt = "invalidjwt";
+        IdentityUtil.validateX5CLength(invalidJwt); // Should return early without error.
+
+        // Test case 2: JWT with only header part.
+        String onlyHeaderJwt = "eyJhbGciOiJSUzI1NiJ9";
+        IdentityUtil.validateX5CLength(onlyHeaderJwt); // Should return early without error.
+
+        // Test case 3: Invalid Base64 encoding in JWT header.
+        String invalidBase64Jwt = "invalid@base64!.payload.signature";
+        IdentityUtil.validateX5CLength(invalidBase64Jwt); // Should handle exception and return.
+
+        // Test case 4: Valid Base64 but non-JSON header.
+        String nonJsonHeader = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("not json".getBytes(StandardCharsets.UTF_8));
+        String nonJsonJwt = nonJsonHeader + ".payload.signature";
+        IdentityUtil.validateX5CLength(nonJsonJwt); // Should handle JSON syntax exception.
+
+        // Test case 5: Valid JSON header but malformed JSON.
+        String malformedJsonHeader = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"alg\":\"RS256\", \"incomplete\":".getBytes(StandardCharsets.UTF_8));
+        String malformedJsonJwt = malformedJsonHeader + ".payload.signature";
+        IdentityUtil.validateX5CLength(malformedJsonJwt); // Should handle JSON syntax exception.
+
+        // Test case 6: Valid header without x5c field.
+        String validHeaderWithoutX5c = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
+        String encodedValidHeader = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(validHeaderWithoutX5c.getBytes(StandardCharsets.UTF_8));
+        String jwtWithoutX5c = encodedValidHeader + ".payload.signature";
+        IdentityUtil.validateX5CLength(jwtWithoutX5c); // Should pass without issues.
+
+        // Test case 7: Valid header with x5c field under limit (should pass).
+        String validHeaderWithSmallX5c = "{\"alg\":\"RS256\",\"typ\":\"JWT\",\"x5c\":[\"smallcert\"]}";
+        String encodedValidHeaderWithSmallX5c = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(validHeaderWithSmallX5c.getBytes(StandardCharsets.UTF_8));
+        String jwtWithSmallX5c = encodedValidHeaderWithSmallX5c + ".payload.signature";
+        IdentityUtil.validateX5CLength(jwtWithSmallX5c); // Should pass validation.
+
+        // Test case 8: Valid header with x5c field over limit (should log error).
+        // Create a large x5c array that exceeds 20000 characters.
+        StringBuilder largeX5cArray = new StringBuilder("[");
+        for (int i = 0; i < 100; i++) {
+            if (i > 0) largeX5cArray.append(",");
+            largeX5cArray.append("\"");
+            // Create a string of 200 'a' characters.
+            for (int j = 0; j < 200; j++) {
+                largeX5cArray.append("a");
+            }
+            largeX5cArray.append("\"");
+        }
+        largeX5cArray.append("]");
+        String validHeaderWithLargeX5c = "{\"alg\":\"RS256\",\"typ\":\"JWT\",\"x5c\":" +
+                                         largeX5cArray + "}";
+        String encodedValidHeaderWithLargeX5c = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(validHeaderWithLargeX5c.getBytes(StandardCharsets.UTF_8));
+        String jwtWithLargeX5c = encodedValidHeaderWithLargeX5c + ".payload.signature";
+        IdentityUtil.validateX5CLength(jwtWithLargeX5c); // Should log error for exceeding limit.
+
+        // Test case 10: Empty string input.
+        IdentityUtil.validateX5CLength("");
+
+        // Test case 11: Single dot JWT format.
+        IdentityUtil.validateX5CLength(".");
+    }
+
+    @Test
+    public void testConvertToJson() {
+
+        // Test case 1: Valid JSON string with complex object with depth 3.
+        // This object contains nested objects and arrays.
+        Map<String, Object> level3Map = new HashMap<>();
+        level3Map.put("deepKey", "deepValue");
+        level3Map.put("deepNumber", 42);
+
+        Map<String, Object> level2Map = new HashMap<>();
+        level2Map.put("nestedKey", "nestedValue");
+        level2Map.put("level3", level3Map);
+        level2Map.put("nestedArray", Arrays.asList("item1", "item2", 100));
+
+        Map<String, Object> level1Map = new HashMap<>();
+        level1Map.put("topKey", "topValue");
+        level1Map.put("level2", level2Map);
+        level1Map.put("topArray", Arrays.asList(1, 2, 3));
+
+        Object result1 = IdentityUtil.convertToJson(level1Map);
+        assertTrue(result1 instanceof JSONObject, "Result should be a JSONObject.");
+        JSONObject jsonResult1 = (JSONObject) result1;
+        assertEquals(jsonResult1.get("topKey"), "topValue");
+        assertTrue(jsonResult1.get("level2") instanceof JSONObject, "Nested map should be converted to JSONObject.");
+        JSONObject level2Json = (JSONObject) jsonResult1.get("level2");
+        assertTrue(level2Json.get("level3") instanceof JSONObject, "Deep nested map should be converted to JSONObject.");
+        assertTrue(level2Json.get("nestedArray") instanceof JSONArray,
+                "Nested array should be converted to JSONArray.");
+
+        // Test case 2: Valid JSON array string with multiple elements which can be objects, primitives, or arrays.
+        Map<String, Object> arrayElementMap = new HashMap<>();
+        arrayElementMap.put("name", "John");
+        arrayElementMap.put("age", 30);
+
+        List<Object> inputList = new ArrayList<>();
+        inputList.add(arrayElementMap);
+        inputList.add("stringElement");
+        inputList.add(123);
+        inputList.add(Arrays.asList("nested", "array"));
+
+        Object result2 = IdentityUtil.convertToJson(inputList);
+        assertTrue(result2 instanceof JSONArray, "Result should be a JSONArray.");
+        JSONArray jsonResult2 = (JSONArray) result2;
+        assertEquals(jsonResult2.size(), 4, "Array should have 4 elements.");
+        assertTrue(jsonResult2.get(0) instanceof JSONObject, "First element should be converted to JSONObject.");
+        assertEquals(jsonResult2.get(1), "stringElement");
+        assertEquals(jsonResult2.get(2), 123);
+        assertTrue(jsonResult2.get(3) instanceof JSONArray, "Nested list should be converted to JSONArray.");
+
+        // Test case 3: Invalid JSON string (non-map, non-list object should be returned as-is).
+        String primitiveString = "simpleString";
+        Object result3 = IdentityUtil.convertToJson(primitiveString);
+        assertEquals(result3, primitiveString, "Primitive string should be returned as-is.");
+
+        Integer primitiveInt = 42;
+        Object result4 = IdentityUtil.convertToJson(primitiveInt);
+        assertEquals(result4, primitiveInt, "Primitive integer should be returned as-is.");
+
+        Object nullResult = IdentityUtil.convertToJson(null);
+        assertNull(nullResult, "Null input should return null.");
+
+        // Test case 4: Empty Map should be converted to an empty JSONObject.
+        Map<String, Object> emptyMap = new HashMap<>();
+        Object result5 = IdentityUtil.convertToJson(emptyMap);
+        assertTrue(result5 instanceof JSONObject, "Empty map should be converted to JSONObject.");
+        JSONObject emptyJsonObject = (JSONObject) result5;
+        assertTrue(emptyJsonObject.isEmpty(), "Converted JSONObject should be empty.");
+
+        // Test case 5: Empty List should be converted to an empty JSONArray.
+        List<Object> emptyList = new ArrayList<>();
+        Object result6 = IdentityUtil.convertToJson(emptyList);
+        assertTrue(result6 instanceof JSONArray, "Empty list should be converted to JSONArray.");
+        JSONArray emptyJsonArray = (JSONArray) result6;
+        assertTrue(emptyJsonArray.isEmpty(), "Converted JSONArray should be empty.");
+
+        // Test case 6: Map with null values should handle null values correctly.
+        Map<String, Object> mapWithNulls = new HashMap<>();
+        mapWithNulls.put("key1", "value1");
+        mapWithNulls.put("key2", null);
+        mapWithNulls.put("key3", "value3");
+
+        Object result7 = IdentityUtil.convertToJson(mapWithNulls);
+        assertTrue(result7 instanceof JSONObject, "Map with null values should be converted to JSONObject.");
+        JSONObject jsonWithNulls = (JSONObject) result7;
+        assertEquals(jsonWithNulls.size(), 3, "JSONObject should have 3 entries.");
+        assertEquals(jsonWithNulls.get("key1"), "value1");
+        assertNull(jsonWithNulls.get("key2"), "Null value in map should remain null in JSONObject.");
+        assertEquals(jsonWithNulls.get("key3"), "value3");
+
+        // Test case 7: List with null elements should handle null elements correctly.
+        List<Object> listWithNulls = new ArrayList<>();
+        listWithNulls.add("element1");
+        listWithNulls.add(null);
+        listWithNulls.add("element3");
+        listWithNulls.add(null);
+
+        Object result8 = IdentityUtil.convertToJson(listWithNulls);
+        assertTrue(result8 instanceof JSONArray, "List with null elements should be converted to JSONArray.");
+        JSONArray jsonArrayWithNulls = (JSONArray) result8;
+        assertEquals(jsonArrayWithNulls.size(), 4, "JSONArray should have 4 elements.");
+        assertEquals(jsonArrayWithNulls.get(0), "element1");
+        assertNull(jsonArrayWithNulls.get(1), "Null element in list should remain null in JSONArray.");
+        assertEquals(jsonArrayWithNulls.get(2), "element3");
+        assertNull(jsonArrayWithNulls.get(3), "Null element in list should remain null in JSONArray.");
+    }
 }

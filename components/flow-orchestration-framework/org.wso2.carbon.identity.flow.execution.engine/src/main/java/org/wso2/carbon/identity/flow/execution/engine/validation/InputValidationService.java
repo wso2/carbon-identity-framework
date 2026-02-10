@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.validation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -376,6 +377,14 @@ public class InputValidationService {
         }
 
         if (USERNAME_CLAIM_URI.equals(key)) {
+            // Check whether the username validation is enabled.
+            boolean isUsernameValidationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED));
+            if (!isUsernameValidationEnabled) {
+                LOG.debug("Username validation is disabled. Skip adding validation rules for the username.");
+                return new ArrayList<>();
+            }
+
             // Use "username" as the key to fetch the input validation configuration.
             key = USERNAME;
         }

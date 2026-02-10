@@ -259,6 +259,9 @@ public class IdentityApplicationConstants {
             public static final String QUERY_PARAMS = "commonAuthQueryParams";
             public static final String IS_PKCE_ENABLED = "IsPKCEEnabled";
             public static final Object IS_PKCE_ENABLED_PARAM_NAME = "oidcPKCEEnabled";
+            public static final String ENABLE_JWT_SCOPE_AS_ARRAY = "enableJwtScopeAsArray";
+            public static final String ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT = "false";
+
         }
 
         /**

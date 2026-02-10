@@ -49,6 +49,8 @@ public class Constants {
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
+    public static final String IS_USERNAME_VALIDATION_ENABLED = "InputValidation.Username.Enabled";
+
     private Constants() {
 
     }
@@ -151,6 +153,9 @@ public class Constants {
         ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE("65029",
                 "Error while resolving tenant domain.",
                 "Error occurred while resolving the tenant domain from the organization id: %s."),
+        ERROR_CODE_TENANT_ID_RETRIEVE_FAILURE("65030",
+                "Error while retrieving tenant ID.",
+                "Error occurred while retrieving the tenant ID for the resolved tenant domain."),
 
 
         // Client errors.
