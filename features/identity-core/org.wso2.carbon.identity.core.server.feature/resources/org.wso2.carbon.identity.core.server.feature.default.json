@@ -1936,6 +1936,7 @@
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
   "console.guest_user.scopes.update": ["internal_guest_mgt_invite_update"],
   "console.guest_user.scopes.delete": ["internal_guest_mgt_invite_delete", "internal_guest_mgt_user_delete"],
+  "console.onboarding_wizard.enabled": false,
   "console.parent_user_invitation.enabled": true,
   "console.parent_user_invitation.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.parent_user_invitation.scopes.read": ["internal_guest_mgt_invite_list"],
