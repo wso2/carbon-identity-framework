@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,19 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.cache;
+package org.wso2.carbon.identity.debug.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventContext;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventManager;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionLifecycleEvent;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
+import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventContext;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventManager;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionLifecycleEvent;
+import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 
 /**
  * In-memory cache for debug callback results.
@@ -38,17 +35,11 @@ import java.util.concurrent.TimeUnit;
  * Uses ConcurrentHashMap for better performance and thread-safety.
  * Results are automatically cleaned up after TTL expiry (default: 15 minutes).
  */
-/**
- * Persistence wrapper for debug callback results.
- * Delegates to DebugSessionDAO for DB storage.
- * Replaces the previous in-memory cache.
- */
 public final class DebugResultCache {
 
     private static final Log LOG = LogFactory.getLog(DebugResultCache.class);
-    // Use the DAO implementation directly (in a real OSGi env, this should be a
-    // service reference)
-    private static final org.wso2.carbon.identity.debug.framework.core.dao.DebugSessionDAO DAO = new org.wso2.carbon.identity.debug.framework.core.dao.impl.DebugSessionDAOImpl();
+    // Use the DAO implementation directly (in a real OSGi env, this should be a service reference).
+    private static final DebugSessionDAO DAO = new DebugSessionDAOImpl();
 
     /**
      * persistent cache for debug results.
@@ -57,6 +48,7 @@ public final class DebugResultCache {
      * @param result
      */
     public static void add(String state, String result) {
+
         add(state, result, null, null);
     }
 
@@ -77,7 +69,7 @@ public final class DebugResultCache {
 
         try {
             String normalizedState = normalizeSessionId(state);
-            org.wso2.carbon.identity.debug.framework.model.DebugSessionData sessionData = new org.wso2.carbon.identity.debug.framework.model.DebugSessionData();
+            DebugSessionData sessionData = new DebugSessionData();
             sessionData.setSessionId(normalizedState);
             sessionData.setResultJson(result);
             sessionData.setStatus("COMPLETED");
@@ -87,11 +79,10 @@ public final class DebugResultCache {
             sessionData.setResourceId(resourceId);
 
             try {
-                // Use atomic upsert logic
+                // Use atomic upsert logic.
                 DAO.upsertDebugSession(sessionData);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result persisted to DB (upserted) for state: "
-                            + state + ", normalized: " + normalizedState);
+                    LOG.debug("Debug result persisted to DB for the given state.");
                 }
             } catch (Exception e) {
                 LOG.error("Error upserting debug session: " + e.getMessage(), e);
@@ -108,13 +99,16 @@ public final class DebugResultCache {
         }
         try {
             String normalizedState = normalizeSessionId(state);
-            LOG.info("Retrieving debug result from DB - original: "
-                    + state + ", normalized: " + normalizedState);
-            org.wso2.carbon.identity.debug.framework.model.DebugSessionData data = DAO.getDebugSession(normalizedState);
+            if (LOG.isDebugEnabled()) {
+                LOG.info("Retrieving debug result from DB.");
+            }
+            DebugSessionData data = DAO.getDebugSession(normalizedState);
             if (data != null && data.getResultJson() != null) {
-                LOG.info("Debug result found in DB for state: " + normalizedState);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Debug result found in DB.");
+                }
 
-                // Fire ON_RETRIEVED event
+                // Fire ON_RETRIEVED event.
                 try {
                     DebugSessionEventContext context = DebugSessionEventContext.builder()
                             .sessionId(normalizedState)
@@ -128,8 +122,9 @@ public final class DebugResultCache {
 
                 return data.getResultJson();
             } else {
-                LOG.info("No debug result found in DB for state: " + normalizedState
-                        + " (data: " + (data != null ? "exists but null result" : "null") + ")");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No debug result found in DB.");
+                }
             }
         } catch (Exception e) {
             LOG.error("Error retrieving debug result from DB: " + e.getMessage(), e);
@@ -144,12 +139,11 @@ public final class DebugResultCache {
         }
         try {
             String normalizedState = normalizeSessionId(state);
-            // For remove, we might actually want to DELETE the session row or just clear
-            // result?
+
             // Assuming delete for cleanup.
             DAO.deleteDebugSession(normalizedState);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug session deleted from DB: " + state);
+                LOG.debug("Debug session deleted from DB.");
             }
         } catch (Exception e) {
             LOG.error("Error deleting debug result from DB: " + e.getMessage(), e);
@@ -157,16 +151,19 @@ public final class DebugResultCache {
     }
 
     public static void clear() {
-        // Clearing DB table not supported/recommended via this API
+
+        // Clearing DB table not supported/recommended via this API.
         LOG.warn("Clear all cache not supported in DB mode");
     }
 
     public static int size() {
-        // Not efficiently supported
+
+        // Not efficiently supported.
         return 0;
     }
 
     private DebugResultCache() {
+
         // Prevent instantiation.
     }
 
@@ -175,7 +172,7 @@ public final class DebugResultCache {
      * Ensures consistent storage and retrieval regardless of format.
      *
      * @param sessionId The session ID to normalize.
-     * @return Normalized session ID (e.g., debug-32charuuid).
+     * @return Normalized session ID.
      */
     private static String normalizeSessionId(String sessionId) {
 

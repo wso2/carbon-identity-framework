@@ -1,12 +1,12 @@
-/*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,23 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.extension;
+package org.wso2.carbon.identity.debug.framework.extension;
 
 /**
  * Service interface for protocol-specific debug implementations.
- * 
- * Plugins (e.g., identity-outbound-auth-oidc, identity-outbound-auth-google)
- * implement this interface and register it as an OSGi service to advertise
- * their debug capabilities without requiring reflection or hardcoded class names.
- * 
- * This enables the debug-framework to remain agnostic of specific protocol implementations
- * while still providing protocol-specific debug flows.
  */
 public interface DebugProtocolProvider {
 
     /**
      * Gets the protocol type identifier for this provider.
-     * Examples: "OAUTH2_OIDC", "GOOGLE", "SAML", "GITHUB"
      * 
      * Used for logging, identification, and filtering providers.
      *

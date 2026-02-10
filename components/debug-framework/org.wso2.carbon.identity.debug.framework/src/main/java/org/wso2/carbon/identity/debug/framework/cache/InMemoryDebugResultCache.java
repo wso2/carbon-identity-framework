@@ -1,28 +1,27 @@
-/*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.cache;
+package org.wso2.carbon.identity.debug.framework.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.core.DebugFrameworkConstants;
-import org.wso2.carbon.identity.debug.framework.core.DebugResultCacheProvider;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.exception.CacheException;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 
@@ -93,7 +92,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
         try {
             cache.put(key, new CacheEntry(result, expiryMinutes));
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug result cached with key: " + key);
+                LOG.debug("Debug result cached.");
             }
         } catch (Exception e) {
             throw new CacheException("CACHE_WRITE_ERROR", "Failed to cache result: " + e.getMessage(), e);
@@ -109,7 +108,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
         try {
             cache.put(key, new CacheEntry(json, expiryMinutes));
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug result JSON cached with key: " + key);
+                LOG.debug("Debug result JSON cached.");
             }
         } catch (Exception e) {
             throw new CacheException("CACHE_WRITE_ERROR", "Failed to cache JSON: " + e.getMessage(), e);
@@ -126,7 +125,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
             CacheEntry entry = cache.get(key);
             if (entry == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result not found in cache for key: " + key);
+                    LOG.debug("Debug result not found in cache.");
                 }
                 return null;
             }
@@ -134,7 +133,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
             if (entry.isExpired()) {
                 cache.remove(key);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result expired for key: " + key);
+                    LOG.debug("Debug result expired.");
                 }
                 return null;
             }
@@ -142,7 +141,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
             if (entry.data instanceof DebugResult) {
                 return (DebugResult) entry.data;
             } else if (entry.data instanceof String) {
-                // Try to deserialize JSON string to DebugResult
+                // Try to deserialize JSON string to DebugResult.
                 return MAPPER.readValue((String) entry.data, DebugResult.class);
             }
 
@@ -162,7 +161,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
             CacheEntry entry = cache.get(key);
             if (entry == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result JSON not found in cache for key: " + key);
+                    LOG.debug("Debug result JSON not found in cache.");
                 }
                 return null;
             }
@@ -170,7 +169,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
             if (entry.isExpired()) {
                 cache.remove(key);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug result JSON expired for key: " + key);
+                    LOG.debug("Debug result JSON expired.");
                 }
                 return null;
             }
@@ -178,7 +177,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
             if (entry.data instanceof String) {
                 return (String) entry.data;
             } else if (entry.data instanceof DebugResult) {
-                // Serialize DebugResult to JSON
+                // Serialize DebugResult to JSON.
                 return MAPPER.writeValueAsString(entry.data);
             }
 
@@ -197,7 +196,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
         try {
             cache.remove(key);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug result removed from cache with key: " + key);
+                LOG.debug("Debug result removed from cache.");
             }
         } catch (Exception e) {
             throw new CacheException("CACHE_DELETE_ERROR", "Failed to remove result: " + e.getMessage(), e);
@@ -265,7 +264,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
      * Starts a background scheduler for periodic cache cleanup.
      */
     private void startCleanupScheduler() {
-        
+
         try {
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r);
@@ -276,8 +275,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
                     this::maintain,
                     expiryMinutes,
                     expiryMinutes,
-                    TimeUnit.MINUTES
-            );
+                    TimeUnit.MINUTES);
             LOG.info("Debug result cache cleanup scheduler started");
         } catch (Exception e) {
             LOG.warn("Failed to start cache cleanup scheduler: " + e.getMessage(), e);

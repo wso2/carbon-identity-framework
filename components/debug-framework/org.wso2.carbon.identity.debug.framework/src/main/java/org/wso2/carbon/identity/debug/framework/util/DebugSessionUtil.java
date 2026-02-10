@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.util;
+package org.wso2.carbon.identity.debug.framework.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -56,8 +56,7 @@ public class DebugSessionUtil {
      * @param inputStream The InputStream containing the serialized object.
      * @return The deserialized object.
      * @throws IOException            If deserialization fails.
-     * @throws ClassNotFoundException If the class of the serialized object cannot
-     *                                be found.
+     * @throws ClassNotFoundException If the class of the serialized object cannot be found.
      */
     public static Object deserializeObject(InputStream inputStream) throws IOException, ClassNotFoundException {
 

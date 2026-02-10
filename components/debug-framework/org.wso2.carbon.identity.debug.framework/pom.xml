@@ -91,10 +91,7 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.debug.framework.internal,
-                            org.wso2.carbon.identity.debug.framework.core.*; version="${project.version}",
-                            org.wso2.carbon.identity.debug.framework.core.registry; version="${project.version}",
-                            org.wso2.carbon.identity.debug.framework.model.*; version="${project.version}",
-                            org.wso2.carbon.identity.debug.framework.exception.*; version="${project.version}"
+                            org.wso2.carbon.identity.debug.framework.*; version="${project.version}"
                         </Export-Package>
                         <Import-Package>
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",

@@ -1,17 +1,17 @@
-/*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.debug.idp.core.handler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugContextProvider;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugResourceHandler;
+import org.wso2.carbon.identity.debug.framework.extension.DebugContextProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
+import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 
 import java.util.HashMap;
@@ -45,6 +45,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
 
     @Override
     public Map<String, Object> handleDebugRequest(Map<String, Object> debugRequest) {
+
         try {
             String resourceId = (String) debugRequest.get("resourceId");
             String resourceType = (String) debugRequest.get("resourceType");
@@ -89,10 +90,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      *
      * @param resourceId   The resource ID.
      * @param resourceType The resource type.
-     * @return The resolved context map, or an error response map if resolution
-     *         fails.
+     * @return The resolved context map, or an error response map if resolution fails. 
      */
     private Map<String, Object> resolveDebugContextSafely(String resourceId, String resourceType) {
+
         DebugContextProvider contextProvider = DebugProtocolRouter.getContextProviderForResource(resourceId);
 
         if (contextProvider == null) {
@@ -129,6 +130,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @return Error response map.
      */
     private Map<String, Object> createErrorResponse(String status, String message) {
+
         Map<String, Object> errorResult = new HashMap<>();
         errorResult.put(STATUS, status);
         errorResult.put(MESSAGE, message);
@@ -143,6 +145,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @return Map containing the debug result data.
      */
     private Map<String, Object> convertDebugResultToMap(DebugResult debugResult) {
+
         Map<String, Object> resultMap = new HashMap<>();
 
         if (debugResult == null) {

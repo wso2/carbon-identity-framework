@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,9 +29,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionCleanupListener;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventManager;
+import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionCleanupListener;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventManager;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 
 /**
  * OSGi service component for Debug Framework.
@@ -46,6 +48,7 @@ public class DebugServiceComponent {
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
 
     private DebugSessionCleanupListener cleanupListener;
+    private DebugSessionCleanupService cleanupService;
 
     @Activate
     protected void activate(ComponentContext context) throws DebugFrameworkException {
@@ -66,9 +69,13 @@ public class DebugServiceComponent {
                     null);
 
             // Register the cleanup listener to delete database records after flow
-            // completion
+            // completion.
             cleanupListener = new DebugSessionCleanupListener();
             DebugSessionEventManager.getInstance().registerListener(cleanupListener);
+
+            // Start the periodic cleanup service for expired sessions.
+            cleanupService = new DebugSessionCleanupService();
+            cleanupService.activate();
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             if (LOG.isDebugEnabled()) {
@@ -85,12 +92,17 @@ public class DebugServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        // Unregister the cleanup listener
+        // Unregister the cleanup listener.
         if (cleanupListener != null) {
             DebugSessionEventManager.getInstance().unregisterListener(cleanupListener);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugSessionCleanupListener unregistered");
             }
+        }
+
+        // Shutdown the cleanup service.
+        if (cleanupService != null) {
+            cleanupService.deactivate();
         }
 
         LOG.info("Debug Framework OSGi component deactivated");
@@ -99,18 +111,22 @@ public class DebugServiceComponent {
     /**
      * Sets the DebugProtocolProvider.
      * Called by OSGi when a protocol module registers a DebugProtocolProvider.
-     * Multiple providers can be registered (one per protocol: OIDC, Google, SAML,
-     * etc.).
+     * Multiple providers can be registered.
+     * 
      * 
      * Uses 0..* cardinality (MULTIPLE is optional by default) so the framework
      * can activate even if no providers are registered initially. Providers are
      * discovered dynamically at runtime via OSGi service lookups.
      *
-     * @param provider the DebugProtocolProvider instance
+     * @param provider the DebugProtocolProvider instance.
      */
-    @Reference(name = "debug.protocol.provider", service = org.wso2.carbon.identity.debug.framework.core.extension.DebugProtocolProvider.class, cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unsetDebugProtocolProvider")
-    protected void setDebugProtocolProvider(
-            org.wso2.carbon.identity.debug.framework.core.extension.DebugProtocolProvider provider) {
+    @Reference(name = "debug.protocol.provider", 
+            service = DebugProtocolProvider.class, 
+            cardinality = ReferenceCardinality.MULTIPLE, 
+            policy = ReferencePolicy.DYNAMIC, 
+            unbind = "unsetDebugProtocolProvider")
+
+    protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
 
         if (provider != null) {
             String protocolType = provider.getProtocolType();
@@ -126,11 +142,10 @@ public class DebugServiceComponent {
      * Unsets the DebugProtocolProvider.
      * Called by OSGi when a protocol module deactivates or unregisters its
      * provider.
-     *
-     * @param provider the DebugProtocolProvider instance
+     * 
+     * @param provider the DebugProtocolProvider instance.
      */
-    protected void unsetDebugProtocolProvider(
-            org.wso2.carbon.identity.debug.framework.core.extension.DebugProtocolProvider provider) {
+    protected void unsetDebugProtocolProvider(DebugProtocolProvider provider) {
 
         if (provider != null) {
             String protocolType = provider.getProtocolType();
@@ -145,9 +160,14 @@ public class DebugServiceComponent {
     /**
      * Sets the ClaimMetadataManagementService.
      *
-     * @param service the ClaimMetadataManagementService instance
+     * @param service the ClaimMetadataManagementService instance.
      */
-    @Reference(name = "claimMetadataManagementService", service = ClaimMetadataManagementService.class, cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, unbind = "unsetClaimMetadataManagementService")
+    @Reference(name = "claimMetadataManagementService", 
+            service = ClaimMetadataManagementService.class, 
+            cardinality = ReferenceCardinality.OPTIONAL, 
+            policy = ReferencePolicy.DYNAMIC, 
+            unbind = "unsetClaimMetadataManagementService")
+
     protected void setClaimMetadataManagementService(ClaimMetadataManagementService service) {
 
         if (LOG.isDebugEnabled()) {
@@ -160,7 +180,7 @@ public class DebugServiceComponent {
      * Unsets the ClaimMetadataManagementService.
      *
      * @param claimMetadataManagementService the ClaimMetadataManagementService
-     *                                       instance
+     *                                       instance.
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 

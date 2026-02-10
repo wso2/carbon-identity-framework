@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.extension;
+package org.wso2.carbon.identity.debug.framework.extension;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.debug.framework.core.DebugFrameworkConstants;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventContext;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionEventManager;
-import org.wso2.carbon.identity.debug.framework.core.event.DebugSessionLifecycleEvent;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventContext;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventManager;
+import org.wso2.carbon.identity.debug.framework.event.DebugSessionLifecycleEvent;
 
 import java.io.IOException;
 import java.util.Map;
@@ -36,20 +36,6 @@ import javax.servlet.http.HttpServletResponse;
  * Abstract base processor for debug flow callback handling.
  * Implements template method pattern for generic authentication/authorization
  * debug flow processing.
- * 
- * This framework is designed to be completely protocol-agnostic and
- * resource-agnostic.
- * It can be extended for debugging any authentication flow (OAuth2, SAML, OIDC,
- * custom protocols, etc.)
- * with any resource type (IdP, API, database, etc.).
- * 
- * Generic orchestration flow:
- * 1. validateCallback() - Validate callback parameters
- * 2. processAuthentication() - Process authentication/authorization
- * 3. extractDebugData() - Extract data for debugging
- * 4. validateDebugData() - Validate extracted data
- * 5. buildAndCacheDebugResult() - Build final debug result
- * 6. sendDebugResponse() - Send response to client
  *
  * Subclasses MUST implement all abstract methods with their specific logic.
  * Subclasses should NOT make assumptions about protocols or resource types.
@@ -66,10 +52,10 @@ public abstract class DebugProcessor {
      * All specific implementations are delegated to subclass methods.
      * 
      * Fires lifecycle events:
-     * - ON_CREATING: At the start of callback processing
-     * - ON_COMPLETING: Before sending the final response
-     * - ON_COMPLETION: After successful completion
-     * - ON_ERROR: When an error occurs during processing
+     * - ON_CREATING: At the start of callback processing.
+     * - ON_COMPLETING: Before sending the final response.
+     * - ON_COMPLETION: After successful completion.
+     * - ON_ERROR: When an error occurs during processing.
      *
      * @param request  HttpServletRequest containing callback parameters.
      * @param response HttpServletResponse for sending results.
@@ -84,16 +70,16 @@ public abstract class DebugProcessor {
         String resourceId = null;
 
         try {
-            // Extract protocol-specific parameters (OAuth2: state, SAML: RelayState, etc.)
+            // Extract protocol-specific parameters.
             state = request.getParameter("state");
             if (state == null || state.trim().isEmpty()) {
                 state = (String) context.getProperty("DEBUG_STATE");
             }
 
-            // Extract session ID from state (state format: "debug-{sessionId}")
+            // Extract session ID from state (state format: "debug-{sessionId}").
             sessionId = extractSessionIdFromState(state);
 
-            // Extract resource identifier (IdP ID, API ID, etc.)
+            // Extract resource identifier.
             resourceId = extractResourceId(context);
 
             // Fire ON_CREATING event at the start of processing
@@ -125,23 +111,23 @@ public abstract class DebugProcessor {
             // Step 5: Build and cache final debug result (protocol/resource-specific).
             buildAndCacheDebugResult(context, state);
 
-            // Fire ON_COMPLETING event before sending response
+            // Fire ON_COMPLETING event before sending response.
             fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETING, true, null);
 
             // Step 6: Send response to client.
             sendDebugResponse(response, state, resourceId);
 
-            // Fire ON_COMPLETION event after successful completion
+            // Fire ON_COMPLETION event after successful completion.
             fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETION, true, null);
 
         } catch (Exception e) {
             LOG.error("Unexpected error processing debug callback.", e);
             handleUnexpectedError(e, context);
 
-            // Fire ON_ERROR event
+            // Fire ON_ERROR event.
             fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_ERROR, false, e.getMessage());
 
-            // Try to extract state for error response
+            // Try to extract state for error response.
             if (state == null) {
                 state = request.getParameter("state");
                 if (state == null || state.trim().isEmpty()) {
@@ -153,7 +139,7 @@ public abstract class DebugProcessor {
             }
             sendDebugResponse(response, state, resourceId);
 
-            // Fire ON_COMPLETION event even on error (for cleanup)
+            // Fire ON_COMPLETION event even on error (for cleanup).
             fireLifecycleEvent(sessionId, DebugSessionLifecycleEvent.ON_COMPLETION, false, e.getMessage());
         }
     }
@@ -222,9 +208,9 @@ public abstract class DebugProcessor {
             return null;
         }
 
-        // State format: "debug-{sessionId}"
+        // State format: "debug-{sessionId}".
         if (state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
-            return state; // Return the full state as session ID (includes prefix)
+            return state; // Return the full state as session ID (includes prefix).
         }
 
         return state;
@@ -240,7 +226,7 @@ public abstract class DebugProcessor {
      */
     protected String extractResourceId(AuthenticationContext context) {
 
-        // Try common property names for resource ID
+        // Try common property names for resource ID.
         Object resourceId = context.getProperty("RESOURCE_ID");
         if (resourceId == null) {
             resourceId = context.getProperty("IDP_RESOURCE_ID");
@@ -256,9 +242,9 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific validation logic.
      * 
      * Examples:
-     * - OAuth2: Validate authorization code, state parameter, error responses
-     * - SAML: Validate SAMLResponse, RelayState
-     * - Custom: Validate any protocol-specific parameters
+     * - OAuth2: Validate authorization code, state parameter, error responses.
+     * - SAML: Validate SAMLResponse, RelayState.
+     * - Custom: Validate any protocol-specific parameters.
      *
      * @param request  HttpServletRequest containing callback parameters.
      * @param context  AuthenticationContext for storing validation state.
@@ -274,9 +260,9 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific authentication logic.
      * 
      * Examples:
-     * - OAuth2: Exchange authorization code for tokens
-     * - SAML: Validate and process SAML assertion
-     * - Custom: Implement protocol-specific authentication
+     * - OAuth2: Exchange authorization code for tokens.
+     * - SAML: Validate and process SAML assertion..
+     * - Custom: Implement protocol-specific authentication.
      *
      * @param request  HttpServletRequest containing authentication parameters.
      * @param context  AuthenticationContext for storing authentication state.
@@ -292,9 +278,9 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific data extraction logic.
      * 
      * Examples:
-     * - OAuth2: Extract claims from ID token and access token
-     * - SAML: Extract attributes from SAML assertion
-     * - Custom: Extract any protocol-specific debug data
+     * - OAuth2: Extract claims from ID token and access token.
+     * - SAML: Extract attributes from SAML assertion.
+     * - Custom: Extract any protocol-specific debug data.
      *
      * @param context AuthenticationContext containing authentication results.
      * @return Map of extracted debug data (key-value pairs).
@@ -306,9 +292,9 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific validation logic.
      * 
      * Examples:
-     * - OAuth2: Validate required claims are present
-     * - SAML: Validate required attributes are present
-     * - Custom: Validate protocol-specific data requirements
+     * - OAuth2: Validate required claims are present.
+     * - SAML: Validate required attributes are present.
+     * - Custom: Validate protocol-specific data requirements.
      *
      * @param debugData Map of extracted debug data.
      * @param context   AuthenticationContext.
@@ -334,9 +320,9 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement to send appropriate HTTP response.
      * 
      * Examples:
-     * - HTTP redirect to debug result page
-     * - JSON response with debug data
-     * - Custom response format
+     * - HTTP redirect to debug result page.
+     * - JSON response with debug data.
+     * - Custom response format.
      *
      * @param response   HttpServletResponse for sending the response.
      * @param state

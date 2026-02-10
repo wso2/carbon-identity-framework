@@ -1,41 +1,37 @@
-/*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.dao.impl;
+package org.wso2.carbon.identity.debug.framework.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
-import org.wso2.carbon.identity.debug.framework.core.dao.DebugSessionDAO;
+import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
-
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 /**
  * Implementation of the DebugSessionDAO using JdbcTemplate.
@@ -49,15 +45,20 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SQL_GET_DEBUG_SESSION = "SELECT SESSION_ID, STATUS, SESSION_DATA, " +
-            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
+            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, " +
+            "RESOURCE_ID FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
 
     private static final String SQL_UPDATE_DEBUG_SESSION = "UPDATE IDN_DEBUG_SESSION SET " +
             "STATUS = ?, RESULT_JSON = ? WHERE SESSION_ID = ?";
 
     private static final String SQL_DELETE_DEBUG_SESSION = "DELETE FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
 
+    private static final String SQL_DELETE_EXPIRED_DEBUG_SESSIONS 
+        = "DELETE FROM IDN_DEBUG_SESSION WHERE EXPIRY_TIME < ?";
+
     // MERGE statement for atomic upsert (H2 and most databases support this)
-    private static final String SQL_UPSERT_DEBUG_SESSION = "MERGE INTO IDN_DEBUG_SESSION (SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, "
+    private static final String SQL_UPSERT_DEBUG_SESSION 
+        = "MERGE INTO IDN_DEBUG_SESSION (SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, "
             +
             "CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) KEY (SESSION_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -183,6 +184,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     @Override
     public void updateDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
+
         // Keeps the existing status/result update logic
         // If resource type/id update is needed, this method should also be updated
         // For now, only upsert handles the new fields effectively for the save flow
@@ -209,6 +211,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     @Override
     public void deleteDebugSession(String sessionId) throws DebugFrameworkServerException {
+
         // Implementation remains same
         String normalizedSessionId = normalizeSessionId(sessionId);
 
@@ -294,6 +297,33 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             throw new DebugFrameworkServerException(errorMsg, e);
         } catch (Exception e) {
             String errorMsg = "Unexpected error while upserting debug session: " + sessionData.getSessionId();
+            LOG.error(errorMsg, e);
+            throw new DebugFrameworkServerException(errorMsg, e);
+        }
+    }
+
+    @Override
+    public void deleteExpiredDebugSessions() throws DebugFrameworkServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_EXPIRED_DEBUG_SESSIONS)) {
+                prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+                int deletedCount = prepStmt.executeUpdate();
+
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Deleted " + deletedCount + " expired debug sessions from database.");
+                }
+            }
+        } catch (SQLException e) {
+            String errorMsg = "Error while deleting expired debug sessions";
+            LOG.error(errorMsg, e);
+            throw new DebugFrameworkServerException(errorMsg, e);
+        } catch (Exception e) {
+            String errorMsg = "Unexpected error while deleting expired debug sessions";
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }

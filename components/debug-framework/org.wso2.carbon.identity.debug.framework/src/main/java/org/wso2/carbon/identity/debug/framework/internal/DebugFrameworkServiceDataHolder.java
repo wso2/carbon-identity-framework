@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,25 +19,14 @@
 package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugProtocolProvider;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugResourceHandler;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Data holder for Debug Framework Service Component.
- * This holds references to OSGi services that are required by the debug
- * framework.
- * 
- * Manages:
- * - ClaimMetadataManagementService: Required for claim operations
- * - DebugProtocolProvider services: Dynamically registered by protocol modules
- * (OIDC, Google, etc.)
- * 
- * Protocol providers are stored in a thread-safe map for concurrent access
- * during
- * OSGi service binding/unbinding and request processing.
+ * This holds references to OSGi services that are required by the debug framework.
  */
 public class DebugFrameworkServiceDataHolder {
 
@@ -47,8 +36,8 @@ public class DebugFrameworkServiceDataHolder {
 
     /**
      * Thread-safe map storing protocol providers indexed by protocol type.
-     * Key: Protocol type (e.g., "OAUTH2_OIDC", "GOOGLE", "SAML")
-     * Value: DebugProtocolProvider implementation
+     * Key: Protocol type (e.g., "OAUTH2_OIDC", "GOOGLE", "SAML").
+     * Value: DebugProtocolProvider implementation.
      */
     private final Map<String, DebugProtocolProvider> debugProtocolProviders = new ConcurrentHashMap<>();
 
@@ -62,7 +51,7 @@ public class DebugFrameworkServiceDataHolder {
     /**
      * Returns the singleton instance of the data holder.
      *
-     * @return the singleton instance
+     * @return the singleton instance.
      */
     public static DebugFrameworkServiceDataHolder getInstance() {
 
@@ -72,7 +61,7 @@ public class DebugFrameworkServiceDataHolder {
     /**
      * Gets the ClaimMetadataManagementService.
      *
-     * @return the ClaimMetadataManagementService instance
+     * @return the ClaimMetadataManagementService instance.
      */
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
 
@@ -82,8 +71,7 @@ public class DebugFrameworkServiceDataHolder {
     /**
      * Sets the ClaimMetadataManagementService.
      *
-     * @param claimMetadataManagementService the ClaimMetadataManagementService
-     *                                       instance
+     * @param claimMetadataManagementService the ClaimMetadataManagementService instance.
      */
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
@@ -92,8 +80,7 @@ public class DebugFrameworkServiceDataHolder {
 
     /**
      * Adds a debug protocol provider to the registry.
-     * Called during OSGi service binding when a plugin registers a
-     * DebugProtocolProvider.
+     * Called during OSGi service binding when a plugin registers a DebugProtocolProvider.
      *
      * @param provider The DebugProtocolProvider to register.
      */
@@ -133,7 +120,7 @@ public class DebugFrameworkServiceDataHolder {
     /**
      * Gets all registered debug protocol providers.
      *
-     * @return Map of protocol type to DebugProtocolProvider (defensive copy).
+     * @return Map of protocol type to DebugProtocolProvider.
      */
     public Map<String, DebugProtocolProvider> getAllDebugProtocolProviders() {
 
@@ -151,28 +138,4 @@ public class DebugFrameworkServiceDataHolder {
         return debugProtocolProviders.containsKey(protocolType);
     }
 
-    // Static IDP handler for OSGi registration from debug.idp module
-    private static DebugResourceHandler idpDebugResourceHandler;
-
-    /**
-     * Gets the registered IDP DebugResourceHandler.
-     * This is registered by the org.wso2.carbon.identity.debug.idp module.
-     *
-     * @return The IDP DebugResourceHandler, or null if not registered.
-     */
-    public static DebugResourceHandler getIdpDebugResourceHandler() {
-
-        return idpDebugResourceHandler;
-    }
-
-    /**
-     * Sets the IDP DebugResourceHandler.
-     * Called by IdpDebugServiceComponent during OSGi activation.
-     *
-     * @param handler The IDP DebugResourceHandler to register.
-     */
-    public static void setIdpDebugResourceHandler(DebugResourceHandler handler) {
-
-        idpDebugResourceHandler = handler;
-    }
 }

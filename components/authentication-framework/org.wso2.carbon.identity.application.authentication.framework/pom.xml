@@ -238,11 +238,6 @@
             <groupId>net.minidev</groupId>
             <artifactId>json-smart</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.debug.framework</artifactId>
-            <version>7.8.596-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>

@@ -1,34 +1,33 @@
-/*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.registry;
+package org.wso2.carbon.identity.debug.framework.registry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Registry for dynamic registration and lookup of debug protocol providers.
- * This is a singleton registry that manages protocol providers for plugin-based protocols
- * like Google, GitHub, custom OAuth2 implementations, etc.
+ * This is a singleton registry that manages protocol providers for plugin-based protocols.
  */
 public class DebugProtocolRegistry {
 
@@ -40,6 +39,7 @@ public class DebugProtocolRegistry {
      * Private constructor to enforce singleton pattern.
      */
     private DebugProtocolRegistry() {
+
     }
 
     /**
@@ -48,6 +48,7 @@ public class DebugProtocolRegistry {
      * @return The singleton DebugProtocolRegistry instance.
      */
     public static DebugProtocolRegistry getInstance() {
+
         return instance;
     }
 
@@ -59,6 +60,7 @@ public class DebugProtocolRegistry {
      * @param provider The DebugProtocolProvider implementation.
      */
     public void register(String protocolKey, DebugProtocolProvider provider) {
+
         if (protocolKey == null || provider == null) {
             LOG.warn("Cannot register null protocol key or provider");
             return;
@@ -77,6 +79,7 @@ public class DebugProtocolRegistry {
      * @param protocolKey The unique key for the protocol.
      */
     public void unregister(String protocolKey) {
+
         if (protocolKey != null) {
             providers.remove(protocolKey);
             if (LOG.isDebugEnabled()) {
@@ -92,6 +95,7 @@ public class DebugProtocolRegistry {
      * @return The DebugProtocolProvider, or null if not found.
      */
     public DebugProtocolProvider getProvider(String protocolKey) {
+
         if (protocolKey == null) {
             return null;
         }
@@ -105,6 +109,7 @@ public class DebugProtocolRegistry {
      * @return True if a provider is registered for this key, false otherwise.
      */
     public boolean isProviderRegistered(String protocolKey) {
+
         return protocolKey != null && providers.containsKey(protocolKey);
     }
 
@@ -115,6 +120,7 @@ public class DebugProtocolRegistry {
      * @return A map of all registered protocol keys and their providers.
      */
     public Map<String, DebugProtocolProvider> getAllProviders() {
+
         return new ConcurrentHashMap<>(providers);
     }
 
@@ -123,6 +129,7 @@ public class DebugProtocolRegistry {
      * Used in testing or during shutdown.
      */
     public void clear() {
+        
         providers.clear();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Cleared all registered debug protocol providers");

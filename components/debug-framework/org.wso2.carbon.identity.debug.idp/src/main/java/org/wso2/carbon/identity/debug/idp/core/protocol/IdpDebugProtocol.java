@@ -1,17 +1,17 @@
-/*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -20,13 +20,15 @@ package org.wso2.carbon.identity.debug.idp.core.protocol;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.core.extension.DebugProtocolProvider;
-import org.wso2.carbon.identity.debug.framework.core.registry.DebugProtocolRegistry;
-import org.wso2.carbon.identity.debug.idp.core.protocol.provider.OIDCDebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 
 /**
  * Enum for IdP debug protocols.
  * Defines the protocols that can be used by Identity Provider resources.
+ * 
+ * Protocol providers are looked up from the {@link DebugProtocolRegistry}.
+ * where they register themselves from their respective OSGi modules.
  */
 public enum IdpDebugProtocol {
 
@@ -47,6 +49,7 @@ public enum IdpDebugProtocol {
      * @param displayName The display name for the protocol.
      */
     IdpDebugProtocol(String protocolId, String displayName) {
+
         this.protocolId = protocolId;
         this.displayName = displayName;
     }
@@ -57,6 +60,7 @@ public enum IdpDebugProtocol {
      * @return The protocol ID.
      */
     public String getProtocolId() {
+
         return protocolId;
     }
 
@@ -66,6 +70,7 @@ public enum IdpDebugProtocol {
      * @return The display name.
      */
     public String getDisplayName() {
+
         return displayName;
     }
 
@@ -78,6 +83,7 @@ public enum IdpDebugProtocol {
      * @return The corresponding IdpDebugProtocol, or CUSTOM if not recognized.
      */
     public static IdpDebugProtocol fromString(String protocolName) {
+        
         if (protocolName == null) {
             return CUSTOM;
         }
@@ -113,34 +119,36 @@ public enum IdpDebugProtocol {
 
     /**
      * Gets the appropriate DebugProtocolProvider for this protocol.
-     * Uses switch case for built-in protocols and registry for custom protocols.
+     * All providers are looked up from the registry where they register themselves.
+     * This ensures proper separation of concerns - protocol-specific modules
+     * register their own providers.
      *
-     * @param resourceId The ID of the IdP resource.
+     * @param resourceId The ID of the IdP resource (used for custom provider lookup).
      * @return The appropriate DebugProtocolProvider, or null if not found.
      */
     public DebugProtocolProvider getProvider(String resourceId) {
+
+        DebugProtocolRegistry registry = DebugProtocolRegistry.getInstance();
+
         switch (this) {
             case OAUTH2_OIDC:
-                return new OIDCDebugProtocolProvider();
+                // Look up from registry - registered by OIDC module.
+                return registry.getProvider("OAuth2/OIDC");
 
             case GOOGLE:
-                return DebugProtocolRegistry.getInstance()
-                        .getProvider("GOOGLE");
+                return registry.getProvider("GOOGLE");
 
             case GITHUB:
-                return DebugProtocolRegistry.getInstance()
-                        .getProvider("GITHUB");
+                return registry.getProvider("GITHUB");
 
             case CUSTOM:
-                // Try to look up custom provider by resource ID
-                DebugProtocolProvider customProvider = DebugProtocolRegistry.getInstance()
-                        .getProvider(resourceId);
+                // Try to look up custom provider by resource ID.
+                DebugProtocolProvider customProvider = registry.getProvider(resourceId);
                 if (customProvider != null) {
                     return customProvider;
                 }
-                // Fall back to checking if there's a custom provider registered by name
-                return DebugProtocolRegistry.getInstance()
-                        .getProvider("CUSTOM");
+                // Fall back to checking if there's a custom provider registered by name.
+                return registry.getProvider("CUSTOM");
 
             default:
                 return null;
