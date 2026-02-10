@@ -1594,4 +1594,62 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
         return context;
     }
+
+    @DataProvider(name = "preprocessUsernameDataProvider")
+    public Object[][] providePreprocessUsernameData() {
+
+        return new Object[][]{
+                // {username, userTenantDomain, isSaaSApp, isLegacySaaSEnabled, isEmailUsernameEnabled, expectedOutput}
+                // Legacy SaaS enabled - should return username as-is.
+                {"alice", "user.com", true, true, false, "alice"},
+                {"alice@example.com", "user.com", true, true, false, "alice@example.com"},
+                {"alice@example.com", "user.com", true, true, true, "alice@example.com"},
+                {"alice", "user.com", true, true, true, "alice"},
+
+                // Email username enabled - single @ in username - should append tenant domain.
+                {"alice@example.com", "user.com", false, false, true, "alice@example.com@user.com"},
+                {"alice@example.com", "user.com", true, false, true, "alice@example.com@user.com"},
+
+                // Email username enabled - multiple @ in username - should return as-is.
+                {"alice@example.com@domain.com", "user.com", false, false, true, "alice@example.com@domain.com"},
+                {"alice@example.com@domain.com", "user.com", true, false, true, "alice@example.com@domain.com"},
+
+                // Email username disabled - username already ends with tenant domain.
+                {"alice@user.com", "user.com", false, false, false, "alice@user.com"},
+                {"alice@user.com", "user.com", true, false, false, "alice@user.com"},
+
+                // Email username disabled - non-SaaS app - should append tenant domain.
+                {"alice", "user.com", false, false, false, "alice@user.com"},
+                {"bob", "tenant.org", false, false, false, "bob@tenant.org"},
+
+                // Email username disabled - SaaS app with username containing multiple @.
+                {"alice@example.com@domain.com", "user.com", true, false, false, "alice@example.com@domain.com"},
+
+                // Email username disabled - SaaS app with non-email username - should append tenant domain.
+                {"alice", "user.com", true, false, false, "alice@user.com"},
+                {"bob", "tenant.org", true, false, false, "bob@tenant.org"},
+
+                // email username disabled - SaaS app with username containing single @ that doesn't end
+                // with tenant domain
+                {"alice@example.com", "user.com", true, false, false, "alice@example.com"}
+        };
+    }
+
+    @Test(dataProvider = "preprocessUsernameDataProvider")
+    public void testPreprocessUsername(String username, String userTenantDomain, boolean isSaaSApp,
+                                        boolean isLegacySaaSEnabled, boolean isEmailUsernameEnabled,
+                                        String expectedOutput) {
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMock = mockStatic(IdentityTenantUtil.class)) {
+
+            identityUtilMock.when(IdentityUtil::isEmailUsernameEnabled).thenReturn(isEmailUsernameEnabled);
+            identityTenantUtilMock.when(IdentityTenantUtil::isLegacySaaSAuthenticationEnabled)
+                    .thenReturn(isLegacySaaSEnabled);
+
+            String processedUsername = FrameworkUtils.preprocessUsername(username, userTenantDomain, isSaaSApp);
+
+            assertEquals(processedUsername, expectedOutput);
+        }
+    }
 }

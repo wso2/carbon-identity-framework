@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -83,6 +83,7 @@ public class FrameworkErrorConstants {
         ERROR_MULTIPLE_MATCHING_LOCAL_ACCOUNTS("80037",
                 "Multiple matching local accounts found during account lookup."),
         ERROR_INVALID_USER_ASSERTION("80038", "Invalid user assertion."),
+        ERROR_INVALID_AUTHENTICATOR("80039", "Invalid authenticator: %s"),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");

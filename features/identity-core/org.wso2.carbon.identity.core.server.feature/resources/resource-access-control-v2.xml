@@ -1881,6 +1881,22 @@
         <Scopes>internal_workflow_instance_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] User Credential Management API -->
+    <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
+        <Scopes>internal_org_user_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_user_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- User Credential Management API -->
+    <Resource context="(.*)/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
+        <Scopes>internal_user_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_user_mgt_delete</Scopes>
+    </Resource>
+
     <!-- VC Template Management API -->
     <Resource context="(.*)/api/server/v1/vc-templates/(.*)/offer" secured="true" http-method="POST">
         <Scopes>internal_vc_template_update</Scopes>
