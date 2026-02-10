@@ -595,6 +595,20 @@ public class ApplicationMgtDBQueries {
     public static final String ADD_AUTHORIZED_SCOPE = "INSERT INTO AUTHORIZED_SCOPE (APP_ID, API_ID, SCOPE_ID) SELECT" +
             " ?, ?, SCOPE.ID FROM SCOPE WHERE SCOPE.NAME = ? AND (SCOPE.TENANT_ID = ? OR SCOPE.TENANT_ID IS NULL)";
 
+    public static final String ADD_AUTHORIZED_SCOPE_BY_ID = "INSERT INTO AUTHORIZED_SCOPE (APP_ID, API_ID, SCOPE_ID) " +
+            "SELECT ?, ?, ?";
+
+    public static final String GET_SHARED_SCOPE_IDS = "SELECT SCOPE.ID, SCOPE.API_ID FROM SCOPE " +
+            "WHERE SCOPE.NAME = ? AND (SCOPE.TENANT_ID = ? OR SCOPE.TENANT_ID IS NULL)";
+
+    public static final String GET_AUTHORIZED_API_POLICY_ID = "SELECT POLICY_ID FROM AUTHORIZED_API WHERE APP_ID = ?" +
+            " AND API_ID = ?";
+
+    public static final String GET_ALREADY_AUTHORIZED_APIS_HEAD = "SELECT API_ID FROM AUTHORIZED_API WHERE" +
+            " APP_ID = ? AND POLICY_ID = ? AND API_ID IN (";
+
+    public static final String GET_ALREADY_AUTHORIZED_APIS_TAIL = ")";
+
     public static final String DELETE_AUTHORIZED_API_BY_API_ID = "DELETE FROM AUTHORIZED_API WHERE APP_ID = ? AND " +
             "API_ID = ?";
 
