@@ -511,7 +511,6 @@ public class IdentityEventConstants {
         public static final String TOKEN_ID = "TOKEN_ID";
         public static final String USER_TYPE = "USER_TYPE";
         public static final String CLIENT_ID = "CLIENT_ID";
-        public static final String ISSUED_TIME = "ISSUED_TIME";
         public static final String ISSUER_ORGANIZATION_ID = "ISSUER_ORGANIZATION_ID";
         public static final String ACCESSING_ORGANIZATION_ID = "ACCESSING_ORGANIZATION_ID";
         public static final String APP_RESIDENT_TENANT_ID = "APP_RESIDENT_TENANT_ID";
