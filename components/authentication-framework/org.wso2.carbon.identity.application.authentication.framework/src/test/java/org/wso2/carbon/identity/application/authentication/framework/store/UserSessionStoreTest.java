@@ -345,7 +345,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         // Only session3 and session4 should be active (not expired by idle or max lifetime).
         // session1 is expired by idle timeout.
         // session2 is deleted.
-        // session5 is expired by max lifetime (created 400 seconds ago, max is 300 seconds).
+        // session5 is expired by max lifetime (created 100000 seconds ago, max is 900 seconds).
         Assert.assertEquals(UserSessionStore.getInstance().getActiveSessionCount(TENANT_DOMAIN), 2);
         cleanupTestData();
     }
