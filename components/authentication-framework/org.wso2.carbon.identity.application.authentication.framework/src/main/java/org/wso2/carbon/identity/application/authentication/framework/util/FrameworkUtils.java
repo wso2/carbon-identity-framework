@@ -1370,8 +1370,7 @@ public class FrameworkUtils {
             // Therefore, printing an error log to highlight the issue and consider the timeout as valid to avoid
             // breaking existing functionality.
             log.error("Session creation time is not available in the session context. Hence cannot validate the " +
-                    "session context timeout with the maximum session lifetime configured for the tenant: " +
-                    tenantDomain);
+                    "session context timeout with the maximum session lifetime.");
             return timeout;
         }
 

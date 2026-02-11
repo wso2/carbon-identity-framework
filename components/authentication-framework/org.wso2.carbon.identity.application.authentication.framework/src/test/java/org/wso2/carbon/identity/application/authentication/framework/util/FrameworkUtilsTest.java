@@ -1862,11 +1862,11 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         int idleSessionTimeout = 1800; // 30 minutes in seconds
         int maxSessionTimeout = 3600; // 1 hour in seconds
 
-        try (MockedStatic<SessionContextCache> mockedSessionContextCache = mockStatic(SessionContextCache.class);
+        try (MockedStatic<SessionContextCache> sessionContextCacheMockedStatic = mockStatic(SessionContextCache.class);
              MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
 
             SessionContextCache sessionContextCacheInstance = mock(SessionContextCache.class);
-            mockedSessionContextCache.when(SessionContextCache::getInstance)
+            sessionContextCacheMockedStatic.when(SessionContextCache::getInstance)
                     .thenReturn(sessionContextCacheInstance);
 
             mockedIdPManagementUtil.when(() -> IdPManagementUtil.getIdleSessionTimeOut(tenantDomain))
