@@ -595,19 +595,22 @@ public class ApplicationMgtDBQueries {
     public static final String ADD_AUTHORIZED_SCOPE = "INSERT INTO AUTHORIZED_SCOPE (APP_ID, API_ID, SCOPE_ID) SELECT" +
             " ?, ?, SCOPE.ID FROM SCOPE WHERE SCOPE.NAME = ? AND (SCOPE.TENANT_ID = ? OR SCOPE.TENANT_ID IS NULL)";
 
-    public static final String ADD_AUTHORIZED_SCOPE_BY_ID = "INSERT INTO AUTHORIZED_SCOPE (APP_ID, API_ID, SCOPE_ID) " +
-            "SELECT ?, ?, ?";
+    public static final String ADD_AUTHORIZED_SCOPE_BY_ID = "INSERT INTO AUTHORIZED_SCOPE (APP_ID, API_ID, SCOPE_ID)" +
+            " VALUES (?, ?, ?)";
 
-    public static final String GET_SHARED_SCOPE_IDS = "SELECT SCOPE.ID, SCOPE.API_ID FROM SCOPE " +
-            "WHERE SCOPE.NAME = ? AND (SCOPE.TENANT_ID = ? OR SCOPE.TENANT_ID IS NULL)";
+    public static final String GET_SYSTEM_SCOPE_IDS_BY_NAME = "SELECT SCOPE.ID, SCOPE.API_ID, SCOPE.NAME FROM " +
+            "SCOPE WHERE SCOPE.NAME IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_NAMES + ") AND SCOPE.TENANT_ID IS NULL";
 
     public static final String GET_AUTHORIZED_API_POLICY_ID = "SELECT POLICY_ID FROM AUTHORIZED_API WHERE APP_ID = ?" +
             " AND API_ID = ?";
 
-    public static final String GET_ALREADY_AUTHORIZED_APIS_HEAD = "SELECT API_ID FROM AUTHORIZED_API WHERE" +
-            " APP_ID = ? AND POLICY_ID = ? AND API_ID IN (";
+    public static final String GET_ALREADY_AUTHORIZED_APIS = "SELECT API_ID FROM AUTHORIZED_API " +
+                    "WHERE APP_ID = :" + SQLPlaceholders.COLUMN_NAME_APP_ID + "; " +
+                    "AND API_ID IN (" + SQLPlaceholders.PLACEHOLDER_API_IDS + ")";
 
-    public static final String GET_ALREADY_AUTHORIZED_APIS_TAIL = ")";
+    public static final String GET_ALREADY_AUTHORIZED_SCOPES = "SELECT SCOPE_ID FROM AUTHORIZED_SCOPE " +
+                    "WHERE APP_ID = :" + SQLPlaceholders.COLUMN_NAME_APP_ID + "; " +
+                    "AND SCOPE_ID IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_IDS + ")";
 
     public static final String DELETE_AUTHORIZED_API_BY_API_ID = "DELETE FROM AUTHORIZED_API WHERE APP_ID = ? AND " +
             "API_ID = ?";
@@ -714,8 +717,25 @@ public class ApplicationMgtDBQueries {
         public static final String SHARED_ORG_ID_LIST_PLACEHOLDER = "_SHARED_ORG_ID_LIST_";
         public static final String SHARED_ORG_ID_PLACEHOLDER_PREFIX = "SHARED_ORG_ID_";
 
+        // Related to AUTHORIZED_API and AUTHORIZED_SCOPE tables.
+        public static final String API_ID_PREFIX = "API_ID_";
+        public static final String SCOPE_ID_PREFIX = "SCOPE_ID_";
+        public static final String SCOPE_NAME_PREFIX = "SCOPE_NAME_";
+
         // Related to APP_GROUP_ASSOCIATION table.
         public static final String GROUP_ID_CONDITION_PLACEHOLDER = "_GROUP_ID_CONDITION_";
         public static final String GROUP_ID_LIST_PLACEHOLDER = "_GROUP_ID_LIST_";
+
+        // Related to authorized API and scope retrieval queries.
+        public static final String PLACEHOLDER_API_IDS = "API_ID_LIST";
+        public static final String PLACEHOLDER_SCOPE_IDS = "SCOPE_ID_LIST";
+        public static final String PLACEHOLDER_SCOPE_NAMES = "SCOPE_NAME_LIST";
+
+        // Related to authorized authorization details types retrieval queries.
+        public static final String COLUMN_NAME_APP_ID = "APP_ID";
+        public static final String COLUMN_NAME_API_ID = "API_ID";
+        public static final String COLUMN_NAME_SCOPE_ID = "SCOPE_ID";
+        public static final String COLUMN_NAME_ID = "ID";
+        public static final String COLUMN_NAME_NAME = "NAME";
     }
 }
