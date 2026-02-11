@@ -99,7 +99,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -2217,7 +2217,7 @@ public class IdPManagementDAOTest {
             idp.setHomeRealmId("test-realm");
 
             IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
-            preserveSessionProperty.setName(PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveSessionProperty.setName(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
             preserveSessionProperty.setValue(String.valueOf(propertyValue));
             idp.setIdpProperties(new IdentityProviderProperty[]{preserveSessionProperty});
 
@@ -2233,7 +2233,7 @@ public class IdPManagementDAOTest {
             assertNotNull(properties, "IdP properties should not be null");
 
             IdentityProviderProperty retrievedProperty = Arrays.stream(properties)
-                    .filter(p -> PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE.equals(p.getName()))
+                    .filter(p -> PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE.equals(p.getName()))
                     .findFirst()
                     .orElse(null);
 

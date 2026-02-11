@@ -161,7 +161,7 @@ public class IdPManagementUtil {
             IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
             IdentityProviderProperty idpProperty = IdentityApplicationManagementUtil.getProperty(
                     identityProvider.getIdpProperties(),
-                    IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+                    IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
             if (idpProperty != null) {
                 preserveSessionAtPasswordUpdate = Boolean.parseBoolean(idpProperty.getValue());
             }

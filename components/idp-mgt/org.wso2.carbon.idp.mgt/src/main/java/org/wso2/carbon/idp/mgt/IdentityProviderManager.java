@@ -84,7 +84,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -323,7 +322,7 @@ public class IdentityProviderManager implements IdpManager {
                     preserveLoggedInSessionAtPasswordUpdate = "false";
                 }
                 preserveCurrentSessionAtPasswordUpdateProperty.setName(
-                        IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+                        IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
                 preserveCurrentSessionAtPasswordUpdateProperty.setValue(preserveLoggedInSessionAtPasswordUpdate);
 
                 idpProperties[0] = rememberMeTimeoutProperty;

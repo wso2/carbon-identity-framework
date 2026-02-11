@@ -241,7 +241,7 @@ public class IdentityProviderManagerTest {
             assertNotNull("IdP properties should not be null", idpProperties);
 
             boolean hasPreserveSessionProperty = Arrays.stream(idpProperties)
-                    .anyMatch(p -> IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE
+                    .anyMatch(p -> IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE
                             .equals(p.getName()));
             assertTrue("IdP properties should contain PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property",
                     hasPreserveSessionProperty);
@@ -264,7 +264,7 @@ public class IdentityProviderManagerTest {
         IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
         if (idpPropertyValue != null) {
             IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
-            preserveSessionProperty.setName(IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveSessionProperty.setName(IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
             preserveSessionProperty.setValue(idpPropertyValue);
             idpProperties = new IdentityProviderProperty[]{preserveSessionProperty};
         }
@@ -301,13 +301,13 @@ public class IdentityProviderManagerTest {
     public void testPreserveLoggedInSessionPropertyExtraction() throws Exception {
 
         IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
-        preserveSessionProperty.setName(IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+        preserveSessionProperty.setName(IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
         preserveSessionProperty.setValue("true");
 
         IdentityProviderProperty[] idpProperties = {preserveSessionProperty};
 
         IdentityProviderProperty foundProperty = Arrays.stream(idpProperties)
-                .filter(p -> IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE
+                .filter(p -> IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE
                         .equals(p.getName()))
                 .findFirst()
                 .orElse(null);
