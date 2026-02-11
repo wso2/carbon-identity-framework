@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -99,6 +99,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -2184,6 +2185,63 @@ public class IdPManagementDAOTest {
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+    }
+
+    @DataProvider
+    public Object[][] preserveLoggedInSessionConfigData() {
+
+        return new Object[][]{
+                {"testIdP1", true, true},
+                {"testIdP2", false, false},
+                {"testIdP3", true, true},
+        };
+    }
+
+    /**
+     * Tests that PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property is correctly
+     * persisted when adding an IdP and retrieved correctly.
+     */
+    @Test(dataProvider = "preserveLoggedInSessionConfigData")
+    public void testPreserveLoggedInSessionAtPasswordUpdatePersistence(String idpName, boolean propertyValue,
+                                                                       boolean expectedValue) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            // Create an IdP with the preserve session property.
+            IdentityProvider idp = new IdentityProvider();
+            idp.setIdentityProviderName(idpName);
+            idp.setHomeRealmId("test-realm");
+
+            IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
+            preserveSessionProperty.setName(PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveSessionProperty.setValue(String.valueOf(propertyValue));
+            idp.setIdpProperties(new IdentityProviderProperty[]{preserveSessionProperty});
+
+            // Add the IdP to the database.
+            idPManagementDAO.addIdP(idp, SAMPLE_TENANT_ID);
+
+            // Retrieve the IdP and verify the property is persisted correctly.
+            IdentityProvider retrievedIdP = idPManagementDAO.getIdPByName(connection, idpName, SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            assertNotNull(retrievedIdP, "Retrieved IdP should not be null");
+
+            IdentityProviderProperty[] properties = retrievedIdP.getIdpProperties();
+            assertNotNull(properties, "IdP properties should not be null");
+
+            IdentityProviderProperty retrievedProperty = Arrays.stream(properties)
+                    .filter(p -> PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE.equals(p.getName()))
+                    .findFirst()
+                    .orElse(null);
+
+            assertNotNull(retrievedProperty,
+                    "PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property should be present");
+            assertEquals(Boolean.parseBoolean(retrievedProperty.getValue()), expectedValue,
+                    "Property value should match expected value");
+        }
     }
 
     private int getIdPCount(Connection connection, String idpName, int tenantId) throws SQLException {
