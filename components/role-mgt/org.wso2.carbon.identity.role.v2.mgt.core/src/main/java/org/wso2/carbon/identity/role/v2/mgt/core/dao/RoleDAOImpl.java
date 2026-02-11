@@ -600,15 +600,15 @@ public class RoleDAOImpl implements RoleDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     roleBasicInfo.setRoleId(resultSet.getInt(1));
-                    roleBasicInfo.setName(resultSet.getString(2));
+                    String roleName = resultSet.getString(2);
+                    roleBasicInfo.setName(RoleManagementUtils.removeInternalDomain(roleName));
                     roleBasicInfo.setAudienceId(resultSet.getString(3));
                     roleBasicInfo.setAudience(resultSet.getString(4));
                 }
             }
         } catch (SQLException e) {
-            String errorMessage =
-                    "Error while resolving the role name for the given role ID: " + roleUUID + " and tenantDomain: "
-                            + tenantDomain;
+            String errorMessage = "Error while resolving the role basic information for the given role ID: " +
+                    roleUUID + " and tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     errorMessage, e);
         }
