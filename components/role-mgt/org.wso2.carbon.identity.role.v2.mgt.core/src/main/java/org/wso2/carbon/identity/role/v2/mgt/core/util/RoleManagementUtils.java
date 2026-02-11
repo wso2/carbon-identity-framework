@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleBasicInfoCache;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
@@ -255,5 +256,16 @@ public class RoleManagementUtils {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage);
         }
         return removeInternalDomain(everyOneRoleName);
+    }
+
+    /**
+     * Clear all role basic info cache entries for a tenant.
+     * This is useful when application names change, which affects the audience name in cached role info.
+     *
+     * @param tenantDomain Tenant domain.
+     */
+    public static void clearRoleBasicInfoCacheByTenant(String tenantDomain) {
+
+        RoleBasicInfoCache.getInstance().clear(tenantDomain);
     }
 }

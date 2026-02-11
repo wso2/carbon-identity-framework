@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013- 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -797,6 +798,10 @@ public class DefaultStepHandler implements StepHandler {
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
 
+        }
+        if (!isAuthenticatorSupportedForAPIBasedFlow(request, context, authenticator)) {
+            stepConfig.setCompleted(true);
+            return;
         }
 
         try {
@@ -1703,5 +1708,39 @@ public class DefaultStepHandler implements StepHandler {
                     "accountrecoveryendpoint/confirmrecovery.do", e);
         }
         return null;
+    }
+
+    /**
+     * Validates if the given authenticator supports API based authentication flow.
+     * Sets error details in context and returns false if validation fails.
+     *
+     * @param request       HTTP servlet request.
+     * @param context       Authentication context.
+     * @param authenticator Application authenticator to validate.
+     * @return true if the authenticator supports API based authentication flow, false otherwise.
+     */
+    private boolean isAuthenticatorSupportedForAPIBasedFlow(HttpServletRequest request, AuthenticationContext context,
+                                                      ApplicationAuthenticator authenticator) {
+
+        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request) &&
+                !authenticator.isAPIBasedAuthenticationSupported()) {
+
+            String errorCode = FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authenticator '" + authenticator.getName() + "' does not support API based authentication.");
+            }
+            context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, errorCode);
+            context.setRequestAuthenticated(false);
+            request.setAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED, true);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.FAIL_COMPLETED);
+
+            AuthenticationResult authenticationResult = new AuthenticationResult();
+            authenticationResult.setAuthenticated(false);
+            authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_CODE,
+                    context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
+            request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+            return false;
+        }
+        return true;
     }
 }

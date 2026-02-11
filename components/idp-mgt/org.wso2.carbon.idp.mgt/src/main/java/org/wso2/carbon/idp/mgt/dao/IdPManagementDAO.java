@@ -121,6 +121,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
@@ -6416,6 +6417,20 @@ public class IdPManagementDAO {
             maximumSessionTimeOut.setName(MAXIMUM_SESSION_TIME_OUT);
             maximumSessionTimeOut.setValue(configuredMaximumSessionTimeout);
             propertiesFromConnectors.put(MAXIMUM_SESSION_TIME_OUT, maximumSessionTimeOut);
+        }
+      
+        if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
+            String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
+            if (StringUtils.isBlank(preserveLoggedInSessionAtPasswordUpdate)) {
+                preserveLoggedInSessionAtPasswordUpdate = "false";
+            }
+
+            IdentityProviderProperty preserveCurrentSessionAtPasswordUpdateProperty = new IdentityProviderProperty();
+            preserveCurrentSessionAtPasswordUpdateProperty.setName(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveCurrentSessionAtPasswordUpdateProperty.setValue(preserveLoggedInSessionAtPasswordUpdate);
+            propertiesFromConnectors.put(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE,
+                    preserveCurrentSessionAtPasswordUpdateProperty);
         }
     }
 
