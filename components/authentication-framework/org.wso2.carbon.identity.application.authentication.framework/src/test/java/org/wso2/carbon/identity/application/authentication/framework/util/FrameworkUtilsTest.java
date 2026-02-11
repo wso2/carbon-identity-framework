@@ -1919,7 +1919,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
             FrameworkUtils.addSessionContextToCache(key, sessionContext, tenantDomain, tenantDomain);
 
-            // Verify addToCache was called with reduced timeout (4 day remaining until max lifetime).
+            // Verify addToCache was called with reduced timeout (4 days remaining until max lifetime).
             ArgumentCaptor<SessionContextCacheEntry> entryCaptor = ArgumentCaptor.forClass(
                     SessionContextCacheEntry.class);
             verify(sessionContextCacheInstance).addToCache(any(SessionContextCacheKey.class), entryCaptor.capture(),
@@ -1941,7 +1941,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         SessionContext sessionContext = new SessionContext();
         sessionContext.setRememberMe(false);
 
-        // Created 30 minutes ago.
+        // Created 20 minutes ago.
         sessionContext.addProperty(CREATED_TIMESTAMP, System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(20));
 
         int idleSessionTimeout = 1800; // 30 minutes in seconds.
