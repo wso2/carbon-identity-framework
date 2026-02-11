@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <artifactId>opensaml-jdk21</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.santuario</groupId>
@@ -158,7 +158,7 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.entitlement.common
                                 </bundleDef>
                                 <bundleDef>org.wso2.balana:org.wso2.balana</bundleDef>
-                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml-jdk21</bundleDef>
                                 <bundleDef>org.apache.santuario:xmlsec</bundleDef>
                                 <bundleDef>org.wso2.orbit.jsr105:jsr105</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
