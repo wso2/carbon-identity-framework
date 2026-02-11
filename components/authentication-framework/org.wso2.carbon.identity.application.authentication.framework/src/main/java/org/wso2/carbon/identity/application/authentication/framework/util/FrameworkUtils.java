@@ -1380,7 +1380,8 @@ public class FrameworkUtils {
         long currentTimeInNanos = FrameworkUtils.getCurrentStandardNano();
         long sessionFutureAgeInNanos = currentTimeInNanos + timeout;
         if (sessionFutureAgeInNanos - sessionCreationTime > maxSessionLifeTimeInNanos) {
-            return Math.abs(maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime));
+            // The Minimum validity period for the session context is set to 1 nanosecond.
+            return Math.max(1, maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime));
         }
 
         return timeout;
