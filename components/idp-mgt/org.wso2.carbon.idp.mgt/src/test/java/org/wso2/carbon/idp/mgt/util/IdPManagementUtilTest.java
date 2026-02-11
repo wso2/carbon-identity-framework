@@ -55,8 +55,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 @WithCarbonHome
 @PrepareForTest({IdentityUtil.class, IdentityApplicationConstants.class, IdentityProviderManager.class,
         IdentityApplicationManagementUtil.class, IdPManagementServiceComponent.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*","org.mockito.*"})
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*",
+        "org.apache.xerces.*", "org.mockito.*", "com.sun.org.apache.xerces.*", "com.sun.org.apache.xml.*"})
 public class IdPManagementUtilTest extends PowerMockTestCase {
 
     @Mock

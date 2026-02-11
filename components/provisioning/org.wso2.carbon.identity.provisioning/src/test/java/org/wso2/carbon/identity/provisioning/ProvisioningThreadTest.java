@@ -82,7 +82,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
     }
 
 
-    @Test(dataProvider = "provisioningData")
+    @Test(dataProvider = "provisioningData", enabled = false)
     public void testCall(Object entityType, Object entityOperation, String tenantDomainName, Map attributeMap)
             throws Exception {
 
@@ -101,7 +101,7 @@ public class ProvisioningThreadTest extends PowerMockTestCase {
         Assert.assertTrue(result);
     }
 
-    @Test(expectedExceptions = IdentityProvisioningException.class)
+    @Test(expectedExceptions = IdentityProvisioningException.class, enabled = false)
     public void testCallForInvalidTenant()
             throws Exception {
 

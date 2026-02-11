@@ -46,7 +46,7 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.testutil.Whitebox.setInternalState;
 
 @PrepareForTest({IdentityTenantUtil.class, ClaimMetadataEventPublisherProxy.class})
-@PowerMockIgnore("jdk.internal.reflect.*")
+@PowerMockIgnore({"jdk.internal.reflect.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xerces.*", "com.sun.org.apache.xml.*"})
 @WithCarbonHome
 public class ClaimMetadataManagementServiceImplTest extends PowerMockTestCase {
 
