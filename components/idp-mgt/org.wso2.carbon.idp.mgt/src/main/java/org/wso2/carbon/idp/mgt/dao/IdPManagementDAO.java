@@ -4523,7 +4523,7 @@ public class IdPManagementDAO {
 
         IdentityProviderProperty idpGroupSyncMethod = new IdentityProviderProperty();
         idpGroupSyncMethod.setName(IdPManagementConstants.SYNC_IDP_GROUP_METHOD);
-        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
+        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_IDP_GROUP);
 
         if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
