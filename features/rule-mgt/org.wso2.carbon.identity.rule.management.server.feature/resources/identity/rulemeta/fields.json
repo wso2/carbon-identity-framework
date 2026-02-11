@@ -234,10 +234,10 @@
       ]
     }
   },
-  "role.name": {
+  "role.id": {
     "field": {
-      "name": "role.name",
-      "displayName": "role name"
+      "name": "role.id",
+      "displayName": "role"
     },
     "operators": [
       "equals",
