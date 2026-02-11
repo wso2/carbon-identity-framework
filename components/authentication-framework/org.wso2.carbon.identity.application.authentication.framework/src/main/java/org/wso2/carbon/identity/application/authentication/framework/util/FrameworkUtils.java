@@ -1381,7 +1381,7 @@ public class FrameworkUtils {
         long currentTimeInNanos = FrameworkUtils.getCurrentStandardNano();
         long sessionFutureAgeInNanos = currentTimeInNanos + timeout;
         if (sessionFutureAgeInNanos - sessionCreationTime > maxSessionLifeTimeInNanos) {
-            return maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime);
+            return Math.abs(maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime));
         }
 
         return timeout;
