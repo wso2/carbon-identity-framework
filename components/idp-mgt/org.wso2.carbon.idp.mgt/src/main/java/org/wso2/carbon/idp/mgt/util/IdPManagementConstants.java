@@ -106,6 +106,7 @@ public class IdPManagementConstants {
     public static final String SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING =
             "SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING";
     public static final String SYNC_ATTRIBUTE_METHOD = "SYNC_ATTRIBUTE_METHOD";
+    public static final String SYNC_IDP_GROUP_METHOD = "SYNC_IDP_GROUP_METHOD";
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"

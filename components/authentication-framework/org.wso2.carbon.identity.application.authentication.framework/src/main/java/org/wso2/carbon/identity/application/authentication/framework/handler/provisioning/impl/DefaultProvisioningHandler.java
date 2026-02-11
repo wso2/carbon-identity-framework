@@ -472,6 +472,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throws UserStoreException, FrameworkException {
 
         try {
+            // Get the IDP group sync method from thread local.
+            String idpGroupSyncMethod = getIdpGroupSyncMethod();
+
+            // Check if manually added local roles should be preserved (backward compatible property).
             boolean includeManuallyAddedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
 
@@ -487,17 +491,62 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     organizationId, tenantDomain, rolesToAdd);
 
             List<String> currentRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
-            List<String> rolesToDelete;
+            List<String> rolesToDelete = new ArrayList<>();
 
-            rolesToAdd.removeAll(currentRoleIdList);
-            if (includeManuallyAddedLocalRoles) {
-                rolesToDelete = new ArrayList<>();
+            // Get the everyone role ID to exclude from deletion.
+            String everyoneRoleId = getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm);
+
+            if (FrameworkConstants.OVERRIDE_ALL.equals(idpGroupSyncMethod)) {
+                /*
+                 * OVERRIDE_ALL: Replace all roles of the user with IDP roles.
+                 * Remove all existing roles (except everyone role) and add only roles from IDP.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to OVERRIDE_ALL. Replacing all roles with IDP roles " +
+                            "for user: " + LoggerUtils.getMaskedContent(username));
+                }
+
+                // Roles to delete: all existing roles that are not in the IDP role list.
+                for (String currentRoleId : currentRoleIdList) {
+                    if (!rolesToAdd.contains(currentRoleId)) {
+                        rolesToDelete.add(currentRoleId);
+                    }
+                }
+
+                // Roles to add: IDP roles that are not already assigned.
+                rolesToAdd.removeAll(currentRoleIdList);
+
+            } else if (FrameworkConstants.PRESERVE_EXISTING.equals(idpGroupSyncMethod)) {
+                /*
+                 * PRESERVE_EXISTING: Preserve existing roles.
+                 * Behavior depends on includeManuallyAddedLocalRoles property.
+                 * - If true: Only add new IDP roles without removing any existing roles.
+                 * - If false: Remove roles not in IDP list and add new IDP roles.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to PRESERVE_EXISTING for user: " +
+                            LoggerUtils.getMaskedContent(username) + ". includeManuallyAddedLocalRoles: " +
+                            includeManuallyAddedLocalRoles);
+                }
+
+                // Remove already assigned roles from rolesToAdd.
+                rolesToAdd.removeAll(currentRoleIdList);
+
+                if (!includeManuallyAddedLocalRoles) {
+                    // Roles to delete: current roles minus the original rolesToAdd (before modification).
+                    rolesToDelete = new ArrayList<>(currentRoleIdList);
+                    rolesToDelete.removeAll(rolesToAdd);
+                }
             } else {
-                rolesToDelete = new ArrayList<>(currentRoleIdList);
-                rolesToDelete.removeAll(rolesToAdd);
+                // Unrecognized sync method - log warning and skip role synchronization.
+                log.warn("Unrecognized IDP group sync method: " + idpGroupSyncMethod + " for user: " +
+                        LoggerUtils.getMaskedContent(username) + ". Skipping role synchronization. Valid values are: "
+                        + FrameworkConstants.PRESERVE_EXISTING + ", " + FrameworkConstants.OVERRIDE_ALL);
+                return;
             }
+
             // Remove everyone role from deleting roles.
-            rolesToDelete.remove(getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm));
+            rolesToDelete.remove(everyoneRoleId);
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
@@ -505,11 +554,36 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
             // Remove the assignment of the user from the deleting roles.
             for (String roleId : rolesToDelete) {
-                removeUserFromRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
+                try {
+                    String adminUserName = realm.getRealmConfiguration().getAdminUserName();
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(adminUserName);
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setUserRealm(realm);
+                    removeUserFromRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
+                } finally {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
             }
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
             throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
+    }
+
+    /**
+     * Get IDP group sync method from thread local.
+     *
+     * @return IDP group sync method. Defaults to PRESERVE_EXISTING if not set.
+     */
+    private String getIdpGroupSyncMethod() {
+
+        Object idpGroupSyncMethodObj = IdentityUtil.threadLocalProperties.get()
+                .get(FrameworkConstants.IDP_GROUP_SYNC_METHOD);
+        if (idpGroupSyncMethodObj != null && StringUtils.isNotBlank(idpGroupSyncMethodObj.toString())) {
+            return idpGroupSyncMethodObj.toString();
+        }
+        // Default to PRESERVE_EXISTING (backward compatible behavior) if not set or blank.
+        return FrameworkConstants.PRESERVE_EXISTING;
     }
 
     /**
