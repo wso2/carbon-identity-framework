@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
@@ -374,7 +375,10 @@ public class ApplicationDAOImplTest {
         associatedRolesConfig.setAllowedAudience(RoleConstants.APPLICATION);
         serviceProvider1.setAssociatedRolesConfig(associatedRolesConfig);
 
-        when(mockRoleManagementService.getRoleNameByRoleId("1234", SUPER_TENANT_DOMAIN_NAME)).thenReturn("test-role");
+        RoleBasicInfo roleBasicInfo = new RoleBasicInfo();
+        roleBasicInfo.setName("test-role");
+        when(mockRoleManagementService.getRoleBasicInfoById("1234", SUPER_TENANT_DOMAIN_NAME))
+                .thenReturn(roleBasicInfo);
 
         applicationDAO.updateApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME);
 
