@@ -289,7 +289,7 @@ BEGIN
        SELECT ROWID
        FROM IDN_SUBJECT_ENTITY_REVOKED_EVENT
        WHERE ROWNUM <= :1
-         AND :2 > (TIME_REVOKED + NUMTODSINTERVAL(:5/60, ''MINUTE''))'
+         AND :2 > (TIME_REVOKED + NUMTODSINTERVAL(:3/60, ''MINUTE''))'
       USING chunkSize, deleteTimeLimit, refreshTokenExpireTime;
 
     chunkCountVar := SQL%ROWCOUNT;
