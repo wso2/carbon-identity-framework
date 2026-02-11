@@ -127,7 +127,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_IDP_G
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SQL_OPTIMIZED;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MSSQL;
@@ -1848,38 +1847,6 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return associatedApplications;
-    }
-
-    /**
-     * Add role ID.
-     *
-     * @param roleName     Role ID.
-     * @param tenantDomain Tenant Domain.
-     * @param connection   DB connection.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-    private void addRoleID(String roleId, String roleName, int audienceRefId, String tenantDomain,
-                           Connection connection) throws IdentityRoleManagementException {
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        // Append internal domain in order to maintain the backward compatibility.
-        roleName = appendInternalDomain(roleName);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding the roleId: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
-                    + tenantDomain);
-        }
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_SCIM_ROLE_ID_SQL)) {
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
-            statement.setString(ROLE_NAME, roleName);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleId);
-            statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            String errorMessage = "Error while adding the roleId: %s for the role: %s in the tenantDomain: %s";
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    String.format(errorMessage, roleId, roleName, tenantDomain), e);
-        }
     }
 
     /**
