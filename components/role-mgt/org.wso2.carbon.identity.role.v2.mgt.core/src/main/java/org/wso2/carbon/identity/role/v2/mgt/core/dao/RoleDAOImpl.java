@@ -2162,7 +2162,6 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         boolean isExist = false;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-            int audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL_OPTIMIZED,
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME,
@@ -3040,10 +3039,10 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try {
                 // Add new groups to the role.
-                String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL_MSSQL_OPTIMIZED;
+                String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL_OPTIMIZED;
                 String databaseProductName = connection.getMetaData().getDatabaseProductName();
                 if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
-                    addGroupsSQL = SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
+                    addGroupsSQL = SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL_OPTIMIZED;
                 }
                 processBatchUpdateForGroups(roleId, newGroupNamesList, tenantId, primaryDomainName, connection,
                         addGroupsSQL);
