@@ -56,10 +56,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.fail;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
@@ -821,5 +823,54 @@ public class IdPManagementUtilTest {
                 {configDetails10},
                 {configDetails11}
         };
+    }
+
+    @DataProvider
+    public Object[][] getPreserveCurrentSessionAtPasswordUpdateData() {
+
+        return new Object[][]{
+                {"carbon.super", true, "true", true},
+                {"test1", true, "false", false},
+                {"test2", false, "true", true},
+                {"test3", false, null, false},
+        };
+    }
+
+    /**
+     * Test getPreserveCurrentSessionAtPasswordUpdate method with various scenarios.
+     */
+    @Test(dataProvider = "getPreserveCurrentSessionAtPasswordUpdateData")
+    public void testGetPreserveCurrentSessionAtPasswordUpdate(String tenantDomain, boolean defaultValue,
+                                                             String propertyValue, boolean expectedResult)
+            throws Exception {
+
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityApplicationManagementUtil =
+                     mockStatic(IdentityApplicationManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+
+            identityUtil.when(() -> IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE))
+                    .thenReturn(String.valueOf(defaultValue));
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(tenantDomain)).thenReturn(mockedIdentityProvider);
+            when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
+
+            if (propertyValue != null) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE)).thenReturn(mockedIdentityProviderProperty);
+                lenient().when(mockedIdentityProviderProperty.getValue()).thenReturn(propertyValue);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE)).thenReturn(null);
+            }
+
+            assertEquals(IdPManagementUtil.getPreserveCurrentSessionAtPasswordUpdate(tenantDomain), expectedResult);
+        }
     }
 }
