@@ -121,15 +121,13 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableC
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.SYSTEM;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_APP_ROLE_ASSOCIATION_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_OPTIMIZED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL_OPTIMIZED;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_OPTIMIZED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SQL_OPTIMIZED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_OPTIMIZED;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL_OPTIMIZED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MSSQL;
@@ -269,9 +267,9 @@ public class RoleDAOImpl implements RoleDAO {
                     String databaseProductName = connection.getMetaData().getDatabaseProductName();
                     // Add users to the created role.
                     if (CollectionUtils.isNotEmpty(userList)) {
-                        String addUsersSQL = ADD_USER_TO_ROLE_SQL_OPTIMIZED;
+                        String addUsersSQL = SQLQueries.ADD_USER_TO_ROLE_SQL_OPTIMIZED;
                         if (MICROSOFT.equals(databaseProductName)) {
-                            addUsersSQL = ADD_USER_TO_ROLE_SQL_MSSQL_OPTIMIZED;
+                            addUsersSQL = SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL_OPTIMIZED;
                         }
                         processBatchUpdateForUsers(roleId, userNamesList, tenantId, primaryDomainName, connection,
                                 addUsersSQL);
