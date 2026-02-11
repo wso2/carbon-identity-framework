@@ -1365,7 +1365,11 @@ public class FrameworkUtils {
         Long sessionCreationTime = (Long) sessionContext.getProperty(CREATED_TIMESTAMP);
 
         if (sessionCreationTime == null) {
-            log.warn("Session creation time is not available in the session context. Hence cannot validate the " +
+            // If created time is not available, fallback to the previous behavior.
+            // Possibility of occurring this scenario is very low as the created time is added to the session context.
+            // Therefore, printing an error log to highlight the issue and consider the timeout as valid to avoid
+            // breaking existing functionality.
+            log.error("Session creation time is not available in the session context. Hence cannot validate the " +
                     "session context timeout with the maximum session lifetime configured for the tenant: " +
                     tenantDomain);
             return timeout;

@@ -417,7 +417,10 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
         if (createdTime == null) {
             // If created time is not available, fallback to the previous behavior.
-            log.warn("Created time is not available in the session context cache entry for context ID : " + contextId +
+            // Possibility of occurring this scenario is very low as the created time is added to the session context.
+            // Therefore, printing an error log to highlight the issue and consider the session as valid to avoid
+            // breaking existing functionality.
+            log.error("Created time is not available in the session context cache entry for context ID : " + contextId +
                     ". Hence maximum session lifetime restrictions cannot be applied.");
             return true;
         }
