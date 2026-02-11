@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
@@ -72,6 +73,13 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
  * interface.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService",
+                "service.scope=singleton"
+        }
+)
 public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManagementService {
 
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementServiceImpl.class);

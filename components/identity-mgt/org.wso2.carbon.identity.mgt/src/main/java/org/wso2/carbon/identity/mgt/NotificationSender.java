@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,6 +29,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * email sender this creates a new task in thread pool for each email sending request
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.notification.mgt.NotificationSender",
+                "service.scope=singleton"
+        }
+)
 public class NotificationSender {
 
     private static ExecutorService threadPool = null;

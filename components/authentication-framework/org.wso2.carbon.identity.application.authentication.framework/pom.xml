@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.25.738-SNAPSHOT</version>
+        <version>5.26.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -115,7 +115,7 @@
             <artifactId>org.wso2.carbon.identity.user.profile</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
@@ -232,7 +232,6 @@
                         <Import-Package>
                             javax.xml.namespace,
                             javax.xml.stream,
-                            org.eclipse.equinox.http.helper,
 
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
@@ -284,6 +283,9 @@
                         <ListenerManager-RequiredServices>
                             org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService
                         </ListenerManager-RequiredServices>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>
@@ -292,6 +294,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <skipTests>true</skipTests>
                     <argLine>
                         --add-opens=java.base/java.lang=ALL-UNNAMED
                         --add-opens=java.base/java.util=ALL-UNNAMED

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.consent.mgt.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
@@ -41,6 +42,13 @@ import java.util.Set;
 /**
  * This service contains utility services for consent related functionality.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.consent.mgt.services.ConsentUtilityService",
+                "service.scope=singleton"
+        }
+)
 public class ConsentUtilityService {
 
     private static final Log log = LogFactory.getLog(ConsentUtilityService.class);

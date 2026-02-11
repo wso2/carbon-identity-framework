@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>provisioning</artifactId>
-        <version>5.25.738-SNAPSHOT</version>
+        <version>5.26.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -178,6 +178,9 @@
                             !org.wso2.carbon.identity.provisioning.internal,
                             org.wso2.carbon.identity.provisioning.*
                         </Export-Package>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

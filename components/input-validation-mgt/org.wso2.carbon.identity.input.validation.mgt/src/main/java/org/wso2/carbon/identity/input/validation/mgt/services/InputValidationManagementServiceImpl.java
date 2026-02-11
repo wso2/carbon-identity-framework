@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.input.validation.mgt.services;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
@@ -64,6 +65,13 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPU
 /**
  * Class for Input Validation Manager Implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService",
+                "service.scope=singleton"
+        }
+)
 public class InputValidationManagementServiceImpl implements InputValidationManagementService {
 
     private static final Log LOG = LogFactory.getLog(InputValidationManagementServiceImpl.class);

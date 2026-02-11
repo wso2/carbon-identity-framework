@@ -22,7 +22,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -31,7 +30,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.http.HttpService;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -51,7 +49,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -73,16 +70,12 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Fra
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
-import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
-import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
-import org.wso2.carbon.identity.application.authentication.framework.servlet.LongWaitStatusServlet;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
@@ -119,9 +112,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.servlet.Servlet;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 import static org.wso2.carbon.identity.base.IdentityConstants.TRUE;
 
 /**
@@ -134,17 +125,12 @@ import static org.wso2.carbon.identity.base.IdentityConstants.TRUE;
 )
 public class FrameworkServiceComponent {
 
-    public static final String COMMON_SERVLET_URL = "/commonauth";
     public static final String IS_HANDLER = "IS_HANDLER";
-    private static final String IDENTITY_SERVLET_URL = "/identity";
-    private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
-    private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
 
-    private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
     private String requireCode;
 
@@ -252,37 +238,6 @@ public class FrameworkServiceComponent {
         bundleContext
                 .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
         dataHolder.setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
-
-        // Register Common servlet
-        Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
-                COMMON_SERVLET_URL);
-
-        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                IDENTITY_SERVLET_URL);
-
-        Servlet loginContextServlet = new ContextPathServletAdaptor(new LoginContextServlet(),
-                LOGIN_CONTEXT_SERVLET_URL);
-        try {
-            httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
-            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
-            httpService.registerServlet(LOGIN_CONTEXT_SERVLET_URL, loginContextServlet, null, null);
-        } catch (Exception e) {
-            String errMsg = "Error when registering servlets via the HttpService.";
-            log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
-        }
-
-        if (promptOnLongWait()) {
-            Servlet longWaitStatusServlet = new ContextPathServletAdaptor(new LongWaitStatusServlet(),
-                    LONGWAITSTATUS_SERVLET_URL);
-            try {
-                httpService.registerServlet(LONGWAITSTATUS_SERVLET_URL, longWaitStatusServlet, null, null);
-            } catch (Exception e) {
-                String errMsg = "Error when registering longwaitstatus servlet via the HttpService.";
-                log.error(errMsg, e);
-                throw new RuntimeException(errMsg, e);
-            }
-        }
 
         dataHolder.setBundleContext(bundleContext);
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
@@ -441,31 +396,6 @@ public class FrameworkServiceComponent {
         if (FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor() != null) {
             FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
         }
-    }
-
-    @Reference(
-            name = "osgi.httpservice",
-            service = HttpService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetHttpService"
-    )
-    protected void setHttpService(HttpService httpService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is set in the Application Authentication Framework bundle");
-        }
-
-        this.httpService = httpService;
-    }
-
-    protected void unsetHttpService(HttpService httpService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is unset in the Application Authentication Framework bundle");
-        }
-
-        this.httpService = null;
     }
 
     protected void unsetRealmService(RealmService realmService) {
@@ -990,12 +920,8 @@ public class FrameworkServiceComponent {
             Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
             return new JsOpenJdkNashornGraphBuilderFactory();
         } catch (ClassNotFoundException e) {
-            try {
-                Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                return new JsGraphBuilderFactory();
-            } catch (ClassNotFoundException classNotFoundException) {
-                return null;
-            }
+            log.warn("OpenJDK Nashorn script engine not found, JsGraphBuilder will not be available");
+            return null;
         }
     };
 }

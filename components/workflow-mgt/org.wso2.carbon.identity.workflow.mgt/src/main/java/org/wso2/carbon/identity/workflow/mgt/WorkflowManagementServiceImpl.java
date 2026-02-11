@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.workflow.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
@@ -65,6 +66,13 @@ import java.util.Map;
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService",
+                "service.scope=singleton"
+        }
+)
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
     public static final String DATE_FORMAT_FOR_FILTERING = "MM/dd/yyyy";
