@@ -920,6 +920,7 @@ public class FrameworkServiceComponent {
             Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
             return new JsOpenJdkNashornGraphBuilderFactory();
         } catch (ClassNotFoundException e) {
+            log.warn("OpenJDK Nashorn script engine not found, JsGraphBuilder will not be available");
             return null;
         }
     };
