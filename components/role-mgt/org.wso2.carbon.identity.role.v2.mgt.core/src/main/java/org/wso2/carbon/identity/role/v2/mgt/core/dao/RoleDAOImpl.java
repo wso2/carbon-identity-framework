@@ -1058,17 +1058,11 @@ public class RoleDAOImpl implements RoleDAO {
         int mainRoleTenantId = IdentityTenantUtil.getTenantId(mainRoleTenantDomain);
         int sharedRoleTenantId = IdentityTenantUtil.getTenantId(sharedRoleTenantDomain);
 
-        int mainRoleUMId = 0;
-        int sharedRoleUMId = 0;
-
         RoleBasicInfo mainRoleBasicInfo = getRoleBasicInfoById(mainRoleUUID, mainRoleTenantDomain);
-        if (mainRoleBasicInfo != null && mainRoleBasicInfo.getRoleId() != 0) {
-            mainRoleUMId = mainRoleBasicInfo.getRoleId();
-        }
+        int mainRoleUMId = mainRoleBasicInfo.getRoleId();
+
         RoleBasicInfo sharedRoleBasicInfo = getRoleBasicInfoById(sharedRoleUUID, sharedRoleTenantDomain);
-        if (sharedRoleBasicInfo != null && sharedRoleBasicInfo.getRoleId() != 0) {
-            sharedRoleUMId = sharedRoleBasicInfo.getRoleId();
-        }
+        int sharedRoleUMId = sharedRoleBasicInfo.getRoleId();
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
 
