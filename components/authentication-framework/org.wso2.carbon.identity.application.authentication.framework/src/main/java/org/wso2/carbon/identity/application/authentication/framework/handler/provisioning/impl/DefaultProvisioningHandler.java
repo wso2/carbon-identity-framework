@@ -533,7 +533,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 rolesToAdd.removeAll(currentRoleIdList);
 
                 if (!includeManuallyAddedLocalRoles) {
-                    // Roles to delete: current roles minus the original rolesToAdd (before modification).
+                    /*
+                     * This is kept to preserve backward compatibility. If the property to include manually
+                     * added local roles is not enabled, the behavior will be same as OVERRIDE_ALL to remove
+                     * all existing roles that are not in the IDP role list and add new IDP roles.
+                     */
                     rolesToDelete = new ArrayList<>(currentRoleIdList);
                     rolesToDelete.removeAll(rolesToAdd);
                 }

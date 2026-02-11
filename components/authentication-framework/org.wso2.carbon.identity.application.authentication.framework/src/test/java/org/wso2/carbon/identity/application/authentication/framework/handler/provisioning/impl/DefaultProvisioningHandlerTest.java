@@ -673,8 +673,6 @@ public class DefaultProvisioningHandlerTest {
         }
     }
 
-    // ============ PRESERVE_EXISTING Tests ============
-
     @Test
     public void testHandleWithV2RolesPreserveExisting_OnlyAddsNewRoles() throws Exception {
 
