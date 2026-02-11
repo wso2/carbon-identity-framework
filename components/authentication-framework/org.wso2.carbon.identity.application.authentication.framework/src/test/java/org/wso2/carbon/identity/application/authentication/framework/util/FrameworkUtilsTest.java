@@ -1855,7 +1855,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         SessionContext sessionContext = new SessionContext();
         sessionContext.setRememberMe(false);
         
-        // Set session creation time to 30 minutes ago.
+        // Set session creation time to 35 minutes ago.
         long sessionCreationTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(35);
         sessionContext.addProperty(CREATED_TIMESTAMP, sessionCreationTime);
 
