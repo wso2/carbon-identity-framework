@@ -336,25 +336,13 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     prepStmt.execute();
                 }
 
-                List<ScopeAuthorizationInfo> systemApiScopes = null;
-
                 if (CollectionUtils.isNotEmpty(scopes)) {
                     boolean isSystemAPI = APIResourceManagementUtil.isSystemAPIByAPIId(apiId);
 
                     if (isSystemAPI) {
-                        // Shared scope authorization behaviour for system APIs.
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(String.format("Using shared scope authorization for system API: %s", apiId));
-                        }
-                        systemApiScopes = resolveSystemApiScopesByName(dbConnection, scopes);
-                        authorizeApisWithSharedScopes(dbConnection, applicationId, apiId, policyId, systemApiScopes);
-                        authorizeScopes(dbConnection, applicationId, systemApiScopes);
+                        authorizeScopesForSystemApis(applicationId, apiId, policyId, scopes, dbConnection);
                     } else {
-                        // Direct scope authorization for non-system APIs.
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(String.format("Using direct scope authorization for non-system API: %s", apiId));
-                        }
-                        addScopesDirectly(dbConnection, applicationId, apiId, scopes, tenantIdToSearchScopes);
+                        authorizeScopesDirectly(dbConnection, applicationId, apiId, scopes, tenantIdToSearchScopes);
                     }
                 }
 
@@ -370,7 +358,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "Successfully authorized API %s for application %s with %d scope authorizations", apiId,
-                            applicationId, systemApiScopes != null ? systemApiScopes.size() : 0));
+                            applicationId, scopes.size()));
                 }
             } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
@@ -387,9 +375,23 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     }
 
     /**
-     * Add scopes directly using the original INSERT-SELECT approach.
-     * This method filters scopes by API_ID to prevent cross-API scope associations.
-     * Used for non-system APIs.
+     * Authorizes scopes for system APIs by resolving scope IDs and ensuring all APIs sharing the same scopes are
+     * authorized. This method handles the complexity of shared scopes for system APIs, ensuring data integrity and
+     * optimal performance.
+     */
+    private void authorizeScopesForSystemApis(String applicationId, String apiId, String policyId, List<Scope> scopes,
+                                              Connection dbConnection) throws SQLException {
+
+        List<ScopeAuthorizationInfo> systemApiScopes = resolveSystemApiScopesByName(dbConnection, scopes);
+        authorizeApisWithSharedScopes(dbConnection, applicationId, apiId, policyId, systemApiScopes);
+        authorizeScopesIfAbsent(dbConnection, applicationId, systemApiScopes);
+    }
+
+    /**
+     * Authorizes the given scopes for the application and API directly by scope names.
+     * This method is used for non-system APIs that do not support shared scopes.
+     * It performs individual inserts for each scope without pre-fetching scope IDs, relying on database constraints
+     * to prevent duplicates.
      *
      * @param dbConnection  Database connection
      * @param applicationId Application ID
@@ -398,8 +400,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * @param tenantId      Tenant ID
      * @throws SQLException If database operation fails
      */
-    private void addScopesDirectly(Connection dbConnection, String applicationId, String apiId, List<Scope> scopes,
-                                   int tenantId) throws SQLException {
+    private void authorizeScopesDirectly(Connection dbConnection, String applicationId, String apiId,
+                                         List<Scope> scopes, int tenantId) throws SQLException {
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE)) {
 
@@ -593,10 +595,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     }
 
     /**
-     * Authorizes the given scopes for the application.
-     * Pre-filters already authorized scopes to avoid duplicate key violations.
+     * Authorizes scopes that are not already authorized for the application. This method checks existing
+     * authorizations to avoid duplicate entries and only adds missing ones, ensuring efficient database operations
+     * and data integrity.
      */
-    private void authorizeScopes(Connection dbConnection, String applicationId, List<ScopeAuthorizationInfo> scopeAuths)
+    private void authorizeScopesIfAbsent(Connection dbConnection, String applicationId,
+                                         List<ScopeAuthorizationInfo> scopeAuths)
             throws SQLException {
 
         if (CollectionUtils.isEmpty(scopeAuths)) {
@@ -705,11 +709,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
         if (isSystemAPI) {
             String policyId = getPolicyIdForAuthorizedAPI(dbConnection, appId, apiId);
-            List<ScopeAuthorizationInfo> systemApiScopes = resolveSystemApiScopesByName(dbConnection, scopes);
-            authorizeApisWithSharedScopes(dbConnection, appId, apiId, policyId, systemApiScopes);
-            authorizeScopes(dbConnection, appId, systemApiScopes);
+            authorizeScopesForSystemApis(appId, apiId, policyId, scopes, dbConnection);
         } else {
-            addScopesDirectly(dbConnection, appId, apiId, scopes, tenantId);
+            authorizeScopesDirectly(dbConnection, appId, apiId, scopes, tenantId);
         }
     }
 
