@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,7 +23,6 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -48,7 +47,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 
 @WithCarbonHome
 //@WithRealmService(injectToSingletons = {IdpMgtServiceComponentHolder.class}, initUserStoreManager = true)
@@ -199,120 +197,5 @@ public class IdentityProviderManagerTest {
                 .filter(c -> IdentityApplicationConstants.Authenticator.OIDC.NAME.equals(c.getName()))
                 .findFirst()
                 .orElse(null);
-    }
-
-    @DataProvider(name = "preserveLoggedInSessionConfigData")
-    public Object[][] preserveLoggedInSessionConfigData() {
-
-        return new Object[][]{
-                // tenantDomain, globalConfigValue, idpPropertyValue, expectedResult
-                {TENANT_DOMAIN, "true", "false", false},
-                {TENANT_DOMAIN, "true", "true", true},
-                {TENANT_DOMAIN, "false", "true", true},
-                {TENANT_DOMAIN, "false", null, false},
-                {"org.domain", "true", null, true},
-        };
-    }
-
-    /**
-     * Tests that the resident IdP includes PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property
-     * and correctly evaluates tenant-specific configurations.
-     */
-    @Test(description = "Tests addResidentIdP includes PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property.")
-    public void testAddResidentIdPIncludesPreserveLoggedInSessionProperty() throws Exception {
-
-        IdentityProvider residentIdP = new IdentityProvider();
-
-        try (MockedStatic<IdentityTenantUtil> mockedTenantUtil = mockStatic(IdentityTenantUtil.class);
-             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class);
-             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
-             MockedStatic<IdPManagementServiceComponent> mockedServiceComp =
-                     mockStatic(IdPManagementServiceComponent.class)) {
-
-            mockedTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
-            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN)).thenReturn(false);
-            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn(null);
-            mockedServiceComp.when(IdPManagementServiceComponent::getIdpMgtListeners)
-                    .thenReturn(Collections.emptyList());
-
-            identityProviderManager.addResidentIdP(residentIdP, TENANT_DOMAIN);
-
-            IdentityProviderProperty[] idpProperties = residentIdP.getIdpProperties();
-            assertNotNull("IdP properties should not be null", idpProperties);
-
-            boolean hasPreserveSessionProperty = Arrays.stream(idpProperties)
-                    .anyMatch(p -> IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE
-                            .equals(p.getName()));
-            assertTrue("IdP properties should contain PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property",
-                    hasPreserveSessionProperty);
-        }
-    }
-
-    /**
-     * Tests that tenant-specific PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE configuration
-     * overrides global configuration.
-     */
-    @Test(dataProvider = "preserveLoggedInSessionConfigData",
-          description = "Tests tenant-specific preserve session configuration overrides global config.")
-    public void testPreserveLoggedInSessionConfigOverride(String tenantDomain, String globalConfigValue,
-                                                          String idpPropertyValue, boolean expectedResult)
-            throws Exception {
-
-        IdentityProvider residentIdP = new IdentityProvider();
-
-        // Setup IdP properties with the tenant-specific value.
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
-        if (idpPropertyValue != null) {
-            IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
-            preserveSessionProperty.setName(IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
-            preserveSessionProperty.setValue(idpPropertyValue);
-            idpProperties = new IdentityProviderProperty[]{preserveSessionProperty};
-        }
-        residentIdP.setIdpProperties(idpProperties);
-
-        try (MockedStatic<IdentityTenantUtil> mockedTenantUtil = mockStatic(IdentityTenantUtil.class);
-             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class);
-             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
-             MockedStatic<IdPManagementServiceComponent> mockedServiceComp =
-                     mockStatic(IdPManagementServiceComponent.class)) {
-
-            mockedTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
-            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(anyString())).thenReturn(false);
-            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE))
-                    .thenReturn(globalConfigValue);
-            mockedServiceComp.when(IdPManagementServiceComponent::getIdpMgtListeners)
-                    .thenReturn(Collections.emptyList());
-
-            // Verify that the configuration is properly resolved.
-            boolean result = Boolean.parseBoolean(globalConfigValue);
-            if (idpPropertyValue != null) {
-                result = Boolean.parseBoolean(idpPropertyValue);
-            }
-
-            assertEquals("Configuration should match expected result", expectedResult, result);
-        }
-    }
-
-    /**
-     * Tests that PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property is correctly
-     * identified and extracted from IdP properties.
-     */
-    @Test(description = "Tests extraction of PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property.")
-    public void testPreserveLoggedInSessionPropertyExtraction() throws Exception {
-
-        IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
-        preserveSessionProperty.setName(IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
-        preserveSessionProperty.setValue("true");
-
-        IdentityProviderProperty[] idpProperties = {preserveSessionProperty};
-
-        IdentityProviderProperty foundProperty = Arrays.stream(idpProperties)
-                .filter(p -> IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE
-                        .equals(p.getName()))
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull("PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property should be found", foundProperty);
-        assertEquals("Property value should be 'true'", "true", foundProperty.getValue());
     }
 }

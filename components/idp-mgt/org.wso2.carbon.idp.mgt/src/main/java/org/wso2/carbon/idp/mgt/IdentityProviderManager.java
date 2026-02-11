@@ -84,6 +84,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -291,7 +292,7 @@ public class IdentityProviderManager implements IdpManager {
                     .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
             if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[3];
+                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
 
                 IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
                 String rememberMeTimeout =
@@ -314,20 +315,8 @@ public class IdentityProviderManager implements IdpManager {
                 sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
                 sessionIdletimeOutProperty.setValue(idleTimeout);
 
-                IdentityProviderProperty preserveCurrentSessionAtPasswordUpdateProperty = new IdentityProviderProperty();
-                String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
-                        PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
-                if (StringUtils.isBlank(preserveLoggedInSessionAtPasswordUpdate)) {
-                    log.warn("preserveLoggedInSessionAtPasswordUpdate in identity.xml should be a boolean value");
-                    preserveLoggedInSessionAtPasswordUpdate = "false";
-                }
-                preserveCurrentSessionAtPasswordUpdateProperty.setName(
-                        IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
-                preserveCurrentSessionAtPasswordUpdateProperty.setValue(preserveLoggedInSessionAtPasswordUpdate);
-
                 idpProperties[0] = rememberMeTimeoutProperty;
                 idpProperties[1] = sessionIdletimeOutProperty;
-                idpProperties[2] = preserveCurrentSessionAtPasswordUpdateProperty;
                 identityProvider.setIdpProperties(idpProperties);
             }
         } catch (OrganizationManagementException e) {
