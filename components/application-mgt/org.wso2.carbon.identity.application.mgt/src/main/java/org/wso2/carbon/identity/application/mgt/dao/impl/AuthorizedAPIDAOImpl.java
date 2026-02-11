@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -408,10 +408,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             prepStmt.setObject(4, tenantId);
 
             for (Scope scope : scopes) {
-                // Only set the variable parameter (scope name)
                 prepStmt.setString(3, scope.getName());
                 prepStmt.addBatch();
-
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(
                             String.format("Adding scope directly: APP=%s, API=%s, SCOPE_NAME=%s", applicationId, apiId,
@@ -428,7 +426,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * Uses a single query with IN clause for optimal performance.
      *
      * @param dbConnection Database connection
-     * @param scopes List of scopes to look up
+     * @param scopes       List of scopes to look up
      * @return List of scope authorization info for matching system API scopes
      * @throws SQLException If database operation fails
      */
@@ -484,7 +482,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * Ensures all required APIs are authorized before scope authorization.
      * This method is only applicable to system APIs as of now, as only they support shared scopes.
      */
-    private void authorizeApisWithSharedScopes(Connection dbConnection, String applicationId, String primaryApiId, String policyId, List<ScopeAuthorizationInfo> sharedScopes) throws SQLException {
+    private void authorizeApisWithSharedScopes(Connection dbConnection, String applicationId, String primaryApiId,
+                                               String policyId, List<ScopeAuthorizationInfo> sharedScopes)
+            throws SQLException {
 
         Set<String> apiIdsToAuthorize = sharedScopes.stream()
                 .map(ScopeAuthorizationInfo::getApiId)
@@ -495,8 +495,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             return;
         }
 
-        Set<String> alreadyAuthorizedApis =
-                getAlreadyAuthorizedAPIs(dbConnection, applicationId, apiIdsToAuthorize, policyId);
+        Set<String> alreadyAuthorizedApis = getAlreadyAuthorizedAPIs(dbConnection, applicationId, apiIdsToAuthorize);
 
         Set<String> apisToAdd = apiIdsToAuthorize.stream().filter(apiId -> !alreadyAuthorizedApis.contains(apiId))
                 .collect(Collectors.toSet());
@@ -548,13 +547,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * @param dbConnection  Database connection
      * @param applicationId Application ID
      * @param apiIds        Set of API IDs to check
-     * @param policyId      Policy ID
      * @return Set of API IDs that are already authorized
      * @throws SQLException If database operation fails
      */
-    private Set<String> getAlreadyAuthorizedAPIs(Connection dbConnection, String applicationId, Set<String> apiIds,
-                                                 String policyId) throws SQLException {
-
+    private Set<String> getAlreadyAuthorizedAPIs(Connection dbConnection, String applicationId, Set<String> apiIds)
+            throws SQLException {
 
         if (apiIds.isEmpty()) {
             return Collections.emptySet();
@@ -588,7 +585,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Found %d already authorized APIs out of %d to check", authorizedApis.size(), apiIds.size()));
+            LOG.debug(String.format("Found %d already authorized APIs out of %d to check", authorizedApis.size(),
+                    apiIds.size()));
         }
 
         return authorizedApis;
@@ -702,24 +700,16 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
 
         boolean isSystemAPI = APIResourceManagementUtil.isSystemAPIByAPIId(apiId);
+        List<Scope> scopes = scopesToAdd.stream().map(name -> new Scope.ScopeBuilder().name(name).build())
+                .collect(Collectors.toList());
 
         if (isSystemAPI) {
-            List<Scope> scopes = scopesToAdd.stream().map(name -> new Scope.ScopeBuilder().name(name).build())
-                    .collect(Collectors.toList());
             String policyId = getPolicyIdForAuthorizedAPI(dbConnection, appId, apiId);
             List<ScopeAuthorizationInfo> systemApiScopes = resolveSystemApiScopesByName(dbConnection, scopes);
             authorizeApisWithSharedScopes(dbConnection, appId, apiId, policyId, systemApiScopes);
             authorizeScopes(dbConnection, appId, systemApiScopes);
         } else {
-            PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
-            prepStmt.setString(1, appId);
-            prepStmt.setString(2, apiId);
-            prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
-            for (String scope : scopesToAdd) {
-                prepStmt.setString(3, scope);
-                prepStmt.addBatch();
-            }
-            prepStmt.executeBatch();
+            addScopesDirectly(dbConnection, appId, apiId, scopes, tenantId);
         }
     }
 
