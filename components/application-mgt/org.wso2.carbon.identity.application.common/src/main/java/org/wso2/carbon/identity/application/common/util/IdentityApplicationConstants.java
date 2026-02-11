@@ -67,6 +67,8 @@ public class IdentityApplicationConstants {
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
+    public static final String PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE =
+            "preserveCurrentSessionAtPasswordUpdate";
     public static final String SESSION_IDLE_TIME_OUT_DEFAULT = "15";
     public static final String REMEMBER_ME_TIME_OUT_DEFAULT = "20160";
 

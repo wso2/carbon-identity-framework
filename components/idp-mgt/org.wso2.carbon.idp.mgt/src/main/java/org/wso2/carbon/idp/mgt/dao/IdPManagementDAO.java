@@ -118,6 +118,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
@@ -6384,6 +6385,20 @@ public class IdPManagementDAO {
             sessionIdleTimeOut.setName(SESSION_IDLE_TIME_OUT);
             sessionIdleTimeOut.setValue(configuredSessionIdleTimeout);
             propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
+            String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
+            if (StringUtils.isBlank(preserveLoggedInSessionAtPasswordUpdate)) {
+                preserveLoggedInSessionAtPasswordUpdate = "false";
+            }
+
+            IdentityProviderProperty preserveCurrentSessionAtPasswordUpdateProperty = new IdentityProviderProperty();
+            preserveCurrentSessionAtPasswordUpdateProperty.setName(PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveCurrentSessionAtPasswordUpdateProperty.setValue(preserveLoggedInSessionAtPasswordUpdate);
+            propertiesFromConnectors.put(PRESERVE_CURRRENT_SESSION_AT_PASSWORD_UPDATE,
+                    preserveCurrentSessionAtPasswordUpdateProperty);
         }
     }
 

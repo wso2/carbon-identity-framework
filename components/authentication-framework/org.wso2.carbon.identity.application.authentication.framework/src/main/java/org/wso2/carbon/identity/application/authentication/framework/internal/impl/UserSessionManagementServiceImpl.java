@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -72,7 +73,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CURRENT_SESSION_IDENTIFIER;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
@@ -307,10 +307,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             throw handleSessionManagementClientException(ERROR_CODE_INVALID_USER, null);
         }
         String userIdToSearch = userId;
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
         // First check whether a federated association exists for the userId.
         try {
-            int tenantId = getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            int tenantId = getTenantId(tenantDomain);
             Map<SessionMgtConstants.AuthSessionUserKeys, String> authSessionUserMap =
                     getAuthSessionUserMapFromFedAssociationMapping(tenantId, userId);
             if (authSessionUserMap != null && !authSessionUserMap.isEmpty()) {
@@ -329,7 +330,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         sessionIdList = sessionList.stream().map(UserSession::getSessionId).collect(Collectors.toList());
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
-                Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
+                IdPManagementUtil.getPreserveCurrentSessionAtPasswordUpdate(tenantDomain);
         String currentSessionId = "";
         boolean isSessionTerminationSkipped = false;
         if (isSessionPreservingAtPasswordUpdateEnabled) {
