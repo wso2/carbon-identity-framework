@@ -475,10 +475,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // SessionContext is retained across different SP requests in the same browser session.
             // it is tracked by a cookie
 
-            SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
             String analyticsSessionAction = null;
+            SessionContext sessionContext = null;
 
             //When getting the cookie, it will not give the path. When paths are tenant qualified, it will only give
             // the cookies matching that path.
@@ -490,8 +490,25 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
-                            context.getLoginTenantDomain());
+                    SessionContext loadedSessionContext = FrameworkUtils.getSessionContextFromCache(
+                            sessionContextKey, context.getLoginTenantDomain());
+                    if (loadedSessionContext != null) {
+                        if (context.isSharedAppLogin()) {
+                            String authenticatedOrgId =
+                                    context.getOrganizationLoginData().getAccessingOrganization().getId();
+                            if (loadedSessionContext.getAuthenticatedOrgData().get(authenticatedOrgId) != null) {
+                                sessionContext = loadedSessionContext;
+                            }
+                        } else if (context.isOrgApplicationLogin()) {
+                            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getAccessingOrganizationId();
+                            if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+                                sessionContext = loadedSessionContext;
+                            }
+                        } else {
+                            sessionContext = loadedSessionContext;
+                        }
+                    }
                 }
             }
 
@@ -501,11 +518,39 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE;
-                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
-                sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
-                if (!context.isPassiveAuthenticate()) {
-                    setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
-                            appConfig.getApplicationName());
+                if (context.isSharedAppLogin() || context.isOrgApplicationLogin()) {
+                    String organizationId;
+                    if (context.isSharedAppLogin()) {
+                        organizationId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+                    } else {
+                        organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                .getAccessingOrganizationId();
+                    }
+                    AuthenticatedOrgData authenticatedOrgData =
+                            sessionContext.getAuthenticatedOrgData().get(organizationId);
+                    authenticatedOrgData.getAuthenticatedSequences()
+                            .put(appConfig.getApplicationName(), sequenceConfig);
+                    authenticatedOrgData.getAuthenticatedIdPs()
+                            .putAll(context.getCurrentAuthenticatedIdPs());
+                    if (!context.isPassiveAuthenticate()) {
+                        setAuthenticatedIDPsOfApp(authenticatedOrgData,
+                                context.getCurrentAuthenticatedIdPs(),
+                                appConfig.getApplicationName());
+                    }
+                    if (context.isSharedAppLogin()) {
+                        sessionContext.setAuthenticatedOrgId(organizationId);
+                        sessionContext.setOrganizationLogin(true);
+                    }
+                } else {
+                    sessionContext.getAuthenticatedSequences()
+                            .put(appConfig.getApplicationName(), sequenceConfig);
+                    sessionContext.getAuthenticatedIdPs()
+                            .putAll(context.getCurrentAuthenticatedIdPs());
+                    if (!context.isPassiveAuthenticate()) {
+                        setAuthenticatedIDPsOfApp(sessionContext,
+                                context.getCurrentAuthenticatedIdPs(),
+                                appConfig.getApplicationName());
+                    }
                 }
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
