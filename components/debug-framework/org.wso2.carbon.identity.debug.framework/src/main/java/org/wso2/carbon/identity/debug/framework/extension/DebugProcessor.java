@@ -261,7 +261,7 @@ public abstract class DebugProcessor {
      * 
      * Examples:
      * - OAuth2: Exchange authorization code for tokens.
-     * - SAML: Validate and process SAML assertion..
+     * - SAML: Validate and process SAML assertion.
      * - Custom: Implement protocol-specific authentication.
      *
      * @param request  HttpServletRequest containing authentication parameters.
@@ -325,8 +325,8 @@ public abstract class DebugProcessor {
      * - Custom response format.
      *
      * @param response   HttpServletResponse for sending the response.
-     * @param state
-     * @param resourceId
+     * @param state      The state parameter for session identification.
+     * @param resourceId The resource identifier.
      * @throws IOException If response cannot be sent.
      */
     protected abstract void sendDebugResponse(HttpServletResponse response, String state, String resourceId)

@@ -58,8 +58,7 @@ public class DebugServiceComponent {
                 LOG.debug("Debug Framework OSGi component activating");
             }
 
-            // Register DebugRequestCoordinator as an OSGi service for backward
-            // compatibility.
+            // Register DebugRequestCoordinator as an OSGi service for backward compatibility.
             // This service is deprecated and delegates to DebugFlowOrchestrator internally.
             @SuppressWarnings("deprecation")
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
@@ -68,8 +67,7 @@ public class DebugServiceComponent {
                     requestCoordinator,
                     null);
 
-            // Register the cleanup listener to delete database records after flow
-            // completion.
+            // Register the cleanup listener to delete database records after flow completion.
             cleanupListener = new DebugSessionCleanupListener();
             DebugSessionEventManager.getInstance().registerListener(cleanupListener);
 
@@ -140,9 +138,8 @@ public class DebugServiceComponent {
 
     /**
      * Unsets the DebugProtocolProvider.
-     * Called by OSGi when a protocol module deactivates or unregisters its
-     * provider.
-     * 
+     * Called by OSGi when a protocol module deactivates or unregisters its provider.
+     *
      * @param provider the DebugProtocolProvider instance.
      */
     protected void unsetDebugProtocolProvider(DebugProtocolProvider provider) {
@@ -179,8 +176,7 @@ public class DebugServiceComponent {
     /**
      * Unsets the ClaimMetadataManagementService.
      *
-     * @param claimMetadataManagementService the ClaimMetadataManagementService
-     *                                       instance.
+     * @param claimMetadataManagementService the ClaimMetadataManagementService instance.                  
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 

@@ -20,9 +20,13 @@ package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Data holder for Debug Framework Service Component.
@@ -136,6 +140,49 @@ public class DebugFrameworkServiceDataHolder {
     public boolean hasDebugProtocolProvider(String protocolType) {
 
         return debugProtocolProviders.containsKey(protocolType);
+    }
+
+    /**
+     * List of registered debug protocol resolvers.
+     */
+    private final List<DebugProtocolResolver> debugProtocolResolvers = 
+            new CopyOnWriteArrayList<>();
+
+    /**
+     * Adds a debug protocol resolver to the registry.
+     * Called during OSGi service binding.
+     *
+     * @param resolver The DebugProtocolResolver to register.
+     */
+    public void addDebugProtocolResolver(DebugProtocolResolver resolver) {
+
+        if (resolver != null) {
+            debugProtocolResolvers.add(resolver);
+            debugProtocolResolvers.sort(Comparator.comparingInt(DebugProtocolResolver::getOrder));
+        }
+    }
+
+    /**
+     * Removes a debug protocol resolver from the registry.
+     * Called during OSGi service unbinding.
+     *
+     * @param resolver The DebugProtocolResolver to unregister.
+     */
+    public void removeDebugProtocolResolver(DebugProtocolResolver resolver) {
+
+        if (resolver != null) {
+            debugProtocolResolvers.remove(resolver);
+        }
+    }
+
+    /**
+     * Gets all registered debug protocol resolvers.
+     *
+     * @return List of DebugProtocolResolver.
+     */
+    public List<DebugProtocolResolver> getDebugProtocolResolvers() {
+
+        return debugProtocolResolvers;
     }
 
 }

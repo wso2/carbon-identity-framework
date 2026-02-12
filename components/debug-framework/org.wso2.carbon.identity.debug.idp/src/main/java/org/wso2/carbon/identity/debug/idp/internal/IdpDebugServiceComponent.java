@@ -20,11 +20,14 @@ package org.wso2.carbon.identity.debug.idp.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.idp.core.handler.IdpDebugResourceHandler;
+import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
 
 /**
  * OSGi service component for the IDP debug handler module.
@@ -41,6 +44,8 @@ public class IdpDebugServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
 
+    private ServiceRegistration<DebugProtocolResolver> resolverRegistration;
+
     /**
      * Activates the IDP debug handler component.
      * Registers the IdpDebugResourceHandler with the framework's debug handler
@@ -51,6 +56,7 @@ public class IdpDebugServiceComponent {
      *
      * @param context The OSGi component context.
      */
+
     @Activate
     protected void activate(ComponentContext context) {
 
@@ -68,7 +74,14 @@ public class IdpDebugServiceComponent {
                 LOG.debug("Registered IdpDebugResourceHandler with DebugHandlerRegistry.");
             }
 
-            LOG.info("IDP Debug Handler Component activated successfully.");
+            // Register the IDP debug protocol resolver service.
+            IdpDebugProtocolResolver resolver = new IdpDebugProtocolResolver();
+            resolverRegistration = context.getBundleContext().registerService(
+                    DebugProtocolResolver.class, resolver, null);
+            
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Registered IdpDebugProtocolResolver service.");
+            }
 
         } catch (Exception e) {
             LOG.error("Failed to activate IDP Debug Handler Component.", e);
@@ -92,6 +105,12 @@ public class IdpDebugServiceComponent {
         // Clear the IDP handler registration.
         org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry.getInstance()
                 .unregister("idp");
+
+        // Unregister the resolver service.
+        if (resolverRegistration != null) {
+            resolverRegistration.unregister();
+            resolverRegistration = null;
+        }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("IDP Debug Handler Component deactivated.");

@@ -334,9 +334,9 @@ public class DebugRequestCoordinator implements DebugService {
         }
 
         context.setProperty(DebugFrameworkConstants.DEBUG_IDENTIFIER_PARAM, DebugFrameworkConstants.TRUE);
-        context.setProperty("DEBUG_FLOW_TYPE", "OAUTH_CALLBACK");
-        context.setProperty("DEBUG_CONTEXT_CREATED", DebugFrameworkConstants.TRUE);
-        context.setProperty("DEBUG_CREATION_TIMESTAMP", System.currentTimeMillis());
+        context.setProperty(DebugFrameworkConstants.DEBUG_FLOW_TYPE, DebugFrameworkConstants.FLOW_TYPE_CALLBACK);
+        context.setProperty(DebugFrameworkConstants.DEBUG_CONTEXT_CREATED, DebugFrameworkConstants.TRUE);
+        context.setProperty(DebugFrameworkConstants.DEBUG_CREATION_TIMESTAMP, System.currentTimeMillis());
 
         cacheDebugContext(context);
         return context;

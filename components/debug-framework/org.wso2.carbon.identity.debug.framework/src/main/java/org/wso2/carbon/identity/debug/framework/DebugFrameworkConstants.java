@@ -42,10 +42,10 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
 
-    // OAuth2 Callback Parameters.
-    public static final String OAUTH2_CODE_PARAM = "code";
-    public static final String OAUTH2_STATE_PARAM = "state";
-    public static final String OAUTH2_ERROR_PARAM = "error";
+    // Generic Callback Parameters (protocol-agnostic names).
+    public static final String CALLBACK_CODE_PARAM = "code";
+    public static final String CALLBACK_STATE_PARAM = "state";
+    public static final String CALLBACK_ERROR_PARAM = "error";
 
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 15;
@@ -63,6 +63,12 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_PREFIX = "debug-";
     public static final String TRUE = "true";
     public static final String FALSE = "false";
+
+    // Debug Flow Type Constants.
+    public static final String DEBUG_FLOW_TYPE = "DEBUG_FLOW_TYPE";
+    public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
+    public static final String DEBUG_CREATION_TIMESTAMP = "DEBUG_CREATION_TIMESTAMP";
+    public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
 
     // Session Status Constants.
     public static final String SESSION_STATUS_PENDING = "PENDING";

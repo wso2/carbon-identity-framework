@@ -68,8 +68,7 @@ public class DebugSessionCleanupListener implements DebugSessionEventListener {
                     + ", successful: " + context.isSuccessful());
         }
 
-        // Skipping immediate cleanup to allow the result to be retrieved by the Debug
-        // API.
+        // Skipping immediate cleanup to allow the result to be retrieved by the Debug API.
         // If we delete here, the result is gone before the UI can fetch it.
         // deleteSessionRecord(sessionId);
     }

@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.debug.framework.model;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
-import org.wso2.carbon.identity.debug.framework.handler.FraudDetectionDebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 
 /**
@@ -129,7 +128,14 @@ public enum DebugResourceType {
                 return idpHandler;
 
             case FRAUD_DETECTION:
-                return new FraudDetectionDebugResourceHandler();
+                // Fraud detection handler is looked up from registry (provided by external module).
+                DebugResourceHandler fraudHandler = DebugHandlerRegistry.getInstance()
+                        .getHandler("fraud_detection");
+                if (fraudHandler == null && LOG.isDebugEnabled()) {
+                    LOG.debug("Fraud detection DebugResourceHandler not registered. " +
+                            "Ensure the fraud detection debug bundle is deployed.");
+                }
+                return fraudHandler;
 
             case CUSTOM:
                 // Custom handlers would be looked up from registry if needed.
