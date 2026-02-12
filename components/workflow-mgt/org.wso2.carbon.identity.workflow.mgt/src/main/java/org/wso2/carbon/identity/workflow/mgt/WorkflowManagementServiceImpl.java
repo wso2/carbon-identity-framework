@@ -885,9 +885,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
 
         if (condition != null) {
-            if (isUUID(condition)) {
-                association.setCondition(condition);
-            } else if (WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
+            if (isUUID(condition) || WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
                 association.setCondition(condition);
             } else {
                 log.error("Conditions are not supported. Provided condition: " + condition);
