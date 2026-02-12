@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationData;
@@ -446,6 +447,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     if (context.isSharedAppLoginContextUpdateRequired()) {
                         log.debug("Updating the authentication context with the organization login data.");
                         updateContextForOrganizationLogin(request, context);
+                        findPreviousOrganizationSession(request, context);
                         FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                     }
 
@@ -1089,18 +1091,71 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 sessionContextKey = hashedSessionId;
             }
         }
+
+        context.setServiceProviderName(effectiveSequence.getApplicationConfig().getApplicationName());
+        if (effectiveSequence.getApplicationConfig().getServiceProvider() != null && StringUtils.isNotBlank(
+                effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId())) {
+            context.setServiceProviderResourceId(
+                    effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
+        }
+
         // if a value for the sessionContextKey exists user has previously authenticated
         if (sessionContextKey != null && !isForceAuthEnabled(request)) {
 
-            SessionContext sessionContext = null;
+            SessionContext loadedSessionContext = null;
             // get the authentication details from the cache
             try {
                 //Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
                 // tenant wise session expiry time
                 FrameworkUtils.startTenantFlow(context.getTenantDomain());
-                sessionContext = getSessionContext(request, context, applicationConfig, sessionContextKey);
+                loadedSessionContext = getSessionContext(request, context, applicationConfig, sessionContextKey);
             } finally {
                 FrameworkUtils.endTenantFlow();
+            }
+
+            SessionContext sessionContext = null;
+            boolean isSharedAppLogin = false;
+            boolean isOrgAppLogin = false;
+            if (loadedSessionContext != null) {
+                String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getAccessingOrganizationId();
+                if (loadedSessionContext.isOrganizationLogin() && !context.isOrgApplicationLogin()) {
+                    if (StringUtils.isBlank(accessingOrgId) ||
+                            StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedOrgId())) {
+                        try {
+                            boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
+                                    loadedSessionContext.getAuthenticatedOrgId());
+                            if (hasOrganizationAccess) {
+                                updateContextForOrganizationLogin(request,context);
+                                isSharedAppLogin = true;
+                                sessionContext = loadedSessionContext;
+                            }
+                        } catch (AuthenticationFailedException e) {
+                            log.error("Error occurred while trying to get the organization login context", e);
+                        }
+                    }
+                }
+
+                if (context.isOrgApplicationLogin()) {
+                    if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+                        isOrgAppLogin = true;
+                        sessionContext = loadedSessionContext;
+                    }
+                }
+
+                if (!context.isOrgApplicationLogin() || !loadedSessionContext.isOrganizationLogin()) {
+                    if (applicationConfig != null && !applicationConfig.isSaaSApp()
+                            && loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN) != null) {
+                        boolean isMatchingTenantDomain = StringUtils.equals(
+                                loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
+                                context.getLoginTenantDomain());
+                        if (!isMatchingTenantDomain) {
+                            request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
+                        } else {
+                            sessionContext = loadedSessionContext;
+                        }
+                    }
+                }
             }
 
             if (sessionContext != null) {
@@ -1112,7 +1167,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     log.debug("Service Provider is: " + appName);
                 }
 
-                SequenceConfig previousAuthenticatedSeq = sessionContext.getAuthenticatedSequences().get(appName);
+                String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getAccessingOrganizationId();
+
+                SequenceConfig previousAuthenticatedSeq;
+
+                // Retrieve the previous authenticated sequence.
+                if (isSharedAppLogin) {
+                    previousAuthenticatedSeq = sessionContext.getAuthenticatedOrgData()
+                            .get(sessionContext.getAuthenticatedOrgId()).getAuthenticatedSequences().get(appName);
+                } else if (isOrgAppLogin) {
+                    previousAuthenticatedSeq = sessionContext.getAuthenticatedOrgData()
+                            .get(accessingOrgId).getAuthenticatedSequences().get(appName);
+                } else {
+                    previousAuthenticatedSeq = sessionContext.getAuthenticatedSequences().get(appName);
+                }
 
                 if (previousAuthenticatedSeq != null) {
                     if (log.isDebugEnabled()) {
@@ -1157,16 +1226,102 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     // updates, authentication step updates will be reflected.
                     refreshAppConfig(effectiveSequence, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
                             context.getRequestType(), context.getTenantDomain());
-                    context.setAuthenticatedIdPsOfApp(sessionContext.getAuthenticatedIdPsOfApp(appName));
+
+                    Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp;
+                    if (isSharedAppLogin) {
+                        authenticatedIdPsOfApp = sessionContext.getAuthenticatedOrgData()
+                                .get(sessionContext.getAuthenticatedOrgId()).getAuthenticatedIdPsOfApp(appName);
+                    } else if (isOrgAppLogin) {
+                        authenticatedIdPsOfApp = sessionContext.getAuthenticatedOrgData()
+                                .get(accessingOrgId).getAuthenticatedIdPsOfApp(appName);
+                    } else {
+                        authenticatedIdPsOfApp = sessionContext.getAuthenticatedIdPsOfApp(appName);
+                    }
+                    context.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
                 }
 
-                context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
+                Map<String, AuthenticatedIdPData> authenticatedIdPData;
+                if  (isSharedAppLogin) {
+                    authenticatedIdPData = sessionContext.getAuthenticatedOrgData()
+                            .get(sessionContext.getAuthenticatedOrgId()).getAuthenticatedIdPs();
+                } else if (isOrgAppLogin) {
+                    authenticatedIdPData = sessionContext.getAuthenticatedOrgData()
+                            .get(accessingOrgId).getAuthenticatedIdPs();
+                } else {
+                    authenticatedIdPData = sessionContext.getAuthenticatedIdPs();
+                }
+                context.setPreviousAuthenticatedIdPs(authenticatedIdPData);
+
                 context.setProperty(FrameworkConstants.RUNTIME_CLAIMS,
                         sessionContext.getProperty(FrameworkConstants.RUNTIME_CLAIMS));
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
                 }
+            }
+        }
+
+        // set the sequence for the current authentication/logout flow
+        context.setSequenceConfig(effectiveSequence);
+    }
+
+    protected void findPreviousOrganizationSession(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
+
+        List<String> acrRequested = getAcrRequested(request);
+        if (acrRequested != null) {
+            for (String acr : acrRequested) {
+                context.addRequestedAcr(acr);
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled() && CollectionUtils.isNotEmpty(acrRequested)) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_ACR_VALUES)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getLoginTenantDomain())
+                        .inputParam(ACR_VALUES_ATTRIBUTE, acrRequested)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+            }
+        }
+
+        SequenceConfig effectiveSequence = context.getSequenceConfig();
+        ApplicationConfig applicationConfig = effectiveSequence.getApplicationConfig();
+        String applicationName = applicationConfig.getApplicationName();
+        // organization SSO IDP is added for portal apps only if requested with FIDP param.
+        if (FrameworkConstants.Application.CONSOLE_APP.equals(applicationName) ||
+                FrameworkConstants.Application.MY_ACCOUNT_APP.equals(applicationName)) {
+            String[] fidpParam = request.getParameterMap().get(FrameworkConstants.RequestParams.FEDERATED_IDP);
+            if (fidpParam == null || fidpParam.length > 0 &&
+                    !ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER.equals(fidpParam[0])) {
+                removeOrganizationSsoStepsForPortalApps(effectiveSequence);
+            }
+        }
+
+        if (acrRequested != null) {
+            for (String acr : acrRequested) {
+                effectiveSequence.addRequestedAcr(acr);
+            }
+        }
+
+        String sessionContextKey = null;
+        Cookie cookie = FrameworkUtils.getAuthCookie(request);
+        if (cookie != null) {
+            if (log.isDebugEnabled()) {
+                log.debug(FrameworkConstants.COMMONAUTH_COOKIE + " cookie is available with the value: " + cookie
+                        .getValue());
+            }
+            sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+        } else if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
+            /* If it's an API based authentication flow, the sha256 hashed value
+             of the session identifier can be passed as a query param as well.*/
+            String hashedSessionId = request.getParameter(FrameworkConstants.RequestParams.SESSION_ID);
+            if (StringUtils.isNotBlank(hashedSessionId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(FrameworkConstants.RequestParams.SESSION_ID +
+                            " query param is available with the value: " + hashedSessionId);
+                }
+                sessionContextKey = hashedSessionId;
             }
         }
 
@@ -1177,7 +1332,105 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
         }
 
-        // set the sequence for the current authentication/logout flow
+        // if a value for the sessionContextKey exists user has previously authenticated
+        if (sessionContextKey != null && !isForceAuthEnabled(request)) {
+
+            SessionContext loadedSessionContext = null;
+            // get the authentication details from the cache
+            try {
+                //Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
+                // tenant wise session expiry time
+                FrameworkUtils.startTenantFlow(context.getTenantDomain());
+                loadedSessionContext = getSessionContext(request, context, applicationConfig, sessionContextKey);
+            } finally {
+                FrameworkUtils.endTenantFlow();
+            }
+
+            SessionContext sessionContext = null;
+            String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+            if (loadedSessionContext != null) {
+                if (accessingOrgId !=  null) {
+                    if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+                        sessionContext = loadedSessionContext;
+                    }
+                }
+            }
+
+            if (sessionContext != null) {
+                context.setSessionIdentifier(sessionContextKey);
+                String appName = effectiveSequence.getApplicationConfig().getApplicationName();
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Service Provider is: " + appName);
+                }
+
+                SequenceConfig previousAuthenticatedSeq = sessionContext.getAuthenticatedOrgData()
+                        .get(accessingOrgId)
+                        .getAuthenticatedSequences().get(appName);
+
+                if (previousAuthenticatedSeq != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("A previously authenticated sequence found for the SP: " + appName);
+                    }
+
+                    context.setPreviousSessionFound(true);
+
+                    effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
+                    effectiveSequence.setReqPathAuthenticators(
+                            new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
+                    effectiveSequence.setAuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
+                    effectiveSequence.setAuthenticatedIdPs(previousAuthenticatedSeq.getAuthenticatedIdPs());
+                    effectiveSequence.setAuthenticatedReqPathAuthenticator(
+                            previousAuthenticatedSeq.getAuthenticatedReqPathAuthenticator());
+
+                    AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
+
+                    if (authenticatedUser != null) {
+                        String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
+                        // Set the user for the current authentication/logout flow.
+                        context.setSubject(authenticatedUser);
+
+                        if (log.isDebugEnabled()) {
+                            try {
+                                String userId = authenticatedUser.getUserId();
+                                log.debug("Already authenticated by userId: " + userId);
+                            } catch (UserIdNotFoundException e) {
+                                log.error("Error while getting the user ID from the authenticated user.");
+                            }
+                        }
+
+                        if (authenticatedUserTenantDomain != null) {
+                            // Set the user tenant domain for the current authentication/logout flow.
+                            context.setProperty(USER_TENANT_DOMAIN, authenticatedUserTenantDomain);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+                            }
+                        }
+                    }
+                    // This is done to reflect the changes done in SP to the sequence config. So, the requested claim
+                    // updates, authentication step updates will be reflected.
+                    refreshAppConfig(effectiveSequence, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
+                            context.getRequestType(), context.getTenantDomain());
+
+                    Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp = sessionContext.getAuthenticatedOrgData()
+                            .get(accessingOrgId)
+                            .getAuthenticatedIdPsOfApp(appName);
+                    context.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
+                }
+
+                Map<String, AuthenticatedIdPData> authenticatedIdPData = sessionContext.getAuthenticatedOrgData()
+                        .get(context.getOrganizationLoginData().getAccessingOrganization().getId())
+                        .getAuthenticatedIdPs();
+                context.setPreviousAuthenticatedIdPs(authenticatedIdPData);
+
+                context.setProperty(FrameworkConstants.RUNTIME_CLAIMS,
+                        sessionContext.getProperty(FrameworkConstants.RUNTIME_CLAIMS));
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
+                }
+            }
+        }
         context.setSequenceConfig(effectiveSequence);
     }
 
@@ -1207,19 +1460,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             throws FrameworkException {
 
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
-        if (sessionContext != null && appConfig != null && !appConfig.isSaaSApp()
-            && sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN) != null) {
-            /* If the application is non-SaaS, the Service Provider tenant domain must match the user's tenant domain.
-             If there is a mismatch, set the removeCommonAuthCookie attribute in the request to ensure the commonAuthId
-             cookie is cleared by the AuthenticationFrameworkWrapper and remove the cookie from the response. */
-            boolean isMatchingTenantDomain = StringUtils.equals(
-                    sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
-                    context.getLoginTenantDomain());
-            if (!isMatchingTenantDomain) {
-                request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
-                return null;
-            }
-        }
 
         return sessionContext;
     }
