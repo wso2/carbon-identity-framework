@@ -40,6 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Holds the optimized authenticated data of an organization during an authentication flow.
+ */
 public class OptimizedAuthenticatedOrgData implements Serializable {
 
     private static final long serialVersionUID = 1L;

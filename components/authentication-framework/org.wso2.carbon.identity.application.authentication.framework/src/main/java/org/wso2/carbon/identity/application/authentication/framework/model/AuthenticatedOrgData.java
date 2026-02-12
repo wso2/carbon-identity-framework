@@ -25,6 +25,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Holds the authenticated data of an organization during an authentication flow.
+ */
 public class AuthenticatedOrgData implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -1132,7 +1132,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
                                     loadedSessionContext.getAuthenticatedOrgId());
                             if (hasOrganizationAccess) {
-                                updateContextForOrganizationLogin(request,context);
+                                updateContextForOrganizationLogin(request, context);
                                 isSharedAppLogin = true;
                                 sessionContext = loadedSessionContext;
                             }
