@@ -27,6 +27,22 @@
             {
               "name": "urn:ietf:params:oauth:grant-type:token-exchange",
               "displayName": "token exchange"
+            },
+            {
+              "name": "urn:ietf:params:oauth:grant-type:device_code",
+              "displayName": "device code"
+            },
+            {
+              "name": "organization_switch",
+              "displayName": "organization switch"
+            },
+            {
+              "name": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+              "displayName": "jwt bearer"
+            },
+            {
+              "name": "urn:ietf:params:oauth:grant-type:saml2-bearer",
+              "displayName": "saml2 bearer"
             }
           ]
         }
