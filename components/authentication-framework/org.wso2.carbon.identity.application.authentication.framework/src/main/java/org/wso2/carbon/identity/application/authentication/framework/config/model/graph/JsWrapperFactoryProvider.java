@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornWrapperFactory;

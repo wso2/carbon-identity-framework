@@ -75,6 +75,13 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
                 "service.scope=singleton"
         }
 )
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener",
+                "service.scope=singleton"
+        }
+)
 public class DefaultRoleManagementListener extends AbstractApplicationMgtListener implements RoleManagementListener {
 
     private static final Log LOG = LogFactory.getLog(DefaultRoleManagementListener.class);
