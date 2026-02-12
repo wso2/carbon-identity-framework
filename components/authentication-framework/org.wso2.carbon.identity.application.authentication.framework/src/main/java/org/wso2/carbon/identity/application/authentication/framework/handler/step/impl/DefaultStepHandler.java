@@ -810,8 +810,7 @@ public class DefaultStepHandler implements StepHandler {
                         LOG.debug("Organization is discovered to initiate an organization login." +
                                 " Setting up the necessary flags and returning to execute the organization login.");
                     }
-                    context.setOrganizationLogin(true);
-                    context.setOrgLoginContextUpdateRequired(true);
+                    context.setSharedAppLoginContextUpdateRequired(true);
                     return;
                 }
             } else {
@@ -866,7 +865,7 @@ public class DefaultStepHandler implements StepHandler {
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
             }
 
-            if (context.getSubject() != null && context.isOrganizationLogin()) {
+            if (context.getSubject() != null && context.isSharedAppLogin()) {
                 String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
                 context.getSubject().setAccessingOrganization(accessingOrgId);
                 context.getSubject().setUserResidentOrganization(accessingOrgId);

@@ -28,7 +28,7 @@ public class OrganizationData implements Serializable {
     private static final long serialVersionUID = 495984213681257459L;
     private String id;
     private String name;
-    private String organizationHandle;
+    private String handle;
 
     public String getId() {
 
@@ -50,13 +50,13 @@ public class OrganizationData implements Serializable {
         this.name = name;
     }
 
-    public String getOrganizationHandle() {
+    public String getHandle() {
 
-        return this.organizationHandle;
+        return this.handle;
     }
 
-    public void setOrganizationHandle(String organizationHandle) {
+    public void setHandle(String handle) {
 
-        this.organizationHandle = organizationHandle;
+        this.handle = handle;
     }
 }

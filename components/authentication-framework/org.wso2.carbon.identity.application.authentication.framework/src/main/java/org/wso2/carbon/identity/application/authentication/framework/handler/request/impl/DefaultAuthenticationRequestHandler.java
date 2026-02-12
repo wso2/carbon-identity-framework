@@ -209,7 +209,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // call step based sequence handler
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
-                if (context.isOrgLoginContextUpdateRequired()) {
+                if (context.isSharedAppLoginContextUpdateRequired()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Context update is required for the organization login. " +
                                 "Hence, returning to Request Coordinator.");
@@ -392,7 +392,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
-        authenticationResult.setOrganizationLogin(context.isOrganizationLogin());
+        authenticationResult.setOrganizationLogin(context.isSharedAppLogin());
 
         if (isAuthenticated) {
 

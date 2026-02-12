@@ -89,7 +89,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean returning;
     private boolean retrying;
     private boolean previousSessionFound;
-    private boolean orgLoginContextUpdateRequired;
+    private boolean sharedAppLoginContextUpdateRequired;
 
     //Adaptive Authentication control and status
     private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
@@ -127,7 +127,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      */
     private long expiryTimeNano = 0L;
 
-    private boolean organizationLogin;
+    // This attribute is used to indicate whether the login request is for an organization application.
+    private boolean orgApplicationLogin;
+    // This attribute is updated when the login flow is switched for shared application sequence.
+    private boolean isSharedAppLogin;
+    // This attribute hold the organization login data for organization application and shared application login flows.
     private OrganizationLoginData organizationLoginData;
 
     public String getCallerPath() {
@@ -853,31 +857,85 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         this.expiryTimeNano = expiryTimeNano;
     }
 
-    public boolean isOrgLoginContextUpdateRequired() {
+    /**
+     * Returns whether the shared app login context update is required.
+     * When this flag is set to true, the flow will return to request coordinator and switch the flow for shared login.
+     *
+     * @return True if the shared app login context update is required. False otherwise.
+     */
+    public boolean isSharedAppLoginContextUpdateRequired() {
 
-        return this.orgLoginContextUpdateRequired;
+        return this.sharedAppLoginContextUpdateRequired;
     }
 
-    public void setOrgLoginContextUpdateRequired(boolean orgLoginContextUpdateRequired) {
+    /**
+     * Set whether the shared app login context update is required.
+     * When this flag is set to true, the flow will return to request coordinator and switch the flow for shared login.
+     *
+     * @param sharedAppLoginContextUpdateRequired Whether the shared app login context update is required.
+     */
+    public void setSharedAppLoginContextUpdateRequired(boolean sharedAppLoginContextUpdateRequired) {
 
-        this.orgLoginContextUpdateRequired = orgLoginContextUpdateRequired;
+        this.sharedAppLoginContextUpdateRequired = sharedAppLoginContextUpdateRequired;
     }
 
-    public boolean isOrganizationLogin() {
+    /**
+     * Returns whether the login request is for an organization application.
+     *
+     * @return True if the login request is for an organization application. False otherwise.
+     */
+    public boolean isOrgApplicationLogin() {
 
-        return this.organizationLogin;
+        return this.orgApplicationLogin;
     }
 
-    public void setOrganizationLogin(boolean organizationLogin) {
+    /**
+     * Set whether the login request is for an organization application.
+     *
+     * @param orgApplicationLogin Whether the login request is for an organization application.
+     */
+    public void setOrgApplicationLogin(boolean orgApplicationLogin) {
 
-        this.organizationLogin = organizationLogin;
+        this.orgApplicationLogin = orgApplicationLogin;
     }
 
+    /**
+     * Returns whether the current flow is switched to shared application login flow.
+     * This is updated when the flow is switched to shared application login flow from main application login flow.
+     *
+     * @return True if the login request is for a shared application login flow. False otherwise.
+     */
+    public boolean isSharedAppLogin() {
+
+        return this.isSharedAppLogin;
+    }
+
+    /**
+     * Set whether the current flow is switched to shared application login flow.
+     * This is updated when the flow is switched to shared application login flow from main application login flow.
+     *
+     * @param sharedAppLogin Whether login flow is switched to shared application login flow or not.
+     */
+    public void setSharedAppLogin(boolean sharedAppLogin) {
+
+        this.isSharedAppLogin = sharedAppLogin;
+    }
+
+    /**
+     * Get the organization login data for organization application and shared application login flows.
+     *
+     * @return OrganizationLoginData Context data for organization application and shared application login flows.
+     */
     public OrganizationLoginData getOrganizationLoginData() {
 
         return this.organizationLoginData;
     }
 
+    /**
+     * Set the organization login data for organization application and shared application login flows.
+     *
+     * @param organizationLoginData Context data for organization application and shared application login flows.
+     */
     public void setOrganizationLoginData(OrganizationLoginData organizationLoginData) {
 
         this.organizationLoginData = organizationLoginData;

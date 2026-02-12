@@ -27,10 +27,12 @@ public class OrganizationLoginData implements Serializable {
 
     private static final long serialVersionUID = -2115398895048768726L;
 
-    private OrganizationData accessingOrganization;
+    // Root organization tenant domain.
+    private String rootOrganizationTenantDomain;
+    // Shared application id used in shared application login.
     private String sharedApplicationId;
-    private String primaryTenantDomain;
-    private String mainAppResidentTenantDomain;
+    // Accessing organization data in shared application login.
+    private OrganizationData accessingOrganization;
 
     public OrganizationData getAccessingOrganization() {
 
@@ -52,23 +54,13 @@ public class OrganizationLoginData implements Serializable {
         this.sharedApplicationId = sharedApplicationId;
     }
 
-    public String getPrimaryTenantDomain() {
+    public String getRootOrganizationTenantDomain() {
 
-        return this.primaryTenantDomain;
+        return this.rootOrganizationTenantDomain;
     }
 
-    public void setPrimaryTenantDomain(String primaryTenantDomain) {
+    public void setRootOrganizationTenantDomain(String rootOrganizationTenantDomain) {
 
-        this.primaryTenantDomain = primaryTenantDomain;
-    }
-
-    public String getMainAppResidentTenantDomain() {
-
-        return this.mainAppResidentTenantDomain;
-    }
-
-    public void setMainAppResidentTenantDomain(String mainAppResidentTenantDomain) {
-
-        this.mainAppResidentTenantDomain = mainAppResidentTenantDomain;
+        this.rootOrganizationTenantDomain = rootOrganizationTenantDomain;
     }
 }

@@ -79,6 +79,8 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -437,11 +439,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 if (!context.isLogoutRequest()) {
                     enteredFlow = enterFlow(Flow.Name.LOGIN);
-                    boolean isOrganizationLogin = isOrganizationLoginRequest(context);
-                    if (!isOrganizationLogin) {
+                    boolean initialOrganizationLoginRequest = isInitialOrganizationLoginRequest(context);
+                    if (!initialOrganizationLoginRequest) {
                         FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                     }
-                    if (context.isOrgLoginContextUpdateRequired()) {
+                    if (context.isSharedAppLoginContextUpdateRequired()) {
                         log.debug("Updating the authentication context with the organization login data.");
                         updateContextForOrganizationLogin(request, context);
                         FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
@@ -803,6 +805,20 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setUserTenantDomainHint(userDomain);
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
+
+        try {
+            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+            if (StringUtils.isNotBlank(accessingOrgId) && OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                context.setOrgApplicationLogin(true);
+                OrganizationLoginData orgData = new OrganizationLoginData();
+                orgData.setRootOrganizationTenantDomain(
+                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                context.setOrganizationLoginData(orgData);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while checking the tenant: " + tenantDomain +
+                    " is an organization.", e);
+        }
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
@@ -1589,15 +1605,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             throws FrameworkException {
 
         OrganizationData organization = context.getOrganizationLoginData().getAccessingOrganization();
-        String accessingOrgTenantDomain = organization.getOrganizationHandle();
+        String accessingOrgTenantDomain = organization.getHandle();
         String accessingOrgId = organization.getId();
         String sharedApplicationId = context.getOrganizationLoginData().getSharedApplicationId();
 
         // Update the tenant information in context for organization login.
         String primaryTenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        String mainAppResidentTenantDomain = context.getTenantDomain();
-        context.getOrganizationLoginData().setPrimaryTenantDomain(primaryTenantDomain);
-        context.getOrganizationLoginData().setMainAppResidentTenantDomain(mainAppResidentTenantDomain);
+        context.getOrganizationLoginData().setRootOrganizationTenantDomain(primaryTenantDomain);
         context.setTenantDomain(accessingOrgTenantDomain);
 
         // Setting the sequence config of the shared application to the context.
@@ -1608,47 +1622,57 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // Resetting the context parameters.
         context.setCurrentStep(0);
         context.setCurrentAuthenticator(null);
-        context.setCurrentAuthenticatedIdPs(new HashMap());
-        context.setPreviousAuthenticatedIdPs(new HashMap());
+        context.setCurrentAuthenticatedIdPs(new HashMap<>());
+        context.setPreviousAuthenticatedIdPs(new HashMap<>());
         context.setExternalIdP(null);
         context.setReturning(false);
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, null);
 
+        context.setSharedAppLogin(true);
+
         // Reset org login context update required flag.
-        context.setOrgLoginContextUpdateRequired(false);
+        context.setSharedAppLoginContextUpdateRequired(false);
 
         // Set the accessing organization id in the carbon context.
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setAccessingOrganizationId(accessingOrgId);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setApplicationResidentOrganizationId(accessingOrgId);
     }
 
-    private boolean isOrganizationLoginRequest(AuthenticationContext context) throws AuthenticationFailedException {
+    private boolean isInitialOrganizationLoginRequest(AuthenticationContext context)
+            throws AuthenticationFailedException {
 
-        String accessingOrgId = context.getAuthenticationRequest().getAccessingOrgId();
-        if (!context.isOrganizationLogin() && StringUtils.isNotBlank(accessingOrgId)) {
-            OrganizationDiscoveryResult orgDiscoveryResult =
-                    handleOrganizationDiscovery(context.getAuthenticationRequest().getAccessingOrgId(), context);
-            if (orgDiscoveryResult.isSuccessful()) {
-                OrganizationLoginData organizationLoginData = new OrganizationLoginData();
-                OrganizationData discoveredOrganization = new OrganizationData();
-                discoveredOrganization.setId(orgDiscoveryResult.getDiscoveredOrganization().getId());
-                discoveredOrganization.setName(orgDiscoveryResult.getDiscoveredOrganization().getName());
-                discoveredOrganization.setOrganizationHandle(
-                        orgDiscoveryResult.getDiscoveredOrganization().getOrganizationHandle());
-                organizationLoginData.setAccessingOrganization(discoveredOrganization);
-                organizationLoginData.setSharedApplicationId(orgDiscoveryResult.getSharedApplicationId());
-                context.setOrganizationLoginData(organizationLoginData);
+        if (context.isSharedAppLogin() || context.getProperty("isSubOrganizationLogin") != null) {
+            return false;
+        }
+        String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+        if (StringUtils.isBlank(accessingOrgId)) {
+            return false;
+        }
+        boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context, accessingOrgId);
+        if  (!hasOrganizationAccess) {
+            throw new AuthenticationFailedException(
+                    "Application does not have access to the organization with id: " + accessingOrgId);
+        }
+        return true;
+    }
 
-                context.setOrganizationLogin(true);
-                context.setOrgLoginContextUpdateRequired(true);
-                return true;
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Organization discovery was not successful for organization ID: " + accessingOrgId);
-                }
-                throw new AuthenticationFailedException(
-                        "Organization discovery was not successful for organization ID: " + accessingOrgId);
-            }
+    private boolean validateAndPrepareForOrganizationLogin(AuthenticationContext context, String accessingOrgId)
+            throws AuthenticationFailedException {
+
+        OrganizationDiscoveryResult orgDiscoveryResult = handleOrganizationDiscovery(accessingOrgId, context);
+        if (orgDiscoveryResult.isSuccessful()) {
+            OrganizationLoginData organizationLoginData = new OrganizationLoginData();
+            OrganizationData discoveredOrganization = new OrganizationData();
+            discoveredOrganization.setId(orgDiscoveryResult.getDiscoveredOrganization().getId());
+            discoveredOrganization.setName(orgDiscoveryResult.getDiscoveredOrganization().getName());
+            discoveredOrganization.setHandle(
+                    orgDiscoveryResult.getDiscoveredOrganization().getOrganizationHandle());
+            organizationLoginData.setAccessingOrganization(discoveredOrganization);
+            organizationLoginData.setSharedApplicationId(orgDiscoveryResult.getSharedApplicationId());
+            context.setOrganizationLoginData(organizationLoginData);
+
+            context.setSharedAppLoginContextUpdateRequired(true);
+            return true;
         }
         return false;
     }
