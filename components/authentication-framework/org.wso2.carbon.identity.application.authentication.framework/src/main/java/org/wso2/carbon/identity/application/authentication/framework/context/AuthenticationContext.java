@@ -125,6 +125,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      */
     private long expiryTimeNano = 0L;
 
+    /**
+     * This attribute is used to mark whether the password reset flow is completed.
+     */
+    private boolean passwordResetComplete;
+
     public String getCallerPath() {
         return callerPath;
     }
