@@ -988,16 +988,22 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
 
-        String tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+        String appResidentOrganization = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrganization)) {
+            return FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrganization);
+        }
+
+        String tenantDomain = getTenantDomainFromContext();
         if (StringUtils.isNotBlank(tenantDomain)) {
             if (log.isDebugEnabled()) {
-                log.debug("Tenant domain resolved from request parameter: " + tenantDomain);
+                log.debug("Tenant domain resolved from the thread local context: " + tenantDomain);
             }
         } else {
-            // Fall back to the tenant domain from the thread local.
-            tenantDomain = getTenantDomainFromContext();
+            // Fall back to the tenant domain in the request param.
+            tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
             if (log.isDebugEnabled()) {
-                log.debug("Tenant domain resolved from the thread local context: " + tenantDomain);
+                log.debug("Tenant domain resolved from request parameter: " + tenantDomain);
             }
         }
 
