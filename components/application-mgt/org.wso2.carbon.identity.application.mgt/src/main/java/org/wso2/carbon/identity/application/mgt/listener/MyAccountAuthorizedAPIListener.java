@@ -159,14 +159,31 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
             log.debug("Post-processing authorized scopes for app: " + appId + " in tenant: " + tenantDomain);
         }
         if (StringUtils.equals(appId, getMyAccountAppId(tenantDomain))) {
-            AuthorizedScopes noPolicyScopes =
-                    new AuthorizedScopes(APIResourceManagementConstants.NO_POLICY, authorizedNoPolicyScopes);
-            AuthorizedScopes rbacAuthorizedScopes =
-                    new AuthorizedScopes(APIResourceManagementConstants.RBAC_AUTHORIZATION, authorizedRBACScopes);
-            authorizedScopesList.add(noPolicyScopes);
-            log.debug("Added no-policy scopes for MyAccount application");
-            authorizedScopesList.add(rbacAuthorizedScopes);
-            log.debug("Added RBAC scopes for MyAccount application");
+            addAuthorizedScopesPolicyWise(authorizedScopesList, authorizedNoPolicyScopes,
+                    APIResourceManagementConstants.NO_POLICY);
+            addAuthorizedScopesPolicyWise(authorizedScopesList, authorizedRBACScopes,
+                    APIResourceManagementConstants.RBAC_AUTHORIZATION);
+        }
+    }
+
+    private void addAuthorizedScopesPolicyWise(List<AuthorizedScopes> authorizedScopesList,
+                                               List<String> authorizedPolicyScopes, String policyId) {
+
+        boolean authorizedScopesExist = false;
+        for (AuthorizedScopes authorizedScopes : authorizedScopesList) {
+            if (policyId.equals(authorizedScopes.getPolicyId())) {
+                authorizedScopesExist = true;
+                MyAccountAuthorizedAPIListener.authorizedRBACScopes.forEach(scope -> {
+                    if (!authorizedScopes.getScopes().contains(scope)) {
+                        authorizedScopes.getScopes().add(scope);
+                    }
+                });
+            }
+        }
+
+        if (!authorizedScopesExist) {
+            authorizedScopesList.add(new AuthorizedScopes(policyId, authorizedPolicyScopes));
+            log.debug("Added " + policyId + " scopes for MyAccount application");
         }
     }
 
