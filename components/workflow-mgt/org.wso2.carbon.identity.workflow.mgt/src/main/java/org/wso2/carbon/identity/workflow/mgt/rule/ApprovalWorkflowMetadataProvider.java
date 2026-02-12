@@ -50,7 +50,6 @@ import java.util.List;
 public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
     private static final Log LOG = LogFactory.getLog(ApprovalWorkflowMetadataProvider.class);
-
     /**
      * Get the expression metadata for the given flow type.
      * Returns field definitions for approval workflow specific fields and dynamic user claim fields.
