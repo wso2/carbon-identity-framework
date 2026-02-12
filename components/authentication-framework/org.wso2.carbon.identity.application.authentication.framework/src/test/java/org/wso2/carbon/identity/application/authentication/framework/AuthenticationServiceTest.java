@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -287,6 +287,53 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
             List<AuthenticatorData> actual = authServiceResponseData.get().getAuthenticatorOptions();
             validateReturnedAuthenticators(actual, expected, false);
         }
+    }
+
+    @Test
+    public void testHandleAuthenticationWithNonApiBasedAuthenticator() throws Exception {
+
+        String authenticatorList = "OpenIDConnectAuthenticator:google;NonApiBasedAuthenticator:LOCAL";
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+
+        when(request.getAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+
+        // Add API-based authenticator.
+        MockApiBasedAuthenticator apiBasedAuthenticator = new MockApiBasedAuthenticator("OpenIDConnectAuthenticator");
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(apiBasedAuthenticator);
+
+        // Add non-API-based authenticator.
+        MockApiBasedAuthenticator nonApiBasedAuthenticator = new MockApiBasedAuthenticator("NonApiBasedAuthenticator");
+        nonApiBasedAuthenticator.setAPIBasedAuthenticationSupported(false);
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(nonApiBasedAuthenticator);
+
+        when(response.getHeader(LOCATION_HEADER))
+                .thenReturn(getIntermediateRedirectUrl(SESSION_DATA_KEY, authenticatorList));
+        AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+
+        Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.INCOMPLETE);
+        Optional<AuthServiceResponseData> authServiceResponseData = authServiceResponse.getData();
+
+        Assert.assertTrue(authServiceResponseData.isPresent(),
+                "Expected authServiceResponseData to be present as the flow is incomplete.");
+        Assert.assertTrue(authServiceResponseData.get().isAuthenticatorSelectionRequired());
+        List<AuthenticatorData> authenticatorDataList = authServiceResponseData.get().getAuthenticatorOptions();
+
+        // Verify that both authenticators are present (including the non-API-based one).
+        Assert.assertEquals(authenticatorDataList.size(), 2,
+                "Expected both authenticators to be present including the non-API-based authenticator.");
+
+        boolean hasApiBasedAuthenticator = authenticatorDataList.stream()
+                .anyMatch(data -> "OpenIDConnectAuthenticator".equals(data.getName()));
+        boolean hasNonApiBasedAuthenticator = authenticatorDataList.stream()
+                .anyMatch(data -> "NonApiBasedAuthenticator".equals(data.getName()));
+
+        Assert.assertTrue(hasApiBasedAuthenticator, "Expected API-based authenticator to be present.");
+        Assert.assertTrue(hasNonApiBasedAuthenticator,
+                "Expected non-API-based authenticator to be present as it should not be filtered out.");
     }
 
     private void validateReturnedAuthenticators(List<AuthenticatorData> actual, List<AuthenticatorData> expected,
