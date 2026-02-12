@@ -1165,6 +1165,23 @@
             <Enable>{{oauth.token_persistence.enable}}</Enable>
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
+            <!-- Determines whether access tokens should be persisted in the database.
+                 Default: true. Set to false to enable the non-persistent access token feature. -->
+            <PersistAccessToken>{{oauth.token_persistence.persist_access_token | default(true)}}</PersistAccessToken>
+            <!-- Determines whether refresh tokens should be persisted in the database.
+                 Default: true. Set to false to enable the non-persistent refresh token feature.
+                 Note: This feature is only subject to use with non-persistent access token feature. -->
+            <PersistRefreshToken>{{oauth.token_persistence.persist_refresh_token | default(true)}}</PersistRefreshToken>
+            <!-- Applicable when non-persistent access tokens are enabled.
+                 Determines whether revoked access tokens should still be retained.
+                 Default: true. -->
+            {% if oauth.token_persistence.retain_revoked_token is defined %}
+            <KeepRevokedAccessTokens>{{ oauth.token_persistence.retain_revoked_token }}</KeepRevokedAccessTokens>
+            {% elif oauth.token_persistence.retain_revoked_access_token is defined %}
+            <KeepRevokedAccessTokens>{{ oauth.token_persistence.retain_revoked_access_token }}</KeepRevokedAccessTokens>
+            {% else %}
+            <KeepRevokedAccessTokens>true</KeepRevokedAccessTokens>
+            {% endif %}
         </TokenPersistence>
 
         <!--
