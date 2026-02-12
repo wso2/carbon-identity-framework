@@ -58,14 +58,13 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
-                            javax.activation; version="${javax.activation.import.pkg.version}",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             org.apache.axis2; version="${axis2.osgi.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>

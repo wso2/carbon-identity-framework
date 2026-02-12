@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.consent.mgt.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
@@ -42,6 +43,13 @@ import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowCon
  * Takes care of deleting consents / receipts which are issued against a service provider. When the service provider
  * is deleted, consents issued against the service provider will be deleted through this listener.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener",
+                "service.scope=singleton"
+        }
+)
 public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListener {
 
     private static final Log log = LogFactory.getLog(ConsentDeletionAppMgtListener.class);

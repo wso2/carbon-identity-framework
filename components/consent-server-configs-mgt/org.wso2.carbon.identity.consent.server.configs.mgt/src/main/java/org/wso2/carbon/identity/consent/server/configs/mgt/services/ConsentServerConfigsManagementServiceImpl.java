@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.consent.server.configs.mgt.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
@@ -50,6 +51,14 @@ import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constant
 /**
  * Class for Consent Server Configs Management Service Implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.consent.server.configs.mgt.services." +
+                        "ConsentServerConfigsManagementService",
+                "service.scope=singleton"
+        }
+)
 public class ConsentServerConfigsManagementServiceImpl implements ConsentServerConfigsManagementService {
 
     private static final Log LOG = LogFactory.getLog(ConsentServerConfigsManagementServiceImpl.class);

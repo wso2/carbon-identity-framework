@@ -32,7 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <artifactId>opensaml-jdk21</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>

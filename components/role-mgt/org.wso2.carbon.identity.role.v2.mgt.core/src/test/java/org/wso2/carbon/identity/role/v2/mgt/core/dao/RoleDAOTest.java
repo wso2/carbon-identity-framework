@@ -74,7 +74,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -1579,16 +1578,41 @@ public class RoleDAOTest {
         }
     }
 
+    /**
+     * Set a private final field using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @param clazz     The class containing the field.
+     * @param fieldName The field name.
+     * @param instance  The instance (null for static fields).
+     * @param value     The value to set.
+     * @throws NoSuchFieldException   If the field doesn't exist.
+     * @throws IllegalAccessException If the field cannot be accessed.
+     */
     public void setPrivateFinalField(Class clazz, String fieldName, Object instance, Object value)
             throws NoSuchFieldException, IllegalAccessException {
 
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        try {
+            // Use Unsafe to modify static final fields in Java 12+
+            Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+            unsafeField.setAccessible(true);
+            sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
 
-        field.set(instance, value);
+            if (instance == null) {
+                // Static field
+                Object fieldBase = unsafe.staticFieldBase(field);
+                long fieldOffset = unsafe.staticFieldOffset(field);
+                unsafe.putObject(fieldBase, fieldOffset, value);
+            } else {
+                // Instance field
+                long fieldOffset = unsafe.objectFieldOffset(field);
+                unsafe.putObject(instance, fieldOffset, value);
+            }
+        } catch (Exception e) {
+            throw new IllegalAccessException("Unable to set field using Unsafe: " + e.getMessage());
+        }
     }
 }
