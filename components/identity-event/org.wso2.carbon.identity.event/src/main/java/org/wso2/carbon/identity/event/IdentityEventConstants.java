@@ -516,8 +516,7 @@ public class IdentityEventConstants {
         public static final String APP_RESIDENT_TENANT_ID = "APP_RESIDENT_TENANT_ID";
         public static final String EXISTING_TOKEN_USED = "EXISTING_TOKEN_USED";
         public static final String SERVICE_PROVIDER = "SERVICE_PROVIDER";
-        public static final String ROOT_ISSUER_ORGANIZATION_ID = "ROOT_ISSUER_ORGANIZATION_ID";
-        public static final String ROOT_ISSUER_ORGANIZATION_TENANT_DOMAIN = "ROOT_ISSUER_ORGANIZATION_TENANT_DOMAIN";
+        public static final String ROOT_TENANT_DOMAIN = "ROOT_TENANT_DOMAIN";
 
         public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 
