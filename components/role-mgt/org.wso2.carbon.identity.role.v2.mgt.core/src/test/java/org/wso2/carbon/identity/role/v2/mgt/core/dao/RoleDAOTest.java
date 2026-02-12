@@ -1494,6 +1494,8 @@ public class RoleDAOTest {
                 + "(1,'PRIMARY',-1234), (2,'SYSTEM',-1234), (3,'INTERNAL',-1234), (4,'APPLICATION',-1234), "
                 + "(5,'WORKFLOW',-1234), (6,'PRIMARY',1), (7,'SYSTEM',1), (8,'INTERNAL',1), (9,'APPLICATION',1), "
                 + "(10,'WORKFLOW',1)";
+        String audienceRefDataSQL = "INSERT INTO UM_HYBRID_ROLE_AUDIENCE (UM_AUDIENCE, UM_AUDIENCE_ID) VALUES " +
+                "('organization','test-org-id'), ('organization', 'test-org-id-001')";
         String aPIResourceSQL = "INSERT INTO API_RESOURCE (ID, NAME, IDENTIFIER, TENANT_ID, DESCRIPTION, TYPE," +
                 " REQUIRES_AUTHORIZATION) VALUES (1,'DOC','DOC',1,'DOC','RBAC',true);";
         String scopeSQL = "INSERT INTO SCOPE (ID,API_ID,NAME,DISPLAY_NAME,TENANT_ID,DESCRIPTION) VALUES " +
@@ -1509,6 +1511,7 @@ public class RoleDAOTest {
 
         try (Connection connection = getConnection()) {
             connection.createStatement().executeUpdate(domainDataSQL);
+            connection.createStatement().executeUpdate(audienceRefDataSQL);
             connection.createStatement().executeUpdate(aPIResourceSQL);
             connection.createStatement().executeUpdate(scopeSQL);
             connection.createStatement().executeUpdate(spAppSQL);
