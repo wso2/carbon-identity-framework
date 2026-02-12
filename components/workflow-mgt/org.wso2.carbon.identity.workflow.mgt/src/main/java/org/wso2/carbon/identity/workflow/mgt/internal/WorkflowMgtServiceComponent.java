@@ -116,7 +116,7 @@ public class WorkflowMgtServiceComponent {
         WorkflowServiceDataHolder.getInstance().setRealmService(realmService);
     }
 
-    // Reference to Rule Evaluation Service
+    // Reference to Rule Evaluation Service.
     @Reference(
             name = "rule.evaluation.service",
             service = RuleEvaluationService.class,

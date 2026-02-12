@@ -48,6 +48,7 @@ public class WorkflowServiceDataHolder {
     private ConfigurationContextService configurationContextService;
     private BundleContext bundleContext;
     private ClaimMetadataManagementService claimMetadataManagementService;
+    private RuleEvaluationService ruleEvaluationService;
 
     private Map<String, WorkflowRequestHandler> workflowRequestHandlers = new HashMap<String, WorkflowRequestHandler>();
 
@@ -203,9 +204,7 @@ public class WorkflowServiceDataHolder {
         this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
-    // Rule Evaluation Service Getter and Setter
-    private RuleEvaluationService ruleEvaluationService;
-
+    // Rule Evaluation Service Getter and Setter.
     public RuleEvaluationService getRuleEvaluationService() {
 
         return ruleEvaluationService;

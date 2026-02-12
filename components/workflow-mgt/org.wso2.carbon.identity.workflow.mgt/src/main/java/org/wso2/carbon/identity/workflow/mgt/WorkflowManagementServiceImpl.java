@@ -60,6 +60,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
@@ -68,6 +73,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     private static final int MAX_LIMIT = 1000;
     private static final String BPS_BASED_WORKFLOW_ENGINE = "ApprovalWorkflow";
+    private static final Pattern UUID_PATTERN = Pattern.compile(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
@@ -442,7 +449,20 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                     "event " + eventId + " with the same condition.");
         }
 
-        associationDAO.addAssociation(associationName, workflowId, eventId, condition);
+        if (isUUID(condition)) {
+            // Skip XPath validation.
+            associationDAO.addAssociation(associationName, workflowId, eventId, condition);
+        } else {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
+            try {
+                xpath.compile(condition);
+                associationDAO.addAssociation(associationName, workflowId, eventId, condition);
+            } catch (XPathExpressionException e) {
+                log.error("The condition: " + condition + " is not a valid xpath expression.", e);
+                throw new WorkflowRuntimeException("The condition is not a valid xpath expression.");
+            }
+        }
 
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
@@ -872,7 +892,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 //                throw new WorkflowRuntimeException("Conditions are not supported.");
 //            }
 //        }
-        if (condition != null){
+        if (condition != null) {
             association.setCondition(condition);
         }
 
@@ -1419,5 +1439,17 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 .anyMatch(association -> !StringUtils.equals(association.getAssociationId(), associationId)
                         && StringUtils.equals(association.getEventId(), eventId)
                         && StringUtils.equals(association.getCondition(), condition));
+    }
+
+    /**
+     * Check if the given string is a valid UUID.
+     * UUIDs are used as rule condition identifiers in the new rule-based approach (IS 7.3+).
+     *
+     * @param value The string to check.
+     * @return true if the string is a valid UUID, false otherwise.
+     */
+    private boolean isUUID(String value) {
+
+        return value != null && UUID_PATTERN.matcher(value).matches();
     }
 }
