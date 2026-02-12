@@ -126,7 +126,8 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SCOPE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SQL_OPTIMIZED;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
@@ -251,18 +252,13 @@ public class RoleDAOImpl implements RoleDAO {
         String roleId = UUID.randomUUID().toString();
         if (!isExistingRoleName(roleName, audience, audienceId, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-                int audienceRefId = 0;
-                if (RoleConstants.APPLICATION.equals(audience) || CollectionUtils.isNotEmpty(userList)
-                        || CollectionUtils.isNotEmpty(groupList)) {
-                    audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
-                }
+                int audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
                 try {
                     try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                            ADD_ROLE_SQL_OPTIMIZED, RoleConstants.RoleTableColumns.UM_ID)) {
+                            ADD_ROLE_SQL, RoleConstants.RoleTableColumns.UM_ID)) {
                         statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                         statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                        statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
-                        statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+                        statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                         statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
                         statement.executeUpdate();
                     }
@@ -295,7 +291,7 @@ public class RoleDAOImpl implements RoleDAO {
 
                     // Handle role id, permissions
 
-                    addRoleInfo(roleId, roleName, permissions, audience, audienceId, tenantDomain);
+                    addRoleInfo(roleId, roleName, permissions, audience, audienceId, audienceRefId, tenantDomain);
 
                     IdentityDatabaseUtil.commitUserDBTransaction(connection);
                 } catch (SQLException | IdentityRoleManagementException e) {
@@ -1657,11 +1653,12 @@ public class RoleDAOImpl implements RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     private void addRoleInfo(String roleId, String roleName, List<Permission> permissions, String audience,
-                             String audienceId, String tenantDomain)
+                             String audienceId, int audienceRefId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
+                addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
                 if (APPLICATION.equals(audience) && !isFragmentApp()) {
@@ -1851,6 +1848,38 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return associatedApplications;
+    }
+
+    /**
+     * Add role ID.
+     *
+     * @param roleName     Role ID.
+     * @param tenantDomain Tenant Domain.
+     * @param connection   DB connection.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private void addRoleID(String roleId, String roleName, int audienceRefId, String tenantDomain,
+                           Connection connection) throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        // Append internal domain in order to maintain the backward compatibility.
+        roleName = appendInternalDomain(roleName);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding the roleId: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
+                    + tenantDomain);
+        }
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_SCIM_ROLE_ID_SQL)) {
+            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+            statement.setString(ROLE_NAME, roleName);
+            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
+            statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleId);
+            statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            String errorMessage = "Error while adding the roleId: %s for the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleId, roleName, tenantDomain), e);
+        }
     }
 
     /**
