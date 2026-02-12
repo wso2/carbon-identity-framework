@@ -104,6 +104,11 @@ public class AuthenticationResultCache extends
             if (entry != null && isCacheEntryExpired(entry)) {
                 return null;
             }
+        } else {
+            if (entry != null && isCacheEntryExpired(entry)) {
+                super.clearCacheEntry(key);
+                return null;
+            }
         }
         return entry;
     }
