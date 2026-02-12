@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletResponse;
  * authenticationendpoint. In case of invalid sessionDataKey, initiates redirection forcing application to
  * start authentication flow with new sessionDataKey
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,

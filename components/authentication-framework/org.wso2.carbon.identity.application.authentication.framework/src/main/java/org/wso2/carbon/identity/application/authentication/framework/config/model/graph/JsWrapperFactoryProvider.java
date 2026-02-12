@@ -38,8 +38,8 @@ public class JsWrapperFactoryProvider {
         if (FrameworkServiceDataHolder.getInstance()
                 .getJsGenericGraphBuilderFactory() instanceof JsOpenJdkNashornGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsOpenJdkNashornWrapperFactory();
-        } else if (FrameworkServiceDataHolder.getInstance()
-                .getJsGenericGraphBuilderFactory() instanceof JsGraalGraphBuilderFactory) {
+        } else {
+            // Default to GraalJS based implementation, since it is packed by default in the product.
             jsWrapperBaseFactory = new JsGraalWrapperFactory();
         }
     }

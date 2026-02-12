@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet to handle common authentication requests.
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,

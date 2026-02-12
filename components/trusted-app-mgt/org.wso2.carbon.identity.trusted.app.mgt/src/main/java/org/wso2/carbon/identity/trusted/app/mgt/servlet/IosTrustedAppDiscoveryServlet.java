@@ -49,7 +49,6 @@ import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.IOS_CREDE
 /**
  * Servlet to discover iOS based trusted apps.
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,

@@ -41,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet to get the status of long wait process.
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,

@@ -53,7 +53,6 @@ import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.TARGET_AT
 /**
  * Servlet to discover android based trusted apps.
  */
-//TODO Check if this servlet is working.
 @Component(
         service = Servlet.class,
         immediate = true,
