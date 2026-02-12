@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
 import org.wso2.carbon.identity.workflow.mgt.util.ExecutorResultState;
+import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestBuilder;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
@@ -55,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Workflow Executor Manager class.
@@ -62,6 +64,8 @@ import java.util.UUID;
 public class WorkFlowExecutorManager {
 
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
+    private static final Pattern UUID_PATTERN = Pattern.compile(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
 
     private WorkFlowExecutorManager() {
@@ -109,20 +113,16 @@ public class WorkFlowExecutorManager {
         boolean requestSaved = false;
         for (WorkflowAssociation association : associations) {
             try {
-                // AXIOMXPath axiomxPath = new AXIOMXPath(association.getAssociationCondition());
-
-                // RuleId to be evaluated is the condition from the association
-                String ruleIdForEvaluation = association.getAssociationCondition();
+                String conditionForEvaluation = association.getAssociationCondition();
                 boolean ruleSatisfied = false;
 
-                // Check for Default Condition "boolean(1)"
-                if (StringUtils.isNotBlank(ruleIdForEvaluation) && "boolean(1)".equals(ruleIdForEvaluation.trim())) {
-                    // Default condition found, proceed without calling Rule Engine
-                    log.debug("Default association condition found (boolean(1)). engaging workflow.");
+                if (StringUtils.isNotBlank(conditionForEvaluation) &&
+                        WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(conditionForEvaluation.trim())) {
+                    // Default condition "boolean(1)" found, proceed without evaluation.
+                    log.debug("Default association condition found, engaging workflow.");
                     ruleSatisfied = true;
-                }
-                else {
-                    // else treat it as a Rule ID and evaluate via Rule Engine
+                } else if (isUUID(conditionForEvaluation)) {
+                    // Condition is a UUID, evaluate via Rule Engine.
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
                     Map<String, Object> ruleContextData = new HashMap<>();
@@ -137,18 +137,18 @@ public class WorkFlowExecutorManager {
                             ruleContextData.put(parameter.getName(), parameter.getValue());
                         }
                     }
-
                     FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleContextData);
-
-                    // Evaluate the rule using the ID stored in associationCondition
                     RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
                             .getRuleEvaluationService()
-                            .evaluate(ruleIdForEvaluation, flowContext, tenantDomain);
+                            .evaluate(conditionForEvaluation, flowContext, tenantDomain);
 
                     ruleSatisfied = result.isRuleSatisfied();
+                } else {
+                    AXIOMXPath axiomxPath = new AXIOMXPath(conditionForEvaluation);
+                    ruleSatisfied = axiomxPath.booleanValueOf(xmlRequest);
                 }
 
-                // If Rule is Satisfied (or Default), Engage Workflow
+                // If Rule is Satisfied (or Default), Engage Workflow.
                 if (ruleSatisfied) {
                     workflowEngaged = true;
                     if (!requestSaved) {
@@ -177,11 +177,19 @@ public class WorkFlowExecutorManager {
                                 " as the rule condition did not satisfy");
                     }
                 }
+            } catch (JaxenException e) {
+                String errorMsg = "Error when executing the xpath expression: " +
+                        association.getAssociationCondition() + " , on " + xmlRequest;
+                log.error(errorMsg, e);
+                return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
             } catch (CloneNotSupportedException e) {
                 String errorMsg = "Error while cloning workflowRequest object at executor manager.";
                 log.error(errorMsg, e);
                 return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
             } catch (RuleEvaluationException e) {
+                log.error("Error while evaluating rule for workflow association with id: " +
+                        association.getAssociationId() + " for the request with id: " +
+                        workFlowRequest.getUuid(), e);
                 throw new RuntimeException(e);
             }
         }
@@ -309,5 +317,16 @@ public class WorkFlowExecutorManager {
         WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
         requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
         workflowRequestDAO.updateStatusOfRequest(requestId, status);
+    }
+
+    /**
+     * Check if a string is a valid UUID.
+     *
+     * @param value String to validate.
+     * @return True if the string is a valid UUID, false otherwise.
+     */
+    private boolean isUUID(String value) {
+
+        return value != null && UUID_PATTERN.matcher(value).matches();
     }
 }
