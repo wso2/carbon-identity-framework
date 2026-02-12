@@ -1938,6 +1938,22 @@
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
   "console.guest_user.scopes.update": ["internal_guest_mgt_invite_update"],
   "console.guest_user.scopes.delete": ["internal_guest_mgt_invite_delete", "internal_guest_mgt_user_delete"],
+  "console.onboarding.enabled": false,
+  "console.onboarding.disabled_features": [],
+  "console.onboarding.feature_flags": [],
+  "console.onboarding.scopes.feature": [
+    "console:applications",
+    "console:loginAndRegistration",
+    "console:branding"
+  ],
+  "console.onboarding.scopes.create": [
+    "internal_application_mgt_create",
+    "internal_branding_preference_update",
+    "internal_governance_update"
+  ],
+  "console.onboarding.scopes.read": [],
+  "console.onboarding.scopes.update": [],
+  "console.onboarding.scopes.delete": [],
   "console.parent_user_invitation.enabled": true,
   "console.parent_user_invitation.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.parent_user_invitation.scopes.read": ["internal_guest_mgt_invite_list"],
