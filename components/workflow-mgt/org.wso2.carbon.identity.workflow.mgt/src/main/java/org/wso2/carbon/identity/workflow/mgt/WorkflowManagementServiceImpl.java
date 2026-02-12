@@ -884,16 +884,15 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             association.setEventId(eventId);
         }
 
-//        if (condition != null) {
-//            if (WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
-//                association.setCondition(condition);
-//            } else {
-//                log.error("Conditions are not supported. Provided condition: " + condition);
-//                throw new WorkflowRuntimeException("Conditions are not supported.");
-//            }
-//        }
         if (condition != null) {
-            association.setCondition(condition);
+            if (isUUID(condition)) {
+                association.setCondition(condition);
+            } else if (WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
+                association.setCondition(condition);
+            } else {
+                log.error("Conditions are not supported. Provided condition: " + condition);
+                throw new WorkflowRuntimeException("Conditions are not supported.");
+            }
         }
 
         List<Association> existingAssociations =
