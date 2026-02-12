@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationExce
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
@@ -138,8 +139,15 @@ public class WorkFlowExecutorManager {
                         }
                     }
                     FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleContextData);
-                    RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
-                            .getRuleEvaluationService()
+                    
+                    RuleEvaluationService ruleEvaluationService = WorkflowServiceDataHolder.getInstance()
+                            .getRuleEvaluationService();
+                    if (ruleEvaluationService == null) {
+                        String errorMsg = "RuleEvaluationService is not available from OSGi context.";
+                        log.error(errorMsg);
+                        return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
+                    }
+                    RuleEvaluationResult result = ruleEvaluationService
                             .evaluate(conditionForEvaluation, flowContext, tenantDomain);
 
                     ruleSatisfied = result.isRuleSatisfied();
