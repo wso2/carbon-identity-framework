@@ -490,6 +490,7 @@
   "identity_mgt.password_reset_by_admin.code_validity_period": "1440m",
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
+  "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": true,
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
