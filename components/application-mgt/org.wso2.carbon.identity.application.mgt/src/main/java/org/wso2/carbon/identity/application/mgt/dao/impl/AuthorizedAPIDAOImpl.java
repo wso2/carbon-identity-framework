@@ -830,22 +830,21 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
 
         List<String> scopeIdPlaceholders = new ArrayList<>();
-        for (int i = 0; i < scopeIds.size(); i++) {
-            scopeIdPlaceholders.add("?");
+        for (int i = 1; i <= scopeIds.size(); i++) {
+            scopeIdPlaceholders.add(":" + SCOPE_ID_PREFIX_DEL + i + ";");
         }
 
         String sqlStatement = ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPES_BY_SCOPE_IDS
                 .replace(PLACEHOLDER_SCOPE_IDS_FOR_DELETION, String.join(", ", scopeIdPlaceholders));
 
-        try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStatement)) {
-            int paramIndex = 1;
-            prepStmt.setString(paramIndex++, appId);
+        try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
 
-            for (String scopeId : scopeIds) {
-                prepStmt.setString(paramIndex++, scopeId);
+            namedPreparedStatement.setString("APP_ID", appId);
+            for (int i = 1; i <= scopeIds.size(); i++) {
+                namedPreparedStatement.setString(SCOPE_ID_PREFIX_DEL + i, scopeIds.get(i - 1));
             }
 
-            int deletedCount = prepStmt.executeUpdate();
+            int deletedCount = namedPreparedStatement.executeUpdate();
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Deleted %d shared scope authorizations from other APIs", deletedCount));
