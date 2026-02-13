@@ -70,9 +70,6 @@ public class FlowEngineTest {
     private FlowExecutionContext context;
     private GraphConfig defaultGraph;
 
-    @Mock
-    private InputValidator inputValidator;
-
     @BeforeClass
     public void setup() {
 
