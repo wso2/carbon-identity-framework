@@ -319,7 +319,8 @@
       "oauth.jwt_x5t_enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
       "saml.artifact.disable_double_encoding": false,
-      "identity_mgt.recovery.enable_normalized_retry_error_response": false
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "scim2.enable_spec_compliant_email_handling": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -370,7 +371,8 @@
       "resolve_tenant_domain_from_username.enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
       "saml.artifact.disable_double_encoding": false,
-      "identity_mgt.recovery.enable_normalized_retry_error_response": false
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "scim2.enable_spec_compliant_email_handling": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -382,7 +384,8 @@
       "resolve_tenant_domain_from_username.enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
       "saml.artifact.disable_double_encoding": false,
-      "identity_mgt.recovery.enable_normalized_retry_error_response": false
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "scim2.enable_spec_compliant_email_handling": false
     }
   }
 }
