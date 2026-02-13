@@ -946,13 +946,13 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     private void cleanupOrphanedAPIs(Connection dbConnection, String appId, List<ScopeDeletionInfo> deletedSharedScopes)
             throws SQLException {
 
-        // Get unique API IDs from the deleted shared scopes
+        // Get unique API IDs from the deleted shared scopes.
         Set<String> affectedAPIIds = deletedSharedScopes.stream()
                 .map(ScopeDeletionInfo::getApiId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        // Check each affected API
+        // Check each affected API.
         for (String apiId : affectedAPIIds) {
             int remainingScopes = countRemainingScopesForAPI(dbConnection, appId, apiId);
 
