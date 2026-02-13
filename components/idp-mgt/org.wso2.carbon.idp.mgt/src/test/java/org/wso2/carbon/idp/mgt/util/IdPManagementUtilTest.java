@@ -43,7 +43,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -268,19 +267,36 @@ public class IdPManagementUtilTest {
             // replace it with a mock object. Since this is a simple test, this won't introduce any complexities.
             Field daoField = IdPManagementUtil.class.getDeclaredField("CACHE_BACKED_IDP_MGT_DAO");
             daoField.setAccessible(true);
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(daoField, daoField.getModifiers() & ~Modifier.FINAL);
-            daoField.set(null, mockDao);
 
-            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
-            verify(mockDao, times(1)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+            // Store the original value to restore later
+            Object originalDao = daoField.get(null);
 
-            doThrow(new IdentityProviderManagementException("Test exception")).when(mockDao)
-                    .clearIdpCache(anyString(), anyInt(), anyString());
-            // Checking if the exception is handled gracefully.
-            IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
-            verify(mockDao, times(2)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+            // Use Unsafe to modify static final fields in Java 12+
+            Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+            unsafeField.setAccessible(true);
+            sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
+
+            Object fieldBase = unsafe.staticFieldBase(daoField);
+            long fieldOffset = unsafe.staticFieldOffset(daoField);
+            unsafe.putObject(fieldBase, fieldOffset, mockDao);
+
+            // Verify the field was set correctly
+            Object injectedDao = daoField.get(null);
+            assertEquals(injectedDao, mockDao, "Mock DAO should be injected");
+
+            try {
+                IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+                verify(mockDao, times(1)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+
+                doThrow(new IdentityProviderManagementException("Test exception")).when(mockDao)
+                        .clearIdpCache(anyString(), anyInt(), anyString());
+                // Checking if the exception is handled gracefully.
+                IdPManagementUtil.clearIdPCache(IDP_NAME, TENANT_DOMAIN);
+                verify(mockDao, times(2)).clearIdpCache(IDP_NAME, TENANT_ID, TENANT_DOMAIN);
+            } finally {
+                // Restore the original DAO
+                unsafe.putObject(fieldBase, fieldOffset, originalDao);
+            }
         }
     }
 

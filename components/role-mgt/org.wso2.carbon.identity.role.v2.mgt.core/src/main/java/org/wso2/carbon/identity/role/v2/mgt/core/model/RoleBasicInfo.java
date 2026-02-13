@@ -27,6 +27,7 @@ public class RoleBasicInfo extends Entity {
     private String audience;
     private String audienceId;
     private String audienceName;
+    private int roleId;
 
     public RoleBasicInfo() {
 
@@ -93,5 +94,23 @@ public class RoleBasicInfo extends Entity {
     public void setAudienceName(String audienceName) {
 
         this.audienceName = audienceName;
+    }
+
+    /**
+     * Get the role id.
+     *
+     * @return the role id.
+     */
+    public int getRoleId() {
+        return roleId;
+    }
+
+    /**
+     * Set the role id.
+     *
+     * @param roleId the role id.
+     */
+    public void setRoleId(int roleId) {
+        this.roleId = roleId;
     }
 }

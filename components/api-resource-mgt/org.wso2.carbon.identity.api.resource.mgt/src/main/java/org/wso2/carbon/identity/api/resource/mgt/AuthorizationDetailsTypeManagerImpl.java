@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.dao.AuthorizationDetailsTypeMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.AuthorizationDetailsTypeMgtDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAuthorizationDetailsTypeMgtDAOImpl;
@@ -34,6 +35,13 @@ import java.util.List;
  * Implementation of the {@link AuthorizationDetailsTypeManager} interface that provides
  * management functionalities for authorization detail types associated with APIs.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManager",
+                "service.scope=singleton"
+        }
+)
 public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetailsTypeManager {
 
     private final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO;

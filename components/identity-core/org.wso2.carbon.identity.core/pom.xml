@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>7.8.685-SNAPSHOT</version>
+        <version>7.10.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -34,6 +34,14 @@
     <url>http://www.wso2.com</url>
     <dependencies>
         <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
             <scope>provided</scope>
@@ -44,7 +52,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.opensaml</groupId>
-            <artifactId>opensaml</artifactId>
+            <artifactId>opensaml-jdk21</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>

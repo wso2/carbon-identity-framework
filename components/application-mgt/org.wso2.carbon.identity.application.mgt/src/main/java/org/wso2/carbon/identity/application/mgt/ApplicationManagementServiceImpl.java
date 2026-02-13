@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -194,6 +195,13 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 /**
  * Application management service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.ApplicationManagementService",
+                "service.scope=singleton"
+        }
+)
 public class ApplicationManagementServiceImpl extends ApplicationManagementService {
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);

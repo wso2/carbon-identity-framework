@@ -67,7 +67,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -4628,8 +4627,6 @@ public class FrameworkUtils {
                 return new JsGraalGraphBuilderFactory();
             } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
-            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.NASHORN, scriptEngineName)) {
-                return new JsGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.
@@ -4641,12 +4638,7 @@ public class FrameworkUtils {
                 Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
                 return new JsOpenJdkNashornGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
-                try {
-                    Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                    return new JsGraphBuilderFactory();
-                } catch (ClassNotFoundException ex) {
-                    return null;
-                }
+                return null;
             }
         }
     }

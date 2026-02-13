@@ -24,6 +24,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
@@ -93,6 +94,13 @@ import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.idp.mgt.IdpManager",
+                "service.scope=singleton"
+        }
+)
 public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);

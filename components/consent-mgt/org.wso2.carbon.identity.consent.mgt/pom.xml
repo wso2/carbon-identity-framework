@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>consent-mgt</artifactId>
-        <version>7.8.685-SNAPSHOT</version>
+        <version>7.10.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -70,7 +70,7 @@
             <artifactId>org.wso2.carbon.tenant.common</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
