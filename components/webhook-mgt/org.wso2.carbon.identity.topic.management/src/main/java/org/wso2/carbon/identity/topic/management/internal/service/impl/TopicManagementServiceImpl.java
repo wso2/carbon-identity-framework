@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.topic.management.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementException;
 import org.wso2.carbon.identity.topic.management.api.exception.TopicManagementServerException;
@@ -38,6 +39,13 @@ import java.util.List;
  * Implementation of the TopicManagementService interface.
  * This class provides implementation for topic management operations.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.topic.management.api.service.TopicManagementService",
+                "service.scope=singleton"
+        }
+)
 public class TopicManagementServiceImpl implements TopicManagementService {
 
     private static final Log LOG = LogFactory.getLog(TopicManagementServiceImpl.class);

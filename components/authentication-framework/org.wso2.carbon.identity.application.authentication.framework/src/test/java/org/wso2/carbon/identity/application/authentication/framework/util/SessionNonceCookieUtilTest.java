@@ -38,7 +38,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -226,16 +225,28 @@ public class SessionNonceCookieUtilTest {
         field.set(null, newValue);
     }
 
+    /**
+     * Set a private static final field using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @param clazz     The class containing the field.
+     * @param fieldName The field name.
+     * @param newValue  The new value to set.
+     * @throws ReflectiveOperationException If an error occurs.
+     */
     private static void setPrivateStaticFinalField(Class<?> clazz, String fieldName, Object newValue)
             throws ReflectiveOperationException {
 
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
-        Field modifiers = Field.class.getDeclaredField("modifiers");
-        modifiers.setAccessible(true);
-        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        // Use Unsafe to modify static final fields in Java 12+
+        Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
 
-        field.set(null, newValue);
+        Object fieldBase = unsafe.staticFieldBase(field);
+        long fieldOffset = unsafe.staticFieldOffset(field);
+        unsafe.putObject(fieldBase, fieldOffset, newValue);
     }
 }

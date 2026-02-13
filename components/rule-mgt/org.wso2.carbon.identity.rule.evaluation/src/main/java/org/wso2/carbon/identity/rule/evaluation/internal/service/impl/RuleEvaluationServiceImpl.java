@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
@@ -42,6 +43,13 @@ import java.util.stream.Collectors;
 /**
  * Implementation of RuleEvaluationService.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService",
+                "service.scope=singleton"
+        }
+)
 public class RuleEvaluationServiceImpl implements RuleEvaluationService {
 
     private static final Log LOG = LogFactory.getLog(RuleEvaluationServiceImpl.class);

@@ -19,7 +19,7 @@
     <parent>
         <artifactId>extension-management-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>7.8.685-SNAPSHOT</version>
+        <version>7.10.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.extension.mgt.feature</artifactId>
@@ -106,11 +106,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
 </project>

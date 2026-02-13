@@ -65,7 +65,7 @@ public class IdentityKeyStoreResolverUtilTest {
     @Test(dataProvider = "CorrectTenantKeyStoreNameDataProvider")
     public void testCorrectBuildTenantKeyStoreName(String tenantDomain, String expectedResult) throws IdentityKeyStoreResolverException {
 
-        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(buildTenantKeyStoreName(tenantDomain), expectedResult);
     }
 

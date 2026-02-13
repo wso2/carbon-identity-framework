@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.exception.SessionSerializerException;
 
 import java.io.ByteArrayInputStream;
@@ -30,6 +31,13 @@ import java.io.ObjectOutputStream;
 /**
  * Default implementation of the Session Serializer.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer",
+                "service.scope=singleton"
+        }
+)
 public class JavaSessionSerializer implements SessionSerializer {
 
     @Override
