@@ -1058,7 +1058,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             return;
         }
 
-        deleteScopesByIds(dbConnection, appId, apiId, scopesToDelete);
+        List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
+        deleteScopesByIds(dbConnection, appId, apiId, scopeIds);
 
         List<ScopeDeletionInfo> sharedScopesToDelete = findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
 
@@ -1119,10 +1120,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     /**
      * Delete specific scope authorizations by scope IDs from an API.
      */
-    private void deleteScopesByIds(Connection dbConnection, String appId, String apiId,
-                                   List<ScopeDeletionInfo> scopesToDelete) throws SQLException {
-
-        List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
+    private void deleteScopesByIds(Connection dbConnection, String appId, String apiId, List<String> scopeIds)
+            throws SQLException {
 
         List<String> scopeIdPlaceholders = new ArrayList<>();
         for (int i = 0; i < scopeIds.size(); i++) {
@@ -1163,33 +1162,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     .add(scope.getScopeId());
         }
 
-        for (Map.Entry<String, List<String>> entry : scopesByApi.entrySet()) {
-            String apiId = entry.getKey();
-            List<String> scopeIds = entry.getValue();
-            List<String> scopeIdPlaceholders = new ArrayList<>();
-            for (int i = 0; i < scopeIds.size(); i++) {
-                scopeIdPlaceholders.add("?");
-            }
-
-            String sqlStatement =
-                    ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPES_BY_IDS.replace(PLACEHOLDER_SCOPE_IDS_FOR_DELETION,
-                            String.join(", ", scopeIdPlaceholders));
-
-            try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStatement)) {
-                int paramIndex = 1;
-                prepStmt.setString(paramIndex++, appId);
-                prepStmt.setString(paramIndex++, apiId);
-
-                for (String scopeId : scopeIds) {
-                    prepStmt.setString(paramIndex++, scopeId);
-                }
-
-                int deletedCount = prepStmt.executeUpdate();
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Deleted %d shared scope authorizations from API %s", deletedCount, apiId));
-                }
-            }
+        for (Map.Entry<String, List<String>> apiWithScopes : scopesByApi.entrySet()) {
+            deleteScopesByIds(dbConnection, appId, apiWithScopes.getKey(), apiWithScopes.getValue());
         }
     }
 
