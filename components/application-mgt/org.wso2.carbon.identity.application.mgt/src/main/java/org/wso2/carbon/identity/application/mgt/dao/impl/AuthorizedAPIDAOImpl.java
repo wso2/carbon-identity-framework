@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.util.ScopeAuthorizationInfo;
+import org.wso2.carbon.identity.application.mgt.util.ScopeDeletionInfo;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,9 +67,15 @@ import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDB
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.COLUMN_NAME_SCOPE_ID;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_API_IDS;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_SCOPE_IDS;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_SCOPE_IDS_FOR_DELETION;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_SCOPE_IDS_TO_EXCLUDE;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_SCOPE_NAMES;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_SCOPE_NAMES_FOR_DELETION;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.PLACEHOLDER_SCOPE_NAMES_FOR_SCOPE_DELETION;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.SCOPE_ID_PREFIX;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.SCOPE_ID_PREFIX_DEL;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.SCOPE_NAME_PREFIX;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.SCOPE_NAME_PREFIX_DEL;
 
 /**
  * Authorized API DAO implementation class.
@@ -150,15 +158,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     public void deleteAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            PreparedStatement prepStmt = dbConnection.prepareStatement(
-                    ApplicationMgtDBQueries.DELETE_AUTHORIZED_API_BY_API_ID);
-            prepStmt.setString(1, appId);
-            prepStmt.setString(2, apiId);
-            prepStmt.execute();
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while deleting the authorized API.", e);
-        }
+        deleteAuthorizedAPIWithScopes(appId, apiId, tenantId);
     }
 
     /**
@@ -358,7 +358,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "Successfully authorized API %s for application %s with %d scope authorizations", apiId,
-                            applicationId, scopes.size()));
+                            applicationId, scopes == null ? 0 : scopes.size()));
                 }
             } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
@@ -527,14 +527,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
             int[] results = prepStmt.executeBatch();
 
-            // Log results.
             int newlyAuthorized = 0;
             for (int result : results) {
                 if (result > 0) {
                     newlyAuthorized++;
                 }
             }
-
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format(
                         "Auto-authorized %d new APIs (skipped %d already authorized) out of %d total shared scope APIs",
@@ -571,8 +569,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
         List<String> apiIdList = new ArrayList<>(apiIds);
 
-        try (NamedPreparedStatement namedPreparedStatement =
-                     new NamedPreparedStatement(dbConnection, sqlStatement)) {
+        try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
 
             namedPreparedStatement.setString(COLUMN_NAME_APP_ID, applicationId);
             for (int index = 1; index <= apiIdList.size(); index++) {
@@ -736,19 +733,464 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         return "RBAC";  // Default to RBAC if not found.
     }
 
-    private void deleteScopes(Connection dbConnection, String appId, String apiId,
-                              List<String> scopesToRemove, int tenantId) throws SQLException {
+    /**
+     * Deletes an authorized API and handles shared scope cleanup for system APIs.
+     * For system APIs with shared scopes:
+     * 1. Identifies scopes being deleted from the target API
+     * 2. Finds and deletes matching shared scopes from other system APIs
+     * 3. Deletes the target API
+     * 4. Finally removes other APIs if they have no remaining scopes
+     * For non-system APIs, it simply deletes the API which CASCADE deletes its scopes.
+     */
+    private void deleteAuthorizedAPIWithScopes(String appId, String apiId, int tenantId)
+            throws IdentityApplicationManagementException {
 
-        if (CollectionUtils.isNotEmpty(scopesToRemove)) {
-            PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPE);
+        Connection dbConnection = null;
+
+        try {
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+
+            boolean isSystemAPI = APIResourceManagementUtil.isSystemAPIByAPIId(apiId);
+            if (isSystemAPI) {
+                handleSystemAPIDeletion(dbConnection, appId, apiId);
+            } else {
+                deleteAPIAuthorization(dbConnection, appId, apiId);
+            }
+
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Successfully deleted authorized API %s for application %s", apiId, appId));
+            }
+        } catch (SQLException | APIResourceMgtException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            throw new IdentityApplicationManagementException("Error while deleting the authorized API.", e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(dbConnection);
+        }
+    }
+
+    /**
+     * Delete an API authorization record.
+     * This will CASCADE delete all associated scope authorizations.
+     */
+    private void deleteAPIAuthorization(Connection dbConnection, String appId, String apiId) throws SQLException {
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(
+                ApplicationMgtDBQueries.DELETE_AUTHORIZED_API_BY_API_ID)) {
+
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+
+            int deletedCount = prepStmt.executeUpdate();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(
+                        String.format("Deleted API authorization for API %s (affected rows: %d)", apiId, deletedCount));
+            }
+        }
+    }
+
+    /**
+     * Handles deletion of a system API with unique and shared scope cleanup.
+     */
+    private void handleSystemAPIDeletion(Connection dbConnection, String appId, String apiId)
+            throws SQLException {
+
+        // Step 1: Get scopes that will be deleted from this API.
+        List<ScopeDeletionInfo> scopesToDelete = getScopesForAPI(dbConnection, appId, apiId);
+
+        if (CollectionUtils.isEmpty(scopesToDelete)) {
+            deleteAPIAuthorization(dbConnection, appId, apiId);
+            return;
+        }
+
+        // Step 2: Find shared system API scopes with matching names.
+        List<ScopeDeletionInfo> sharedScopesToDelete = findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
+
+        // Step 3: Delete shared scope authorizations from other APIs.
+        if (!sharedScopesToDelete.isEmpty()) {
+            deleteSharedScopeAuthorizations(dbConnection, appId, sharedScopesToDelete);
+        }
+
+        // Step 4: Delete the target API (CASCADE deletes its own scopes).
+        deleteAPIAuthorization(dbConnection, appId, apiId);
+
+        // Step 5: Clean up orphaned APIs (APIs with no remaining scopes).
+        if (!sharedScopesToDelete.isEmpty()) {
+            cleanupOrphanedAPIs(dbConnection, appId, sharedScopesToDelete);
+        }
+    }
+
+    /**
+     * Delete shared scope authorizations from other APIs.
+     */
+    private void deleteSharedScopeAuthorizations(Connection dbConnection, String appId,
+                                                 List<ScopeDeletionInfo> scopesToDelete)
+            throws SQLException {
+
+        List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
+
+        List<String> scopeIdPlaceholders = new ArrayList<>();
+        for (int i = 0; i < scopeIds.size(); i++) {
+            scopeIdPlaceholders.add("?");
+        }
+
+        String sqlStatement = ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPES_BY_SCOPE_IDS
+                .replace(PLACEHOLDER_SCOPE_IDS_FOR_DELETION, String.join(", ", scopeIdPlaceholders));
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStatement)) {
+            int paramIndex = 1;
+            prepStmt.setString(paramIndex++, appId);
+
+            for (String scopeId : scopeIds) {
+                prepStmt.setString(paramIndex++, scopeId);
+            }
+
+            int deletedCount = prepStmt.executeUpdate();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Deleted %d shared scope authorizations from other APIs", deletedCount));
+            }
+        }
+    }
+
+    /**
+     * Get scopes associated with an API authorization.
+     */
+    private List<ScopeDeletionInfo> getScopesForAPI(Connection dbConnection, String appId, String apiId)
+            throws SQLException {
+
+        List<ScopeDeletionInfo> scopes = new ArrayList<>();
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(
+                ApplicationMgtDBQueries.GET_AUTHORIZED_SCOPES_FOR_API)) {
+
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    scopes.add(new ScopeDeletionInfo(
+                            rs.getString("ID"),
+                            rs.getString("NAME"),
+                            apiId
+                    ));
+                }
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Found %d scopes for API %s to be deleted", scopes.size(), apiId));
+        }
+
+        return scopes;
+    }
+
+    /**
+     * Find shared system API scopes that match the given scope names.
+     */
+    private List<ScopeDeletionInfo> findSharedSystemAPIScopesByNames(Connection dbConnection,
+                                                                     List<ScopeDeletionInfo> scopesToDelete)
+            throws SQLException {
+
+        List<ScopeDeletionInfo> sharedScopes = new ArrayList<>();
+        List<String> scopeNames = scopesToDelete.stream()
+                .map(ScopeDeletionInfo::getScopeName)
+                .collect(Collectors.toList());
+        List<String> originalScopeIds = scopesToDelete.stream()
+                .map(ScopeDeletionInfo::getScopeId)
+                .collect(Collectors.toList());
+
+        List<String> scopeNamePlaceholders = new ArrayList<>();
+        for (int i = 1; i <= scopeNames.size(); i++) {
+            scopeNamePlaceholders.add(":" + SCOPE_NAME_PREFIX_DEL + i + ";");
+        }
+        List<String> scopeIdPlaceholders = new ArrayList<>();
+        for (int i = 1; i <= originalScopeIds.size(); i++) {
+            scopeIdPlaceholders.add(":" + SCOPE_ID_PREFIX_DEL + i + ";");
+        }
+
+        String sqlStatement = ApplicationMgtDBQueries.GET_SHARED_SYSTEM_API_SCOPE_IDS_BY_NAMES
+                .replace(PLACEHOLDER_SCOPE_NAMES_FOR_DELETION, String.join(", ", scopeNamePlaceholders))
+                .replace(PLACEHOLDER_SCOPE_IDS_TO_EXCLUDE, String.join(", ", scopeIdPlaceholders));
+
+        try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
+
+            for (int i = 1; i <= scopeNames.size(); i++) {
+                namedPreparedStatement.setString(SCOPE_NAME_PREFIX_DEL + i, scopeNames.get(i - 1));
+            }
+            for (int i = 1; i <= originalScopeIds.size(); i++) {
+                namedPreparedStatement.setString(SCOPE_ID_PREFIX_DEL + i, originalScopeIds.get(i - 1));
+            }
+
+            try (ResultSet rs = namedPreparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    sharedScopes.add(new ScopeDeletionInfo(
+                            rs.getString("ID"),
+                            rs.getString("NAME"),
+                            rs.getString("API_ID")
+                    ));
+                }
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Found %d shared scopes to delete across other system APIs", sharedScopes.size()));
+        }
+
+        return sharedScopes;
+    }
+
+    /**
+     * Clean up APIs that have no remaining scopes after shared scope deletion.
+     */
+    private void cleanupOrphanedAPIs(Connection dbConnection, String appId, List<ScopeDeletionInfo> deletedSharedScopes)
+            throws SQLException {
+
+        // Get unique API IDs from the deleted shared scopes
+        Set<String> affectedAPIIds = deletedSharedScopes.stream()
+                .map(ScopeDeletionInfo::getApiId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Check each affected API
+        for (String apiId : affectedAPIIds) {
+            int remainingScopes = countRemainingScopesForAPI(dbConnection, appId, apiId);
+
+            if (remainingScopes == 0) {
+                deleteAPIAuthorization(dbConnection, appId, apiId);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Deleted orphaned API %s with no remaining scopes", apiId));
+                }
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("API %s still has %d remaining scope(s). Hence, keeping it", apiId,
+                            remainingScopes));
+                }
+            }
+        }
+    }
+
+    /**
+     * Count remaining scopes for an API after deletion.
+     */
+    private int countRemainingScopesForAPI(Connection dbConnection, String appId, String apiId)
+            throws SQLException {
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(
+                ApplicationMgtDBQueries.COUNT_REMAINING_SCOPES_FOR_API)) {
+
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private void deleteScopes(Connection dbConnection, String appId, String apiId,
+                              List<String> scopesToRemove, int tenantId) throws SQLException, APIResourceMgtException {
+
+        if (CollectionUtils.isEmpty(scopesToRemove)) {
+            return;
+        }
+        boolean isSystemAPI = APIResourceManagementUtil.isSystemAPIByAPIId(apiId);
+        if (isSystemAPI) {
+            handleSystemAPIScopeDeletion(dbConnection, appId, apiId, scopesToRemove);
+        } else {
+            deleteScopesDirectly(dbConnection, appId, apiId, scopesToRemove, tenantId);
+        }
+    }
+
+    /**
+     * Deletes scopes directly from a non-system API.
+     * Uses scope names to identify and delete scopes.
+     */
+    private void deleteScopesDirectly(Connection dbConnection, String appId, String apiId, List<String> scopeNames,
+                                      int tenantId) throws SQLException {
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(
+                ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPE)) {
+
             prepStmt.setString(1, appId);
             prepStmt.setString(2, apiId);
             prepStmt.setInt(4, tenantId);
-            for (String scope : scopesToRemove) {
-                prepStmt.setString(3, scope);
+
+            for (String scopeName : scopeNames) {
+                prepStmt.setString(3, scopeName);
                 prepStmt.addBatch();
             }
-            prepStmt.executeBatch();
+
+            int[] results = prepStmt.executeBatch();
+
+            if (LOG.isDebugEnabled()) {
+                int deletedCount = 0;
+                for (int result : results) {
+                    if (result > 0) {
+                        deletedCount++;
+                    }
+                }
+                LOG.debug(String.format("Deleted %d scopes from non-system API %s", deletedCount, apiId));
+            }
+        }
+    }
+
+    /**
+     * Handles deletion of scopes from a system API with shared scope cleanup.
+     * For system APIs with shared scopes:
+     * 1. Identifies scopes being deleted from the target API
+     * 2. Finds and deletes matching shared scopes from other system APIs
+     * 3. Checks if the target API has any remaining scopes, deletes it if orphaned
+     */
+    private void handleSystemAPIScopeDeletion(Connection dbConnection, String appId, String apiId,
+                                              List<String> scopeNames) throws SQLException {
+
+        List<ScopeDeletionInfo> scopesToDelete = getScopesByNamesForAPI(dbConnection, apiId, scopeNames);
+
+        if (scopesToDelete.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("No scopes found to delete for API %s with names: %s", apiId,
+                        String.join(", ", scopeNames)));
+            }
+            return;
+        }
+
+        deleteScopesByIds(dbConnection, appId, apiId, scopesToDelete);
+
+        List<ScopeDeletionInfo> sharedScopesToDelete = findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
+
+        if (!sharedScopesToDelete.isEmpty()) {
+            deleteSharedScopeAuthorizationsByScope(dbConnection, appId, sharedScopesToDelete);
+            cleanupOrphanedAPIs(dbConnection, appId, sharedScopesToDelete);
+        }
+
+        int remainingScopes = countRemainingScopesForAPI(dbConnection, appId, apiId);
+        if (remainingScopes == 0) {
+            deleteAPIAuthorization(dbConnection, appId, apiId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Deleted API %s as it has no remaining scopes", apiId));
+            }
+        }
+    }
+
+    /**
+     * Get scope IDs and names for specific scope names within an API.
+     */
+    private List<ScopeDeletionInfo> getScopesByNamesForAPI(Connection dbConnection, String apiId,
+                                                           List<String> scopeNames) throws SQLException {
+
+        List<ScopeDeletionInfo> scopes = new ArrayList<>();
+        List<String> scopeNamePlaceholders = new ArrayList<>();
+        for (int i = 1; i <= scopeNames.size(); i++) {
+            scopeNamePlaceholders.add(":" + SCOPE_NAME_PREFIX_DEL + i + ";");
+        }
+
+        String sqlStatement = ApplicationMgtDBQueries.GET_SCOPE_IDS_BY_NAMES_FOR_API.replace(
+                PLACEHOLDER_SCOPE_NAMES_FOR_SCOPE_DELETION, String.join(", ", scopeNamePlaceholders));
+
+        try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
+
+            namedPreparedStatement.setString(COLUMN_NAME_API_ID, apiId);
+            for (int i = 1; i <= scopeNames.size(); i++) {
+                namedPreparedStatement.setString(SCOPE_NAME_PREFIX_DEL + i, scopeNames.get(i - 1));
+            }
+
+            try (ResultSet rs = namedPreparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    scopes.add(new ScopeDeletionInfo(
+                            rs.getString("ID"),
+                            rs.getString("NAME"),
+                            apiId
+                    ));
+                }
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Found %d scopes to delete from API %s", scopes.size(), apiId));
+        }
+
+        return scopes;
+    }
+
+    /**
+     * Delete specific scope authorizations by scope IDs from an API.
+     */
+    private void deleteScopesByIds(Connection dbConnection, String appId, String apiId,
+                                   List<ScopeDeletionInfo> scopesToDelete) throws SQLException {
+
+        List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
+
+        List<String> scopeIdPlaceholders = new ArrayList<>();
+        for (int i = 0; i < scopeIds.size(); i++) {
+            scopeIdPlaceholders.add("?");
+        }
+
+        String sqlStatement =
+                ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPES_BY_IDS.replace(PLACEHOLDER_SCOPE_IDS_FOR_DELETION,
+                        String.join(", ", scopeIdPlaceholders));
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStatement)) {
+            int paramIndex = 1;
+            prepStmt.setString(paramIndex++, appId);
+            prepStmt.setString(paramIndex++, apiId);
+
+            for (String scopeId : scopeIds) {
+                prepStmt.setString(paramIndex++, scopeId);
+            }
+
+            int deletedCount = prepStmt.executeUpdate();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Deleted %d scope authorizations from API %s", deletedCount, apiId));
+            }
+        }
+    }
+
+    /**
+     * Delete shared scope authorizations from other APIs.
+     * Groups deletions by API for efficiency.
+     */
+    private void deleteSharedScopeAuthorizationsByScope(Connection dbConnection, String appId,
+                                                        List<ScopeDeletionInfo> sharedScopes) throws SQLException {
+
+        Map<String, List<String>> scopesByApi = new HashMap<>();
+        for (ScopeDeletionInfo scope : sharedScopes) {
+            scopesByApi.computeIfAbsent(scope.getApiId(), k -> new ArrayList<>())
+                    .add(scope.getScopeId());
+        }
+
+        for (Map.Entry<String, List<String>> entry : scopesByApi.entrySet()) {
+            String apiId = entry.getKey();
+            List<String> scopeIds = entry.getValue();
+            List<String> scopeIdPlaceholders = new ArrayList<>();
+            for (int i = 0; i < scopeIds.size(); i++) {
+                scopeIdPlaceholders.add("?");
+            }
+
+            String sqlStatement =
+                    ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPES_BY_IDS.replace(PLACEHOLDER_SCOPE_IDS_FOR_DELETION,
+                            String.join(", ", scopeIdPlaceholders));
+
+            try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStatement)) {
+                int paramIndex = 1;
+                prepStmt.setString(paramIndex++, appId);
+                prepStmt.setString(paramIndex++, apiId);
+
+                for (String scopeId : scopeIds) {
+                    prepStmt.setString(paramIndex++, scopeId);
+                }
+
+                int deletedCount = prepStmt.executeUpdate();
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Deleted %d shared scope authorizations from API %s", deletedCount, apiId));
+                }
+            }
         }
     }
 

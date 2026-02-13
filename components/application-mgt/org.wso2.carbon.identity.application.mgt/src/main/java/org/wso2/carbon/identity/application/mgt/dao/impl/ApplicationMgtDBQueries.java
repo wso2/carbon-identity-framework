@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -618,6 +618,29 @@ public class ApplicationMgtDBQueries {
     public static final String DELETE_AUTHORIZED_SCOPE = "DELETE FROM AUTHORIZED_SCOPE WHERE APP_ID = ? AND " +
             "API_ID = ? AND SCOPE_ID IN (SELECT ID FROM SCOPE WHERE NAME = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL))";
 
+    public static final String GET_AUTHORIZED_SCOPES_FOR_API = "SELECT SCOPE.ID, SCOPE.NAME FROM " +
+            "AUTHORIZED_SCOPE AUTH INNER JOIN SCOPE ON AUTH.SCOPE_ID = SCOPE.ID WHERE AUTH.APP_ID = ? " +
+            "AND AUTH.API_ID = ?";
+
+    public static final String GET_SHARED_SYSTEM_API_SCOPE_IDS_BY_NAMES = "SELECT SCOPE.ID, SCOPE.API_ID, SCOPE.NAME" +
+            " FROM SCOPE WHERE SCOPE.NAME IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_NAMES_FOR_DELETION + ") AND " +
+            "SCOPE.TENANT_ID IS NULL AND SCOPE.ID NOT IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_IDS_TO_EXCLUDE + ")";
+
+    public static final String DELETE_AUTHORIZED_SCOPES_BY_SCOPE_IDS = "DELETE FROM AUTHORIZED_SCOPE " +
+                    "WHERE APP_ID = :" + SQLPlaceholders.COLUMN_NAME_APP_ID + "; " +
+                    "AND SCOPE_ID IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_IDS_FOR_DELETION + ")";
+
+    public static final String COUNT_REMAINING_SCOPES_FOR_API = "SELECT COUNT(*) FROM AUTHORIZED_SCOPE " +
+            "WHERE APP_ID = ? AND API_ID = ?";
+
+    public static final String GET_SCOPE_IDS_BY_NAMES_FOR_API = "SELECT SCOPE.ID, SCOPE.NAME FROM SCOPE " +
+                    "WHERE SCOPE.API_ID = :" + SQLPlaceholders.COLUMN_NAME_API_ID + "; " +
+                    "AND SCOPE.NAME IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_NAMES_FOR_SCOPE_DELETION + ") " +
+                    "AND SCOPE.TENANT_ID IS NULL";
+
+    public static final String DELETE_AUTHORIZED_SCOPES_BY_IDS = "DELETE FROM AUTHORIZED_SCOPE WHERE APP_ID = ? AND" +
+            " API_ID = ? AND SCOPE_ID IN (" + SQLPlaceholders.PLACEHOLDER_SCOPE_IDS_FOR_DELETION + ")";
+
     public static final String ADD_APPLICATION_ASSOC_ROLES_HEAD = "INSERT INTO APP_ROLE_ASSOCIATION " +
             "(APP_ID, ROLE_ID) VALUES ";
     public static final String ADD_APPLICATION_ASSOC_ROLES_HEAD_ORACLE = "INSERT INTO APP_ROLE_ASSOCIATION (APP_ID, " +
@@ -737,5 +760,13 @@ public class ApplicationMgtDBQueries {
         public static final String COLUMN_NAME_SCOPE_ID = "SCOPE_ID";
         public static final String COLUMN_NAME_ID = "ID";
         public static final String COLUMN_NAME_NAME = "NAME";
+
+        // Related to API and scope deletion scenarios.
+        public static final String SCOPE_NAME_PREFIX_DEL = "SCOPE_NAME_DEL_";
+        public static final String SCOPE_ID_PREFIX_DEL = "SCOPE_ID_DEL_";
+        public static final String PLACEHOLDER_SCOPE_NAMES_FOR_DELETION = "SCOPE_NAME_LIST_DEL";
+        public static final String PLACEHOLDER_SCOPE_IDS_TO_EXCLUDE = "SCOPE_ID_EXCLUDE_LIST";
+        public static final String PLACEHOLDER_SCOPE_IDS_FOR_DELETION = "SCOPE_ID_LIST_DEL";
+        public static final String PLACEHOLDER_SCOPE_NAMES_FOR_SCOPE_DELETION = "SCOPE_NAME_LIST_SCOPE_DEL";
     }
 }
