@@ -23,9 +23,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -47,7 +49,9 @@ import org.wso2.carbon.identity.action.execution.api.model.ResponseData;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ResponseDataDeserializer;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -129,9 +133,10 @@ public class APIClient {
                     return actionInvocationResponse;
                 }
                 logEndpointUnavailability(request, attempts + 1, retryCount);
-            } catch (ConnectTimeoutException | SocketTimeoutException e) {
+            } catch (ConnectTimeoutException | ConnectionClosedException | NoHttpResponseException |
+                     SocketTimeoutException | SocketException | UnknownHostException e) {
                 throwable = e;
-                logEndpointTimeout(request, attempts + 1, retryCount);
+                logEndpointRequestFailure(request, attempts + 1, retryCount);
             } catch (Exception e) {
                 DIAGNOSTIC_LOGGER.logAPICallError(request);
                 LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
@@ -314,14 +319,14 @@ public class APIClient {
         }
     }
 
-    private static void logEndpointTimeout(HttpPost request, int currentAttempt, int retryCount) {
+    private static void logEndpointRequestFailure(HttpPost request, int currentAttempt, int retryCount) {
 
         DIAGNOSTIC_LOGGER.logAPICallTimeout(request, currentAttempt, retryCount);
         if (currentAttempt < retryCount) {
-            LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying attempt " +
+            LOG.debug("Request for API: " + request.getURI() + " failed. Retrying attempt " +
                     currentAttempt + " of " + (retryCount - 1) + ".");
         } else {
-            LOG.debug("Request for API: " + request.getURI() + " timed out. Maximum retry attempts reached.");
+            LOG.debug("Request for API: " + request.getURI() + "failed. Maximum retry attempts reached.");
         }
     }
 }
