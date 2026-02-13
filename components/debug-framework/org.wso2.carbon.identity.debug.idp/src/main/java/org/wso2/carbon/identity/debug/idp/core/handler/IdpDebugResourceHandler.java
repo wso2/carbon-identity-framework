@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.framework.extension.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
+import org.wso2.carbon.identity.debug.framework.model.DebugContext;
+import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 
 import java.util.HashMap;
@@ -43,55 +46,107 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
     private static final String ERROR_TYPE = "errorType";
     private static final String REASON = "reason";
 
-    @Override
-    public Map<String, Object> handleDebugRequest(Map<String, Object> debugRequest) {
+    /**
+     * Handles a debug request using typed classes.
+     * This is the preferred method with type safety.
+     *
+     * @param debugRequest The debug request with resource information.
+     * @return DebugResponse containing the execution result.
+     */
+    public DebugResponse handleDebugRequest(DebugRequest debugRequest) {
 
         try {
-            String resourceId = (String) debugRequest.get("resourceId");
-            String resourceType = (String) debugRequest.get("resourceType");
+            String resourceId = debugRequest.getResourceId();
+            String resourceType = debugRequest.getResourceType();
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("IdP debug handler processing resource: " + resourceId);
             }
 
-            Map<String, Object> resolvedContext = resolveDebugContextSafely(resourceId, resourceType);
+            DebugContext resolvedContext = resolveDebugContext(resourceId, resourceType);
 
-            // Check if context resolution returned an error response.
-            if (resolvedContext != null && resolvedContext.containsKey(STATUS)
-                    && FAILURE.equals(resolvedContext.get(STATUS))) {
-                return resolvedContext;
-            }
-
-            if (resolvedContext == null) {
-                return createErrorResponse(FAILURE, "Unable to resolve debug context for resource: " + resourceId);
+            // Check if context resolution returned an error.
+            if (resolvedContext.isError()) {
+                return DebugResponse.error(resolvedContext.getErrorMessage());
             }
 
             DebugExecutor executor = DebugProtocolRouter.getExecutorForResource(resourceId);
             if (executor == null) {
-                return createErrorResponse(FAILURE, "Executor not available for resource: " + resourceId);
+                return DebugResponse.error("Executor not available for resource: " + resourceId);
             }
 
-            DebugResult debugResult = executor.execute(resolvedContext);
-            return convertDebugResultToMap(debugResult);
+            DebugResult debugResult = executor.execute(resolvedContext.toMap());
+            return DebugResponse.fromDebugResult(debugResult);
 
         } catch (Exception e) {
-            LOG.error("Error in IdP debug handler: " + e.getMessage(), e);
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put(STATUS, FAILURE);
-            errorResult.put(MESSAGE, e.getMessage());
-            errorResult.put(ERROR_TYPE, e.getClass().getSimpleName());
-            return errorResult;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error in IdP debug handler: " + e.getMessage(), e);
+            }
+            return DebugResponse.error(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Object> handleDebugRequest(Map<String, Object> debugRequest) {
+
+        // Convert Map to typed request.
+        DebugRequest request = DebugRequest.fromMap(debugRequest);
+        
+        // Use the typed method.
+        DebugResponse response = handleDebugRequest(request);
+        
+        // Convert response back to Map for backward compatibility.
+        return response.toMap();
+    }
+
+    /**
+     * Resolves the debug context for a given resource using typed classes.
+     * This is the preferred method with type safety.
+     *
+     * @param resourceId   The resource ID.
+     * @param resourceType The resource type.
+     * @return DebugContext containing the resolved context or error information.
+     */
+    private DebugContext resolveDebugContext(String resourceId, String resourceType) {
+
+        DebugContextProvider contextProvider = DebugProtocolRouter.getContextProviderForResource(resourceId);
+
+        if (contextProvider == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Context provider not available for resource: " + resourceId);
+            }
+            return DebugContext.error("Context provider not available for resource: " + resourceId);
+        }
+
+        try {
+            Map<String, Object> contextMap = contextProvider.resolveContext(resourceId, resourceType);
+            if (contextMap == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Debug context is null for resource: " + resourceId);
+                }
+                return DebugContext.error("Unable to resolve debug context for resource: " + resourceId);
+            }
+            return DebugContext.fromMap(contextMap);
+        } catch (Exception e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Context resolution failed for resource: " + resourceId + ". Error: " + e.getMessage());
+            }
+            return DebugContext.error("Unable to resolve debug context for IdP: " + resourceId, 
+                    e.getClass().getSimpleName());
         }
     }
 
     /**
      * Resolves the debug context for a given resource, returning error responses
      * gracefully.
+     * 
+     * @deprecated Use {@link #resolveDebugContext(String, String)} instead for type safety.
      *
      * @param resourceId   The resource ID.
      * @param resourceType The resource type.
-     * @return The resolved context map, or an error response map if resolution fails. 
+     * @return The resolved context map, or an error response map if resolution fails.
      */
+    @Deprecated
     private Map<String, Object> resolveDebugContextSafely(String resourceId, String resourceType) {
 
         DebugContextProvider contextProvider = DebugProtocolRouter.getContextProviderForResource(resourceId);

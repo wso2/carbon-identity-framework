@@ -47,6 +47,11 @@ public final class DebugFrameworkConstants {
     public static final String CALLBACK_STATE_PARAM = "state";
     public static final String CALLBACK_ERROR_PARAM = "error";
 
+    // OAuth2 specific callback parameters (for backward compatibility).
+    public static final String OAUTH2_CODE_PARAM = "code";
+    public static final String OAUTH2_STATE_PARAM = "state";
+    public static final String OAUTH2_ERROR_PARAM = "error";
+
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 15;
 

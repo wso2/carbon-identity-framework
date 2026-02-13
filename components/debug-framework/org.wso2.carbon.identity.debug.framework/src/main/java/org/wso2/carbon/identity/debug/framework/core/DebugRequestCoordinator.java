@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.debug.framework.DebugService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
+import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
+import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 
 import java.io.IOException;
@@ -62,83 +64,80 @@ public class DebugRequestCoordinator implements DebugService {
      * Handles the initial debug request.
      * Routes to the appropriate protocol executor based on the resource ID.
      *
-     * @param debugRequestContext Map containing request details.
-     * @return Map containing the execution result.
+     * @param debugRequest The debug request with resource details.
+     * @return DebugResponse containing the execution result.
      */
-    public Map<String, Object> handleInitialDebugRequest(Map<String, Object> debugRequestContext) {
+    public DebugResponse handleInitialDebugRequest(DebugRequest debugRequest) {
 
-        if (debugRequestContext == null) {
-            return createErrorResponse("FAILURE", "Debug request context cannot be null");
+        if (debugRequest == null) {
+            return DebugResponse.error("Debug request cannot be null");
         }
 
         try {
-            String resourceId = (String) debugRequestContext.get("resourceId");
-            if (resourceId == null) {
-                resourceId = (String) debugRequestContext.get("idpId");
-            }
+            String resourceId = debugRequest.getEffectiveResourceId();
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Handling initial debug request.");
+                LOG.debug("Handling initial debug request for resource: " + resourceId);
             }
 
             // Get executor via Router.
             DebugExecutor executor = DebugProtocolRouter.getExecutorForResource(resourceId);
 
             if (executor == null) {
-                LOG.warn("No DebugExecutor found for the given resource ID.");
-                return createErrorResponse("FAILURE", "No debug executor found for the given resource.");
+                LOG.warn("No DebugExecutor found for the given resource ID: " + resourceId);
+                return DebugResponse.error("No debug executor found for the given resource.");
             }
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Delegating to executor: " + executor.getClass().getSimpleName());
             }
 
-            // Execute and convert DebugResult to Map.
-            DebugResult result = executor.execute(debugRequestContext);
-            return convertDebugResultToMap(result);
+            // Execute and convert DebugResult to DebugResponse.
+            DebugResult result = executor.execute(debugRequest.toMap());
+            return DebugResponse.fromDebugResult(result);
 
         } catch (Exception e) {
             LOG.error("Error handling initial debug request.", e);
-            return createErrorResponse("FAILURE", "Server error processing debug request.");
+            return DebugResponse.error("Server error processing debug request.");
         }
     }
 
     /**
-     * Handles debug requests for any resource type.
+     * Handles debug requests for any resource type using typed classes.
+     * This is the preferred method with type safety.
      *
-     * @param debugRequestContext Map containing resourceId and resourceType.
-     * @return Map containing debug result data, or error map on failure.
+     * @param debugRequest The debug request with resource information.
+     * @return DebugResponse containing debug result data.
      */
-    public Map<String, Object> handleResourceDebugRequest(Map<String, Object> debugRequestContext) {
+    public DebugResponse handleResourceDebugRequest(DebugRequest debugRequest) {
 
-        if (debugRequestContext == null) {
-            return createErrorResponse("FAILURE", "Debug request context cannot be null");
+        if (debugRequest == null || debugRequest.getResourceId() == null) {
+            return DebugResponse.error("Debug request or resource ID cannot be null");
         }
 
         try {
-            String resourceId = (String) debugRequestContext.get("resourceId");
-            String resourceType = (String) debugRequestContext.get("resourceType");
-
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Orchestrating debug request.");
+                LOG.debug("Orchestrating debug request for resource: " + debugRequest.getResourceId());
             }
 
             // Route by resource type.
-            DebugResourceType type = DebugResourceType.fromString(resourceType);
+            DebugResourceType type = DebugResourceType.fromString(debugRequest.getResourceType());
 
             // Get the handler for this resource type.
-            DebugResourceHandler handler = type.getHandler(resourceId);
+            DebugResourceHandler handler = type.getHandler(debugRequest.getResourceId());
 
             if (handler == null) {
-                return createErrorResponse("FAILURE", "No handler available for resource type: " + resourceType);
+                return DebugResponse.error("No handler available for resource type: " +
+                        debugRequest.getResourceType());
             }
 
             // Delegate to handler.
-            return handler.handleDebugRequest(debugRequestContext);
+            Map<String, Object> result = handler.handleDebugRequest(debugRequest.toMap());
+            return DebugResponse.success(result);
 
         } catch (Exception e) {
             LOG.error("Error in debug request orchestration.", e);
-            return createErrorResponse("FAILURE", "Error processing debug request.");
+            return DebugResponse.error("Error processing debug request.");
         }
     }
 
