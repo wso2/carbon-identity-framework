@@ -60,11 +60,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil.isUUID;
 
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
@@ -73,8 +74,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     private static final int MAX_LIMIT = 1000;
     private static final String BPS_BASED_WORKFLOW_ENGINE = "ApprovalWorkflow";
-    private static final Pattern UUID_PATTERN = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
@@ -1428,17 +1427,5 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 .anyMatch(association -> !StringUtils.equals(association.getAssociationId(), associationId)
                         && StringUtils.equals(association.getEventId(), eventId)
                         && StringUtils.equals(association.getCondition(), condition));
-    }
-
-    /**
-     * Check if the given string is a valid UUID.
-     * UUIDs are used as rule condition identifiers in the new rule-based approach (IS 7.3+).
-     *
-     * @param value The string to check.
-     * @return true if the string is a valid UUID, false otherwise.
-     */
-    private boolean isUUID(String value) {
-
-        return value != null && UUID_PATTERN.matcher(value).matches();
     }
 }
