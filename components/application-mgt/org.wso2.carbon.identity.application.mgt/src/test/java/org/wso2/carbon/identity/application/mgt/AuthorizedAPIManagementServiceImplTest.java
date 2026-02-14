@@ -548,7 +548,7 @@ public class AuthorizedAPIManagementServiceImplTest {
     }
 
     // ========================================
-    // Tests for System API Scope Sharing
+    // Tests for System API Scope Reuse
     // ========================================
 
     /**
@@ -557,7 +557,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * are automatically authorized.
      */
     @Test
-    public void testSystemAPI_AutoAuthorizationOfSharedScopes() throws Exception {
+    public void testSystemAPIAutoAuthorizationOfSharedScopes() throws Exception {
 
         String appId = addApplication();
 
@@ -599,7 +599,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * system APIs.
      */
     @Test
-    public void testSystemAPI_CascadeDeletionOfSharedScopes() throws Exception {
+    public void testSystemAPICascadeDeletionOfSharedScopes() throws Exception {
 
         String appId = addApplication();
 
@@ -659,7 +659,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * (orphan cleanup).
      */
     @Test
-    public void testSystemAPI_OrphanAPICleanup() throws Exception {
+    public void testSystemAPIOrphanAPICleanup() throws Exception {
 
         String appId = addApplication();
 
@@ -718,7 +718,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * scope names.
      */
     @Test
-    public void testSystemAPI_PatchWithCascade() throws Exception {
+    public void testSystemAPIPatchWithCascade() throws Exception {
 
         String appId = addApplication();
 
@@ -807,7 +807,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * auto-authorization of related APIs.
      */
     @Test
-    public void testBusinessAPI_DirectAuthorizationOnly() throws Exception {
+    public void testBusinessAPIDirectAuthorizationOnly() throws Exception {
 
         String appId = addApplication();
 
@@ -843,7 +843,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * Test that deleting a business API is direct without cascade to other APIs.
      */
     @Test
-    public void testBusinessAPI_DirectDeletionOnly() throws Exception {
+    public void testBusinessAPIDirectDeletionOnly() throws Exception {
 
         String appId = addApplication();
 
@@ -889,7 +889,7 @@ public class AuthorizedAPIManagementServiceImplTest {
      * cascade.
      */
     @Test
-    public void testBusinessAPI_PatchWithoutCascade() throws Exception {
+    public void testBusinessAPIPatchWithoutCascade() throws Exception {
 
         String appId = addApplication();
 
