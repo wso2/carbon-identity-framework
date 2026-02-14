@@ -55,6 +55,11 @@ import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
@@ -235,7 +240,7 @@ public class CacheBackedIdPMgtDAO {
 
         if (entry != null) {
             log.debug("Cache entry found for Identity Provider " + idPName);
-            IdentityProvider identityProvider = entry.getIdentityProvider();
+            IdentityProvider identityProvider = cloneIdentityProvider(entry.getIdentityProvider());
             IdPManagementUtil.removeRandomPasswords(identityProvider, false);
             return identityProvider;
         } else {
@@ -254,7 +259,7 @@ public class CacheBackedIdPMgtDAO {
                 for (IdentityProviderMgtListener listener : listeners) {
                     if (listener.isEnable() && !listener.doPostGetResidentIdP(identityProvider, tenantDomain)) {
                         // If the listener returns false, skip adding to cache and return.
-                        return identityProvider;
+                        return cloneIdentityProvider(identityProvider);
                     }
                 }
             }
@@ -270,7 +275,7 @@ public class CacheBackedIdPMgtDAO {
             log.debug("Entry for Identity Provider " + idPName + " not found in cache or DB");
         }
 
-        return identityProvider;
+        return cloneIdentityProvider(identityProvider);
     }
 
     /**
@@ -1283,5 +1288,36 @@ public class CacheBackedIdPMgtDAO {
                     + tenantId + ". Adding cache entry.");
         }
         return userDefinedFederatedAuthenticators;
+    }
+
+    /**
+     * Create a deep clone of the IdentityProvider object.
+     *
+     * @param identityProvider The identity provider to be cloned.
+     * @return Cloned identity provider object.
+     * @throws IdentityProviderManagementException If an error occurs during cloning.
+     */
+    private IdentityProvider cloneIdentityProvider(IdentityProvider identityProvider)
+            throws IdentityProviderManagementException {
+
+        if (identityProvider == null) {
+            return null;
+        }
+
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+
+            objectOutputStream.writeObject(identityProvider);
+            objectOutputStream.flush();
+
+            try (ByteArrayInputStream byteArrayInputStream =
+                         new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+
+                return (IdentityProvider) objectInputStream.readObject();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new IdentityProviderManagementException("Error while cloning IdentityProvider object.", e);
+        }
     }
 }
