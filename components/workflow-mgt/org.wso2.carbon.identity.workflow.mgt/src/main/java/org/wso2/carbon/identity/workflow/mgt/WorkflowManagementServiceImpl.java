@@ -413,9 +413,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public void addAssociation(String associationName, String workflowId, String eventId, String condition) throws
             WorkflowException {
 
-        if (condition == null) {
-            condition = WFConstant.DEFAULT_ASSOCIATION_CONDITION;
-        }
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -433,12 +430,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throw new InternalWorkflowException("Event type cannot be null");
         }
 
-        if (StringUtils.isBlank(condition)) {
-            log.error("Null or empty string given as condition expression when associating " + workflowId +
-                    " to event " + eventId);
-            throw new InternalWorkflowException("Condition cannot be null");
-        }
-
         List<Association> existingAssociations = associationDAO.listAssociationsForWorkflow(workflowId);
         if (hasDuplicateAssociation(existingAssociations, eventId, condition)) {
             if (log.isDebugEnabled()) {
@@ -448,9 +439,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
                     "event " + eventId + " with the same condition.");
         }
-
-        if (isUUID(condition)) {
-            // Skip XPath validation.
+        if (condition == null || isUUID(condition)) {
+            // Save without XPath validation.
             associationDAO.addAssociation(associationName, workflowId, eventId, condition);
         } else {
             XPathFactory factory = XPathFactory.newInstance();
@@ -883,9 +873,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         if (eventId != null) {
             association.setEventId(eventId);
         }
-
         if (condition != null) {
-            if (isUUID(condition) || WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
+            if (StringUtils.isEmpty(condition)) {
+                // Empty string signals explicit removal of rule.
+                association.setCondition(null);
+            } else if (isUUID(condition)) {
                 association.setCondition(condition);
             } else {
                 log.error("Conditions are not supported. Provided condition: " + condition);

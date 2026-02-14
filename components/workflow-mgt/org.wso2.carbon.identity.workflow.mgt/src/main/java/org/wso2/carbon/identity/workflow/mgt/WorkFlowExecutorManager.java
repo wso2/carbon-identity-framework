@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationExce
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
-import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
@@ -47,7 +46,7 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
 import org.wso2.carbon.identity.workflow.mgt.util.ExecutorResultState;
-import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestBuilder;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
@@ -57,7 +56,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * Workflow Executor Manager class.
@@ -65,8 +63,6 @@ import java.util.regex.Pattern;
 public class WorkFlowExecutorManager {
 
     private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
-    private static final Pattern UUID_PATTERN = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
 
     private WorkFlowExecutorManager() {
@@ -97,7 +93,6 @@ public class WorkFlowExecutorManager {
                 workflowListener.doPreExecuteWorkflow(workFlowRequest);
             }
         }
-
         if (StringUtils.isBlank(workFlowRequest.getUuid())) {
             workFlowRequest.setUuid(UUID.randomUUID().toString());
         }
@@ -115,15 +110,14 @@ public class WorkFlowExecutorManager {
         for (WorkflowAssociation association : associations) {
             try {
                 String conditionForEvaluation = association.getAssociationCondition();
-                boolean ruleSatisfied = false;
+                boolean conditionSatisfied = false;
 
-                if (StringUtils.isNotBlank(conditionForEvaluation) &&
-                        WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(conditionForEvaluation.trim())) {
-                    // Default condition "boolean(1)" found, proceed without evaluation.
-                    log.debug("Default association condition found, engaging workflow.");
-                    ruleSatisfied = true;
-                } else if (isUUID(conditionForEvaluation)) {
-                    // Condition is a UUID, evaluate via Rule Engine.
+                if (StringUtils.isBlank(conditionForEvaluation)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No condition found, engaging workflow.");
+                    }
+                    conditionSatisfied = true;
+                } else if (WorkflowManagementUtil.isUUID(conditionForEvaluation)) {
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
                     Map<String, Object> ruleContextData = new HashMap<>();
@@ -139,25 +133,17 @@ public class WorkFlowExecutorManager {
                         }
                     }
                     FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleContextData);
-                    
-                    RuleEvaluationService ruleEvaluationService = WorkflowServiceDataHolder.getInstance()
-                            .getRuleEvaluationService();
-                    if (ruleEvaluationService == null) {
-                        String errorMsg = "RuleEvaluationService is not available from OSGi context.";
-                        log.error(errorMsg);
-                        return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
-                    }
-                    RuleEvaluationResult result = ruleEvaluationService
+                    RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
+                            .getRuleEvaluationService()
                             .evaluate(conditionForEvaluation, flowContext, tenantDomain);
-
-                    ruleSatisfied = result.isRuleSatisfied();
+                    conditionSatisfied = result.isRuleSatisfied();
                 } else {
                     AXIOMXPath axiomxPath = new AXIOMXPath(conditionForEvaluation);
-                    ruleSatisfied = axiomxPath.booleanValueOf(xmlRequest);
+                    conditionSatisfied = axiomxPath.booleanValueOf(xmlRequest);
                 }
 
                 // If Rule is Satisfied (or Default), Engage Workflow.
-                if (ruleSatisfied) {
+                if (conditionSatisfied) {
                     workflowEngaged = true;
                     if (!requestSaved) {
                         WorkflowRequestDAO requestDAO = new WorkflowRequestDAO();
@@ -178,7 +164,7 @@ public class WorkFlowExecutorManager {
                             workFlowRequest
                                     .getUuid(), WorkflowRequestStatus.PENDING
                                     .toString(), workFlowRequest.getTenantId());
-                }else {
+                } else {
                     if (log.isDebugEnabled()) {
                         log.debug("Workflow association with id: " + association.getAssociationId() +
                                 " not engaged for the request with id: " + workFlowRequest.getUuid() +
@@ -325,16 +311,5 @@ public class WorkFlowExecutorManager {
         WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
         requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
         workflowRequestDAO.updateStatusOfRequest(requestId, status);
-    }
-
-    /**
-     * Check if a string is a valid UUID.
-     *
-     * @param value String to validate.
-     * @return True if the string is a valid UUID, false otherwise.
-     */
-    private boolean isUUID(String value) {
-
-        return value != null && UUID_PATTERN.matcher(value).matches();
     }
 }

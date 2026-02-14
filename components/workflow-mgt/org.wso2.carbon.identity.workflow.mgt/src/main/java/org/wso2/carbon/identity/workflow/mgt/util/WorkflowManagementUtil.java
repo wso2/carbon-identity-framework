@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -54,6 +55,8 @@ import javax.xml.parsers.ParserConfigurationException;
 public class WorkflowManagementUtil {
 
     private static final Log log = LogFactory.getLog(WorkflowManagementUtil.class);
+    private static final Pattern UUID_PATTERN = Pattern.compile(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     /**
      * Create an internal role in the workflow domain with the same name as the workflow.
@@ -236,5 +239,16 @@ public class WorkflowManagementUtil {
         }
 
         return WFConstant.DEFAULT_RESULTS_PER_PAGE;
+    }
+
+    /**
+     * Check if a string is a valid UUID.
+     *
+     * @param value String to validate.
+     * @return True if the string is a valid UUID, false otherwise.
+     */
+    public static boolean isUUID(String value) {
+
+        return value != null && UUID_PATTERN.matcher(value).matches();
     }
 }

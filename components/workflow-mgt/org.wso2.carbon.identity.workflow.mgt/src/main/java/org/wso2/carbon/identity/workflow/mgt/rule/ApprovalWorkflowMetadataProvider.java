@@ -50,6 +50,24 @@ import java.util.List;
 public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
     private static final Log LOG = LogFactory.getLog(ApprovalWorkflowMetadataProvider.class);
+    private static final List<FieldDefinition> STATIC_APPROVAL_WORKFLOW_FIELDS;
+    private static final List<Operator> CLAIM_OPERATORS;
+
+    static {
+        // Initialize static approval workflow fields.
+        List<FieldDefinition> staticFields = new ArrayList<>();
+        staticFields.add(createRoleHasAssignedUsersField());
+        staticFields.add(createRoleHasUnassignedUsersField());
+        STATIC_APPROVAL_WORKFLOW_FIELDS = Collections.unmodifiableList(staticFields);
+
+        // Initialize operators for claim fields.
+        List<Operator> operators = new ArrayList<>();
+        operators.add(new Operator("equals", "Equals"));
+        operators.add(new Operator("notEquals", "Not Equals"));
+        operators.add(new Operator("contains", "Contains"));
+        CLAIM_OPERATORS = Collections.unmodifiableList(operators);
+    }
+
     /**
      * Get the expression metadata for the given flow type.
      * Returns field definitions for approval workflow specific fields and dynamic user claim fields.
@@ -70,9 +88,7 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
             }
             return Collections.emptyList();
         }
-
         List<FieldDefinition> fieldDefinitions = new ArrayList<>(getStaticApprovalWorkflowFields());
-
         List<LocalClaim> localClaims = getAllowedUserClaims(tenantDomain);
         if (!localClaims.isEmpty()) {
             for (LocalClaim localClaim : localClaims) {
@@ -80,12 +96,10 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
                 fieldDefinitions.add(fieldDefinition);
             }
         }
-
         if (LOG.isDebugEnabled()) {
             LOG.debug("Generated " + fieldDefinitions.size() + " field definitions for approval workflow for tenant: "
                     + tenantDomain);
         }
-
         return fieldDefinitions;
     }
 
@@ -96,53 +110,41 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
      */
     private List<FieldDefinition> getStaticApprovalWorkflowFields() {
 
-        List<FieldDefinition> staticFields = new ArrayList<>();
-
-        staticFields.add(createRoleHasAddedUsersField());
-        staticFields.add(createRoleHasDeletedUsersField());
-
         if (LOG.isDebugEnabled()) {
-        LOG.debug("Added " + staticFields.size() + " static approval workflow fields.");
-    }
-
-        return staticFields;
+            LOG.debug("Added " + STATIC_APPROVAL_WORKFLOW_FIELDS.size() + " static approval workflow fields.");
+        }
+        return STATIC_APPROVAL_WORKFLOW_FIELDS;
     }
 
     /**
-     * Create field definition for role.hasAddedUsers.
+     * Create field definition for role.hasAssignedUsers.
      *
-     * @return FieldDefinition for role.hasAddedUsers.
+     * @return FieldDefinition for role.hasAssignedUsers.
      */
-    private FieldDefinition createRoleHasAddedUsersField() {
+    private static FieldDefinition createRoleHasAssignedUsersField() {
 
-        Field field = new Field("role.hasAddedUsers", "role has added users");
+        Field field = new Field("role.hasAssignedUsers", "role has assigned users");
         List<Operator> operators = Collections.singletonList(new Operator("equals", "equals"));
-
         List<OptionsValue> optionValues = Arrays.asList(
                 new OptionsValue("true", "true"),
-                new OptionsValue("false", "false")
-        );
+                new OptionsValue("false", "false"));
         Value valueMeta = new OptionsInputValue(Value.ValueType.STRING, optionValues);
-
         return new FieldDefinition(field, operators, valueMeta);
     }
 
     /**
-     * Create field definition for role.hasDeletedUsers.
+     * Create field definition for role.hasUnassignedUsers.
      *
-     * @return FieldDefinition for role.hasDeletedUsers.
+     * @return FieldDefinition for role.hasUnassignedUsers.
      */
-    private FieldDefinition createRoleHasDeletedUsersField() {
+    private static FieldDefinition createRoleHasUnassignedUsersField() {
 
-        Field field = new Field("role.hasDeletedUsers", "role has deleted users");
+        Field field = new Field("role.hasUnassignedUsers", "role has unassigned users");
         List<Operator> operators = Collections.singletonList(new Operator("equals", "equals"));
-
         List<OptionsValue> optionValues = Arrays.asList(
                 new OptionsValue("true", "true"),
-                new OptionsValue("false", "false")
-        );
+                new OptionsValue("false", "false"));
         Value valueMeta = new OptionsInputValue(Value.ValueType.STRING, optionValues);
-
         return new FieldDefinition(field, operators, valueMeta);
     }
 
@@ -158,12 +160,6 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
         ClaimMetadataManagementService claimService = WorkflowServiceDataHolder.getInstance()
                 .getClaimMetadataManagementService();
-
-        if (claimService == null) {
-            LOG.warn("ClaimMetadataManagementService is not available. Returning empty claim list.");
-            return Collections.emptyList();
-        }
-
         try {
             List<LocalClaim> localClaims = claimService.getLocalClaims(tenantDomain);
             if (localClaims == null || localClaims.isEmpty()) {
@@ -172,11 +168,9 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
                 }
                 return Collections.emptyList();
             }
-
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Retrieved " + localClaims.size() + " local claims for tenant: " + tenantDomain);
             }
-
             return localClaims;
         } catch (ClaimMetadataException e) {
             throw new RuleMetadataException("WORKFLOW_METADATA_ERROR_50001",
@@ -195,11 +189,10 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
         String claimUri = localClaim.getClaimURI();
         String displayName = getClaimDisplayName(localClaim);
-
+        
         Field field = new Field(claimUri, displayName);
         List<Operator> operators = getOperatorsForClaim();
         Value valueMeta = new InputValue(Value.ValueType.STRING);
-
         return new FieldDefinition(field, operators, valueMeta);
     }
 
@@ -215,7 +208,6 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
         if (StringUtils.isNotBlank(displayName)) {
             return displayName;
         }
-
         // Fallback to claim URI if display name is not available.
         return localClaim.getClaimURI();
     }
@@ -227,16 +219,6 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
      */
     private List<Operator> getOperatorsForClaim() {
 
-        List<Operator> operators = new ArrayList<>();
-
-        operators.add(new Operator("equals", "Equals"));
-
-        operators.add(new Operator("notEquals", "Not Equals"));
-
-        operators.add(new Operator("contains", "Contains"));
-
-        return operators;
+        return CLAIM_OPERATORS;
     }
-
-
 }
