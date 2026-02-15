@@ -700,6 +700,8 @@ public class IdPManagementConstants {
         ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s"),
         ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
                 "provisioning roles does not exist"),
+        ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_GROUP("IDP-60015", "One or more outbound " +
+                "provisioning groups does not exist"),
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
         ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
                 "provided authenticator Id %s."),
@@ -719,6 +721,8 @@ public class IdPManagementConstants {
                 "applications of Identity Provider with resource ID: %s."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
+        ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS("IDP-65013", "Error while validating " +
+                "the outbound provisioning groups"),
         ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
         ERROR_CODE_ADDING_ENDPOINT_CONFIG("IDP-65010", "An error occurred while adding" +
                 " endpoint configuration for authenticator: %s."),
