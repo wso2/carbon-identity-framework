@@ -490,6 +490,7 @@
   "identity_mgt.password_reset_by_admin.code_validity_period": "1440m",
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
+  "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": true,
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
@@ -1371,6 +1372,7 @@
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvals": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.attributeDialects": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.attributeUpdateVerificationSettings": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
@@ -1936,6 +1938,22 @@
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
   "console.guest_user.scopes.update": ["internal_guest_mgt_invite_update"],
   "console.guest_user.scopes.delete": ["internal_guest_mgt_invite_delete", "internal_guest_mgt_user_delete"],
+  "console.onboarding.enabled": false,
+  "console.onboarding.disabled_features": [],
+  "console.onboarding.feature_flags": [],
+  "console.onboarding.scopes.feature": [
+    "console:applications",
+    "console:loginAndRegistration",
+    "console:branding"
+  ],
+  "console.onboarding.scopes.create": [
+    "internal_application_mgt_create",
+    "internal_branding_preference_update",
+    "internal_governance_update"
+  ],
+  "console.onboarding.scopes.read": [],
+  "console.onboarding.scopes.update": [],
+  "console.onboarding.scopes.delete": [],
   "console.parent_user_invitation.enabled": true,
   "console.parent_user_invitation.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.parent_user_invitation.scopes.read": ["internal_guest_mgt_invite_list"],

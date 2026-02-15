@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.mgt;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -54,6 +55,13 @@ import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerE
 /**
  * This class is responsible for managing the flow.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.flow.mgt.FlowMgtService",
+                "service.scope=singleton"
+        }
+)
 public class FlowMgtService {
 
     private static final FlowMgtService INSTANCE = new FlowMgtService();

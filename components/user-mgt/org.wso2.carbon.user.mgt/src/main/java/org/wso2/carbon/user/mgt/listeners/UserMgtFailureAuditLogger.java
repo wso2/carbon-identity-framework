@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener;
@@ -37,6 +38,13 @@ import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getTargetFo
 /**
  * This class is responsible for logging the failure events while doing User Management Tasks.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.user.core.listener.UserManagementErrorEventListener",
+                "service.scope=singleton"
+        }
+)
 public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEventListener {
     private static final Log audit = CarbonConstants.AUDIT_LOG;
 

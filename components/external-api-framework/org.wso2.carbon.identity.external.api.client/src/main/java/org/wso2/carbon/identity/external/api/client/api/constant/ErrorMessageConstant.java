@@ -47,7 +47,9 @@ public class ErrorMessageConstant {
         ERROR_CODE_INVALID_AUTH_PROPERTY("APICLIENT-65009", "Invalid API authentication property key or value.",
                 "The property key must be not blank and property value must be not null."),
         ERROR_CODE_NULL_API_DATA("APICLIENT-65010", "Invalid data for API invocation.",
-                "The APIRequestContext and APIClientConfig cannot be null to invoke an external API endpoint.");
+                "The APIRequestContext and APIClientConfig cannot be null to invoke an external API endpoint."),
+        ERROR_CODE_NON_REPEATABLE_ENTITY("APICLIENT-65011", "Non‑repeatable HttpEntity.",
+                "Non-repeatable HttpEntity is not supported due to request retry requirements.");
 
         private final String code;
         private final String message;

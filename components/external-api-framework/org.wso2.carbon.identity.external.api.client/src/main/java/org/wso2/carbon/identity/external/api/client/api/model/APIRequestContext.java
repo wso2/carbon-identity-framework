@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.external.api.client.api.model;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
 import org.wso2.carbon.identity.external.api.client.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientRequestException;
 
@@ -39,15 +40,14 @@ public class APIRequestContext {
     private final APIAuthentication apiAuthentication;
     private final String endpointUrl;
     private final Map<String, String> headers;
-    private final String payload;
+    private final HttpEntity payload;
 
     public APIRequestContext(APIRequestContext.Builder builder) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Creating APIRequestContext with HTTP method: %s, endpoint URL: %s, " +
-                            "headers count: %d, payload length: %d",
-                    builder.httpMethod, builder.endpointUrl, builder.headers.size(),
-                    builder.payload != null ? builder.payload.length() : 0
+                            "headers count: %d",
+                    builder.httpMethod, builder.endpointUrl, builder.headers.size()
             ));
         }
 
@@ -78,7 +78,7 @@ public class APIRequestContext {
         return Collections.unmodifiableMap(headers);
     }
     
-    public String getPayload() {
+    public HttpEntity getPayload() {
 
         return payload;
     }
@@ -92,7 +92,7 @@ public class APIRequestContext {
         private APIAuthentication apiAuthentication;
         private String endpointUrl;
         private Map<String, String> headers = new HashMap<>();
-        private String payload;
+        private HttpEntity payload;
 
         public APIRequestContext.Builder httpMethod(HttpMethod httpMethod) {
 
@@ -118,7 +118,7 @@ public class APIRequestContext {
             return this;
         }
 
-        public APIRequestContext.Builder payload(String payload) {
+        public APIRequestContext.Builder payload(HttpEntity payload) throws APIClientRequestException {
 
             this.payload = payload;
             return this;
@@ -140,8 +140,11 @@ public class APIRequestContext {
             /* Todo: Payload can be optional for certain HTTP methods like GET.
                      Adjust validation accordingly when introducing new HTTP Method supports
              */
-            if (httpMethod == HttpMethod.POST && (payload == null || StringUtils.isBlank(payload))) {
+            if (httpMethod == HttpMethod.POST && (payload == null)) {
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "payload");
+            }
+            if (payload != null && !payload.isRepeatable()) {
+                throw new APIClientRequestException(ErrorMessage.ERROR_CODE_NON_REPEATABLE_ENTITY, null);
             }
 
             return new APIRequestContext(this);

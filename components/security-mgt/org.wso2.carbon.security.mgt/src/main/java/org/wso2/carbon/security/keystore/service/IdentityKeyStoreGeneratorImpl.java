@@ -26,6 +26,7 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -69,6 +70,13 @@ import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.KE
  * The methods in this class throw {@link KeyStoreManagementException} for errors encountered during
  * keystore creation, management, or persistence.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.security.keystore.service.IdentityKeyStoreGenerator",
+                "service.scope=singleton"
+        }
+)
 public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator {
 
     private static final Log LOG = LogFactory.getLog(IdentityKeyStoreGeneratorImpl.class);
@@ -124,7 +132,9 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
     private boolean isContextKeyStoreExists(String context, String tenantDomain, KeyStoreManager keyStoreManager)
             throws KeyStoreManagementException {
 
-        String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(buildDomainWithContext(tenantDomain, context));
+        String ksName = tenantDomain.trim().replace(".", "-");
+        ksName = buildDomainWithContext(ksName, context);
+        String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(ksName, tenantDomain);
         boolean isKeyStoreExists = false;
         try {
             keyStoreManager.getKeyStore(keyStoreName);

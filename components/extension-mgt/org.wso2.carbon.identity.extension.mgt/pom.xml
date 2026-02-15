@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>extension-mgt</artifactId>
-        <version>7.8.673-SNAPSHOT</version>
+        <version>7.10.2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -40,7 +40,7 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
@@ -52,7 +52,7 @@
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
         </dependency>
         <dependency>

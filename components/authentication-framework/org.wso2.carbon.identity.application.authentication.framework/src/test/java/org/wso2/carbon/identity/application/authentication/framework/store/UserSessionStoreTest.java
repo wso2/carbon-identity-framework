@@ -30,6 +30,7 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
@@ -101,6 +102,15 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
         return new Object[][]{
                 {"00000001", "testuser1", -1234, "PRIMARY", -1},
                 {"00000002", "testuser2", -1234, "Abc.com", -1},
+                {"00000003", "testuser3", -1234, "PRIMARY", 1}
+        };
+    }
+
+    @DataProvider
+    public Object[][] getFederatedUser() {
+
+        return new Object[][]{
+                {"00000003", "testuser3", "carbon.super", "PRIMARY", "FEDERATED"},
         };
     }
 
@@ -208,6 +218,38 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain, idpId);
             Assert.assertEquals(actualUserId, expectedUserId, "Expected userId not received for user: " + username +
                     " of userstore domain: " + userDomain + ", tenant: " + tenantId + " and idp id: " + idpId);
+        }
+    }
+
+    @Test(dataProvider = "getFederatedUser", dependsOnMethods = {"testStoreUserData"})
+    public void testGetUserFromUserId(String userId, String username, String tenantDomain, String userDomain,
+                                      String idpName) throws Exception {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(-1234)).thenReturn("carbon.super");
+
+            AuthenticatedUser user = UserSessionStore.getInstance().getUser(userId);
+            Assert.assertEquals(user.getUserName(), username, "Expected username not received for user id: "
+                    + userId);
+            Assert.assertEquals(user.getUserStoreDomain(), userDomain.toUpperCase(), "Expected userDomain " +
+                    "not received for user id: " + userId);
+            Assert.assertEquals(user.getTenantDomain(), tenantDomain, "Expected tenantDomain " +
+                    "not received for user id: " + userId);
+            Assert.assertEquals(user.getFederatedIdPName(), idpName, "Expected idpName " +
+                    "not received for user id: " + userId);
+            AuthenticatedUser invalidUser = UserSessionStore.getInstance().getUser("invalidUserId");
+            Assert.assertNull(invalidUser, "Expected null for invalid user id.");
+        }
+    }
+
+    @Test(dependsOnMethods = {"testStoreUserData"}, expectedExceptions = UserSessionException.class)
+    public void testGetUserForNullUserId() throws Exception {
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            mockIdentityDataBaseUtilConnection(connection, false, mockedIdentityDatabaseUtil);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(-1234)).thenReturn("carbon.super");
+            UserSessionStore.getInstance().getUser(null);
         }
     }
 

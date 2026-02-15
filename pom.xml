@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.673-SNAPSHOT</version>
+    <version>7.10.2-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -81,6 +81,7 @@
         <module>components/flow-orchestration-framework</module>
         <module>components/workflow-mgt</module>
         <module>components/identity-fraud-detection</module>
+        <module>components/compatibility-settings-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>components/async-operation-status-mgt</module>
@@ -130,6 +131,7 @@
         <module>features/workflow-mgt</module>
         <module>features/identity-fraud-detection</module>
         <module>features/external-api-framework</module>
+        <module>features/compatibility-settings-mgt</module>
     </modules>
 
 
@@ -153,7 +155,7 @@
 
             <!-- Carbon Kernel Dependencies-->
             <dependency>
-                <groupId>org.eclipse.osgi</groupId>
+                <groupId>org.eclipse.platform</groupId>
                 <artifactId>org.eclipse.osgi</artifactId>
                 <version>${version.equinox.osgi}</version>
             </dependency>
@@ -393,6 +395,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.fraud.detection.core.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.compatibility.settings.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.compatibility.settings.management.server.feature</artifactId>
                 <version>${project.version}</version>
                 <type>zip</type>
             </dependency>
@@ -659,7 +673,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.orbit.org.opensaml</groupId>
-                <artifactId>opensaml</artifactId>
+                <artifactId>opensaml-jdk21</artifactId>
                 <version>${opensaml2.wso2.version}</version>
             </dependency>
 
@@ -1269,7 +1283,7 @@
                 <version>${encoder-jsp.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.eclipse.osgi</groupId>
+                <groupId>org.eclipse.platform</groupId>
                 <artifactId>org.eclipse.osgi.services</artifactId>
                 <version>${equinox.osgi.services.version}</version>
             </dependency>
@@ -2041,7 +2055,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.107</carbon.kernel.version>
+        <carbon.kernel.version>4.10.121</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2051,7 +2065,7 @@
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
-        <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
+        <equinox.osgi.services.version>3.12.0</equinox.osgi.services.version>
         <apache.felix.scr.ds.annotations.version>1.2.8</apache.felix.scr.ds.annotations.version>
 
         <!--Carbon commons version-->
@@ -2087,12 +2101,12 @@
 
         <!-- Axis2 Version -->
         <axis2.wso2.version>1.6.1-wso2v40</axis2.wso2.version>
-        <axis2.osgi.version.range>[1.6.1.wso2v38, 2.0.0)</axis2.osgi.version.range>
+        <axis2.osgi.version.range>[1.6.1, 2.0.0)</axis2.osgi.version.range>
         <orbit.version.wsdl4j>1.6.2.wso2v4</orbit.version.wsdl4j>
         <orbit.version.neethi>2.0.4.wso2v5</orbit.version.neethi>
         <axis2-transports.version>2.0.0-wso2v42</axis2-transports.version>
         <axis2-transports.version.range>[2.0.0-wso2v38,3.0.0)</axis2-transports.version.range>
-        <org.apache.axis2.transport.mail.version.range>[0.0.0,1.0.0)</org.apache.axis2.transport.mail.version.range>
+        <org.apache.axis2.transport.mail.version.range>[2.0.0, 3.0.0)</org.apache.axis2.transport.mail.version.range>
 
         <!-- Axiom Version -->
         <axiom.version>1.2.11-wso2v16</axiom.version>
@@ -2115,10 +2129,10 @@
 
         <!-- Servlet API -->
         <exp.pkg.version.javax.servlet>2.6.0</exp.pkg.version.javax.servlet>
-        <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
+        <imp.pkg.version.javax.servlet>[3.1.0, 4.0.0)</imp.pkg.version.javax.servlet>
 
         <!-- Misc -->
-        <carbon.p2.plugin.version>5.1.2</carbon.p2.plugin.version>
+        <carbon.p2.plugin.version>5.5.1</carbon.p2.plugin.version>
         <derby.version>10.4.2.0</derby.version>
         <activation.version>1.1</activation.version>
         <javamail.version>1.4</javamail.version>
@@ -2175,8 +2189,7 @@
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
 
         <!-- Equinox -->
-        <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
-        <version.equinox.osgi>3.9.1.v20130814-1242</version.equinox.osgi>
+        <version.equinox.osgi>3.19.0</version.equinox.osgi>
         <equinox.osgi.stax-api.imp.pkg.version.range>[1.0.1,2.0.0)</equinox.osgi.stax-api.imp.pkg.version.range>
 
         <saml.common.util.version>1.4.1</saml.common.util.version>
@@ -2213,7 +2226,7 @@
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>3.3.1</opensaml.version>
         <shibboleth.version>7.3.0</shibboleth.version>
-        <opensaml2.wso2.version>3.3.1.wso2v15</opensaml2.wso2.version>
+        <opensaml2.wso2.version>3.3.1.wso2v117</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml2.wso2.osgi.version.range>
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
@@ -2273,6 +2286,7 @@
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <tomcat-util.version>3.3.2</tomcat-util.version>
         <json-smart.version>2.4.11</json-smart.version>
+        <json-smart.version.range>[2.4.0,3.0.0)</json-smart.version.range>
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
         <org.apache.cxf.version>3.5.9</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
@@ -2296,7 +2310,7 @@
         <org.apache.olingo.version>1.1.0</org.apache.olingo.version>
 
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
-        <maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <maven.war.plugin.version>3.2.2</maven.war.plugin.version>
         <maven.build.helper.plugin.version>3.0.0</maven.build.helper.plugin.version>
         <swagger2cxf-maven-plugin.version>1.0-SNAPSHOT</swagger2cxf-maven-plugin.version>
@@ -2323,8 +2337,8 @@
         <mockito-testng.version>0.5.2</mockito-testng.version>
         <wiremock.version>3.9.1</wiremock.version>
 
-        <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
-        <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
+        <wso2.maven.compiler.source>21</wso2.maven.compiler.source>
+        <wso2.maven.compiler.target>21</wso2.maven.compiler.target>
 
         <h2database.version>2.2.224</h2database.version>
 
@@ -2368,8 +2382,8 @@
                     <inherited>true</inherited>
                     <configuration>
                         <encoding>UTF-8</encoding>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>21</source>
+                        <target>21</target>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2385,7 +2399,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>6.0.0</version>
                     <extensions>true</extensions>
                     <configuration>
                         <obrRepository>NONE</obrRepository>

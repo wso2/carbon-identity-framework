@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-event</artifactId>
-        <version>7.8.673-SNAPSHOT</version>
+        <version>7.10.2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -32,6 +32,14 @@
     <description>A custom wso2 products or solution</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>

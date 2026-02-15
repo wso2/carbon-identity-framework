@@ -168,7 +168,8 @@ public class IdPManagementConstants {
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
 
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
-            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME,
+            IdentityApplicationConstants.Authenticator.OIDC.NAME);
 
     // Constants related to inheriting login & registration configurations.
     public static final String PASSWORD_EXPIRY_RULES_KEY_PREFIX = "passwordExpiry.rule";
@@ -176,7 +177,8 @@ public class IdPManagementConstants {
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
-            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED,
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
 
     public static final List<String> INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES = List.of(
             "Organization.SelfService.Enable",

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014-2026 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -118,6 +118,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
@@ -3082,6 +3083,17 @@ public class IdPManagementDAO {
         Property discoveryUrlProp = resolveFedAuthnProperty(oIDCDiscoveryEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
         propertiesList.add(discoveryUrlProp);
+
+        Property jwtScopeAsArrayProp = IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+        if (jwtScopeAsArrayProp == null) {
+            jwtScopeAsArrayProp = new Property();
+            jwtScopeAsArrayProp.setName(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            jwtScopeAsArrayProp.setValue(
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT);
+        }
+        propertiesList.add(jwtScopeAsArrayProp);
 
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[0]));
         fedAuthnConfigs.add(oidcFedAuthn);
@@ -6399,6 +6411,20 @@ public class IdPManagementDAO {
             sessionIdleTimeOut.setName(SESSION_IDLE_TIME_OUT);
             sessionIdleTimeOut.setValue(configuredSessionIdleTimeout);
             propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
+            String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
+            if (StringUtils.isBlank(preserveLoggedInSessionAtPasswordUpdate)) {
+                preserveLoggedInSessionAtPasswordUpdate = "false";
+            }
+
+            IdentityProviderProperty preserveCurrentSessionAtPasswordUpdateProperty = new IdentityProviderProperty();
+            preserveCurrentSessionAtPasswordUpdateProperty.setName(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveCurrentSessionAtPasswordUpdateProperty.setValue(preserveLoggedInSessionAtPasswordUpdate);
+            propertiesFromConnectors.put(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE,
+                    preserveCurrentSessionAtPasswordUpdateProperty);
         }
     }
 

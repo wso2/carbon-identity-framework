@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.identity.external.api.token.handler.internal.util;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.util.EntityUtils;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.external.api.client.api.model.APIAuthentication;
@@ -27,8 +29,11 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContext;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -44,8 +49,10 @@ public class TokenRequestBuilderUtilsTest {
     private static final String TEST_SCOPE = "test-scope";
     private static final String TEST_TOKEN_ENDPOINT = "https://localhost:9443/oauth2/token";
     private static final String TEST_REFRESH_TOKEN = "test-refresh-token";
-    private static final String HEADER_KEY = "Content-Type";
-    private static final String HEADER_VALUE = "application/json";
+    private static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
+    private static final String CONTENT_TYPE_HEADER_VALUE = "application/x-www-form-urlencoded";
+    private static final String ACCEPT_HEADER_KEY = "Accept";
+    private static final String ACCEPT_HEADER_VALUE = "application/json";
 
     private GrantContext clientCredentialGrantContext;
     private Map<String, String> headers;
@@ -67,7 +74,8 @@ public class TokenRequestBuilderUtilsTest {
                 .build();
 
         headers = new HashMap<>();
-        headers.put(HEADER_KEY, HEADER_VALUE);
+        headers.put(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_HEADER_VALUE);
+        headers.put(ACCEPT_HEADER_KEY, ACCEPT_HEADER_VALUE);
     }
 
     /**
@@ -102,18 +110,10 @@ public class TokenRequestBuilderUtilsTest {
                 "Client secret should match.");
 
         // Verify payload.
-        String payload = apiRequestContext.getPayload();
-        assertNotNull(payload, "Payload should not be null.");
-
-        JsonObject payloadJson = JsonParser.parseString(payload).getAsJsonObject();
-        assertEquals(payloadJson.get("grant_type").getAsString(), "client_credentials",
-                "Grant type in payload should be client_credentials.");
-        assertEquals(payloadJson.get("client_id").getAsString(), TEST_CLIENT_ID,
-                "Client ID in payload should match.");
-        assertEquals(payloadJson.get("client_secret").getAsString(), TEST_CLIENT_SECRET,
-                "Client secret in payload should match.");
-        assertEquals(payloadJson.get("scope").getAsString(), TEST_SCOPE,
-                "Scope in payload should match.");
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "client_credentials");
+        expectedParams.put("scope", TEST_SCOPE);
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
     }
 
     /**
@@ -148,15 +148,10 @@ public class TokenRequestBuilderUtilsTest {
         assertEquals(authentication.getProperty(APIAuthentication.Property.PASSWORD).getValue(), TEST_CLIENT_SECRET,
                 "Client secret should match.");
 
-        // Verify payload.
-        String payload = apiRequestContext.getPayload();
-        assertNotNull(payload, "Payload should not be null.");
-
-        JsonObject payloadJson = JsonParser.parseString(payload).getAsJsonObject();
-        assertEquals(payloadJson.get("grant_type").getAsString(), "refresh_token",
-                "Grant type in payload should be refresh_token.");
-        assertEquals(payloadJson.get("refresh_token").getAsString(), TEST_REFRESH_TOKEN,
-                "Refresh token in payload should match.");
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "refresh_token");
+        expectedParams.put("refresh_token", TEST_REFRESH_TOKEN);
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
     }
 
     /**
@@ -225,7 +220,7 @@ public class TokenRequestBuilderUtilsTest {
     public void testBuildAPIRequestContextWithMultipleHeaders() throws Exception {
 
         Map<String, String> multipleHeaders = new HashMap<>();
-        multipleHeaders.put("Content-Type", "application/json");
+                multipleHeaders.put("Content-Type", "application/x-www-form-urlencoded");
         multipleHeaders.put("Accept", "application/json");
         multipleHeaders.put("X-Custom-Header", "custom-value");
 
@@ -239,7 +234,7 @@ public class TokenRequestBuilderUtilsTest {
 
         assertNotNull(apiRequestContext, "APIRequestContext should not be null.");
         assertEquals(apiRequestContext.getHeaders().size(), 3, "Should have 3 headers.");
-        assertEquals(apiRequestContext.getHeaders().get("Content-Type"), "application/json");
+                assertEquals(apiRequestContext.getHeaders().get("Content-Type"), "application/x-www-form-urlencoded");
         assertEquals(apiRequestContext.getHeaders().get("Accept"), "application/json");
         assertEquals(apiRequestContext.getHeaders().get("X-Custom-Header"), "custom-value");
     }
@@ -274,10 +269,24 @@ public class TokenRequestBuilderUtilsTest {
         assertEquals(authentication.getProperty(APIAuthentication.Property.USERNAME).getValue(), "client@domain.com");
         assertEquals(authentication.getProperty(APIAuthentication.Property.PASSWORD).getValue(), "p@ssw0rd!#$%^&*()");
 
-        String payload = apiRequestContext.getPayload();
-        JsonObject payloadJson = JsonParser.parseString(payload).getAsJsonObject();
-        assertEquals(payloadJson.get("client_id").getAsString(), "client@domain.com");
-        assertEquals(payloadJson.get("client_secret").getAsString(), "p@ssw0rd!#$%^&*()");
-        assertEquals(payloadJson.get("scope").getAsString(), "scope:read scope:write");
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "client_credentials");
+        expectedParams.put("scope", "scope:read scope:write");
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
+    }
+
+    private void validatePayload(HttpEntity payload, Map<String, String> expectedParams) throws Exception {
+
+        assertNotNull(payload, "Payload should not be null.");
+        String payloadString = EntityUtils.toString(payload, StandardCharsets.UTF_8);
+        List<NameValuePair> params = URLEncodedUtils.parse(payloadString, StandardCharsets.UTF_8);
+        Map<String, String> payloadMap = params.stream()
+                .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+
+        assertEquals(payloadMap.size(), expectedParams.size());
+        for (Map.Entry<String, String> entry : expectedParams.entrySet()) {
+            assertEquals(payloadMap.get(entry.getKey()), entry.getValue(),
+                    "Payload parameter " + entry.getKey() + " should match.");
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
@@ -93,6 +94,13 @@ import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.idp.mgt.IdpManager",
+                "service.scope=singleton"
+        }
+)
 public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
@@ -260,7 +268,19 @@ public class IdentityProviderManager implements IdpManager {
             oidcProperty.setValue(getOIDCResidentIdPEntityId());
 
             FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
-            oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
+            List<Property> oidcProperties = new ArrayList<>();
+            oidcProperties.add(oidcProperty);
+
+            if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                Property jwtScopeAsArrayProp = new Property();
+                jwtScopeAsArrayProp.setName(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+                jwtScopeAsArrayProp.setValue(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT);
+                oidcProperties.add(jwtScopeAsArrayProp);
+            }
+
+            oidcAuthenticationConfig.setProperties(oidcProperties.toArray(new Property[0]));
             oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
             oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 

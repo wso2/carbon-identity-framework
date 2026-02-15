@@ -21,7 +21,7 @@
     <parent>
         <artifactId>user-functionality-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>7.8.673-SNAPSHOT</version>
+        <version>7.10.2-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -80,15 +80,6 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -159,7 +150,7 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>

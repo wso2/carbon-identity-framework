@@ -2389,7 +2389,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         RoleManagementService roleManagementServiceV2 =
                 ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
         for (String roleId : roleIds) {
-            String roleName = roleManagementServiceV2.getRoleNameByRoleId(roleId, tenantDomain);
+            String roleName = roleManagementServiceV2.getRoleBasicInfoById(roleId, tenantDomain).getName();
             rolesList.add(new RoleV2(roleId, roleName));
         }
         return rolesList.toArray(new RoleV2[0]);
