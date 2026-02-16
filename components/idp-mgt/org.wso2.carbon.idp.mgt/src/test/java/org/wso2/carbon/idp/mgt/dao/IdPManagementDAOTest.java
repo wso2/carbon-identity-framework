@@ -1945,32 +1945,25 @@ public class IdPManagementDAOTest {
     public Object[][] getConnectedApplicationsWithFilterData() {
 
         return new Object[][]{
-                // idPName, tenantId, limit, offset, operation, filterValue, expectedAppCount, expectedTotalCount
-                // testIdP1 has: TestApp1, TestApp2, App3, ProvisioningApp (4 connected apps)
-                // Test contains (co)
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp", 2, 2},  // Finds TestApp1, TestApp2
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp", 2, 2},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp1", 1, 1},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp2", 1, 1},
-                {"testIdP1", SAMPLE_TENANT_ID, 1, 0, "co", "TestApp", 1, 2},  // Limit 1, total 2
-                {"testIdP1", SAMPLE_TENANT_ID, 1, 1, "co", "TestApp", 1, 2},  // Offset 1, total 2
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "App", 4, 4},  // Finds all 4 apps (all contain "App")
+                {"testIdP1", SAMPLE_TENANT_ID, 1, 0, "co", "TestApp", 1, 2},
+                {"testIdP1", SAMPLE_TENANT_ID, 1, 1, "co", "TestApp", 1, 2},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "App", 4, 4},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "App3", 1, 1},
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "Provisioning", 1, 1},  // ProvisioningApp
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "Provisioning", 1, 1},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "NonExistentApp", 0, 0},
-                // testIdP2 has: TestApp4 (1 connected app)
-                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp", 1, 1},  // Finds TestApp4
-                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "co", "App4", 1, 1},  // Finds TestApp4
-                // Test starts with (sw)
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "TestApp", 2, 2},  // TestApp1, TestApp2
+                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp", 1, 1},
+                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "co", "App4", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "TestApp", 2, 2},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "TestApp1", 1, 1},
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "App", 1, 1},  // App3 only
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "Provisioning", 1, 1},  // ProvisioningApp
-                // Test ends with (ew)
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App1", 1, 1},  // TestApp1
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App2", 1, 1},  // TestApp2
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App3", 1, 1},  // App3
-                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App", 1, 1},  // ProvisioningApp
-                // Test equals (eq)
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "App", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "Provisioning", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App1", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App2", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App3", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App", 1, 1},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "TestApp1", 1, 1},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "TestApp2", 1, 1},
                 {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "App3", 1, 1},
