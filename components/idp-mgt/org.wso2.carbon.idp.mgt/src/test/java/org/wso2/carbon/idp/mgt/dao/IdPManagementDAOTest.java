@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -47,10 +47,17 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
+
+import java.security.cert.X509Certificate;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
@@ -91,6 +98,8 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -2182,6 +2191,63 @@ public class IdPManagementDAOTest {
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
     }
 
+    @DataProvider
+    public Object[][] preserveLoggedInSessionConfigData() {
+
+        return new Object[][]{
+                {"testIdP1", true, true},
+                {"testIdP2", false, false},
+                {"testIdP3", true, true},
+        };
+    }
+
+    /**
+     * Tests that PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property is correctly
+     * persisted when adding an IdP and retrieved correctly.
+     */
+    @Test(dataProvider = "preserveLoggedInSessionConfigData")
+    public void testPreserveLoggedInSessionAtPasswordUpdatePersistence(String idpName, boolean propertyValue,
+                                                                       boolean expectedValue) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            // Create an IdP with the preserve session property.
+            IdentityProvider idp = new IdentityProvider();
+            idp.setIdentityProviderName(idpName);
+            idp.setHomeRealmId("test-realm");
+
+            IdentityProviderProperty preserveSessionProperty = new IdentityProviderProperty();
+            preserveSessionProperty.setName(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
+            preserveSessionProperty.setValue(String.valueOf(propertyValue));
+            idp.setIdpProperties(new IdentityProviderProperty[]{preserveSessionProperty});
+
+            // Add the IdP to the database.
+            idPManagementDAO.addIdP(idp, SAMPLE_TENANT_ID);
+
+            // Retrieve the IdP and verify the property is persisted correctly.
+            IdentityProvider retrievedIdP = idPManagementDAO.getIdPByName(connection, idpName, SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            assertNotNull(retrievedIdP, "Retrieved IdP should not be null");
+
+            IdentityProviderProperty[] properties = retrievedIdP.getIdpProperties();
+            assertNotNull(properties, "IdP properties should not be null");
+
+            IdentityProviderProperty retrievedProperty = Arrays.stream(properties)
+                    .filter(p -> PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE.equals(p.getName()))
+                    .findFirst()
+                    .orElse(null);
+
+            assertNotNull(retrievedProperty,
+                    "PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE property should be present");
+            assertEquals(Boolean.parseBoolean(retrievedProperty.getValue()), expectedValue,
+                    "Property value should match expected value");
+        }
+    }
+
     private int getIdPCount(Connection connection, String idpName, int tenantId) throws SQLException {
 
         String query = IdPManagementConstants.SQLQueries.GET_IDP_BY_NAME_SQL;
@@ -2218,6 +2284,139 @@ public class IdPManagementDAOTest {
         } else {
             assertNull(idpResult, "'getIdPByName' method fails");
         }
+    }
+
+    @Test(description = "Tests `enableJwtScopeAsArray` is present in the inheritable properties list.")
+    public void testJwtScopeAsArrayIsInInheritablePropertiesList() {
+
+        assertTrue(IdPManagementConstants.INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.contains(
+                        IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY),
+                " `enableJwtScopeAsArray` should be in INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES.");
+    }
+
+    @Test(description = "Tests that retrieving the resident IdP backfills  `enableJwtScopeAsArray` with default "
+            + "value when the property is absent.")
+    public void testGetResidentIdPBackfillsJwtScopeAsArrayDefault() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<PrivilegedCarbonContext> mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<KeyStoreManager> mockedKeyStoreManager = mockStatic(KeyStoreManager.class);
+             Connection connection = getConnection(DB_NAME)) {
+
+            setupResidentIdpTestMocks(identityDatabaseUtil, mockedIdentityUtil, mockedCarbonContext,
+                    mockedKeyStoreManager, connection);
+
+            // Add a resident IdP WITHOUT any OIDC authenticator config.
+            IdentityProvider residentIdP = new IdentityProvider();
+            residentIdP.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+            idPManagementDAO.addIdP(residentIdP, SAMPLE_TENANT_ID);
+
+            IdentityProvider result = idPManagementDAO.getIdPByName(connection,
+                    IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME, SAMPLE_TENANT_ID, TENANT_DOMAIN);
+
+            assertNotNull(result, "Resident IdP should be returned.");
+            Property jwtScopeProp = getOidcProperty(result,
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            assertNotNull(jwtScopeProp, " `enableJwtScopeAsArray` should be present in the OIDC config.");
+            assertEquals(jwtScopeProp.getValue(),
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT,
+                    " `enableJwtScopeAsArray` should default to 'false' when absent.");
+        }
+    }
+
+    @Test(description = "Tests that retrieving the resident IdP preserves an existing  `enableJwtScopeAsArray` "
+            + "value from DB.")
+    public void testGetResidentIdPPreservesExistingJwtScopeAsArray() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<PrivilegedCarbonContext> mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<KeyStoreManager> mockedKeyStoreManager = mockStatic(KeyStoreManager.class);
+             Connection connection = getConnection(DB_NAME)) {
+
+            setupResidentIdpTestMocks(identityDatabaseUtil, mockedIdentityUtil, mockedCarbonContext,
+                    mockedKeyStoreManager, connection);
+
+            // Add a resident IdP WITH OIDC config containing  `enableJwtScopeAsArray` = "true".
+            IdentityProvider residentIdP = new IdentityProvider();
+            residentIdP.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+
+            FederatedAuthenticatorConfig oidcAuthnConfig = new FederatedAuthenticatorConfig();
+            oidcAuthnConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcAuthnConfig.setDefinedByType(DefinedByType.SYSTEM);
+            Property jwtScopeProp = new Property();
+            jwtScopeProp.setName(IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            jwtScopeProp.setValue("true");
+            oidcAuthnConfig.setProperties(new Property[]{jwtScopeProp});
+            residentIdP.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{oidcAuthnConfig});
+
+            idPManagementDAO.addIdP(residentIdP, SAMPLE_TENANT_ID);
+
+            IdentityProvider result = idPManagementDAO.getIdPByName(connection,
+                    IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME, SAMPLE_TENANT_ID, TENANT_DOMAIN);
+
+            assertNotNull(result, "Resident IdP should be returned.");
+            Property resultProp = getOidcProperty(result,
+                    IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
+            assertNotNull(resultProp, " `enableJwtScopeAsArray` should be present in the OIDC config.");
+            assertEquals(resultProp.getValue(), "true",
+                    " `enableJwtScopeAsArray` should preserve the existing value 'true' from DB.");
+        }
+    }
+
+    /**
+     * Sets up the minimal mocks required for retrieving a resident IdP via getIdPByName("LOCAL").
+     */
+    private void setupResidentIdpTestMocks(MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil,
+                                           MockedStatic<IdentityUtil> mockedIdentityUtil,
+                                           MockedStatic<PrivilegedCarbonContext> mockedCarbonContext,
+                                           MockedStatic<KeyStoreManager> mockedKeyStoreManager,
+                                           Connection connection) throws Exception {
+
+        // DB access.
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+        identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+        mockedIdentityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn("https://localhost/dummy");
+
+        // PrivilegedCarbonContext — used for tenant flow management inside the resident IdP path.
+        PrivilegedCarbonContext mockCarbonCtx = mock(PrivilegedCarbonContext.class);
+        mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonCtx);
+
+        // RealmService — for tenantId lookup (delegates to IdpMgtServiceComponentHolder).
+        RealmService mockRealmService = mock(RealmService.class);
+        TenantManager mockTenantManager = mock(TenantManager.class);
+        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+        when(mockTenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(SAMPLE_TENANT_ID);
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(mockRealmService);
+
+        // KeyStoreManager — for certificate retrieval (super tenant path).
+        KeyStoreManager mockKSManager = mock(KeyStoreManager.class);
+        X509Certificate mockCert = mock(X509Certificate.class);
+        when(mockCert.getEncoded()).thenReturn("test-cert".getBytes());
+        when(mockKSManager.getDefaultPrimaryCertificate()).thenReturn(mockCert);
+        mockedKeyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(mockKSManager);
+    }
+
+    /**
+     * Finds a specific property by name from the OIDC authenticator config of the given IdP.
+     */
+    private Property getOidcProperty(IdentityProvider identityProvider, String propertyName) {
+
+        FederatedAuthenticatorConfig[] fedConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+        if (fedConfigs == null) {
+            return null;
+        }
+        return Arrays.stream(fedConfigs)
+                .filter(c -> IdentityApplicationConstants.Authenticator.OIDC.NAME.equals(c.getName()))
+                .findFirst()
+                .map(FederatedAuthenticatorConfig::getProperties)
+                .map(props -> Arrays.stream(props)
+                        .filter(p -> propertyName.equals(p.getName()))
+                        .findFirst()
+                        .orElse(null))
+                .orElse(null);
     }
 }
 

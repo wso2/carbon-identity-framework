@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 
 import java.util.Collections;
@@ -27,6 +28,13 @@ import java.util.Map;
 /**
  * Default implementation for the JsFunctionRegistry.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry",
+                "service.scope=singleton"
+        }
+)
 public class JsFunctionRegistryImpl implements JsFunctionRegistry {
 
     private Map<Subsystem, Map<String, Object>> subsystemMap = new HashMap<>();

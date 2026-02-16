@@ -302,6 +302,9 @@ public class IdentityConstants {
         public static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH =
                 "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
 
+        public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
+                "PasswordUpdate.PreserveLoggedInSession";
+
         public static final String CLEAN_UP_PERIOD = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpPeriod";
         public static final String CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpTimeout";
 

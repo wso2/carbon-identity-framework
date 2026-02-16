@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>carbon-service-stubs</artifactId>
-        <version>7.8.673-SNAPSHOT</version>
+        <version>7.10.4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -94,7 +94,7 @@
                             org.wso2.carbon.identity.user.store.count.stub.*; version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
-                            javax.activation; version="${javax.activation.import.pkg.version}",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             javax.xml.namespace,
                             javax.xml.stream,
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",

@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.servlet;
 
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 
 import java.io.IOException;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +33,15 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet to handle common authentication requests.
  */
+@Component(
+        service = Servlet.class,
+        immediate = true,
+        property = {
+                "osgi.http.whiteboard.servlet.pattern=/commonauth",
+                "osgi.http.whiteboard.servlet.name=CommonAuthenticationServlet",
+                "osgi.http.whiteboard.servlet.asyncSupported=true"
+        }
+)
 public class CommonAuthenticationServlet extends HttpServlet {
 
     private final CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();

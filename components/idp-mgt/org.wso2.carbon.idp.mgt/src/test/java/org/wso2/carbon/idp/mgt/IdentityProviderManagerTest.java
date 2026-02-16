@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,11 +24,14 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -45,8 +48,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -357,5 +362,77 @@ public class IdentityProviderManagerTest {
         when(mockRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
                 .thenReturn("PRIMARY");
         IdpMgtServiceComponentHolder.getInstance().setRealmService(mockRealmService);
+    @Test(description = "Tests addResidentIdP includes ENABLE_JWT_SCOPE_AS_ARRAY property for root organization.")
+    public void testAddResidentIdPIncludesJwtScopeAsArrayForNonOrganization() throws Exception {
+
+        IdentityProvider residentIdP = new IdentityProvider();
+
+        try (MockedStatic<IdentityTenantUtil> mockedTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdPManagementServiceComponent> mockedServiceComp =
+                     mockStatic(IdPManagementServiceComponent.class)) {
+
+            mockedTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN)).thenReturn(false);
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn(null);
+            mockedServiceComp.when(IdPManagementServiceComponent::getIdpMgtListeners)
+                    .thenReturn(Collections.emptyList());
+
+            identityProviderManager.addResidentIdP(residentIdP, TENANT_DOMAIN);
+
+            FederatedAuthenticatorConfig oidcConfig = getOIDCAuthenticatorConfig(residentIdP);
+            assertNotNull("OIDC authenticator config should be present", oidcConfig);
+
+            boolean hasJwtScopeAsArray = Arrays.stream(oidcConfig.getProperties())
+                    .anyMatch(p -> IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY
+                            .equals(p.getName())
+                            && IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT
+                            .equals(p.getValue()));
+            assertTrue("OIDC config should contain ENABLE_JWT_SCOPE_AS_ARRAY property with default value",
+                    hasJwtScopeAsArray);
+        }
+    }
+
+    @Test(description = "Tests addResidentIdP excludes ENABLE_JWT_SCOPE_AS_ARRAY property for sub organization.")
+    public void testAddResidentIdPExcludesJwtScopeAsArrayForOrganization() throws Exception {
+
+        IdentityProvider residentIdP = new IdentityProvider();
+
+        try (MockedStatic<IdentityTenantUtil> mockedTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdPManagementServiceComponent> mockedServiceComp =
+                     mockStatic(IdPManagementServiceComponent.class)) {
+
+            mockedTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN)).thenReturn(true);
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn(null);
+            mockedServiceComp.when(IdPManagementServiceComponent::getIdpMgtListeners)
+                    .thenReturn(Collections.emptyList());
+
+            identityProviderManager.addResidentIdP(residentIdP, TENANT_DOMAIN);
+
+            FederatedAuthenticatorConfig oidcConfig = getOIDCAuthenticatorConfig(residentIdP);
+            assertNotNull("OIDC authenticator config should be present", oidcConfig);
+
+            boolean hasJwtScopeAsArray = Arrays.stream(oidcConfig.getProperties())
+                    .anyMatch(p -> IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY
+                            .equals(p.getName()));
+            assertFalse("OIDC config should NOT contain ENABLE_JWT_SCOPE_AS_ARRAY property for organization",
+                    hasJwtScopeAsArray);
+        }
+    }
+
+    private FederatedAuthenticatorConfig getOIDCAuthenticatorConfig(IdentityProvider identityProvider) {
+
+        FederatedAuthenticatorConfig[] fedAuthConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+        if (fedAuthConfigs == null) {
+            return null;
+        }
+        return Arrays.stream(fedAuthConfigs)
+                .filter(c -> IdentityApplicationConstants.Authenticator.OIDC.NAME.equals(c.getName()))
+                .findFirst()
+                .orElse(null);
     }
 }

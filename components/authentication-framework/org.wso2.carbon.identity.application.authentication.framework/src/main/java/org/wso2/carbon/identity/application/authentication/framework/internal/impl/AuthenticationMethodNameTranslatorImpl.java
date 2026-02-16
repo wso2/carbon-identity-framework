@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
@@ -37,6 +38,14 @@ import javax.xml.namespace.QName;
  * Implementation of the AuthenticationMethodNameTranslator.
  * Currently reads mapping from identity.xml upon server startup.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework." +
+                        "AuthenticationMethodNameTranslator",
+                "service.scope=singleton"
+        }
+)
 public class AuthenticationMethodNameTranslatorImpl implements AuthenticationMethodNameTranslator {
 
     private static final Log log = LogFactory.getLog(AuthenticationMethodNameTranslatorImpl.class);

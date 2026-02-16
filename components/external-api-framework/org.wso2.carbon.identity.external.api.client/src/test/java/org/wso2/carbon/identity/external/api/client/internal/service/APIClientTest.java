@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.external.api.client.internal.service;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -128,7 +129,7 @@ public class APIClientTest {
                 .apiAuthentication(authentication)
                 .endpointUrl(baseUrl + TEST_ENDPOINT)
                 .headers(new HashMap<>())
-                .payload("{\"test\":\"data\"}")
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
                 .build();
 
         APIInvocationConfig invocationConfig = new APIInvocationConfig();
@@ -187,7 +188,7 @@ public class APIClientTest {
                 .apiAuthentication(authentication)
                 .endpointUrl(baseUrl + TEST_ENDPOINT)
                 .headers(new HashMap<>())
-                .payload("{\"test\":\"data\"}")
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
                 .build();
 
         APIInvocationConfig invocationConfig = new APIInvocationConfig();
@@ -242,7 +243,7 @@ public class APIClientTest {
                 .apiAuthentication(authentication)
                 .endpointUrl(baseUrl + TEST_ENDPOINT)
                 .headers(new HashMap<>())
-                .payload("{\"test\":\"data\"}")
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
                 .build();
 
         APIInvocationConfig invocationConfig = new APIInvocationConfig();
@@ -292,7 +293,7 @@ public class APIClientTest {
                 .apiAuthentication(authentication)
                 .endpointUrl(baseUrl + TEST_ENDPOINT)
                 .headers(new HashMap<>())
-                .payload("{\"test\":\"data\"}")
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
                 .build();
 
         APIInvocationConfig invocationConfig = new APIInvocationConfig();
@@ -331,7 +332,7 @@ public class APIClientTest {
                 .apiAuthentication(authentication)
                 .endpointUrl(baseUrl + TEST_ENDPOINT)
                 .headers(new HashMap<>())
-                .payload("{\"test\":\"data\"}")
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
                 .build();
 
         APIInvocationConfig invocationConfig = new APIInvocationConfig();
@@ -373,7 +374,7 @@ public class APIClientTest {
                 .apiAuthentication(authentication)
                 .endpointUrl("http://localhost:8080/test")
                 .headers(new HashMap<>())
-                .payload("{\"test\":\"data\"}")
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
                 .build();
 
         apiClient.callAPI(requestContext, null);

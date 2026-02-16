@@ -215,7 +215,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "KeyStoreDataProvider")
     public void testGetKeyStore(String tenantDomain, InboundProtocol inboundProtocol, KeyStore expectedKeyStore) throws Exception {
 
-        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(expectedKeyStore, identityKeyStoreResolver.getKeyStore(tenantDomain, inboundProtocol));
     }
 
@@ -235,7 +235,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "PrivateKeyDataProvider")
     public void testGetPrivateKey(String tenantDomain, InboundProtocol inboundProtocol, PrivateKey expectedKey)  throws Exception {
 
-        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(expectedKey, identityKeyStoreResolver.getPrivateKey(tenantDomain, inboundProtocol));
     }
 
@@ -255,7 +255,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "PublicCertificateDataProvider")
     public void testGetCertificate(String tenantDomain, InboundProtocol inboundProtocol, X509Certificate expectedCert) throws Exception {
 
-        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain.replace(".", "-"), tenantDomain)).thenReturn(".jks");
         assertEquals(expectedCert, identityKeyStoreResolver.getCertificate(tenantDomain, inboundProtocol));
     }
 

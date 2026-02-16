@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
+import java.io.Serializable;
+
 /**
  * Represents the basic attributes of an entity.
  */
-public class Entity {
+public class Entity implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private String id;
     private String name;
 

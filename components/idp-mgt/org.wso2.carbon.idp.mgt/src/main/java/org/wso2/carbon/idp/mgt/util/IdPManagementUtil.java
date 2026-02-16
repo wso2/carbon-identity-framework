@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_EMAIL_OTP;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ASK_PASSWORD_SEND_SMS_OTP;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY;
@@ -148,6 +149,26 @@ public class IdPManagementUtil {
             log.error("Error when accessing the IdentityProviderManager for tenant : " + tenantDomain, e);
         }
         return rememberMeTimeout * 60;
+    }
+
+    public static boolean getPreserveCurrentSessionAtPasswordUpdate(String tenantDomain) {
+
+        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
+        boolean preserveSessionAtPasswordUpdate = Boolean.parseBoolean(IdentityUtil.getProperty(
+                PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
+
+        try {
+            IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
+            IdentityProviderProperty idpProperty = IdentityApplicationManagementUtil.getProperty(
+                    identityProvider.getIdpProperties(),
+                    IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE);
+            if (idpProperty != null) {
+                preserveSessionAtPasswordUpdate = Boolean.parseBoolean(idpProperty.getValue());
+            }
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error when accessing the IdentityProviderManager for tenant : " + tenantDomain, e);
+        }
+        return preserveSessionAtPasswordUpdate;
     }
 
     /**

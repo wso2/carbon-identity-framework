@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
@@ -68,6 +69,13 @@ import javax.xml.xpath.XPathFactory;
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService",
+                "service.scope=singleton"
+        }
+)
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
     private static final int MAX_LIMIT = 1000;

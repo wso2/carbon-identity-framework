@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
@@ -42,6 +43,14 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 /**
  * This PostAuthenticationHandler is responsible for setting subject identifier related with authenticated user.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthenticatedSubjectIdentifierHandler.class);
