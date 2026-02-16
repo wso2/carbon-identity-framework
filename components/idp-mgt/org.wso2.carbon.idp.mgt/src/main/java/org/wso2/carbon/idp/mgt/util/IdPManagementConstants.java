@@ -526,7 +526,7 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME, " +
+                "idp.DISPLAY_NAME, idp.UUID, " +
                 "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
@@ -539,7 +539,7 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME, " +
+                "idp.DISPLAY_NAME, idp.UUID, " +
                 "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
