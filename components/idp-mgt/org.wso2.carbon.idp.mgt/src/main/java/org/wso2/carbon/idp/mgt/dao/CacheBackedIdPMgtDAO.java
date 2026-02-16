@@ -1114,6 +1114,23 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Retrieve Identity provider connected applications with filtering support.
+     *
+     * @param resourceId      Resource ID.
+     * @param limit           Limit parameter for pagination.
+     * @param offset          Offset parameter for pagination.
+     * @param expressionNodes Filtering expressions.
+     * @return Connected apps UUIDs.
+     * @throws IdentityProviderManagementException if an error occurs while retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset,
+                                                        List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        return idPManagementFacade.getConnectedApplications(resourceId, limit, offset, expressionNodes);
+    }
+
+    /**
      * Check whether the IDP with the given resource ID is associated with any service providers.
      *
      * @param idpName  Name of the IDP.

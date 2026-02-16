@@ -522,6 +522,24 @@ public interface IdpManager {
     }
 
     /**
+     * Retrieve applications that are connected to the identity provider identified by resource ID with a filter.
+     *
+     * @param resourceId   Identity Provider's resource ID.
+     * @param limit        Limit parameter for pagination.
+     * @param offset       Offset parameter for pagination.
+     * @param filter       Filter parameter for filtering connected applications.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @return Connected apps UUID list with the total count.
+     * @throws IdentityProviderManagementException if an error occurs while retrieving connected applications.
+     */
+    default ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset,
+                                                         String filter, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
      * Check whether the IDP with the given resource ID is associated with any service providers.
      *
      * @param resourceId   Identity Provider's resource ID.

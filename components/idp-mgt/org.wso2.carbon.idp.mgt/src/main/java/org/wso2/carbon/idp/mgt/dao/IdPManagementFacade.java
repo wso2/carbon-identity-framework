@@ -287,6 +287,23 @@ public class IdPManagementFacade {
         return dao.getConnectedApplications(resourceId, limit, offset);
     }
 
+    /**
+     * Retrieve Identity provider connected applications with filtering support.
+     *
+     * @param resourceId      Resource ID.
+     * @param limit           Limit parameter for pagination.
+     * @param offset          Offset parameter for pagination.
+     * @param expressionNodes Filtering expressions.
+     * @return Connected apps UUIDs.
+     * @throws IdentityProviderManagementException if an error occurs while retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset,
+                                                        List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        return dao.getConnectedApplications(resourceId, limit, offset, expressionNodes);
+    }
+
     public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
                                                                     Integer limit, Integer offset)
             throws IdentityProviderManagementException {
