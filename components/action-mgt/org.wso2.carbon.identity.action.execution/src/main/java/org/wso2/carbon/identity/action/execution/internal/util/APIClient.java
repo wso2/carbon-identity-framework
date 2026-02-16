@@ -124,7 +124,6 @@ public class APIClient {
         int attempts = 0;
         int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
         ActionInvocationResponse actionInvocationResponse = null;
-        Throwable throwable = null;
 
         while (attempts < retryCount) {
             try (CloseableHttpResponse response = httpClient.execute(request)) {
@@ -133,9 +132,9 @@ public class APIClient {
                     return actionInvocationResponse;
                 }
                 logEndpointUnavailability(request, attempts + 1, retryCount);
-            } catch (ConnectTimeoutException | ConnectionClosedException | NoHttpResponseException |
-                     SocketTimeoutException | SocketException | UnknownHostException e) {
-                throwable = e;
+            } catch (ConnectTimeoutException | SocketTimeoutException e) {
+                logEndpointTimeout(request, attempts + 1, retryCount);
+            } catch (ConnectionClosedException | NoHttpResponseException | SocketException | UnknownHostException e) {
                 logEndpointRequestFailure(request, attempts + 1, retryCount);
             } catch (Exception e) {
                 DIAGNOSTIC_LOGGER.logAPICallError(request);
@@ -147,7 +146,6 @@ public class APIClient {
             attempts++;
         }
 
-        LOG.warn("Maximum retry attempts reached for API: " + request.getURI(), throwable);
         return actionInvocationResponse != null ? actionInvocationResponse : new ActionInvocationResponse.Builder()
                 .errorLog("Failed to execute the action request or maximum retry attempts reached.").build();
     }
@@ -311,22 +309,37 @@ public class APIClient {
     private static void logEndpointUnavailability(HttpPost request, int currentAttempt, int retryCount) {
 
         DIAGNOSTIC_LOGGER.logAPICallRetry(request, currentAttempt, retryCount);
+        if (LOG.isDebugEnabled()) {
+            if (currentAttempt < retryCount) {
+                LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying attempt " +
+                        currentAttempt + " of " + (retryCount - 1) + ".");
+            } else {
+                LOG.debug("API: " + request.getURI() + " seems to be unavailable. Maximum retry attempts reached.");
+            }
+        }
+    }
+
+    private static void logEndpointTimeout(HttpPost request, int currentAttempt, int retryCount) {
+
+        DIAGNOSTIC_LOGGER.logAPICallTimeout(request, currentAttempt, retryCount);
         if (currentAttempt < retryCount) {
-            LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying attempt " +
+            LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying attempt " +
                     currentAttempt + " of " + (retryCount - 1) + ".");
         } else {
-            LOG.debug("API: " + request.getURI() + " seems to be unavailable. Maximum retry attempts reached.");
+            LOG.debug("Request for API: " + request.getURI() + " timed out. Maximum retry attempts reached.");
         }
     }
 
     private static void logEndpointRequestFailure(HttpPost request, int currentAttempt, int retryCount) {
 
         DIAGNOSTIC_LOGGER.logAPICallTimeout(request, currentAttempt, retryCount);
-        if (currentAttempt < retryCount) {
-            LOG.debug("Request for API: " + request.getURI() + " failed. Retrying attempt " +
-                    currentAttempt + " of " + (retryCount - 1) + ".");
-        } else {
-            LOG.debug("Request for API: " + request.getURI() + "failed. Maximum retry attempts reached.");
+        if (LOG.isDebugEnabled()) {
+            if (currentAttempt < retryCount) {
+                LOG.debug("Request for API: " + request.getURI() + " failed. Retrying attempt " +
+                        currentAttempt + " of " + (retryCount - 1) + ".");
+            } else {
+                LOG.debug("Request for API: " + request.getURI() + "failed. Maximum retry attempts reached.");
+            }
         }
     }
 }
