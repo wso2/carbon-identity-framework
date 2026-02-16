@@ -613,7 +613,7 @@ public class DefaultProvisioningHandlerTest {
             provisioningHandler.handleWithV2Roles(idpRoles, subject, attributes, "PRIMARY", tenantDomain);
 
             // CRITICAL: With OVERRIDE_ALL and no IDP roles, ALL existing roles MUST be removed.
-            // This test will FAIL if PRESERVE_EXISTING is used instead, because roles won't be deleted.
+            // This test will FAIL if MERGE_WITH_EXISTING is used instead, because roles won't be deleted.
             verify(mockRoleManagementService, times(1)).updateUserListOfRole(
                     eq(existingRole1), eq(Collections.emptyList()), eq(Collections.singletonList(userId)),
                     eq(tenantDomain));
@@ -688,7 +688,7 @@ public class DefaultProvisioningHandlerTest {
         List<String> currentRoleIds = new ArrayList<>(Arrays.asList(existingRole1, existingRole2));
 
         // IDP provides new roles plus one existing role.
-        // Note: existingRole2 is NOT in IDP roles - this is the key for testing PRESERVE_EXISTING behavior.
+        // Note: existingRole2 is NOT in IDP roles - this is the key for testing MERGE_WITH_EXISTING behavior.
         String newRoleId = "newRole1";
         List<String> idpRoles = new ArrayList<>(Arrays.asList(existingRole1, newRoleId));
 
@@ -698,10 +698,10 @@ public class DefaultProvisioningHandlerTest {
 
         setupHappyPathMocks(subject, userId, tenantDomain);
 
-        // Set IDP group sync method to PRESERVE_EXISTING.
+        // Set IDP group sync method to MERGE_WITH_EXISTING.
         Map<String, Object> threadLocalProperties = new HashMap<>();
         threadLocalProperties.put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD, FrameworkConstants.OVERRIDE_ALL);
-        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.PRESERVE_EXISTING);
+        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.MERGE_WITH_EXISTING);
         IdentityUtil.threadLocalProperties.set(threadLocalProperties);
 
         when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain))
@@ -728,7 +728,7 @@ public class DefaultProvisioningHandlerTest {
                     eq(newRoleId), eq(Collections.singletonList(userId)), eq(Collections.emptyList()),
                     eq(tenantDomain));
 
-            // CRITICAL: With PRESERVE_EXISTING, existingRole2 should NOT be removed even though
+            // CRITICAL: With MERGE_WITH_EXISTING, existingRole2 should NOT be removed even though
             // it's not in the IDP roles list. This test will FAIL if OVERRIDE_ALL is used.
             verify(mockRoleManagementService, never()).updateUserListOfRole(
                     eq(existingRole2), eq(Collections.emptyList()), eq(Collections.singletonList(userId)),
@@ -759,10 +759,10 @@ public class DefaultProvisioningHandlerTest {
 
         setupHappyPathMocks(subject, userId, tenantDomain);
 
-        // Set IDP group sync method to PRESERVE_EXISTING.
+        // Set IDP group sync method to MERGE_WITH_EXISTING.
         Map<String, Object> threadLocalProperties = new HashMap<>();
         threadLocalProperties.put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD, FrameworkConstants.OVERRIDE_ALL);
-        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.PRESERVE_EXISTING);
+        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.MERGE_WITH_EXISTING);
         IdentityUtil.threadLocalProperties.set(threadLocalProperties);
 
         when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain))
@@ -787,7 +787,7 @@ public class DefaultProvisioningHandlerTest {
             verify(mockRoleManagementService, times(1)).updateUserListOfRole(
                     eq(idpRole), eq(Collections.singletonList(userId)), eq(Collections.emptyList()), eq(tenantDomain));
 
-            // CRITICAL: With PRESERVE_EXISTING, localOnlyRole should NOT be removed.
+            // CRITICAL: With MERGE_WITH_EXISTING, localOnlyRole should NOT be removed.
             // This test will FAIL if OVERRIDE_ALL is used instead, because the role would be deleted.
             verify(mockRoleManagementService, never()).updateUserListOfRole(
                     eq(localOnlyRole), eq(Collections.emptyList()), eq(Collections.singletonList(userId)),
@@ -819,10 +819,10 @@ public class DefaultProvisioningHandlerTest {
 
         setupHappyPathMocks(subject, userId, tenantDomain);
 
-        // Set IDP group sync method to PRESERVE_EXISTING.
+        // Set IDP group sync method to MERGE_WITH_EXISTING.
         Map<String, Object> threadLocalProperties = new HashMap<>();
         threadLocalProperties.put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD, FrameworkConstants.OVERRIDE_ALL);
-        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.PRESERVE_EXISTING);
+        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.MERGE_WITH_EXISTING);
         IdentityUtil.threadLocalProperties.set(threadLocalProperties);
 
         when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain))
@@ -841,7 +841,7 @@ public class DefaultProvisioningHandlerTest {
 
             provisioningHandler.handleWithV2Roles(idpRoles, subject, attributes, "PRIMARY", tenantDomain);
 
-            // CRITICAL: With PRESERVE_EXISTING, no role updates should happen:
+            // CRITICAL: With MERGE_WITH_EXISTING, no role updates should happen:
             // - existingRole is already assigned to user, so no need to add it again.
             // - localOnlyRole should NOT be removed because we're preserving existing roles.
             // This test will FAIL if OVERRIDE_ALL is used, because localOnlyRole would be deleted.
@@ -858,8 +858,8 @@ public class DefaultProvisioningHandlerTest {
     @Test
     public void testHandleWithV2RolesPreserveExisting_VsOverrideAll_DifferentBehavior() throws Exception {
 
-        // This test demonstrates the key difference between PRESERVE_EXISTING and OVERRIDE_ALL.
-        // With PRESERVE_EXISTING: existing roles NOT in IDP list are kept (no deletion).
+        // This test demonstrates the key difference between MERGE_WITH_EXISTING and OVERRIDE_ALL.
+        // With MERGE_WITH_EXISTING: existing roles NOT in IDP list are kept (no deletion).
         // With OVERRIDE_ALL: existing roles NOT in IDP list are removed.
 
         String subject = "testUser";
@@ -881,10 +881,10 @@ public class DefaultProvisioningHandlerTest {
 
         setupHappyPathMocks(subject, userId, tenantDomain);
 
-        // Test with PRESERVE_EXISTING - localOnlyRole should NOT be removed.
+        // Test with MERGE_WITH_EXISTING - localOnlyRole should NOT be removed.
         Map<String, Object> threadLocalProperties = new HashMap<>();
         threadLocalProperties.put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD, FrameworkConstants.OVERRIDE_ALL);
-        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.PRESERVE_EXISTING);
+        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.MERGE_WITH_EXISTING);
         IdentityUtil.threadLocalProperties.set(threadLocalProperties);
 
         when(mockRoleManagementService.getRoleIdListOfUser(userId, tenantDomain))
@@ -904,7 +904,7 @@ public class DefaultProvisioningHandlerTest {
             provisioningHandler.handleWithV2Roles(idpRoles, subject, attributes, "PRIMARY",
                     tenantDomain);
 
-            // CRITICAL: With PRESERVE_EXISTING and includeManuallyAddedLocalRoles=true,
+            // CRITICAL: With MERGE_WITH_EXISTING and includeManuallyAddedLocalRoles=true,
             // NO roles should be removed. The localOnlyRole must be preserved.
             // This will FAIL if OVERRIDE_ALL is used, because the role would be deleted.
             verify(mockRoleManagementService, never()).updateUserListOfRole(

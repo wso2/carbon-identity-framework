@@ -2695,50 +2695,6 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get all role IDs that are mapped to any IDP group configured for the given IDP.
-     * This returns roles for ALL IDP groups of the IDP, not just the groups in the current federated response.
-     *
-     * @param externalIdPConfig External IDP Config.
-     * @param tenantDomain      Tenant domain.
-     * @return List of all role IDs mapped to any IDP group of this IDP.
-     * @throws FrameworkException If an error occurred while getting the role IDs.
-     */
-    public static List<String> getAllRoleIdsOfIdpGroups(ExternalIdPConfig externalIdPConfig, String tenantDomain)
-            throws FrameworkException {
-
-        if (externalIdPConfig == null || externalIdPConfig.getIdentityProvider() == null) {
-            return new ArrayList<>();
-        }
-
-        IdPGroup[] allIdpGroups = externalIdPConfig.getIdentityProvider().getIdPGroupConfig();
-        if (allIdpGroups == null || allIdpGroups.length == 0) {
-            if (log.isDebugEnabled()) {
-                log.debug("No IDP groups configured for the external IDP: " + externalIdPConfig.getIdPName());
-            }
-            return new ArrayList<>();
-        }
-
-        List<String> allIdpGroupIds = new ArrayList<>();
-        for (IdPGroup idpGroup : allIdpGroups) {
-            if (idpGroup.getIdpGroupId() != null) {
-                allIdpGroupIds.add(idpGroup.getIdpGroupId());
-            }
-        }
-
-        if (allIdpGroupIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        try {
-            return FrameworkServiceDataHolder.getInstance().getRoleManagementServiceV2()
-                    .getRoleIdListOfIdpGroups(allIdpGroupIds, tenantDomain);
-        } catch (IdentityRoleManagementException e) {
-            throw new FrameworkException("Error while getting role ids of all idp groups for IDP: " +
-                    externalIdPConfig.getIdPName(), e);
-        }
-    }
-
-    /**
      * Get the unmapped IDP groups from the IDP group attribute value.
      *
      * @param externalIdPConfig External IDP Config.
