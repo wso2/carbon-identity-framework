@@ -6374,11 +6374,11 @@ public class IdPManagementDAO {
             sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL_WITH_FILTER, filterSQL,
                     filterSQL);
             prepStmt = connection.prepareStatement(sqlQuery);
-            prepStmt.setString(1, filter);  // First filter for auth part
-            prepStmt.setString(2, id);      // UUID for auth part
-            prepStmt.setString(3, filter);  // Second filter for provisioning part
-            prepStmt.setString(4, id);      // UUID for provisioning part
-            prepStmt.setString(5, id);      // UUID for provisioning part (second occurrence)
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
             prepStmt.setInt(6, offset);
             prepStmt.setInt(7, limit);
         } else if (databaseProductName.contains("Oracle")) {

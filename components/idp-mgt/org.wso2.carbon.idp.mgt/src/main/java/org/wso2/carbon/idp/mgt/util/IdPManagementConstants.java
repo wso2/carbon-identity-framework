@@ -765,11 +765,6 @@ public class IdPManagementConstants {
         ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
         ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected " +
                 "applications of Identity Provider with resource ID: %s."),
-        ERROR_CODE_INVALID_CONNECTED_APPS_FILTER("IDP-65010", "Invalid filter attribute name. Only " +
-                "'name' attribute is supported for connected apps."),
-        ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION("IDP-65011", "Invalid filter operation. Only " +
-                "'eq' (equal), 'sw' (starts with), 'ew' (ends with) and 'co' (contains) operations are supported for " +
-                "connected apps."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
         ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
@@ -782,7 +777,12 @@ public class IdPManagementConstants {
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
                 " endpoint configuration for authenticator: %s."),
         ERROR_CODE_ADDING_FEDERATED_AUTHENTICATOR("IDP-6501",
-                "An error occurred while validating federated authenticator name."),;
+                "An error occurred while validating federated authenticator name."),
+        ERROR_CODE_INVALID_CONNECTED_APPS_FILTER("IDP-65013", "Invalid filter attribute name. Only " +
+                "'name' attribute is supported for connected apps."),
+        ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION("IDP-65014", "Invalid filter operation. Only " +
+                "'eq' (equal), 'sw' (starts with), 'ew' (ends with) and 'co' (contains) operations are supported for " +
+                "connected apps.");
 
         private final String code;
         private final String message;

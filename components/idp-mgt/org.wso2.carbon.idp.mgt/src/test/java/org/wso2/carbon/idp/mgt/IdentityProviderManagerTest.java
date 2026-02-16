@@ -476,13 +476,13 @@ public class IdentityProviderManagerTest {
     public Object[][] filterExpressions() {
 
         return new Object[][]{
-                {"name eq \"test\""},                    // Equal operator
-                {"name ne \"test\""},                    // Not equal operator
-                {"name sw \"test\""},                    // Starts with operator
-                {"name ew \"test\""},                    // Ends with operator
-                {"name co \"test\""},                    // Contains operator
-                {"name sw \"test\" and name ew \"app\""}, // AND operator
-                {"name sw \"test\" or name co \"app\""}  // OR operator
+                {"name eq \"test\""},
+                {"name ne \"test\""},
+                {"name sw \"test\""},
+                {"name ew \"test\""},
+                {"name co \"test\""},
+                {"name sw \"test\" and name ew \"app\""},
+                {"name sw \"test\" or name co \"app\""}
         };
     }
 
