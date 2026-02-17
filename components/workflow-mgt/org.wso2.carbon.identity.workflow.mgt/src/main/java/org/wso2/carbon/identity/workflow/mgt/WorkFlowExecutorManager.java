@@ -141,7 +141,6 @@ public class WorkFlowExecutorManager {
                     AXIOMXPath axiomxPath = new AXIOMXPath(conditionForEvaluation);
                     conditionSatisfied = axiomxPath.booleanValueOf(xmlRequest);
                 }
-
                 // If Rule is Satisfied (or Default), Engage Workflow.
                 if (conditionSatisfied) {
                     workflowEngaged = true;
