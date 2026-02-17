@@ -29,24 +29,9 @@ public final class DebugFrameworkConstants {
     private DebugFrameworkConstants() {
     }
 
-    // Debug Flow Context Constants.
-    public static final String DEBUG_REQUEST_TYPE = "DFDP_DEBUG";
-
-    // Debug Context Property Keys.
-    public static final String DEBUG_TIMESTAMP = "DEBUG_TIMESTAMP";
-
-    public static final String DEBUG_RESOURCE_ID = "DEBUG_RESOURCE_ID";
-    public static final String DEBUG_RESOURCE_TYPE = "DEBUG_RESOURCE_TYPE";
-    public static final String DEBUG_STATUS = "DEBUG_STATUS";
-
     // Debug Flow Identification Constants.
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
-
-    // Generic Callback Parameters (protocol-agnostic names).
-    public static final String CALLBACK_CODE_PARAM = "code";
-    public static final String CALLBACK_STATE_PARAM = "state";
-    public static final String CALLBACK_ERROR_PARAM = "error";
 
     // OAuth2 specific callback parameters (for backward compatibility).
     public static final String OAUTH2_CODE_PARAM = "code";
@@ -78,9 +63,4 @@ public final class DebugFrameworkConstants {
 
     // Session Status Constants.
     public static final String SESSION_STATUS_PENDING = "PENDING";
-    public static final String SESSION_STATUS_COMPLETED = "COMPLETED";
-    public static final String SESSION_STATUS_ERROR = "ERROR";
-
-    // Session Cleanup Property.
-    public static final String CLEANUP_ENABLED = "cleanupEnabled";
 }

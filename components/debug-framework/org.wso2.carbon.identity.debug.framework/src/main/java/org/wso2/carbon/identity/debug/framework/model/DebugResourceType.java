@@ -86,14 +86,9 @@ public enum DebugResourceType {
 
         switch (resourceTypeId.toLowerCase().trim()) {
             case "idp":
-            case "identity_provider":
-            case "identity-provider":
                 return IDP;
 
             case "fraud_detection":
-            case "fraud-detection":
-            case "fraud_detect":
-            case "fraud":
                 return FRAUD_DETECTION;
 
             default:

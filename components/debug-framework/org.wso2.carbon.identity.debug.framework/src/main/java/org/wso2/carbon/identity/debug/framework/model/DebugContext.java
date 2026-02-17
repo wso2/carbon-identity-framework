@@ -28,9 +28,9 @@ import java.util.Map;
  */
 public class DebugContext {
 
-    private String resourceId;
+    private String connectionId;
     private String resourceType;
-    private String protocol;
+    private String protocol; // TODO: move to properties
     private boolean successful;
     private String errorMessage;
     private String errorType;
@@ -46,15 +46,15 @@ public class DebugContext {
     }
 
     /**
-     * Constructs a DebugContext with resource details.
+     * Constructs a DebugContext with connection details.
      *
-     * @param resourceId   The resource identifier.
+     * @param connectionId The connection identifier (IDP ID).
      * @param resourceType The resource type.
      */
-    public DebugContext(String resourceId, String resourceType) {
+    public DebugContext(String connectionId, String resourceType) {
 
         this();
-        this.resourceId = resourceId;
+        this.connectionId = connectionId;
         this.resourceType = resourceType;
     }
 
@@ -71,7 +71,7 @@ public class DebugContext {
         }
 
         DebugContext context = new DebugContext();
-        context.setResourceId((String) contextMap.get("resourceId"));
+        context.setConnectionId((String) contextMap.get("connectionId"));
         context.setResourceType((String) contextMap.get("resourceType"));
         context.setProtocol((String) contextMap.get("protocol"));
         context.setSuccessful((Boolean) contextMap.getOrDefault("successful", true));
@@ -81,7 +81,7 @@ public class DebugContext {
         // Copy additional properties.
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
             String key = entry.getKey();
-            if (!"resourceId".equals(key) && !"resourceType".equals(key) && 
+            if (!"connectionId".equals(key) && !"resourceType".equals(key) && 
                 !"protocol".equals(key) && !"successful".equals(key) &&
                 !"errorMessage".equals(key) && !"errorType".equals(key)) {
                 context.setProperty(key, entry.getValue());
@@ -134,23 +134,23 @@ public class DebugContext {
     }
 
     /**
-     * Gets the resource identifier.
+     * Gets the connection identifier.
      *
-     * @return Resource ID string.
+     * @return Connection ID string.
      */
-    public String getResourceId() {
+    public String getConnectionId() {
 
-        return resourceId;
+        return connectionId;
     }
 
     /**
-     * Sets the resource identifier.
+     * Sets the connection identifier.
      *
-     * @param resourceId Resource ID string.
+     * @param connectionId Connection ID string.
      */
-    public void setResourceId(String resourceId) {
+    public void setConnectionId(String connectionId) {
 
-        this.resourceId = resourceId;
+        this.connectionId = connectionId;
     }
 
     /**
@@ -191,16 +191,6 @@ public class DebugContext {
     public void setProtocol(String protocol) {
 
         this.protocol = protocol;
-    }
-
-    /**
-     * Gets whether the context resolution was successful.
-     *
-     * @return true if successful, false otherwise.
-     */
-    public boolean isSuccessful() {
-
-        return successful;
     }
 
     /**
@@ -303,8 +293,8 @@ public class DebugContext {
     public Map<String, Object> toMap() {
 
         Map<String, Object> map = new HashMap<>(properties);
-        if (resourceId != null) {
-            map.put("resourceId", resourceId);
+        if (connectionId != null) {
+            map.put("connectionId", connectionId);
         }
         if (resourceType != null) {
             map.put("resourceType", resourceType);

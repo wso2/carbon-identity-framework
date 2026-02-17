@@ -55,7 +55,7 @@ public class DebugSessionUtil {
      *
      * @param inputStream The InputStream containing the serialized object.
      * @return The deserialized object.
-     * @throws IOException            If deserialization fails.
+     * @throws IOException If deserialization fails.
      * @throws ClassNotFoundException If the class of the serialized object cannot be found.
      */
     public static Object deserializeObject(InputStream inputStream) throws IOException, ClassNotFoundException {
