@@ -112,8 +112,8 @@ public class IdPManagementConstants {
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
 
-    // Outbound Provisioning confidential data protection. When enabled, confidential properties (e.g., credentials)
-    // are stored in the secret store and are not exposed in API responses.
+    // Outbound Provisioning confidential data protection. When enabled, confidential properties (e.g., credentials).
+    // They are stored in the secret store and are not exposed in API responses.
     public static final String OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED =
             "OutboundProvisioning.ConfidentialDataProtectionEnabled";
 

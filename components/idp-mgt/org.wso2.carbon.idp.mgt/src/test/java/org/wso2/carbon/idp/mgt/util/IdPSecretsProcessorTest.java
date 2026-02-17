@@ -351,7 +351,7 @@ public class IdPSecretsProcessorTest {
 
         IdentityProvider result = idpSecretsProcessor.encryptProvisioningConnectorSecrets(idp);
 
-        // When feature is enabled and configs are null, should return cloned object with no changes
+        // When feature is enabled and configs are null, should return cloned object with no changes.IdPManagementDAO.java
         Assert.assertNotNull(result, "Result should not be null");
         Assert.assertEquals(result.getIdentityProviderName(), idp.getIdentityProviderName());
     }
@@ -367,7 +367,7 @@ public class IdPSecretsProcessorTest {
 
         IdentityProvider result = idpSecretsProcessor.decryptProvisioningConnectorSecrets(idp);
 
-        // When feature is enabled and configs are null, should return cloned object with no changes
+        // When feature is enabled and configs are null, should return cloned object with no changes.
         Assert.assertNotNull(result, "Result should not be null");
         Assert.assertEquals(result.getIdentityProviderName(), idp.getIdentityProviderName());
     }
@@ -380,14 +380,14 @@ public class IdPSecretsProcessorTest {
 
         IdentityProvider result = idpSecretsProcessor.encryptProvisioningConnectorSecrets(idp);
 
-        // Verify provisioning secrets are encrypted
+        // Verify provisioning secrets are encrypted.
         for (Property property : result.getProvisioningConnectorConfigs()[0].getProvisioningProperties()) {
             if (property.isConfidential()) {
                 Assert.assertEquals(buildProvisioningSecretNameWithIdpObj(PROV_SECRET_NAME), property.getValue());
             }
         }
 
-        // Verify authenticator secrets are NOT encrypted
+        // Verify authenticator secrets are NOT encrypted.
         for (Property property : result.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
                 Assert.assertEquals(property.getValue(), SAMPLE_SECRET_VALUE1,
@@ -406,19 +406,19 @@ public class IdPSecretsProcessorTest {
         when(resolvedSecret.getResolvedSecretValue()).thenReturn("decrypted_value");
         when(secretResolveManager.getResolvedSecret(anyString(), anyString())).thenReturn(resolvedSecret);
 
-        // Set authenticator secret to a reference (simulating already encrypted state)
+        // Set authenticator secret to a reference (simulating already encrypted state).
         idp.getFederatedAuthenticatorConfigs()[0].getProperties()[0].setValue("secretId:ref:auth");
 
         IdentityProvider result = idpSecretsProcessor.decryptProvisioningConnectorSecrets(idp);
 
-        // Verify provisioning secrets are decrypted
+        // Verify provisioning secrets are decrypted.
         for (Property property : result.getProvisioningConnectorConfigs()[0].getProvisioningProperties()) {
             if (property.isConfidential()) {
                 Assert.assertEquals(property.getValue(), "decrypted_value");
             }
         }
 
-        // Verify authenticator secrets are NOT decrypted
+        // Verify authenticator secrets are NOT decrypted.
         for (Property property : result.getFederatedAuthenticatorConfigs()[0].getProperties()) {
             if (property.isConfidential()) {
                 Assert.assertEquals(property.getValue(), "secretId:ref:auth",
@@ -434,7 +434,7 @@ public class IdPSecretsProcessorTest {
         idp.setIdentityProviderName("testIdP1");
         idp.setEnable(true);
 
-        // Add federated authenticator config
+        // Add federated authenticator config.
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig.setDisplayName("OIDCAuthenticator");
         federatedAuthenticatorConfig.setName(fedName);
@@ -446,7 +446,7 @@ public class IdPSecretsProcessorTest {
         federatedAuthenticatorConfig.setProperties(new Property[]{authProperty});
         idp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
 
-        // Add provisioning connector config
+        // Add provisioning connector config.
         ProvisioningConnectorConfig provisioningConnectorConfig = new ProvisioningConnectorConfig();
         provisioningConnectorConfig.setName(provConnectorName);
         provisioningConnectorConfig.setEnabled(true);

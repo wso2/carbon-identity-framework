@@ -706,9 +706,9 @@ public class IdPManagementUtil {
      *
      * @return true if OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED is enabled, false otherwise.
      */
-    public static boolean isProvisioningConfidentialConfigProtectionDisabled() {
+    public static boolean isProvisioningConfidentialConfigProtectionEnabled() {
 
-        return !Boolean.parseBoolean(IdentityUtil.getProperty(
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
                 IdPManagementConstants.OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED));
     }
 }

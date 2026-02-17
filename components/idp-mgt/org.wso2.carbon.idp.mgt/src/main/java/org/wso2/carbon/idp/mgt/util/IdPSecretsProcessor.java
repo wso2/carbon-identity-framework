@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 
-import static org.wso2.carbon.idp.mgt.util.IdPManagementUtil.isProvisioningConfidentialConfigProtectionDisabled;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementUtil.isProvisioningConfidentialConfigProtectionEnabled;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS;
 
 /**
@@ -88,7 +88,7 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
             }
         }
 
-        if (isProvisioningConfidentialConfigProtectionDisabled()) {
+        if (!isProvisioningConfidentialConfigProtectionEnabled()) {
             return;
         }
 
@@ -159,7 +159,7 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                     + identityProvider.getIdentityProviderName());
         }
 
-        if (isProvisioningConfidentialConfigProtectionDisabled()) {
+        if (!isProvisioningConfidentialConfigProtectionEnabled()) {
             if (log.isDebugEnabled()) {
                 log.debug("Provisioning confidential data protection is disabled. Skipping " +
                         operationType.toLowerCase() + " of provisioning connector secrets for IDP: "

@@ -1,9 +1,5 @@
 /*
-<<<<<<< fix/idp-provisioning-role
- * Copyright (c) 2014-2026 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-=======
  * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
->>>>>>> master
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
