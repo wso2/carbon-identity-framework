@@ -72,7 +72,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.Boolean.FALSE;
 import static org.mockito.ArgumentMatchers.any;
@@ -592,6 +594,67 @@ public class AuthorizedAPIManagementServiceImplTest {
                 "System API 1 should be authorized");
         Assert.assertTrue(authorizedAPIIds.contains(systemAPI2.getId()),
                 "System API 2 should be auto-authorized due to shared scopes");
+    }
+
+    /**
+     * Test that when deleting a system API, shared scopes are removed from other
+     * system APIs.
+     */
+    @Test
+    public void testSystemAPICascadeDeletionOfSharedScopes() throws Exception {
+
+        String appId = addApplication();
+
+        // Create two system APIs with overlapping scopes
+        APIResource systemAPI1 = addTestSystemAPIResource("system-api-delete-1", "cas-sys-scope-1");
+        APIResource systemAPI2 = addTestSystemAPIResource("system-api-delete-2", "cas-sys-scope-1");
+
+        // Authorize the first system API (which auto-authorizes the second)
+        AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(systemAPI1.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .scopes(systemAPI1.getScopes())
+                .build();
+
+        authorizedAPIManagementService.addAuthorizedAPI(appId, authorizedAPI1, tenantDomain);
+
+        // Verify both APIs are authorized
+        List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(appId,
+                tenantDomain);
+        Assert.assertTrue(authorizedAPIs.size() >= 2, "Both system APIs should be authorized");
+
+        // Delete the first system API
+        authorizedAPIManagementService.deleteAuthorizedAPI(appId, systemAPI1.getId(), tenantDomain);
+
+        // Verify the first API is deleted
+        AuthorizedAPI deletedAPI = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI1.getId(),
+                tenantDomain);
+        Assert.assertNull(deletedAPI, "System API 1 should be deleted");
+
+        // Verify the second API's shared scopes are also removed
+        AuthorizedAPI api2 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI2.getId(),
+                tenantDomain);
+
+        // The second API might be deleted if it has no remaining scopes (orphan cleanup) or it might still exist
+        // with reduced scopes
+        if (api2 != null) {
+            // If it still exists, verify shared scopes are removed
+            Set<String> remainingScopes = Optional.ofNullable(api2.getScopes())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(Scope::getName)
+                    .collect(Collectors.toSet());
+            Set<String> deletedScopes = systemAPI1.getScopes().stream()
+                    .map(Scope::getName)
+                    .collect(java.util.stream.Collectors.toSet());
+            // Verify that shared scopes are removed
+            for (String deletedScope : deletedScopes) {
+                Assert.assertFalse(remainingScopes.contains(deletedScope),
+                        "Shared scope " + deletedScope
+                                + " should be removed from System API 2");
+            }
+        }
     }
 
     /**
