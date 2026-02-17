@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.debug.framework.DebugService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
+import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
+import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
@@ -105,26 +107,40 @@ public class DebugRequestCoordinator implements DebugService {
     /**
      * Handles debug requests for any resource type using typed classes.
      * This is the preferred method with type safety.
+     * The resourceId is optional and may be null for resource types that don't require it.
      *
      * @param debugRequest The debug request with resource information.
      * @return DebugResponse containing debug result data.
      */
     public DebugResponse handleResourceDebugRequest(DebugRequest debugRequest) {
 
-        if (debugRequest == null || debugRequest.getResourceId() == null) {
-            return DebugResponse.error("Debug request or resource ID cannot be null");
+        if (debugRequest == null) {
+            return DebugResponse.error("Debug request cannot be null.");
+        }
+
+        if (debugRequest.getResourceType() == null || debugRequest.getResourceType().trim().isEmpty()) {
+            return DebugResponse.error("Resource type is required.");
         }
 
         try {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Orchestrating debug request for resource: " + debugRequest.getResourceId());
+                LOG.debug("Orchestrating debug request for resource type: " + debugRequest.getResourceType()
+                        + ", resource ID: " + debugRequest.getEffectiveResourceId());
+            }
+
+            // Pre-execute listeners.
+            for (DebugExecutionListener listener :
+                    DebugFrameworkServiceDataHolder.getInstance().getDebugExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
+                    return DebugResponse.error("Debug request aborted by listener.");
+                }
             }
 
             // Route by resource type.
             DebugResourceType type = DebugResourceType.fromString(debugRequest.getResourceType());
 
-            // Get the handler for this resource type.
-            DebugResourceHandler handler = type.getHandler(debugRequest.getResourceId());
+            // Get the handler for this resource type. Pass resourceId which may be null.
+            DebugResourceHandler handler = type.getHandler(debugRequest.getEffectiveResourceId());
 
             if (handler == null) {
                 return DebugResponse.error("No handler available for resource type: " +
@@ -133,7 +149,17 @@ public class DebugRequestCoordinator implements DebugService {
 
             // Delegate to handler.
             Map<String, Object> result = handler.handleDebugRequest(debugRequest.toMap());
-            return DebugResponse.success(result);
+            DebugResponse debugResponse = DebugResponse.success(result);
+
+            // Post-execute listeners.
+            for (DebugExecutionListener listener :
+                    DebugFrameworkServiceDataHolder.getInstance().getDebugExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
+                    return DebugResponse.error("Debug request aborted by post-execute listener.");
+                }
+            }
+
+            return debugResponse;
 
         } catch (Exception e) {
             LOG.error("Error in debug request orchestration.", e);

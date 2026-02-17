@@ -204,12 +204,21 @@ public class DebugRequest {
     }
 
     /**
-     * Gets the effective resource ID (prefers resourceId, falls back to idpId).
+     * Gets the effective resource ID.
+     * Checks in order: top-level resourceId, additionalContext resourceId, idpId.
      *
-     * @return The effective resource identifier.
+     * @return The effective resource identifier, or null if not set anywhere.
      */
     public String getEffectiveResourceId() {
 
-        return resourceId != null ? resourceId : idpId;
+        if (resourceId != null) {
+            return resourceId;
+        }
+        // Check if resourceId is provided in additional context (properties).
+        Object contextResourceId = additionalContext.get("resourceId");
+        if (contextResourceId instanceof String && !((String) contextResourceId).trim().isEmpty()) {
+            return (String) contextResourceId;
+        }
+        return idpId;
     }
 }

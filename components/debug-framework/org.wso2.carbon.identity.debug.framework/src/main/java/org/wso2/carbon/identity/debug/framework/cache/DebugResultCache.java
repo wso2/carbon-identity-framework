@@ -20,11 +20,9 @@ package org.wso2.carbon.identity.debug.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
-import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventContext;
-import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventManager;
-import org.wso2.carbon.identity.debug.framework.event.DebugSessionLifecycleEvent;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 
 /**
@@ -33,12 +31,13 @@ import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
  * Results are cached temporarily during the debug flow and retrieved
  * by the debug endpoint to display to users.
  * Uses ConcurrentHashMap for better performance and thread-safety.
- * Results are automatically cleaned up after TTL expiry (default: 15 minutes).
+ * Results are automatically cleaned up after TTL expiry (default: 5 minutes).
  */
 public final class DebugResultCache {
 
     private static final Log LOG = LogFactory.getLog(DebugResultCache.class);
-    // Use the DAO implementation directly (in a real OSGi env, this should be a service reference).
+    // Use the DAO implementation directly (in a real OSGi env, this should be a
+    // service reference).
     private static final DebugSessionDAO DAO = new DebugSessionDAOImpl();
 
     /**
@@ -74,7 +73,8 @@ public final class DebugResultCache {
             sessionData.setResultJson(result);
             sessionData.setStatus("COMPLETED");
             sessionData.setCreatedTime(System.currentTimeMillis());
-            sessionData.setExpiryTime(System.currentTimeMillis() + (15 * 60 * 1000));
+            sessionData.setExpiryTime(System.currentTimeMillis()
+                    + (DebugFrameworkConstants.CACHE_EXPIRY_MINUTES * 60 * 1000L));
             sessionData.setResourceType(resourceType);
             sessionData.setResourceId(resourceId);
 
@@ -108,19 +108,21 @@ public final class DebugResultCache {
                     LOG.debug("Debug result found in DB.");
                 }
 
-                // Fire ON_RETRIEVED event.
+                String resultJson = data.getResultJson();
+
+                // Delete the session record after successful retrieval.
                 try {
-                    DebugSessionEventContext context = DebugSessionEventContext.builder()
-                            .sessionId(normalizedState)
-                            .event(DebugSessionLifecycleEvent.ON_RETRIEVED)
-                            .successful(true)
-                            .build();
-                    DebugSessionEventManager.getInstance().fireEvent(context);
-                } catch (Exception evtException) {
-                    LOG.error("Error firing ON_RETRIEVED event for session: " + normalizedState, evtException);
+                    DAO.deleteDebugSession(normalizedState);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Successfully deleted debug session record after retrieval: " + normalizedState);
+                    }
+                } catch (Exception deleteException) {
+                    // Log but don't fail the retrieval if deletion fails.
+                    LOG.error("Failed to delete debug session record after retrieval: " + normalizedState,
+                            deleteException);
                 }
 
-                return data.getResultJson();
+                return resultJson;
             } else {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("No debug result found in DB.");

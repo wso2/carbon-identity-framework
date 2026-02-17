@@ -33,13 +33,14 @@ import java.util.Map;
 /**
  * DB-backed session cache for debug contexts.
  * Used to pass data from DebugExecutor (initiator) to DebugProcessor.
- * Thread-safe singleton that delegates persistence to the framework's DebugSessionDAO.
+ * Thread-safe singleton that delegates persistence to the framework's
+ * DebugSessionDAO.
  */
 public final class DebugSessionCache {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionCache.class);
     private static final DebugSessionCache INSTANCE = new DebugSessionCache();
-    private static final long SESSION_TTL_MS = 15 * 60 * 1000; // 15 minutes.
+    private static final long SESSION_TTL_MS = DebugFrameworkConstants.CACHE_EXPIRY_MINUTES * 60 * 1000L;
 
     private final DebugSessionDAO debugSessionDAO = new DebugSessionDAOImpl();
 

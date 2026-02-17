@@ -30,10 +30,9 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
-import org.wso2.carbon.identity.debug.framework.event.DebugSessionCleanupListener;
-import org.wso2.carbon.identity.debug.framework.event.DebugSessionEventManager;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
 
 /**
  * OSGi service component for Debug Framework.
@@ -47,7 +46,7 @@ public class DebugServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
 
-    private DebugSessionCleanupListener cleanupListener;
+    private DebugSessionCleanupExecutionListener cleanupListener;
     private DebugSessionCleanupService cleanupService;
 
     @Activate
@@ -67,9 +66,9 @@ public class DebugServiceComponent {
                     requestCoordinator,
                     null);
 
-            // Register the cleanup listener to delete database records after flow completion.
-            cleanupListener = new DebugSessionCleanupListener();
-            DebugSessionEventManager.getInstance().registerListener(cleanupListener);
+            // Register the cleanup listener for post-execution database cleanup.
+            cleanupListener = new DebugSessionCleanupExecutionListener();
+            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(cleanupListener);
 
             // Start the periodic cleanup service for expired sessions.
             cleanupService = new DebugSessionCleanupService();
@@ -78,7 +77,7 @@ public class DebugServiceComponent {
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugRequestCoordinator registered as OSGi service (deprecated, use DebugFlowOrchestrator)");
-                LOG.debug("DebugSessionCleanupListener registered for automatic database cleanup on flow completion");
+                LOG.debug("DebugSessionCleanupExecutionListener registered for automatic database cleanup");
             }
 
         } catch (Exception e) {
@@ -92,9 +91,9 @@ public class DebugServiceComponent {
 
         // Unregister the cleanup listener.
         if (cleanupListener != null) {
-            DebugSessionEventManager.getInstance().unregisterListener(cleanupListener);
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(cleanupListener);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugSessionCleanupListener unregistered");
+                LOG.debug("DebugSessionCleanupExecutionListener unregistered");
             }
         }
 

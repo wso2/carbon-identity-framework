@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.debug.framework.internal;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
+import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,11 @@ public class DebugFrameworkServiceDataHolder {
     private static final DebugFrameworkServiceDataHolder instance = new DebugFrameworkServiceDataHolder();
 
     private ClaimMetadataManagementService claimMetadataManagementService;
+
+    /**
+     * List of registered debug execution listeners.
+     */
+    private final List<DebugExecutionListener> debugExecutionListeners = new ArrayList<>();
 
     /**
      * Thread-safe map storing protocol providers indexed by protocol type.
@@ -183,6 +190,36 @@ public class DebugFrameworkServiceDataHolder {
     public List<DebugProtocolResolver> getDebugProtocolResolvers() {
 
         return debugProtocolResolvers;
+    }
+
+    /**
+     * Gets the list of debug execution listeners.
+     *
+     * @return List of debug execution listeners.
+     */
+    public List<DebugExecutionListener> getDebugExecutionListeners() {
+
+        return debugExecutionListeners;
+    }
+
+    /**
+     * Adds a debug execution listener.
+     *
+     * @param listener The debug execution listener to add.
+     */
+    public void addDebugExecutionListener(DebugExecutionListener listener) {
+
+        this.debugExecutionListeners.add(listener);
+    }
+
+    /**
+     * Removes a debug execution listener.
+     *
+     * @param listener The debug execution listener to remove.
+     */
+    public void removeDebugExecutionListener(DebugExecutionListener listener) {
+
+        this.debugExecutionListeners.remove(listener);
     }
 
 }

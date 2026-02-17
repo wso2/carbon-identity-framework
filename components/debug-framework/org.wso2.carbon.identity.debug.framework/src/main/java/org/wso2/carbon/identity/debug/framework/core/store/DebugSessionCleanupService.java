@@ -36,7 +36,7 @@ public class DebugSessionCleanupService {
     private static final Log LOG = LogFactory.getLog(DebugSessionCleanupService.class);
 
     private static final int INITIAL_DELAY = 1;
-    private static final int DELAY_BETWEEN_RUNS = 60; // 60 minutes
+    private static final int DELAY_BETWEEN_RUNS = 1440; // 1440 minutes = 24 hours (once a day)
 
     private final ScheduledExecutorService scheduler;
     private final DebugSessionDAO debugSessionDAO;

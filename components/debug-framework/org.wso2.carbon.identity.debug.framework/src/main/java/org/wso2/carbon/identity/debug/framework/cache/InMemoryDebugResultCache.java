@@ -64,7 +64,7 @@ public class InMemoryDebugResultCache extends DebugResultCacheProvider {
     }
 
     /**
-     * Constructs an InMemoryDebugResultCache with default expiry (15 minutes).
+     * Constructs an InMemoryDebugResultCache with default expiry (5 minutes).
      */
     public InMemoryDebugResultCache() {
 

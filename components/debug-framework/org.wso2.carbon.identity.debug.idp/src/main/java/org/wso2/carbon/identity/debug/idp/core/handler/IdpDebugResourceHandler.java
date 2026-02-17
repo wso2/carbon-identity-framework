@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,15 +39,11 @@ import java.util.Map;
 public class IdpDebugResourceHandler implements DebugResourceHandler {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
-    private static final String STATUS = "status";
-    private static final String MESSAGE = "message";
-    private static final String FAILURE = "FAILURE";
-    private static final String ERROR_TYPE = "errorType";
-    private static final String REASON = "reason";
 
     /**
      * Handles a debug request using typed classes.
      * This is the preferred method with type safety.
+     * For IDP resource type, the resourceId is required and must be present.
      *
      * @param debugRequest The debug request with resource information.
      * @return DebugResponse containing the execution result.
@@ -56,8 +51,14 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
     public DebugResponse handleDebugRequest(DebugRequest debugRequest) {
 
         try {
-            String resourceId = debugRequest.getResourceId();
+            String resourceId = debugRequest.getEffectiveResourceId();
             String resourceType = debugRequest.getResourceType();
+
+            // Validate that resourceId is provided for IDP debugging.
+            if (resourceId == null || resourceId.trim().isEmpty()) {
+                return DebugResponse.error("Resource ID is required for IDP debugging. " +
+                        "Provide it in the properties map with key 'resourceId'.");
+            }
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("IdP debug handler processing resource: " + resourceId);
@@ -136,141 +137,4 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         }
     }
 
-    /**
-     * Resolves the debug context for a given resource, returning error responses
-     * gracefully.
-     * 
-     * @deprecated Use {@link #resolveDebugContext(String, String)} instead for type safety.
-     *
-     * @param resourceId   The resource ID.
-     * @param resourceType The resource type.
-     * @return The resolved context map, or an error response map if resolution fails.
-     */
-    @Deprecated
-    private Map<String, Object> resolveDebugContextSafely(String resourceId, String resourceType) {
-
-        DebugContextProvider contextProvider = DebugProtocolRouter.getContextProviderForResource(resourceId);
-
-        if (contextProvider == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Context provider not available for resource: " + resourceId);
-            }
-            return createErrorResponse(FAILURE, "Context provider not available for resource: " + resourceId);
-        }
-
-        try {
-            Map<String, Object> context = contextProvider.resolveContext(resourceId, resourceType);
-            if (context == null && LOG.isDebugEnabled()) {
-                LOG.debug("Debug context is null for resource: " + resourceId);
-            }
-            return context;
-        } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Context resolution failed for resource: " + resourceId + ". Error: " + e.getMessage());
-            }
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put(STATUS, FAILURE);
-            errorResponse.put(MESSAGE, "Unable to resolve debug context for IdP: " + resourceId);
-            errorResponse.put(REASON, e.getMessage());
-            errorResponse.put(ERROR_TYPE, e.getClass().getSimpleName());
-            return errorResponse;
-        }
-    }
-
-    /**
-     * Creates an error response map with given status and message.
-     *
-     * @param status  The status value.
-     * @param message The error message.
-     * @return Error response map.
-     */
-    private Map<String, Object> createErrorResponse(String status, String message) {
-
-        Map<String, Object> errorResult = new HashMap<>();
-        errorResult.put(STATUS, status);
-        errorResult.put(MESSAGE, message);
-        return errorResult;
-    }
-
-    /**
-     * Converts a DebugResult object to a Map representation.
-     * Flattens resultData and metadata into the top-level map for easier access.
-     *
-     * @param debugResult The DebugResult to convert.
-     * @return Map containing the debug result data.
-     */
-    private Map<String, Object> convertDebugResultToMap(DebugResult debugResult) {
-
-        Map<String, Object> resultMap = new HashMap<>();
-
-        if (debugResult == null) {
-            resultMap.put(STATUS, FAILURE);
-            resultMap.put(MESSAGE, "Debug execution returned null result");
-            return resultMap;
-        }
-
-        populateBasicDebugResultFields(resultMap, debugResult);
-        flattenResultDataIntoMap(resultMap, debugResult.getResultData());
-        flattenMetadataIntoMap(resultMap, debugResult.getMetadata());
-
-        return resultMap;
-    }
-
-    /**
-     * Populates basic debug result fields into the map.
-     *
-     * @param resultMap   Map to populate.
-     * @param debugResult Debug result containing basic fields.
-     */
-    private void populateBasicDebugResultFields(Map<String, Object> resultMap, DebugResult debugResult) {
-
-        resultMap.put("successful", debugResult.isSuccessful());
-        resultMap.put("resultId", debugResult.getResultId());
-        resultMap.put("timestamp", debugResult.getTimestamp());
-        resultMap.put(STATUS, debugResult.getStatus());
-
-        if (debugResult.getErrorCode() != null) {
-            resultMap.put("errorCode", debugResult.getErrorCode());
-        }
-
-        if (debugResult.getErrorMessage() != null) {
-            resultMap.put("errorMessage", debugResult.getErrorMessage());
-        }
-    }
-
-    /**
-     * Flattens result data entries into the result map.
-     *
-     * @param resultMap  Map to populate.
-     * @param resultData Result data to flatten.
-     */
-    private void flattenResultDataIntoMap(Map<String, Object> resultMap, Map<String, Object> resultData) {
-
-        if (resultData != null && !resultData.isEmpty()) {
-            for (Map.Entry<String, Object> entry : resultData.entrySet()) {
-                if (entry.getKey() != null && entry.getValue() != null) {
-                    resultMap.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-    }
-
-    /**
-     * Flattens metadata entries into the result map, avoiding overwrites of
-     * existing keys.
-     *
-     * @param resultMap Map to populate.
-     * @param metadata  Metadata to flatten.
-     */
-    private void flattenMetadataIntoMap(Map<String, Object> resultMap, Map<String, Object> metadata) {
-
-        if (metadata != null && !metadata.isEmpty()) {
-            for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                String key = entry.getKey();
-                if (key != null && entry.getValue() != null) {
-                    resultMap.computeIfAbsent(key, k -> entry.getValue());
-                }
-            }
-        }
-    }
 }

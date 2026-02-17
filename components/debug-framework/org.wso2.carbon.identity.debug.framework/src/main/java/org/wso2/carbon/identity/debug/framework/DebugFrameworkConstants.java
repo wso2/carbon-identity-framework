@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.debug.framework;
 
 /**
  * Constants for the Debug Framework.
- * Provides centralized definition of all string constants used throughout the framework.
+ * Provides centralized definition of all string constants used throughout the
+ * framework.
  * to ensure consistency and reduce duplication.
  */
 public final class DebugFrameworkConstants {
@@ -53,7 +54,7 @@ public final class DebugFrameworkConstants {
     public static final String OAUTH2_ERROR_PARAM = "error";
 
     // Default Constants.
-    public static final int CACHE_EXPIRY_MINUTES = 15;
+    public static final int CACHE_EXPIRY_MINUTES = 5;
 
     // Debug Result Context Properties.
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
