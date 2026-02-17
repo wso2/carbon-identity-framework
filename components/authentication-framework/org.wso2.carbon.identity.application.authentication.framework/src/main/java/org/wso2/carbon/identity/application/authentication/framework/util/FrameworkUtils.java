@@ -1363,16 +1363,6 @@ public class FrameworkUtils {
         long maxSessionLifeTimeInNanos = TimeUnit.SECONDS.toNanos(maximumSessionTimeout.get());
         Long sessionCreationTime = (Long) sessionContext.getProperty(CREATED_TIMESTAMP);
 
-        if (sessionCreationTime == null) {
-            // If created time is not available, fallback to the previous behavior.
-            // Possibility of occurring this scenario is very low as the created time is added to the session context.
-            // Therefore, printing an error log to highlight the issue and consider the timeout as valid to avoid
-            // breaking existing functionality.
-            log.error("Session creation time is not available in the session context. Hence cannot validate the " +
-                    "session context timeout with the maximum session lifetime.");
-            return timeout;
-        }
-
         // Convert session creation time to nanos for the timeout comparison.
         sessionCreationTime = TimeUnit.MILLISECONDS.toNanos(sessionCreationTime);
 

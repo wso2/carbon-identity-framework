@@ -401,9 +401,9 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
             // The Maximum session timeout is not set, hence consider the session as valid.
             return true;
         }
-        long maximumSessionTimeout = TimeUnit.SECONDS.toMillis(maximumSessionTimeoutInSeconds.get());
+        long maximumSessionTimeout = TimeUnit.SECONDS.toNanos(maximumSessionTimeoutInSeconds.get());
 
-        long currentTime = System.currentTimeMillis();
+        long currentTime = FrameworkUtils.getCurrentStandardNano();
         Long createdTime = null;
 
         if (cacheEntry.getContext() != null) {
@@ -416,14 +416,15 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
 
         if (createdTime == null) {
-            // If created time is not available, fallback to the previous behavior.
+            // If created time is not available, expire the session immediately.
             // Possibility of occurring this scenario is very low as the created time is added to the session context.
-            // Therefore, printing an error log to highlight the issue and consider the session as valid to avoid
-            // breaking existing functionality.
+            // Therefore, printing an error log to highlight the issue and consider the session as invalid.
             log.error("Created time is not available in the session context cache entry for context ID. " +
-                    "Hence maximum session lifetime restrictions cannot be applied.");
-            return true;
+                    "Hence maximum session lifetime restrictions cannot be validated.");
+            return false;
         }
+
+        createdTime = TimeUnit.MILLISECONDS.toNanos(createdTime);
 
         if (log.isDebugEnabled()) {
             log.debug("Context ID : " + contextId + " :: maximum session life time : " + maximumSessionTimeout

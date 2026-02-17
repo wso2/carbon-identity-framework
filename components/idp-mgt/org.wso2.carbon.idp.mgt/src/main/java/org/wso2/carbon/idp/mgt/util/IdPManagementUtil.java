@@ -186,21 +186,31 @@ public class IdPManagementUtil {
 
         try {
             IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
-            IdentityProviderProperty maxSessionTimeoutIdpProp =
-                    IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
-                            IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
             IdentityProviderProperty enableMaxSessionTimeoutIdpProp =
                     IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
                             IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
             if (enableMaxSessionTimeoutIdpProp != null &&
                     Boolean.parseBoolean(enableMaxSessionTimeoutIdpProp.getValue())) {
+                IdentityProviderProperty maxSessionTimeoutIdpProp =
+                        IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+                                IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
                 if (maxSessionTimeoutIdpProp != null) {
                     timeout = Integer.parseInt(maxSessionTimeoutIdpProp.getValue());
                 }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Maximum session timeout is enabled for tenant: " + tenantDomain +
+                            " with timeout (mins): " + timeout);
+                }
+
                 return Optional.of(timeout * 60);
             }
         } catch (IdentityProviderManagementException e) {
             log.error("Error when retrieving the maximum session timeout for tenant : " + tenantDomain, e);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Maximum session timeout is not enabled for tenant: " + tenantDomain);
         }
 
         return Optional.empty();

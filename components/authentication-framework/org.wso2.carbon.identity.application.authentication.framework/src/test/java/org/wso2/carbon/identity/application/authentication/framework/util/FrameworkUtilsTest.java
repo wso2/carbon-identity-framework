@@ -1678,29 +1678,6 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         }
     }
 
-    @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when session creation time is null")
-    public void testValidateTimeoutUsingMaxSessionLifeTimeWhenCreationTimeIsNull() throws Exception {
-
-        SessionContext sessionContext = mock(SessionContext.class);
-        String tenantDomain = "test.com";
-        long timeout = TimeUnit.SECONDS.toNanos(3600);
-        int maxSessionTimeout = 7200;
-
-        when(sessionContext.getProperty(CREATED_TIMESTAMP)).thenReturn(null);
-
-        try (MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class)) {
-            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
-                    .thenReturn(Optional.of(maxSessionTimeout));
-
-            Method method = FrameworkUtils.class.getDeclaredMethod("validateTimeoutUsingMaxSessionLifeTime",
-                    SessionContext.class, String.class, long.class);
-            method.setAccessible(true);
-            long result = (long) method.invoke(null, sessionContext, tenantDomain, timeout);
-
-            assertEquals(result, timeout, "Should return the original timeout when session creation time is null");
-        }
-    }
-
     @Test(description = "Test validateTimeoutUsingMaxSessionLifeTime when timeout exceeds max session lifetime")
     public void testValidateTimeoutUsingMaxSessionLifeTimeWhenTimeoutExceedsMax() throws Exception {
 

@@ -167,7 +167,7 @@ public class SessionContextCacheTest {
 
             boolean result = (boolean) method.invoke(sessionContextCache, cacheKey, cacheEntry);
 
-            Assert.assertTrue(result, "Should return true when created time is null");
+            Assert.assertFalse(result, "Should return false when created time is null");
         }
     }
 
@@ -348,8 +348,8 @@ public class SessionContextCacheTest {
 
             boolean result = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
 
-            Assert.assertFalse(result, "Session should not be expired when created time is null, as max lifetime " +
-                    "check should be bypassed");
+            Assert.assertTrue(result, "Session should be expired when created time is null, as max lifetime " +
+                    "check should be failed.");
         }
     }
 
