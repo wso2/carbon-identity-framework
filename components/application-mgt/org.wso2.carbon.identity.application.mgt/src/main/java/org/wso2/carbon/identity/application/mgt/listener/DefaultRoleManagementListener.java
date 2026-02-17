@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +69,20 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
  * Default Role Management Listener implementation of Role Management V2 Listener,
  * and application based role management.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener",
+                "service.scope=singleton"
+        }
+)
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener",
+                "service.scope=singleton"
+        }
+)
 public class DefaultRoleManagementListener extends AbstractApplicationMgtListener implements RoleManagementListener {
 
     private static final Log LOG = LogFactory.getLog(DefaultRoleManagementListener.class);
@@ -699,6 +715,20 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throw new IdentityApplicationManagementException(
                     String.format("Error occurred while deleting roles created for the application: %s.",
                             serviceProvider.getApplicationName()), e);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        // Clear role basic info cache when application is updated, This is necessary because RoleBasicInfo contains
+        // audienceName (application name). When application name changes, cached role basic info becomes stale.
+        RoleManagementUtils.clearRoleBasicInfoCacheByTenant(tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cleared role basic info cache for tenant: " + tenantDomain +
+                    " due to application update: " + serviceProvider.getApplicationResourceId());
         }
         return true;
     }

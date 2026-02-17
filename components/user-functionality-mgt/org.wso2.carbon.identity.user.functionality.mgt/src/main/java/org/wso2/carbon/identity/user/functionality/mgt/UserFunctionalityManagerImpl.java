@@ -22,6 +22,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.functionality.mgt.dao.UserFunctionalityManagerDAO;
@@ -46,6 +47,13 @@ import java.util.Set;
 /**
  * User functionality manager service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManager",
+                "service.scope=singleton"
+        }
+)
 public class UserFunctionalityManagerImpl implements UserFunctionalityManager {
 
     private UserFunctionalityManagerDAO userFunctionalityManagerDAO = new UserFunctionalityManagerDAOImpl();

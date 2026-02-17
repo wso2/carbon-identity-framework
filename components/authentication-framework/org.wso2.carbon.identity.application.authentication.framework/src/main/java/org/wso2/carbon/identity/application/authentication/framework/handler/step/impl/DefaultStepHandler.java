@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013- 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -48,8 +48,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkClientException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -97,6 +99,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
@@ -334,6 +337,15 @@ public class DefaultStepHandler implements StepHandler {
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             authenticatedStepIdps.get(idp));
                     stepConfig.setCompleted(true);
+                    // Update the context with authenticated user.
+                    if (stepConfig.getAuthenticatedUser() != null) {
+                        AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Updating authentication context with authenticated user: " +
+                                    authenticatedUser.getLoggableMaskedUserId());
+                        }
+                        context.setSubject(authenticatedUser);
+                    }
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
                     return;
@@ -635,25 +647,31 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
-        for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
-            ApplicationAuthenticator authenticator = authenticatorConfig
-                    .getApplicationAuthenticator();
-            if (authenticator != null && authenticator.getName().equalsIgnoreCase(
-                    request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
-                if (StringUtils.isNotBlank(selectedIdp) && authenticatorConfig.getIdps().get(selectedIdp) == null) {
-                    // If the selected idp name is not configured for the application, throw error since
-                    // this is an invalid case.
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Application authenticators: '%s' do not contain the user selected " +
-                                "idp: '%s'", authenticatorConfig.getIdpNames(), selectedIdp));
-                    }
-                    throw new FrameworkException("Authenticators configured for application and user selected idp " +
-                            "does not match. Possible tampering of parameters in login page.");
-                }
-                doAuthentication(request, response, context, authenticatorConfig);
-                return;
+        // Get the requested authenticator name parameter.
+        String requestedAuthenticator = request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR);
+
+        AuthenticatorConfig stepAuthenticatorConfig = stepConfig.getAuthenticatorList().stream()
+                .filter(ac -> {
+                    ApplicationAuthenticator authenticator = ac.getApplicationAuthenticator();
+                    return authenticator != null &&
+                            authenticator.getName().equalsIgnoreCase(requestedAuthenticator);
+                })
+                .findFirst()
+                .orElseThrow(() -> new FrameworkClientException(ERROR_INVALID_AUTHENTICATOR.getCode(),
+                String.format(ERROR_INVALID_AUTHENTICATOR.getMessage(), requestedAuthenticator)));
+
+        if (StringUtils.isNotBlank(selectedIdp) && stepAuthenticatorConfig.getIdps().get(selectedIdp) == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(
+                        "Application authenticators: '%s' do not contain the user selected idp: '%s'",
+                        stepAuthenticatorConfig.getIdpNames(), selectedIdp));
             }
+            throw new FrameworkException(
+                    "Authenticators configured for application and user selected idp do not match. " +
+                            "Possible tampering of parameters in login page.");
         }
+
+        doAuthentication(request, response, context, stepAuthenticatorConfig);
     }
 
     protected void handleResponse(HttpServletRequest request, HttpServletResponse response,
@@ -781,6 +799,10 @@ public class DefaultStepHandler implements StepHandler {
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
 
         }
+        if (!isAuthenticatorSupportedForAPIBasedFlow(request, context, authenticator)) {
+            stepConfig.setCompleted(true);
+            return;
+        }
 
         try {
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
@@ -826,6 +848,7 @@ public class DefaultStepHandler implements StepHandler {
                  */
                 if (status != AuthenticatorFlowStatus.SUCCESS_COMPLETED) {
                     stepConfig.setCompleted(true);
+                    context.setRequestAuthenticated(false);
                     return;
                 }
             }
@@ -1685,5 +1708,39 @@ public class DefaultStepHandler implements StepHandler {
                     "accountrecoveryendpoint/confirmrecovery.do", e);
         }
         return null;
+    }
+
+    /**
+     * Validates if the given authenticator supports API based authentication flow.
+     * Sets error details in context and returns false if validation fails.
+     *
+     * @param request       HTTP servlet request.
+     * @param context       Authentication context.
+     * @param authenticator Application authenticator to validate.
+     * @return true if the authenticator supports API based authentication flow, false otherwise.
+     */
+    private boolean isAuthenticatorSupportedForAPIBasedFlow(HttpServletRequest request, AuthenticationContext context,
+                                                      ApplicationAuthenticator authenticator) {
+
+        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request) &&
+                !authenticator.isAPIBasedAuthenticationSupported()) {
+
+            String errorCode = FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authenticator '" + authenticator.getName() + "' does not support API based authentication.");
+            }
+            context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, errorCode);
+            context.setRequestAuthenticated(false);
+            request.setAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED, true);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.FAIL_COMPLETED);
+
+            AuthenticationResult authenticationResult = new AuthenticationResult();
+            authenticationResult.setAuthenticated(false);
+            authenticationResult.addProperty(FrameworkConstants.AUTH_ERROR_CODE,
+                    context.getProperty(FrameworkConstants.AUTH_ERROR_CODE));
+            request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+            return false;
+        }
+        return true;
     }
 }

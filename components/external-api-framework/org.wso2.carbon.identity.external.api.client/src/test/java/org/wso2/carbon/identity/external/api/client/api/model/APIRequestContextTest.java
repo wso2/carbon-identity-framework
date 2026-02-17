@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.external.api.client.api.model;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.external.api.client.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientRequestException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +39,7 @@ import static org.testng.Assert.fail;
 public class APIRequestContextTest {
 
     private static final String ENDPOINT_URL = "https://api.example.com/endpoint";
-    private static final String PAYLOAD = "{\"key\":\"value\"}";
+    private static final HttpEntity PAYLOAD = new StringEntity("{\"key\":\"value\"}", StandardCharsets.UTF_8);
     private static final String HEADER_KEY = "Content-Type";
     private static final String HEADER_VALUE = "application/json";
 
@@ -202,44 +205,6 @@ public class APIRequestContextTest {
                     .httpMethod(APIRequestContext.HttpMethod.POST)
                     .apiAuthentication(apiAuthentication)
                     .endpointUrl(ENDPOINT_URL)
-                    .build();
-            fail("Expected APIClientRequestException was not thrown");
-        } catch (APIClientRequestException e) {
-            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD.getCode());
-        }
-    }
-
-    /**
-     * Test creation with blank payload throws exception.
-     */
-    @Test
-    public void testCreateAPIRequestContextWithBlankPayload() {
-
-        try {
-            new APIRequestContext.Builder()
-                    .httpMethod(APIRequestContext.HttpMethod.POST)
-                    .apiAuthentication(apiAuthentication)
-                    .endpointUrl(ENDPOINT_URL)
-                    .payload("")
-                    .build();
-            fail("Expected APIClientRequestException was not thrown");
-        } catch (APIClientRequestException e) {
-            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD.getCode());
-        }
-    }
-
-    /**
-     * Test creation with whitespace-only payload throws exception.
-     */
-    @Test
-    public void testCreateAPIRequestContextWithWhitespacePayload() {
-
-        try {
-            new APIRequestContext.Builder()
-                    .httpMethod(APIRequestContext.HttpMethod.POST)
-                    .apiAuthentication(apiAuthentication)
-                    .endpointUrl(ENDPOINT_URL)
-                    .payload("   ")
                     .build();
             fail("Expected APIClientRequestException was not thrown");
         } catch (APIClientRequestException e) {

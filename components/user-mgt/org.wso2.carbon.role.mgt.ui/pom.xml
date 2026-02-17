@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.8.645-SNAPSHOT</version>
+        <version>7.10.5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -102,7 +102,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -113,7 +112,7 @@
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             com.google.gson;version="${com.google.code.gson.osgi.version.range}",
 
-                            javax.activation; version="${javax.activation.import.pkg.version}",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             javax.mail.util; version="${axiom.javax.mail.imp.pkg.version.range}",
                             javax.servlet.jsp; version="${imp.pkg.version.javax.servlet.jsp}",
 

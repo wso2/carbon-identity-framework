@@ -2025,15 +2025,27 @@ public class CacheBackedIdPMgtDAOTest {
         }
     }
 
+    /**
+     * Mock logger using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @return The mocked Log instance.
+     * @throws Exception If an error occurs.
+     */
     private Log mockLogger() throws Exception {
 
         Log mockedLog = Mockito.mock(Log.class);
         Field logField = IdPManagementFacade.class.getDeclaredField("LOG");
         logField.setAccessible(true);
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(logField, logField.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
-        logField.set(null, mockedLog);
+
+        // Use Unsafe to modify static final fields in Java 12+
+        Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
+
+        Object fieldBase = unsafe.staticFieldBase(logField);
+        long fieldOffset = unsafe.staticFieldOffset(logField);
+        unsafe.putObject(fieldBase, fieldOffset, mockedLog);
 
         return mockedLog;
     }

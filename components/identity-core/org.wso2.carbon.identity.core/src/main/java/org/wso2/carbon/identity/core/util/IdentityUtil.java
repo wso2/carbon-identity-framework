@@ -18,9 +18,15 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
@@ -2301,6 +2307,8 @@ public class IdentityUtil {
             return;
         }
 
+        validateX5CLength(jwt);
+
         byte[] payloadBytes;
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
@@ -2410,5 +2418,118 @@ public class IdentityUtil {
             log.debug("Processed wildcard value with wildcard character: " + wildcardChar);
         }
         return escaped;
+    }
+
+    /**
+     * Check whether the X5C length in the JWT header exceeds the allowed limit.
+     * Remove this after monitoring the X5C length issue is resolved.
+     * Adding this with deprecated tag to avoid usage in new code since this will be removed in the future.
+     * @param jwt JWT string to check.
+     */
+    @Deprecated
+    public static void validateX5CLength(String jwt) {
+
+        if (StringUtils.isBlank(jwt)) {
+            return;
+        }
+
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            return;
+        }
+
+        byte[] headerBytes;
+        try {
+            headerBytes = Base64.getUrlDecoder().decode(parts[0]);
+            String jsonHeader = new String(headerBytes, StandardCharsets.UTF_8);
+            JsonObject headerObj = JsonParser.parseString(jsonHeader).getAsJsonObject();
+            if (headerObj.has("x5c")) {
+                JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
+                if (x5cArray.toString().length() > 20000) {
+                    log.error("X5C length exceeds the maximum allowed limit.");
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error occurred while validating X5C length.", e);
+        }
+    }
+
+    /**
+     * The resulting JSONObject, JSONArray, or the original object if it is neither a List nor a Map.
+     * @param object The object to convert.
+     * @return The resulting JSON object.
+     */
+    public static Object convertToJson(Object object) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Converting object to JSON. Object type: "
+                    + (object != null ? object.getClass().getSimpleName() : "null"));
+        }
+
+        if (object instanceof List) {
+            return convertToJSONArray((List)object);
+        } else if (object instanceof Map) {
+            return convertToJSONObject((Map)object);
+        } else {
+            return object;
+        }
+    }
+
+    /**
+     * Convert a List to a JSONArray, recursively converting any nested Maps or Lists.
+     * @param list The List to convert.
+     * @return The resulting JSONArray.
+     */
+    public static JSONArray convertToJSONArray(List<Object> list) {
+
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(list);
+        recursivelyConvertToJSONArray(jsonArray);
+        return jsonArray;
+    }
+
+    /**
+     * Convert a Map to a JSONObject, recursively converting any nested Maps or Lists.
+     * @param map The Map to convert.
+     * @return The resulting JSONObject.
+     */
+    public static JSONObject convertToJSONObject(Map<String, Object> map) {
+
+        JSONObject jsonObject = new JSONObject(map);
+        recursivelyConvertToJSONObject(jsonObject);
+        return jsonObject;
+    }
+
+    private static void recursivelyConvertToJSONObject(JSONObject jsonObject) {
+
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            if (entry.getValue() instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) entry.getValue());
+                recursivelyConvertToJSONObject(child);
+                jsonObject.put(entry.getKey(), child);
+            } else if (entry.getValue() instanceof List) {
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.addAll((List<?>) entry.getValue());
+                recursivelyConvertToJSONArray(jsonArray);
+                jsonObject.put(entry.getKey(), jsonArray);
+            }
+        }
+    }
+
+    private static void recursivelyConvertToJSONArray(JSONArray jsonArray) {
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            Object element = jsonArray.get(i);
+            if (element instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) element);
+                recursivelyConvertToJSONObject(child);
+                jsonArray.set(i, child);
+            } else if (element instanceof List) {
+                JSONArray childArray = new JSONArray();
+                childArray.addAll((List<?>) element);
+                recursivelyConvertToJSONArray(childArray);
+                jsonArray.set(i, childArray);
+            }
+        }
     }
 }

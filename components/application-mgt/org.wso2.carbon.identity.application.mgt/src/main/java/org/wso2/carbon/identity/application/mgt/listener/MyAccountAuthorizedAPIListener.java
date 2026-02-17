@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
@@ -45,6 +46,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IMPE
 /**
  * MyAccount authorized API listener.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener",
+                "service.scope=singleton"
+        }
+)
 public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagementListener {
 
     private static final List<String> authorizedNoPolicyAPIIdentifiers = Arrays.asList(

@@ -67,6 +67,8 @@ public class IdentityApplicationConstants {
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
+    public static final String PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE =
+            "PreserveCurrentSessionAtPasswordUpdate";
     public static final String SESSION_IDLE_TIME_OUT_DEFAULT = "15";
     public static final String REMEMBER_ME_TIME_OUT_DEFAULT = "20160";
 
@@ -259,6 +261,9 @@ public class IdentityApplicationConstants {
             public static final String QUERY_PARAMS = "commonAuthQueryParams";
             public static final String IS_PKCE_ENABLED = "IsPKCEEnabled";
             public static final Object IS_PKCE_ENABLED_PARAM_NAME = "oidcPKCEEnabled";
+            public static final String ENABLE_JWT_SCOPE_AS_ARRAY = "enableJwtScopeAsArray";
+            public static final String ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT = "false";
+
         }
 
         /**

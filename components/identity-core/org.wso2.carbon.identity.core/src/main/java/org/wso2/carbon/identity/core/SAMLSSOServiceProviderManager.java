@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -45,6 +46,13 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
  * providers are supported here.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager",
+                "service.scope=singleton"
+        }
+)
 public class SAMLSSOServiceProviderManager {
 
     SAMLServiceProviderPersistenceManagerFactory samlSSOPersistenceManagerFactory =

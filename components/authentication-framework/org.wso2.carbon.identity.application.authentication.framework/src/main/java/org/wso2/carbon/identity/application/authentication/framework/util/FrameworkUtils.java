@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -67,7 +67,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -4100,6 +4099,35 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering given tenant domain and isSaaSApp flag.
+     *
+     * @param username      Username of the user.
+     * @param tenantDomain  Tenant domain.
+     * @param isSaaSApp     Is the application a SaaS application.
+     * @return Preprocessed username with the given details.
+     */
+    public static String preprocessUsername(String username, String tenantDomain, boolean isSaaSApp) {
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + tenantDomain;
+            }
+        } else if (!username.endsWith(tenantDomain)) {
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the tenant domain provided.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + tenantDomain;
+        }
+        return username;
+    }
+
+    /**
      * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
      *
      * @param loginIdentifier login identifier for multi attribute login
@@ -4550,8 +4578,6 @@ public class FrameworkUtils {
                 return new JsGraalGraphBuilderFactory();
             } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
-            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.NASHORN, scriptEngineName)) {
-                return new JsGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.
@@ -4563,12 +4589,7 @@ public class FrameworkUtils {
                 Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
                 return new JsOpenJdkNashornGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
-                try {
-                    Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                    return new JsGraphBuilderFactory();
-                } catch (ClassNotFoundException ex) {
-                    return null;
-                }
+                return null;
             }
         }
     }
