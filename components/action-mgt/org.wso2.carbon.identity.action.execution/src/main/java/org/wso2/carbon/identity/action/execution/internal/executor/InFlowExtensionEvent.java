@@ -33,7 +33,6 @@ import java.util.Map;
 /**
  * This class models the In-Flow Extension Event.
  * It represents the event sent to the In-Flow Extension action over the Action Execution Request.
- * Contains flow-specific context such as flow type, current node, user inputs, and flow properties.
  */
 public class InFlowExtensionEvent extends Event {
 
