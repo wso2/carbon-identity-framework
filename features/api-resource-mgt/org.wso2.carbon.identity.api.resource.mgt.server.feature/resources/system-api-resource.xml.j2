@@ -2183,4 +2183,31 @@
                        description="Delete credentials of end users in the organization"/>
             </Scopes>
     </APIResource>
+    <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc-templates"
+                 requiresAuthorization="true"
+                 description="API representation of the VC Templates Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View VC Templates" name="internal_vc_template_view"
+                   description="View VC Templates"/>
+            <Scope displayName="Create VC Credential Configuration" name="internal_vc_template_create"
+                   description="Create new VC Credential Configuration"/>
+            <Scope displayName="Update VC Credential Configuration" name="internal_vc_template_update"
+                   description="Update VC Credential Configuration"/>
+            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_template_delete"
+                   description="Delete VC Credential Configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="VC Templates Management Feature" identifier="console:vc_templates"
+                    requiresAuthorization="true"
+                    description="Resource representation of the VC Templates Management Feature"
+                    type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="VC Template Feature" name="console:vc_templates"
+                       description="Manage VC templates from the Console"/>
+            <Scope displayName="VC Template View Feature" name="console:vc_templates_view"
+                                   description="Manage views of VC templates from the Console"/>
+            <Scope displayName="VC Templates Edit Feature" name="console:vc_templates_edit"
+                                   description="Manage edits of VC templates from the Console"/>
+           </Scopes>
+    </APIResource>
 </APIResources>
