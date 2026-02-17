@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
-~ Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
+~ Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
 ~
 ~ WSO2 LLC. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
@@ -111,6 +111,14 @@
         will change.
         -->
         <ExtendRememberMeSessionTimeoutOnAuth>{{session.timeout.extend_remember_me_session_timeout_on_auth}}</ExtendRememberMeSessionTimeoutOnAuth>
+        <!--
+            Setting EnableMaximumSessionTimeout to TRUE will make the session to expire after the time specified in
+            MaximumSessionTimeout regardless of the user activity. The default value will be FALSE and the session will
+            not expire until the IdleSessionTimeout or RememberMeSessionTimeout is reached based on the session type
+            (normal or remember me).
+         -->
+        <EnableMaximumSessionTimeout>{{session.timeout.enable_maximum_session_timeout}}</EnableMaximumSessionTimeout>
+        <MaximumSessionTimeout>{{session.timeout.maximum_session_timeout}}</MaximumSessionTimeout>
     </TimeConfig>
 
     <!-- Security configurations -->

@@ -100,7 +100,13 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -2525,6 +2531,104 @@ public class IdPManagementDAOTest {
         }
     }
 
+    /**
+     * Provides test data for default session configuration tests.
+     *
+     * @return Test data with configuration values and expected results.
+     */
+    @DataProvider(name = "sessionConfigDataProvider")
+    public Object[][] sessionConfigDataProvider() {
+
+        return new Object[][]{
+                // Valid configuration.
+                {"true", "43260", "true", "43260"},
+                // Invalid boolean value should default to false.
+                {"invalid", "43200", "false", "43200"},
+                // Invalid numeric value should use default.
+                {"false", "", "false", "43200"},
+                {"false", "invalid-num", "false", "43200"},
+                {"true", "0", "true", "43200"}
+        };
+    }
+
+    @Test(description = "Test setDefaultSessionConfigs method with various configurations.",
+            dataProvider = "sessionConfigDataProvider")
+    public void testSetDefaultSessionConfigsInDAO(String enableMaxSessionTimeout,
+                                                   String maxSessionTimeout,
+                                                   String expectedEnableValue,
+                                                   String expectedTimeoutValue) throws Exception {
+
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(REMEMBER_ME_TIME_OUT)).thenReturn("20160");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(SESSION_IDLE_TIMEOUT)).thenReturn("15");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(ENABLE_MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn(enableMaxSessionTimeout);
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn(maxSessionTimeout);
+
+            // Use reflection to invoke the private setDefaultSessionConfigs method.
+            Method setDefaultSessionConfigsMethod = IdPManagementDAO.class.getDeclaredMethod(
+                    "setDefaultSessionConfigs", Map.class);
+            setDefaultSessionConfigsMethod.setAccessible(true);
+
+            Map<String, IdentityProviderProperty> propertiesMap = new HashMap<>();
+            setDefaultSessionConfigsMethod.invoke(idPManagementDAO, propertiesMap);
+
+            // Verify enable maximum session timeout property.
+            IdentityProviderProperty enableProp = propertiesMap.get(
+                    ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            assertNotNull(enableProp, "Enable maximum session timeout property should exist");
+            assertEquals(enableProp.getValue(), expectedEnableValue,
+                    "Enable value should match expected");
+
+            // Verify maximum session timeout property.
+            IdentityProviderProperty timeoutProp = propertiesMap.get(
+                    MAXIMUM_SESSION_TIME_OUT);
+            assertNotNull(timeoutProp, "Maximum session timeout property should exist");
+            assertEquals(timeoutProp.getValue(), expectedTimeoutValue,
+                    "Timeout value should match expected");
+        }
+    }
+
+    @Test(description = "Test that existing properties in map are not overridden.")
+    public void testSetDefaultSessionConfigsDoesNotOverrideExistingProperties() throws Exception {
+
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(REMEMBER_ME_TIME_OUT)).thenReturn("20160");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(SESSION_IDLE_TIMEOUT)).thenReturn("15");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(ENABLE_MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn("false");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(MAXIMUM_SESSION_TIMEOUT)).thenReturn("99999");
+
+            // Use reflection to invoke the private setDefaultSessionConfigs method.
+            Method setDefaultSessionConfigsMethod = IdPManagementDAO.class.getDeclaredMethod(
+                    "setDefaultSessionConfigs", Map.class);
+            setDefaultSessionConfigsMethod.setAccessible(true);
+
+            // Pre-populate the map with existing values.
+            Map<String, IdentityProviderProperty> propertiesMap = new HashMap<>();
+            IdentityProviderProperty existingEnableProp = new IdentityProviderProperty();
+            existingEnableProp.setName(ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            existingEnableProp.setValue("true");
+            propertiesMap.put(ENABLE_MAXIMUM_SESSION_TIME_OUT, existingEnableProp);
+
+            IdentityProviderProperty existingTimeoutProp = new IdentityProviderProperty();
+            existingTimeoutProp.setName(MAXIMUM_SESSION_TIME_OUT);
+            existingTimeoutProp.setValue("12345");
+            propertiesMap.put(MAXIMUM_SESSION_TIME_OUT, existingTimeoutProp);
+
+            setDefaultSessionConfigsMethod.invoke(idPManagementDAO, propertiesMap);
+
+            // Verify the existing values are not overridden.
+            assertEquals(propertiesMap.get(ENABLE_MAXIMUM_SESSION_TIME_OUT).getValue(), "true",
+                    "Existing enable property should not be overridden");
+            assertEquals(propertiesMap.get(MAXIMUM_SESSION_TIME_OUT).getValue(), "12345",
+                    "Existing timeout property should not be overridden");
+        }
+    }
+  
     @Test(description = "Tests `enableJwtScopeAsArray` is present in the inheritable properties list.")
     public void testJwtScopeAsArrayIsInInheritablePropertiesList() {
 

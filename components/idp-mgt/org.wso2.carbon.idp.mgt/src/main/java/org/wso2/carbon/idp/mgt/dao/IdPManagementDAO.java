@@ -116,6 +116,9 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
@@ -6591,6 +6594,35 @@ public class IdPManagementDAO {
             propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
         }
 
+        if (propertiesFromConnectors.get(ENABLE_MAXIMUM_SESSION_TIME_OUT) == null) {
+            String enableMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+            if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                    !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+            }
+
+            IdentityProviderProperty enableMaximumSessionTimeOut = new IdentityProviderProperty();
+            enableMaximumSessionTimeOut.setName(ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            enableMaximumSessionTimeOut.setValue(enableMaximumSessionTimeout);
+            propertiesFromConnectors.put(ENABLE_MAXIMUM_SESSION_TIME_OUT, enableMaximumSessionTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(MAXIMUM_SESSION_TIME_OUT) == null) {
+            String configuredMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+            if (StringUtils.isBlank(configuredMaximumSessionTimeout) ||
+                    !StringUtils.isNumeric(configuredMaximumSessionTimeout) ||
+                    Integer.parseInt(configuredMaximumSessionTimeout) <= 0) {
+                configuredMaximumSessionTimeout = MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty maximumSessionTimeOut = new IdentityProviderProperty();
+            maximumSessionTimeOut.setName(MAXIMUM_SESSION_TIME_OUT);
+            maximumSessionTimeOut.setValue(configuredMaximumSessionTimeout);
+            propertiesFromConnectors.put(MAXIMUM_SESSION_TIME_OUT, maximumSessionTimeOut);
+        }
+      
         if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
             String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
                     IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);

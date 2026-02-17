@@ -44,6 +44,8 @@
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
   "session.timeout.extend_remember_me_session_timeout_on_auth": true,
+  "session.timeout.enable_maximum_session_timeout": false,
+  "session.timeout.maximum_session_timeout": "30d",
   "par.cleanup.enable_expired_requests_cleanup": true,
   "par.cleanup.clean_expired_requests_every": "1d",
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
