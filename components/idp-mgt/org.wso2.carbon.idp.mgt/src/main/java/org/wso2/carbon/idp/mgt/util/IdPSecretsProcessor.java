@@ -58,53 +58,32 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     @Override
     public IdentityProvider decryptAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Decrypting federated authenticator secrets for IDP: "
-                    + identityProvider.getIdentityProviderName());
-        }
-
-        IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
-        for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
-            for (Property prop : fedAuthConfig.getProperties()) {
-                String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                decryptAndSetSecretProperty(prop, secretName);
-            }
-        }
-
-        return clonedIdP;
+        return processFederatedAuthenticatorSecrets(identityProvider, false);
     }
 
     @Override
     public IdentityProvider encryptAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Encrypting federated authenticator secrets for IDP: "
-                    + identityProvider.getIdentityProviderName());
-        }
-
-        IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
-        for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
-            for (Property prop : fedAuthConfig.getProperties()) {
-                String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                encryptAndSetSecretProperty(prop, secretName);
-            }
-        }
-
-        return clonedIdP;
+        return processFederatedAuthenticatorSecrets(identityProvider, true);
     }
 
     @Override
     public void deleteAssociatedSecrets(IdentityProvider identityProvider) throws SecretManagementException {
 
         // Delete federated authenticator config secrets.
-        for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
-            for (Property prop : fedAuthConfig.getProperties()) {
-                if (!prop.isConfidential()) {
+        if (identityProvider.getFederatedAuthenticatorConfigs() != null) {
+            for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
+                if (fedAuthConfig.getProperties() == null) {
                     continue;
                 }
-                String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
-                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                    secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                for (Property prop : fedAuthConfig.getProperties()) {
+                    if (!prop.isConfidential()) {
+                        continue;
+                    }
+                    String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
+                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                        secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                    }
                 }
             }
         }
@@ -114,15 +93,20 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
         }
 
         // Delete provisioning connector config secrets.
-        for (ProvisioningConnectorConfig provConfig : identityProvider.getProvisioningConnectorConfigs()) {
-            for (Property prop : provConfig.getProvisioningProperties()) {
-                if (!prop.isConfidential()) {
+        if (identityProvider.getProvisioningConnectorConfigs() != null) {
+            for (ProvisioningConnectorConfig provConfig : identityProvider.getProvisioningConnectorConfigs()) {
+                if (provConfig.getProvisioningProperties() == null) {
                     continue;
                 }
-                String secretName = buildProvisioningSecretName(identityProvider.getId(), provConfig.getName(),
-                        prop.getName());
-                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                    secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                for (Property prop : provConfig.getProvisioningProperties()) {
+                    if (!prop.isConfidential()) {
+                        continue;
+                    }
+                    String secretName = buildProvisioningSecretName(identityProvider.getId(), provConfig.getName(),
+                            prop.getName());
+                    if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                        secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                    }
                 }
             }
         }
@@ -139,37 +123,7 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     public IdentityProvider decryptProvisioningConnectorSecrets(IdentityProvider identityProvider)
             throws SecretManagementException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Decrypting provisioning connector secrets for IDP: "
-                    + identityProvider.getIdentityProviderName());
-        }
-
-        if (isProvisioningConfidentialConfigProtectionDisabled()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Provisioning confidential data protection is disabled. Skipping decryption of " +
-                        "provisioning connector secrets for IDP: " + identityProvider.getIdentityProviderName());
-            }
-            return identityProvider;
-        }
-
-        IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
-        if (clonedIdP.getProvisioningConnectorConfigs() == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("No provisioning connector configs found for IDP: " +
-                        identityProvider.getIdentityProviderName());
-            }
-            return clonedIdP;
-        }
-
-        for (ProvisioningConnectorConfig provConfig : clonedIdP.getProvisioningConnectorConfigs()) {
-            for (Property prop : provConfig.getProvisioningProperties()) {
-                String secretName = buildProvisioningSecretName(clonedIdP.getId(), provConfig.getName(),
-                        prop.getName());
-                decryptAndSetSecretProperty(prop, secretName);
-            }
-        }
-
-        return clonedIdP;
+        return processProvisioningConnectorSecrets(identityProvider, false);
     }
 
     /**
@@ -183,15 +137,33 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     public IdentityProvider encryptProvisioningConnectorSecrets(IdentityProvider identityProvider)
             throws SecretManagementException {
 
+        return processProvisioningConnectorSecrets(identityProvider, true);
+    }
+
+    /**
+     * Common method to process provisioning connector secrets (encrypt or decrypt).
+     *
+     * @param identityProvider Identity provider.
+     * @param isEncrypt        True for encryption, false for decryption.
+     * @return Identity provider with processed provisioning connector secrets.
+     * @throws SecretManagementException If an error occurs while processing the secrets.
+     */
+    private IdentityProvider processProvisioningConnectorSecrets(IdentityProvider identityProvider,
+                                                                  boolean isEncrypt)
+            throws SecretManagementException {
+
+        String operationType = isEncrypt ? "Encrypting" : "Decrypting";
+
         if (log.isDebugEnabled()) {
-            log.debug(
-                    "Encrypting provisioning connector secrets for IDP: " + identityProvider.getIdentityProviderName());
+            log.debug(operationType + " provisioning connector secrets for IDP: "
+                    + identityProvider.getIdentityProviderName());
         }
 
         if (isProvisioningConfidentialConfigProtectionDisabled()) {
             if (log.isDebugEnabled()) {
-                log.debug("Provisioning confidential data protection is disabled. Skipping encryption of " +
-                        "provisioning connector secrets for IDP: " + identityProvider.getIdentityProviderName());
+                log.debug("Provisioning confidential data protection is disabled. Skipping " +
+                        operationType.toLowerCase() + " of provisioning connector secrets for IDP: "
+                        + identityProvider.getIdentityProviderName());
             }
             return identityProvider;
         }
@@ -199,17 +171,65 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
         IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
         if (clonedIdP.getProvisioningConnectorConfigs() == null) {
             if (log.isDebugEnabled()) {
-                log.debug("No provisioning connector configs found for IDP: " +
-                        identityProvider.getIdentityProviderName());
+                log.debug("No provisioning connector configs found for IDP: "
+                        + identityProvider.getIdentityProviderName());
             }
             return clonedIdP;
         }
 
         for (ProvisioningConnectorConfig provConfig : clonedIdP.getProvisioningConnectorConfigs()) {
+            if (provConfig.getProvisioningProperties() == null) {
+                continue;
+            }
             for (Property prop : provConfig.getProvisioningProperties()) {
                 String secretName = buildProvisioningSecretName(clonedIdP.getId(), provConfig.getName(),
                         prop.getName());
-                encryptAndSetSecretProperty(prop, secretName);
+                if (isEncrypt) {
+                    encryptAndSetSecretProperty(prop, secretName);
+                } else {
+                    decryptAndSetSecretProperty(prop, secretName);
+                }
+            }
+        }
+
+        return clonedIdP;
+    }
+
+    /**
+     * Common method to process federated authenticator secrets (encrypt or decrypt).
+     *
+     * @param identityProvider Identity provider.
+     * @param isEncrypt        True for encryption, false for decryption.
+     * @return Identity provider with processed federated authenticator secrets.
+     * @throws SecretManagementException If an error occurs while processing the secrets.
+     */
+    private IdentityProvider processFederatedAuthenticatorSecrets(IdentityProvider identityProvider,
+                                                                  boolean isEncrypt)
+            throws SecretManagementException {
+
+        String operationType = isEncrypt ? "Encrypting" : "Decrypting";
+
+        if (log.isDebugEnabled()) {
+            log.debug(operationType + " federated authenticator secrets for IDP: "
+                    + identityProvider.getIdentityProviderName());
+        }
+
+        IdentityProvider clonedIdP = gson.fromJson(gson.toJson(identityProvider), IdentityProvider.class);
+        if (clonedIdP.getFederatedAuthenticatorConfigs() == null) {
+            return clonedIdP;
+        }
+
+        for (FederatedAuthenticatorConfig fedAuthConfig : clonedIdP.getFederatedAuthenticatorConfigs()) {
+            if (fedAuthConfig.getProperties() == null) {
+                continue;
+            }
+            for (Property prop : fedAuthConfig.getProperties()) {
+                String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
+                if (isEncrypt) {
+                    encryptAndSetSecretProperty(prop, secretName);
+                } else {
+                    decryptAndSetSecretProperty(prop, secretName);
+                }
             }
         }
 
