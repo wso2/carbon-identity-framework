@@ -3999,6 +3999,24 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
+                        federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                    try {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                        }
+                        federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
+                    } finally {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.endTenantFlow();
+                        }
+                    }
+                }
+
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                             idPName, userClaimUri, roleClaimUri, idpId, tenantId));
@@ -4011,6 +4029,24 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                if (federatedIdp.getProvisioningConnectorConfigs() != null &&
+                        federatedIdp.getProvisioningConnectorConfigs().length > 0) {
+                    try {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                        }
+                        federatedIdp = idpSecretsProcessorService.decryptProvisioningConnectorSecrets(federatedIdp);
+                    } finally {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.endTenantFlow();
+                        }
+                    }
+                }
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -4036,6 +4072,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider for " +
+                    "Authenticator Property : " + property + " and value : " + value, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -4165,6 +4204,24 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
+                        federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                    try {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                        }
+                        federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
+                    } finally {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.endTenantFlow();
+                        }
+                    }
+                }
+
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                             idPName, userClaimUri, roleClaimUri, idpId, tenantId));
@@ -4177,6 +4234,24 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                if (federatedIdp.getProvisioningConnectorConfigs() != null &&
+                        federatedIdp.getProvisioningConnectorConfigs().length > 0) {
+                    try {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                        }
+                        federatedIdp = idpSecretsProcessorService.decryptProvisioningConnectorSecrets(federatedIdp);
+                    } finally {
+                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                            PrivilegedCarbonContext.endTenantFlow();
+                        }
+                    }
+                }
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -4203,6 +4278,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider for " +
+                    "Authenticator Property : " + property + " and value : " + value, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
