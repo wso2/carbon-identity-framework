@@ -181,10 +181,11 @@ public class WorkFlowExecutorManager {
                 log.error(errorMsg, e);
                 return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
             } catch (RuleEvaluationException e) {
-                log.error("Error while evaluating rule for workflow association with id: " +
+                String errorMsg = "Error while evaluating rule for workflow association with id: " +
                         association.getAssociationId() + " for the request with id: " +
-                        workFlowRequest.getUuid(), e);
-                throw new RuntimeException(e);
+                        workFlowRequest.getUuid();
+                log.error(errorMsg, e);
+                throw new WorkflowException(errorMsg, e);
             }
         }
 
