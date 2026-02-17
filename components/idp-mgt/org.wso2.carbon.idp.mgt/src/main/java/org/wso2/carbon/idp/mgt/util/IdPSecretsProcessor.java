@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
@@ -36,6 +35,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementUtil.isProvisioningConfidentialConfigProtectionDisabled;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS;
 
 /**
@@ -303,16 +303,5 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
         if (!resolvedSecret.getResolvedSecretValue().equals(property.getValue())) {
             secretManager.updateSecretValue(IDN_SECRET_TYPE_IDP_SECRETS, secretName, property.getValue());
         }
-    }
-
-    /**
-     * Check if outbound provisioning confidential data protection is enabled.
-     *
-     * @return true if OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED is enabled, false otherwise.
-     */
-    private boolean isProvisioningConfidentialConfigProtectionDisabled() {
-
-        return !Boolean.parseBoolean(IdentityUtil.getProperty(
-                IdPManagementConstants.OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED));
     }
 }

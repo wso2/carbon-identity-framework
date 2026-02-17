@@ -2735,46 +2735,42 @@ public class IdentityProviderManager implements IdpManager {
                             null);
                 }
             }
+        } catch (UserStoreClientException e) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS,
+                    e.getMessage(), e);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            log.warn("Error occurred while retrieving UserStoreManager for tenant " + tenantDomain, e);
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS, null, e);
         }
     }
 
     /**
      * Check if a group exists in any user store (primary and all secondary user stores).
      *
-     * @param userStoreManager The user store manager.
-     * @param groupName               The group name to check.
+     * @param userStoreManager          The user store manager.
+     * @param domainQualifiedGroupName  The group name to check.
      * @return true if the group exists in any user store.
      * @throws org.wso2.carbon.user.core.UserStoreException If an error occurred while checking group existence.
      */
-    private boolean isGroupExistInAnyUserStore(AbstractUserStoreManager userStoreManager, String groupName)
+    private boolean isGroupExistInAnyUserStore(AbstractUserStoreManager userStoreManager, String domainQualifiedGroupName)
             throws org.wso2.carbon.user.core.UserStoreException {
 
-        AbstractUserStoreManager userStore = userStoreManager;
-        while (userStore != null) {
-            String domainName = userStore.getRealmConfiguration()
-                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-            String domainQualifiedGroupName = UserCoreUtil.addDomainToName(groupName, domainName);
-            try {
-                if (userStore.isGroupExistWithName(domainQualifiedGroupName)) {
-                    return true;
-                }
-            } catch (org.wso2.carbon.user.api.UserStoreException e) {
-                if (e instanceof UserStoreClientException &&
-                        StringUtils.equals(((UserStoreClientException) e).getErrorCode(), "60003")) {
+        try {
+            if (userStoreManager.isGroupExistWithName(domainQualifiedGroupName)) {
+                return true;
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException error) {
+            if (error instanceof UserStoreClientException) {
+                String errorCode = ((UserStoreClientException) error).getErrorCode();
+                if (StringUtils.equals(errorCode, IdPManagementConstants.ERROR_CODE_GROUP_DOES_NOT_EXIST)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Group not found: " + domainQualifiedGroupName + " in user store of domain: " +
-                                domainName);
+                        log.debug("Group not found: " + domainQualifiedGroupName + ".");
                     }
-                } else {
-                    throw e;
+                    return false;
                 }
             }
-
-            UserStoreManager secondaryUSM = userStore.getSecondaryUserStoreManager();
-            userStore = secondaryUSM instanceof AbstractUserStoreManager
-                    ? (AbstractUserStoreManager) secondaryUSM : null;
+            throw error;
         }
         return false;
     }

@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -362,6 +363,8 @@ public class IdentityProviderManagerTest {
         when(mockRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
                 .thenReturn("PRIMARY");
         IdpMgtServiceComponentHolder.getInstance().setRealmService(mockRealmService);
+    }
+
     @Test(description = "Tests addResidentIdP includes ENABLE_JWT_SCOPE_AS_ARRAY property for root organization.")
     public void testAddResidentIdPIncludesJwtScopeAsArrayForNonOrganization() throws Exception {
 

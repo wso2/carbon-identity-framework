@@ -125,6 +125,8 @@ public class IdPManagementConstants {
 
     public static final String FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE = "false";
 
+    public static final String ERROR_CODE_GROUP_DOES_NOT_EXIST = "60003";
+
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";
     public static final String SALESFORCE = "salesforce";
