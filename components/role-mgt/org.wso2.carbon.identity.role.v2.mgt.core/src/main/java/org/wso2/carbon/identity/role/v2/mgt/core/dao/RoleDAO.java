@@ -397,9 +397,12 @@ public interface RoleDAO {
      * @param sharedRoleTenantDomain Shared role tenant domain.
      * @throws IdentityRoleManagementException Error occurred while adding shared role to main role relationship.
      */
-    void addMainRoleToSharedRoleRelationship(int mainRoleID, int sharedRoleID, String sharedRoleName,
+    default void addMainRoleToSharedRoleRelationship(int mainRoleID, int sharedRoleID, String sharedRoleName,
                                              String mainRoleTenantDomain, String sharedRoleTenantDomain)
-            throws IdentityRoleManagementException;
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("addMainRoleToSharedRoleRelationship method is not implemented");
+    }
 
     /**
      * Get role list of user.
