@@ -108,21 +108,7 @@ public final class DebugResultCache {
                     LOG.debug("Debug result found in DB.");
                 }
 
-                String resultJson = data.getResultJson();
-
-                // Delete the session record after successful retrieval.
-                try {
-                    DAO.deleteDebugSession(normalizedState);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Successfully deleted debug session record after retrieval: " + normalizedState);
-                    }
-                } catch (Exception deleteException) {
-                    // Log but don't fail the retrieval if deletion fails.
-                    LOG.error("Failed to delete debug session record after retrieval: " + normalizedState,
-                            deleteException);
-                }
-
-                return resultJson;
+                return data.getResultJson();
             } else {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("No debug result found in DB.");

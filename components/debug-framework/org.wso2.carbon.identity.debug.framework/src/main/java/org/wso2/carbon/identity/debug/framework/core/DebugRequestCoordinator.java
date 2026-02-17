@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugService;
+import org.wso2.carbon.identity.debug.framework.cache.DebugResultCache;
 import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
@@ -47,8 +48,10 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Routes incoming authentication requests to appropriate handlers.
  * Handles two main flows:
- * Generic debug requests (POST /api/server/v1/debug) - routes based on resourceType.
- * OAuth callback requests (/commonauth) - routes to protocol-specific DebugProcessor.
+ * Generic debug requests (POST /api/server/v1/debug) - routes based on
+ * resourceType.
+ * OAuth callback requests (/commonauth) - routes to protocol-specific
+ * DebugProcessor.
  */
 public class DebugRequestCoordinator implements DebugService {
 
@@ -107,7 +110,8 @@ public class DebugRequestCoordinator implements DebugService {
     /**
      * Handles debug requests for any resource type using typed classes.
      * This is the preferred method with type safety.
-     * The resourceId is optional and may be null for resource types that don't require it.
+     * The resourceId is optional and may be null for resource types that don't
+     * require it.
      *
      * @param debugRequest The debug request with resource information.
      * @return DebugResponse containing debug result data.
@@ -129,8 +133,8 @@ public class DebugRequestCoordinator implements DebugService {
             }
 
             // Pre-execute listeners.
-            for (DebugExecutionListener listener :
-                    DebugFrameworkServiceDataHolder.getInstance().getDebugExecutionListeners()) {
+            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                    .getDebugExecutionListeners()) {
                 if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
                     return DebugResponse.error("Debug request aborted by listener.");
                 }
@@ -152,8 +156,8 @@ public class DebugRequestCoordinator implements DebugService {
             DebugResponse debugResponse = DebugResponse.success(result);
 
             // Post-execute listeners.
-            for (DebugExecutionListener listener :
-                    DebugFrameworkServiceDataHolder.getInstance().getDebugExecutionListeners()) {
+            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                    .getDebugExecutionListeners()) {
                 if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
                     return DebugResponse.error("Debug request aborted by post-execute listener.");
                 }
@@ -164,6 +168,75 @@ public class DebugRequestCoordinator implements DebugService {
         } catch (Exception e) {
             LOG.error("Error in debug request orchestration.", e);
             return DebugResponse.error("Error processing debug request.");
+        }
+    }
+
+    /**
+     * Retrieves the debug result for the given session ID, invoking listeners.
+     * This ensures that post-execution listeners (like cleanup) are executed.
+     *
+     * @param sessionId The session ID to retrieve.
+     * @return The debug result JSON string.
+     */
+    public String getDebugResult(String sessionId) {
+
+        if (sessionId == null) {
+            return null;
+        }
+
+        // Create a minimal request context for the listeners.
+        // We set the resource ID to the session ID so listeners can identify the target.
+        DebugRequest debugRequest = new DebugRequest();
+        debugRequest.setResourceId(sessionId);
+        debugRequest.setResourceType("DEBUG_RESULT_RETRIEVAL"); // Context marker
+
+        try {
+            // Pre-execute Listeners
+            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                    .getDebugExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Debug result retrieval aborted by pre-execute listener: "
+                                + listener.getClass().getName());
+                    }
+                    return null;
+                }
+            }
+
+            // Execution: Get from cache (Pure Read)
+            String resultJson = DebugResultCache.get(sessionId);
+
+            // Create response object for listeners
+            DebugResponse debugResponse;
+            if (resultJson != null) {
+                // Success Scenario
+                Map<String, Object> data = new HashMap<>();
+                data.put("result", resultJson);
+                debugResponse = DebugResponse.success(data);
+            } else {
+                // Failure Scenario - Data not found
+                debugResponse = DebugResponse.error("Result not found for session: " + sessionId);
+            }
+
+            // Post-Execute Listeners.
+            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                    .getDebugExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Debug result post-processing aborted by post-execute listener: "
+                                + listener.getClass().getName());
+                    }
+                    // We continue even if aborted, as we already have the result,
+                    // but subsequent listeners won't run.
+                    break;
+                }
+            }
+
+            return resultJson;
+
+        } catch (Exception e) {
+            LOG.error("Error retrieving debug result via coordinator for session: " + sessionId, e);
+            return null;
         }
     }
 
@@ -421,7 +494,7 @@ public class DebugRequestCoordinator implements DebugService {
     }
 
     private Map<String, Object> convertDebugResultToMap(DebugResult result) {
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("successful", result.isSuccessful());
         response.put("resultId", result.getResultId());
