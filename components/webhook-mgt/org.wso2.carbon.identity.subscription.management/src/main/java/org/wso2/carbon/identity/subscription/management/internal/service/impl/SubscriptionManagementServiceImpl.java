@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.subscription.management.internal.service.impl;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.subscription.management.api.exception.SubscriptionManagementException;
 import org.wso2.carbon.identity.subscription.management.api.model.Subscription;
 import org.wso2.carbon.identity.subscription.management.api.model.WebhookSubscriptionRequest;
@@ -34,6 +35,14 @@ import java.util.List;
  * Implementation of the SubscriptionManagementService interface.
  * This class provides implementation for subscription management operations.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.subscription.management.api.service." +
+                        "SubscriptionManagementService",
+                "service.scope=singleton"
+        }
+)
 public class SubscriptionManagementServiceImpl implements SubscriptionManagementService {
 
     private static final SubscriptionManagementServiceImpl subscriptionManagementServiceImpl =

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>template-mgt</artifactId>
-        <version>7.8.651-SNAPSHOT</version>
+        <version>7.10.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -47,7 +47,7 @@
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.http,
-                            javax.activation; version="${javax.activation.import.pkg.version}",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.ui.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
@@ -84,7 +84,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>

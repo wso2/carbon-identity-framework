@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -296,6 +295,15 @@ public class CacheBackedActionManagementServiceTest {
                 mockedActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
+    /**
+     * Set a final field using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @param target    The target object.
+     * @param fieldName The field name.
+     * @param value     The value to set.
+     * @throws Exception If an error occurs.
+     */
     private void setFinalField(Object target, String fieldName, Object value) throws Exception {
 
         Field field;
@@ -307,10 +315,13 @@ public class CacheBackedActionManagementServiceTest {
 
         field.setAccessible(true);
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        // Use Unsafe to modify static final fields in Java 12+
+        Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
 
-        field.set(target, value);
+        Object fieldBase = unsafe.staticFieldBase(field);
+        long fieldOffset = unsafe.staticFieldOffset(field);
+        unsafe.putObject(fieldBase, fieldOffset, value);
     }
 }

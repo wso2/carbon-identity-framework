@@ -20,6 +20,7 @@ package org.wso2.carbon.user.mgt;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.mgt.common.model.Permission;
@@ -33,6 +34,13 @@ import java.util.List;
 /**
  * OSGi service for Permission Management of a role.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.user.mgt.RolePermissionManagementService",
+                "service.scope=singleton"
+        }
+)
 public class RolePermissionManagementServiceImpl implements RolePermissionManagementService {
 
     private static final Log log = LogFactory.getLog(RolePermissionManagementServiceImpl.class);

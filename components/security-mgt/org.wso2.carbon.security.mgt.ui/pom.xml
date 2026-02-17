@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>security-mgt</artifactId>
-        <version>7.8.651-SNAPSHOT</version>
+        <version>7.10.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -75,14 +75,13 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
-                            javax.activation; version="[0.0.0,0.1.0)",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.fileupload.*; version="${commons-fileupload.imp.pkg.version.range}",

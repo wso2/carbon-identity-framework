@@ -271,6 +271,8 @@ public class IdentityConstants {
         public static final String ACCEPT_OPENID_LOGIN = "SSOService.AcceptOpenIDLogin";
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
         public static final String SAML2_ARTIFACT_VALIDITY_PERIOD = "SSOService.SAML2ArtifactValidityPeriodInMinutes";
+        public static final String SAML2_ARTIFACT_DOUBLE_ENCODING_DISABLED =
+                "SSOService.SAML2ArtifactDoubleEncodingDisabled";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
         public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
@@ -299,6 +301,9 @@ public class IdentityConstants {
         public static final String REMEMBER_ME_TIME_OUT = "TimeConfig.RememberMeTimeout";
         public static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH =
                 "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
+
+        public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
+                "PasswordUpdate.PreserveLoggedInSession";
 
         public static final String CLEAN_UP_PERIOD = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpPeriod";
         public static final String CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpTimeout";

@@ -23,6 +23,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -64,6 +65,14 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 /**
  * This PostAuthentication Handler is responsible for handling the association of user accounts with local users.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
+                        "PostAuthenticationHandler",
+                "service.scope=singleton"
+        }
+)
 public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthAssociationHandler.class);

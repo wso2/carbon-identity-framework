@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -55,6 +55,7 @@ public class IdPManagementConstants {
     public static final String NAME = "NAME";
     public static final String TRUSTED_TOKEN_ISSUER_NAME = "IDP.NAME";
     public static final String IDP_NAME = "name";
+    public static final String APP_NAME = "name";
     public static final String DESCRIPTION = "DESCRIPTION";
     public static final String IDP_DESCRIPTION = "description";
     public static final String IDP_UUID = "id";
@@ -132,6 +133,10 @@ public class IdPManagementConstants {
     public static final String EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY = "OnlyNumericCharactersForOtp";
     public static final String EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY = "AlphanumericCharactersForOtp";
 
+    public static class ApplicationTableColumns {
+        public static final String APP_NAME = "APP_NAME";
+    }
+
     // Resident IDP Password Recovery Configs
     public static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY
             = "Recovery.Notification.Password.Enable";
@@ -162,7 +167,8 @@ public class IdPManagementConstants {
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
 
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATORS = List.of(
-            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME,
+            IdentityApplicationConstants.Authenticator.OIDC.NAME);
 
     // Constants related to inheriting login & registration configurations.
     public static final String PASSWORD_EXPIRY_RULES_KEY_PREFIX = "passwordExpiry.rule";
@@ -170,7 +176,8 @@ public class IdPManagementConstants {
     public static final List<String> INHERITED_FEDERATED_AUTHENTICATOR_PROPERTIES = List.of(
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED,
             IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD,
-            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
+            IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED,
+            IdentityApplicationConstants.Authenticator.OIDC.ENABLE_JWT_SCOPE_AS_ARRAY);
 
     public static final List<String> INHERITANCE_DISABLED_GOVERNANCE_PROPERTIES = List.of(
             "Organization.SelfService.Enable",
@@ -524,7 +531,7 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME, " +
+                "idp.DISPLAY_NAME, idp.UUID, " +
                 "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
@@ -537,7 +544,7 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME, " +
+                "idp.DISPLAY_NAME, idp.UUID, " +
                 "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
@@ -568,6 +575,13 @@ public class IdPManagementConstants {
                 "JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID = (SELECT " +
                 "TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = (SELECT NAME FROM IDP WHERE IDP.UUID = ?)) " +
                 "LIMIT ?,?;";
+        public static final String GET_CONNECTED_APPS_MYSQL_WITH_FILTER = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE %sAUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER " +
+                "JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE %sSP_APP.TENANT_ID = (SELECT " +
+                "TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = (SELECT NAME FROM IDP WHERE IDP.UUID = ?)) " +
+                "LIMIT ?,?;";
         public static final String GET_CONNECTED_APPS_ORACLE = "SELECT UUID FROM (SELECT UUID, ROWNUM AS RNUM FROM ( " +
                 "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN SP_FEDERATED_IDP ON SP_AUTH_STEP.ID = SP_FEDERATED_IDP.ID)" +
                 " INNER JOIN SP_APP ON SP_AUTH_STEP.APP_ID = SP_APP.ID WHERE AUTHENTICATOR_ID IN ( SELECT ID FROM " +
@@ -576,12 +590,28 @@ public class IdPManagementConstants {
                 " SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID = " +
                 "(SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = " +
                 "(SELECT NAME FROM IDP WHERE IDP.UUID = ?)))) WHERE ROWNUM <= ?) WHERE RNUM > ?";
+        public static final String GET_CONNECTED_APPS_ORACLE_WITH_FILTER = "SELECT UUID FROM (SELECT UUID, ROWNUM AS RNUM FROM ( " +
+                "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN SP_FEDERATED_IDP ON SP_AUTH_STEP.ID = SP_FEDERATED_IDP.ID)" +
+                " INNER JOIN SP_APP ON SP_AUTH_STEP.APP_ID = SP_APP.ID WHERE %sAUTHENTICATOR_ID IN ( SELECT ID FROM " +
+                "IDP_AUTHENTICATOR WHERE IDP_ID = ( SELECT ID FROM IDP WHERE UUID = ?)) UNION (SELECT SP_APP.UUID " +
+                "FROM SP_PROVISIONING_CONNECTOR INNER JOIN SP_APP ON " +
+                " SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE %sSP_APP.TENANT_ID = " +
+                "(SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = " +
+                "(SELECT NAME FROM IDP WHERE IDP.UUID = ?)) )) WHERE ROWNUM <= ?) WHERE RNUM > ?";
         public static final String GET_CONNECTED_APPS_MSSQL = "(SELECT UUID, SP_APP.ID FROM SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
                 " ID FROM IDP WHERE UUID = ?))) UNION (SELECT SP_APP.UUID, SP_APP.ID FROM SP_PROVISIONING_CONNECTOR " +
                 "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID " +
                 "WHERE SP_APP.TENANT_ID = (SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? " +
+                "AND IDP_NAME = (SELECT NAME FROM IDP WHERE IDP.UUID = ?))) " +
+                "ORDER BY SP_APP.ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        public static final String GET_CONNECTED_APPS_MSSQL_WITH_FILTER = "(SELECT UUID, SP_APP.ID FROM SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE %sAUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?))) UNION (SELECT SP_APP.UUID, SP_APP.ID FROM SP_PROVISIONING_CONNECTOR " +
+                "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID " +
+                "WHERE %sSP_APP.TENANT_ID = (SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? " +
                 "AND IDP_NAME = (SELECT NAME FROM IDP WHERE IDP.UUID = ?))) " +
                 "ORDER BY SP_APP.ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         public static final String GET_CONNECTED_APPS_POSTGRESSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
@@ -591,6 +621,13 @@ public class IdPManagementConstants {
                 "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID = " +
                 "(SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = " +
                 "(SELECT NAME FROM IDP WHERE IDP.UUID = ?))) LIMIT ? OFFSET ?";
+        public static final String GET_CONNECTED_APPS_POSTGRESSQL_WITH_FILTER = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE %sAUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) UNION (SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR " +
+                "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE %sSP_APP.TENANT_ID = " +
+                "(SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = " +
+                "(SELECT NAME FROM IDP WHERE IDP.UUID = ?))) LIMIT ? OFFSET ?";
         public static final String GET_CONNECTED_APPS_DB2SQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
@@ -598,9 +635,20 @@ public class IdPManagementConstants {
                 "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID = " +
                 "(SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = " +
                 "(SELECT NAME FROM IDP WHERE IDP.UUID = ?))) LIMIT ? OFFSET ?";
+        public static final String GET_CONNECTED_APPS_DB2SQL_WITH_FILTER = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE %sAUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) UNION (SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR " +
+                "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE %sSP_APP.TENANT_ID = " +
+                "(SELECT TENANT_ID FROM IDP WHERE IDP.UUID = ? AND IDP_NAME = " +
+                "(SELECT NAME FROM IDP WHERE IDP.UUID = ?))) LIMIT ? OFFSET ?";
         public static final String GET_CONNECTED_APPS_INFORMIX = "SELECT SKIP ? FIRST ? UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?))";
+        public static final String GET_CONNECTED_APPS_INFORMIX_WITH_FILTER = "SELECT SKIP ? FIRST ? UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE %sAUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
                 " ID FROM IDP WHERE UUID = ?))";
         public static final String GET_CONNECTED_APPS_LOCAL_MYSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON " +
@@ -643,6 +691,12 @@ public class IdPManagementConstants {
                 " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN " +
                 "SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE " +
                 "IDP.UUID = ?) APP";
+        public static final String CONNECTED_APPS_TOTAL_COUNT_SQL_WITH_FILTER = "SELECT COUNT(1) FROM (SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE %sAUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN " +
+                "SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE " +
+                "%sIDP.UUID = ?) APP";
 
         public static final String LOCAL_AUTH_CONNECTED_APPS_TOTAL_COUNT_SQL = "SELECT COUNT(1) " +
                 "FROM (SELECT UUID FROM (SP_AUTH_STEP INNER JOIN SP_FEDERATED_IDP ON " +
@@ -723,7 +777,12 @@ public class IdPManagementConstants {
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
                 " endpoint configuration for authenticator: %s."),
         ERROR_CODE_ADDING_FEDERATED_AUTHENTICATOR("IDP-6501",
-                "An error occurred while validating federated authenticator name."),;
+                "An error occurred while validating federated authenticator name."),
+        ERROR_CODE_INVALID_CONNECTED_APPS_FILTER("IDP-65013", "Invalid filter attribute name. Only " +
+                "'name' attribute is supported for connected apps."),
+        ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION("IDP-65014", "Invalid filter operation. Only " +
+                "'eq' (equal), 'sw' (starts with), 'ew' (ends with) and 'co' (contains) operations are supported for " +
+                "connected apps.");
 
         private final String code;
         private final String message;

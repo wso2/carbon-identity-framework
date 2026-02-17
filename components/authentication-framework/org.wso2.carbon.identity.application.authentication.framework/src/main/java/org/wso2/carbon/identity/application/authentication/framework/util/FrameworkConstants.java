@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -268,7 +268,10 @@ public abstract class FrameworkConstants {
     public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
     public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
     public static final String ERROR_STATUS_APP_DISABLED = "authentication.flow.app.disabled";
+    public static final String ERROR_STATUS_INVALID_AUTHENTICATOR = "authentication.invalid.authenticator";
     public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
+    public static final String ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED = "authentication.api.based.unsupported" +
+            ".authenticator";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
