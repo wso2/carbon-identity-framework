@@ -388,7 +388,7 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
-     * Add shared role to main role relationship.
+     * Add main role to shared role relationship.
      *
      * @param mainRoleID           Main role ID.
      * @param sharedRoleID         Shared role ID.
