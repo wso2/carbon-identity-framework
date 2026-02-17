@@ -3010,7 +3010,6 @@
 				<DisplayName>Failed Push Authentication Attempts</DisplayName>
 				<AttributeID>failedPushAuthAttempts</AttributeID>
 				<Description>Number of failed Push Authentication attempts</Description>
-				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedPushAuthAttempts</MappedLocalClaim>
