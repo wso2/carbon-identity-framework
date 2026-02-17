@@ -3673,6 +3673,9 @@ public class IdPManagementDAO {
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
+                } else if (IdPManagementConstants.SYNC_IDP_GROUP_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setIdpGroupSyncMethod(identityProviderProperty.getValue());
                 }
             });
             populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
@@ -3714,6 +3717,8 @@ public class IdPManagementDAO {
                         IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE
                                         .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_IDP_GROUP_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
@@ -4560,6 +4565,10 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
         }
 
+        IdentityProviderProperty idpGroupSyncMethod = new IdentityProviderProperty();
+        idpGroupSyncMethod.setName(IdPManagementConstants.SYNC_IDP_GROUP_METHOD);
+        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_IDP_GROUP);
+
         if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
@@ -4571,6 +4580,7 @@ public class IdPManagementDAO {
             fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, primaryAccountLookupAttributeMapping,
                     secondaryAccountLookupAttributeMapping);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
+            idpGroupSyncMethod.setValue(justInTimeProvisioningConfig.getIdpGroupSyncMethod());
         }
 
         if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
@@ -4588,6 +4598,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(primaryAccountLookupAttributeMapping);
         identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
+        identityProviderProperties.add(idpGroupSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {
             identityProviderProperties.add(lookupAttribute);
@@ -5190,6 +5201,7 @@ public class IdPManagementDAO {
                 IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_IDP_GROUP_METHOD.equals(idpProperty.getName()) ||
                 IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());
     }
