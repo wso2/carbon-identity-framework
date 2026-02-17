@@ -805,8 +805,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreAddMainRoleToSharedRoleRelationshipWithException(mainRoleUUID,
                 sharedRoleUUID, mainRoleTenantDomain, sharedRoleTenantDomain);
-        roleDAO.addMainRoleToSharedRoleRelationship(mainRoleUUID, sharedRoleUUID, mainRoleTenantDomain,
-                sharedRoleTenantDomain);
+
+        RoleBasicInfo mainRoleBasicInfo = getRoleBasicInfoById(mainRoleUUID, mainRoleTenantDomain);
+        RoleBasicInfo sharedRoleBasicInfo = getRoleBasicInfoById(sharedRoleUUID, sharedRoleTenantDomain);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRoleBasicInfo.getRoleId(), sharedRoleBasicInfo.getRoleId(),
+                sharedRoleBasicInfo.getName(), mainRoleTenantDomain, sharedRoleTenantDomain);
         roleManagementEventPublisherProxy.publishPostAddMainRoleToSharedRoleRelationship(mainRoleUUID, sharedRoleUUID,
                 mainRoleTenantDomain, sharedRoleTenantDomain);
     }
