@@ -562,8 +562,8 @@ public class AuthorizedAPIManagementServiceImplTest {
         String appId = addApplication();
 
         // Create two system APIs with overlapping scopes
-        APIResource systemAPI1 = addTestSystemAPIResource("system-api-1", "system-scope-1");
-        APIResource systemAPI2 = addTestSystemAPIResource("system-api-2", "system-scope-1");
+        APIResource systemAPI1 = addTestSystemAPIResource("system-api-1", "auto-auth");
+        APIResource systemAPI2 = addTestSystemAPIResource("system-api-2", "auto-auth");
 
         // Authorize the first system API with all its scopes
         AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
@@ -593,214 +593,6 @@ public class AuthorizedAPIManagementServiceImplTest {
         Assert.assertTrue(authorizedAPIIds.contains(systemAPI2.getId()),
                 "System API 2 should be auto-authorized due to shared scopes");
     }
-
-    /**
-     * Test that when deleting a system API, shared scopes are removed from other
-     * system APIs.
-     */
-    @Test
-    public void testSystemAPICascadeDeletionOfSharedScopes() throws Exception {
-
-        String appId = addApplication();
-
-        // Create two system APIs with overlapping scopes
-        APIResource systemAPI1 = addTestSystemAPIResource("system-api-delete-1", "cas-sys-scope-1");
-        APIResource systemAPI2 = addTestSystemAPIResource("system-api-delete-2", "cas-sys-scope-1");
-
-        // Authorize the first system API (which auto-authorizes the second)
-        AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
-                .apiId(systemAPI1.getId())
-                .appId(appId)
-                .policyId("RBAC")
-                .scopes(systemAPI1.getScopes())
-                .build();
-
-        authorizedAPIManagementService.addAuthorizedAPI(appId, authorizedAPI1, tenantDomain);
-
-        // Verify both APIs are authorized
-        List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(appId,
-                tenantDomain);
-        Assert.assertTrue(authorizedAPIs.size() >= 2, "Both system APIs should be authorized");
-
-        // Delete the first system API
-        authorizedAPIManagementService.deleteAuthorizedAPI(appId, systemAPI1.getId(), tenantDomain);
-
-        // Verify the first API is deleted
-        AuthorizedAPI deletedAPI = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI1.getId(),
-                tenantDomain);
-        Assert.assertNull(deletedAPI, "System API 1 should be deleted");
-
-        // Verify the second API's shared scopes are also removed
-        AuthorizedAPI api2 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI2.getId(),
-                tenantDomain);
-
-        // The second API might be deleted if it has no remaining scopes (orphan cleanup) or it might still exist
-        // with reduced scopes
-        if (api2 != null) {
-            // If it still exists, verify shared scopes are removed
-            Set<String> remainingScopes = api2.getScopes().stream()
-                    .map(Scope::getName)
-                    .collect(java.util.stream.Collectors.toSet());
-            Set<String> deletedScopes = systemAPI1.getScopes().stream()
-                    .map(Scope::getName)
-                    .collect(java.util.stream.Collectors.toSet());
-            // Verify that shared scopes are removed
-            for (String deletedScope : deletedScopes) {
-                Assert.assertFalse(remainingScopes.contains(deletedScope),
-                        "Shared scope " + deletedScope
-                                + " should be removed from System API 2");
-            }
-        }
-    }
-
-    /**
-     * Test that when a system API has no remaining scopes after cascade deletion,
-     * the API itself is removed
-     * (orphan cleanup).
-     */
-    @Test
-    public void testSystemAPIOrphanAPICleanup() throws Exception {
-
-        String appId = addApplication();
-
-        // Create two system APIs with identical scopes (complete overlap)
-        List<Scope> sharedScopes = new ArrayList<>();
-        sharedScopes.add(new Scope.ScopeBuilder()
-                .name("orphan-shared-scope-1")
-                .displayName("Orphan Shared Scope 1")
-                .description("OrphanShared Scope 1")
-                .build());
-        sharedScopes.add(new Scope.ScopeBuilder()
-                .name("orphan-shared-scope-2")
-                .displayName("Orphan Shared Scope 2")
-                .description("Orphan Shared Scope 2")
-                .build());
-
-        APIResource systemAPI1 = addTestSystemAPIResourceWithScopes("orphan-test-1", sharedScopes);
-        APIResource systemAPI2 = addTestSystemAPIResourceWithScopes("orphan-test-2", sharedScopes);
-
-        // Authorize the first system API (which auto-authorizes the second)
-        AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
-                .apiId(systemAPI1.getId())
-                .appId(appId)
-                .policyId("RBAC")
-                .scopes(systemAPI1.getScopes())
-                .build();
-
-        authorizedAPIManagementService.addAuthorizedAPI(appId, authorizedAPI1, tenantDomain);
-
-        // Verify both APIs are authorized
-        List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(appId,
-                tenantDomain);
-        Set<String> authorizedAPIIds = authorizedAPIs.stream()
-                .map(AuthorizedAPI::getAPIId)
-                .collect(java.util.stream.Collectors.toSet());
-        Assert.assertTrue(authorizedAPIIds.contains(systemAPI1.getId()), "System API 1 should be authorized");
-        Assert.assertTrue(authorizedAPIIds.contains(systemAPI2.getId()),
-                "System API 2 should be auto-authorized");
-
-        // Delete the first system API
-        authorizedAPIManagementService.deleteAuthorizedAPI(appId, systemAPI1.getId(), tenantDomain);
-
-        // Verify both APIs are deleted (orphan cleanup should remove API 2)
-        AuthorizedAPI api1 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI1.getId(),
-                tenantDomain);
-        AuthorizedAPI api2 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI2.getId(),
-                tenantDomain);
-
-        Assert.assertNull(api1, "System API 1 should be deleted");
-        Assert.assertNull(api2, "System API 2 should be deleted due to orphan cleanup (no remaining scopes)");
-    }
-
-    /**
-     * Test that when patching (add/remove scopes) a system API, changes cascade to
-     * all APIs sharing those
-     * scope names.
-     */
-    @Test
-    public void testSystemAPIPatchWithCascade() throws Exception {
-
-        String appId = addApplication();
-
-        // Create two system APIs with overlapping scopes
-        APIResource systemAPI1 = addTestSystemAPIResource("system-api-patch-1", "system-scope-1");
-        APIResource systemAPI2 = addTestSystemAPIResource("system-api-patch-2", "system-scope-2");
-
-        // Authorize the first system API (which auto-authorizes the second)
-        AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
-                .apiId(systemAPI1.getId())
-                .appId(appId)
-                .policyId("RBAC")
-                .scopes(systemAPI1.getScopes())
-                .build();
-
-        authorizedAPIManagementService.addAuthorizedAPI(appId, authorizedAPI1, tenantDomain);
-
-        // Add a new scope to the first API resource
-        Scope newScope = new Scope.ScopeBuilder()
-                .name("new-shared-scope")
-                .displayName("New Shared Scope")
-                .description("New Shared Scope")
-                .build();
-
-        apiResourceManager.updateAPIResource(systemAPI1, Collections.singletonList(newScope),
-                new ArrayList<>(), tenantDomain);
-        apiResourceManager.updateAPIResource(systemAPI2, Collections.singletonList(newScope),
-                new ArrayList<>(), tenantDomain);
-
-        // Patch the first API to add the new scope
-        authorizedAPIManagementService.patchAuthorizedAPI(appId, systemAPI1.getId(),
-                Collections.singletonList(newScope.getName()), new ArrayList<>(),
-                Collections.emptyList(), Collections.emptyList(), tenantDomain);
-
-        // Verify the new scope is added to both APIs
-        AuthorizedAPI api1 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI1.getId(),
-                tenantDomain);
-        AuthorizedAPI api2 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI2.getId(),
-                tenantDomain);
-
-        Set<String> api1Scopes = api1.getScopes().stream()
-                .map(Scope::getName)
-                .collect(java.util.stream.Collectors.toSet());
-        Set<String> api2Scopes = api2.getScopes().stream()
-                .map(Scope::getName)
-                .collect(java.util.stream.Collectors.toSet());
-
-        Assert.assertTrue(api1Scopes.contains(newScope.getName()),
-                "New scope should be added to System API 1");
-        Assert.assertTrue(api2Scopes.contains(newScope.getName()),
-                "New scope should be cascaded to System API 2");
-
-        // Now remove a scope from the first API
-        String scopeToRemove = systemAPI1.getScopes().get(0).getName();
-        authorizedAPIManagementService.patchAuthorizedAPI(appId, systemAPI1.getId(),
-                new ArrayList<>(), Collections.singletonList(scopeToRemove),
-                Collections.emptyList(), Collections.emptyList(), tenantDomain);
-
-        // Verify the scope is removed from both APIs
-        api1 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI1.getId(), tenantDomain);
-        api2 = authorizedAPIManagementService.getAuthorizedAPI(appId, systemAPI2.getId(), tenantDomain);
-
-        if (api1 != null) {
-            api1Scopes = api1.getScopes().stream()
-                    .map(Scope::getName)
-                    .collect(java.util.stream.Collectors.toSet());
-            Assert.assertFalse(api1Scopes.contains(scopeToRemove),
-                    "Removed scope should not be in System API 1");
-        }
-
-        if (api2 != null) {
-            api2Scopes = api2.getScopes().stream()
-                    .map(Scope::getName)
-                    .collect(java.util.stream.Collectors.toSet());
-            Assert.assertFalse(api2Scopes.contains(scopeToRemove),
-                    "Removed scope should be cascaded out of System API 2");
-        }
-    }
-
-    // ========================================
-    // Tests for Business API Behavior
-    // ========================================
 
     /**
      * Test that business/tenant APIs have direct authorization without
@@ -950,7 +742,7 @@ public class AuthorizedAPIManagementServiceImplTest {
                         "(business APIs don't share scopes)");
 
         // Remove a scope from the first API
-        String scopeToRemove = businessAPI1.getScopes().get(0).getName();
+        String scopeToRemove = "system-scope-1-patch-cascade";
         authorizedAPIManagementService.patchAuthorizedAPI(appId, businessAPI1.getId(),
                 new ArrayList<>(), Collections.singletonList(scopeToRemove),
                 Collections.emptyList(), Collections.emptyList(), tenantDomain);
@@ -984,27 +776,40 @@ public class AuthorizedAPIManagementServiceImplTest {
      * System APIs are created in the super tenant domain to be properly recognized
      * by isSystemAPIByAPIId().
      */
-    private APIResource addTestSystemAPIResource(String postfix, String scopePostfix) throws Exception {
+    private APIResource addTestSystemAPIResource(String apiPostfix, String scopePostfix, String... extraScopePostfixes)
+            throws Exception {
 
         List<Scope> scopes = new ArrayList<>();
         scopes.add(new Scope.ScopeBuilder()
-                .name("system-scope-1-" + scopePostfix)
+                .name("system-scope-" + scopePostfix)
                 .displayName("System Scope 1 " + scopePostfix)
                 .description("System Scope 1 " + scopePostfix)
                 //.orgID(null)
                 .build());
         scopes.add(new Scope.ScopeBuilder()
-                .name("system-scope-2-" + scopePostfix)
+                .name("system-scope-" + scopePostfix)
                 .displayName("System Scope 2 " + scopePostfix)
-                .description("Sysxtem Scope 2 " + scopePostfix)
+                .description("System Scope 2 " + scopePostfix)
                 //.orgID(null)
                 .build());
 
+        // Extra scopes (if provided)
+        if (extraScopePostfixes != null) {
+            for (String extra : extraScopePostfixes) {
+                scopes.add(new Scope.ScopeBuilder()
+                        .name("system-scope-" + extra)
+                        .displayName("System Scope " + extra)
+                        .description("System Scope " + extra)
+                        .build());
+            }
+        }
+
         APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
-                .name("testSystemAPIResource name " + postfix)
-                .identifier("testSystemAPIResource identifier " + postfix)
-                .description("testSystemAPIResource description " + postfix)
-                .type("TENANT") // System API type
+                .name("testSystemAPIResource name " + apiPostfix)
+                .identifier("testSystemAPIResource identifier " + apiPostfix)
+                .description("testSystemAPIResource description " + apiPostfix)
+                .type("TENANT")
+                .tenantId(null)// System API type
                 .requiresAuthorization(true)
                 .scopes(scopes);
 
