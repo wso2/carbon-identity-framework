@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014-2025 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -1111,6 +1111,23 @@ public class CacheBackedIdPMgtDAO {
             IdentityProviderManagementException {
 
         return idPManagementFacade.getConnectedApplications(resourceId, limit, offset);
+    }
+
+    /**
+     * Retrieve Identity provider connected applications with filtering support.
+     *
+     * @param resourceId      Resource ID.
+     * @param limit           Limit parameter for pagination.
+     * @param offset          Offset parameter for pagination.
+     * @param expressionNodes Filtering expressions.
+     * @return Connected apps UUIDs.
+     * @throws IdentityProviderManagementException if an error occurs while retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset,
+                                                        List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        return idPManagementFacade.getConnectedApplications(resourceId, limit, offset, expressionNodes);
     }
 
     /**

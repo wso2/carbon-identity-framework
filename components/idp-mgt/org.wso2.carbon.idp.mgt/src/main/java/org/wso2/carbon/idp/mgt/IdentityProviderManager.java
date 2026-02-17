@@ -2199,6 +2199,18 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String filter,
+                                                        String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        limit = validateLimit(limit);
+        offset = validateOffset(offset);
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        return dao.getConnectedApplications(resourceId, limit, offset, expressionNodes);
+    }
+
+    @Override
     public boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
             throws IdentityProviderManagementException {
 
