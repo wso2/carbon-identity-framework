@@ -4482,6 +4482,8 @@ public class IdPManagementDAO {
                 throw new IdentityProviderManagementException(msg);
             }
 
+            identityProvider.setId(createdIDP.getId());
+
             // add provisioning connectors.
             if (identityProvider.getProvisioningConnectorConfigs() != null
                     && identityProvider.getProvisioningConnectorConfigs().length > 0) {
@@ -4490,7 +4492,6 @@ public class IdPManagementDAO {
                         dbConnection, idPId, tenantId);
             }
 
-            identityProvider.setId(createdIDP.getId());
             // Add system federated authenticator secret properties to IDN_SECRET table.
             if (identityProvider.getFederatedAuthenticatorConfigs().length > 0 &&
                     identityProvider.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
