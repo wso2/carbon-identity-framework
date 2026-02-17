@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.action.execution.internal.executor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
@@ -35,31 +38,46 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
  * This class is responsible for executing In-Flow Extension actions during flow execution.
- * It integrates with the ActionExecutorService to call external services and process their responses.
+ * It integrates with the {@link ActionExecutorService} to call external services and process
+ * their responses.
+ *
+ *
+ * <p>Execution lifecycle:</p>
+ * <ol>
+ *   <li>Extract executor metadata: {@code actionId}, {@code expose}, {@code allowedOperations}.</li>
+ *   <li>Build the final expose list </li>
+ *   <li>Build a minimal {@link FlowContext} containing only three entries:
+ *       the full {@link FlowExecutionContext}, the expose list, and the allowed operations
+ *       JSON. The request builder will use these to construct the filtered request.</li>
+ *   <li>Invoke the external service via {@link ActionExecutorService}.</li>
+ *   <li>Map the {@link ActionExecutionStatus} to an {@link ExecutorResponse}.
+ *       Context updates are already applied directly to the {@link FlowExecutionContext}
+ *       by the response processor.</li>
+ * </ol>
  */
 public class InFlowExtensionExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionExecutor.class);
     private static final String EXECUTOR_NAME = "ExtensionExecutor";
-//    private static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
-    protected static final String CORRELATION_ID_KEY = "correlationId";
-    protected static final String FLOW_USER_INPUT_DATA_KEY = "userInputData";
-    protected static final String FLOW_USER_KEY = "flowUser";
-    protected static final String FLOW_PROPERTIES_KEY = "flowProperties";
-    protected static final String FLOW_CONTEXT_UPDATES_KEY = "contextUpdates";
-    protected static final String ACTION_ID_METADATA_KEY = "actionId";
-    protected static final String ALLOWED_OPERATIONS_METADATA_KEY = "allowedOperations";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    private static final TypeReference<List<String>> STRING_LIST_TYPE_REF =
+            new TypeReference<List<String>>() { };
+
+    protected static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
+    protected static final String EXPOSE_KEY = "expose";
     protected static final String ALLOWED_OPERATIONS_KEY = "allowedOperations";
-    protected static final String TENET_DOMAIN_KEY = "tenetDomain";
-    protected static final String APPLICATION_ID_KEY = "applicationId";
-    protected static final String FLOW_TYPE_KEY = "flowType";
-    protected static final String CURRENT_NODE_KEY = "currentNode";
+    protected static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
+    private static final String ACTION_ID_METADATA_KEY = "actionId";
+    private static final String ALLOWED_OPERATIONS_METADATA_KEY = "allowedOperations";
+    private static final String EXPOSE_METADATA_KEY = "expose";
 
     @Override
     public String getName() {
@@ -73,41 +91,43 @@ public class InFlowExtensionExecutor implements Executor {
         ExecutorResponse response = new ExecutorResponse();
 
         try {
-            // Get the action ID from the executor metadata configuration
-            String actionId = getActionIdFromMetadata(context);
+            String actionId = getMetadataValue(context, ACTION_ID_METADATA_KEY);
             if (actionId == null || actionId.isEmpty()) {
                 LOG.warn("No action ID configured for In-Flow Extension executor. Skipping execution.");
                 response.setResult(ExecutorResult.COMPLETE.name());
                 return response;
             }
 
-            LOG.debug("Executing In-Flow Extension action with ID: " + actionId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Executing In-Flow Extension action with ID: " + actionId);
+            }
 
-            // Build the flow context for ActionExecutorService
-            FlowContext flowContext = buildFlowContext(context);  // passing the whole flow execution context as an object for now
+            String exposeJson = getMetadataValue(context, EXPOSE_METADATA_KEY);
+            List<String> expose = buildExposeList(exposeJson);
 
-            // Get the ActionExecutorService
+            FlowContext flowContext = FlowContext.create()
+                    .add(FLOW_EXECUTION_CONTEXT_KEY, context)
+                    .add(EXPOSE_KEY, expose);
+
+            String allowedOpsJson = getMetadataValue(context, ALLOWED_OPERATIONS_METADATA_KEY);
+            if (allowedOpsJson != null) {
+                flowContext.add(ALLOWED_OPERATIONS_KEY, allowedOpsJson);
+            }
+
             ActionExecutorService actionExecutorService = getActionExecutorService();
             if (actionExecutorService == null) {
                 throw new FlowEngineException("ActionExecutorService is not available.");
             }
-
-            // Check if execution is enabled for this action type
             if (!actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)) {
                 LOG.debug("In-Flow Extension action execution is disabled. Skipping.");
                 response.setResult(ExecutorResult.COMPLETE.name());
                 return response;
             }
 
-            // Execute the action
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
-                    ActionType.IN_FLOW_EXTENSION,
-                    actionId,
-                    flowContext,
-                    context.getTenantDomain());
+                    ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
 
-            // Process the result
-            return processExecutionStatus(executionStatus, context);
+            return mapExecutionStatus(executionStatus);
 
         } catch (ActionExecutionException e) {
             LOG.error("Error executing In-Flow Extension action.", e);
@@ -126,50 +146,42 @@ public class InFlowExtensionExecutor implements Executor {
     }
 
     @Override
-    public ExecutorResponse rollback(FlowExecutionContext context) throws FlowEngineException {
+    public ExecutorResponse rollback(FlowExecutionContext context) {
 
-        ExecutorResponse response = new ExecutorResponse();
-        response.setResult(ExecutorResult.COMPLETE.name());
-        return response;
+        return null;
     }
 
     /**
-     * Build the FlowContext for ActionExecutorService from FlowExecutionContext.
+     * Build the effective expose list from executor metadata.
      *
-     * @param context The FlowExecutionContext.
-     * @return The FlowContext for action execution.
+     * @param exposeJson JSON array of string prefixes from metadata.
+     * @return The effective expose list.
      */
-    private FlowContext buildFlowContext(FlowExecutionContext context) {
+    private List<String> buildExposeList(String exposeJson) {
 
-        FlowContext flowContext = FlowContext.create();
-        flowContext.add(CORRELATION_ID_KEY, context.getCorrelationId());
-        flowContext.add(FLOW_USER_KEY, context.getFlowUser());
-        flowContext.add(FLOW_USER_INPUT_DATA_KEY, context.getUserInputData());
-        flowContext.add(FLOW_PROPERTIES_KEY, context.getProperties());
-        flowContext.add(TENET_DOMAIN_KEY, context.getTenantDomain());
-        flowContext.add(APPLICATION_ID_KEY, context.getApplicationId());
-        flowContext.add(FLOW_TYPE_KEY, context.getFlowType());
-        flowContext.add(CURRENT_NODE_KEY, context.getCurrentNode());
-
-        // Add allowed operations from executor metadata
-        String allowedOperationsJson = getAllowedOperationsFromMetadata(context);
-        if (allowedOperationsJson != null) {
-            flowContext.add(ALLOWED_OPERATIONS_KEY, allowedOperationsJson);
+        List<String> expose;
+        if (exposeJson != null && !exposeJson.isEmpty()) {
+            try {
+                expose = new ArrayList<>(OBJECT_MAPPER.readValue(exposeJson, STRING_LIST_TYPE_REF));
+            } catch (JsonProcessingException e) {
+                LOG.error("Failed to parse expose configuration: " + e.getMessage(), e);
+                expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+            }
+        } else {
+            expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
         }
 
-        return flowContext;
+        return Collections.unmodifiableList(expose);
     }
 
     /**
-     * Process the ActionExecutionStatus and map it to ExecutorResponse.
+     * Map the {@link ActionExecutionStatus} to an {@link ExecutorResponse}.
+     * Only performs status translation — context updates are handled by the response processor.
      *
      * @param executionStatus The status returned by ActionExecutorService.
-     * @param context The FlowExecutionContext to update with response data.
-     * @return The ExecutorResponse.
+     * @return The ExecutorResponse for the flow execution engine.
      */
-    @SuppressWarnings("unchecked")
-    private ExecutorResponse processExecutionStatus(ActionExecutionStatus<?> executionStatus,
-                                                    FlowExecutionContext context) {
+    private ExecutorResponse mapExecutionStatus(ActionExecutionStatus<?> executionStatus) {
 
         ExecutorResponse response = new ExecutorResponse();
 
@@ -181,8 +193,6 @@ public class InFlowExtensionExecutor implements Executor {
         switch (executionStatus.getStatus()) {
             case SUCCESS:
                 response.setResult(ExecutorResult.COMPLETE.name());
-                // Extract context updates from response and apply them
-                applyContextUpdates(executionStatus.getResponseContext(), context, response);
                 break;
 
             case FAILED:
@@ -204,7 +214,6 @@ public class InFlowExtensionExecutor implements Executor {
                 break;
 
             case INCOMPLETE:
-                // INCOMPLETE status indicates the flow should wait for external input
                 response.setResult(ExecutorResult.USER_INPUT_REQUIRED.name());
                 break;
 
@@ -216,118 +225,47 @@ public class InFlowExtensionExecutor implements Executor {
         return response;
     }
 
-    /**
-     * Apply context updates from the action response to the FlowExecutionContext.
-     *
-     * @param responseContext The response context from action execution.
-     * @param flowContext The FlowExecutionContext to update.
-     * @param response The ExecutorResponse to populate with context properties.
-     */
-    @SuppressWarnings("unchecked")
-    private void applyContextUpdates(Map<String, Object> responseContext,
-                                     FlowExecutionContext flowContext,
-                                     ExecutorResponse response) {
-
-        if (responseContext == null || responseContext.isEmpty()) {
-            return;
-        }
-
-        // Extract context updates from the response
-        Object contextUpdatesObj = responseContext.get(FLOW_CONTEXT_UPDATES_KEY);
-        if (contextUpdatesObj instanceof Map) {
-            Map<String, Object> contextUpdates = (Map<String, Object>) contextUpdatesObj;
-
-            // Apply updates to FlowExecutionContext properties
-            for (Map.Entry<String, Object> entry : contextUpdates.entrySet()) {
-                flowContext.setProperty(entry.getKey(), entry.getValue());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Applied context update: " + entry.getKey());
-                }
-            }
-
-            // Also set the context properties in the executor response
-            response.setContextProperty(contextUpdates);
-        }
-    }
-
-    /**
-     * Get the ActionExecutorService instance.
-     *
-     * @return The ActionExecutorService.
-     */
     private ActionExecutorService getActionExecutorService() {
 
         return ActionExecutionServiceComponentHolder.getInstance().getActionExecutorService();
     }
 
     /**
-     * Extract the action ID from the executor metadata configuration.
-     * The action ID should be configured in the flow JSON as part of the executor's meta object.
+     * Read a single metadata value from the current node's executor configuration.
      *
-     * @param context The FlowExecutionContext containing the current node configuration.
-     * @return The action ID if configured, null otherwise.
+     * @param context The FlowExecutionContext.
+     * @param key     The metadata key.
+     * @return The value, or {@code null} if not found.
      */
-    private String getActionIdFromMetadata(FlowExecutionContext context) {
-
-        NodeConfig currentNode = context.getCurrentNode();
-        if (currentNode == null) {
-            LOG.debug("Current node is null, cannot extract action ID from metadata.");
-            return null;
-        }
-
-        ExecutorDTO executorConfig = currentNode.getExecutorConfig();
-        if (executorConfig == null) {
-            LOG.debug("Executor config is null, cannot extract action ID from metadata.");
-            return null;
-        }
-
-        Map<String, String> metadata = executorConfig.getMetadata();
-        if (metadata == null || metadata.isEmpty()) {
-            LOG.debug("Executor metadata is null or empty, cannot extract action ID.");
-            return null;
-        }
-
-        return metadata.get(ACTION_ID_METADATA_KEY);
-    }
-
-    /**
-     * Extract the allowed operations configuration from the executor metadata.
-     * The allowed operations should be configured in the flow JSON as part of the executor's meta object.
-     *
-     * @param context The FlowExecutionContext containing the current node configuration.
-     * @return The allowed operations JSON string if configured, null otherwise.
-     */
-    private String getAllowedOperationsFromMetadata(FlowExecutionContext context) {
+    private String getMetadataValue(FlowExecutionContext context, String key) {
 
         NodeConfig currentNode = context.getCurrentNode();
         if (currentNode == null) {
             return null;
         }
-
         ExecutorDTO executorConfig = currentNode.getExecutorConfig();
         if (executorConfig == null) {
             return null;
         }
-
         Map<String, String> metadata = executorConfig.getMetadata();
         if (metadata == null || metadata.isEmpty()) {
             return null;
         }
-
-        return metadata.get(ALLOWED_OPERATIONS_METADATA_KEY);
+        return metadata.get(key);
     }
 
     /**
      * Enum representing the possible results of executor execution.
      * These values must match the expected status values in the flow execution engine.
+     *
      * @see org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus
      */
     public enum ExecutorResult {
-        COMPLETE,           // Executor completed successfully
-        ERROR,              // Server-side error occurred
-        USER_ERROR,         // User-related error (e.g., validation failure)
-        USER_INPUT_REQUIRED,// Additional user input needed
-        EXTERNAL_REDIRECTION,// Redirect to external service
-        RETRY               // Retry the current step
+        COMPLETE,
+        ERROR,
+        USER_ERROR,
+        USER_INPUT_REQUIRED,
+        EXTERNAL_REDIRECTION,
+        RETRY
     }
 }

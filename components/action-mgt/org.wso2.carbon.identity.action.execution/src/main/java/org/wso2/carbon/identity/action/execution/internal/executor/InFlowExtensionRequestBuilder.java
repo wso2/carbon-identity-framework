@@ -24,12 +24,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
-import org.wso2.carbon.identity.action.execution.api.model.*;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
+import org.wso2.carbon.identity.action.execution.api.model.Application;
+import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
+import org.wso2.carbon.identity.action.execution.api.model.Tenant;
+import org.wso2.carbon.identity.action.execution.api.model.User;
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
+import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,17 +47,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * This class is responsible for building the Action Execution Request for In-Flow Extension actions.
- * It converts the FlowExecutionContext into the standard ActionExecutionRequest format.
+ * This class is responsible for building the {@link ActionExecutionRequest} for In-Flow Extension
+ * actions.
+ *
+ * <p><b>Responsibility</b>: expose-based filtering and request construction.
+ * It receives a {@link FlowContext} containing the full {@link FlowExecutionContext}, the expose
+ * list, and the allowed-operations JSON. It filters the {@link FlowExecutionContext} data according
+ * to the expose configuration and maps the result into the {@link InFlowExtensionEvent} model.</p>
  */
 public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuilder {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final TypeReference<List<Map<String, Object>>> OPERATION_LIST_TYPE_REF = 
+    private static final TypeReference<List<Map<String, Object>>> OPERATION_LIST_TYPE_REF =
             new TypeReference<List<Map<String, Object>>>() { };
+
+    /**
+     * Regex pattern to match path type annotations.
+     * Matches a trailing bracket expression at the end of a path:
+     * - "[]" — denotes a string array value.
+     * - "[field1, field2, field3[]]" — denotes a complex object array with a schema.
+     * Group 1 captures the content inside the brackets (empty for simple arrays).
+     */
+    private static final Pattern PATH_ANNOTATION_PATTERN = Pattern.compile("\\[([^\\]]*)]$");
 
     @Override
     public ActionType getSupportedActionType() {
@@ -56,44 +82,52 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
                                                               ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-//        FlowExecutionContext flowExecutionContext = flowContext.getValue(FLOW_EXECUTION_CONTEXT_KEY,
-//                FlowExecutionContext.class);
+        FlowExecutionContext execCtx = flowContext.getValue(
+                InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+        if (execCtx == null) {
+            throw new ActionExecutionRequestBuilderException(
+                    "FlowExecutionContext not found in FlowContext.");
+        }
 
-//        if (flowExecutionContext == null) {
-//            throw new ActionExecutionRequestBuilderException("FlowExecutionContext not found in flow context.");
-//        }
+        List<String> expose = flowContext.getValue(InFlowExtensionExecutor.EXPOSE_KEY, List.class);
+        if (expose == null) {
+            expose = HierarchicalPrefixMatcher.DEFAULT_EXPOSE;
+        }
 
-        InFlowExtensionEvent event = buildEvent(flowContext);
-
-        // Build allowed operations from metadata configuration
-        List<AllowedOperation> allowedOperations = buildAllowedOperations(flowContext);
+        InFlowExtensionEvent event = buildEvent(execCtx, expose);
+        List<AllowedOperation> allowedOperations = buildAllowedOperations(
+                flowContext.getValue(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, String.class),
+                flowContext);
 
         return new ActionExecutionRequest.Builder()
                 .actionType(ActionType.IN_FLOW_EXTENSION)
-                .flowId(flowContext.getValue(InFlowExtensionExecutor.CORRELATION_ID_KEY, String.class))
+                .flowId(execCtx.getCorrelationId())
                 .event(event)
                 .allowedOperations(allowedOperations)
                 .build();
     }
 
     /**
-     * Build allowed operations from the flow context.
-     * Parses the allowedOperations JSON from executor metadata.
+     * Parse the allowed-operations JSON into typed {@link AllowedOperation} objects.
+     * Strips path type annotations (e.g., "[]", "[schema]") from paths before creating
+     * AllowedOperation objects so that {@code OperationComparator} receives clean paths.
+     * The original annotations are stored in the FlowContext under
+     * {@link InFlowExtensionExecutor#PATH_TYPE_ANNOTATIONS_KEY} for the response processor.
      *
-     * @param flowContext The flow context containing allowed operations configuration.
-     * @return List of AllowedOperation objects.
+     * @param allowedOperationsJson The JSON string (maybe null).
+     * @param flowContext           The FlowContext to store path annotations in.
+     * @return List of AllowedOperation objects with clean (annotation-free) paths.
      */
-    private List<AllowedOperation> buildAllowedOperations(FlowContext flowContext) {
-
-        String allowedOperationsJson = flowContext.getValue(
-                InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, String.class);
+    private List<AllowedOperation> buildAllowedOperations(String allowedOperationsJson,
+                                                          FlowContext flowContext) {
 
         if (allowedOperationsJson == null || allowedOperationsJson.isEmpty()) {
-            LOG.debug("No allowed operations configured in executor metadata. Using empty list.");
+            LOG.debug("No allowed operations configured. Using empty list.");
             return Collections.emptyList();
         }
 
@@ -101,33 +135,45 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             List<Map<String, Object>> operationConfigs = objectMapper.readValue(
                     allowedOperationsJson, OPERATION_LIST_TYPE_REF);
 
+            // Map to store path type annotations: cleanPath -> annotation content.
+            // "" means simple string array (from []), non-empty means schema (from [schema]).
+            Map<String, String> pathTypeAnnotations = new HashMap<>();
+
             List<AllowedOperation> allowedOperations = new ArrayList<>();
             for (Map<String, Object> config : operationConfigs) {
-                AllowedOperation operation = createAllowedOperationFromConfig(config);
+                AllowedOperation operation = createAllowedOperationFromConfig(config, pathTypeAnnotations);
                 if (operation != null) {
                     allowedOperations.add(operation);
                 }
             }
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Built " + allowedOperations.size() + " allowed operations from executor metadata.");
+            // Store annotations in FlowContext for the response processor.
+            if (!pathTypeAnnotations.isEmpty()) {
+                flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
             }
 
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Built " + allowedOperations.size() + " allowed operations. " +
+                        "Path annotations: " + pathTypeAnnotations.size());
+            }
             return allowedOperations;
         } catch (JsonProcessingException e) {
-            LOG.error("Failed to parse allowed operations from executor metadata: " + e.getMessage(), e);
+            LOG.error("Failed to parse allowed operations: " + e.getMessage(), e);
             return Collections.emptyList();
         }
     }
 
     /**
      * Create an AllowedOperation from a configuration map.
+     * Strips path type annotations and records them in the annotations map.
      *
-     * @param config The configuration map containing 'op' and 'paths'.
-     * @return AllowedOperation object or null if invalid.
+     * @param config              The raw configuration map from JSON.
+     * @param pathTypeAnnotations Map to record extracted annotations (cleanPath → annotation).
+     * @return The AllowedOperation with clean paths, or null if invalid.
      */
     @SuppressWarnings("unchecked")
-    private AllowedOperation createAllowedOperationFromConfig(Map<String, Object> config) {
+    private AllowedOperation createAllowedOperationFromConfig(Map<String, Object> config,
+                                                              Map<String, String> pathTypeAnnotations) {
 
         String opString = (String) config.get("op");
         Object pathsObj = config.get("paths");
@@ -153,127 +199,201 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             return null;
         }
 
+        // Strip type annotations from paths and record them.
+        List<String> cleanPaths = new ArrayList<>();
+        for (String rawPath : paths) {
+            Matcher matcher = PATH_ANNOTATION_PATTERN.matcher(rawPath);
+            if (matcher.find()) {
+                String cleanPath = rawPath.substring(0, matcher.start());
+                String annotationContent = matcher.group(1); // "" for [], or schema content for [schema]
+                cleanPaths.add(cleanPath);
+                pathTypeAnnotations.put(cleanPath, annotationContent);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Path annotation extracted: " + rawPath + " -> clean: " + cleanPath +
+                            ", annotation: [" + annotationContent + "]");
+                }
+            } else {
+                cleanPaths.add(rawPath);
+            }
+        }
+
         AllowedOperation allowedOperation = new AllowedOperation();
         allowedOperation.setOp(operation);
-        allowedOperation.setPaths(new ArrayList<>(paths));
+        allowedOperation.setPaths(cleanPaths);
         return allowedOperation;
     }
 
     /**
-     * Build the InFlowExtensionEvent from FlowExecutionContext.
+     * Build the {@link InFlowExtensionEvent} from the {@link FlowExecutionContext},
+     * filtering data according to the expose configuration.
      *
-     * @param context The FlowExecutionContext.
+     * @param context The FlowExecutionContext (full source of truth).
+     * @param expose  The expose prefix list controlling which data is included.
      * @return The InFlowExtensionEvent.
      */
-    private InFlowExtensionEvent buildEvent(FlowContext context) {
+    private InFlowExtensionEvent buildEvent(FlowExecutionContext context, List<String> expose) {
 
         InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
 
-        // Set tenant information
-        String tenantDomain = context.getValue(InFlowExtensionExecutor.TENET_DOMAIN_KEY, String.class);
-        if (tenantDomain != null) {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            eventBuilder.tenant(new Tenant(String.valueOf(tenantId), tenantDomain));
-        }
+        // TODO: Consider moving to a dynamic approach if the number of fields grows, to avoid hardcoding each field.
 
-        // Set application information if available
-        String applicationId = context.getValue(InFlowExtensionExecutor.APPLICATION_ID_KEY, String.class);
-        if (applicationId != null) {
-            eventBuilder.application(new Application(applicationId, null));
-        }
-
-        // Set user information from FlowUser
-        FlowUser flowUser = context.getValue(InFlowExtensionExecutor.FLOW_USER_KEY, FlowUser.class);
-        if (flowUser != null) {
-            eventBuilder.user(buildUser(flowUser));
-
-            // Set user store if available
-            String userStoreDomain = flowUser.getUserStoreDomain();
-            if (userStoreDomain != null) {
-                eventBuilder.userStore(new UserStore(userStoreDomain));
+        // Tenant
+        if (isExposed(HierarchicalPrefixMatcher.FLOW_TENANT_PATH, expose)) {
+            String tenantDomain = context.getTenantDomain();
+            if (tenantDomain != null) {
+                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                eventBuilder.tenant(new Tenant(String.valueOf(tenantId), tenantDomain));
             }
         }
 
-        // Set flow-specific information
-        eventBuilder.flowType(context.getValue(InFlowExtensionExecutor.FLOW_TYPE_KEY, String.class));
-
-        // Set current node ID if available
-        NodeConfig currentNode = context.getValue(InFlowExtensionExecutor.CURRENT_NODE_KEY, NodeConfig.class);
-        if (currentNode != null) {
-            eventBuilder.currentNodeId(currentNode.getId());
+        // Application
+        if (isExposed(HierarchicalPrefixMatcher.FLOW_APP_ID_PATH, expose)) {
+            String appId = context.getApplicationId();
+            if (appId != null) {
+                eventBuilder.application(new Application(appId, null));
+            }
         }
 
-        // Set user inputs
-        eventBuilder.userInputs(context.getValue(InFlowExtensionExecutor.FLOW_USER_INPUT_DATA_KEY, Map.class));
+        // User
+        if (isExposed(HierarchicalPrefixMatcher.USER_PREFIX, expose)) {
+            FlowUser flowUser = context.getFlowUser();
+            if (flowUser != null) {
+                eventBuilder.user(buildUser(flowUser, expose));
 
-        // Set flow properties (filtering out sensitive data)
-        eventBuilder.flowProperties(filterFlowProperties(context.getValue(InFlowExtensionExecutor.FLOW_PROPERTIES_KEY, Map.class)));
+                if (isExposed(HierarchicalPrefixMatcher.USER_STORE_DOMAIN_PATH, expose)) {
+                    String userStoreDomain = flowUser.getUserStoreDomain();
+                    if (userStoreDomain != null) {
+                        eventBuilder.userStore(new UserStore(userStoreDomain));
+                    }
+                }
+            }
+        }
+
+        // Flow type
+        if (isExposed(HierarchicalPrefixMatcher.FLOW_TYPE_PATH, expose)) {
+            eventBuilder.flowType(context.getFlowType());
+        }
+
+        // Current node
+        if (isExposed(HierarchicalPrefixMatcher.GRAPH_CURRENT_NODE_PREFIX, expose)) {
+            NodeConfig currentNode = context.getCurrentNode();
+            if (currentNode != null) {
+                eventBuilder.currentNodeId(currentNode.getId());
+            }
+        }
+
+        // User inputs
+        if (isExposed(HierarchicalPrefixMatcher.INPUT_PREFIX, expose)) {
+            Map<String, String> userInputs = context.getUserInputData();
+            if (userInputs != null && !userInputs.isEmpty()) {
+                eventBuilder.userInputs(filterMap(userInputs, HierarchicalPrefixMatcher.INPUT_PREFIX, expose));
+            }
+        }
+
+        // Flow properties
+        if (isExposed(HierarchicalPrefixMatcher.PROPERTIES_PREFIX, expose)) {
+            Map<String, Object> properties = context.getProperties();
+            if (properties != null && !properties.isEmpty()) {
+                eventBuilder.flowProperties(
+                        filterMap(properties, HierarchicalPrefixMatcher.PROPERTIES_PREFIX, expose));
+            }
+        }
 
         return eventBuilder.build();
     }
 
     /**
-     * Build the User model from FlowUser.
+     * Build the {@link User} model from {@link FlowUser}, filtering by expose config.
      *
-     * @param flowUser The FlowUser from flow context.
-     * @return The User model for the event.
+     * @param flowUser The FlowUser from the FlowExecutionContext.
+     * @param expose   The expose prefix list.
+     * @return The filtered User model.
      */
-    private User buildUser(FlowUser flowUser) {
+    private User buildUser(FlowUser flowUser, List<String> expose) {
 
-        User.Builder userBuilder = new User.Builder(flowUser.getUserId());
+        String userId = isExposed(HierarchicalPrefixMatcher.USER_ID_PATH, expose)
+                ? flowUser.getUserId() : null;
+        User.Builder userBuilder = new User.Builder(userId);
 
-        // Convert FlowUser claims to UserClaims
-        Map<String, String> claims = flowUser.getClaims();
-        if (claims != null && !claims.isEmpty()) {
-            List<UserClaim> userClaims = new ArrayList<>();
-            for (Map.Entry<String, String> claim : claims.entrySet()) {
-                userClaims.add(new UserClaim(claim.getKey(), claim.getValue()));
+        if (isExposed(HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX, expose)) {
+            Map<String, String> claims = flowUser.getClaims();
+            if (claims != null && !claims.isEmpty()) {
+                List<UserClaim> userClaims = new ArrayList<>();
+                boolean hasSpecificFilter = hasSpecificSubPathFilter(
+                        expose, HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX);
+
+                for (Map.Entry<String, String> claim : claims.entrySet()) {
+                    if (!hasSpecificFilter || isExposed(
+                            HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX + claim.getKey(), expose)) {
+                        userClaims.add(new UserClaim(claim.getKey(), claim.getValue()));
+                    }
+                }
+                if (!userClaims.isEmpty()) {
+                    userBuilder.claims(userClaims);
+                }
             }
-            userBuilder.claims(userClaims);
+        }
+
+        if (isExposed(HierarchicalPrefixMatcher.USER_CREDENTIALS_PREFIX, expose)) {
+            Map<String, char[]> credentials = flowUser.getUserCredentials();
+            if (credentials != null && !credentials.isEmpty()) {
+
+                userBuilder.userCredentials(new HashMap<>(credentials));
+            }
         }
 
         return userBuilder.build();
     }
 
     /**
-     * Filter flow properties to remove sensitive data before sending to external service.
+     * Filter a map to only include entries whose paths are exposed.
      *
-     * @param properties The original flow properties.
-     * @return Filtered properties map.
+     * @param map        The source map.
+     * @param areaPrefix The area prefix (e.g. "/properties/").
+     * @param expose     The expose prefix list.
+     * @param <T>        The value type.
+     * @return A new map containing only exposed entries.
      */
-    private Map<String, Object> filterFlowProperties(Map<String, Object> properties) {
+    private <T> Map<String, T> filterMap(Map<String, T> map, String areaPrefix, List<String> expose) {
 
-        if (properties == null) {
-            return new HashMap<>();
+        if (map == null) {
+            return null;
         }
 
-        Map<String, Object> filtered = new HashMap<>();
-        for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            String key = entry.getKey();
-            // Filter out sensitive keys
-            if (!isSensitiveKey(key)) {
-                filtered.put(key, entry.getValue());
+        boolean hasSpecificFilter = hasSpecificSubPathFilter(expose, areaPrefix);
+        if (!hasSpecificFilter) {
+            // The entire area is exposed — return a copy.
+            return new HashMap<>(map);
+        }
+
+        Map<String, T> filtered = new HashMap<>();
+        for (Map.Entry<String, T> entry : map.entrySet()) {
+            if (isExposed(areaPrefix + entry.getKey(), expose)) {
+                filtered.put(entry.getKey(), entry.getValue());
             }
         }
         return filtered;
     }
 
     /**
-     * Check if a property key is sensitive and should be filtered out.
-     *
-     * @param key The property key.
-     * @return true if the key is sensitive, false otherwise.
+     * Check if a path is exposed using bidirectional prefix matching.
      */
-    private boolean isSensitiveKey(String key) {
+    private boolean isExposed(String path, List<String> expose) {
 
-        if (key == null) {
-            return false;
+        return HierarchicalPrefixMatcher.matchesAnyExpose(path, expose);
+    }
+
+    /**
+     * Check whether the expose list contains specific sub-paths under a given area prefix,
+     * indicating that per-key filtering is required rather than exposing the entire area.
+     */
+    private boolean hasSpecificSubPathFilter(List<String> expose, String areaPrefix) {
+
+        for (String prefix : expose) {
+            if (prefix.startsWith(areaPrefix) && !prefix.equals(areaPrefix)) {
+                return true;
+            }
         }
-        String lowerKey = key.toLowerCase(Locale.ENGLISH);
-        return lowerKey.contains("password") ||
-                lowerKey.contains("secret") ||
-                lowerKey.contains("credential") ||
-                lowerKey.contains("token") ||
-                lowerKey.contains("key");
+        return false;
     }
 }

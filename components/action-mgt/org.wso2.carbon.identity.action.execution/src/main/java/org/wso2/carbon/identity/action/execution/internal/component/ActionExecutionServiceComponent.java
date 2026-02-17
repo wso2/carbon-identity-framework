@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExe
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionVersioningHandlerFactory;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
@@ -227,5 +228,28 @@ public class ActionExecutionServiceComponent {
         LOG.debug("Unregistering ActionVersioningHandler: " + actionVersionHandler.getClass().getName() +
                 " in the ActionExecutionServiceComponent.");
         ActionVersioningHandlerFactory.unregisterActionVersioningHandler(actionVersionHandler);
+    }
+
+    @Reference(
+            name = "claim.metadata.management.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService"
+    )
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        LOG.debug("Registering a reference for ClaimMetadataManagementService in the ActionExecutionServiceComponent.");
+        ActionExecutionServiceComponentHolder.getInstance()
+                .setClaimMetadataManagementService(claimMetadataManagementService);
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        LOG.debug("Unregistering reference for ClaimMetadataManagementService in the ActionExecutionServiceComponent.");
+        if (ActionExecutionServiceComponentHolder.getInstance().getClaimMetadataManagementService()
+                .equals(claimMetadataManagementService)) {
+            ActionExecutionServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
+        }
     }
 }
