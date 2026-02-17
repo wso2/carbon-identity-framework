@@ -2218,5 +2218,6 @@
   "pastr_cookie.max_age": "-1",
 
   "resolve_tenant_domain_from_username.enabled": false,
-  "authentication.mark_step_completed_on_interrupt": true
+  "authentication.mark_step_completed_on_interrupt": true,
+  "api.filters.single_character_wildcard": "_"
 }

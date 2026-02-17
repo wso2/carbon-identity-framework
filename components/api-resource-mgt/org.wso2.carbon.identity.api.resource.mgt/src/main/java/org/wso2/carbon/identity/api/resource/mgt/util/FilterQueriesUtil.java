@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +36,16 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.function.Function;
+
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.CO;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.EQ;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.EW;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.GE;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.GT;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.LE;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.LT;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.NE;
+import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.SW;
 
 /**
  * FilterQueriesUtil.
@@ -115,48 +126,52 @@ public class FilterQueriesUtil {
 
         if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
                 .isNotBlank(operation)) {
+            // Escape SQL wildcards for operations that use LIKE clause.
+            if (operation.equals(SW) || operation.equals(EW) || operation.equals(CO)) {
+                value = IdentityUtil.processSingleCharWildcard(value);
+            }
             switch (operation) {
-                case APIResourceManagementConstants.EQ: {
+                case EQ: {
                     equalFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.NE: {
+                case NE: {
                     notEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.SW: {
+                case SW: {
                     startWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.EW: {
+                case EW: {
                     endWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.CO: {
+                case CO: {
                     containsFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.GE: {
+                case GE: {
                     greaterThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.LE: {
+                case LE: {
                     lessThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.GT: {
+                case GT: {
                     greaterThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
                 }
-                case APIResourceManagementConstants.LT: {
+                case LT: {
                     lessThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                     ++count;
                     break;
