@@ -3676,6 +3676,9 @@ public class IdPManagementDAO {
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
+                } else if (IdPManagementConstants.SYNC_IDP_GROUP_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setIdpGroupSyncMethod(identityProviderProperty.getValue());
                 }
             });
             populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
@@ -3717,6 +3720,8 @@ public class IdPManagementDAO {
                         IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE
                                         .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_IDP_GROUP_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
@@ -3894,14 +3899,17 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
             int idpId = -1;
             String idPName = "";
+            String idpResourceId = "";
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
 
                 idpId = rs.getInt("ID");
                 idPName = rs.getString("NAME");
+                idpResourceId = rs.getString("UUID");
 
                 federatedIdp.setIdentityProviderName(idPName);
+                federatedIdp.setResourceId(idpResourceId);
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -4060,14 +4068,17 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
             int idpId = -1;
             String idPName = "";
+            String idpResourceId = "";
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
 
                 idpId = rs.getInt("ID");
                 idPName = rs.getString("NAME");
+                idpResourceId = rs.getString("UUID");
 
                 federatedIdp.setIdentityProviderName(idPName);
+                federatedIdp.setResourceId(idpResourceId);
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -4557,6 +4568,10 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
         }
 
+        IdentityProviderProperty idpGroupSyncMethod = new IdentityProviderProperty();
+        idpGroupSyncMethod.setName(IdPManagementConstants.SYNC_IDP_GROUP_METHOD);
+        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_IDP_GROUP);
+
         if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
@@ -4568,6 +4583,7 @@ public class IdPManagementDAO {
             fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, primaryAccountLookupAttributeMapping,
                     secondaryAccountLookupAttributeMapping);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
+            idpGroupSyncMethod.setValue(justInTimeProvisioningConfig.getIdpGroupSyncMethod());
         }
 
         if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
@@ -4585,6 +4601,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(primaryAccountLookupAttributeMapping);
         identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
+        identityProviderProperties.add(idpGroupSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {
             identityProviderProperties.add(lookupAttribute);
@@ -5187,6 +5204,7 @@ public class IdPManagementDAO {
                 IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_IDP_GROUP_METHOD.equals(idpProperty.getName()) ||
                 IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());
     }
@@ -6144,6 +6162,107 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Get the list of applications that are connected to the identity provider from DB with a filter.
+     *
+     * @param resourceId      IDP resource ID.
+     * @param limit           Limit for pagination.
+     * @param offset          Offset for pagination.
+     * @param expressionNodes Filter expression nodes.
+     * @return Connected apps result.
+     * @throws IdentityProviderManagementException If an error occurred while retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset,
+                                                        List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        // If no filter is provided, use the non-filter version.
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            return getConnectedApplications(resourceId, limit, offset);
+        }
+
+        ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
+        List<String> connectedApps = new ArrayList<>();
+        FilterQueryBuilder filterQueryBuilder = getConnectedAppsQueryBuilder(expressionNodes);
+        String filterSQL = filterQueryBuilder.getFilterQuery();
+        String filter = filterQueryBuilder.getFilterAttributeValue().get(1);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = createConnectedAppsSqlStatementWithFilter(connection, resourceId, limit,
+                    offset, filterSQL, filter)) {
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        connectedApps.add(resultSet.getString(IdPManagementConstants.UUID));
+                    }
+                }
+            }
+            String sqlQuery =
+                    String.format(IdPManagementConstants.SQLQueries.CONNECTED_APPS_TOTAL_COUNT_SQL_WITH_FILTER,
+                            filterSQL, filterSQL);
+            try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
+                prepStmt.setString(1, filter);
+                prepStmt.setString(2, resourceId);
+                prepStmt.setString(3, filter);
+                prepStmt.setString(4, resourceId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred during retrieving connected applications of IDP: " + resourceId, e);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, resourceId);
+        }
+        connectedAppsResult.setApps(connectedApps);
+        connectedAppsResult.setLimit(limit);
+        connectedAppsResult.setOffSet(offset);
+        return connectedAppsResult;
+    }
+
+    private FilterQueryBuilder getConnectedAppsQueryBuilder(List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementClientException {
+
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        StringBuilder filter = new StringBuilder();
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+        } else {
+            if (expressionNodes.size() == 1 &&
+                    StringUtils.equals(IdPManagementConstants.APP_NAME, expressionNodes.get(0).getAttributeValue())) {
+                ExpressionNode expressionNode = expressionNodes.get(0);
+                String operation = expressionNode.getOperation();
+                String value = expressionNode.getValue();
+                String attributeName = IdPManagementConstants.ApplicationTableColumns.APP_NAME;
+                if (IdPManagementConstants.EQ.equals(operation)) {
+                    filter.append(attributeName).append(" = ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue(value);
+                } else if (IdPManagementConstants.SW.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue(value + "%");
+                } else if (IdPManagementConstants.EW.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value);
+                } else if (IdPManagementConstants.CO.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
+                } else {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION, null);
+                }
+                if (StringUtils.isBlank(filter.toString())) {
+                    filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+                } else {
+                    filterQueryBuilder.setFilterQuery(filter.toString());
+                }
+            } else {
+                throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_INVALID_CONNECTED_APPS_FILTER, null);
+            }
+        }
+        return filterQueryBuilder;
+    }
+
+    /**
      * Get configured applications for a local authenticator.
      *
      * @param authenticatorId   ID of local authenticator.
@@ -6247,6 +6366,88 @@ public class IdPManagementDAO {
             prepStmt.setInt(1, offset);
             prepStmt.setInt(2, limit);
             prepStmt.setString(3, id);
+        } else {
+            String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
+                    "could not be identified or not supported.";
+            log.error(message);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt;
+    }
+
+    private PreparedStatement createConnectedAppsSqlStatementWithFilter(Connection connection, String id, int limit,
+                                                                        int offset, String filterSQL, String filter)
+            throws SQLException, IdentityProviderManagementServerException {
+
+        String sqlQuery;
+        PreparedStatement prepStmt;
+        String databaseProductName = connection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset);
+            prepStmt.setInt(7, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset + limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset);
+            prepStmt.setInt(7, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL_WITH_FILTER,
+                    filterSQL, filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX_WITH_FILTER,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
         } else {
             String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
                     "could not be identified or not supported.";
