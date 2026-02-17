@@ -2094,8 +2094,8 @@
   "organization.user.invitation.association.wait_time": "5000",
   "organization.userstore.initialization.enabled": false,
   "organization.userstore.initialization.user_stores": "",
-  "organization.userstore.initialization.wait_time": 15000,
-  "organization.userstore.initialization.wait_interval": 500,
+  "organization.userstore.initialization.wait_time": "15000",
+  "organization.userstore.initialization.wait_interval": "500",
   "extension_mgt.extension_types": "applications,connections,identity-verification-providers,notification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
