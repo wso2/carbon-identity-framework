@@ -77,6 +77,9 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                     continue;
                 }
                 for (Property prop : fedAuthConfig.getProperties()) {
+                    if (prop == null) {
+                        continue;
+                    }
                     if (!prop.isConfidential()) {
                         continue;
                     }
@@ -99,6 +102,9 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                     continue;
                 }
                 for (Property prop : provConfig.getProvisioningProperties()) {
+                    if (prop == null) {
+                        continue;
+                    }
                     if (!prop.isConfidential()) {
                         continue;
                     }
@@ -182,6 +188,9 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                 continue;
             }
             for (Property prop : provConfig.getProvisioningProperties()) {
+                if (prop == null) {
+                    continue;
+                }
                 String secretName = buildProvisioningSecretName(clonedIdP.getId(), provConfig.getName(),
                         prop.getName());
                 if (isEncrypt) {
@@ -224,6 +233,9 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                 continue;
             }
             for (Property prop : fedAuthConfig.getProperties()) {
+                if (prop == null) {
+                    continue;
+                }
                 String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
                 if (isEncrypt) {
                     encryptAndSetSecretProperty(prop, secretName);
