@@ -223,9 +223,9 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
 
     /**
      * Build secret name for provisioning connector secrets.
-     * Format: {idpId}:provisioning:{connectorName}:{propertyName}
-     * The "provisioning" distinguisher prevents naming collisions when the same provider
-     * (e.g., Google) is used for both federation and provisioning.
+     * Format: {idpId}:provisioning:{connectorName}:{propertyName}.
+     * The "provisioning" distinguisher prevents naming collisions when the same provider is used.
+     * For example, Google can be used for both federation and provisioning.
      *
      * @param idpId        Identity provider ID.
      * @param connectorName Provisioning connector name (e.g., "scim2", "google", "salesforce").
