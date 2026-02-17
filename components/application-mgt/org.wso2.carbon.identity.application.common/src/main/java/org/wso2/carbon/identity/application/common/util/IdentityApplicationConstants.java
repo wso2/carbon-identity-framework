@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -67,10 +67,13 @@ public class IdentityApplicationConstants {
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
+    public static final String ENABLE_MAXIMUM_SESSION_TIME_OUT = "EnableMaximumSessionTimeout";
+    public static final String MAXIMUM_SESSION_TIME_OUT = "MaximumSessionTimeout";
     public static final String PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE =
             "PreserveCurrentSessionAtPasswordUpdate";
     public static final String SESSION_IDLE_TIME_OUT_DEFAULT = "15";
     public static final String REMEMBER_ME_TIME_OUT_DEFAULT = "20160";
+    public static final String MAXIMUM_SESSION_TIME_OUT_DEFAULT = "43200";
 
     public static final String NAME = "IDPProperties";
     public static final String CLEAN_UP_TIMEOUT = "CleanUpTimeout";

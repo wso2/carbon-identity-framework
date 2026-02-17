@@ -267,7 +267,7 @@ public class WorkflowRequestAssociationDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet rs = null;
         List<WorkflowAssociation> associations = new ArrayList<>();
         String query = SQLConstants.GET_ASSOCIATIONS_FOR_EVENT_QUERY;
         try {
@@ -294,7 +294,7 @@ public class WorkflowRequestAssociationDAO {
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
         }
         return associations;
     }

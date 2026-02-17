@@ -107,6 +107,7 @@ public class IdPManagementConstants {
     public static final String SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING =
             "SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING";
     public static final String SYNC_ATTRIBUTE_METHOD = "SYNC_ATTRIBUTE_METHOD";
+    public static final String SYNC_IDP_GROUP_METHOD = "SYNC_IDP_GROUP_METHOD";
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
@@ -118,6 +119,7 @@ public class IdPManagementConstants {
             "OutboundProvisioning.ConfidentialDataProtectionEnabled";
 
     public static final String DEFAULT_SYNC_ATTRIBUTE = "OVERRIDE_ALL";
+    public static final String DEFAULT_SYNC_IDP_GROUP = "MERGE_WITH_EXISTING";
     public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
     public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";
     public static final String FEDERATED_ASSOCIATION_ENABLED = "FEDERATED_ASSOCIATION_ENABLED";

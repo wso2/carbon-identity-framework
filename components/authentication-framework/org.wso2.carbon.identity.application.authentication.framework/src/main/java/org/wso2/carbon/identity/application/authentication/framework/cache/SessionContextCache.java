@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
@@ -130,7 +131,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
                 log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found.");
             }
             return null;
-        } else if (isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) {
+        } else if ((isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) &&
+                isValidMaximumSessionLifetime(key, cacheEntry)) {
             if (log.isDebugEnabled()) {
                 log.debug("Found a valid session corresponding to the key : " + key.getContextId());
             }
@@ -240,7 +242,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
      */
     public boolean isSessionExpired(SessionContextCacheKey cachekey, SessionContextCacheEntry cacheEntry) {
 
-        if (isValidIdleSession(cachekey, cacheEntry) || isValidRememberMeSession(cachekey, cacheEntry)) {
+        if ((isValidIdleSession(cachekey, cacheEntry) || isValidRememberMeSession(cachekey, cacheEntry)) &&
+                isValidMaximumSessionLifetime(cachekey, cacheEntry)) {
             if (log.isDebugEnabled()) {
                 log.debug("A valid session is available corresponding to the key : " + cachekey.getContextId());
             }
@@ -369,6 +372,68 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         if (currentTime - createdTime > rememberMeSessionTimeOut) {
             if (log.isDebugEnabled()) {
                 log.debug("Context ID : " + contextId + " :: Remember me session expiry");
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check whether the given session context is valid according to maximum session lifetime restrictions.
+     *
+     * @param key        Session context cache key.
+     * @param cacheEntry Session context cache entry.
+     * @return true if the session context is valid as per maximum session lifetime configs; false otherwise.
+     */
+    private boolean isValidMaximumSessionLifetime(SessionContextCacheKey key, SessionContextCacheEntry cacheEntry) {
+
+        // Use for the logging.
+        String contextId = key.getContextId();
+
+        if (cacheEntry == null) {
+            return false;
+        }
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        Optional<Integer> maximumSessionTimeoutInSeconds = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+        if (!maximumSessionTimeoutInSeconds.isPresent()) {
+            // The Maximum session timeout is not set, hence consider the session as valid.
+            return true;
+        }
+        long maximumSessionTimeout = TimeUnit.SECONDS.toNanos(maximumSessionTimeoutInSeconds.get());
+
+        long currentTime = FrameworkUtils.getCurrentStandardNano();
+        Long createdTime = null;
+
+        if (cacheEntry.getContext() != null) {
+            Object createdTimestampObj = cacheEntry.getContext().getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+            if (createdTimestampObj != null) {
+                createdTime = (Long) createdTimestampObj;
+            }
+        } else {
+            return false;
+        }
+
+        if (createdTime == null) {
+            // If created time is not available, expire the session immediately.
+            // Possibility of occurring this scenario is very low as the created time is added to the session context.
+            // Therefore, printing an error log to highlight the issue and consider the session as invalid.
+            log.error("Created time is not available in the session context cache entry for context ID. " +
+                    "Hence maximum session lifetime restrictions cannot be validated.");
+            return false;
+        }
+
+        createdTime = TimeUnit.MILLISECONDS.toNanos(createdTime);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Context ID : " + contextId + " :: maximum session life time : " + maximumSessionTimeout
+                    + ", current time : " + currentTime + ", created time : " + createdTime);
+        }
+
+        if (currentTime - createdTime > maximumSessionTimeout) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session expired due to maximum session lifetime for the context ID : " + contextId);
             }
             return false;
         }

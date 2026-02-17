@@ -116,6 +116,9 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
@@ -1059,8 +1062,10 @@ public class IdPManagementDAO {
         boolean isAdminForcePasswordResetOfflineEnabled = false;
 
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
             rs = prepStmt.executeQuery();
@@ -1126,7 +1131,7 @@ public class IdPManagementDAO {
                     && !isAdminForcePasswordResetSMSOTPEnabled && !isAdminForcePasswordResetOfflineEnabled) {
                 performConfigCorrectionForAdminForcedPasswordResetConfigs(idpProperties);
             }
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
@@ -1148,8 +1153,9 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt = null;
         try {
-            boolean isOracleDB = isOracleDB();
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            boolean isOracleDB = isOracleDB(databaseProductName);
+            String sqlStmt = isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
                     IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
@@ -1171,7 +1177,7 @@ public class IdPManagementDAO {
             }
             prepStmt.executeBatch();
 
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding IDP properties for IDP ID: " + idpId + " and tenant ID:" + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
@@ -3723,6 +3729,9 @@ public class IdPManagementDAO {
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
+                } else if (IdPManagementConstants.SYNC_IDP_GROUP_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setIdpGroupSyncMethod(identityProviderProperty.getValue());
                 }
             });
             populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
@@ -3764,6 +3773,8 @@ public class IdPManagementDAO {
                         IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE
                                         .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_IDP_GROUP_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
@@ -4629,6 +4640,10 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
         }
 
+        IdentityProviderProperty idpGroupSyncMethod = new IdentityProviderProperty();
+        idpGroupSyncMethod.setName(IdPManagementConstants.SYNC_IDP_GROUP_METHOD);
+        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_IDP_GROUP);
+
         if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
@@ -4640,6 +4655,7 @@ public class IdPManagementDAO {
             fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, primaryAccountLookupAttributeMapping,
                     secondaryAccountLookupAttributeMapping);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
+            idpGroupSyncMethod.setValue(justInTimeProvisioningConfig.getIdpGroupSyncMethod());
         }
 
         if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
@@ -4657,6 +4673,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(primaryAccountLookupAttributeMapping);
         identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
+        identityProviderProperties.add(idpGroupSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {
             identityProviderProperties.add(lookupAttribute);
@@ -5266,6 +5283,7 @@ public class IdPManagementDAO {
                 IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_IDP_GROUP_METHOD.equals(idpProperty.getName()) ||
                 IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());
     }
@@ -6652,6 +6670,35 @@ public class IdPManagementDAO {
             propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
         }
 
+        if (propertiesFromConnectors.get(ENABLE_MAXIMUM_SESSION_TIME_OUT) == null) {
+            String enableMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+            if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                    !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+            }
+
+            IdentityProviderProperty enableMaximumSessionTimeOut = new IdentityProviderProperty();
+            enableMaximumSessionTimeOut.setName(ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            enableMaximumSessionTimeOut.setValue(enableMaximumSessionTimeout);
+            propertiesFromConnectors.put(ENABLE_MAXIMUM_SESSION_TIME_OUT, enableMaximumSessionTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(MAXIMUM_SESSION_TIME_OUT) == null) {
+            String configuredMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+            if (StringUtils.isBlank(configuredMaximumSessionTimeout) ||
+                    !StringUtils.isNumeric(configuredMaximumSessionTimeout) ||
+                    Integer.parseInt(configuredMaximumSessionTimeout) <= 0) {
+                configuredMaximumSessionTimeout = MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty maximumSessionTimeOut = new IdentityProviderProperty();
+            maximumSessionTimeOut.setName(MAXIMUM_SESSION_TIME_OUT);
+            maximumSessionTimeOut.setValue(configuredMaximumSessionTimeout);
+            propertiesFromConnectors.put(MAXIMUM_SESSION_TIME_OUT, maximumSessionTimeOut);
+        }
+      
         if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
             String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
                     IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
@@ -6737,8 +6784,10 @@ public class IdPManagementDAO {
             dbConnectionInitialized = false;
         }
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, property);
             prepStmt.setString(2, value);
@@ -6750,7 +6799,7 @@ public class IdPManagementDAO {
                 idPName = rs.getString(1);
             }
             return idPName;
-        } catch (DataAccessException | SQLException e) {
+        } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for IDP metadata property name: " + property + " value: " + value, e);
         } finally {
