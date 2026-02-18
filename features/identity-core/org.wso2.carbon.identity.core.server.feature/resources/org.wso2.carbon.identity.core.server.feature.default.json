@@ -598,6 +598,7 @@
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
   "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
   "outbound_provisioning_management.enable_scim_patch_for_updates": true,
+  "outbound_provisioning_management.confidential_data_protection_enabled": true,
   "outbound_provisioning_management.scim2_client.http_retry_count": "1",
   "outbound_provisioning_management.scim2_client.http_read_timeout": "5000",
   "outbound_provisioning_management.scim2_client.http_connection_timeout": "2000",

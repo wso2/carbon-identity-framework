@@ -1329,6 +1329,7 @@
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
         <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
+        <ConfidentialDataProtectionEnabled>true</ConfidentialDataProtectionEnabled>
         <SCIM2Client>
             <HttpRetryCount>1</HttpRetryCount>
             <HttpReadTimeout>5000</HttpReadTimeout>

@@ -744,4 +744,16 @@ public class IdPManagementUtil {
                     "Enabling more than one ask password set option is not allowed.");
         }
     }
+
+
+    /**
+     * Check if outbound provisioning confidential data protection is enabled.
+     *
+     * @return true if OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED is enabled, false otherwise.
+     */
+    public static boolean isProvisioningConfidentialConfigProtectionEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                IdPManagementConstants.OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED));
+    }
 }

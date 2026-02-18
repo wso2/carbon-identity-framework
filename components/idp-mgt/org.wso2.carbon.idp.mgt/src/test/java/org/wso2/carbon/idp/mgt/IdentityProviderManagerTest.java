@@ -34,13 +34,24 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,8 +66,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @WithCarbonHome
@@ -138,6 +151,231 @@ public class IdentityProviderManagerTest {
                     .anyMatch(p -> JWKS_URI.equals(p.getName()) &&
                             p.getValue().equals(jwtIssuer.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL))));
         }
+    }
+
+    @Test(description = "Test validation passes when provisioning role is blank.")
+    public void testValidateOutboundProvisioningRolesWithBlankRole() throws Exception {
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation passes for existing Internal/ roles.")
+    public void testValidateOutboundProvisioningRolesWithExistingRoles() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN)).thenReturn(true);
+        when(mockRoleManagementService.isExistingRoleName("Internal/everyone", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin,Internal/everyone");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        // Should not throw any exception.
+        verify(mockRoleManagementService).isExistingRoleName("Internal/admin", TENANT_DOMAIN);
+        verify(mockRoleManagementService).isExistingRoleName("Internal/everyone", TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation fails for non-existing Internal/ roles.",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testValidateOutboundProvisioningRolesWithNonExistingRole() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/nonExistent", TENANT_DOMAIN)).thenReturn(false);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/nonExistent");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation passes for existing groups.")
+    public void testValidateOutboundProvisioningRolesWithExistingGroup() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("engineers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("engineers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        // Should not throw any exception.
+        verify(mockUserStoreManager).isGroupExistWithName("engineers");
+    }
+
+    @Test(description = "Test validation fails for non-existing groups.",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testValidateOutboundProvisioningRolesWithNonExistingGroup() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("nonExistentGroup")).thenReturn(false);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("nonExistentGroup");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+    }
+
+    @Test(description = "Test validation passes for mixed roles and groups when all exist.")
+    public void testValidateOutboundProvisioningRolesWithMixedRolesAndGroups() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("engineers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin,engineers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        verify(mockRoleManagementService).isExistingRoleName("Internal/admin", TENANT_DOMAIN);
+        verify(mockUserStoreManager).isGroupExistWithName("engineers");
+    }
+
+    @Test(description = "Test validation fails when role exists but group does not in mixed input.",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testValidateOutboundProvisioningRolesWithMixedExistingRoleAndNonExistingGroup() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("nonExistentGroup")).thenReturn(false);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin,nonExistentGroup");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+    }
+
+    @Test(description = "Test validation passes for domain-qualified group names.")
+    public void testValidateOutboundProvisioningRolesWithDomainQualifiedGroup() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("SECONDARY/engineers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("SECONDARY/engineers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        verify(mockUserStoreManager).isGroupExistWithName("SECONDARY/engineers");
+    }
+
+    @Test(description = "Test Application/ prefixed entries are validated as roles, not groups.")
+    public void testValidateOutboundProvisioningRolesWithApplicationRole() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Application/myAppRole", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Application/myAppRole");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        verify(mockRoleManagementService).isExistingRoleName("Application/myAppRole", TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation wraps IdentityRoleManagementException as server exception.")
+    public void testValidateOutboundProvisioningRolesWithRoleManagementException() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN))
+                .thenThrow(new IdentityRoleManagementException("ROLE-00001", "Test error"));
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin");
+
+        try {
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+            fail("Expected IdentityProviderManagementServerException to be thrown.");
+        } catch (IdentityProviderManagementServerException e) {
+            assertEquals(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES.getCode(), e.getErrorCode());
+        }
+    }
+
+    @Test(description = "Test validation passes for multiple existing groups.")
+    public void testValidateOutboundProvisioningRolesWithMultipleExistingGroups() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("engineers")).thenReturn(true);
+        when(mockUserStoreManager.isGroupExistWithName("managers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("engineers,managers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        verify(mockUserStoreManager).isGroupExistWithName("engineers");
+        verify(mockUserStoreManager).isGroupExistWithName("managers");
+    }
+
+    /**
+     * Invokes the private validateOutboundProvisioningRoles method via reflection.
+     * Unwraps InvocationTargetException to throw the actual cause.
+     */
+    private void invokeValidateOutboundProvisioningRoles(IdentityProvider idp, String tenantDomain) throws Exception {
+
+        Method method = IdentityProviderManager.class.getDeclaredMethod(
+                "validateOutboundProvisioningRoles", IdentityProvider.class, String.class);
+        method.setAccessible(true);
+        try {
+            method.invoke(identityProviderManager, idp, tenantDomain);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof Exception) {
+                throw (Exception) e.getCause();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Sets up the RealmService mock so that IdPManagementServiceComponent.getRealmService() returns a mock chain
+     * leading to the provided userStoreManager.
+     */
+    private void setupRealmService(AbstractUserStoreManager userStoreManager)
+            throws org.wso2.carbon.user.api.UserStoreException {
+
+        RealmService mockRealmService = mock(RealmService.class);
+        UserRealm mockUserRealm = mock(UserRealm.class);
+        RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        when(mockUserRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        when(userStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
+                .thenReturn("PRIMARY");
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(mockRealmService);
     }
 
     /**

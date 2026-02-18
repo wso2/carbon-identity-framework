@@ -112,6 +112,12 @@ public class IdPManagementConstants {
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
+
+    // Outbound Provisioning confidential data protection. When enabled, confidential properties (e.g., credentials).
+    // They are stored in the secret store and are not exposed in API responses.
+    public static final String OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED =
+            "OutboundProvisioning.ConfidentialDataProtectionEnabled";
+
     public static final String DEFAULT_SYNC_ATTRIBUTE = "OVERRIDE_ALL";
     public static final String DEFAULT_SYNC_IDP_GROUP = "MERGE_WITH_EXISTING";
     public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
@@ -121,6 +127,8 @@ public class IdPManagementConstants {
     public static final String DEFAULT_LOOKUP_ATTRIBUTE = "email";
 
     public static final String FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE = "false";
+
+    public static final String ERROR_CODE_GROUP_DOES_NOT_EXIST = "60003";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";
@@ -750,6 +758,8 @@ public class IdPManagementConstants {
         ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s"),
         ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
                 "provisioning roles does not exist"),
+        ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_GROUP("IDP-60015", "One or more outbound " +
+                "provisioning groups does not exist"),
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
         ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
                 "provided authenticator Id %s."),
@@ -784,7 +794,9 @@ public class IdPManagementConstants {
                 "'name' attribute is supported for connected apps."),
         ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION("IDP-65014", "Invalid filter operation. Only " +
                 "'eq' (equal), 'sw' (starts with), 'ew' (ends with) and 'co' (contains) operations are supported for " +
-                "connected apps.");
+                "connected apps."),
+        ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS("IDP-65015", "Error while validating " +
+                "the outbound provisioning groups");
 
         private final String code;
         private final String message;
