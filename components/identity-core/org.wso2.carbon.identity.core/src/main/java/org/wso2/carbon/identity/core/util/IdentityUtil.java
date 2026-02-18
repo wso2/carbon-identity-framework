@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2005-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.core.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
@@ -50,6 +49,7 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.core.util.Utils;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -129,6 +129,8 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_A
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SINGLE_CHARACTER_WILDCARD;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.UNDERSCORE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
@@ -2458,6 +2460,44 @@ public class IdentityUtil {
         JSONObject jsonObject = new JSONObject(map);
         recursivelyConvertToJSONObject(jsonObject);
         return jsonObject;
+    }
+
+    /**
+     * Handles SQL LIKE single-character wildcard based on 'api.filters.single_character_wildcard' configuration.
+     * - If set to "_" (default): underscore acts as a wildcard, no escaping is applied.
+     * - If set to any other single character: that character is used as the wildcard (mapped to "_"),
+     *   and actual underscores are escaped.
+     * - If set to empty string: underscore is escaped to prevent wildcard behavior.
+     * - NOTE: This is not supported for MSSQL, Oracle, and DB2 databases.
+     *
+     * @param value The user input value to process.
+     * @return The processed value with wildcard handling applied.
+     */
+    public static String processSingleCharWildcard(String value) {
+
+        String wildcardChar = getProperty(SINGLE_CHARACTER_WILDCARD);
+        try {
+            if (StringUtils.isBlank(value) || UNDERSCORE.equals(wildcardChar) || JdbcUtils.isOracleDB()
+                    || JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                return value;
+            }
+        } catch (DataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to check database type to process single wildcard property.", e);
+            }
+            return value;
+        }
+        // Escape backslash first to avoid double-escaping.
+        String escaped = value.replace("\\", "\\\\");
+        escaped = escaped.replace(UNDERSCORE, "\\_");
+
+        if (StringUtils.isNotBlank(wildcardChar) && wildcardChar.length() == 1) {
+            escaped = escaped.replace(wildcardChar, UNDERSCORE);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Processed wildcard value with wildcard character: " + wildcardChar);
+        }
+        return escaped;
     }
 
     private static void recursivelyConvertToJSONObject(JSONObject jsonObject) {
