@@ -32,6 +32,8 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
@@ -44,6 +46,7 @@ import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerLis
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowTenantMgtListener;
 import org.wso2.carbon.identity.workflow.mgt.rule.ApprovalWorkflowMetadataProvider;
+import org.wso2.carbon.identity.workflow.mgt.rule.WorkFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
@@ -69,9 +72,10 @@ public class WorkflowMgtServiceComponent {
             WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
             bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
             WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
-
-            // Register workflow rule metadata provider.
+            
             bundleContext.registerService(RuleMetadataProvider.class, new ApprovalWorkflowMetadataProvider(), null);
+            bundleContext.registerService(RuleEvaluationDataProvider.class,
+                    new WorkFlowRuleEvaluationDataProvider(), null);
 
             AbstractEventHandler workflowPendingUserAuthnHandler = new WorkflowPendingUserAuthnHandler();
             bundleContext.registerService(AbstractEventHandler.class, workflowPendingUserAuthnHandler, null);
@@ -264,6 +268,22 @@ public class WorkflowMgtServiceComponent {
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         WorkflowServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "role.management.service",
+            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService")
+    protected void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        WorkflowServiceDataHolder.getInstance().setRoleManagementService(roleManagementService);
+    }
+
+    protected void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        WorkflowServiceDataHolder.getInstance().setRoleManagementService(null);
     }
 
 }

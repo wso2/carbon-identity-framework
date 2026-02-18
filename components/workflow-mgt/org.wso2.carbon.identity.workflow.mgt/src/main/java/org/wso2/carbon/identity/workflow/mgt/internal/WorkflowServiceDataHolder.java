@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
@@ -49,6 +50,7 @@ public class WorkflowServiceDataHolder {
     private BundleContext bundleContext;
     private ClaimMetadataManagementService claimMetadataManagementService;
     private RuleEvaluationService ruleEvaluationService;
+    private RoleManagementService roleManagementService;
 
     private Map<String, WorkflowRequestHandler> workflowRequestHandlers = new HashMap<String, WorkflowRequestHandler>();
 
@@ -213,6 +215,16 @@ public class WorkflowServiceDataHolder {
     public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
 
         this.ruleEvaluationService = ruleEvaluationService;
+    }
+
+    public RoleManagementService getRoleManagementService() {
+
+        return roleManagementService;
+    }
+
+    public void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        this.roleManagementService = roleManagementService;
     }
 
 }
