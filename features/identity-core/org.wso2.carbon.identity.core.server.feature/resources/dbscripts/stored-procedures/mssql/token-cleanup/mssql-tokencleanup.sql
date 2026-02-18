@@ -27,6 +27,7 @@ DECLARE @batchCount INT;
 DECLARE @deleteCount INT;
 DECLARE @rebuildIndexes BIT;
 DECLARE @updateStats BIT;
+DECLARE @err INT;
 
 SET @maxValidityPeriod = 99999999999990;
 
@@ -516,8 +517,8 @@ BEGIN
 
 			BEGIN TRANSACTION
 			DELETE FROM IDN_OAUTH2_CIBA_AUTH_CODE where AUTH_CODE_KEY in (select AUTH_CODE_KEY from BATCH_IDN_OAUTH2_CIBA_AUTH_CODE);
-			SELECT @deleteCount = @@rowcount;
-			IF @@ERROR <> 0
+			SELECT @deleteCount = @@ROWCOUNT, @err = @@ERROR;
+			IF @err <> 0
 			BEGIN
 			    ROLLBACK TRANSACTION
 			END
