@@ -3405,4 +3405,15 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(RETAIN_EMAIL_DOMAIN_ON_PROVISIONING));
     }
+
+    /**
+     * Check whether to mark the step as completed on interrupt in an authentication flow.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean markStepCompletedOnInterrupt() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
+    }
 }
