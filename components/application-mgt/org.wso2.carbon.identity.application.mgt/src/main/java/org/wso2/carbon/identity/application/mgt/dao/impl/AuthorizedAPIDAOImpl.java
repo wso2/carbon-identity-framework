@@ -349,6 +349,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             authorizeAPI(dbConnection, applicationId, apiId, policyId);
 
             if (CollectionUtils.isNotEmpty(scopes)) {
+                // System APIs reuse scopes across them and require auto-authorization of related APIs.
+                // Non-system APIs have unique scopes per API and use standard authorization path.
                 if (APIResourceManagementUtil.isSystemAPIByAPIId(apiId)) {
                     authorizeScopesForSystemApis(dbConnection, applicationId, apiId, policyId, scopes, scopeTenantId);
                 } else {
@@ -943,28 +945,6 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         return sharedScopes;
     }
 
-    /**
-     * Count remaining scopes for an API after deletion.
-     */
-    private int countRemainingScopesForAPI(Connection dbConnection, String appId, String apiId)
-            throws SQLException {
-
-        try (PreparedStatement prepStmt = dbConnection.prepareStatement(
-                ApplicationMgtDBQueries.COUNT_REMAINING_SCOPES_FOR_API)) {
-
-            prepStmt.setString(1, appId);
-            prepStmt.setString(2, apiId);
-
-            try (ResultSet rs = prepStmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        }
-
-        return 0;
-    }
-
     private void deleteScopes(Connection dbConnection, String appId, String apiId,
                               List<String> scopesToRemove, int tenantId) throws SQLException, APIResourceMgtException {
 
@@ -1303,7 +1283,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * @param tenantId Tenant Id.
      * @return True if the tenant id is an organization.
      * @throws IdentityApplicationManagementException If an error occurred while checking whether the tenant id
-     *                                                is an organization.
+     * is an organization.
      */
     private boolean isOrganization(int tenantId) throws IdentityApplicationManagementException {
 
