@@ -23,8 +23,6 @@ package org.wso2.carbon.identity.api.resource.mgt.exception;
  */
 public class NotImplementedException extends RuntimeException {
 
-    private static final long serialVersionUID = 5117918786934518376L;
-
     /**
      * Constructs a new NotImplementedException with no detail message or cause.
      * <p>
