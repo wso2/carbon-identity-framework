@@ -36,7 +36,6 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.util.ScopeAuthorizationInfo;
-import org.wso2.carbon.identity.application.mgt.util.ScopeDeletionInfo;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -807,7 +806,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             throws SQLException {
 
         // Step 1: Get scopes that will be deleted from this API.
-        List<ScopeDeletionInfo> scopesToDelete = getScopesForAPI(dbConnection, appId, apiId);
+        List<ScopeAuthorizationInfo> scopesToDelete = getScopesForAPI(dbConnection, appId, apiId);
 
         if (CollectionUtils.isEmpty(scopesToDelete)) {
             deleteAPIAuthorization(dbConnection, appId, apiId);
@@ -815,7 +814,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
 
         // Step 2: Find shared system API scopes with matching names.
-        List<ScopeDeletionInfo> sharedScopesToDelete = findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
+        List<ScopeAuthorizationInfo> sharedScopesToDelete =
+                findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
 
         // Step 3: Delete shared scope authorizations from other APIs.
         if (!sharedScopesToDelete.isEmpty()) {
@@ -830,10 +830,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * Delete shared scope authorizations from other APIs.
      */
     private void deleteSharedScopeAuthorizations(Connection dbConnection, String appId,
-                                                 List<ScopeDeletionInfo> scopesToDelete)
+                                                 List<ScopeAuthorizationInfo> scopesToDelete)
             throws SQLException {
 
-        List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
+        List<String> scopeIds =
+                scopesToDelete.stream().map(ScopeAuthorizationInfo::getScopeId).collect(Collectors.toList());
 
         List<String> scopeIdPlaceholders = new ArrayList<>();
         for (int i = 1; i <= scopeIds.size(); i++) {
@@ -861,10 +862,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     /**
      * Get scopes associated with an API authorization.
      */
-    private List<ScopeDeletionInfo> getScopesForAPI(Connection dbConnection, String appId, String apiId)
+    private List<ScopeAuthorizationInfo> getScopesForAPI(Connection dbConnection, String appId, String apiId)
             throws SQLException {
 
-        List<ScopeDeletionInfo> scopes = new ArrayList<>();
+        List<ScopeAuthorizationInfo> scopes = new ArrayList<>();
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(
                 ApplicationMgtDBQueries.GET_AUTHORIZED_SCOPES_FOR_API)) {
@@ -874,10 +875,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
             try (ResultSet rs = prepStmt.executeQuery()) {
                 while (rs.next()) {
-                    scopes.add(new ScopeDeletionInfo(
+                    scopes.add(new ScopeAuthorizationInfo(
                             rs.getString("ID"),
-                            rs.getString("NAME"),
-                            apiId
+                            apiId,
+                            rs.getString("NAME")
                     ));
                 }
             }
@@ -893,16 +894,16 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     /**
      * Find shared system API scopes that match the given scope names.
      */
-    private List<ScopeDeletionInfo> findSharedSystemAPIScopesByNames(Connection dbConnection,
-                                                                     List<ScopeDeletionInfo> scopesToDelete)
+    private List<ScopeAuthorizationInfo> findSharedSystemAPIScopesByNames(Connection dbConnection,
+                                                                     List<ScopeAuthorizationInfo> scopesToDelete)
             throws SQLException {
 
-        List<ScopeDeletionInfo> sharedScopes = new ArrayList<>();
+        List<ScopeAuthorizationInfo> sharedScopes = new ArrayList<>();
         List<String> scopeNames = scopesToDelete.stream()
-                .map(ScopeDeletionInfo::getScopeName)
+                .map(ScopeAuthorizationInfo::getScopeName)
                 .collect(Collectors.toList());
         List<String> originalScopeIds = scopesToDelete.stream()
-                .map(ScopeDeletionInfo::getScopeId)
+                .map(ScopeAuthorizationInfo::getScopeId)
                 .collect(Collectors.toList());
 
         List<String> scopeNamePlaceholders = new ArrayList<>();
@@ -929,10 +930,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
             try (ResultSet rs = namedPreparedStatement.executeQuery()) {
                 while (rs.next()) {
-                    sharedScopes.add(new ScopeDeletionInfo(
+                    sharedScopes.add(new ScopeAuthorizationInfo(
                             rs.getString("ID"),
-                            rs.getString("NAME"),
-                            rs.getString("API_ID")
+                            rs.getString("API_ID"),
+                            rs.getString("NAME")
                     ));
                 }
             }
@@ -1002,7 +1003,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     private void handleSystemAPIScopeAuthorizationDeletion(Connection dbConnection, String appId, String apiId,
                                               List<String> scopeNames) throws SQLException {
 
-        List<ScopeDeletionInfo> scopesToDelete = getScopesByNamesForAPI(dbConnection, apiId, scopeNames);
+        List<ScopeAuthorizationInfo> scopesToDelete = getScopesByNamesForAPI(dbConnection, apiId, scopeNames);
 
         if (scopesToDelete.isEmpty()) {
             if (LOG.isDebugEnabled()) {
@@ -1012,10 +1013,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             return;
         }
 
-        List<String> scopeIds = scopesToDelete.stream().map(ScopeDeletionInfo::getScopeId).collect(Collectors.toList());
+        List<String> scopeIds =
+                scopesToDelete.stream().map(ScopeAuthorizationInfo::getScopeId).collect(Collectors.toList());
         deleteScopeAuthorizationsByIds(dbConnection, appId, apiId, scopeIds);
 
-        List<ScopeDeletionInfo> sharedScopesToDelete = findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
+        List<ScopeAuthorizationInfo> sharedScopesToDelete =
+                findSharedSystemAPIScopesByNames(dbConnection, scopesToDelete);
 
         if (!sharedScopesToDelete.isEmpty()) {
             deleteSharedScopeAuthorizationsByScope(dbConnection, appId, sharedScopesToDelete);
@@ -1025,10 +1028,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     /**
      * Get scope IDs and names for specific scope names within an API.
      */
-    private List<ScopeDeletionInfo> getScopesByNamesForAPI(Connection dbConnection, String apiId,
+    private List<ScopeAuthorizationInfo> getScopesByNamesForAPI(Connection dbConnection, String apiId,
                                                            List<String> scopeNames) throws SQLException {
 
-        List<ScopeDeletionInfo> scopes = new ArrayList<>();
+        List<ScopeAuthorizationInfo> scopes = new ArrayList<>();
         List<String> scopeNamePlaceholders = new ArrayList<>();
         for (int i = 1; i <= scopeNames.size(); i++) {
             scopeNamePlaceholders.add(":" + SCOPE_NAME_PREFIX_DEL + i + ";");
@@ -1046,10 +1049,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
             try (ResultSet rs = namedPreparedStatement.executeQuery()) {
                 while (rs.next()) {
-                    scopes.add(new ScopeDeletionInfo(
+                    scopes.add(new ScopeAuthorizationInfo(
                             rs.getString("ID"),
-                            rs.getString("NAME"),
-                            apiId
+                            apiId,
+                            rs.getString("NAME")
                     ));
                 }
             }
@@ -1099,15 +1102,13 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
      * Groups deletions by API for efficiency.
      */
     private void deleteSharedScopeAuthorizationsByScope(Connection dbConnection, String appId,
-                                                        List<ScopeDeletionInfo> sharedScopes) throws SQLException {
+                                                        List<ScopeAuthorizationInfo> sharedScopes) throws SQLException {
 
         Map<String, List<String>> scopesByApi = new HashMap<>();
-        for (ScopeDeletionInfo scope : sharedScopes) {
+        for (ScopeAuthorizationInfo scope : sharedScopes) {
             scopesByApi.computeIfAbsent(scope.getApiId(), k -> new ArrayList<>())
                     .add(scope.getScopeId());
         }
-
-        LOG.info("==========" + scopesByApi.toString());
 
         for (Map.Entry<String, List<String>> apiWithScopes : scopesByApi.entrySet()) {
             deleteScopeAuthorizationsByIds(dbConnection, appId, apiWithScopes.getKey(), apiWithScopes.getValue());
