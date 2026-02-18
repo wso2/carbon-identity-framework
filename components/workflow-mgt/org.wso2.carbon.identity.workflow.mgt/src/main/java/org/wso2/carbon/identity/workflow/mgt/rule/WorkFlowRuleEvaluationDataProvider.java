@@ -125,7 +125,6 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<FieldValue> getEvaluationData(RuleEvaluationContext ruleEvaluationContext, FlowContext flowContext,
                                               String tenantDomain) throws RuleEvaluationDataProviderException {
 

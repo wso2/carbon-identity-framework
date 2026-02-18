@@ -105,44 +105,40 @@ public class WorkFlowExecutorManager {
         if (CollectionUtils.isEmpty(associations)) {
             return new WorkflowExecutorResult(ExecutorResultState.NO_ASSOCIATION);
         }
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        Map<String, Object> ruleEvaluationContextData = new HashMap<>();
+        ruleEvaluationContextData.put("eventType", workFlowRequest.getEventType());
+        ruleEvaluationContextData.put("uuid", workFlowRequest.getUuid());
+        ruleEvaluationContextData.put("tenantId", workFlowRequest.getTenantId());
+        ruleEvaluationContextData.put("tenantDomain", tenantDomain);
+
+        if (workFlowRequest.getRequestParameters() != null) {
+            for (RequestParameter parameter : workFlowRequest.getRequestParameters()) {
+                ruleEvaluationContextData.put(parameter.getName(), parameter.getValue());
+            }
+        }
         boolean workflowEngaged = false;
         boolean requestSaved = false;
         for (WorkflowAssociation association : associations) {
             try {
                 String conditionForEvaluation = association.getAssociationCondition();
-                boolean conditionSatisfied = false;
+                boolean isConditionSatisfied = false;
 
                 if (StringUtils.isBlank(conditionForEvaluation)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("No condition found, engaging workflow.");
-                    }
-                    conditionSatisfied = true;
+                    log.debug("No condition found, engaging workflow.");
+                    isConditionSatisfied = true;
                 } else if (WorkflowManagementUtil.isUUID(conditionForEvaluation)) {
-                    String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-                    Map<String, Object> ruleContextData = new HashMap<>();
-                    ruleContextData.put("eventType", workFlowRequest.getEventType());
-                    ruleContextData.put("uuid", workFlowRequest.getUuid());
-                    ruleContextData.put("tenantId", workFlowRequest.getTenantId());
-                    ruleContextData.put("tenantDomain", tenantDomain);
-
-                    // Add all request parameters as individual context entries.
-                    if (workFlowRequest.getRequestParameters() != null) {
-                        for (RequestParameter parameter : workFlowRequest.getRequestParameters()) {
-                            ruleContextData.put(parameter.getName(), parameter.getValue());
-                        }
-                    }
-                    FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleContextData);
+                    FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleEvaluationContextData);
                     RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
                             .getRuleEvaluationService()
                             .evaluate(conditionForEvaluation, flowContext, tenantDomain);
-                    conditionSatisfied = result.isRuleSatisfied();
+                    isConditionSatisfied = result.isRuleSatisfied();
                 } else {
                     AXIOMXPath axiomxPath = new AXIOMXPath(conditionForEvaluation);
-                    conditionSatisfied = axiomxPath.booleanValueOf(xmlRequest);
+                    isConditionSatisfied = axiomxPath.booleanValueOf(xmlRequest);
                 }
-                // If Rule is Satisfied (or Default), Engage Workflow.
-                if (conditionSatisfied) {
+                // If rule is satisfied (or no rule configured), engage approval workflow.
+                if (isConditionSatisfied) {
                     workflowEngaged = true;
                     if (!requestSaved) {
                         WorkflowRequestDAO requestDAO = new WorkflowRequestDAO();
