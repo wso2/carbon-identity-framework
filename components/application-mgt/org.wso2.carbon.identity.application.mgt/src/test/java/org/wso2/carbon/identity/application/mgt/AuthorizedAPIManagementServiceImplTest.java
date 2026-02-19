@@ -824,8 +824,7 @@ public class AuthorizedAPIManagementServiceImplTest {
         Assert.assertFalse(api1Scopes.contains(scopeToRemove),
                 "Removed scope should not be in Business API 1");
         // API 2 should still have the scope if it had it originally
-        // Since we're using different scope names in addTestAPIResource, we just verify
-        // API 2 is unchanged
+        // Since we're using different scope names in addTestAPIResource, we just verify API 2 is unchanged
         Assert.assertEquals(api2Scopes.size(), 2,
                 "Business API 2 should still have all its original scopes");
     }
@@ -847,13 +846,11 @@ public class AuthorizedAPIManagementServiceImplTest {
                 .name("system-scope-1-" + scopePostfix)
                 .displayName("System Scope 1 " + scopePostfix)
                 .description("System Scope 1 " + scopePostfix)
-                //.orgID(null)
                 .build());
         scopes.add(new Scope.ScopeBuilder()
                 .name("system-scope-2-" + scopePostfix)
                 .displayName("System Scope 2 " + scopePostfix)
                 .description("System Scope 2 " + scopePostfix)
-                //.orgID(null)
                 .build());
 
         // Extra scopes (if provided)
@@ -872,11 +869,11 @@ public class AuthorizedAPIManagementServiceImplTest {
                 .identifier("testSystemAPIResource identifier " + apiPostfix)
                 .description("testSystemAPIResource description " + apiPostfix)
                 .type("TENANT")
-                .tenantId(null)// System API type
+                .tenantId(null) // System API type.
                 .requiresAuthorization(true)
                 .scopes(scopes);
 
-        // Create in super tenant domain so isSystemAPIByAPIId() can find it
+        // Create in super tenant domain so isSystemAPIByAPIId() can find it.
         return apiResourceManager.addAPIResource(apiResourceBuilder.build(), SUPER_TENANT_DOMAIN_NAME);
     }
 }
