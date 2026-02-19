@@ -59,9 +59,9 @@ public class OptimizedSessionContext implements Serializable {
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
-    private final String authenticatedOrgId;
-    private final boolean isOrganizationLogin;
-    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
+//    private final String authenticatedOrgId;
+//    private final boolean isOrganizationLogin;
+//    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
     private final String impersonatedUser;
 
     private static final Log LOG = LogFactory.getLog(OptimizedSessionContext.class);
@@ -77,9 +77,10 @@ public class OptimizedSessionContext implements Serializable {
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
         this.impersonatedUser = sessionContext.getImpersonatedUser();
-        this.authenticatedOrgId = sessionContext.getAuthenticatedOrgId();
-        this.isOrganizationLogin = sessionContext.isOrganizationLogin();
-        this.optimizedAuthenticatedOrgData = getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
+//        this.authenticatedOrgId = sessionContext.getAuthenticatedOrgId();
+//        this.isOrganizationLogin = sessionContext.isOrganizationLogin();
+//        this.optimizedAuthenticatedOrgData =
+//                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
         if (LOG.isDebugEnabled()) {
             LOG.debug("Optimization process for the session context is completed.");
         }
@@ -177,11 +178,11 @@ public class OptimizedSessionContext implements Serializable {
         }
         sessionContext.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
         sessionContext.setImpersonatedUser(this.impersonatedUser);
-        sessionContext.setAuthenticatedOrgId(this.authenticatedOrgId);
-        sessionContext.setOrganizationLogin(this.isOrganizationLogin);
-        if (optimizedAuthenticatedOrgData != null) {
-            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
-        }
+//        sessionContext.setAuthenticatedOrgId(this.authenticatedOrgId);
+//        sessionContext.setOrganizationLogin(this.isOrganizationLogin);
+//        if (optimizedAuthenticatedOrgData != null) {
+//            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
+//        }
         return sessionContext;
     }
 
