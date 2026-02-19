@@ -63,6 +63,10 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     private static final String ROLE_ID = "Role ID";
     private static final String ROLE_AUDIENCE_ID = "Audience ID";
     private static final String EVENT_TYPE = "eventType";
+    private static final String CLAIMS = "Claims";
+
+    private static final String ADD_USER_EVENT = "ADD_USER";
+    private static final String SELF_REGISTER_USER_EVENT = "SELF_REGISTER_USER";
 
     /**
      * Enum for supported non-claim rule fields in workflow operations.
@@ -352,22 +356,28 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
 
         Map<String, String> claimValueMap = new HashMap<>();
         Set<String> claimsToFetch = new HashSet<>();
-        // check context data and collect claims to fetch.
+        Map<String, String> nestedClaims =
+                (contextData.get(CLAIMS) instanceof Map)
+                        ? (Map<String, String>) contextData.get(CLAIMS)
+                        : Collections.emptyMap();
+
+        // Check context data and collect claims to fetch.
         for (Field field : claimFields) {
             String claimUri = field.getName();
             if (claimValueMap.containsKey(claimUri)) {
                 continue;
             }
-            // Check if claim value is already in context data.
-            String claimValue = (String) contextData.get(claimUri);
+            // First look in the nested claims map, then fall back to a direct context lookup.
+            String claimValue = nestedClaims.get(claimUri);
             if (StringUtils.isNotBlank(claimValue)) {
                 claimValueMap.put(claimUri, claimValue);
             } else {
                 claimsToFetch.add(claimUri);
             }
         }
-        // Batch fetch remaining claims if needed.
-        if (!claimsToFetch.isEmpty()) {
+        String eventType = (String) contextData.get(EVENT_TYPE);
+        // Batch fetch remaining claims from the user store.
+        if (!claimsToFetch.isEmpty() && (ADD_USER_EVENT.equals(eventType) || SELF_REGISTER_USER_EVENT.equals(eventType))) {
             String username = (String) contextData.get(USERNAME);
             if (StringUtils.isBlank(username)) {
                 if (log.isDebugEnabled()) {
@@ -398,6 +408,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                     StringUtils.isNotBlank(claimValue) ? claimValue : null, ValueType.STRING));
         }
     }
+
     /**
      * Add role audience ID field value by fetching from role management service.
      */
