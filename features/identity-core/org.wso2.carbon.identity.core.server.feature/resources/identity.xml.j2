@@ -4210,6 +4210,9 @@
     <FIDO>
         <WebAuthn>
             <Enable>{{fido.webauthn.enable}}</Enable>
+            <RelyingParty>
+                <EnforceSubdomainRestriction>{{fido.webauthn.relying_party.enforce_subdomain_restriction}}</EnforceSubdomainRestriction>
+            </RelyingParty>
         </WebAuthn>
         <EnablePasskeyProgressiveEnrollment>{{fido.enable_passkey_progressive_enrollment}}</EnablePasskeyProgressiveEnrollment>
         <EnableUsernamelessAuthentication>{{fido.enable_usernameless_authentication}}</EnableUsernamelessAuthentication>
