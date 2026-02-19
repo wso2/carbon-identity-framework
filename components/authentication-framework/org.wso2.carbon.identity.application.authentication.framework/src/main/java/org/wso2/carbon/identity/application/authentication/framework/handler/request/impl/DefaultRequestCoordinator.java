@@ -809,19 +809,20 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
 
-        try {
-            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
-            if (StringUtils.isNotBlank(accessingOrgId) && OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                context.setOrgApplicationLogin(true);
-                OrganizationLoginData orgData = new OrganizationLoginData();
-                orgData.setRootOrganizationTenantDomain(
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-                context.setOrganizationLoginData(orgData);
-            }
-        } catch (OrganizationManagementException e) {
-            throw new FrameworkException("Error while checking the tenant: " + tenantDomain +
-                    " is an organization.", e);
-        }
+//        try {
+//            String accessingOrgId =
+//                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+//            if (StringUtils.isNotBlank(accessingOrgId) && OrganizationManagementUtil.isOrganization(tenantDomain)) {
+//                context.setOrgApplicationLogin(true);
+//                OrganizationLoginData orgData = new OrganizationLoginData();
+//                orgData.setRootOrganizationTenantDomain(
+//                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+//                context.setOrganizationLoginData(orgData);
+//            }
+//        } catch (OrganizationManagementException e) {
+//            throw new FrameworkException("Error while checking the tenant: " + tenantDomain +
+//                    " is an organization.", e);
+//        }
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
