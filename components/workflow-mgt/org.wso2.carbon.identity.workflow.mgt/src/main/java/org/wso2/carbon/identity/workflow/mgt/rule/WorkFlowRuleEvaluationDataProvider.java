@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -264,7 +265,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
             String userId = userStoreManager.getUserIDFromUserName(username);
             if (StringUtils.isBlank(userId)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Could not resolve user ID for username: " + username);
+                    log.debug("Could not resolve user ID for username: " + LoggerUtils.getMaskedContent(username));
                 }
                 return;
             }
@@ -302,7 +303,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
             String userId = userStoreManager.getUserIDFromUserName(username);
             if (StringUtils.isBlank(userId)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Could not resolve user ID for username: " + username);
+                    log.debug("Could not resolve user ID for username: " + LoggerUtils.getMaskedContent(username));
                 }
                 return;
             }
