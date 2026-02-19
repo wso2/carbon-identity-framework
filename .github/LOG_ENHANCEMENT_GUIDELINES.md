@@ -68,7 +68,7 @@ The following files are exempt from the logging enhancement guidelines.
     * Tokens
     * Secrets
     * Personally identifiable information
-* If necessary, log only a safe identifier that is neither sensitive or PII.
+* If necessary, log only a safe identifier that is neither sensitive nor PII.
 * Do not log entire objects. Extract only relevant safe fields required for clarity.
 * Do not add logs to:
     * Getters and setters without business logic.
