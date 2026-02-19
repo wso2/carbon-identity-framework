@@ -44,6 +44,8 @@
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
   "session.timeout.extend_remember_me_session_timeout_on_auth": true,
+  "session.timeout.enable_maximum_session_timeout": false,
+  "session.timeout.maximum_session_timeout": "30d",
   "par.cleanup.enable_expired_requests_cleanup": true,
   "par.cleanup.clean_expired_requests_every": "1d",
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
@@ -490,6 +492,7 @@
   "identity_mgt.password_reset_by_admin.code_validity_period": "1440m",
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
+  "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": true,
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
@@ -595,6 +598,7 @@
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
   "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
   "outbound_provisioning_management.enable_scim_patch_for_updates": true,
+  "outbound_provisioning_management.confidential_data_protection_enabled": true,
   "outbound_provisioning_management.scim2_client.http_retry_count": "1",
   "outbound_provisioning_management.scim2_client.http_read_timeout": "5000",
   "outbound_provisioning_management.scim2_client.http_connection_timeout": "2000",
@@ -1849,6 +1853,13 @@
   "console.user_stores.scopes.read": ["internal_userstore_view"],
   "console.user_stores.scopes.update": ["internal_userstore_update"],
   "console.user_stores.scopes.delete": ["internal_userstore_delete"],
+  "console.verifiable_credentials.enabled": true,
+  "console.verifiable_credentials.disabled_features": [],
+  "console.verifiable_credentials.feature_flags": [],
+  "console.verifiable_credentials.scopes.create": ["internal_vc_template_create"],
+  "console.verifiable_credentials.scopes.read": ["internal_vc_template_view"],
+  "console.verifiable_credentials.scopes.update": ["internal_vc_template_update"],
+  "console.verifiable_credentials.scopes.delete": ["internal_vc_template_delete"],
   "console.ws_fed_configuration.enabled": true,
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
@@ -2217,5 +2228,6 @@
   "pastr_cookie.max_age": "-1",
 
   "resolve_tenant_domain_from_username.enabled": false,
-  "authentication.mark_step_completed_on_interrupt": true
+  "authentication.mark_step_completed_on_interrupt": true,
+  "api.filters.single_character_wildcard": "_"
 }

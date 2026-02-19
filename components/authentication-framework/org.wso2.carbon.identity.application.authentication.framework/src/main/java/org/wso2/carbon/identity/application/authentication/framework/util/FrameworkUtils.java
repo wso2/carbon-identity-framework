@@ -209,6 +209,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CREATED_TIMESTAMP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
@@ -1332,9 +1333,47 @@ public class FrameworkUtils {
                     IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
         }
 
+        timeoutPeriod = validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain, timeoutPeriod);
+
         cacheEntry.setContext(sessionContext);
         cacheEntry.setValidityPeriod(timeoutPeriod);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
+    }
+
+    /**
+     * This method is used to validate the session context timeout with the maximum session lifetime.
+     * If the session context timeout exceeds the maximum session lifetime, the remaining time until
+     * the session reaches the maximum session lifetime will be returned.
+     * Otherwise, the original session context timeout will be returned.
+     *
+     * @param sessionContext Session context for which the timeout needs to be validated.
+     * @param tenantDomain   Tenant domain of the application.
+     * @param timeout        Session context timeout to be validated.
+     * @return Valid session context timeout.
+     */
+    private static long validateTimeoutUsingMaxSessionLifeTime(SessionContext sessionContext, String tenantDomain,
+                                                              long timeout) {
+
+        Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+
+        if (!maximumSessionTimeout.isPresent()) {
+            return timeout;
+        }
+
+        long maxSessionLifeTimeInNanos = TimeUnit.SECONDS.toNanos(maximumSessionTimeout.get());
+        Long sessionCreationTime = (Long) sessionContext.getProperty(CREATED_TIMESTAMP);
+
+        // Convert session creation time to nanos for the timeout comparison.
+        sessionCreationTime = TimeUnit.MILLISECONDS.toNanos(sessionCreationTime);
+
+        long currentTimeInNanos = FrameworkUtils.getCurrentStandardNano();
+        long sessionFutureAgeInNanos = currentTimeInNanos + timeout;
+        if (sessionFutureAgeInNanos - sessionCreationTime > maxSessionLifeTimeInNanos) {
+            // The Minimum validity period for the session context is set to 1 nanosecond.
+            return Math.max(1, maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime));
+        }
+
+        return timeout;
     }
 
     /**

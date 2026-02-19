@@ -1,7 +1,7 @@
 /*
-* Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+* Copyright (c) 2015-2026, WSO2 LLC. (http://www.wso2.com).
 *
-* WSO2 Inc. licenses this file to you under the Apache License,
+* WSO2 LLC. licenses this file to you under the Apache License,
 * Version 2.0 (the "License"); you may not use this file except
 * in compliance with the License.
 * You may obtain a copy of the License at
@@ -36,6 +36,8 @@ public class IdentityCoreConstants {
     public static final String ACCOUNTS_PATH = "Accounts.Path";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
+    public static final String UNDERSCORE = "_";
+    public static final String SINGLE_CHARACTER_WILDCARD = "APIFiltering.SingleCharacterWildcard";
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String ENABLE_TENANT_QUALIFIED_URLS = "TenantContext.TenantQualifiedUrls.Enable";

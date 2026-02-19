@@ -131,6 +131,7 @@
         <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
         <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
         <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
 
         <!-- 'Login only' mode migration configuration -->
         {% if resource_access_control.login_only_mode.enable is sameas true %}
