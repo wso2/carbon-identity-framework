@@ -530,11 +530,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             sessionContext.getAuthenticatedOrgData().get(organizationId);
                     authenticatedOrgData.getAuthenticatedSequences()
                             .put(appConfig.getApplicationName(), sequenceConfig);
-                    authenticatedOrgData.getAuthenticatedIdPs()
-                            .putAll(context.getCurrentAuthenticatedIdPs());
+                    authenticatedOrgData.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                     if (!context.isPassiveAuthenticate()) {
-                        setAuthenticatedIDPsOfApp(authenticatedOrgData,
-                                context.getCurrentAuthenticatedIdPs(),
+                        setAuthenticatedIDPsOfApp(authenticatedOrgData, context.getCurrentAuthenticatedIdPs(),
                                 appConfig.getApplicationName());
                     }
                     if (context.isSharedAppLogin()) {
@@ -542,13 +540,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         sessionContext.setOrganizationLogin(true);
                     }
                 } else {
-                    sessionContext.getAuthenticatedSequences()
-                            .put(appConfig.getApplicationName(), sequenceConfig);
-                    sessionContext.getAuthenticatedIdPs()
-                            .putAll(context.getCurrentAuthenticatedIdPs());
+                    sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
+                    sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                     if (!context.isPassiveAuthenticate()) {
-                        setAuthenticatedIDPsOfApp(sessionContext,
-                                context.getCurrentAuthenticatedIdPs(),
+                        setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
                                 appConfig.getApplicationName());
                     }
                 }
