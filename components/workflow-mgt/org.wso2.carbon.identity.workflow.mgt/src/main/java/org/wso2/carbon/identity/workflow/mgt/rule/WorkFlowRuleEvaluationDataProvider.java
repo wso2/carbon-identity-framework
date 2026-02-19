@@ -39,8 +39,8 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -130,22 +130,23 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
 
         List<FieldValue> fieldValues = new ArrayList<>();
         Map<String, Object> contextData = flowContext.getContextData();
-
         if (log.isDebugEnabled()) {
             log.debug("Processing workflow rule evaluation for tenant: " + tenantDomain +
                      " with event type: " + contextData.get(EVENT_TYPE));
         }
 
-        Map<Boolean, List<Field>> partitionedFields = ruleEvaluationContext.getFields().stream()
-                .collect(Collectors.partitioningBy(field -> isClaimUri(field.getName())));
-
-        List<Field> claimFields = partitionedFields.get(true);
-        List<Field> nonClaimFields = partitionedFields.get(false);
+        List<Field> claimFields = new ArrayList<>();
+        List<Field> nonClaimFields = new ArrayList<>();
+        for (Field field : ruleEvaluationContext.getFields()) {
+            if (isClaimUri(field.getName())) {
+                claimFields.add(field);
+            } else {
+                nonClaimFields.add(field);
+            }
+        }
         if (!claimFields.isEmpty()) {
             addUserClaimFieldValues(fieldValues, claimFields, contextData, tenantDomain);
         }
-
-        // Iterate through the non-claim fields required by the rule.
         for (Field field : nonClaimFields) {
             String fieldName = field.getName();
 
@@ -333,8 +334,8 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                                     Map<String, Object> contextData, String tenantDomain)
                                     throws RuleEvaluationDataProviderException {
 
-        Map<String, String> claimValueMap = new LinkedHashMap<>();
-        Set<String> claimsToFetch = new LinkedHashSet<>();
+        Map<String, String> claimValueMap = new HashMap<>();
+        Set<String> claimsToFetch = new HashSet<>();
 
         // check context data and collect claims to fetch.
         for (Field field : claimFields) {

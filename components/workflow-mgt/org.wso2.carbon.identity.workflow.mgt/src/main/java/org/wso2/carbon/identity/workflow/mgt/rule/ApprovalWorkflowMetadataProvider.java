@@ -31,8 +31,6 @@ import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.FlowType;
 import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
-import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
 import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
@@ -50,23 +48,15 @@ import java.util.List;
 public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
     private static final Log LOG = LogFactory.getLog(ApprovalWorkflowMetadataProvider.class);
-    private static final List<FieldDefinition> STATIC_APPROVAL_WORKFLOW_FIELDS;
-    private static final List<Operator> CLAIM_OPERATORS;
 
-    static {
-        // Initialize static approval workflow fields.
-        List<FieldDefinition> staticFields = new ArrayList<>();
-        staticFields.add(createRoleHasAssignedUsersField());
-        staticFields.add(createRoleHasUnassignedUsersField());
-        STATIC_APPROVAL_WORKFLOW_FIELDS = Collections.unmodifiableList(staticFields);
+    private static final String USER_CLAIM_PREFIX = "user.";
+    private static final String INITIATOR_CLAIM_PREFIX = "initiator.";
 
-        // Initialize operators for claim fields.
-        List<Operator> operators = new ArrayList<>();
-        operators.add(new Operator("equals", "Equals"));
-        operators.add(new Operator("notEquals", "Not Equals"));
-        operators.add(new Operator("contains", "Contains"));
-        CLAIM_OPERATORS = Collections.unmodifiableList(operators);
-    }
+    private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
+            new Operator("equals", "equals"),
+            new Operator("notEquals", "not equals"),
+            new Operator("contains", "contains")
+    ));
 
     /**
      * Get the expression metadata for the given flow type.
@@ -83,18 +73,15 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
 
         if (flowType != FlowType.APPROVAL_WORKFLOW) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Skipping metadata generation for flow type: " + flowType + 
+                LOG.debug("Skipping metadata generation for flow type: " + flowType +
                         ". This provider only supports APPROVAL_WORKFLOW.");
             }
             return Collections.emptyList();
         }
         List<FieldDefinition> fieldDefinitions = new ArrayList<>(getStaticApprovalWorkflowFields());
         List<LocalClaim> localClaims = getAllowedUserClaims(tenantDomain);
-        if (!localClaims.isEmpty()) {
-            for (LocalClaim localClaim : localClaims) {
-                FieldDefinition fieldDefinition = createFieldDefinitionForClaim(localClaim);
-                fieldDefinitions.add(fieldDefinition);
-            }
+        for (LocalClaim localClaim : localClaims) {
+            fieldDefinitions.addAll(createClaimFieldDefinitions(localClaim));
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Generated " + fieldDefinitions.size() + " field definitions for approval workflow for tenant: "
@@ -104,48 +91,17 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
     }
 
     /**
-     * Get the list of static, approval workflow specific field definitions.
+     * Get the list of static, approval workflow specific field definitions from the registry.
      *
      * @return List of static field definitions.
      */
     private List<FieldDefinition> getStaticApprovalWorkflowFields() {
 
+        List<FieldDefinition> staticFields = new ArrayList<>(WorkflowRuleFieldRegistry.FIELDS.values());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Added " + STATIC_APPROVAL_WORKFLOW_FIELDS.size() + " static approval workflow fields.");
+            LOG.debug("Loaded " + staticFields.size() + " static approval workflow fields from registry.");
         }
-        return STATIC_APPROVAL_WORKFLOW_FIELDS;
-    }
-
-    /**
-     * Create field definition for role.hasAssignedUsers.
-     *
-     * @return FieldDefinition for role.hasAssignedUsers.
-     */
-    private static FieldDefinition createRoleHasAssignedUsersField() {
-
-        Field field = new Field("role.hasAssignedUsers", "role has assigned users");
-        List<Operator> operators = Collections.singletonList(new Operator("equals", "equals"));
-        List<OptionsValue> optionValues = Arrays.asList(
-                new OptionsValue("true", "true"),
-                new OptionsValue("false", "false"));
-        Value valueMeta = new OptionsInputValue(Value.ValueType.STRING, optionValues);
-        return new FieldDefinition(field, operators, valueMeta);
-    }
-
-    /**
-     * Create field definition for role.hasUnassignedUsers.
-     *
-     * @return FieldDefinition for role.hasUnassignedUsers.
-     */
-    private static FieldDefinition createRoleHasUnassignedUsersField() {
-
-        Field field = new Field("role.hasUnassignedUsers", "role has unassigned users");
-        List<Operator> operators = Collections.singletonList(new Operator("equals", "equals"));
-        List<OptionsValue> optionValues = Arrays.asList(
-                new OptionsValue("true", "true"),
-                new OptionsValue("false", "false"));
-        Value valueMeta = new OptionsInputValue(Value.ValueType.STRING, optionValues);
-        return new FieldDefinition(field, operators, valueMeta);
+        return staticFields;
     }
 
     /**
@@ -180,20 +136,27 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
     }
 
     /**
-     * Create a field definition for a user claim.
+     * Create two field definitions for a local claim — one prefixed with {user.}
+     * and one prefixed with {initiator.}.
      *
      * @param localClaim Local claim.
-     * @return FieldDefinition for the claim.
+     * @return List of two field definitions for the claim.
      */
-    private FieldDefinition createFieldDefinitionForClaim(LocalClaim localClaim) {
+    private List<FieldDefinition> createClaimFieldDefinitions(LocalClaim localClaim) {
 
         String claimUri = localClaim.getClaimURI();
         String displayName = getClaimDisplayName(localClaim);
-        
-        Field field = new Field(claimUri, displayName);
-        List<Operator> operators = getOperatorsForClaim();
+        List<Operator> operators = CLAIM_OPERATORS;
         Value valueMeta = new InputValue(Value.ValueType.STRING);
-        return new FieldDefinition(field, operators, valueMeta);
+
+        List<FieldDefinition> fieldDefinitions = new ArrayList<>();
+        fieldDefinitions.add(new FieldDefinition(
+                new Field(USER_CLAIM_PREFIX + claimUri, USER_CLAIM_PREFIX + displayName),
+                operators, valueMeta));
+        fieldDefinitions.add(new FieldDefinition(
+                new Field(INITIATOR_CLAIM_PREFIX + claimUri, INITIATOR_CLAIM_PREFIX + displayName),
+                operators, valueMeta));
+        return fieldDefinitions;
     }
 
     /**
