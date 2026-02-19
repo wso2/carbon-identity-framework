@@ -25,7 +25,7 @@ import java.io.Serializable;
  */
 public class OrganizationLoginData implements Serializable {
 
-    private static final long serialVersionUID = -2115398895048768726L;
+    private static final long serialVersionUID = -8575002142434539008L;
 
     // Root organization tenant domain.
     private String rootOrganizationTenantDomain;

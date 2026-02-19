@@ -45,7 +45,7 @@ import java.util.Map;
  */
 public class OptimizedAuthenticatedOrgData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4702375562536703002L;
 
     private final Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences;
     private final Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs;

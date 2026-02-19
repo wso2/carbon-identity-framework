@@ -25,7 +25,7 @@ import java.io.Serializable;
  */
 public class OrganizationData implements Serializable {
 
-    private static final long serialVersionUID = 495984213681257459L;
+    private static final long serialVersionUID = -4539740415364132885L;
     private String id;
     private String name;
     private String handle;

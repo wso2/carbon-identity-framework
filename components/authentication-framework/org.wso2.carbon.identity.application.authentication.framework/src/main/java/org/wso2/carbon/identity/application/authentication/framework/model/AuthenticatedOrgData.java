@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class AuthenticatedOrgData implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5629360289198958849L;
 
     private Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();
     private Map<String, AuthenticatedIdPData> authenticatedIdPs = new HashMap<>();
