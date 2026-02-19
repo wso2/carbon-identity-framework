@@ -89,7 +89,7 @@ Do not add logs if:
 
 * The function only sets a variable and returns it.
 * The catch block rethrows the exception.
-* The change is purely structural or configuration-related (eg: retrieving a configuration value etc).
+* The change is purely structural or configuration-related (e.g., retrieving a configuration value).
 
 ## Log Quality Requirements
 
