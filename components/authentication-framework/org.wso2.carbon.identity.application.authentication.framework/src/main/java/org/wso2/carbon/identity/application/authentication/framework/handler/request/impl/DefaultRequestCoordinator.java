@@ -1808,7 +1808,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isInitialOrganizationLoginRequest(AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        if (context.isSharedAppLogin() || context.getProperty("isSubOrganizationLogin") != null) {
+        ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
+        if (serviceProvider == null) {
+            return false;
+        }
+        // Direct access is only supported for new B2B login enabled apps.
+        if (!serviceProvider.isNewB2BLoginEnabled()) {
+            return false;
+        }
+        // Currently, skipping org application logins also since sharing capability is not supported.
+        // This can be removed once the sharing capability is implemented and org application logins are supported.
+        if (context.isSharedAppLogin() || context.isOrgApplicationLogin()) {
             return false;
         }
         String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
