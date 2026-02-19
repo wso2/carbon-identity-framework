@@ -28,10 +28,10 @@ public interface DebugProtocolResolver {
     /**
      * Resolves the debug protocol for the given resource ID.
      *
-     * @param resourceId The resource ID to resolve the protocol for.
+     * @param connectionId The resource ID to resolve the protocol for.
      * @return The resolved protocol type (e.g., "OAUTH2_OIDC", "SAML"), or null if not resolved.
      */
-    String resolveProtocol(String resourceId);
+    String resolveProtocol(String connectionId);
 
     /**
      * Gets the order of execution for this resolver.

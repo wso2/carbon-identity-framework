@@ -36,55 +36,31 @@ public enum DebugResourceType {
 
     private static final Log LOG = LogFactory.getLog(DebugResourceType.class);
 
-    private final String resourceTypeId;
-    private final String displayName;
-
     /**
      * Constructor for DebugResourceType enum.
      *
-     * @param resourceTypeId The unique identifier for the resource type.
+     * @param resourceType The unique identifier for the resource type.
      * @param displayName    The display name for the resource type.
      */
-    DebugResourceType(String resourceTypeId, String displayName) {
+    DebugResourceType(String resourceType, String displayName) {
 
-        this.resourceTypeId = resourceTypeId;
-        this.displayName = displayName;
-    }
-
-    /**
-     * Gets the resource type ID.
-     *
-     * @return The resource type ID.
-     */
-    public String getResourceTypeId() {
-
-        return resourceTypeId;
-    }
-
-    /**
-     * Gets the display name.
-     *
-     * @return The display name.
-     */
-    public String getDisplayName() {
-
-        return displayName;
+        // Fields removed as they were never used.
     }
 
     /**
      * Converts a string to the corresponding DebugResourceType.
      * Handles case-insensitive matching and common variations.
      *
-     * @param resourceTypeId The resource type identifier.
+     * @param resourceType The resource type identifier.
      * @return The corresponding DebugResourceType, or CUSTOM if not found.
      */
-    public static DebugResourceType fromString(String resourceTypeId) {
+    public static DebugResourceType fromString(String resourceType) {
 
-        if (resourceTypeId == null) {
+        if (resourceType == null) {
             return CUSTOM;
         }
 
-        switch (resourceTypeId.toLowerCase().trim()) {
+        switch (resourceType.toLowerCase().trim()) {
             case "idp":
                 return IDP;
 
@@ -93,7 +69,7 @@ public enum DebugResourceType {
 
             default:
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Unknown resource type: " + resourceTypeId + ". Defaulting to CUSTOM.");
+                    LOG.debug("Unknown resource type: " + resourceType + ". Defaulting to CUSTOM.");
                 }
                 return CUSTOM;
         }
@@ -104,15 +80,13 @@ public enum DebugResourceType {
      * IDP handler is looked up from OSGi registry (provided by debug.idp module).
      * Other handlers are instantiated directly or looked up from registry.
      *
-     * @param resourceId The ID of the resource being debugged.
      * @return The appropriate DebugResourceHandler, or null if not found.
      */
-    public DebugResourceHandler getHandler(String resourceId) {
+    public DebugResourceHandler getHandler() {
 
         switch (this) {
             case IDP:
-                // IDP handler is provided by org.wso2.carbon.identity.debug.idp module.
-                // and registered via OSGi. Look it up from the registry.
+                // IDP handler is provided and registered via OSGi.
                 DebugResourceHandler idpHandler = DebugHandlerRegistry.getInstance().getHandler("idp");
                 if (idpHandler == null && LOG.isDebugEnabled()) {
                     LOG.debug("IDP DebugResourceHandler not registered. " +

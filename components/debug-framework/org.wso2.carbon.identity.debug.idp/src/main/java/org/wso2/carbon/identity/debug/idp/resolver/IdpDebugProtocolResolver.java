@@ -36,7 +36,6 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
     // Order should be relatively high to allow specific resolvers (e.g. for App) to run first if needed.
-    // But since this handles "IDP" resources, it's specific enough.
     private static final int RESOLVER_ORDER = 10;
 
     @Override

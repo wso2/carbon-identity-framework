@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.extension;
+package org.wso2.carbon.identity.debug.framework.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,7 +48,7 @@ public abstract class DebugProcessor {
      * extraction -> response.
      * All specific implementations are delegated to subclass methods.
      *
-     * @param request  HttpServletRequest containing callback parameters.
+    * @param request  HttpServletRequest containing callback parameters.
      * @param response HttpServletResponse for sending results.
      * @param context  AuthenticationContext for storing and retrieving debug state.
      * @throws IOException If processing fails.
@@ -57,7 +57,7 @@ public abstract class DebugProcessor {
             AuthenticationContext context) throws IOException {
 
         String state = null;
-        String resourceId = null;
+        String connectionId = null;
 
         try {
             // Extract protocol-specific parameters.
@@ -67,16 +67,16 @@ public abstract class DebugProcessor {
             }
 
             // Extract resource identifier.
-            resourceId = extractResourceId(context);
+            connectionId = extractConnectionId(context);
 
             // Step 1: Validate callback (protocol/resource-specific).
-            if (!validateCallback(request, context, response, state, resourceId)) {
+            if (!validateCallback(request, context, response, state, connectionId)) {
                 return;
             }
 
             // Step 2: Process authentication/authorization (protocol/resource-specific).
-            if (!processAuthentication(request, context, response, state, resourceId)) {
-                sendDebugResponse(response, state, resourceId);
+            if (!processAuthentication(request, context, response, state, connectionId)) {
+                sendDebugResponse(response, state, connectionId);
                 return;
             }
 
@@ -84,7 +84,7 @@ public abstract class DebugProcessor {
             Map<String, Object> debugData = extractDebugData(context);
 
             // Step 4: Validate extracted data (protocol/resource-specific).
-            if (!validateDebugData(debugData, context, response, state, resourceId)) {
+            if (!validateDebugData(debugData, context, response, state, connectionId)) {
                 return;
             }
 
@@ -92,7 +92,7 @@ public abstract class DebugProcessor {
             buildAndCacheDebugResult(context, state);
 
             // Step 6: Send response to client.
-            sendDebugResponse(response, state, resourceId);
+            sendDebugResponse(response, state, connectionId);
 
         } catch (Exception e) {
             LOG.error("Unexpected error processing debug callback.", e);
@@ -105,10 +105,10 @@ public abstract class DebugProcessor {
                     state = (String) context.getProperty("DEBUG_STATE");
                 }
             }
-            if (resourceId == null) {
-                resourceId = extractResourceId(context);
+            if (connectionId == null) {
+                connectionId = extractConnectionId(context);
             }
-            sendDebugResponse(response, state, resourceId);
+            sendDebugResponse(response, state, connectionId);
         }
     }
 
@@ -120,17 +120,17 @@ public abstract class DebugProcessor {
      * @param context AuthenticationContext.
      * @return Resource identifier or empty string if not found.
      */
-    protected String extractResourceId(AuthenticationContext context) {
+    protected String extractConnectionId(AuthenticationContext context) {
 
         // Try common property names for resource ID.
-        Object resourceId = context.getProperty("RESOURCE_ID");
-        if (resourceId == null) {
-            resourceId = context.getProperty("IDP_RESOURCE_ID");
+        Object connectionId = context.getProperty("RESOURCE_ID");
+        if (connectionId == null) {
+            connectionId = context.getProperty("IDP_RESOURCE_ID");
         }
-        if (resourceId == null) {
-            resourceId = context.getProperty("DEBUG_RESOURCE_ID");
+        if (connectionId == null) {
+            connectionId = context.getProperty("DEBUG_RESOURCE_ID");
         }
-        return resourceId != null ? resourceId.toString() : "";
+        return connectionId != null ? connectionId.toString() : "";
     }
 
     /**
@@ -149,7 +149,7 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean validateCallback(HttpServletRequest request, AuthenticationContext context,
-            HttpServletResponse response, String state, String resourceId) throws IOException;
+            HttpServletResponse response, String state, String connectionId) throws IOException;
 
     /**
      * Processes the authentication/authorization flow.
@@ -167,7 +167,7 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean processAuthentication(HttpServletRequest request, AuthenticationContext context,
-            HttpServletResponse response, String state, String resourceId) throws IOException;
+            HttpServletResponse response, String state, String connectionId) throws IOException;
 
     /**
      * Extracts debug data from the authentication context.
@@ -199,7 +199,7 @@ public abstract class DebugProcessor {
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean validateDebugData(Map<String, Object> debugData, AuthenticationContext context,
-            HttpServletResponse response, String state, String resourceId) throws IOException;
+            HttpServletResponse response, String state, String connectionId) throws IOException;
 
     /**
      * Builds and caches the final debug result.
@@ -222,10 +222,10 @@ public abstract class DebugProcessor {
      *
      * @param response   HttpServletResponse for sending the response.
      * @param state      The state parameter for session identification.
-     * @param resourceId The resource identifier.
+     * @param connectionId The connection identifier.
      * @throws IOException If response cannot be sent.
      */
-    protected abstract void sendDebugResponse(HttpServletResponse response, String state, String resourceId)
+    protected abstract void sendDebugResponse(HttpServletResponse response, String state, String connectionId)
             throws IOException;
 
     /**

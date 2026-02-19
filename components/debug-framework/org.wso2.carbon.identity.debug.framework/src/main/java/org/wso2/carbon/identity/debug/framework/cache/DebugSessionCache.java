@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
+import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 import org.wso2.carbon.identity.debug.framework.util.DebugSessionUtil;
 
@@ -31,10 +32,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * DB-backed session cache for debug contexts.
- * Used to pass data from DebugExecutor (initiator) to DebugProcessor.
- * Thread-safe singleton that delegates persistence to the framework's
- * DebugSessionDAO.
+ * Generic DB-backed cache for debug data.
+ * Unified caching layer for:
+ * - Intermediate debug context (passed from initiator to processor via state parameter)
+ * - Final debug results (persisted for API retrieval)
+ * 
+ * Thread-safe singleton that delegates persistence to the framework's DebugSessionDAO.
+ * Uses generic storage model to support any data type and payload.
  */
 public final class DebugSessionCache {
 
@@ -88,6 +92,39 @@ public final class DebugSessionCache {
     }
 
     /**
+     * Stores a DebugContext in the session cache.
+     *
+     * @param key     Cache key (typically state parameter).
+     * @param context DebugContext to cache.
+     */
+    public void put(String key, DebugContext context) {
+
+        if (key == null || context == null) {
+            return;
+        }
+        
+        // Convert DebugContext to Map for storage.
+        Map<String, Object> contextMap = new HashMap<>(context.getProperties());
+        
+        // Add metadata fields.
+        if (context.getConnectionId() != null) {
+            contextMap.put("connectionId", context.getConnectionId());
+        }
+        if (context.getResourceType() != null) {
+            contextMap.put("resourceType", context.getResourceType());
+        }
+        contextMap.put("successful", !context.isError());
+        if (context.getErrorMessage() != null) {
+            contextMap.put("errorMessage", context.getErrorMessage());
+        }
+        if (context.getErrorType() != null) {
+            contextMap.put("errorType", context.getErrorType());
+        }
+        
+        put(key, contextMap);
+    }
+
+    /**
      * Retrieves a debug context map from the session cache.
      *
      * @param key Cache key.
@@ -130,4 +167,92 @@ public final class DebugSessionCache {
         }
         return null;
     }
+
+    /**
+     * Caches a debug result as JSON string (for final results).
+     * Generic method supporting both intermediate context and final results.
+     *
+     * @param key    Cache key (typically state parameter).
+     * @param result JSON-serialized result to cache.
+     */
+    public void putResult(String key, String result) {
+
+        putResult(key, result, null, null);
+    }
+
+    /**
+     * Caches a debug result with metadata.
+     *
+     * @param key          Cache key.
+     * @param result       JSON-serialized result.
+     * @param resourceType Type of debug resource (IDP, FRAUD_DETECTION).
+     * @param connectionId   Identifier of the resource.
+     */
+    public void putResult(String key, String result, String resourceType, String connectionId) {
+
+        if (key == null || result == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache.putResult: key and result cannot be null");
+            }
+            return;
+        }
+
+        try {
+            DebugSessionData sessionData = new DebugSessionData();
+            sessionData.setSessionId(key);
+            sessionData.setResultJson(result);
+            sessionData.setStatus("COMPLETED");
+            sessionData.setCreatedTime(System.currentTimeMillis());
+            sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
+            sessionData.setResourceType(resourceType);
+            sessionData.setConnectionId(connectionId);
+
+            debugSessionDAO.upsertDebugSession(sessionData);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug result cached for key: " + key);
+            }
+        } catch (Exception e) {
+            LOG.error("Error persisting debug result: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Retrieves a cached debug result as JSON string.
+     *
+     * @param key Cache key.
+     * @return JSON result or null if not found.
+     */
+    public String getResult(String key) {
+
+        if (key == null) {
+            return null;
+        }
+        try {
+            DebugSessionData data = debugSessionDAO.getDebugSession(key);
+            if (data != null && data.getResultJson() != null) {
+                return data.getResultJson();
+            }
+        } catch (Exception e) {
+            LOG.error("Error retrieving debug result from DB: " + e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Removes a cached debug result.
+     *
+     * @param key Cache key.
+     */
+    public void removeResult(String key) {
+
+        if (key != null) {
+            try {
+                debugSessionDAO.deleteDebugSession(key);
+            } catch (Exception e) {
+                LOG.error("Error removing debug result from DB: " + e.getMessage(), e);
+            }
+        }
+    }
 }
+

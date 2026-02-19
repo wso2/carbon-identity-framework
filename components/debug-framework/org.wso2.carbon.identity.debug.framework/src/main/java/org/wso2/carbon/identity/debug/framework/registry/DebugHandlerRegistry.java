@@ -59,7 +59,7 @@ public class DebugHandlerRegistry {
      * Registers a debug resource handler.
      * Called by OSGi components at startup to register handlers dynamically.
      *
-     * @param resourceType The resource type identifier (e.g., "idp").
+     * @param resourceType The resource type identifier.
      * @param handler      The DebugResourceHandler implementation.
      */
     public void register(String resourceType, DebugResourceHandler handler) {
@@ -106,17 +106,6 @@ public class DebugHandlerRegistry {
     }
 
     /**
-     * Checks if a resource handler is registered.
-     *
-     * @param resourceType The resource type identifier.
-     * @return True if a handler is registered for this type, false otherwise.
-     */
-    public boolean isHandlerRegistered(String resourceType) {
-
-        return resourceType != null && handlers.containsKey(resourceType.toLowerCase());
-    }
-
-    /**
      * Gets all registered resource handler types.
      *
      * @return A map of all registered resource types and their handlers.
@@ -126,15 +115,4 @@ public class DebugHandlerRegistry {
         return new ConcurrentHashMap<>(handlers);
     }
 
-    /**
-     * Clears all registered resource handlers.
-     * Used in testing or during shutdown.
-     */
-    public void clear() {
-        
-        handlers.clear();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Cleared all registered debug resource handlers");
-        }
-    }
 }

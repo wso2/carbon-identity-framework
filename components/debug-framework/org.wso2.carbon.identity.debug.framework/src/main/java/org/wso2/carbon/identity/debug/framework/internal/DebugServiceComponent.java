@@ -57,7 +57,8 @@ public class DebugServiceComponent {
                 LOG.debug("Debug Framework OSGi component activating");
             }
 
-            // Register DebugRequestCoordinator as an OSGi service for backward compatibility.
+            // Register DebugRequestCoordinator as an OSGi service for backward
+            // compatibility.
             // This service is deprecated and delegates to DebugFlowOrchestrator internally.
             @SuppressWarnings("deprecation")
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
@@ -117,11 +118,8 @@ public class DebugServiceComponent {
      *
      * @param provider the DebugProtocolProvider instance.
      */
-    @Reference(name = "debug.protocol.provider", 
-            service = DebugProtocolProvider.class, 
-            cardinality = ReferenceCardinality.MULTIPLE, 
-            policy = ReferencePolicy.DYNAMIC, 
-            unbind = "unsetDebugProtocolProvider")
+    @Reference(name = "debug.protocol.provider", service = DebugProtocolProvider.class, cardinality 
+        = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unsetDebugProtocolProvider")
 
     protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
 
@@ -137,7 +135,8 @@ public class DebugServiceComponent {
 
     /**
      * Unsets the DebugProtocolProvider.
-     * Called by OSGi when a protocol module deactivates or unregisters its provider.
+     * Called by OSGi when a protocol module deactivates or unregisters its
+     * provider.
      *
      * @param provider the DebugProtocolProvider instance.
      */
@@ -159,10 +158,9 @@ public class DebugServiceComponent {
      * @param service the ClaimMetadataManagementService instance.
      */
     @Reference(name = "claimMetadataManagementService", 
-            service = ClaimMetadataManagementService.class, 
-            cardinality = ReferenceCardinality.OPTIONAL, 
-            policy = ReferencePolicy.DYNAMIC, 
-            unbind = "unsetClaimMetadataManagementService")
+        service = ClaimMetadataManagementService.class,    
+        cardinality = ReferenceCardinality.OPTIONAL, 
+        policy = ReferencePolicy.DYNAMIC, unbind = "unsetClaimMetadataManagementService")
 
     protected void setClaimMetadataManagementService(ClaimMetadataManagementService service) {
 
@@ -175,7 +173,8 @@ public class DebugServiceComponent {
     /**
      * Unsets the ClaimMetadataManagementService.
      *
-     * @param claimMetadataManagementService the ClaimMetadataManagementService instance.                  
+     * @param claimMetadataManagementService the ClaimMetadataManagementService
+     *                                       instance.
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 

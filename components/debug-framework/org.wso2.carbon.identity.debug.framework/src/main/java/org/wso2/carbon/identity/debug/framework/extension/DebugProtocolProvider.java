@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
+import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
+import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
+import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
+
 /**
  * Service interface for protocol-specific debug implementations.
  */

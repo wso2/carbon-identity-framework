@@ -94,7 +94,7 @@ public class DebugSessionData implements Serializable {
     }
 
     private String resourceType;
-    private String resourceId;
+    private String connectionId;
 
     public String getResourceType() {
 
@@ -106,13 +106,13 @@ public class DebugSessionData implements Serializable {
         this.resourceType = resourceType;
     }
 
-    public String getResourceId() {
+    public String getConnectionId() {
 
-        return resourceId;
+        return connectionId;
     }
 
-    public void setResourceId(String resourceId) {
+    public void setConnectionId(String connectionId) {
         
-        this.resourceId = resourceId;
+        this.connectionId = connectionId;
     }
 }

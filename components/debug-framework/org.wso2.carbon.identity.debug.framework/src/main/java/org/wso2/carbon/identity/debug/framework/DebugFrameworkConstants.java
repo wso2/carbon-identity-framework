@@ -26,14 +26,11 @@ package org.wso2.carbon.identity.debug.framework;
  */
 public final class DebugFrameworkConstants {
 
-    private DebugFrameworkConstants() {
-    }
-
     // Debug Flow Identification Constants.
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
 
-    // OAuth2 specific callback parameters (for backward compatibility).
+    // OAuth2 specific callback parameters.
     public static final String OAUTH2_CODE_PARAM = "code";
     public static final String OAUTH2_STATE_PARAM = "state";
     public static final String OAUTH2_ERROR_PARAM = "error";

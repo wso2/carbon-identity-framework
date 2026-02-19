@@ -25,14 +25,13 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.debug.framework.DebugCommonAuthHandler;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
-import org.wso2.carbon.identity.debug.framework.DebugService;
-import org.wso2.carbon.identity.debug.framework.cache.DebugResultCache;
-import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProcessor;
+import org.wso2.carbon.identity.debug.framework.cache.DebugSessionCache;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
+import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
@@ -48,12 +47,10 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Routes incoming authentication requests to appropriate handlers.
  * Handles two main flows:
- * Generic debug requests (POST /api/server/v1/debug) - routes based on
- * resourceType.
  * OAuth callback requests (/commonauth) - routes to protocol-specific
  * DebugProcessor.
  */
-public class DebugRequestCoordinator implements DebugService {
+public class DebugRequestCoordinator implements DebugCommonAuthHandler {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
 
@@ -79,17 +76,30 @@ public class DebugRequestCoordinator implements DebugService {
         }
 
         try {
-            String resourceId = debugRequest.getEffectiveResourceId();
+            String connectionId = debugRequest.getEffectiveConnectionId();
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Handling initial debug request for resource: " + resourceId);
+                LOG.debug("Handling initial debug request for resource: " + connectionId);
             }
 
-            // Get executor via Router.
-            DebugExecutor executor = DebugProtocolRouter.getExecutorForResource(resourceId);
+            // Default to IDP if resource type is not provided (legacy support)
+            String resourceType = debugRequest.getResourceType();
+            if (resourceType == null) {
+                resourceType = "IDP";
+            }
+
+            // Get executor via Handler.
+            DebugResourceHandler handler = (DebugResourceHandler) DebugProtocolRouter
+                    .getDebugResourceHandler(resourceType);
+            if (handler == null) {
+                LOG.warn("No DebugResourceHandler found for resource type: " + resourceType);
+                return DebugResponse.error("No debug handler found for the given resource type.");
+            }
+
+            DebugExecutor executor = handler.getExecutor(connectionId);
 
             if (executor == null) {
-                LOG.warn("No DebugExecutor found for the given resource ID: " + resourceId);
+                LOG.warn("No DebugExecutor found for the given resource ID: " + connectionId);
                 return DebugResponse.error("No debug executor found for the given resource.");
             }
 
@@ -97,8 +107,9 @@ public class DebugRequestCoordinator implements DebugService {
                 LOG.debug("Delegating to executor: " + executor.getClass().getSimpleName());
             }
 
-            // Execute and convert DebugResult to DebugResponse.
-            DebugResult result = executor.execute(debugRequest.toMap());
+            // Convert DebugRequest to DebugContext and execute.
+            DebugContext debugContext = DebugContext.fromMap(debugRequest.toMap());
+            DebugResult result = executor.execute(debugContext);
             return DebugResponse.fromDebugResult(result);
 
         } catch (Exception e) {
@@ -110,7 +121,7 @@ public class DebugRequestCoordinator implements DebugService {
     /**
      * Handles debug requests for any resource type using typed classes.
      * This is the preferred method with type safety.
-     * The resourceId is optional and may be null for resource types that don't
+     * The connectionId is optional and may be null for connection types that don't
      * require it.
      *
      * @param debugRequest The debug request with resource information.
@@ -129,7 +140,7 @@ public class DebugRequestCoordinator implements DebugService {
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Orchestrating debug request for resource type: " + debugRequest.getResourceType()
-                        + ", resource ID: " + debugRequest.getEffectiveResourceId());
+                        + ", resource ID: " + debugRequest.getEffectiveConnectionId());
             }
 
             // Pre-execute listeners.
@@ -143,17 +154,16 @@ public class DebugRequestCoordinator implements DebugService {
             // Route by resource type.
             DebugResourceType type = DebugResourceType.fromString(debugRequest.getResourceType());
 
-            // Get the handler for this resource type. Pass resourceId which may be null.
-            DebugResourceHandler handler = type.getHandler(debugRequest.getEffectiveResourceId());
+            // Get the handler for this resource type.
+            DebugResourceHandler handler = type.getHandler();
 
             if (handler == null) {
                 return DebugResponse.error("No handler available for resource type: " +
                         debugRequest.getResourceType());
             }
 
-            // Delegate to handler.
-            Map<String, Object> result = handler.handleDebugRequest(debugRequest.toMap());
-            DebugResponse debugResponse = DebugResponse.success(result);
+            // Delegate to handler with typed objects.
+            DebugResponse debugResponse = handler.handleDebugRequest(debugRequest);
 
             // Post-execute listeners.
             for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
@@ -185,9 +195,10 @@ public class DebugRequestCoordinator implements DebugService {
         }
 
         // Create a minimal request context for the listeners.
-        // We set the resource ID to the session ID so listeners can identify the target.
+        // We set the resource ID to the session ID so listeners can identify the
+        // target.
         DebugRequest debugRequest = new DebugRequest();
-        debugRequest.setResourceId(sessionId);
+        debugRequest.setConnectionId(sessionId);
         debugRequest.setResourceType("DEBUG_RESULT_RETRIEVAL"); // Context marker
 
         try {
@@ -204,7 +215,7 @@ public class DebugRequestCoordinator implements DebugService {
             }
 
             // Execution: Get from cache (Pure Read)
-            String resultJson = DebugResultCache.get(sessionId);
+            String resultJson = DebugSessionCache.getInstance().getResult(sessionId);
 
             // Create response object for listeners
             DebugResponse debugResponse;
@@ -373,39 +384,40 @@ public class DebugRequestCoordinator implements DebugService {
     private DebugProcessor getProtocolSpecificProcessor(HttpServletRequest request, AuthenticationContext context) {
 
         try {
-            String resourceId = extractResourceId(context, request);
-            return DebugProtocolRouter.getProcessorForResource(resourceId);
+            String connectionId = extractConnectionId(context, request);
+            return ((DebugResourceHandler) DebugProtocolRouter.getDebugResourceHandler("IDP"))
+                .getProcessor(connectionId);
         } catch (Exception e) {
             LOG.error("Error discovering protocol-specific DebugProcessor: " + e.getMessage(), e);
             return null;
         }
     }
 
-    private String extractResourceId(AuthenticationContext context, HttpServletRequest request) {
+    private String extractConnectionId(AuthenticationContext context, HttpServletRequest request) {
 
-        String resourceId = extractResourceIdFromContext(context);
-        if (resourceId == null) {
-            resourceId = extractResourceIdFromRequest(request);
+        String connectionId = extractConnectionIdFromContext(context);
+        if (connectionId == null) {
+            connectionId = extractConnectionIdFromRequest(request);
         }
-        return resourceId;
+        return connectionId;
     }
 
-    private String extractResourceIdFromContext(AuthenticationContext context) {
+    private String extractConnectionIdFromContext(AuthenticationContext context) {
 
         if (context == null) {
             return null;
         }
-        String resourceId = (String) context.getProperty("resourceId");
-        if (resourceId == null) {
-            resourceId = (String) context.getProperty("resourceName");
+        String connectionId = (String) context.getProperty("connectionId");
+        if (connectionId == null) {
+            connectionId = (String) context.getProperty("resourceName");
         }
-        if (resourceId == null) {
-            resourceId = (String) context.getProperty("DEBUG_RESOURCE_ID");
+        if (connectionId == null) {
+            connectionId = (String) context.getProperty("DEBUG_RESOURCE_ID");
         }
-        return resourceId;
+        return connectionId;
     }
 
-    private String extractResourceIdFromRequest(HttpServletRequest request) {
+    private String extractConnectionIdFromRequest(HttpServletRequest request) {
 
         if (request == null) {
             return null;
@@ -483,27 +495,5 @@ public class DebugRequestCoordinator implements DebugService {
         } catch (IOException e) {
             LOG.error("Error sending error response: " + e.getMessage(), e);
         }
-    }
-
-    private Map<String, Object> createErrorResponse(String status, String message) {
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("status", status);
-        map.put("message", message);
-        return map;
-    }
-
-    private Map<String, Object> convertDebugResultToMap(DebugResult result) {
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("successful", result.isSuccessful());
-        response.put("resultId", result.getResultId());
-        response.put("timestamp", result.getTimestamp());
-        response.put("status", result.getStatus());
-        response.put("errorCode", result.getErrorCode());
-        response.put("errorMessage", result.getErrorMessage());
-        response.put("resultData", result.getResultData());
-        response.put("metadata", result.getMetadata());
-        return response;
     }
 }

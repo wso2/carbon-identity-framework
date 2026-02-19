@@ -30,32 +30,17 @@ public class DebugContext {
 
     private String connectionId;
     private String resourceType;
-    private String protocol; // TODO: move to properties
-    private boolean successful;
+    private boolean successful = true;
     private String errorMessage;
     private String errorType;
-    private Map<String, Object> properties;
+    private Map<String, Object> properties = new HashMap<>();
 
     /**
      * Constructs an empty DebugContext.
+     * Properties map is initialized, and successful flag defaults to true.
      */
     public DebugContext() {
-
-        this.properties = new HashMap<>();
-        this.successful = true;
-    }
-
-    /**
-     * Constructs a DebugContext with connection details.
-     *
-     * @param connectionId The connection identifier (IDP ID).
-     * @param resourceType The resource type.
-     */
-    public DebugContext(String connectionId, String resourceType) {
-
-        this();
-        this.connectionId = connectionId;
-        this.resourceType = resourceType;
+        // Fields initialized inline.
     }
 
     /**
@@ -73,35 +58,20 @@ public class DebugContext {
         DebugContext context = new DebugContext();
         context.setConnectionId((String) contextMap.get("connectionId"));
         context.setResourceType((String) contextMap.get("resourceType"));
-        context.setProtocol((String) contextMap.get("protocol"));
         context.setSuccessful((Boolean) contextMap.getOrDefault("successful", true));
         context.setErrorMessage((String) contextMap.get("errorMessage"));
         context.setErrorType((String) contextMap.get("errorType"));
 
-        // Copy additional properties.
+        // Copy additional properties (including protocol if present).
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
             String key = entry.getKey();
             if (!"connectionId".equals(key) && !"resourceType".equals(key) && 
-                !"protocol".equals(key) && !"successful".equals(key) &&
+                !"successful".equals(key) &&
                 !"errorMessage".equals(key) && !"errorType".equals(key)) {
                 context.setProperty(key, entry.getValue());
             }
         }
 
-        return context;
-    }
-
-    /**
-     * Creates a success DebugContext.
-     *
-     * @param resourceId   The resource identifier.
-     * @param resourceType The resource type.
-     * @return DebugContext instance with success status.
-     */
-    public static DebugContext success(String resourceId, String resourceType) {
-
-        DebugContext context = new DebugContext(resourceId, resourceType);
-        context.setSuccessful(true);
         return context;
     }
 
@@ -176,11 +146,11 @@ public class DebugContext {
     /**
      * Gets the protocol.
      *
-     * @return Protocol string (e.g., "OIDC", "SAML").
+     * @return Protocol string (e.g., "OIDC", "SAML") from properties.
      */
     public String getProtocol() {
 
-        return protocol;
+        return (String) properties.get("protocol");
     }
 
     /**
@@ -190,7 +160,7 @@ public class DebugContext {
      */
     public void setProtocol(String protocol) {
 
-        this.protocol = protocol;
+        this.properties.put("protocol", protocol);
     }
 
     /**
@@ -244,26 +214,6 @@ public class DebugContext {
     }
 
     /**
-     * Gets the context properties map.
-     *
-     * @return Map containing context properties.
-     */
-    public Map<String, Object> getProperties() {
-
-        return properties;
-    }
-
-    /**
-     * Sets the context properties map.
-     *
-     * @param properties Map containing context properties.
-     */
-    public void setProperties(Map<String, Object> properties) {
-
-        this.properties = properties != null ? properties : new HashMap<>();
-    }
-
-    /**
      * Gets a context property.
      *
      * @param key Property key.
@@ -286,30 +236,14 @@ public class DebugContext {
     }
 
     /**
-     * Converts this context to a Map for backward compatibility.
+     * Gets all properties as a map.
+     * Returns a defensive copy to prevent external modification.
      *
-     * @return Map representation of the context.
+     * @return Map of all properties.
      */
-    public Map<String, Object> toMap() {
+    public Map<String, Object> getProperties() {
 
-        Map<String, Object> map = new HashMap<>(properties);
-        if (connectionId != null) {
-            map.put("connectionId", connectionId);
-        }
-        if (resourceType != null) {
-            map.put("resourceType", resourceType);
-        }
-        if (protocol != null) {
-            map.put("protocol", protocol);
-        }
-        map.put("successful", successful);
-        if (errorMessage != null) {
-            map.put("errorMessage", errorMessage);
-        }
-        if (errorType != null) {
-            map.put("errorType", errorType);
-        }
-        return map;
+        return new HashMap<>(this.properties);
     }
 
     /**

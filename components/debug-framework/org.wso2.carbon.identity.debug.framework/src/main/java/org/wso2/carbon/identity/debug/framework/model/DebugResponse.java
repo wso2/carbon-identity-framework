@@ -64,20 +64,6 @@ public class DebugResponse {
     }
 
     /**
-     * Constructs a DebugResponse with all parameters.
-     *
-     * @param status  The response status.
-     * @param message The response message.
-     * @param data    The response data.
-     */
-    public DebugResponse(String status, String message, Map<String, Object> data) {
-
-        this.status = status;
-        this.message = message;
-        this.data = data != null ? data : new HashMap<>();
-    }
-
-    /**
      * Creates a success response.
      *
      * @param data The response data.
@@ -96,7 +82,8 @@ public class DebugResponse {
      */
     public static DebugResponse error(String message) {
 
-        return new DebugResponse("FAILURE", message);
+        String fallbackMessage = message != null ? message : "Unknown error occurred during debug execution";
+        return new DebugResponse("FAILURE", fallbackMessage);
     }
 
     /**
@@ -124,20 +111,25 @@ public class DebugResponse {
             return error("Result is null");
         }
 
+        // Set top-level status and message.
+        DebugResponse response = new DebugResponse();
+        response.setStatus(result.isSuccessful() ? "SUCCESS" : "FAILURE");
+
+        String message = result.getErrorMessage();
+        if (message == null) {
+            message = result.getStatus();
+        }
+        response.setMessage(message);
+
         Map<String, Object> data = new HashMap<>();
-        
-        // Add basic fields.
+
+        // Add basic fields for backward compatibility.
         data.put("successful", result.isSuccessful());
         data.put("resultId", result.getResultId());
         data.put("timestamp", result.getTimestamp());
-        data.put("status", result.getStatus());
-        
+
         if (result.getErrorCode() != null) {
             data.put("errorCode", result.getErrorCode());
-        }
-        
-        if (result.getErrorMessage() != null) {
-            data.put("errorMessage", result.getErrorMessage());
         }
 
         // Flatten resultData into the top-level map.
@@ -152,17 +144,8 @@ public class DebugResponse {
             }
         }
 
-        return new DebugResponse(data);
-    }
-
-    /**
-     * Gets the response status.
-     *
-     * @return Status string.
-     */
-    public String getStatus() {
-
-        return status;
+        response.setData(data);
+        return response;
     }
 
     /**
@@ -173,16 +156,6 @@ public class DebugResponse {
     public void setStatus(String status) {
 
         this.status = status;
-    }
-
-    /**
-     * Gets the response message.
-     *
-     * @return Message string.
-     */
-    public String getMessage() {
-
-        return message;
     }
 
     /**
@@ -216,17 +189,6 @@ public class DebugResponse {
     }
 
     /**
-     * Adds a data property.
-     *
-     * @param key   Property key.
-     * @param value Property value.
-     */
-    public void addData(String key, Object value) {
-
-        this.data.put(key, value);
-    }
-
-    /**
      * Checks if the response indicates success.
      *
      * @return true if status is SUCCESS, false otherwise.
@@ -234,25 +196,5 @@ public class DebugResponse {
     public boolean isSuccess() {
 
         return "SUCCESS".equals(status);
-    }
-
-    /**
-     * Converts response to Map format for backward compatibility.
-     *
-     * @return Map representation of the response.
-     */
-    public Map<String, Object> toMap() {
-
-        Map<String, Object> map = new HashMap<>();
-        if (status != null) {
-            map.put("status", status);
-        }
-        if (message != null) {
-            map.put("message", message);
-        }
-        if (data != null && !data.isEmpty()) {
-            map.putAll(data);
-        }
-        return map;
     }
 }

@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * Service interface for handling debug authentication flows.
  * Implementations should handle /commonauth requests and route debug flows appropriately.
  */
-public interface DebugService {
+public interface DebugCommonAuthHandler {
 
     /**
      * Checks if the given request represents a debug authentication flow.

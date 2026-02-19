@@ -18,24 +18,51 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
-import java.util.Map;
+import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 
 /**
  * Interface for handling debug requests for different resource types.
- * Each resource type (IdP, Application, Connector, etc.) should have its own implementation.
+ * Each resource type (IdP, Application, Connector, etc.) should have its own
+ * implementation.
  */
 public interface DebugResourceHandler {
 
     /**
-     * Handles a debug request for a specific resource type.
+     * Handles a debug request for a specific resource type using typed classes.
      * The handler is responsible for:
      * Loading the resource configuration from the database.
      * Detecting the protocol used by the resource.
      * Getting the appropriate protocol provider.
      * Executing the debug flow.
      *
-     * @param debugRequest The debug request context containing resourceId, resourceType, properties, etc.
-     * @return A map containing the debug result with authorizationUrl, status, sessionId, etc.
+     * @param debugRequest The debug request containing connectionId,
+     *                     resourceType, properties, etc.
+     * @return DebugResponse containing the debug result with authorizationUrl, status,
+     *         sessionId, etc.
      */
-    Map<String, Object> handleDebugRequest(Map<String, Object> debugRequest);
+    DebugResponse handleDebugRequest(DebugRequest debugRequest);
+
+    /**
+     * Gets the processor for the given resource ID.
+     * The processor handles callback-based flows (e.g., OAuth/OIDC).
+     *
+     * @param connectionId The resource ID associated with the callback.
+     * @return DebugProcessor instance, or null if not applicable.
+     */
+    default org.wso2.carbon.identity.debug.framework.core.DebugProcessor getProcessor(String connectionId) {
+        return null; // Default implementation returns null
+    }
+
+    /**
+     * Gets the executor for the given resource ID.
+     * The executor handles initial debug requests.
+     *
+     * @param connectionId The resource ID.
+     * @return DebugExecutor instance, or null if not applicable.
+     */
+    default org.wso2.carbon.identity.debug.framework.core.DebugExecutor getExecutor(String connectionId) {
+        return null; // Default implementation returns null
+    }
+
 }

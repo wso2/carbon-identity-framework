@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.extension;
+package org.wso2.carbon.identity.debug.framework.core;
 
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 
@@ -46,20 +46,20 @@ public abstract class DebugContextProvider {
      * Resolves and creates a debug context with specific parameters.
      * Implementations should validate all required parameters and configurations.
      *
-     * @param resourceId   resource ID.
+     * @param connectionId   resource ID.
      * @param resourceType Optional resource type.
      * @return Map containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract Map<String, Object> resolveContext(String resourceId, String resourceType) 
+    public abstract Map<String, Object> resolveContext(String connectionId, String resourceType)
             throws ContextResolutionException;
 
     /**
      * Validates if the resolver can handle the given request or resource configuration.
      * Used to determine which resolver to use in a chain of responsibility pattern.
      *
-     * @param resourceId Resource ID to check.
+     * @param connectionId Resource ID to check.
      * @return true if this resolver can handle the resource, false otherwise.
      */
-    public abstract boolean canResolve(String resourceId);
+    public abstract boolean canResolve(String connectionId);
 }

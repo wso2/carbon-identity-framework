@@ -4,7 +4,7 @@
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
- * You may obtain a copy of the License at
+    * @param connectionId connection ID.
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -21,9 +21,6 @@ package org.wso2.carbon.identity.debug.framework.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.extension.DebugContextProvider;
-import org.wso2.carbon.identity.debug.framework.extension.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
@@ -102,30 +99,30 @@ public class DebugProtocolRouter {
     }
 
     /**
-     * Detects the debug protocol type for the given resource ID.
+     * Detects the debug protocol type for the given connectionId ID.
      * Delegates to registered DebugProtocolResolvers.
      *
-     * @param resourceId Resource ID or name.
+     * @param connectionId connection ID or name.
      * @return Detected DebugProtocolType, defaults to OAUTH2_OIDC if detection fails.
      */
-    public static DebugProtocolType detectProtocol(String resourceId) {
+    public static DebugProtocolType detectProtocol(String connectionId) {
 
-        if (StringUtils.isEmpty(resourceId)) {
+        if (StringUtils.isEmpty(connectionId)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resource ID is empty, defaulting to OAuth2/OIDC");
             }
             return DebugProtocolType.OAUTH2_OIDC;
         }
 
-        List<DebugProtocolResolver> resolvers 
+        List<DebugProtocolResolver> resolvers
             = DebugFrameworkServiceDataHolder.getInstance().getDebugProtocolResolvers();
         for (DebugProtocolResolver resolver : resolvers) {
-            String resolvedProtocol = resolver.resolveProtocol(resourceId);
+            String resolvedProtocol = resolver.resolveProtocol(connectionId);
             if (resolvedProtocol != null) {
                 DebugProtocolType type = DebugProtocolType.fromDisplayName(resolvedProtocol);
                 if (type != null) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Protocol resolved by " + resolver.getClass().getSimpleName() 
+                        LOG.debug("Protocol resolved by " + resolver.getClass().getSimpleName()
                                     + ": " + type.getDisplayName());
                     }
                     return type;
@@ -136,46 +133,47 @@ public class DebugProtocolRouter {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("No protocol resolved for resource: " + resourceId + ", defaulting to OAuth2/OIDC");
+            LOG.debug("No protocol resolved for resource: " + connectionId + ", defaulting to OAuth2/OIDC");
         }
         return DebugProtocolType.OAUTH2_OIDC;
     }
 
     /**
-     * Gets the context provider for the given resource ID.
+     * Gets the context provider for the given connection ID.
      * Automatically detects protocol and returns appropriate provider.
      *
-     * @param resourceId Resource ID.
+     * @param connectionId connection ID.
      * @return DebugContextProvider for the resource, or null if not available.
      */
-    public static DebugContextProvider getContextProviderForResource(String resourceId) {
+    public static DebugContextProvider getContextProviderForResource(String connectionId) {
 
-        return getProtocolProviderComponent(resourceId, DebugProtocolProvider::getContextProvider, "Context Provider");
+        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getContextProvider,
+             "Context Provider");
     }
 
     /**
-     * Gets the executor for the given resource ID.
+     * Gets the executor for the given connection ID.
      * Automatically detects protocol and returns appropriate provider.
      *
-     * @param resourceId Resource ID.
+     * @param connectionId Connection ID.
      * @return DebugExecutor for the resource, or null if not available.
      */
-    public static DebugExecutor getExecutorForResource(String resourceId) {
+    public static DebugExecutor getExecutorForResource(String connectionId) {
 
-        return getProtocolProviderComponent(resourceId, DebugProtocolProvider::getExecutor, "Executor");
+        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getExecutor, "Executor");
     }
 
     /**
-     * Gets the processor for the given resource ID.
+     * Gets the processor for the given Connection ID.
      * Automatically detects protocol and returns appropriate provider.
      *
-     * @param resourceId Resource ID.
+     * @param connectionId Connection ID.
      * @return DebugProcessor for the resource, or null if not available.
      */
-    public static DebugProcessor getProcessorForResource(String resourceId) {
+    public static DebugProcessor getProcessorForResource(String connectionId) {
 
         // Cast to DebugProcessor is handled by the generic helper.
-        return (DebugProcessor) getProtocolProviderComponent(resourceId, DebugProtocolProvider::getProcessor,
+        return (DebugProcessor) getProtocolProviderComponent(connectionId, DebugProtocolProvider::getProcessor,
                 "Processor");
     }
 
@@ -237,10 +235,10 @@ public class DebugProtocolRouter {
     /**
      * Generic helper to get a component from the protocol provider.
      */
-    private static <T> T getProtocolProviderComponent(String resourceId, ProviderComponentExtractor<T> extractor,
+    private static <T> T getProtocolProviderComponent(String connectionId, ProviderComponentExtractor<T> extractor,
             String componentName) {
 
-        DebugProtocolType type = detectProtocol(resourceId);
+        DebugProtocolType type = detectProtocol(connectionId);
         DebugProtocolProvider provider = getDebugProtocolProvider(type.getDisplayName());
 
         if (provider != null) {
@@ -305,7 +303,7 @@ public class DebugProtocolRouter {
     }
 
     private static void logDebug(String message) {
-        
+
         if (LOG.isDebugEnabled()) {
             LOG.debug(message);
         }

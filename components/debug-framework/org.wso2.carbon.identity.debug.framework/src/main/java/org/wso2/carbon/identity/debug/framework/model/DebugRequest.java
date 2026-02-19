@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,10 +29,9 @@ import java.util.Map;
  */
 public class DebugRequest {
 
-    private String resourceId;
+    private String connectionId;
     private String resourceType;
-    private String idpId; // Alternative identifier for backward compatibility.
-    private Map<String, Object> additionalContext;
+    private final Map<String, Object> additionalContext;
 
     /**
      * Constructs an empty DebugRequest.
@@ -41,64 +42,23 @@ public class DebugRequest {
     }
 
     /**
-     * Constructs a DebugRequest with resource details.
-     *
-     * @param resourceId   The resource identifier.
-     * @param resourceType The resource type.
-     */
-    public DebugRequest(String resourceId, String resourceType) {
-
-        this();
-        this.resourceId = resourceId;
-        this.resourceType = resourceType;
-    }
-
-    /**
-     * Creates a DebugRequest from a Map context.
-     *
-     * @param context Map containing request parameters.
-     * @return DebugRequest instance.
-     */
-    public static DebugRequest fromMap(Map<String, Object> context) {
-
-        if (context == null) {
-            return null;
-        }
-
-        DebugRequest request = new DebugRequest();
-        request.setResourceId((String) context.get("resourceId"));
-        request.setResourceType((String) context.get("resourceType"));
-        request.setIdpId((String) context.get("idpId"));
-
-        // Copy additional context properties.
-        for (Map.Entry<String, Object> entry : context.entrySet()) {
-            String key = entry.getKey();
-            if (!"resourceId".equals(key) && !"resourceType".equals(key) && !"idpId".equals(key)) {
-                request.addContextProperty(key, entry.getValue());
-            }
-        }
-
-        return request;
-    }
-
-    /**
      * Gets the resource identifier.
      *
      * @return Resource ID string.
      */
-    public String getResourceId() {
+    public String getConnectionId() {
 
-        return resourceId;
+        return connectionId;
     }
 
     /**
      * Sets the resource identifier.
      *
-     * @param resourceId Resource ID string.
+     * @param connectionId Resource ID string.
      */
-    public void setResourceId(String resourceId) {
+    public void setConnectionId(String connectionId) {
 
-        this.resourceId = resourceId;
+        this.connectionId = connectionId;
     }
 
     /**
@@ -122,46 +82,6 @@ public class DebugRequest {
     }
 
     /**
-     * Gets the IDP identifier (alternative to resourceId).
-     *
-     * @return IDP ID string.
-     */
-    public String getIdpId() {
-
-        return idpId;
-    }
-
-    /**
-     * Sets the IDP identifier.
-     *
-     * @param idpId IDP ID string.
-     */
-    public void setIdpId(String idpId) {
-
-        this.idpId = idpId;
-    }
-
-    /**
-     * Gets the additional context properties.
-     *
-     * @return Map of additional properties.
-     */
-    public Map<String, Object> getAdditionalContext() {
-
-        return additionalContext;
-    }
-
-    /**
-     * Sets the additional context properties.
-     *
-     * @param additionalContext Map of additional properties.
-     */
-    public void setAdditionalContext(Map<String, Object> additionalContext) {
-
-        this.additionalContext = additionalContext != null ? additionalContext : new HashMap<>();
-    }
-
-    /**
      * Adds a context property.
      *
      * @param key   Property key.
@@ -173,17 +93,6 @@ public class DebugRequest {
     }
 
     /**
-     * Gets a context property.
-     *
-     * @param key Property key.
-     * @return Property value or null if not found.
-     */
-    public Object getContextProperty(String key) {
-
-        return this.additionalContext.get(key);
-    }
-
-    /**
      * Converts this request to a Map context for backward compatibility.
      *
      * @return Map representation of the request.
@@ -191,34 +100,36 @@ public class DebugRequest {
     public Map<String, Object> toMap() {
 
         Map<String, Object> map = new HashMap<>(additionalContext);
-        if (resourceId != null) {
-            map.put("resourceId", resourceId);
+        if (connectionId != null) {
+            map.put("connectionId", connectionId);
         }
         if (resourceType != null) {
             map.put("resourceType", resourceType);
-        }
-        if (idpId != null) {
-            map.put("idpId", idpId);
         }
         return map;
     }
 
     /**
      * Gets the effective resource ID.
-     * Checks in order: top-level resourceId, additionalContext resourceId, idpId.
+     * Checks in order: top-level connectionId, additionalContext connectionId, idpId.
      *
      * @return The effective resource identifier, or null if not set anywhere.
      */
-    public String getEffectiveResourceId() {
+    public String getEffectiveConnectionId() {
 
-        if (resourceId != null) {
-            return resourceId;
+        if (StringUtils.isNotEmpty(connectionId)) {
+            return connectionId;
         }
-        // Check if resourceId is provided in additional context (properties).
-        Object contextResourceId = additionalContext.get("resourceId");
-        if (contextResourceId instanceof String && !((String) contextResourceId).trim().isEmpty()) {
-            return (String) contextResourceId;
+
+        // Check for common resource ID keys in additional context (properties).
+        String[] possibleKeys = { "connectionId" };
+        for (String key : possibleKeys) {
+            Object value = additionalContext.get(key);
+            if (value instanceof String && StringUtils.isNotEmpty((String) value)) {
+                return (String) value;
+            }
         }
-        return idpId;
+
+        return connectionId;
     }
 }

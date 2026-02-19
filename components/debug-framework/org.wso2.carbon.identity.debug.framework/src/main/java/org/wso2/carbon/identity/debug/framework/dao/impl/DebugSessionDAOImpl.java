@@ -92,7 +92,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 preparedStatement.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
                 preparedStatement.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
                 preparedStatement.setString(7, sessionData.getResourceType());
-                preparedStatement.setString(8, sessionData.getResourceId());
+                preparedStatement.setString(8, sessionData.getConnectionId());
             });
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
@@ -146,7 +146,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 data.setCreatedTime(resultSet.getTimestamp("CREATED_TIME").getTime());
                 data.setExpiryTime(resultSet.getTimestamp("EXPIRY_TIME").getTime());
                 data.setResourceType(resultSet.getString("RESOURCE_TYPE"));
-                data.setResourceId(resultSet.getString("RESOURCE_ID"));
+                data.setConnectionId(resultSet.getString("RESOURCE_ID"));
                 return data;
             }, preparedStatement -> preparedStatement.setString(1, normalizedSessionId));
         } catch (DataAccessException e) {
@@ -177,33 +177,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
             String errorMsg = "Error while retrieving debug session: " + sessionId;
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
-        }
-    }
-
-    @Override
-    public void updateDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
-
-        // Keeps the existing status/result update logic
-        // If resource type/id update is needed, this method should also be updated
-        // For now, only upsert handles the new fields effectively for the save flow
-
-        String normalizedSessionId = normalizeSessionId(sessionData.getSessionId());
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
-
-        LOG.info("Updating debug session - original: " + sessionData.getSessionId()
-                + ", normalized: " + normalizedSessionId
-                + ", status: " + sessionData.getStatus());
-
-        try {
-            jdbcTemplate.executeUpdate(SQL_UPDATE_DEBUG_SESSION, preparedStatement -> {
-                preparedStatement.setString(1, sessionData.getStatus());
-                preparedStatement.setString(2, sessionData.getResultJson());
-                preparedStatement.setString(3, normalizedSessionId);
-            });
-        } catch (DataAccessException e) {
-            String errorMsg = "Error while updating debug session: " + sessionData.getSessionId();
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -255,7 +228,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
                     prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
                     prepStmt.setString(7, sessionData.getResourceType());
-                    prepStmt.setString(8, sessionData.getResourceId());
+                    prepStmt.setString(8, sessionData.getConnectionId());
 
                     prepStmt.executeUpdate();
                     success = true;

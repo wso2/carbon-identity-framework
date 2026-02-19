@@ -48,19 +48,6 @@ public class DebugResult {
     }
 
     /**
-     * Constructs a DebugResult with success status and ID.
-     *
-     * @param successful Success status.
-     * @param resultId   Unique identifier for this result.
-     */
-    public DebugResult(boolean successful, String resultId) {
-
-        this();
-        this.successful = successful;
-        this.resultId = resultId;
-    }
-
-    /**
      * Gets whether the debug operation was successful.
      *
      * @return true if successful, false otherwise.
@@ -71,9 +58,9 @@ public class DebugResult {
     }
 
     /**
-     * Sets the success status.
+     * Sets whether the debug operation was successful.
      *
-     * @param successful Success status.
+     * @param successful true if successful, false otherwise.
      */
     public void setSuccessful(boolean successful) {
 
@@ -201,10 +188,10 @@ public class DebugResult {
     }
 
     /**
-     * Adds a key-value pair to the result data.
+     * Adds a key-value pair to the result data map.
      *
-     * @param key   Data key.
-     * @param value Data value.
+     * @param key   The key for the data.
+     * @param value The value to store.
      */
     public void addResultData(String key, Object value) {
 
@@ -235,10 +222,10 @@ public class DebugResult {
     }
 
     /**
-     * Adds a key-value pair to the metadata.
+     * Adds a key-value pair to the metadata map.
      *
-     * @param key   Metadata key.
-     * @param value Metadata value.
+     * @param key   The key for the metadata.
+     * @param value The value to store.
      */
     public void addMetadata(String key, Object value) {
 

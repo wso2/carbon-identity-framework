@@ -106,7 +106,7 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             return true;
         }
 
-        String sessionId = debugRequest != null ? debugRequest.getEffectiveResourceId() : null;
+        String sessionId = debugRequest != null ? debugRequest.getEffectiveConnectionId() : null;
         if (sessionId == null || sessionId.isEmpty()) {
             return true;
         }

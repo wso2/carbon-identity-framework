@@ -45,15 +45,6 @@ public interface DebugSessionDAO {
     DebugSessionData getDebugSession(String sessionId) throws DebugFrameworkServerException;
 
     /**
-     * Updates an existing debug session.
-     *
-     * @param sessionData Session data object with updated values.
-     * @throws DebugFrameworkServerException If an error occurs while updating the
-     *                                       session.
-     */
-    void updateDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException;
-
-    /**
      * Deletes a debug session.
      *
      * @param sessionId Session ID.
