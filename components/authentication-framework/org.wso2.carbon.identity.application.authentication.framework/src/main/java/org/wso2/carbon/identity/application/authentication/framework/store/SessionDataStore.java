@@ -521,6 +521,11 @@ public class SessionDataStore {
             validityPeriodNano = getCleanupTimeout(type, tenantId);
         }
 
+        // Prevent overflow when adding validityPeriodNano to nanoTime
+        long expiryTime = (validityPeriodNano > Long.MAX_VALUE - nanoTime)
+                ? Long.MAX_VALUE
+                : nanoTime + validityPeriodNano;
+
         PreparedStatement preparedStatement = null;
         try {
             String sqlQuery = getSessionStoreDBQuery(sqlInsertSTORE, type);
@@ -530,7 +535,7 @@ public class SessionDataStore {
             preparedStatement.setString(3, OPERATION_STORE);
             setBlobObject(preparedStatement, entry, 4);
             preparedStatement.setLong(5, nanoTime);
-            preparedStatement.setLong(6, nanoTime + validityPeriodNano);
+            preparedStatement.setLong(6, expiryTime);
             preparedStatement.setInt(7, tenantId);
             preparedStatement.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -565,7 +570,12 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
 
-        long timeoutNano = nanoTime + getCleanupTimeout(type, MultitenantConstants.INVALID_TENANT_ID);
+        long cleanupTimeout = getCleanupTimeout(type, MultitenantConstants.INVALID_TENANT_ID);
+        // Prevent overflow when adding cleanupTimeout to nanoTime
+        long timeoutNano = (cleanupTimeout > Long.MAX_VALUE - nanoTime)
+                ? Long.MAX_VALUE
+                : nanoTime + cleanupTimeout;
+
         try {
             preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlInsertDELETE, type));
             preparedStatement.setString(1, key);
