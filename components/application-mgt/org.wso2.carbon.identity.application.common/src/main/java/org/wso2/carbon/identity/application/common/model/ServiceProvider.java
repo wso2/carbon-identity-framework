@@ -55,6 +55,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String IS_NEW_B2B_LOGIN_ENABLED = "IsNewB2BLoginEnabled";
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
@@ -153,6 +154,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_NEW_B2B_LOGIN_ENABLED)
+    private boolean isNewB2BLoginEnabled;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
@@ -691,6 +696,16 @@ public class ServiceProvider implements Serializable {
     public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
 
         this.isB2BSelfServiceApp = isB2BSelfServiceApp;
+    }
+
+    public boolean isNewB2BLoginEnabled() {
+
+        return isNewB2BLoginEnabled;
+    }
+
+    public void setNewB2BLoginEnabled(boolean isNewB2BLoginEnabled) {
+
+        this.isNewB2BLoginEnabled = isNewB2BLoginEnabled;
     }
 
     public boolean isAPIBasedAuthenticationEnabled() {
