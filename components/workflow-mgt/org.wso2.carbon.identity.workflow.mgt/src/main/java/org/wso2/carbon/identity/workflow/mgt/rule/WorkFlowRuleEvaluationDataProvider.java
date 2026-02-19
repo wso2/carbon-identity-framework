@@ -40,6 +40,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,6 +92,15 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
             return fieldName;
         }
 
+        private static final Map<String, RuleField> FIELD_NAME_MAP;
+
+        static {
+            FIELD_NAME_MAP = new HashMap<>();
+            for (RuleField ruleField : RuleField.values()) {
+                FIELD_NAME_MAP.put(ruleField.getFieldName(), ruleField);
+            }
+        }
+
         /**
          * Get RuleField from field name if it's a known non-claim field.
          *
@@ -99,12 +109,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
          */
         public static RuleField valueOfFieldName(String fieldName) {
 
-            for (RuleField ruleField : RuleField.values()) {
-                if (ruleField.getFieldName().equals(fieldName)) {
-                    return ruleField;
-                }
-            }
-            return null;
+            return FIELD_NAME_MAP.get(fieldName);
         }
     }
 
@@ -150,7 +155,6 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         }
         for (Field field : nonClaimFields) {
             String fieldName = field.getName();
-
             // Reuse already resolved field values.
             FieldValue existingFieldValue = findResolvedFieldValue(fieldValues, fieldName);
             if (existingFieldValue != null) {
@@ -167,39 +171,12 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                 }
                 continue;
             }
-
-            try {    
+            try {
                 RuleField ruleField = RuleField.valueOfFieldName(fieldName);
                 if (ruleField == null) {
                     throw new RuleEvaluationDataProviderException("Unsupported field: " + fieldName);
                 }
-
-                switch (ruleField) {
-                    case USER_DOMAIN:
-                        addUserDomainFieldValue(fieldValues, field, contextData);
-                        break;
-                    case USER_GROUPS:
-                        addUserGroupsFieldValue(fieldValues, field, contextData, tenantDomain);
-                        break;
-                    case USER_ROLES:
-                        addUserRolesFieldValue(fieldValues, field, contextData, tenantDomain);
-                        break;
-                    case ROLE_AUDIENCE:
-                        addRoleAudienceIdFieldValue(fieldValues, field, contextData, tenantDomain);
-                        break;
-                    case ROLE_ID:
-                        addRoleIdFieldValue(fieldValues, field, contextData);
-                        break;
-                    case ROLE_HAS_ASSIGNED_USERS:
-                        addRoleHasAssignedUsersFieldValue(fieldValues, field, contextData);
-                        break;
-                    case ROLE_HAS_UNASSIGNED_USERS:
-                        addRoleHasUnassignedUsersFieldValue(fieldValues, field, contextData);
-                        break;
-                    default:
-                        throw new RuleEvaluationDataProviderException(
-                                "Unsupported field by workflow rule evaluation data provider: " + fieldName);
-                }
+                resolveNonClaimFieldValue(fieldValues, field, ruleField, contextData, tenantDomain);
             } catch (RuleEvaluationDataProviderException e) {
                 throw e;
             } catch (Exception e) {
@@ -228,25 +205,65 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     }
 
     /**
+     * Resolve and add the field value for a known non-claim workflow rule field.
+     *
+     * @param fieldValues  List of field values to add to.
+     * @param field        Field being processed.
+     * @param ruleField    Resolved RuleField enum constant.
+     * @param contextData  Context data from the flow context.
+     * @param tenantDomain Tenant domain.
+     * @throws RuleEvaluationDataProviderException If an error occurs while resolving the field value.
+     */
+    private void resolveNonClaimFieldValue(List<FieldValue> fieldValues, Field field, RuleField ruleField,
+                                           Map<String, Object> contextData, String tenantDomain)
+            throws RuleEvaluationDataProviderException {
+
+        switch (ruleField) {
+            case USER_DOMAIN:
+                addUserDomainFieldValue(fieldValues, field, contextData);
+                break;
+            case USER_GROUPS:
+                addUserGroupsFieldValue(fieldValues, field, contextData, tenantDomain);
+                break;
+            case USER_ROLES:
+                addUserRolesFieldValue(fieldValues, field, contextData, tenantDomain);
+                break;
+            case ROLE_AUDIENCE:
+                addRoleAudienceIdFieldValue(fieldValues, field, contextData, tenantDomain);
+                break;
+            case ROLE_ID:
+                addRoleIdFieldValue(fieldValues, field, contextData);
+                break;
+            case ROLE_HAS_ASSIGNED_USERS:
+                addRoleHasAssignedUsersFieldValue(fieldValues, field, contextData);
+                break;
+            case ROLE_HAS_UNASSIGNED_USERS:
+                addRoleHasUnassignedUsersFieldValue(fieldValues, field, contextData);
+                break;
+            default:
+                throw new RuleEvaluationDataProviderException(
+                        "Unsupported field by workflow rule evaluation data provider: " + field.getName());
+        }
+    }
+
+    /**
      * Add user domain field value from context data.
      */
     private void addUserDomainFieldValue(List<FieldValue> fieldValues, Field field, Map<String, Object> contextData) {
 
         String userStoreDomain = (String) contextData.get(USER_STORE_DOMAIN);
-        if (StringUtils.isNotBlank(userStoreDomain)) {
-            fieldValues.add(new FieldValue(field.getName(), userStoreDomain, ValueType.STRING));
-        }
+        fieldValues.add(new FieldValue(field.getName(),
+                StringUtils.isNotBlank(userStoreDomain) ? userStoreDomain : null, ValueType.STRING));
     }
 
     /**
      * Add role ID field value from context data.
      */
     private void addRoleIdFieldValue(List<FieldValue> fieldValues, Field field, Map<String, Object> contextData) {
-        
+
         String roleId = (String) contextData.get(ROLE_ID);
-        if (StringUtils.isNotBlank(roleId)) {
-            fieldValues.add(new FieldValue(field.getName(), roleId, ValueType.STRING));
-        }
+        fieldValues.add(new FieldValue(field.getName(),
+                StringUtils.isNotBlank(roleId) ? roleId : null, ValueType.STRING));
     }
 
     /**
@@ -260,24 +277,22 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         try {
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
                     .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
-
             // Get user ID from username.
             String userId = userStoreManager.getUserIDFromUserName(username);
             if (StringUtils.isBlank(userId)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Could not resolve user ID for username: " + LoggerUtils.getMaskedContent(username));
+                    log.debug("Could not resolve user ID for username: " + LoggerUtils.getMaskedContent(username) +
+                            ". Adding empty role list.");
                 }
+                fieldValues.add(new FieldValue(field.getName(), Collections.emptyList()));
                 return;
             }
-
             // Get role IDs using RoleManagementService.
             RoleManagementService roleManagementService = WorkflowServiceDataHolder.getInstance()
                     .getRoleManagementService();
             List<String> roleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
-            
-            if (CollectionUtils.isNotEmpty(roleIdList)) {
-                fieldValues.add(new FieldValue(field.getName(), roleIdList));
-            }
+            fieldValues.add(new FieldValue(field.getName(),
+                    CollectionUtils.isNotEmpty(roleIdList) ? roleIdList : Collections.emptyList()));
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new RuleEvaluationDataProviderException(
                     "Error retrieving user ID for username: " + username, e);
@@ -294,27 +309,27 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                                         String tenantDomain) throws RuleEvaluationDataProviderException {
 
         String username = (String) contextData.get(USERNAME);
-
         try {
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
                     .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
-
             // Get user ID from username.
             String userId = userStoreManager.getUserIDFromUserName(username);
             if (StringUtils.isBlank(userId)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Could not resolve user ID for username: " + LoggerUtils.getMaskedContent(username));
+                    log.debug("Could not resolve user ID for username: " + LoggerUtils.getMaskedContent(username) +
+                            ". Adding empty group list.");
                 }
+                fieldValues.add(new FieldValue(field.getName(), Collections.emptyList()));
                 return;
             }
             List<org.wso2.carbon.user.core.common.Group> groupList =
                     userStoreManager.getGroupListOfUser(userId, null, null);
-            if (CollectionUtils.isNotEmpty(groupList)) {
-                List<String> groupIds = groupList.stream()
-                        .map(org.wso2.carbon.user.core.common.Group::getGroupID)
-                        .collect(Collectors.toList());
-               fieldValues.add(new FieldValue(field.getName(), groupIds));
-            }
+            List<String> groupIds = CollectionUtils.isNotEmpty(groupList)
+                    ? groupList.stream()
+                            .map(org.wso2.carbon.user.core.common.Group::getGroupID)
+                            .collect(Collectors.toList())
+                    : Collections.emptyList();
+            fieldValues.add(new FieldValue(field.getName(), groupIds));
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new RuleEvaluationDataProviderException(
                     "Error retrieving groups for username: " + username, e);
@@ -337,11 +352,9 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
 
         Map<String, String> claimValueMap = new HashMap<>();
         Set<String> claimsToFetch = new HashSet<>();
-
         // check context data and collect claims to fetch.
         for (Field field : claimFields) {
             String claimUri = field.getName();
-            
             if (claimValueMap.containsKey(claimUri)) {
                 continue;
             }
@@ -364,7 +377,6 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                 try {
                     AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
                             .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
-
                     Map<String, String> claims = userStoreManager.getUserClaimValues(
                             username,
                             claimsToFetch.toArray(new String[0]),
@@ -379,14 +391,11 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                 }
             }
         }
-
         for (Field field : claimFields) {
             String claimUri = field.getName();
             String claimValue = claimValueMap.get(claimUri);
-            
-            if (StringUtils.isNotBlank(claimValue)) {
-                fieldValues.add(new FieldValue(field.getName(), claimValue, ValueType.STRING));
-            }
+            fieldValues.add(new FieldValue(field.getName(),
+                    StringUtils.isNotBlank(claimValue) ? claimValue : null, ValueType.STRING));
         }
     }
     /**
@@ -405,7 +414,10 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         // If not in context, fetch using Role ID from RoleManagementService.
         String roleId = (String) contextData.get(ROLE_ID);
         if (StringUtils.isBlank(roleId)) {
-            log.debug("Cannot fetch role audience ID without Role ID in context.");
+            if (log.isDebugEnabled()) {
+                log.debug("Cannot fetch role audience ID without Role ID in context. Adding null audience ID.");
+            }
+            fieldValues.add(new FieldValue(field.getName(), (String) null, ValueType.REFERENCE));
             return;
         }
 
@@ -418,9 +430,9 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         } catch (IdentityRoleManagementException e) {
             throw new RuleEvaluationDataProviderException("Error retrieving role info for roleId: " + roleId, e);
         }
-        if (roleBasicInfo != null && StringUtils.isNotBlank(roleBasicInfo.getAudienceId())) {
-            fieldValues.add(new FieldValue(field.getName(), roleBasicInfo.getAudienceId(), ValueType.REFERENCE));
-        }
+        String audienceId = (roleBasicInfo != null && StringUtils.isNotBlank(roleBasicInfo.getAudienceId()))
+                ? roleBasicInfo.getAudienceId() : null;
+        fieldValues.add(new FieldValue(field.getName(), audienceId, ValueType.REFERENCE));
     }
 
      /**
