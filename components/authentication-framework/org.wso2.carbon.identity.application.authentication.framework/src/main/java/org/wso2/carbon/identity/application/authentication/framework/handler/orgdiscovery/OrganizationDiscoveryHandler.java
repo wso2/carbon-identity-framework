@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.orgdiscovery;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.NotImplementedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryResult;
 

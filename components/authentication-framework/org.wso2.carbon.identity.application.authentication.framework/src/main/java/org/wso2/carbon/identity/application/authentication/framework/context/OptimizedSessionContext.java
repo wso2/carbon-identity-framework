@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -128,17 +128,13 @@ public class OptimizedSessionContext implements Serializable {
     }
 
     private Map<String, OptimizedAuthenticatedOrgData> getOptimizedAuthenticatedOrgData(
-            Map<String, AuthenticatedOrgData> authenticatedOrgData) {
+            Map<String, AuthenticatedOrgData> authenticatedOrgData) throws SessionDataStorageOptimizationException {
 
         Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData = new HashMap<>();
-        authenticatedOrgData.forEach((orgId, authenticatedOrgDatum) -> {
-            try {
-                optimizedAuthenticatedOrgData.put(orgId,
-                        new OptimizedAuthenticatedOrgData(authenticatedOrgDatum));
-            } catch (SessionDataStorageOptimizationException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        for (Map.Entry<String, AuthenticatedOrgData> entry : authenticatedOrgData.entrySet()) {
+            optimizedAuthenticatedOrgData.put(entry.getKey(),
+                    new OptimizedAuthenticatedOrgData(entry.getValue()));
+        }
         return optimizedAuthenticatedOrgData;
     }
 
