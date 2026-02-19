@@ -805,7 +805,7 @@ public class AuthorizedAPIManagementServiceImplTest {
                         "(business APIs don't share scopes)");
 
         // Remove a scope from the first API
-        String scopeToRemove = "system-scope-1-patch-cascade";
+        String scopeToRemove = businessAPI1.getScopes().get(0).getName();
         authorizedAPIManagementService.patchAuthorizedAPI(appId, businessAPI1.getId(),
                 new ArrayList<>(), Collections.singletonList(scopeToRemove),
                 Collections.emptyList(), Collections.emptyList(), tenantDomain);
@@ -844,13 +844,13 @@ public class AuthorizedAPIManagementServiceImplTest {
 
         List<Scope> scopes = new ArrayList<>();
         scopes.add(new Scope.ScopeBuilder()
-                .name("system-scope-" + scopePostfix)
+                .name("system-scope-1-" + scopePostfix)
                 .displayName("System Scope 1 " + scopePostfix)
                 .description("System Scope 1 " + scopePostfix)
                 //.orgID(null)
                 .build());
         scopes.add(new Scope.ScopeBuilder()
-                .name("system-scope-" + scopePostfix)
+                .name("system-scope-2-" + scopePostfix)
                 .displayName("System Scope 2 " + scopePostfix)
                 .description("System Scope 2 " + scopePostfix)
                 //.orgID(null)
@@ -873,25 +873,6 @@ public class AuthorizedAPIManagementServiceImplTest {
                 .description("testSystemAPIResource description " + apiPostfix)
                 .type("TENANT")
                 .tenantId(null)// System API type
-                .requiresAuthorization(true)
-                .scopes(scopes);
-
-        // Create in super tenant domain so isSystemAPIByAPIId() can find it
-        return apiResourceManager.addAPIResource(apiResourceBuilder.build(), SUPER_TENANT_DOMAIN_NAME);
-    }
-
-    /**
-     * Helper method to add a test system API resource with specific scopes.
-     * System APIs are created in the super tenant domain to be properly recognized
-     * by isSystemAPIByAPIId().
-     */
-    private APIResource addTestSystemAPIResourceWithScopes(String postfix, List<Scope> scopes) throws Exception {
-
-        APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
-                .name("testSystemAPIResource name " + postfix)
-                .identifier("testSystemAPIResource identifier " + postfix)
-                .description("testSystemAPIResource description " + postfix)
-                .type("TENANT") // System API type
                 .requiresAuthorization(true)
                 .scopes(scopes);
 

@@ -93,7 +93,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             this.addAuthorizedAPIWithScopes(dbConnection, applicationId, apiId, policyId, scopes,
                     Collections.emptyList(), tenantId);
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while obtaining database connection.", e);
+            throw new IdentityApplicationManagementException("Error while adding authorized API.", e);
         }
     }
 
@@ -164,7 +164,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             deleteAuthorizedAPIWithScopes(dbConnection, appId, apiId, tenantId);
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while obtaining database connection.", e);
+            throw new IdentityApplicationManagementException("Error while deleting the authorized API.", e);
         }
     }
 
@@ -257,7 +257,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     authorizedAPI.getPolicyId(), authorizedAPI.getScopes(),
                     authorizedAPI.getAuthorizationDetailsTypes(), tenantId);
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while obtaining database connection.", e);
+            throw new IdentityApplicationManagementException("Error while adding the authorized API.", e);
         }
     }
 
@@ -293,7 +293,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 throw new IdentityApplicationManagementClientException("API resource or scopes are already authorized",
                         e);
             }
-            throw new IdentityApplicationManagementException("SQL Error while patching authorized API. Caused by, ", e);
+            throw new IdentityApplicationManagementException("Error while patching authorized API.", e);
         }
     }
 
@@ -460,20 +460,13 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                                          List<Scope> scopes, int tenantId) throws SQLException {
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE)) {
-
             prepStmt.setString(1, applicationId);
             prepStmt.setString(2, apiId);
             prepStmt.setObject(4, tenantId);
-
             for (Scope scope : scopes) {
                 prepStmt.setString(3, scope.getName());
                 prepStmt.addBatch();
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Adding scope: APP=%s, API=%s, SCOPE_NAME=%s",
-                            applicationId, apiId, scope.getName()));
-                }
             }
-
             prepStmt.executeBatch();
         }
     }
@@ -527,11 +520,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 String.join(", ", scopeNamePlaceholders));
 
         try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
-
             for (int index = 1; index <= scopes.size(); index++) {
                 namedPreparedStatement.setString(SCOPE_NAME_PREFIX + index, scopes.get(index - 1).getName());
             }
-
             try (ResultSet rs = namedPreparedStatement.executeQuery()) {
                 while (rs.next()) {
                     String scopeId = rs.getString(COLUMN_NAME_ID);
@@ -633,7 +624,6 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         List<String> apiIdList = new ArrayList<>(apiIds);
 
         try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
-
             namedPreparedStatement.setString(COLUMN_NAME_APP_ID, applicationId);
             for (int index = 1; index <= apiIdList.size(); index++) {
                 namedPreparedStatement.setString(API_ID_PREFIX + index, apiIdList.get(index - 1));
@@ -678,13 +668,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         List<String> scopeIdList = new ArrayList<>(scopeIds);
 
         try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
-
             namedPreparedStatement.setString(COLUMN_NAME_APP_ID, applicationId);
-
             for (int index = 1; index <= scopeIdList.size(); index++) {
                 namedPreparedStatement.setString(SCOPE_ID_PREFIX + index, scopeIdList.get(index - 1));
             }
-
             try (ResultSet rs = namedPreparedStatement.executeQuery()) {
                 while (rs.next()) {
                     authorizedScopes.add(rs.getString(COLUMN_NAME_SCOPE_ID));
@@ -845,14 +832,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 .replace(PLACEHOLDER_SCOPE_IDS_FOR_DELETION, String.join(", ", scopeIdPlaceholders));
 
         try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
-
             namedPreparedStatement.setString("APP_ID", appId);
             for (int i = 1; i <= scopeIds.size(); i++) {
                 namedPreparedStatement.setString(SCOPE_ID_PREFIX_DEL + i, scopeIds.get(i - 1));
             }
-
             int deletedCount = namedPreparedStatement.executeUpdate();
-
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Deleted %d shared scope authorizations from other APIs", deletedCount));
             }
@@ -920,14 +904,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 .replace(PLACEHOLDER_SCOPE_IDS_TO_EXCLUDE, String.join(", ", scopeIdPlaceholders));
 
         try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
-
             for (int i = 1; i <= scopeNames.size(); i++) {
                 namedPreparedStatement.setString(SCOPE_NAME_PREFIX_DEL + i, scopeNames.get(i - 1));
             }
             for (int i = 1; i <= originalScopeIds.size(); i++) {
                 namedPreparedStatement.setString(SCOPE_ID_PREFIX_DEL + i, originalScopeIds.get(i - 1));
             }
-
             try (ResultSet rs = namedPreparedStatement.executeQuery()) {
                 while (rs.next()) {
                     sharedScopes.add(new ScopeAuthorizationInfo(
@@ -969,27 +951,14 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(
                 ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPE)) {
-
             prepStmt.setString(1, appId);
             prepStmt.setString(2, apiId);
             prepStmt.setInt(4, tenantId);
-
             for (String scopeName : scopeNames) {
                 prepStmt.setString(3, scopeName);
                 prepStmt.addBatch();
             }
-
-            int[] results = prepStmt.executeBatch();
-
-            if (LOG.isDebugEnabled()) {
-                int deletedCount = 0;
-                for (int result : results) {
-                    if (result > 0) {
-                        deletedCount++;
-                    }
-                }
-                LOG.debug(String.format("Deleted %d scopes from non-system API %s", deletedCount, apiId));
-            }
+            prepStmt.executeBatch();
         }
     }
 
@@ -1036,17 +1005,14 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         for (int i = 1; i <= scopeNames.size(); i++) {
             scopeNamePlaceholders.add(":" + SCOPE_NAME_PREFIX_DEL + i + ";");
         }
-
         String sqlStatement = ApplicationMgtDBQueries.GET_SCOPE_IDS_BY_NAMES_FOR_API.replace(
                 PLACEHOLDER_SCOPE_NAMES_FOR_SCOPE_DELETION, String.join(", ", scopeNamePlaceholders));
 
         try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(dbConnection, sqlStatement)) {
-
             namedPreparedStatement.setString(COLUMN_NAME_API_ID, apiId);
             for (int i = 1; i <= scopeNames.size(); i++) {
                 namedPreparedStatement.setString(SCOPE_NAME_PREFIX_DEL + i, scopeNames.get(i - 1));
             }
-
             try (ResultSet rs = namedPreparedStatement.executeQuery()) {
                 while (rs.next()) {
                     scopes.add(new ScopeAuthorizationInfo(
