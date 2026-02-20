@@ -1978,42 +1978,42 @@
 
          <!-- [Organization] User share API V2 -->
          <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="POST">
-             <Scopes>internal_org_share_user</Scopes>
+             <Scopes>internal_org_user_share</Scopes>
          </Resource>
          <Resource context="(.*)/o/api/server/v2/users/share-with-all(.*)" secured="true" http-method="POST">
-             <Scopes>internal_org_share_user</Scopes>
+             <Scopes>internal_org_user_share</Scopes>
          </Resource>
          <Resource context="(.*)/o/api/server/v2/users/unshare(.*)" secured="true" http-method="POST">
-             <Scopes>internal_org_unshare_user</Scopes>
+             <Scopes>internal_org_user_unshare</Scopes>
          </Resource>
          <Resource context="(.*)/o/api/server/v2/users/unshare-with-all(.*)" secured="true" http-method="POST">
-             <Scopes>internal_org_unshare_user</Scopes>
+             <Scopes>internal_org_user_unshare</Scopes>
          </Resource>
          <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
-             <Scopes>internal_org_shared_user_access_update</Scopes>
+             <Scopes>internal_org_user_shared_access_update</Scopes>
          </Resource>
          <Resource context="(.*)/o/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
-             <Scopes>internal_org_shared_user_access_view</Scopes>
+             <Scopes>internal_org_user_shared_access_view</Scopes>
          </Resource>
 
          <!-- User share API V2 -->
          <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="POST">
-             <Scopes>internal_share_user</Scopes>
+             <Scopes>internal_user_share</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v2/users/share-with-all(.*)" secured="true" http-method="POST">
-             <Scopes>internal_share_user</Scopes>
+             <Scopes>internal_user_share</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v2/users/unshare(.*)" secured="true" http-method="POST">
-             <Scopes>internal_unshare_user</Scopes>
+             <Scopes>internal_user_unshare</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v2/users/unshare-with-all(.*)" secured="true" http-method="POST">
-             <Scopes>internal_unshare_user</Scopes>
+             <Scopes>internal_user_unshare</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
-             <Scopes>internal_shared_user_access_update</Scopes>
+             <Scopes>internal_user_shared_access_update</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
-             <Scopes>internal_shared_user_access_view</Scopes>
+             <Scopes>internal_user_shared_access_view</Scopes>
          </Resource>
 
          <!-- [Organization] Async Operation Management API -->
