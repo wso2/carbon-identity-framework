@@ -28,7 +28,6 @@ import java.util.Map;
  */
 public class DebugContext {
 
-    private String connectionId;
     private String resourceType;
     private Map<String, Object> properties = new HashMap<>();
 
@@ -45,20 +44,19 @@ public class DebugContext {
      * @param contextMap Map containing context properties.
      * @return DebugContext instance.
      */
-    public static DebugContext fromMap(Map<String, Object> contextMap) {
+    public static DebugContext buildFromMap(Map<String, Object> contextMap) {
 
         if (contextMap == null) {
             return null;
         }
 
         DebugContext context = new DebugContext();
-        context.setConnectionId((String) contextMap.get("connectionId"));
         context.setResourceType((String) contextMap.get("resourceType"));
 
-        // Copy additional properties (including protocol if present).
+        // Copy all properties.
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
             String key = entry.getKey();
-            if (!"connectionId".equals(key) && !"resourceType".equals(key)) {
+            if (!"resourceType".equals(key)) {
                 context.setProperty(key, entry.getValue());
             }
         }
@@ -69,11 +67,11 @@ public class DebugContext {
     /**
      * Gets the connection identifier.
      *
-     * @return Connection ID string.
+     * @return Connection ID string from properties.
      */
     public String getConnectionId() {
 
-        return connectionId;
+        return (String) properties.get("connectionId");
     }
 
     /**
@@ -83,7 +81,7 @@ public class DebugContext {
      */
     public void setConnectionId(String connectionId) {
 
-        this.connectionId = connectionId;
+        this.properties.put("connectionId", connectionId);
     }
 
     /**

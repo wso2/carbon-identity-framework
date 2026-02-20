@@ -129,7 +129,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
                         String.format(ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED
                             .getDescription(), connectionId));
             }
-            return DebugContext.fromMap(contextMap);
+            return DebugContext.buildFromMap(contextMap);
         } catch (ContextResolutionException e) {
             throw e;
         } catch (Exception e) {

@@ -121,7 +121,7 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             }
 
             // Convert DebugRequest to DebugContext and execute.
-            DebugContext debugContext = DebugContext.fromMap(debugRequest.toMap());
+            DebugContext debugContext = DebugContext.buildFromMap(debugRequest.toMap());
             DebugResult result = executor.execute(debugContext);
             return DebugResponse.fromDebugResult(result);
 
