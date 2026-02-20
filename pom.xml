@@ -2192,8 +2192,8 @@
         <version.equinox.osgi>3.19.0</version.equinox.osgi>
         <equinox.osgi.stax-api.imp.pkg.version.range>[1.0.1,2.0.0)</equinox.osgi.stax-api.imp.pkg.version.range>
 
-        <saml.common.util.version>1.4.1</saml.common.util.version>
-        <saml.common.util.version.range>[1.4.0,1.5.0)</saml.common.util.version.range>
+        <saml.common.util.version>1.6.0</saml.common.util.version>
+        <saml.common.util.version.range>[1.4.0,2.0.0)</saml.common.util.version.range>
 
         <bcprov-jdk18.version>1.78.1.wso2v1</bcprov-jdk18.version>
         <bcpkix-jdk18.version>1.78.1.wso2v1</bcpkix-jdk18.version>
