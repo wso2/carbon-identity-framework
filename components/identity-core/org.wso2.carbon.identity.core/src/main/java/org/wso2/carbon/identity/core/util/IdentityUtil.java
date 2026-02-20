@@ -2547,15 +2547,15 @@ public class IdentityUtil {
         threadLocalIsUserServingAgent.remove();
     }
 
-    public static void setthreadLocalApplicationClientId(String clientId) {
+    public static void setThreadLocalApplicationClientId(String clientId) {
         threadLocalApplicationClientId.set(clientId);
     }
 
-    public static String getthreadLocalApplicationClientId() {
+    public static String getThreadLocalApplicationClientId() {
         return threadLocalApplicationClientId.get();
     }
 
-    public static void unsetthreadLocalApplicationClientId() {
+    public static void unsetThreadLocalApplicationClientId() {
         threadLocalApplicationClientId.remove();
     }
 }
