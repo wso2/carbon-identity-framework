@@ -1096,6 +1096,14 @@
            Supported versions : IS 7.2.0 onwards
         -->
         <ThrowUserStoreExceptionOnUserCreationError>true</ThrowUserStoreExceptionOnUserCreationError>
+
+        <!--
+            If you want to enable the spec compliant email handling in SCIM 2.0, then enable this property value.
+
+            Default value: true
+            Supported versions : IS 7.0.0 onwards
+        -->
+        <EnableSpecCompliantEmailHandling>true</EnableSpecCompliantEmailHandling>
     </SCIM2>
 
     <PasswordPolicy>
