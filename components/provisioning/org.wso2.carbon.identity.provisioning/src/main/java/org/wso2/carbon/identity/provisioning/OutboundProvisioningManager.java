@@ -857,7 +857,154 @@ public class OutboundProvisioningManager {
                 }
             }
         }
+
+        /*
+         * Apply IDP claim mappings as overrides on top of dialect-transformed claims.
+         * This allows users to configure custom attribute mappings in IDP settings that
+         * will
+         * take precedence over standard dialect mappings when connector specifies
+         * outbound dialects.
+         */
+        if (ArrayUtils.isNotEmpty(idpClaimMappings)) {
+            mapppedClaims = applyIdpClaimMappingOverrides(mapppedClaims, idpClaimMappings,
+                    inboundAttributes, provisioningEntity.getAttributes());
+        }
+
         return mapppedClaims;
+    }
+
+    /**
+     * Apply IDP claim mappings as overrides on top of already mapped claims.
+     * This method allows IDP-configured attribute mappings to override or add to
+     * the claims
+     * that were transformed using standard dialect mappings.
+     *
+     * @param mappedClaims      Claims already mapped through dialect
+     *                          transformation.
+     * @param idpClaimMappings  IDP claim mappings configured in IDP settings.
+     * @param inboundAttributes Inbound attributes from the provisioning entity.
+     * @param entityAttributes  Attributes from the provisioning entity.
+     * @return Updated claim mappings with IDP overrides applied.
+     */
+    private Map<ClaimMapping, List<String>> applyIdpClaimMappingOverrides(
+            Map<ClaimMapping, List<String>> mappedClaims,
+            ClaimMapping[] idpClaimMappings,
+            Map<String, String> inboundAttributes,
+            Map<ClaimMapping, List<String>> entityAttributes) {
+
+        if (idpClaimMappings == null || idpClaimMappings.length == 0) {
+            return mappedClaims;
+        }
+
+        // Create a map for quick lookup of IDP mappings by local claim URI.
+        Map<String, ClaimMapping> localClaimToIdpMapping = new HashMap<>();
+        for (ClaimMapping idpMapping : idpClaimMappings) {
+            if (idpMapping.getLocalClaim() != null && idpMapping.getLocalClaim().getClaimUri() != null) {
+                localClaimToIdpMapping.put(idpMapping.getLocalClaim().getClaimUri(), idpMapping);
+            }
+        }
+
+        if (localClaimToIdpMapping.isEmpty()) {
+            return mappedClaims;
+        }
+
+        Map<ClaimMapping, List<String>> updatedMappedClaims = new HashMap<>(mappedClaims);
+
+        // Process inbound attributes and apply IDP mappings.
+        if (MapUtils.isNotEmpty(inboundAttributes)) {
+            for (Map.Entry<String, String> inboundEntry : inboundAttributes.entrySet()) {
+                String localClaimUri = inboundEntry.getKey();
+                String claimValue = inboundEntry.getValue();
+
+                ClaimMapping idpMapping = localClaimToIdpMapping.get(localClaimUri);
+                if (idpMapping != null && idpMapping.getRemoteClaim() != null
+                        && idpMapping.getRemoteClaim().getClaimUri() != null) {
+                    // Found an IDP mapping for this local claim - apply it as override.
+                    String remoteClaimUri = idpMapping.getRemoteClaim().getClaimUri();
+
+                    // Remove any existing mapping with the same local claim but different remote
+                    // claim.
+                    removeExistingMappingForLocalClaim(updatedMappedClaims, localClaimUri);
+
+                    // Add the IDP-mapped claim.
+                    ClaimMapping newMapping = ClaimMapping.build(localClaimUri, remoteClaimUri,
+                            idpMapping.getDefaultValue(), false);
+                    if (StringUtils.isNotBlank(claimValue)) {
+                        updatedMappedClaims.put(newMapping, Arrays.asList(claimValue));
+                    } else if (StringUtils.isNotBlank(idpMapping.getDefaultValue())) {
+                        updatedMappedClaims.put(newMapping, Arrays.asList(idpMapping.getDefaultValue()));
+                    }
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Applied IDP claim mapping override: " + localClaimUri + " -> " + remoteClaimUri);
+                    }
+                }
+            }
+        }
+
+        // Also check entity attributes for claims that might not be in inbound
+        // attributes.
+        if (MapUtils.isNotEmpty(entityAttributes)) {
+            for (Map.Entry<ClaimMapping, List<String>> entityEntry : entityAttributes.entrySet()) {
+                ClaimMapping entityClaimMapping = entityEntry.getKey();
+                if (entityClaimMapping.getLocalClaim() == null) {
+                    continue;
+                }
+                String localClaimUri = entityClaimMapping.getLocalClaim().getClaimUri();
+
+                // Skip if already processed via inbound attributes.
+                if (inboundAttributes != null && inboundAttributes.containsKey(localClaimUri)) {
+                    continue;
+                }
+
+                ClaimMapping idpMapping = localClaimToIdpMapping.get(localClaimUri);
+                if (idpMapping != null && idpMapping.getRemoteClaim() != null
+                        && idpMapping.getRemoteClaim().getClaimUri() != null) {
+                    String remoteClaimUri = idpMapping.getRemoteClaim().getClaimUri();
+                    List<String> claimValues = entityEntry.getValue();
+
+                    // Remove any existing mapping with the same local claim but different remote
+                    // claim.
+                    removeExistingMappingForLocalClaim(updatedMappedClaims, localClaimUri);
+
+                    // Add the IDP-mapped claim.
+                    ClaimMapping newMapping = ClaimMapping.build(localClaimUri, remoteClaimUri,
+                            idpMapping.getDefaultValue(), false);
+                    if (CollectionUtils.isNotEmpty(claimValues)) {
+                        updatedMappedClaims.put(newMapping, claimValues);
+                    } else if (StringUtils.isNotBlank(idpMapping.getDefaultValue())) {
+                        updatedMappedClaims.put(newMapping, Arrays.asList(idpMapping.getDefaultValue()));
+                    }
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Applied IDP claim mapping override from entity attributes: " +
+                                localClaimUri + " -> " + remoteClaimUri);
+                    }
+                }
+            }
+        }
+
+        return updatedMappedClaims;
+    }
+
+    /**
+     * Remove existing claim mapping entry for a given local claim URI.
+     *
+     * @param mappedClaims  Map of claim mappings.
+     * @param localClaimUri Local claim URI to match.
+     */
+    private void removeExistingMappingForLocalClaim(Map<ClaimMapping, List<String>> mappedClaims,
+            String localClaimUri) {
+
+        Iterator<Map.Entry<ClaimMapping, List<String>>> iterator = mappedClaims.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<ClaimMapping, List<String>> entry = iterator.next();
+            ClaimMapping mapping = entry.getKey();
+            if (mapping.getLocalClaim() != null && localClaimUri.equals(mapping.getLocalClaim().getClaimUri())) {
+                iterator.remove();
+                break;
+            }
+        }
     }
 
     /**
