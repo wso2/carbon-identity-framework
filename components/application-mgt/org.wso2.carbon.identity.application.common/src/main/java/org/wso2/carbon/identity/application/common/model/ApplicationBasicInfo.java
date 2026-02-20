@@ -168,7 +168,7 @@ public class ApplicationBasicInfo implements Serializable {
      */
     public String getAccessUrl() {
 
-        return accessUrl;
+        return accessUrl == null ? null : accessUrl.trim();
     }
 
     /**
@@ -178,7 +178,7 @@ public class ApplicationBasicInfo implements Serializable {
      */
     public void setAccessUrl(String accessUrl) {
 
-        this.accessUrl = accessUrl;
+        this.accessUrl = accessUrl == null ? null : accessUrl.trim();
     }
 
     /**
