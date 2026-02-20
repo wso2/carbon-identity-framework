@@ -156,7 +156,8 @@ public class ServiceProvider implements Serializable {
     private boolean isB2BSelfServiceApp;
 
     @IgnoreNullElement
-    @XmlElement(name = IS_NEW_B2B_LOGIN_ENABLED)
+    @XmlTransient
+    @JsonIgnore
     private boolean isNewB2BLoginEnabled;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
