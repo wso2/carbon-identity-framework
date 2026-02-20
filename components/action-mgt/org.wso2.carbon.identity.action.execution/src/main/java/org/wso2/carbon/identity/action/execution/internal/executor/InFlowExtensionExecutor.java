@@ -71,10 +71,10 @@ public class InFlowExtensionExecutor implements Executor {
     private static final TypeReference<List<String>> STRING_LIST_TYPE_REF =
             new TypeReference<List<String>>() { };
 
-    protected static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
-    protected static final String EXPOSE_KEY = "expose";
-    protected static final String ALLOWED_OPERATIONS_KEY = "allowedOperations";
-    protected static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
+    public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
+    public static final String EXPOSE_KEY = "expose";
+    public static final String ALLOWED_OPERATIONS_KEY = "allowedOperations";
+    public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
     private static final String ACTION_ID_METADATA_KEY = "actionId";
     private static final String ALLOWED_OPERATIONS_METADATA_KEY = "allowedOperations";
     private static final String EXPOSE_METADATA_KEY = "expose";
@@ -131,10 +131,8 @@ public class InFlowExtensionExecutor implements Executor {
 
         } catch (ActionExecutionException e) {
             LOG.error("Error executing In-Flow Extension action.", e);
-            response.setResult(ExecutorResult.ERROR.name());
-            response.setErrorMessage("Action execution failed");
-            response.setErrorDescription(e.getMessage());
-            response.setThrowable(e);
+            response.setResult(ExecutorResult.RETRY.name());
+            response.setErrorMessage("An error occurred while processing the extension. Please try again.");
             return response;
         }
     }
@@ -196,20 +194,18 @@ public class InFlowExtensionExecutor implements Executor {
                 break;
 
             case FAILED:
-                response.setResult(ExecutorResult.USER_ERROR.name());
+                response.setResult(ExecutorResult.RETRY.name());
                 Failure failure = (Failure) executionStatus.getResponse();
                 if (failure != null) {
-                    response.setErrorMessage(failure.getFailureReason());
-                    response.setErrorDescription(failure.getFailureDescription());
+                    response.setErrorMessage(buildUserFacingErrorMessage(failure));
                 }
                 break;
 
             case ERROR:
-                response.setResult(ExecutorResult.ERROR.name());
+                response.setResult(ExecutorResult.RETRY.name());
                 Error error = (Error) executionStatus.getResponse();
                 if (error != null) {
-                    response.setErrorMessage(error.getErrorMessage());
-                    response.setErrorDescription(error.getErrorDescription());
+                    response.setErrorMessage(buildUserFacingErrorMessage(error));
                 }
                 break;
 
@@ -223,6 +219,48 @@ public class InFlowExtensionExecutor implements Executor {
         }
 
         return response;
+    }
+
+    /**
+     * Build a user-facing error message from the failure details returned by the external service.
+     * Prefers the failureDescription (human-readable). Falls back to failureReason if description is absent.
+     *
+     * @param failure The failure object from the external service.
+     * @return A display-ready error message string.
+     */
+    private String buildUserFacingErrorMessage(Failure failure) {
+
+        String description = failure.getFailureDescription();
+        String reason = failure.getFailureReason();
+
+        if (description != null && !description.isEmpty()) {
+            return description;
+        }
+        if (reason != null && !reason.isEmpty()) {
+            return reason;
+        }
+        return "The operation could not be completed due to an external service failure.";
+    }
+
+    /**
+     * Build a user-facing error message from the error details returned by the external service.
+     * Prefers the errorDescription (human-readable). Falls back to errorMessage if description is absent.
+     *
+     * @param error The error object from the external service.
+     * @return A display-ready error message string.
+     */
+    private String buildUserFacingErrorMessage(Error error) {
+
+        String description = error.getErrorDescription();
+        String message = error.getErrorMessage();
+
+        if (description != null && !description.isEmpty()) {
+            return description;
+        }
+        if (message != null && !message.isEmpty()) {
+            return message;
+        }
+        return "An unexpected error occurred in the external service.";
     }
 
     private ActionExecutorService getActionExecutorService() {

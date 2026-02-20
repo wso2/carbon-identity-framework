@@ -85,7 +85,9 @@ public final class HierarchicalPrefixMatcher {
     public static final List<String> DEFAULT_EXPOSE = Collections.unmodifiableList(
             Arrays.asList(USER_PREFIX, PROPERTIES_PREFIX, INPUT_PREFIX, FLOW_PREFIX, GRAPH_PREFIX));
 
-    // Context area enum for categorization
+    /**
+     * Context area enum for categorization.
+     */
     public enum ContextArea {
         USER_CLAIMS(USER_CLAIMS_PREFIX, true),      // System-configured keys (claim URIs)
         USER_CREDENTIALS(USER_CREDENTIALS_PREFIX, true), // System-configured keys
@@ -306,7 +308,8 @@ public final class HierarchicalPrefixMatcher {
      * - /properties/ -> /properties/ (unchanged)
      */
 
-    // TODO: This is a simple mapping for demonstration. In a real implementation, this could be loaded from configuration OR use the all context names unchanged.
+    // TODO: This is a simple mapping for demonstration. In a real implementation,
+    // this could be loaded from configuration OR use all context names unchanged.
     private static final Map<String, String> LEGACY_PREFIX_MAPPING = createLegacyMapping();
 
     private static Map<String, String> createLegacyMapping() {
