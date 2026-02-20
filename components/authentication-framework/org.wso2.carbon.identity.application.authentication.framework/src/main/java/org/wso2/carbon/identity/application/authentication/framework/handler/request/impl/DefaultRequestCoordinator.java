@@ -183,6 +183,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         boolean enteredFlow = false;
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
+        boolean isTenantFlowStarted = false;
         try {
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, true);
             AuthenticationRequestCacheEntry authRequest = null;
@@ -275,6 +276,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     returning = true;
                 }
                 associateTransientRequestData(request, responseWrapper, context);
+
+                if (context.getProperty("appResidentOrgId") != null) {
+                    // starting a tenant flow to set the required tenant id, tenant domain and the application
+                    // resident organization in carbon context.
+                    PrivilegedCarbonContext.startTenantFlow();
+                    isTenantFlowStarted = true;
+                    PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
+                            .getThreadLocalCarbonContext();
+                    // Caching and setting the tenant id and domain in carbon context.
+                    String primaryOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                            .getPrimaryOrganizationId((String) context.getProperty("appResidentOrgId"));
+                    String tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                            .resolveTenantDomain(primaryOrgId);
+                    carbonContext.setTenantId(FrameworkServiceComponent.getRealmService().getTenantManager()
+                            .getTenantId(tenantDomain));
+                    carbonContext.setTenantDomain(tenantDomain);
+                    carbonContext.setApplicationResidentOrganizationId(
+                            (String) context.getProperty("appResidentOrgId"));
+                }
             }
 
             // Check if the application is enabled.
@@ -559,6 +579,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
             if (enteredFlow) {
                 IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+            if (isTenantFlowStarted) {
+                PrivilegedCarbonContext.endTenantFlow();
             }
         }
     }
@@ -892,6 +915,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
             context.setProperty(REDIRECT_URL, redirectUrl);
             context.setProperty(IS_API_BASED, TRUE);
+        }
+
+        // In federation flows, application resident org id will not return in the redirect URL. Before moving to
+        // federation flow, we are keeping the app resident org id in the authentication context so we can use that
+        // detail in the follow-up flows.
+        String applicationResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (applicationResidentOrgId != null && context.getCallerPath().contains(applicationResidentOrgId)) {
+            context.setProperty("appResidentOrgId", applicationResidentOrgId);
         }
 
         return context;
