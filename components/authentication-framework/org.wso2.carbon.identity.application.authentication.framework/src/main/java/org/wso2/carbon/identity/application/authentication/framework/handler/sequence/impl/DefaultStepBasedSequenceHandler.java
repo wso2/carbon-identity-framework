@@ -687,6 +687,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             setThreadLocalProvisioningServiceProvider(context);
             setLocalUnfilteredClaimsForNullValues(context, extAttributesValueMap);
             setAttributeSyncMethodToThreadLocal(context);
+            setIdpGroupSyncMethodToThreadLocal(context);
+            setJitProvisioningFlowThreadLocal();
 
             FrameworkUtils.getProvisioningHandler()
                     .handleWithV2Roles(assignedRoleIdList, subjectIdentifier, extAttributesValueMap, userStoreDomain,
@@ -697,6 +699,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
             log.error("User provisioning failed!", e);
         } finally {
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_GROUP_SYNC_METHOD);
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IS_JIT_PROVISIONING_FLOW);
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
         }
     }
@@ -790,5 +794,24 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
         IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD,
                 context.getExternalIdP().getAttributeSyncMethod());
+    }
+
+    /**
+     * Set IDP group sync method to thread local.
+     *
+     * @param context Authentication context.
+     */
+    private void setIdpGroupSyncMethodToThreadLocal(AuthenticationContext context) {
+        IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_GROUP_SYNC_METHOD,
+                context.getExternalIdP().getIdpGroupSyncMethod());
+    }
+
+    /**
+     * Set JIT provisioning flow to thread local.
+     *
+     * @param isJitProvisioningFlow Whether the current flow is a JIT provisioning flow.
+     */
+    private void setJitProvisioningFlowThreadLocal() {
+        IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IS_JIT_PROVISIONING_FLOW, true);
     }
 }

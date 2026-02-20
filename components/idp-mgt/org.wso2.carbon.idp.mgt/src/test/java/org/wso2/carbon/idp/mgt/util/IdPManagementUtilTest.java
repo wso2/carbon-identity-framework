@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import java.util.Optional;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
@@ -55,6 +56,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.fail;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
@@ -840,7 +844,7 @@ public class IdPManagementUtilTest {
                 {configDetails11}
         };
     }
-
+  
     @DataProvider
     public Object[][] getPreserveCurrentSessionAtPasswordUpdateData() {
 
@@ -851,7 +855,7 @@ public class IdPManagementUtilTest {
                 {"test3", false, null, false},
         };
     }
-
+  
     /**
      * Test getPreserveCurrentSessionAtPasswordUpdate method with various scenarios.
      */
@@ -887,6 +891,103 @@ public class IdPManagementUtilTest {
             }
 
             assertEquals(IdPManagementUtil.getPreserveCurrentSessionAtPasswordUpdate(tenantDomain), expectedResult);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getMaximumSessionTimeoutData() {
+
+        return new Object[][]{
+                {"carbon.super", true, "true", true, "60", 60 * 60, false},
+                {"test.com", true, "true", true, "120", 120 * 60, false},
+                {"test.com", true, "true", false, null, Integer.parseInt(MAXIMUM_SESSION_TIME_OUT_DEFAULT) * 60,
+                        false},
+                {"test.com", true, "false", true, "60", 0, true},
+                {"test.com", false, null, true, "60", 0, true},
+        };
+    }
+
+    /**
+     * Test getMaximumSessionTimeout method.
+     */
+    @Test(dataProvider = "getMaximumSessionTimeoutData")
+    public void testGetMaximumSessionTimeout(String tenantDomain, boolean enablePropertyExists,
+                                             String enablePropertyValue, boolean timeoutPropertyExists,
+                                             String timeoutValue, int expectedTimeoutSeconds,
+                                             boolean shouldReturnEmpty) throws Exception {
+
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityApplicationManagementUtil =
+                     mockStatic(IdentityApplicationManagementUtil.class)) {
+
+            IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+            IdentityProviderProperty enableProp = new IdentityProviderProperty();
+            enableProp.setValue(enablePropertyValue);
+            IdentityProviderProperty timeoutProp = new IdentityProviderProperty();
+            timeoutProp.setValue(timeoutValue);
+
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(tenantDomain)).thenReturn(mockedIdentityProvider);
+            when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
+
+            // Setup ENABLE_MAXIMUM_SESSION_TIME_OUT property.
+            if (enablePropertyExists) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                ENABLE_MAXIMUM_SESSION_TIME_OUT))
+                        .thenReturn(enableProp);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                ENABLE_MAXIMUM_SESSION_TIME_OUT))
+                        .thenReturn(null);
+            }
+
+            // Setup MAXIMUM_SESSION_TIME_OUT property.
+            if (timeoutPropertyExists) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                MAXIMUM_SESSION_TIME_OUT))
+                        .thenReturn(timeoutProp);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                MAXIMUM_SESSION_TIME_OUT))
+                        .thenReturn(null);
+            }
+
+            Optional<Integer> result = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+
+            if (shouldReturnEmpty) {
+                Assert.assertFalse(result.isPresent(), "Expected empty Optional but got a value");
+            } else {
+                Assert.assertTrue(result.isPresent(), "Expected Optional with value but got empty");
+                assertEquals(result.get().intValue(), expectedTimeoutSeconds,
+                        "Maximum session timeout does not match expected value");
+            }
+        }
+    }
+
+    /**
+     * Test getMaximumSessionTimeout when IdentityProviderManagementException is thrown.
+     */
+    @Test
+    public void testGetMaximumSessionTimeoutWithException() throws Exception {
+
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class)) {
+
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(anyString()))
+                    .thenThrow(new IdentityProviderManagementException("Test exception"));
+
+            Optional<Integer> result = IdPManagementUtil.getMaximumSessionTimeout(TENANT_DOMAIN);
+
+            Assert.assertFalse(result.isPresent(),
+                    "Expected empty Optional when exception occurs but got a value");
         }
     }
 }

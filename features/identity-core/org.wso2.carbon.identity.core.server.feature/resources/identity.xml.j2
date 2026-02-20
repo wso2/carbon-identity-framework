@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
-~ Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
+~ Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
 ~
 ~ WSO2 LLC. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
@@ -111,6 +111,14 @@
         will change.
         -->
         <ExtendRememberMeSessionTimeoutOnAuth>{{session.timeout.extend_remember_me_session_timeout_on_auth}}</ExtendRememberMeSessionTimeoutOnAuth>
+        <!--
+            Setting EnableMaximumSessionTimeout to TRUE will make the session to expire after the time specified in
+            MaximumSessionTimeout regardless of the user activity. The default value will be FALSE and the session will
+            not expire until the IdleSessionTimeout or RememberMeSessionTimeout is reached based on the session type
+            (normal or remember me).
+         -->
+        <EnableMaximumSessionTimeout>{{session.timeout.enable_maximum_session_timeout}}</EnableMaximumSessionTimeout>
+        <MaximumSessionTimeout>{{session.timeout.maximum_session_timeout}}</MaximumSessionTimeout>
     </TimeConfig>
 
     <!-- Security configurations -->
@@ -2308,6 +2316,13 @@
                 PATCH operations for partial updates.
             -->
             <EnableSCIMPatchForUpdates>{{outbound_provisioning_management.enable_scim_patch_for_updates}}</EnableSCIMPatchForUpdates>
+        {% endif %}
+        {% if outbound_provisioning_management.confidential_data_protection_enabled is defined %}
+            <!--
+                When enabled, confidential outbound provisioning configuration values (such as credentials or secrets)
+                are securely stored in the secret store. These values will be omitted from API response.
+            -->
+            <ConfidentialDataProtectionEnabled>{{outbound_provisioning_management.confidential_data_protection_enabled}}</ConfidentialDataProtectionEnabled>
         {% endif %}
         <SCIM2Client>
             <!--
@@ -4721,6 +4736,7 @@
     <!-- Configuration for preserving the current session and token when updating the password. -->
     <PasswordUpdate>
         <PreserveLoggedInSession>{{identity_mgt.password_update.preserve_logged_in_session}}</PreserveLoggedInSession>
+        <PreserveLoggedInSessionForAllTokenBindings>{{identity_mgt.password_update.preserve_logged_in_session_for_all_bindings}}</PreserveLoggedInSessionForAllTokenBindings>
     </PasswordUpdate>
 
     <EmailTemplatePlaceholders>
@@ -5099,4 +5115,8 @@
     <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
     <MarkStepCompletedOnInterrupt>{{authentication.mark_step_completed_on_interrupt}}</MarkStepCompletedOnInterrupt>
 
+    <!-- API filtering controls -->
+    <APIFiltering>
+        <SingleCharacterWildcard>{{api.filters.single_character_wildcard}}</SingleCharacterWildcard>
+    </APIFiltering>
 </Server>

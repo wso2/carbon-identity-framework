@@ -69,6 +69,9 @@ import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -300,7 +303,7 @@ public class IdentityProviderManager implements IdpManager {
                     .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
             if (!OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+                IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[4];
 
                 IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
                 String rememberMeTimeout =
@@ -323,8 +326,33 @@ public class IdentityProviderManager implements IdpManager {
                 sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
                 sessionIdletimeOutProperty.setValue(idleTimeout);
 
+                IdentityProviderProperty enableMaximumSessionTimeOutProperty = new IdentityProviderProperty();
+                String enableMaximumSessionTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+                if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                        !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                    log.warn("EnableMaximumSessionTimeout in identity.xml should be a boolean value");
+                    enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+                }
+                enableMaximumSessionTimeOutProperty.setName(
+                        IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+                enableMaximumSessionTimeOutProperty.setValue(enableMaximumSessionTimeout);
+
+                IdentityProviderProperty maximumSessionTimeOutProperty = new IdentityProviderProperty();
+                String maximumSessionTimeout =
+                        IdentityUtil.getProperty(IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+                if (StringUtils.isBlank(maximumSessionTimeout) || !StringUtils.isNumeric(maximumSessionTimeout) ||
+                        Integer.parseInt(maximumSessionTimeout) <= 0) {
+                    log.warn("MaximumSessionTimeout in identity.xml should be a numeric value");
+                    maximumSessionTimeout = IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+                }
+                maximumSessionTimeOutProperty.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+                maximumSessionTimeOutProperty.setValue(maximumSessionTimeout);
+
                 idpProperties[0] = rememberMeTimeoutProperty;
                 idpProperties[1] = sessionIdletimeOutProperty;
+                idpProperties[2] = enableMaximumSessionTimeOutProperty;
+                idpProperties[3] = maximumSessionTimeOutProperty;
                 identityProvider.setIdpProperties(idpProperties);
             }
         } catch (OrganizationManagementException e) {
@@ -409,6 +437,21 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
+                            + " of ResidentIdP should be a numeric value greater than 0 ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(),
+                    IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(),
+                        idpProp.getValue()) && !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(),
+                        idpProp.getValue()))) {
+                    throw new IdentityProviderManagementException(
+                            IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT
+                                    + " of ResidentIdP should be a boolean value ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT)) {
+                if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
+                        Integer.parseInt(idpProp.getValue().trim()) <= 0) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
@@ -2196,6 +2239,18 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String filter,
+                                                        String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        limit = validateLimit(limit);
+        offset = validateOffset(offset);
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        return dao.getConnectedApplications(resourceId, limit, offset, expressionNodes);
+    }
+
+    @Override
     public boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -2661,10 +2716,34 @@ public class IdentityProviderManager implements IdpManager {
         }
         String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
 
+        List<String> roles = new ArrayList<>();
+        List<String> groups = new ArrayList<>();
+        for (String entry : outboundProvisioningRoles) {
+            String trimmedEntry = entry.trim();
+            if (StringUtils.isBlank(trimmedEntry)) {
+                continue;
+            }
+            if (isGroup(trimmedEntry)) {
+                groups.add(trimmedEntry);
+            } else {
+                roles.add(trimmedEntry);
+            }
+        }
+
+        validateOutboundProvisioningRoleNames(roles, tenantDomain);
+        validateOutboundProvisioningGroupNames(groups, tenantDomain);
+    }
+
+    private void validateOutboundProvisioningRoleNames(List<String> roles, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (roles.isEmpty()) {
+            return;
+        }
         try {
             RoleManagementService roleManagementService =
                     IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
-            for (String roleName : outboundProvisioningRoles) {
+            for (String roleName : roles) {
                 try {
                     if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
                         throw IdPManagementUtil.handleClientException(
@@ -2682,6 +2761,70 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleServerException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
         }
+    }
+
+    private void validateOutboundProvisioningGroupNames(List<String> groups, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (groups.isEmpty()) {
+            return;
+        }
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            UserStoreManager userStoreManager = IdPManagementServiceComponent.getRealmService()
+                    .getTenantUserRealm(tenantId).getUserStoreManager();
+            if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserStoreManager is not an instance of AbstractUserStoreManager. " +
+                            "Therefore, proceeding without validating outbound provisioning group existence.");
+                }
+                return;
+            }
+            for (String groupName : groups) {
+                if (!isGroupExistInAnyUserStore((AbstractUserStoreManager) userStoreManager, groupName)) {
+                    throw IdPManagementUtil.handleClientException(
+                            IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_GROUP,
+                            null);
+                }
+            }
+        } catch (UserStoreClientException e) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS,
+                    e.getMessage(), e);
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_GROUPS, null, e);
+        }
+    }
+
+    /**
+     * Check if a group exists in any user store (primary and all secondary user stores).
+     *
+     * @param userStoreManager          The user store manager.
+     * @param domainQualifiedGroupName  The group name to check.
+     * @return true if the group exists in any user store.
+     * @throws org.wso2.carbon.user.core.UserStoreException If an error occurred while checking group existence.
+     */
+    private boolean isGroupExistInAnyUserStore(AbstractUserStoreManager userStoreManager, String domainQualifiedGroupName)
+            throws org.wso2.carbon.user.core.UserStoreException {
+
+        try {
+            if (userStoreManager.isGroupExistWithName(domainQualifiedGroupName)) {
+                return true;
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException error) {
+            if (error instanceof UserStoreClientException) {
+                String errorCode = ((UserStoreClientException) error).getErrorCode();
+                if (StringUtils.equals(errorCode, IdPManagementConstants.ERROR_CODE_GROUP_DOES_NOT_EXIST)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group not found: " + domainQualifiedGroupName + ".");
+                    }
+                    return false;
+                }
+            }
+            throw error;
+        }
+        return false;
     }
 
     private boolean isGroup(String localRoleName) {

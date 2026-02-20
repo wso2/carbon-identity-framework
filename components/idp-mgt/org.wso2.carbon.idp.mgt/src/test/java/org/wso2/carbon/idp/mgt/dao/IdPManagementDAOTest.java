@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021-2026, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.idp.mgt.util.ConnectedAppsTestDataProvider;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
@@ -99,7 +100,13 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -210,6 +217,10 @@ public class IdPManagementDAOTest {
         when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptProvisioningConnectorSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptProvisioningConnectorSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
         Field idpSecretsProcessorField = IdPManagementDAO.class.getDeclaredField("idpSecretsProcessorService");
@@ -1940,6 +1951,90 @@ public class IdPManagementDAOTest {
         assertEquals("username,,http://wso2.org/claims/username", secondary.getValue());
     }
 
+    @DataProvider
+    public Object[][] getConnectedApplicationsWithFilterData() {
+
+        return new Object[][]{
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp", 2, 2},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp1", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp2", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 1, 0, "co", "TestApp", 1, 2},
+                {"testIdP1", SAMPLE_TENANT_ID, 1, 1, "co", "TestApp", 1, 2},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "App", 4, 4},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "App3", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "Provisioning", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "co", "NonExistentApp", 0, 0},
+                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "co", "TestApp", 1, 1},
+                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "co", "App4", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "TestApp", 2, 2},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "TestApp1", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "App", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "sw", "Provisioning", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App1", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App2", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App3", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "ew", "App", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "TestApp1", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "TestApp2", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "App3", 1, 1},
+                {"testIdP1", SAMPLE_TENANT_ID, 10, 0, "eq", "ProvisioningApp", 1, 1},
+                {"testIdP2", SAMPLE_TENANT_ID, 10, 0, "eq", "TestApp4", 1, 1},
+        };
+    }
+
+    @Test(dataProvider = "getConnectedApplicationsWithFilterData")
+    public void testGetConnectedApplicationsWithFilter(String idPName, int tenantId, int limit, int offset,
+                                                       String operation, String filterValue, int expectedAppCount,
+                                                       int expectedTotalCount)
+            throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, idPName, tenantId, TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            List<ExpressionNode> expressionNodes = createExpressionNodes(operation, filterValue);
+            ConnectedAppsResult result = idPManagementDAO.getConnectedApplications(uuid, limit, offset,
+                    expressionNodes);
+
+            assertEquals(result.getApps().size(), expectedAppCount,
+                    "Expected app count does not match for filter operation: " + operation + ", value: " + filterValue);
+            assertEquals(result.getTotalAppCount(), expectedTotalCount,
+                    "Expected total count does not match for filter operation: " + operation + ", value: " + filterValue);
+            assertEquals(result.getLimit(), limit, "Limit should match");
+            assertEquals(result.getOffSet(), offset, "Offset should match");
+        }
+    }
+
+    @Test
+    public void testGetConnectedApplicationsWithFilterEmptyResult() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            List<ExpressionNode> expressionNodes = createExpressionNodes("co", "NonExistentApp");
+            ConnectedAppsResult result = idPManagementDAO.getConnectedApplications(uuid, 10, 0, expressionNodes);
+
+            assertEquals(result.getApps().size(), 0, "Should return empty list for non-matching filter");
+            assertEquals(result.getTotalAppCount(), 0, "Total count should be 0 for non-matching filter");
+        }
+    }
+
     private void addTestIdps() throws IdentityProviderManagementException {
 
         // Initialize Test Identity Provider 1.
@@ -2262,6 +2357,164 @@ public class IdPManagementDAOTest {
         return resultSize;
     }
 
+    /**
+     * Helper method to create ExpressionNode list for filtering connected applications.
+     *
+     * @param operation Filter operation (eq, sw, ew, co)
+     * @param value Filter value
+     * @return List of ExpressionNode
+     */
+    private List<ExpressionNode> createExpressionNodes(String operation, String value) {
+
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        ExpressionNode node = new ExpressionNode();
+        node.setAttributeValue(IdPManagementConstants.APP_NAME);
+        node.setOperation(operation);
+        node.setValue(value);
+        expressionNodes.add(node);
+        return expressionNodes;
+    }
+
+    @Test
+    public void testGetConnectedApplicationsWithEmptyFilter() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            // Test with empty expression nodes list - should return all connected apps
+            List<ExpressionNode> emptyExpressionNodes = new ArrayList<>();
+            ConnectedAppsResult result = idPManagementDAO.getConnectedApplications(uuid, 10, 0,
+                    emptyExpressionNodes);
+
+            // Should return all apps when no filter is provided (4 apps created by test data provider)
+            assertEquals(result.getApps().size(), 4, "Should return all apps when filter is empty");
+            assertEquals(result.getTotalAppCount(), 4, "Total count should be 4 when filter is empty");
+        }
+    }
+
+    @Test
+    public void testGetConnectedApplicationsWithNullFilter() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            // Test with null expression nodes - should return all connected apps
+            ConnectedAppsResult result = idPManagementDAO.getConnectedApplications(uuid, 10, 0, null);
+
+            // Should return all apps when filter is null (4 apps created by test data provider)
+            assertEquals(result.getApps().size(), 4, "Should return all apps when filter is null");
+            assertEquals(result.getTotalAppCount(), 4, "Total count should be 4 when filter is null");
+        }
+    }
+
+    @Test
+    public void testGetConnectedApplicationsWithInvalidOperation() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            // Test with invalid operation
+            List<ExpressionNode> expressionNodes = new ArrayList<>();
+            ExpressionNode node = new ExpressionNode();
+            node.setAttributeValue(IdPManagementConstants.APP_NAME);
+            node.setOperation("invalid_op");
+            node.setValue("TestApp");
+            expressionNodes.add(node);
+
+            assertThrows(IdentityProviderManagementClientException.class, () ->
+                    idPManagementDAO.getConnectedApplications(uuid, 10, 0, expressionNodes));
+        }
+    }
+
+    @Test
+    public void testGetConnectedApplicationsWithMultipleExpressionNodes() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            // Test with multiple expression nodes - should throw exception as only single filter is supported
+            List<ExpressionNode> expressionNodes = new ArrayList<>();
+            ExpressionNode node1 = new ExpressionNode();
+            node1.setAttributeValue(IdPManagementConstants.APP_NAME);
+            node1.setOperation("co");
+            node1.setValue("TestApp");
+            expressionNodes.add(node1);
+
+            ExpressionNode node2 = new ExpressionNode();
+            node2.setAttributeValue(IdPManagementConstants.APP_NAME);
+            node2.setOperation("sw");
+            node2.setValue("Test");
+            expressionNodes.add(node2);
+
+            assertThrows(IdentityProviderManagementClientException.class, () ->
+                    idPManagementDAO.getConnectedApplications(uuid, 10, 0, expressionNodes));
+        }
+    }
+
+    @Test
+    public void testGetConnectedApplicationsWithInvalidAttribute() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+                Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            ConnectedAppsTestDataProvider.addConnectedApplicationsTestData(connection, SAMPLE_TENANT_ID);
+
+            IdentityProvider idp = idPManagementDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID,
+                    TENANT_DOMAIN);
+            String uuid = idp.getResourceId();
+
+            // Test with invalid attribute name
+            List<ExpressionNode> expressionNodes = new ArrayList<>();
+            ExpressionNode node = new ExpressionNode();
+            node.setAttributeValue("invalidAttribute");
+            node.setOperation("co");
+            node.setValue("TestApp");
+            expressionNodes.add(node);
+
+            assertThrows(IdentityProviderManagementClientException.class, () ->
+                    idPManagementDAO.getConnectedApplications(uuid, 10, 0, expressionNodes));
+        }
+    }
+
     private void assertIdPResult(IdentityProvider idpResult, String idpName, boolean isExist) {
 
         if (isExist) {
@@ -2282,6 +2535,104 @@ public class IdPManagementDAOTest {
         }
     }
 
+    /**
+     * Provides test data for default session configuration tests.
+     *
+     * @return Test data with configuration values and expected results.
+     */
+    @DataProvider(name = "sessionConfigDataProvider")
+    public Object[][] sessionConfigDataProvider() {
+
+        return new Object[][]{
+                // Valid configuration.
+                {"true", "43260", "true", "43260"},
+                // Invalid boolean value should default to false.
+                {"invalid", "43200", "false", "43200"},
+                // Invalid numeric value should use default.
+                {"false", "", "false", "43200"},
+                {"false", "invalid-num", "false", "43200"},
+                {"true", "0", "true", "43200"}
+        };
+    }
+
+    @Test(description = "Test setDefaultSessionConfigs method with various configurations.",
+            dataProvider = "sessionConfigDataProvider")
+    public void testSetDefaultSessionConfigsInDAO(String enableMaxSessionTimeout,
+                                                   String maxSessionTimeout,
+                                                   String expectedEnableValue,
+                                                   String expectedTimeoutValue) throws Exception {
+
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(REMEMBER_ME_TIME_OUT)).thenReturn("20160");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(SESSION_IDLE_TIMEOUT)).thenReturn("15");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(ENABLE_MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn(enableMaxSessionTimeout);
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn(maxSessionTimeout);
+
+            // Use reflection to invoke the private setDefaultSessionConfigs method.
+            Method setDefaultSessionConfigsMethod = IdPManagementDAO.class.getDeclaredMethod(
+                    "setDefaultSessionConfigs", Map.class);
+            setDefaultSessionConfigsMethod.setAccessible(true);
+
+            Map<String, IdentityProviderProperty> propertiesMap = new HashMap<>();
+            setDefaultSessionConfigsMethod.invoke(idPManagementDAO, propertiesMap);
+
+            // Verify enable maximum session timeout property.
+            IdentityProviderProperty enableProp = propertiesMap.get(
+                    ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            assertNotNull(enableProp, "Enable maximum session timeout property should exist");
+            assertEquals(enableProp.getValue(), expectedEnableValue,
+                    "Enable value should match expected");
+
+            // Verify maximum session timeout property.
+            IdentityProviderProperty timeoutProp = propertiesMap.get(
+                    MAXIMUM_SESSION_TIME_OUT);
+            assertNotNull(timeoutProp, "Maximum session timeout property should exist");
+            assertEquals(timeoutProp.getValue(), expectedTimeoutValue,
+                    "Timeout value should match expected");
+        }
+    }
+
+    @Test(description = "Test that existing properties in map are not overridden.")
+    public void testSetDefaultSessionConfigsDoesNotOverrideExistingProperties() throws Exception {
+
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(REMEMBER_ME_TIME_OUT)).thenReturn("20160");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(SESSION_IDLE_TIMEOUT)).thenReturn("15");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(ENABLE_MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn("false");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(MAXIMUM_SESSION_TIMEOUT)).thenReturn("99999");
+
+            // Use reflection to invoke the private setDefaultSessionConfigs method.
+            Method setDefaultSessionConfigsMethod = IdPManagementDAO.class.getDeclaredMethod(
+                    "setDefaultSessionConfigs", Map.class);
+            setDefaultSessionConfigsMethod.setAccessible(true);
+
+            // Pre-populate the map with existing values.
+            Map<String, IdentityProviderProperty> propertiesMap = new HashMap<>();
+            IdentityProviderProperty existingEnableProp = new IdentityProviderProperty();
+            existingEnableProp.setName(ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            existingEnableProp.setValue("true");
+            propertiesMap.put(ENABLE_MAXIMUM_SESSION_TIME_OUT, existingEnableProp);
+
+            IdentityProviderProperty existingTimeoutProp = new IdentityProviderProperty();
+            existingTimeoutProp.setName(MAXIMUM_SESSION_TIME_OUT);
+            existingTimeoutProp.setValue("12345");
+            propertiesMap.put(MAXIMUM_SESSION_TIME_OUT, existingTimeoutProp);
+
+            setDefaultSessionConfigsMethod.invoke(idPManagementDAO, propertiesMap);
+
+            // Verify the existing values are not overridden.
+            assertEquals(propertiesMap.get(ENABLE_MAXIMUM_SESSION_TIME_OUT).getValue(), "true",
+                    "Existing enable property should not be overridden");
+            assertEquals(propertiesMap.get(MAXIMUM_SESSION_TIME_OUT).getValue(), "12345",
+                    "Existing timeout property should not be overridden");
+        }
+    }
+  
     @Test(description = "Tests `enableJwtScopeAsArray` is present in the inheritable properties list.")
     public void testJwtScopeAsArrayIsInInheritablePropertiesList() {
 

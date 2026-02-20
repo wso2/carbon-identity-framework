@@ -564,15 +564,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            String databaseProductName = jdbcTemplate.getDatabaseProductName();
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
-                if (isH2DB()) {
+                if (isH2DB(databaseProductName)) {
                     updateMetadataForH2(
                             resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField()
                     );
                 } else {
                     updateMetadataForMYSQL(
-                            resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField()
+                            resource, resourceTypeId, isAttributeExists, currentTime, useCreatedTimeField(),
+                            databaseProductName
                     );
                 }
 
@@ -594,7 +596,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             if (createdTime != null) {
                 resource.setCreatedTime(createdTime.toInstant().toString());
             }
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_REPLACE_RESOURCE, resource.getResourceName(), e);
         }
     }
@@ -938,17 +940,19 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            String query;
+            if (isH2DB()) {
+                query = INSERT_OR_UPDATE_ATTRIBUTE_H2;
+            } else if (isPostgreSQLDB()) {
+                query = INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
+            } else if (isMSSqlDB() || isDB2DB()) {
+                query = INSERT_OR_UPDATE_ATTRIBUTE_MSSQL_OR_DB2;
+            } else if (isOracleDB()) {
+                query = INSERT_OR_UPDATE_ATTRIBUTE_ORACLE;
+            } else {
+                query = INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
+            }
             jdbcTemplate.withTransaction(template -> {
-                String query = INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
-                if (isH2DB()) {
-                    query = INSERT_OR_UPDATE_ATTRIBUTE_H2;
-                } else if (isPostgreSQLDB()) {
-                    query = INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
-                } else if (isMSSqlDB() || isDB2DB()) {
-                    query = INSERT_OR_UPDATE_ATTRIBUTE_MSSQL_OR_DB2;
-                } else if (isOracleDB()) {
-                    query = INSERT_OR_UPDATE_ATTRIBUTE_ORACLE;
-                }
                 template.executeUpdate(query, preparedStatement -> {
                     int initialParameterIndex = 1;
                     preparedStatement.setString(initialParameterIndex, attributeId);
@@ -964,7 +968,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 });
                 return null;
             });
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_REPLACE_ATTRIBUTE, attribute.getKey(), e);
         }
     }
@@ -994,73 +998,69 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, boolean isAttributeExists,
-                                        Timestamp currentTime, boolean useCreatedTime)
-            throws TransactionException, ConfigurationManagementServerException {
+                                        Timestamp currentTime, boolean useCreatedTime, String databaseProductName)
+            throws TransactionException {
 
         String query = INSERT_OR_UPDATE_RESOURCE_MYSQL;
-        try {
-            boolean isOracle = isOracleDB();
-            if (isPostgreSQLDB()) {
-                query = INSERT_OR_UPDATE_RESOURCE_POSTGRESQL;
-            } else if (isMSSqlDB() || isDB2DB()) {
-                query = INSERT_OR_UPDATE_RESOURCE_MSSQL_OR_DB2;
-            } else if (isOracle) {
-                query = INSERT_OR_UPDATE_RESOURCE_ORACLE;
-            }
+        boolean isOracle = isOracleDB(databaseProductName);
+        if (isPostgreSQLDB(databaseProductName)) {
+            query = INSERT_OR_UPDATE_RESOURCE_POSTGRESQL;
+        } else if (isMSSqlDB(databaseProductName) || isDB2DB(databaseProductName)) {
+            query = INSERT_OR_UPDATE_RESOURCE_MSSQL_OR_DB2;
+        } else if (isOracle) {
+            query = INSERT_OR_UPDATE_RESOURCE_ORACLE;
+        }
 
-            boolean isOracleOrMssql = isOracle || isMSSqlDB();
-            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-            final String finalQuery = query;
-            jdbcTemplate.withTransaction(template ->
-                    template.executeInsert(
-                            useCreatedTime ? finalQuery :
-                                    INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
-                            preparedStatement -> {
-                                int initialParameterIndex = 1;
-                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                                if (isOracle) {
-                                    preparedStatement.setInt(++initialParameterIndex,
-                                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                                    .getTenantId());
-                                    preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                                    preparedStatement.setInt(++initialParameterIndex, 0);
-                                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
-                                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                                    preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
-                                }
+        boolean isOracleOrMssql = isOracle || isMSSqlDB(databaseProductName);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        final String finalQuery = query;
+        jdbcTemplate.withTransaction(template ->
+                template.executeInsert(
+                        useCreatedTime ? finalQuery :
+                                INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                            if (isOracle) {
                                 preparedStatement.setInt(++initialParameterIndex,
                                         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                                 .getTenantId());
                                 preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                                if (useCreatedTime) {
-                                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                                }
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            /*
-                            Resource files are uploaded using a separate endpoint. Therefore resource creation does
-                            not create files. It is allowed to create a resource without files or attributes in order
-                            to allow  file upload after resource creation.
-                            */
-
-                                if (isOracleOrMssql) {
-                                    preparedStatement.setInt(++initialParameterIndex, 0);
-                                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
-                                } else {
-                                    preparedStatement.setBoolean(++initialParameterIndex, false);
-                                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                                }
+                                preparedStatement.setInt(++initialParameterIndex, 0);
+                                preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
                                 preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                            }, resource, false)
-            );
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
-        }
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
+                            }
+                            preparedStatement.setInt(++initialParameterIndex,
+                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                            .getTenantId());
+                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                            if (useCreatedTime) {
+                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            }
+                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                        /*
+                        Resource files are uploaded using a separate endpoint. Therefore resource creation does
+                        not create files. It is allowed to create a resource without files or attributes in order
+                        to allow  file upload after resource creation.
+                        */
+
+                            if (isOracleOrMssql) {
+                                preparedStatement.setInt(++initialParameterIndex, 0);
+                                preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                            } else {
+                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                            }
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }, resource, false)
+        );
     }
 
     private void updateMetadataForH2(Resource resource, String resourceTypeId, boolean isAttributeExists,
                                      Timestamp currentTime, boolean useCreatedTime)
-            throws TransactionException, ConfigurationManagementServerException {
+            throws TransactionException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         if (isResourceExists(resource, resourceTypeId)) {
@@ -1085,8 +1085,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     )
             );
         } else {
-            try {
-                boolean isOracleOrMsssql = isOracleDB() || isMSSqlDB();
                 jdbcTemplate.withTransaction(template ->
                         template.executeInsert(
                                 useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
@@ -1105,20 +1103,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 does not create files. It is allowed to create a resource without files or attributes
                                 in order to allow file upload after resource creation.
                                 */
+                                    preparedStatement.setBoolean(++initialParameterIndex, false);
+                                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
 
-                                    if (isOracleOrMsssql) {
-                                        preparedStatement.setInt(++initialParameterIndex, 0);
-                                        preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
-                                    } else {
-                                        preparedStatement.setBoolean(++initialParameterIndex, false);
-                                        preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                                    }
                                     preparedStatement.setString(++initialParameterIndex, resourceTypeId);
                                 }, resource, false)
                 );
-            } catch (DataAccessException e) {
-                throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
-            }
         }
     }
 

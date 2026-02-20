@@ -155,7 +155,7 @@ public class AssociationDAO {
                 filterField = filter.trim();
             }
             String filterResolvedForSQL = resolveSQLFilter(filterValue);
-            sqlQuery = getSqlQuery(filterField);
+            sqlQuery = getSqlQuery(filterField, connection);
             PreparedStatement prepStmt;
 
             if (SQLConstants.WORKFLOW_ID_FILTER.equalsIgnoreCase(filterField)) {
@@ -199,7 +199,7 @@ public class AssociationDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet rs = null;
         List<Association> associations = new ArrayList<>();
         String query = SQLConstants.GET_ALL_ASSOCIATIONS_QUERY;
         try {
@@ -221,7 +221,7 @@ public class AssociationDAO {
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
         }
         return associations;
     }
@@ -281,7 +281,7 @@ public class AssociationDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
-        ResultSet rs;
+        ResultSet rs = null;
         Association associationDTO = null;
         String query = SQLConstants.GET_ASSOCIATION_FOR_ASSOC_ID_QUERY;
         try {
@@ -308,7 +308,7 @@ public class AssociationDAO {
         } catch (NumberFormatException e) {
             throw new WorkflowClientException("Invalid association ID: " + associationId, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
         }
         return associationDTO;
     }
@@ -391,22 +391,24 @@ public class AssociationDAO {
      * @throws DataAccessException
      * @throws WorkflowClientException
      */
-    private String getSqlQuery(String filterField)
-            throws InternalWorkflowException, DataAccessException, WorkflowClientException {
+    private String getSqlQuery(String filterField, Connection connection)
+            throws InternalWorkflowException, DataAccessException, WorkflowClientException, SQLException {
 
         String sqlQuery;
+        String databaseProductName = connection.getMetaData().getDatabaseProductName();
         if (filterField == null || SQLConstants.OPERATION_FILTER.equalsIgnoreCase(filterField)) {
-            if (JdbcUtils.isH2DB() || JdbcUtils.isMySQLDB() || JdbcUtils.isMariaDB()) {
+            if (JdbcUtils.isH2DB(databaseProductName) || JdbcUtils.isMySQLDB(databaseProductName) ||
+                    JdbcUtils.isMariaDB(databaseProductName)) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MYSQL;
-            } else if (JdbcUtils.isOracleDB()) {
+            } else if (JdbcUtils.isOracleDB(databaseProductName)) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_ORACLE;
-            } else if (JdbcUtils.isMSSqlDB()) {
+            } else if (JdbcUtils.isMSSqlDB(databaseProductName)) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_MSSQL;
-            } else if (JdbcUtils.isPostgreSQLDB()) {
+            } else if (JdbcUtils.isPostgreSQLDB(databaseProductName)) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_POSTGRESQL;
-            } else if (JdbcUtils.isDB2DB()) {
+            } else if (JdbcUtils.isDB2DB(databaseProductName)) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_DB2SQL;
-            } else if (JdbcUtils.isInformixDB()) {
+            } else if (JdbcUtils.isInformixDB(databaseProductName)) {
                 sqlQuery = SQLConstants.GET_ASSOCIATIONS_BY_TENANT_AND_ASSOC_NAME_INFORMIX;
             } else {
                 throw new InternalWorkflowException(WFConstant.Exceptions.ERROR_WHILE_LOADING_ASSOCIATIONS);

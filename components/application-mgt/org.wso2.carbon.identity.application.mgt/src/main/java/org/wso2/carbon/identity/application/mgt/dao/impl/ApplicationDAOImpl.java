@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -281,8 +281,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<ServiceProviderProperty> idpProperties = new ArrayList<ServiceProviderProperty>();
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
-            prepStmt = isH2DB() ? dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID);
             prepStmt.setInt(1, spId);
             rs = prepStmt.executeQuery();
@@ -293,7 +295,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving SP metadata for SP ID: " + spId, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -315,8 +317,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws SQLException {
 
         PreparedStatement prepStmt = null;
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
-            prepStmt = isH2DB() ? dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA);
             for (ServiceProviderProperty property : properties) {
                 if (StringUtils.isNotBlank(property.getValue())) {
@@ -335,7 +339,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             }
             prepStmt.executeBatch();
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding SP properties for SP ID: " + spId + " and tenant ID: " + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
@@ -3993,20 +3997,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         // Format the filter value to fit in a SQL where clause.
         String formattedFilterValue;
+        String processedSearchValue = searchValue;
+        
+        // Escape SQL wildcards for operations that use LIKE clause.
+        if (FILTER_STARTS_WITH.equals(searchOperation) || FILTER_ENDS_WITH.equals(searchOperation) ||
+                FILTER_CONTAINS.equals(searchOperation)) {
+            processedSearchValue = IdentityUtil.processSingleCharWildcard(searchValue);
+        }
+        
         switch (searchOperation) {
             case FILTER_STARTS_WITH:
-                formattedFilterValue = searchValue + ASTERISK;
+                formattedFilterValue = processedSearchValue + ASTERISK;
                 break;
             case FILTER_ENDS_WITH:
-                formattedFilterValue = ASTERISK + searchValue;
+                formattedFilterValue = ASTERISK + processedSearchValue;
                 break;
             case FILTER_CONTAINS:
-                formattedFilterValue = ASTERISK + searchValue + ASTERISK;
+                formattedFilterValue = ASTERISK + processedSearchValue + ASTERISK;
                 break;
             default:
-                formattedFilterValue = searchValue;
+                formattedFilterValue = processedSearchValue;
         }
-
         return formattedFilterValue;
     }
 

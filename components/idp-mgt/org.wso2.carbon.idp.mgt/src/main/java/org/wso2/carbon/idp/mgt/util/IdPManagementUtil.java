@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import java.util.Optional;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -169,6 +170,50 @@ public class IdPManagementUtil {
             log.error("Error when accessing the IdentityProviderManager for tenant : " + tenantDomain, e);
         }
         return preserveSessionAtPasswordUpdate;
+    }
+
+    /**
+     * Get the maximum session timeout configured in resident IdP of the tenant.
+     * If the maximum session timeout is not enabled, this will return empty optional.
+     *
+     * @param tenantDomain Tenant domain to get the resident IdP of the tenant.
+     * @return Maximum session timeout in seconds wrapped in an Optional if enabled, else empty Optional.
+     */
+    public static Optional<Integer> getMaximumSessionTimeout(String tenantDomain) {
+
+        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
+        int timeout = Integer.parseInt(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT);
+
+        try {
+            IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
+            IdentityProviderProperty enableMaxSessionTimeoutIdpProp =
+                    IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+                            IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            if (enableMaxSessionTimeoutIdpProp != null &&
+                    Boolean.parseBoolean(enableMaxSessionTimeoutIdpProp.getValue())) {
+                IdentityProviderProperty maxSessionTimeoutIdpProp =
+                        IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+                                IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+                if (maxSessionTimeoutIdpProp != null) {
+                    timeout = Integer.parseInt(maxSessionTimeoutIdpProp.getValue());
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Maximum session timeout is enabled for tenant: " + tenantDomain +
+                            " with timeout (mins): " + timeout);
+                }
+
+                return Optional.of(timeout * 60);
+            }
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error when retrieving the maximum session timeout for tenant : " + tenantDomain, e);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Maximum session timeout is not enabled for tenant: " + tenantDomain);
+        }
+
+        return Optional.empty();
     }
 
     /**
@@ -698,5 +743,17 @@ public class IdPManagementUtil {
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                     "Enabling more than one ask password set option is not allowed.");
         }
+    }
+
+
+    /**
+     * Check if outbound provisioning confidential data protection is enabled.
+     *
+     * @return true if OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED is enabled, false otherwise.
+     */
+    public static boolean isProvisioningConfidentialConfigProtectionEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                IdPManagementConstants.OUTBOUND_PROVISIONING_CONFIDENTIAL_DATA_PROTECTION_ENABLED));
     }
 }

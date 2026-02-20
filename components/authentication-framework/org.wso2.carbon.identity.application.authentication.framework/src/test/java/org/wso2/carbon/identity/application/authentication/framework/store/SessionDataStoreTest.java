@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,13 +32,17 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -292,5 +296,151 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         when(mockResultSet.getBinaryStream(anyInt())).thenReturn(mockInputStream);
         when(connection1.getMetaData()).thenReturn(mockDatabaseMetaData);
         when(mockDatabaseMetaData.getDriverName()).thenReturn("H2");
+    }
+
+    @Test(description = "Test getCleanupTimeout with max session timeout greater than remember me")
+    public void testGetCleanupTimeoutWithMaxSessionTimeoutGreaterThanRememberMe() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int rememberMeTimeout = 1209600; // 14 days in seconds.
+        int maxSessionTimeout = 2592000; // 30 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(maxSessionTimeout),
+                    "Should return max session timeout when it is greater than remember me timeout");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout with remember me timeout greater than max session timeout")
+    public void testGetCleanupTimeoutWithRememberMeGreaterThanMaxSessionTimeout() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int rememberMeTimeout = 2592000; // 30 days in seconds.
+        int maxSessionTimeout = 1209600; // 14 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(maxSessionTimeout));
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(rememberMeTimeout),
+                    "Should return remember me timeout when it is greater than max session timeout");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout when max session timeout is not configured")
+    public void testGetCleanupTimeoutWhenMaxSessionTimeoutNotConfigured() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int rememberMeTimeout = 1209600; // 14 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(rememberMeTimeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.empty());
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(rememberMeTimeout),
+                    "Should return remember me timeout when max session timeout is not configured");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout with equal remember me and max session timeout")
+    public void testGetCleanupTimeoutWithEqualTimeouts() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = 1;
+        String tenantDomain = "test.com";
+        String type = "sessionType";
+        int timeout = 1209600; // 14 days in seconds.
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> mockedIdPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(tenantDomain);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(tenantDomain))
+                    .thenReturn(timeout);
+            mockedIdPManagementUtil.when(() -> IdPManagementUtil.getMaximumSessionTimeout(tenantDomain))
+                    .thenReturn(Optional.of(timeout));
+            mockedIdentityUtil.when(() -> IdentityUtil.getIdentityCacheConfig(anyString(), anyString()))
+                    .thenReturn(null);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.SECONDS.toNanos(timeout),
+                    "Should return the timeout value when both are equal");
+        }
+    }
+
+    @Test(description = "Test getCleanupTimeout with invalid tenant ID")
+    public void testGetCleanupTimeoutWithInvalidTenantId() throws Exception {
+
+        SessionDataStore sessionDataStore = SessionDataStore.getInstance();
+        int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+        String type = "sessionType";
+        long expectedTimeout = 20; // Default cleanup timeout in minutes.
+
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+            mockedIdentityUtil.when(IdentityUtil::getCleanUpTimeout).thenReturn(expectedTimeout);
+
+            Method method = SessionDataStore.class.getDeclaredMethod("getCleanupTimeout", String.class, int.class);
+            method.setAccessible(true);
+            long result = (long) method.invoke(sessionDataStore, type, tenantId);
+
+            assertEquals(result, TimeUnit.MINUTES.toNanos(expectedTimeout),
+                    "Should return default cleanup timeout when tenant ID is invalid");
+        }
     }
 }
