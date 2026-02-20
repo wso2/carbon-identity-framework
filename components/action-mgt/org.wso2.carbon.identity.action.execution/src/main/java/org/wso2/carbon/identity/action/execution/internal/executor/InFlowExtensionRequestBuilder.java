@@ -99,10 +99,16 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             expose = HierarchicalPrefixMatcher.DEFAULT_EXPOSE;
         }
 
-        InFlowExtensionEvent event = buildEvent(execCtx, expose);
+        // Build allowed operations first so REPLACE paths can augment the expose list.
         List<AllowedOperation> allowedOperations = buildAllowedOperations(
                 flowContext.getValue(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, String.class),
                 flowContext);
+
+        // Augment expose with REPLACE paths so the external service can see the current values
+        // it may replace.
+        expose = augmentExposeWithReplacePaths(expose, allowedOperations);
+
+        InFlowExtensionEvent event = buildEvent(execCtx, expose);
 
         return new ActionExecutionRequest.Builder()
                 .actionType(ActionType.IN_FLOW_EXTENSION)
@@ -395,5 +401,44 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             }
         }
         return false;
+    }
+
+    /**
+     * Augment the expose list with paths from REPLACE operations.
+     * REPLACE operations require the current values to be visible to the external service,
+     * so their paths must be exposed even if not explicitly in the expose configuration.
+     *
+     * @param expose            The current expose list.
+     * @param allowedOperations The parsed allowed operations.
+     * @return The augmented expose list (new list if modified, original if unchanged).
+     */
+    private List<String> augmentExposeWithReplacePaths(List<String> expose,
+                                                       List<AllowedOperation> allowedOperations) {
+
+        if (allowedOperations == null || allowedOperations.isEmpty()) {
+            return expose;
+        }
+
+        List<String> replacePaths = new ArrayList<>();
+        for (AllowedOperation op : allowedOperations) {
+            if (op.getOp() == Operation.REPLACE && op.getPaths() != null) {
+                for (String path : op.getPaths()) {
+                    if (!isExposed(path, expose)) {
+                        replacePaths.add(path);
+                    }
+                }
+            }
+        }
+
+        if (replacePaths.isEmpty()) {
+            return expose;
+        }
+
+        List<String> augmented = new ArrayList<>(expose);
+        augmented.addAll(replacePaths);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Augmented expose list with REPLACE paths: " + replacePaths);
+        }
+        return augmented;
     }
 }

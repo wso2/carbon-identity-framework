@@ -129,7 +129,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         if (operations != null && !operations.isEmpty()) {
             for (PerformableOperation operation : operations) {
                 // Normalize legacy paths.
-                // TODO: Remove this normalization logic in future once external services are updated to use unified paths.
+                // TODO: Remove this normalization logic in future once external services are updated
+                // to use unified paths.
                 String normalizedPath = HierarchicalPrefixMatcher.normalizePath(operation.getPath());
                 if (!normalizedPath.equals(operation.getPath())) {
                     PerformableOperation normalizedOp = new PerformableOperation();
