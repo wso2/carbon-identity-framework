@@ -113,14 +113,7 @@ public final class DebugSessionCache {
         if (context.getResourceType() != null) {
             contextMap.put("resourceType", context.getResourceType());
         }
-        contextMap.put("successful", !context.isError());
-        if (context.getErrorMessage() != null) {
-            contextMap.put("errorMessage", context.getErrorMessage());
-        }
-        if (context.getErrorType() != null) {
-            contextMap.put("errorType", context.getErrorType());
-        }
-        
+
         put(key, contextMap);
     }
 

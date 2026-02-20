@@ -42,9 +42,9 @@ public class DebugRequest {
     }
 
     /**
-     * Gets the resource identifier.
+     * Gets the connection identifier.
      *
-     * @return Resource ID string.
+     * @return connection ID string.
      */
     public String getConnectionId() {
 
@@ -52,9 +52,9 @@ public class DebugRequest {
     }
 
     /**
-     * Sets the resource identifier.
+     * Sets the connection identifier.
      *
-     * @param connectionId Resource ID string.
+     * @param connectionId Connection ID string.
      */
     public void setConnectionId(String connectionId) {
 
@@ -110,10 +110,10 @@ public class DebugRequest {
     }
 
     /**
-     * Gets the effective resource ID.
+     * Gets the effective connection ID.
      * Checks in order: top-level connectionId, additionalContext connectionId, idpId.
      *
-     * @return The effective resource identifier, or null if not set anywhere.
+     * @return The effective connection identifier, or null if not set anywhere.
      */
     public String getEffectiveConnectionId() {
 
@@ -121,7 +121,7 @@ public class DebugRequest {
             return connectionId;
         }
 
-        // Check for common resource ID keys in additional context (properties).
+        // Check for common connection ID keys in additional context (properties).
         String[] possibleKeys = { "connectionId" };
         for (String key : possibleKeys) {
             Object value = additionalContext.get(key);

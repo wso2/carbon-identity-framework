@@ -27,46 +27,37 @@ public class ContextResolutionException extends DebugFrameworkException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a ContextResolutionException with error code and message.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     */
-    public ContextResolutionException(String errorCode, String message) {
-
-        super(errorCode, message);
-    }
-
-    /**
-     * Constructs a ContextResolutionException with error code, message, and cause.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     * @param cause     Root cause exception.
-     */
-    public ContextResolutionException(String errorCode, String message, Throwable cause) {
-
-        super(errorCode, message, cause);
-    }
-
-    /**
      * Constructs a ContextResolutionException with message.
      *
      * @param message Error message.
      */
     public ContextResolutionException(String message) {
 
-        super("CONTEXT_RESOLUTION_ERROR", message);
+        super(message);
     }
 
     /**
-     * Constructs a ContextResolutionException with message and cause.
+     * Constructs a ContextResolutionException with error code, message, and description.
      *
-     * @param message Error message.
-     * @param cause   Root cause exception.
+     * @param errorCode   Error code for categorization.
+     * @param message     Error message.
+     * @param description Detailed error description.
      */
-    public ContextResolutionException(String message, Throwable cause) {
-        
-        super("CONTEXT_RESOLUTION_ERROR", message, cause);
+    public ContextResolutionException(String errorCode, String message, String description) {
+
+        super(errorCode, message, description);
+    }
+
+    /**
+     * Constructs a ContextResolutionException with error code, message, description, and cause.
+     *
+     * @param errorCode   Error code for categorization.
+     * @param message     Error message.
+     * @param description Detailed error description.
+     * @param cause       Root cause exception.
+     */
+    public ContextResolutionException(String errorCode, String message, String description, Throwable cause) {
+
+        super(errorCode, message, description, cause);
     }
 }

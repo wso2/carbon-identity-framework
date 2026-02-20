@@ -29,6 +29,7 @@ public class DebugResponse {
 
     private String status;
     private String message;
+    private String errorCode;
     private Map<String, Object> data;
 
     /**
@@ -87,15 +88,37 @@ public class DebugResponse {
     }
 
     /**
-     * Creates an error response with custom status.
+     * Creates an error response with error code.
      *
-     * @param status  The error status code.
-     * @param message The error message.
-     * @return DebugResponse instance.
+     * @param errorCode The error code.
+     * @param message   The error message.
+     * @return DebugResponse instance with FAILURE status and error code.
      */
-    public static DebugResponse error(String status, String message) {
+    public static DebugResponse error(String errorCode, String message) {
 
-        return new DebugResponse(status, message);
+        DebugResponse response = new DebugResponse("FAILURE", message);
+        response.setErrorCode(errorCode);
+        return response;
+    }
+
+    /**
+     * Gets the error code.
+     *
+     * @return Error code string.
+     */
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    /**
+     * Sets the error code.
+     *
+     * @param errorCode Error code string.
+     */
+    public void setErrorCode(String errorCode) {
+
+        this.errorCode = errorCode;
     }
 
     /**

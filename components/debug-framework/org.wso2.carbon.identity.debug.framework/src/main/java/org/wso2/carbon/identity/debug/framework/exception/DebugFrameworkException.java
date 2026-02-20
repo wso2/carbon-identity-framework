@@ -26,31 +26,7 @@ public class DebugFrameworkException extends Exception {
 
     private static final long serialVersionUID = 1L;
     private String errorCode;
-
-    /**
-     * Constructs a DebugFrameworkException with error code and message.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     */
-    public DebugFrameworkException(String errorCode, String message) {
-
-        super(message);
-        this.errorCode = errorCode;
-    }
-
-    /**
-     * Constructs a DebugFrameworkException with error code, message, and cause.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     * @param cause     Root cause exception.
-     */
-    public DebugFrameworkException(String errorCode, String message, Throwable cause) {
-
-        super(message, cause);
-        this.errorCode = errorCode;
-    }
+    private String description;
 
     /**
      * Constructs a DebugFrameworkException with message.
@@ -60,7 +36,6 @@ public class DebugFrameworkException extends Exception {
     public DebugFrameworkException(String message) {
 
         super(message);
-        this.errorCode = "DEBUG_FRAMEWORK_ERROR";
     }
 
     /**
@@ -72,7 +47,35 @@ public class DebugFrameworkException extends Exception {
     public DebugFrameworkException(String message, Throwable cause) {
 
         super(message, cause);
-        this.errorCode = "DEBUG_FRAMEWORK_ERROR";
+    }
+
+    /**
+     * Constructs a DebugFrameworkException with error code, message, and description.
+     *
+     * @param errorCode   Error code for categorization.
+     * @param message     Error message.
+     * @param description Detailed error description.
+     */
+    public DebugFrameworkException(String errorCode, String message, String description) {
+
+        super(message);
+        this.errorCode = errorCode;
+        this.description = description;
+    }
+
+    /**
+     * Constructs a DebugFrameworkException with error code, message, description, and cause.
+     *
+     * @param errorCode   Error code for categorization.
+     * @param message     Error message.
+     * @param description Detailed error description.
+     * @param cause       Root cause exception.
+     */
+    public DebugFrameworkException(String errorCode, String message, String description, Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = errorCode;
+        this.description = description;
     }
 
     /**
@@ -93,5 +96,25 @@ public class DebugFrameworkException extends Exception {
     public void setErrorCode(String errorCode) {
 
         this.errorCode = errorCode;
+    }
+
+    /**
+     * Gets the error description.
+     *
+     * @return Error description string.
+     */
+    public String getDescription() {
+
+        return description;
+    }
+
+    /**
+     * Sets the error description.
+     *
+     * @param description Error description string.
+     */
+    public void setDescription(String description) {
+
+        this.description = description;
     }
 }

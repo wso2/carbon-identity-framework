@@ -34,7 +34,7 @@ public class CacheException extends DebugFrameworkException {
      */
     public CacheException(String errorCode, String message) {
         
-        super(errorCode, message);
+        super(errorCode, message, "");
         
     }
 
@@ -47,7 +47,7 @@ public class CacheException extends DebugFrameworkException {
      */
     public CacheException(String errorCode, String message, Throwable cause) {
 
-        super(errorCode, message, cause);
+        super(errorCode, message, "", cause);
     }
 
     /**
@@ -57,7 +57,7 @@ public class CacheException extends DebugFrameworkException {
      */
     public CacheException(String message) {
 
-        super("CACHE_ERROR", message);
+        super("CACHE_ERROR", message, "");
     }
 
     /**
@@ -68,6 +68,6 @@ public class CacheException extends DebugFrameworkException {
      */
     public CacheException(String message, Throwable cause) {
         
-        super("CACHE_ERROR", message, cause);
+        super("CACHE_ERROR", message, "", cause);
     }
 }

@@ -27,7 +27,11 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.DebugCommonAuthHandler;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.cache.DebugSessionCache;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
@@ -36,6 +40,7 @@ import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
+import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -68,11 +73,13 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
      *
      * @param debugRequest The debug request with resource details.
      * @return DebugResponse containing the execution result.
+     * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public DebugResponse handleInitialDebugRequest(DebugRequest debugRequest) {
+    public DebugResponse handleInitialDebugRequest(DebugRequest debugRequest)
+            throws DebugFrameworkClientException, DebugFrameworkServerException {
 
         if (debugRequest == null) {
-            return DebugResponse.error("Debug request cannot be null");
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
         try {
@@ -82,7 +89,7 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
                 LOG.debug("Handling initial debug request for resource: " + connectionId);
             }
 
-            // Default to IDP if resource type is not provided (legacy support)
+            // Default to IDP if resource type is not provided (legacy support).
             String resourceType = debugRequest.getResourceType();
             if (resourceType == null) {
                 resourceType = "IDP";
@@ -92,15 +99,21 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             DebugResourceHandler handler = (DebugResourceHandler) DebugProtocolRouter
                     .getDebugResourceHandler(resourceType);
             if (handler == null) {
-                LOG.warn("No DebugResourceHandler found for resource type: " + resourceType);
-                return DebugResponse.error("No debug handler found for the given resource type.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No DebugResourceHandler found for resource type: " + resourceType);
+                }
+                throw DebugFrameworkUtils.handleClientException(
+                        ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, resourceType);
             }
 
             DebugExecutor executor = handler.getExecutor(connectionId);
 
             if (executor == null) {
-                LOG.warn("No DebugExecutor found for the given resource ID: " + connectionId);
-                return DebugResponse.error("No debug executor found for the given resource.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No DebugExecutor found for the given resource ID: " + connectionId);
+                }
+                throw DebugFrameworkUtils.handleClientException(
+                        ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);
             }
 
             if (LOG.isDebugEnabled()) {
@@ -112,9 +125,11 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             DebugResult result = executor.execute(debugContext);
             return DebugResponse.fromDebugResult(result);
 
+        } catch (DebugFrameworkClientException e) {
+            throw e;
         } catch (Exception e) {
             LOG.error("Error handling initial debug request.", e);
-            return DebugResponse.error("Server error processing debug request.");
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
 
@@ -126,16 +141,13 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
      *
      * @param debugRequest The debug request with resource information.
      * @return DebugResponse containing debug result data.
+     * @throws DebugFrameworkClientException If the request has validation errors.
+     * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public DebugResponse handleResourceDebugRequest(DebugRequest debugRequest) {
+    public DebugResponse handleResourceDebugRequest(DebugRequest debugRequest)
+            throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        if (debugRequest == null) {
-            return DebugResponse.error("Debug request cannot be null.");
-        }
-
-        if (debugRequest.getResourceType() == null || debugRequest.getResourceType().trim().isEmpty()) {
-            return DebugResponse.error("Resource type is required.");
-        }
+        validateDebugRequest(debugRequest);
 
         try {
             if (LOG.isDebugEnabled()) {
@@ -144,12 +156,7 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             }
 
             // Pre-execute listeners.
-            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
-                    .getDebugExecutionListeners()) {
-                if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
-                    return DebugResponse.error("Debug request aborted by listener.");
-                }
-            }
+            executePreListeners(debugRequest);
 
             // Route by resource type.
             DebugResourceType type = DebugResourceType.fromString(debugRequest.getResourceType());
@@ -158,26 +165,82 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             DebugResourceHandler handler = type.getHandler();
 
             if (handler == null) {
-                return DebugResponse.error("No handler available for resource type: " +
-                        debugRequest.getResourceType());
+                throw DebugFrameworkUtils.handleClientException(
+                        ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, debugRequest.getResourceType());
             }
 
             // Delegate to handler with typed objects.
             DebugResponse debugResponse = handler.handleDebugRequest(debugRequest);
 
             // Post-execute listeners.
-            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
-                    .getDebugExecutionListeners()) {
-                if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
-                    return DebugResponse.error("Debug request aborted by post-execute listener.");
-                }
-            }
+            executePostListeners(debugResponse, debugRequest);
 
             return debugResponse;
 
+        } catch (DebugFrameworkClientException e) {
+            // Re-throw client exceptions.
+            throw e;
+        } catch (DebugFrameworkException e) {
+            LOG.error("Debug framework error in request orchestration.", e);
+            throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
         } catch (Exception e) {
-            LOG.error("Error in debug request orchestration.", e);
-            return DebugResponse.error("Error processing debug request.");
+            LOG.error("Unexpected error in debug request orchestration.", e);
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
+        }
+    }
+
+    /**
+     * Validates the debug request.
+     *
+     * @param debugRequest The debug request to validate.
+     * @throws DebugFrameworkClientException If validation fails.
+     */
+    private void validateDebugRequest(DebugRequest debugRequest) throws DebugFrameworkClientException {
+
+        if (debugRequest == null) {
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
+        }
+
+        if (debugRequest.getResourceType() == null || debugRequest.getResourceType().trim().isEmpty()) {
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_RESOURCE_TYPE);
+        }
+    }
+
+    /**
+     * Executes pre-execute listeners.
+     *
+     * @param debugRequest The debug request.
+     * @throws DebugFrameworkClientException If a listener aborts the request.
+     * @throws DebugFrameworkException       If a listener throws an exception.
+     */
+    private void executePreListeners(DebugRequest debugRequest) throws DebugFrameworkException {
+
+        for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                .getDebugExecutionListeners()) {
+            if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
+                throw DebugFrameworkUtils.handleClientException(
+                        ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "pre-execute");
+            }
+        }
+    }
+
+    /**
+     * Executes post-execute listeners.
+     *
+     * @param debugResponse The debug response.
+     * @param debugRequest  The debug request.
+     * @throws DebugFrameworkClientException If a listener aborts the request.
+     * @throws DebugFrameworkException       If a listener throws an exception.
+     */
+    private void executePostListeners(DebugResponse debugResponse, DebugRequest debugRequest)
+            throws DebugFrameworkException {
+
+        for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                .getDebugExecutionListeners()) {
+            if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
+                throw DebugFrameworkUtils.handleClientException(
+                        ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "post-execute");
+            }
         }
     }
 
@@ -187,67 +250,48 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
      *
      * @param sessionId The session ID to retrieve.
      * @return The debug result JSON string.
+     * @throws DebugFrameworkClientException If the session is not found or validation fails.
+     * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public String getDebugResult(String sessionId) {
+    public String getDebugResult(String sessionId)
+            throws DebugFrameworkClientException, DebugFrameworkServerException {
 
         if (sessionId == null) {
-            return null;
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
         // Create a minimal request context for the listeners.
-        // We set the resource ID to the session ID so listeners can identify the
-        // target.
         DebugRequest debugRequest = new DebugRequest();
         debugRequest.setConnectionId(sessionId);
-        debugRequest.setResourceType("DEBUG_RESULT_RETRIEVAL"); // Context marker
+        debugRequest.setResourceType("DEBUG_RESULT_RETRIEVAL");
 
         try {
-            // Pre-execute Listeners
-            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
-                    .getDebugExecutionListeners()) {
-                if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Debug result retrieval aborted by pre-execute listener: "
-                                + listener.getClass().getName());
-                    }
-                    return null;
-                }
-            }
+            // Pre-execute Listeners.
+            executePreListeners(debugRequest);
 
-            // Execution: Get from cache (Pure Read)
+            // Execution: Get from cache (Pure Read).
             String resultJson = DebugSessionCache.getInstance().getResult(sessionId);
 
-            // Create response object for listeners
-            DebugResponse debugResponse;
-            if (resultJson != null) {
-                // Success Scenario
-                Map<String, Object> data = new HashMap<>();
-                data.put("result", resultJson);
-                debugResponse = DebugResponse.success(data);
-            } else {
-                // Failure Scenario - Data not found
-                debugResponse = DebugResponse.error("Result not found for session: " + sessionId);
+            if (resultJson == null) {
+                throw DebugFrameworkUtils.handleClientException(
+                        ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, sessionId);
             }
 
+            // Create response object for listeners.
+            Map<String, Object> data = new HashMap<>();
+            data.put("result", resultJson);
+            DebugResponse debugResponse = DebugResponse.success(data);
+
             // Post-Execute Listeners.
-            for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
-                    .getDebugExecutionListeners()) {
-                if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Debug result post-processing aborted by post-execute listener: "
-                                + listener.getClass().getName());
-                    }
-                    // We continue even if aborted, as we already have the result,
-                    // but subsequent listeners won't run.
-                    break;
-                }
-            }
+            executePostListeners(debugResponse, debugRequest);
 
             return resultJson;
 
+        } catch (DebugFrameworkClientException e) {
+            throw e;
         } catch (Exception e) {
-            LOG.error("Error retrieving debug result via coordinator for session: " + sessionId, e);
-            return null;
+            LOG.error("Error retrieving debug result for session: " + sessionId, e);
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
 

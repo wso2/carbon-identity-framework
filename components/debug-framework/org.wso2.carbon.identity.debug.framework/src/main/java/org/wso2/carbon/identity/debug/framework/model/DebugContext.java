@@ -30,14 +30,10 @@ public class DebugContext {
 
     private String connectionId;
     private String resourceType;
-    private boolean successful = true;
-    private String errorMessage;
-    private String errorType;
     private Map<String, Object> properties = new HashMap<>();
 
     /**
      * Constructs an empty DebugContext.
-     * Properties map is initialized, and successful flag defaults to true.
      */
     public DebugContext() {
         // Fields initialized inline.
@@ -58,48 +54,15 @@ public class DebugContext {
         DebugContext context = new DebugContext();
         context.setConnectionId((String) contextMap.get("connectionId"));
         context.setResourceType((String) contextMap.get("resourceType"));
-        context.setSuccessful((Boolean) contextMap.getOrDefault("successful", true));
-        context.setErrorMessage((String) contextMap.get("errorMessage"));
-        context.setErrorType((String) contextMap.get("errorType"));
 
         // Copy additional properties (including protocol if present).
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
             String key = entry.getKey();
-            if (!"connectionId".equals(key) && !"resourceType".equals(key) && 
-                !"successful".equals(key) &&
-                !"errorMessage".equals(key) && !"errorType".equals(key)) {
+            if (!"connectionId".equals(key) && !"resourceType".equals(key)) {
                 context.setProperty(key, entry.getValue());
             }
         }
 
-        return context;
-    }
-
-    /**
-     * Creates an error DebugContext.
-     *
-     * @param errorMessage The error message.
-     * @return DebugContext instance with failure status.
-     */
-    public static DebugContext error(String errorMessage) {
-
-        DebugContext context = new DebugContext();
-        context.setSuccessful(false);
-        context.setErrorMessage(errorMessage);
-        return context;
-    }
-
-    /**
-     * Creates an error DebugContext with error type.
-     *
-     * @param errorMessage The error message.
-     * @param errorType    The error type.
-     * @return DebugContext instance with failure status.
-     */
-    public static DebugContext error(String errorMessage, String errorType) {
-
-        DebugContext context = error(errorMessage);
-        context.setErrorType(errorType);
         return context;
     }
 
@@ -164,56 +127,6 @@ public class DebugContext {
     }
 
     /**
-     * Sets the success status.
-     *
-     * @param successful Success status.
-     */
-    public void setSuccessful(boolean successful) {
-
-        this.successful = successful;
-    }
-
-    /**
-     * Gets the error message if context resolution failed.
-     *
-     * @return Error message string.
-     */
-    public String getErrorMessage() {
-
-        return errorMessage;
-    }
-
-    /**
-     * Sets the error message.
-     *
-     * @param errorMessage Error message string.
-     */
-    public void setErrorMessage(String errorMessage) {
-
-        this.errorMessage = errorMessage;
-    }
-
-    /**
-     * Gets the error type.
-     *
-     * @return Error type string.
-     */
-    public String getErrorType() {
-
-        return errorType;
-    }
-
-    /**
-     * Sets the error type.
-     *
-     * @param errorType Error type string.
-     */
-    public void setErrorType(String errorType) {
-
-        this.errorType = errorType;
-    }
-
-    /**
      * Gets a context property.
      *
      * @param key Property key.
@@ -244,15 +157,5 @@ public class DebugContext {
     public Map<String, Object> getProperties() {
 
         return new HashMap<>(this.properties);
-    }
-
-    /**
-     * Checks if this is an error context.
-     *
-     * @return true if this context represents an error, false otherwise.
-     */
-    public boolean isError() {
-
-        return !successful;
     }
 }

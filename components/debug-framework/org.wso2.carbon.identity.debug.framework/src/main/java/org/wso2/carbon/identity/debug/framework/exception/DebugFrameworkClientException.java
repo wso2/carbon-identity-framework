@@ -19,55 +19,44 @@
 package org.wso2.carbon.identity.debug.framework.exception;
 
 /**
- * Exception thrown when server-side errors occur in the Debug Framework.
- * Represents internal processing errors.
+ * Exception thrown when client-side errors occur in the Debug Framework.
+ * Represents validation errors, missing required parameters, or invalid input.
  */
-public class DebugFrameworkServerException extends DebugFrameworkException {
+public class DebugFrameworkClientException extends DebugFrameworkException {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a DebugFrameworkServerException with message.
+     * Constructs a DebugFrameworkClientException with message.
      *
      * @param message Error message.
      */
-    public DebugFrameworkServerException(String message) {
+    public DebugFrameworkClientException(String message) {
 
         super(message);
     }
 
     /**
-     * Constructs a DebugFrameworkServerException with message and cause.
-     *
-     * @param message Error message.
-     * @param cause   Root cause exception.
-     */
-    public DebugFrameworkServerException(String message, Throwable cause) {
-
-        super("SERVER_ERROR", message, "", cause);
-    }
-
-    /**
-     * Constructs a DebugFrameworkServerException with error code, message, and description.
+     * Constructs a DebugFrameworkClientException with error code, message, and description.
      *
      * @param errorCode   Error code for categorization.
      * @param message     Error message.
      * @param description Detailed error description.
      */
-    public DebugFrameworkServerException(String errorCode, String message, String description) {
+    public DebugFrameworkClientException(String errorCode, String message, String description) {
 
         super(errorCode, message, description);
     }
 
     /**
-     * Constructs a DebugFrameworkServerException with error code, message, description, and cause.
+     * Constructs a DebugFrameworkClientException with error code, message, description, and cause.
      *
      * @param errorCode   Error code for categorization.
      * @param message     Error message.
      * @param description Detailed error description.
      * @param cause       Root cause exception.
      */
-    public DebugFrameworkServerException(String errorCode, String message, String description, Throwable cause) {
+    public DebugFrameworkClientException(String errorCode, String message, String description, Throwable cause) {
 
         super(errorCode, message, description, cause);
     }

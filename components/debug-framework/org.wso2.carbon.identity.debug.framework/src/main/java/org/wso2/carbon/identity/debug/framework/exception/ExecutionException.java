@@ -34,7 +34,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String errorCode, String message) {
 
-        super(errorCode, message);
+        super(errorCode, message, "");
     }
 
     /**
@@ -46,7 +46,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String errorCode, String message, Throwable cause) {
 
-        super(errorCode, message, cause);
+        super(errorCode, message, "", cause);
     }
 
     /**
@@ -56,7 +56,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String message) {
 
-        super("EXECUTION_ERROR", message);
+        super("EXECUTION_ERROR", message, "");
     }
 
     /**
@@ -67,6 +67,6 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String message, Throwable cause) {
         
-        super("EXECUTION_ERROR", message, cause);
+        super("EXECUTION_ERROR", message, "", cause);
     }
 }

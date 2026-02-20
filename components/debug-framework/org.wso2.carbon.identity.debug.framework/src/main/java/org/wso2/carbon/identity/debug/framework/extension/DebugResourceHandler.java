@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 
@@ -40,8 +42,11 @@ public interface DebugResourceHandler {
      *                     resourceType, properties, etc.
      * @return DebugResponse containing the debug result with authorizationUrl, status,
      *         sessionId, etc.
+     * @throws DebugFrameworkClientException If the request has validation errors.
+     * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    DebugResponse handleDebugRequest(DebugRequest debugRequest);
+    DebugResponse handleDebugRequest(DebugRequest debugRequest)
+            throws DebugFrameworkClientException, DebugFrameworkServerException;
 
     /**
      * Gets the processor for the given resource ID.
