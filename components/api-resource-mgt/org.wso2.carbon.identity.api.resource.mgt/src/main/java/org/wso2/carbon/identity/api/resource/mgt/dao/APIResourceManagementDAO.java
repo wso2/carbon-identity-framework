@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This interface performs CRUD operations for {@link APIResource} and {@link Scope}
@@ -270,4 +271,13 @@ public interface APIResourceManagementDAO {
      * @throws APIResourceMgtException If an error occurs while retrieving the scope metadata.
      */
     List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId) throws APIResourceMgtException;
+
+    /**
+     * Retrieve all system API resources with their scopes.
+     *
+     * @param tenantId Tenant ID.
+     * @return Map of system API resource identifiers and their scopes.
+     * @throws APIResourceMgtException If an error occurs while retrieving the system API resources.
+     */
+    Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException;
 }
