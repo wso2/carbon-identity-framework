@@ -393,7 +393,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
-        authenticationResult.setOrganizationLogin(context.isSharedAppLogin());
+        authenticationResult.setSharedAppLogin(context.isSharedAppLogin());
 
         if (isAuthenticated) {
 
@@ -659,10 +659,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     authenticatedOrgData.setRememberMe(context.isRememberMe());
                     sessionContext.getAuthenticatedOrgData().put(orgId, authenticatedOrgData);
                     sessionContext.setOrganizationLogin(true);
-                    sessionContext.setAuthenticatedIdPs(new HashMap<>());
-                    sessionContext.setAuthenticatedIdPsOfApp(new HashMap<>());
-                    sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN,
-                            context.getOrganizationLoginData().getRootOrganizationTenantDomain());
                     sessionContext.setAuthenticatedIdPs(new HashMap<>());
                     sessionContext.setAuthenticatedIdPsOfApp(new HashMap<>());
                     sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN,

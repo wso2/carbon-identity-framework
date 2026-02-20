@@ -698,11 +698,21 @@ public class ServiceProvider implements Serializable {
         this.isB2BSelfServiceApp = isB2BSelfServiceApp;
     }
 
+    /**
+     * Check whether the new B2B login (without federation) is enabled for the service provider.
+     *
+     * @return true if the new B2B login is enabled, false otherwise.
+     */
     public boolean isNewB2BLoginEnabled() {
 
         return isNewB2BLoginEnabled;
     }
 
+    /**
+     * Set whether the new B2B login (without federation) is enabled for the service provider.
+     *
+     * @param isNewB2BLoginEnabled true to enable the new B2B login, false to disable.
+     */
     public void setNewB2BLoginEnabled(boolean isNewB2BLoginEnabled) {
 
         this.isNewB2BLoginEnabled = isNewB2BLoginEnabled;

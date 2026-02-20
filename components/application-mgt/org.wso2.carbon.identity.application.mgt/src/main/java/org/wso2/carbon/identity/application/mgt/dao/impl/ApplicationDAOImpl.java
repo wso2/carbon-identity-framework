@@ -169,10 +169,10 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_DISPLAY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;

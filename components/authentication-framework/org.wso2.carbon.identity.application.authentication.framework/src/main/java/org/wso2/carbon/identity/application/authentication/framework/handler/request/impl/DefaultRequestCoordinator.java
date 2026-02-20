@@ -81,8 +81,6 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -1809,6 +1807,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isInitialOrganizationLoginRequest(AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        if (context.getSequenceConfig() == null || context.getSequenceConfig().getApplicationConfig() == null) {
+            return false;
+        }
         ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
         if (serviceProvider == null) {
             return false;
