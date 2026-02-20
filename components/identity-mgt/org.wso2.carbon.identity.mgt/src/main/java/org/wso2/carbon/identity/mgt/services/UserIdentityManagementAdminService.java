@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.mgt.ChallengeQuestionProcessor;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.IdentityMgtServiceException;
@@ -177,8 +178,10 @@ public class UserIdentityManagementAdminService {
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.disableUserAccount(userNameWithoutDomain, userStoreManager);
 
-            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Disable user account", userName,
-                    "Notification type :" + notificationType, SUCCESS));
+            if (!LoggerUtils.isEnableV2AuditLogs()) {
+                audit.info(String.format(AUDIT_MESSAGE, getUser(), "Disable user account", userName,
+                        "Notification type :" + notificationType, SUCCESS));
+            }
 
             int tenantID = userStoreManager.getTenantId();
             String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);
@@ -228,8 +231,10 @@ public class UserIdentityManagementAdminService {
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.enableUserAccount(userNameWithoutDomain, userStoreManager);
 
-            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Enable user account", userName,
-                    "Notification type :" + notificationType, SUCCESS));
+            if (!LoggerUtils.isEnableV2AuditLogs()) {
+                audit.info(String.format(AUDIT_MESSAGE, getUser(), "Enable user account", userName,
+                        "Notification type :" + notificationType, SUCCESS));
+            }
 
             int tenantID = userStoreManager.getTenantId();
             String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);

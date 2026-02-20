@@ -91,8 +91,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("%s add role of name : %s successfully.", getUser(tenantDomain), roleName));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Add Role", roleName,
-                getAuditData(tenantDomain), SUCCESS));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Add Role", roleName,
+                    getAuditData(tenantDomain), SUCCESS));
+        }
         return roleBasicInfo;
     }
 
@@ -192,8 +194,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             LOG.debug(String.format("%s updated role name of role id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Update role name by ID", roleID,
-                getAuditData(tenantDomain, newRoleName), SUCCESS));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Update role name by ID", roleID,
+                    getAuditData(tenantDomain, newRoleName), SUCCESS));
+        }
         return roleBasicInfo;
     }
 
@@ -209,8 +213,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             LOG.debug(String.format("%s deleted role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Delete role by id", roleID,
-                getAuditData(tenantDomain), SUCCESS));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Delete role by id", roleID,
+                    getAuditData(tenantDomain), SUCCESS));
+        }
     }
 
     @Override
@@ -246,8 +252,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             LOG.debug(String.format("%s updated list of users of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
-                "Update users list of role by id", roleID, getAuditData(tenantDomain), SUCCESS));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit.info(String.format(auditMessage, getInitiator(tenantDomain),
+                    "Update users list of role by id", roleID, getAuditData(tenantDomain), SUCCESS));
+        }
         return roleBasicInfo;
     }
 
@@ -283,8 +291,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             LOG.debug(String.format("%s updated list of groups of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
-                "Update group list of role by id", roleID, getAuditData(tenantDomain), SUCCESS));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit.info(String.format(auditMessage, getInitiator(tenantDomain),
+                    "Update group list of role by id", roleID, getAuditData(tenantDomain), SUCCESS));
+        }
         return roleBasicInfo;
     }
 
@@ -318,8 +328,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             LOG.debug(String.format("%s set list of permissions of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Set permission for role by id",
-                roleID, getAuditData(tenantDomain), SUCCESS));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Set permission for role by id",
+                    roleID, getAuditData(tenantDomain), SUCCESS));
+        }
         return roleBasicInfo;
     }
 

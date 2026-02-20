@@ -27,6 +27,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
@@ -48,6 +49,15 @@ public class ClaimMetadataManagementAuditLogger extends AbstractEventHandler {
     private static final String SUCCESS = "Success";
 
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementAuditLogger.class);
+
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+
+        if (super.canHandle(messageContext)) {
+            return !LoggerUtils.isEnableV2AuditLogs();
+        }
+        return false;
+    }
 
     /**
      * This handles the claim related operations that are subscribed and publish audit logs for those operations.
