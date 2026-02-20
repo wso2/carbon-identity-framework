@@ -443,7 +443,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             XPath xpath = factory.newXPath();
             try {
                 xpath.compile(condition);
-                associationDAO.addAssociation(associationName, workflowId, eventId, condition);
             } catch (XPathExpressionException e) {
                 log.error("The condition: " + condition + " is not a valid xpath expression.", e);
                 throw new WorkflowClientException("The condition is not a valid xpath expression.");

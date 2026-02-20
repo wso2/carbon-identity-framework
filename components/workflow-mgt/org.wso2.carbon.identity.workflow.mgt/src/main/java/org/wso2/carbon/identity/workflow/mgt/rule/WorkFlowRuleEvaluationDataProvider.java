@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
@@ -33,7 +34,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -377,7 +377,8 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         }
         String eventType = (String) contextData.get(EVENT_TYPE);
         // Batch fetch remaining claims from the user store.
-        if (!claimsToFetch.isEmpty() && (ADD_USER_EVENT.equals(eventType) || SELF_REGISTER_USER_EVENT.equals(eventType))) {
+        if (!claimsToFetch.isEmpty() &&
+                (ADD_USER_EVENT.equals(eventType) || SELF_REGISTER_USER_EVENT.equals(eventType))) {
             String username = (String) contextData.get(USERNAME);
             if (StringUtils.isBlank(username)) {
                 if (log.isDebugEnabled()) {
