@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtil;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;xw
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
@@ -282,8 +283,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     context.setCurrentStep(currentStep);
                     continue;
                 }
-                ApplicationAuthenticator authenticator =
-                        authenticatorConfig.getApplicationAuthenticator();
 
                 String idpName = stepConfig.getAuthenticatedIdP();
                 //TODO: Need to fix occurrences where idPName becomes "null"
@@ -291,57 +290,137 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         sequenceConfig.getAuthenticatedReqPathAuthenticator() != null) {
                     idpName = FrameworkConstants.LOCAL_IDP_NAME;
                 }
-                try {
-                    externalIdPConfig = ConfigurationFacade.getInstance()
-                            .getIdPConfigByName(idpName, context.getTenantDomain());
-                    context.setExternalIdP(externalIdPConfig);
-                    context.setAuthenticatorProperties(FrameworkUtils
-                            .getAuthenticatorPropertyMapFromIdP(
-                                    externalIdPConfig, authenticator.getName()));
 
-                    if (authenticatorConfig.getAuthenticatorStateInfo() != null) {
-                        context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
-                    } else {
-                        context.setStateInfo(
-                                getStateInfoFromPreviousAuthenticatedIdPs(idpName, authenticatorConfig.getName(),
-                                        context));
-                    }
-
-                    AuthenticatorFlowStatus status = authenticator.process(request, response, context);
-                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
-
-                    if (!status.equals(AuthenticatorFlowStatus.INCOMPLETE)) {
-                        // TODO what if logout fails. this is an edge case
-                        currentStep++;
-                        context.setCurrentStep(currentStep);
-                        continue;
-                    }
-                    // sends the logout request to the external IdP
-                    return;
-                } catch (AuthenticationFailedException | LogoutFailedException e) {
-                    if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
-                        diagnosticLogBuilder.resultMessage("Exception while handling logout request.")
-                                .inputParam(LogConstants.InputKeys.IDP, idpName)
-                                .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-
-                        // Sanitize the error message before adding to diagnostic log.
-                        String errorMessage = e.getMessage();
-                        if (context.getLastAuthenticatedUser() != null) {
-                            String userName = context.getLastAuthenticatedUser().getUserName();
-                            errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                ApplicationAuthenticator authenticator;
+                if ("SSO".equals(idpName)) {
+                    AuthenticatedIdPData authenticatedIdPData = context.getPreviousAuthenticatedIdPs().get(idpName);
+                    if (MapUtils.isEmpty(context.getOrgAuthenticatorConfigs())) {
+                        int i = 1;
+                        for (AuthenticatorConfig authConfig : authenticatedIdPData.getAuthenticators()) {
+                            context.addOrganicAuthenticatorConfig(i, authConfig);
+                            i++;
                         }
-                        diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
-                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
-                    throw new FrameworkException("Exception while handling logout request", e);
-                } catch (IdentityProviderManagementException e) {
-                    if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
-                        diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
-                                .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
-                                .resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+
+                    if (context.getCurrentOrgNumber() == 0) {
+                        context.setCurrentOrgNumber(1);
                     }
-                    log.error("Exception while getting IdP by name", e);
+
+                    int orgCount = context.getOrgAuthenticatorConfigs().size();
+                    while (context.getCurrentOrgNumber() <= orgCount) {
+                        AuthenticatorConfig orgAuthenticatorConfig =
+                                context.getOrgAuthenticatorConfigs().get(context.getCurrentOrgNumber());
+
+                        authenticator = orgAuthenticatorConfig.getApplicationAuthenticator();
+                        try {
+                            externalIdPConfig = ConfigurationFacade.getInstance()
+                                    .getIdPConfigByName(idpName, context.getTenantDomain());
+                            context.setExternalIdP(externalIdPConfig);
+                            context.setAuthenticatorProperties(FrameworkUtils
+                                    .getAuthenticatorPropertyMapFromIdP(
+                                            externalIdPConfig, authenticator.getName()));
+
+                            if (orgAuthenticatorConfig.getAuthenticatorStateInfo() != null) {
+                                context.setStateInfo(orgAuthenticatorConfig.getAuthenticatorStateInfo());
+                            } else {
+                                context.setStateInfo(
+                                        getStateInfoFromPreviousAuthenticatedIdPs(idpName,
+                                                orgAuthenticatorConfig.getName(), context));
+                            }
+
+                            AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+                            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+
+                            if (!status.equals(AuthenticatorFlowStatus.INCOMPLETE)) {
+                                // TODO what if logout fails. this is an edge case
+                                context.setCurrentOrgNumber(context.getCurrentOrgNumber() + 1);
+                                request.setAttribute("logoutInit", "true");
+                                continue;
+                            }
+                            // sends the logout request to the external IdP
+                            return;
+                        } catch (AuthenticationFailedException | LogoutFailedException e) {
+                            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                                diagnosticLogBuilder.resultMessage("Exception while handling logout request.")
+                                        .inputParam(LogConstants.InputKeys.IDP, idpName)
+                                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+
+                                // Sanitize the error message before adding to diagnostic log.
+                                String errorMessage = e.getMessage();
+                                if (context.getLastAuthenticatedUser() != null) {
+                                    String userName = context.getLastAuthenticatedUser().getUserName();
+                                    errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                                }
+                                diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                            }
+                            throw new FrameworkException("Exception while handling logout request", e);
+                        } catch (IdentityProviderManagementException e) {
+                            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                                diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
+                                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                            }
+                            log.error("Exception while getting IdP by name", e);
+                        }
+                    }
+                    currentStep++;
+                    context.setCurrentStep(currentStep);
+                } else {
+                    authenticator = authenticatorConfig.getApplicationAuthenticator();
+                    try {
+                        externalIdPConfig = ConfigurationFacade.getInstance()
+                                .getIdPConfigByName(idpName, context.getTenantDomain());
+                        context.setExternalIdP(externalIdPConfig);
+                        context.setAuthenticatorProperties(FrameworkUtils
+                                .getAuthenticatorPropertyMapFromIdP(
+                                        externalIdPConfig, authenticator.getName()));
+
+                        if (authenticatorConfig.getAuthenticatorStateInfo() != null) {
+                            context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
+                        } else {
+                            context.setStateInfo(
+                                    getStateInfoFromPreviousAuthenticatedIdPs(idpName, authenticatorConfig.getName(),
+                                            context));
+                        }
+
+                        AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+                        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+
+                        if (!status.equals(AuthenticatorFlowStatus.INCOMPLETE)) {
+                            // TODO what if logout fails. this is an edge case
+                            currentStep++;
+                            context.setCurrentStep(currentStep);
+                            continue;
+                        }
+                        // sends the logout request to the external IdP
+                        return;
+                    } catch (AuthenticationFailedException | LogoutFailedException e) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                            diagnosticLogBuilder.resultMessage("Exception while handling logout request.")
+                                    .inputParam(LogConstants.InputKeys.IDP, idpName)
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+
+                            // Sanitize the error message before adding to diagnostic log.
+                            String errorMessage = e.getMessage();
+                            if (context.getLastAuthenticatedUser() != null) {
+                                String userName = context.getLastAuthenticatedUser().getUserName();
+                                errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                            }
+                            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
+                        throw new FrameworkException("Exception while handling logout request", e);
+                    } catch (IdentityProviderManagementException e) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                            diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
+                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
+                        log.error("Exception while getting IdP by name", e);
+                    }
                 }
             }
         } else if (context.getPreviousAuthenticatedIdPs().size() != 0) {
