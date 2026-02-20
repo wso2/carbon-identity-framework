@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.api.resource.mgt;
 
+import org.wso2.carbon.identity.api.resource.mgt.exception.NotImplementedException;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -186,6 +187,21 @@ public interface APIResourceManager {
      * @throws APIResourceMgtException If an error occurs while retrieving scope.
      */
     Scope getScopeByName(String scopeName, String tenantDomain) throws APIResourceMgtException;
+
+    /**
+     * Get scope by name and API resource id.
+     *
+     * @param scopeName     Scope name.
+     * @param apiResourceId API resource id.
+     * @param tenantDomain  Tenant domain.
+     * @return Scope.
+     * @throws APIResourceMgtException If an error occurs while retrieving scope.
+     */
+    default Scope getScopeByNameAndApiResourceId(String scopeName, String apiResourceId, String tenantDomain)
+            throws APIResourceMgtException {
+
+        throw new NotImplementedException("getScopeByNameAndApiResourceId method is not implemented.");
+    }
 
     /**
      * Get scope metadata by scope names and tenant domain.
