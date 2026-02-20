@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -209,6 +210,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // call step based sequence handler
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
+                if (context.isSharedAppLoginContextUpdateRequired()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Context update is required for the organization login. " +
+                                "Hence, returning to Request Coordinator.");
+                    }
+                    return;
+                }
             }
         } catch (FrameworkException e) {
             // Remove nonce cookie after authentication failure.
@@ -385,6 +393,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
+        authenticationResult.setSharedAppLogin(context.isSharedAppLogin());
 
         if (isAuthenticated) {
 
@@ -466,10 +475,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // SessionContext is retained across different SP requests in the same browser session.
             // it is tracked by a cookie
 
-            SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
             String analyticsSessionAction = null;
+            SessionContext sessionContext = null;
 
             //When getting the cookie, it will not give the path. When paths are tenant qualified, it will only give
             // the cookies matching that path.
@@ -481,8 +490,25 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
-                            context.getLoginTenantDomain());
+                    SessionContext loadedSessionContext = FrameworkUtils.getSessionContextFromCache(
+                            sessionContextKey, context.getLoginTenantDomain());
+                    if (loadedSessionContext != null) {
+                        if (context.isSharedAppLogin()) {
+                            String authenticatedOrgId =
+                                    context.getOrganizationLoginData().getAccessingOrganization().getId();
+                            if (loadedSessionContext.getAuthenticatedOrgData().get(authenticatedOrgId) != null) {
+                                sessionContext = loadedSessionContext;
+                            }
+                        } else if (context.isOrgApplicationLogin()) {
+                            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getAccessingOrganizationId();
+                            if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+                                sessionContext = loadedSessionContext;
+                            }
+                        } else {
+                            sessionContext = loadedSessionContext;
+                        }
+                    }
                 }
             }
 
@@ -492,11 +518,34 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE;
-                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
-                sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
-                if (!context.isPassiveAuthenticate()) {
-                    setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
-                            appConfig.getApplicationName());
+                if (context.isSharedAppLogin() || context.isOrgApplicationLogin()) {
+                    String organizationId;
+                    if (context.isSharedAppLogin()) {
+                        organizationId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+                    } else {
+                        organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                .getAccessingOrganizationId();
+                    }
+                    AuthenticatedOrgData authenticatedOrgData =
+                            sessionContext.getAuthenticatedOrgData().get(organizationId);
+                    authenticatedOrgData.getAuthenticatedSequences()
+                            .put(appConfig.getApplicationName(), sequenceConfig);
+                    authenticatedOrgData.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                    if (!context.isPassiveAuthenticate()) {
+                        setAuthenticatedIDPsOfApp(authenticatedOrgData, context.getCurrentAuthenticatedIdPs(),
+                                appConfig.getApplicationName());
+                    }
+                    if (context.isSharedAppLogin()) {
+                        sessionContext.setAuthenticatedOrgId(organizationId);
+                        sessionContext.setOrganizationLogin(true);
+                    }
+                } else {
+                    sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
+                    sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                    if (!context.isPassiveAuthenticate()) {
+                        setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                                appConfig.getApplicationName());
+                    }
                 }
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
@@ -589,15 +638,41 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         updatedSessionTime, sessionContext.isRememberMe());
             } else {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_CREATE;
-                sessionContext = new SessionContext();
                 // To identify first login
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.IS_INITIAL_LOGIN, true);
-                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                        sequenceConfig);
-                sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
-                setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
-                        appConfig.getApplicationName());
-                sessionContext.setRememberMe(context.isRememberMe());
+
+                sessionContext = new SessionContext();
+                if (context.isSharedAppLogin() || context.isOrgApplicationLogin()) {
+                    String orgId;
+                    if (context.isSharedAppLogin()) {
+                        orgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+                        sessionContext.setAuthenticatedOrgId(orgId);
+                    } else {
+                        orgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+                    }
+                    AuthenticatedOrgData authenticatedOrgData = new AuthenticatedOrgData();
+                    authenticatedOrgData.getAuthenticatedSequences().put(appConfig.getApplicationName(),
+                            sequenceConfig);
+                    authenticatedOrgData.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
+                    setAuthenticatedIDPsOfApp(authenticatedOrgData, context.getCurrentAuthenticatedIdPs(),
+                            appConfig.getApplicationName());
+                    authenticatedOrgData.setRememberMe(context.isRememberMe());
+                    sessionContext.getAuthenticatedOrgData().put(orgId, authenticatedOrgData);
+                    sessionContext.setOrganizationLogin(true);
+                    sessionContext.setAuthenticatedIdPs(new HashMap<>());
+                    sessionContext.setAuthenticatedIdPsOfApp(new HashMap<>());
+                    sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN,
+                            context.getOrganizationLoginData().getRootOrganizationTenantDomain());
+                } else {
+                    sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
+                            sequenceConfig);
+                    sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
+                    setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                            appConfig.getApplicationName());
+                    sessionContext.setRememberMe(context.isRememberMe());
+                    sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN, context.getLoginTenantDomain());
+                }
+
                 if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
                     if (log.isDebugEnabled()) {
                         log.debug("AuthenticationContextProperties are available.");
@@ -610,7 +685,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 }
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN, context.getLoginTenantDomain());
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
@@ -1260,6 +1334,27 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
         }
         sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
+    }
+
+    private void setAuthenticatedIDPsOfApp(AuthenticatedOrgData authenticatedOrgData,
+                                           Map<String, AuthenticatedIdPData> authenticatedIdPs,
+                                           String applicationName) throws FrameworkException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting current authenticatedIDPs of the application from authentication context and setting "
+                    + "it into authenticated organization data for application: " + applicationName);
+        }
+        Map<String, AuthenticatedIdPData> authenticatedIdPDataMap = new HashMap<>();
+        for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
+            try {
+                AuthenticatedIdPData authenticatedIdpData = (AuthenticatedIdPData) entry.getValue().clone();
+                authenticatedIdPDataMap.put(authenticatedIdpData.getIdpName(), authenticatedIdpData);
+            } catch (CloneNotSupportedException e) {
+                String errorMsg = "Error while cloning AuthenticatedIdPData object.";
+                throw new FrameworkException(errorMsg, e);
+            }
+        }
+        authenticatedOrgData.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
     }
 
     private void addAuditLogs(String sessionAction, AuthenticatedUser authenticatedUser, String sessionKey,

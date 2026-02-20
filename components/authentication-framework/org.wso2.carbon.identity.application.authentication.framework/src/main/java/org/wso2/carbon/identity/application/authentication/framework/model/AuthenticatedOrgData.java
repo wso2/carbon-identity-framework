@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,41 +16,36 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.context;
+package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionAuthHistory;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Session context bean.
+ * Holds the authenticated data of an organization during an authentication flow.
  */
-public class SessionContext implements Serializable {
+public class AuthenticatedOrgData implements Serializable {
 
-    private static final long serialVersionUID = -2381634092699961018L;
+    private static final long serialVersionUID = 5629360289198958849L;
 
     private Map<String, SequenceConfig> authenticatedSequences = new HashMap<>();
     private Map<String, AuthenticatedIdPData> authenticatedIdPs = new HashMap<>();
     private boolean isRememberMe = false;
-    private Map<String, Object> properties = new HashMap<>();
     private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
-    // This authenticatedIdPsOfApp has the mapping of application and the map of authenticated IDPs.
     private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp;
-    private String authenticatedOrgId;
-    private boolean isOrganizationLogin;
-    private String impersonatedUser;
-    private Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
 
     public Map<String, SequenceConfig> getAuthenticatedSequences() {
+
         return authenticatedSequences;
     }
 
     public void setAuthenticatedSequences(
             Map<String, SequenceConfig> authenticatedSequences) {
+
         this.authenticatedSequences = authenticatedSequences;
     }
 
@@ -60,6 +55,7 @@ public class SessionContext implements Serializable {
     }
 
     public void setAuthenticatedIdPs(Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+
         this.authenticatedIdPs = authenticatedIdPs;
     }
 
@@ -79,49 +75,24 @@ public class SessionContext implements Serializable {
         this.authenticatedIdPsOfApp.put(app, authenticatedIdPsOfApp);
     }
 
-    public String getImpersonatedUser() {
-
-        return impersonatedUser;
-    }
-
-    public void setImpersonatedUser(String impersonatedUser) {
-
-        this.impersonatedUser = impersonatedUser;
-    }
-
     public boolean isRememberMe() {
+
         return isRememberMe;
     }
 
     public void setRememberMe(boolean isRememberMe) {
+
         this.isRememberMe = isRememberMe;
     }
 
-    public void addProperty(String key, Object value) {
-        properties.put(key, value);
-    }
-
-    public Object getProperty(String key) {
-        return properties.get(key);
-    }
-
     public SessionAuthHistory getSessionAuthHistory() {
+
         return sessionAuthHistory;
     }
 
     public void setSessionAuthHistory(SessionAuthHistory sessionAuthHistory) {
 
         this.sessionAuthHistory = sessionAuthHistory;
-    }
-
-    public Map<String, Object> getProperties() {
-
-        return properties;
-    }
-
-    public void setProperties(Map<String, Object> properties) {
-
-        this.properties = properties;
     }
 
     public Map<String, Map<String, AuthenticatedIdPData>> getAuthenticatedIdPsOfApp() {
@@ -133,35 +104,5 @@ public class SessionContext implements Serializable {
             Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp) {
 
         this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
-    }
-
-    public String getAuthenticatedOrgId() {
-
-        return authenticatedOrgId;
-    }
-
-    public void setAuthenticatedOrgId(String authenticatedOrgId) {
-
-        this.authenticatedOrgId = authenticatedOrgId;
-    }
-
-    public boolean isOrganizationLogin() {
-
-        return isOrganizationLogin;
-    }
-
-    public void setOrganizationLogin(boolean organizationLogin) {
-
-        isOrganizationLogin = organizationLogin;
-    }
-
-    public Map<String, AuthenticatedOrgData> getAuthenticatedOrgData() {
-
-        return authenticatedOrgData;
-    }
-
-    public void setAuthenticatedOrgData(Map<String, AuthenticatedOrgData> authenticatedOrgData) {
-
-        this.authenticatedOrgData = authenticatedOrgData;
     }
 }

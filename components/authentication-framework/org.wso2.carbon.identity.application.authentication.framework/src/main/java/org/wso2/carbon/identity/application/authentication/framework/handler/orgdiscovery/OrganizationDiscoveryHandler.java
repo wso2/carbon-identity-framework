@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.or
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.NotImplementedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryResult;
 
@@ -38,4 +39,20 @@ public interface OrganizationDiscoveryHandler {
     OrganizationDiscoveryResult discoverOrganization(OrganizationDiscoveryInput orgDiscoveryInput,
                                                      AuthenticationContext context)
             throws FrameworkException;
+
+    /**
+     * Discover organization based on the provided input with app Id and main app tenant domain.
+     *
+     * @param orgDiscoveryInput Input for organization discovery.
+     * @param appId             Main application Id.
+     * @param tenantDomain      Main application tenant domain.
+     * @return Organization discovery result.
+     * @throws FrameworkException If an error occurs during organization discovery.
+     */
+    default OrganizationDiscoveryResult discoverOrganization(OrganizationDiscoveryInput orgDiscoveryInput,
+                                                             String appId, String tenantDomain)
+            throws FrameworkException {
+
+        throw new NotImplementedException("Organization discovery with appId and tenantDomain is not implemented.");
+    }
 }

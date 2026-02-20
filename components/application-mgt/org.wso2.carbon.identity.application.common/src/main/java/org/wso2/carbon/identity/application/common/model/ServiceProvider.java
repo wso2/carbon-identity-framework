@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -55,6 +55,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String IS_NEW_B2B_LOGIN_ENABLED = "IsNewB2BLoginEnabled";
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
@@ -153,6 +154,11 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
+
+    @IgnoreNullElement
+    @XmlTransient
+    @JsonIgnore
+    private boolean isNewB2BLoginEnabled;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
@@ -691,6 +697,26 @@ public class ServiceProvider implements Serializable {
     public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
 
         this.isB2BSelfServiceApp = isB2BSelfServiceApp;
+    }
+
+    /**
+     * Check whether the new B2B login (without federation) is enabled for the service provider.
+     *
+     * @return true if the new B2B login is enabled, false otherwise.
+     */
+    public boolean isNewB2BLoginEnabled() {
+
+        return isNewB2BLoginEnabled;
+    }
+
+    /**
+     * Set whether the new B2B login (without federation) is enabled for the service provider.
+     *
+     * @param isNewB2BLoginEnabled true to enable the new B2B login, false to disable.
+     */
+    public void setNewB2BLoginEnabled(boolean isNewB2BLoginEnabled) {
+
+        this.isNewB2BLoginEnabled = isNewB2BLoginEnabled;
     }
 
     public boolean isAPIBasedAuthenticationEnabled() {
