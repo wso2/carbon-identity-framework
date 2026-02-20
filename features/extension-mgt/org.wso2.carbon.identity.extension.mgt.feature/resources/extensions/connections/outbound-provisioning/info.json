@@ -1,0 +1,10 @@
+{
+    "id": "outbound-provisioning-connection",
+    "name": "Outbound Provisioning Connection",
+    "description": "Provision users and groups to external systems",
+    "image": "assets/images/logos/outbound-provisioning.svg",
+    "category": "DEFAULT",
+    "displayOrder": 8,
+    "tags": [ "Provisioning", "Outbound" ],
+    "type": "outbound-provisioning-connection"
+}
