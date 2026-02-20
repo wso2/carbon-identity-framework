@@ -70,6 +70,7 @@
   "identity_mgt.events.schemes.passwordPolicy.properties.'class.PasswordLengthPolicy'": "org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordLengthPolicy",
   "identity_mgt.events.schemes.passwordPolicy.properties.'class.PasswordNamePolicy'": "org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordNamePolicy",
   "identity_mgt.events.schemes.passwordPolicy.properties.'class.PasswordPatternPolicy'": "org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordPatternPolicy",
+  "identity_mgt.events.schemes.passwordPolicy.properties.'username.check.mode'": "equal",
   "identity_mgt.events.schemes.passwordPolicy.properties.enable": false,
   "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
   "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
