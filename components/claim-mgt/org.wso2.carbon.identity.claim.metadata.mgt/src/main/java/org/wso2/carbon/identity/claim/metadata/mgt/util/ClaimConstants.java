@@ -68,6 +68,7 @@ public class ClaimConstants {
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
     public static final String CANONICAL_VALUE_PREFIX = "canonicalValue.";
+    public static final String IS_LARGE_VALUE_PROPERTY = "isLargeValue";
 
     /**
      * Enum for error messages.
