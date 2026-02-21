@@ -620,6 +620,13 @@
                 <ResponseTypeValidatorImplClass>{{oauth.response_type.id_token_subject_token.validator}}</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.ciba.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>cibaAuthCode</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.ciba.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.ciba.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
@@ -746,6 +753,15 @@
                 <IdTokenAllowed>false</IdTokenAllowed>
                 <IsRefreshTokenAllowed>{{oauth.grant_type.token_exchange.allow_refresh_tokens}}</IsRefreshTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.token_exchange.allow_public_client}}</PublicClientAllowed>
+            </SupportedGrantType>
+            {% endif %}
+            {% if oauth.grant_type.ciba.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>urn:openid:params:grant-type:ciba</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.ciba.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.ciba.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.ciba.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}

@@ -91,6 +91,39 @@ fi
 done
 
 # ----------------------------------------------------
+# CALCULATE CIBA_AUTH_CODE TYPES
+# ----------------------------------------------------
+
+batchStatus=$(psql \
+  -X \
+  -h $host \
+  -U $username \
+  --echo-all \
+   -d $database \
+    -c "select $schema.WSO2_TOKEN_CLEANUP_SP(6)")
+echo ''
+
+
+# ----------------------------------------------------
+# BATCH DELETE IDN_OAUTH2_CIBA_AUTH_CODE
+# ----------------------------------------------------
+
+while true
+do
+batchStatus=$(psql \
+  -X \
+  -h $host \
+  -U $username \
+  --echo-all \
+   -d $database \
+    -c "select $schema.WSO2_TOKEN_CLEANUP_SP(7)")
+echo ''
+if [[ $batchStatus == *"FINISHED"* ]]; then
+  break;
+fi
+done
+
+# ----------------------------------------------------
 # OPTIMIZE DATAASE TABLES AFTER DELETE
 # ----------------------------------------------------
 

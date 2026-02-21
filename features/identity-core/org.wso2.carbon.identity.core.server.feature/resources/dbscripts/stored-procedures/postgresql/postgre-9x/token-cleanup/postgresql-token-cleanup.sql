@@ -27,7 +27,7 @@ safePeriod int;
 maxValidityPeriod bigint;
 
 tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
-tablename  IN ('idn_oauth2_access_token', 'idn_oauth2_authorization_code', 'idn_oauth2_access_token_scope','idn_oidc_req_object_reference','idn_oidc_req_object_claims','idn_oidc_req_obj_claim_values');
+tablename  IN ('idn_oauth2_access_token', 'idn_oauth2_authorization_code', 'idn_oauth2_access_token_scope','idn_oidc_req_object_reference','idn_oidc_req_object_claims','idn_oidc_req_obj_claim_values','idn_oauth2_ciba_auth_code');
 
 purgingTable text;
 purgingChunkTable text;
@@ -101,6 +101,23 @@ THEN
         operationName :='CALCULATE';
     END IF;
     IF (operationid = 4)
+    THEN
+        operationName :='PURGE';
+    END IF;
+
+ELSIF (operationid = 6 OR operationid = 7)
+THEN
+    purgingTable := 'idn_oauth2_ciba_auth_code';
+    purgeBseColmn := 'auth_code_key';
+    purgeBseColmnType := 'char(36)';
+
+    purgingCondition := 'select auth_code_key from idn_oauth2_ciba_auth_code where auth_req_status in (''EXPIRED'',''TOKEN_ISSUED'',''FAILED'') or (expires_in > 0 and '''||deletetilltime||''' > (issued_time + interval ''1second'' * expires_in))';
+
+    IF (operationid = 6)
+    THEN
+        operationName :='CALCULATE';
+    END IF;
+    IF (operationid = 7)
     THEN
         operationName :='PURGE';
     END IF;
