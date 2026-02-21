@@ -49,7 +49,6 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
-import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
@@ -598,8 +597,7 @@ public class WorkflowManagementServiceImplTest {
 
         workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, null);
 
-        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID,
-                WFConstant.DEFAULT_ASSOCIATION_CONDITION);
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, null);
     }
 
     @Test
@@ -619,7 +617,7 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testAddAssociationBlankCondition() {
 
-        assertThrows(InternalWorkflowException.class, () ->
+        assertThrows(WorkflowClientException.class, () ->
                 workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, ""));
     }
 
@@ -798,7 +796,7 @@ public class WorkflowManagementServiceImplTest {
 
         String invalidXPath = "//invalid[xpath expression";
 
-        assertThrows(WorkflowRuntimeException.class, () ->
+        assertThrows(WorkflowClientException.class, () ->
                 workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, invalidXPath));
 
         verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
@@ -1061,7 +1059,7 @@ public class WorkflowManagementServiceImplTest {
         Association association = createTestAssociation();
         when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(association);
 
-        assertThrows(WorkflowRuntimeException.class, () ->
+        assertThrows(WorkflowClientException.class, () ->
                 workflowManagementService.updateAssociation(ASSOCIATION_ID, null, null, null, "invalid condition",
                         true));
     }

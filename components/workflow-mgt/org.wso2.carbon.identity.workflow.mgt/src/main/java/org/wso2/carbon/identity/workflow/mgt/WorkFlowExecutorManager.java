@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,7 +27,12 @@ import org.apache.commons.logging.LogFactory;
 import org.jaxen.JaxenException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
+import org.wso2.carbon.identity.workflow.mgt.bean.RequestParameter;
 import org.wso2.carbon.identity.workflow.mgt.bean.Workflow;
 import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowAssociation;
 import org.wso2.carbon.identity.workflow.mgt.dao.RequestEntityRelationshipDAO;
@@ -41,11 +46,13 @@ import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
 import org.wso2.carbon.identity.workflow.mgt.util.ExecutorResultState;
+import org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestBuilder;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -86,7 +93,6 @@ public class WorkFlowExecutorManager {
                 workflowListener.doPreExecuteWorkflow(workFlowRequest);
             }
         }
-
         if (StringUtils.isBlank(workFlowRequest.getUuid())) {
             workFlowRequest.setUuid(UUID.randomUUID().toString());
         }
@@ -99,12 +105,40 @@ public class WorkFlowExecutorManager {
         if (CollectionUtils.isEmpty(associations)) {
             return new WorkflowExecutorResult(ExecutorResultState.NO_ASSOCIATION);
         }
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        Map<String, Object> ruleEvaluationContextData = new HashMap<>();
+        ruleEvaluationContextData.put("eventType", workFlowRequest.getEventType());
+        ruleEvaluationContextData.put("uuid", workFlowRequest.getUuid());
+        ruleEvaluationContextData.put("tenantId", workFlowRequest.getTenantId());
+        ruleEvaluationContextData.put("tenantDomain", tenantDomain);
+
+        if (workFlowRequest.getRequestParameters() != null) {
+            for (RequestParameter parameter : workFlowRequest.getRequestParameters()) {
+                ruleEvaluationContextData.put(parameter.getName(), parameter.getValue());
+            }
+        }
         boolean workflowEngaged = false;
         boolean requestSaved = false;
         for (WorkflowAssociation association : associations) {
             try {
-                AXIOMXPath axiomxPath = new AXIOMXPath(association.getAssociationCondition());
-                if (axiomxPath.booleanValueOf(xmlRequest)) {
+                String conditionForEvaluation = association.getAssociationCondition();
+                boolean isConditionSatisfied = false;
+
+                if (StringUtils.isBlank(conditionForEvaluation)) {
+                    log.debug("No condition found, engaging workflow.");
+                    isConditionSatisfied = true;
+                } else if (WorkflowManagementUtil.isUUID(conditionForEvaluation)) {
+                    FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, ruleEvaluationContextData);
+                    RuleEvaluationResult result = WorkflowServiceDataHolder.getInstance()
+                            .getRuleEvaluationService()
+                            .evaluate(conditionForEvaluation, flowContext, tenantDomain);
+                    isConditionSatisfied = result.isRuleSatisfied();
+                } else {
+                    AXIOMXPath axiomxPath = new AXIOMXPath(conditionForEvaluation);
+                    isConditionSatisfied = axiomxPath.booleanValueOf(xmlRequest);
+                }
+                // If condition is satisfied (or no rule configured), engage approval workflow.
+                if (isConditionSatisfied) {
                     workflowEngaged = true;
                     if (!requestSaved) {
                         WorkflowRequestDAO requestDAO = new WorkflowRequestDAO();
@@ -125,16 +159,28 @@ public class WorkFlowExecutorManager {
                             workFlowRequest
                                     .getUuid(), WorkflowRequestStatus.PENDING
                                     .toString(), workFlowRequest.getTenantId());
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Workflow association with id: " + association.getAssociationId() +
+                                " not engaged for the request with id: " + workFlowRequest.getUuid() +
+                                " as the rule condition did not satisfy");
+                    }
                 }
             } catch (JaxenException e) {
-                String errorMsg = "Error when executing the xpath expression:" + association.getAssociationCondition()
-                        + " , on " + xmlRequest;
+                String errorMsg = "Error when executing the xpath expression: " +
+                        association.getAssociationCondition() + " , on " + xmlRequest;
                 log.error(errorMsg, e);
                 return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
             } catch (CloneNotSupportedException e) {
                 String errorMsg = "Error while cloning workflowRequest object at executor manager.";
                 log.error(errorMsg, e);
                 return new WorkflowExecutorResult(ExecutorResultState.FAILED, errorMsg);
+            } catch (RuleEvaluationException e) {
+                String errorMsg = "Error while evaluating rule for workflow association with id: " +
+                        association.getAssociationId() + " for the request with id: " +
+                        workFlowRequest.getUuid();
+                log.error(errorMsg, e);
+                throw new WorkflowException(errorMsg, e);
             }
         }
 

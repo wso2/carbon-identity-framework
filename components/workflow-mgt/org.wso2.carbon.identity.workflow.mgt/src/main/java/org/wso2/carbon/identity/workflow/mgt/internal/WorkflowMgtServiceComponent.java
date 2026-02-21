@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,10 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
+import org.wso2.carbon.identity.rule.metadata.api.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService;
 import org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImpl;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
@@ -41,6 +45,8 @@ import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorAuditLogge
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowExecutorManagerListener;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowTenantMgtListener;
+import org.wso2.carbon.identity.workflow.mgt.rule.ApprovalWorkflowMetadataProvider;
+import org.wso2.carbon.identity.workflow.mgt.rule.WorkFlowRuleEvaluationDataProvider;
 import org.wso2.carbon.identity.workflow.mgt.template.AbstractTemplate;
 import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.workflow.AbstractWorkflow;
@@ -66,6 +72,10 @@ public class WorkflowMgtServiceComponent {
             WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
             bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
             WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
+            
+            bundleContext.registerService(RuleMetadataProvider.class, new ApprovalWorkflowMetadataProvider(), null);
+            bundleContext.registerService(RuleEvaluationDataProvider.class,
+                    new WorkFlowRuleEvaluationDataProvider(), null);
 
             AbstractEventHandler workflowPendingUserAuthnHandler = new WorkflowPendingUserAuthnHandler();
             bundleContext.registerService(AbstractEventHandler.class, workflowPendingUserAuthnHandler, null);
@@ -108,6 +118,23 @@ public class WorkflowMgtServiceComponent {
     protected void setRealmService(RealmService realmService) {
 
         WorkflowServiceDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    // Reference to Rule Evaluation Service.
+    @Reference(
+            name = "rule.evaluation.service",
+            service = RuleEvaluationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRuleEvaluationService")
+    protected void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        WorkflowServiceDataHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
+    }
+
+    protected void unsetRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        WorkflowServiceDataHolder.getInstance().setRuleEvaluationService(null);
     }
 
     protected void unsetRealmService(RealmService realmService) {
@@ -241,6 +268,22 @@ public class WorkflowMgtServiceComponent {
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         WorkflowServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "role.management.service",
+            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService")
+    protected void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        WorkflowServiceDataHolder.getInstance().setRoleManagementService(roleManagementService);
+    }
+
+    protected void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        WorkflowServiceDataHolder.getInstance().setRoleManagementService(null);
     }
 
 }
