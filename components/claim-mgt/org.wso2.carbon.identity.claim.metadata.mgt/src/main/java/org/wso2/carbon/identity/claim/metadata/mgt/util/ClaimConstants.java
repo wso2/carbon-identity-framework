@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2016-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -134,6 +134,12 @@ public class ClaimConstants {
                 "User store '%s' cannot be excluded because it is configured to manage claims."),
         ERROR_CODE_CLAIM_MUST_BE_MANAGED_IN_USER_STORE("CMT-60019",
                 "Claim '%s' must be managed in user store."),
+        ERROR_CODE_DUPLICATE_SINGLE_CLAIM("CMT-60020", "The value defined for %s is already " +
+                "in use by a different user!"),
+        ERROR_CODE_DUPLICATE_MULTIPLE_CLAIMS("CMT-60021",
+                "The values defined for %s are already in use by different users!"),
+        ERROR_CODE_DUPLICATE_CLAIM_VALUE("CMT-60022",
+                "The value for claim %s is already in use."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
@@ -166,6 +172,17 @@ public class ClaimConstants {
 
         public String getMessage() {
             return message;
+        }
+
+        /**
+         * To get the message of specific error with arguments.
+         *
+         * @param args Arguments to be used in the message.
+         * @return Error message.
+         */
+        public String getMessage(Object... args) {
+
+            return String.format(message, args);
         }
     }
 

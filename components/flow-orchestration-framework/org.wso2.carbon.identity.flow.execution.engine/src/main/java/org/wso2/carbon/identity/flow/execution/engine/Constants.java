@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2025-2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -156,6 +156,15 @@ public class Constants {
         ERROR_CODE_TENANT_ID_RETRIEVE_FAILURE("65030",
                 "Error while retrieving tenant ID.",
                 "Error occurred while retrieving the tenant ID for the resolved tenant domain."),
+        ERROR_CODE_CLAIM_META_DATA_NOT_FOUND("65031",
+                "Claim metadata not found.",
+                "Claim metadata not found for claim URI: %s in tenant: %s."),
+        ERROR_CODE_GET_CLAIM_META_DATA_FAILURE("65032",
+                "Error while loading claim metadata.",
+                "Error occurred loading the claim metadata for tenant: %s."),
+        ERROR_CODE_CLAIM_PROCESSING_FAILURE("65033",
+                "Error while processing claims.",
+                "Error occurred while processing claims for tenant: %s. %s"),
 
 
         // Client errors.
@@ -194,7 +203,10 @@ public class Constants {
                 "Flow type not provided in the request."),
         ERROR_CODE_PRE_UPDATE_PASSWORD_ACTION_VALIDATION_FAILURE("60012",
                 "%s",
-                "%s")
+                "%s"),
+        ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED("60013",
+                "The user claim value must be unique.",
+                "The value provided for %s is already in use. Please provide a different value.")
         ;
 
         private static final String ERROR_PREFIX = "FE";

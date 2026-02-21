@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,13 +18,20 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.validation;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimValidationUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
@@ -35,6 +42,7 @@ import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,14 +50,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_PROCESSING_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CONFIG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
@@ -58,6 +74,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.RULES;
@@ -125,6 +142,29 @@ public class InputValidationService {
     }
 
     /**
+     * Validate user inputs against claim uniqueness constraints.
+     *
+     * @param context Flow context.
+     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     */
+    public void validateUserInputs(FlowExecutionContext context) throws FlowEngineClientException,
+            FlowEngineServerException {
+
+        for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
+            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+                try {
+                    validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
+                } catch (FlowEngineClientException e) {
+                    throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED,
+                            e, userInput.getKey());
+                } catch (FlowEngineServerException e) {
+                    throw handleServerException(ERROR_CODE_CLAIM_PROCESSING_FAILURE, e);
+                }
+            }
+        }
+    }
+
+    /**
      * Prepare the step inputs for the flow execution process.
      *
      * @param dataDTO Data transfer object containing components.
@@ -173,6 +213,108 @@ public class InputValidationService {
 
         if (context != null) {
             context.getUserInputData().clear();
+        }
+    }
+
+    /**
+     * Processes the response based on the input validation result.
+     *
+     * @param context Flow execution context.
+     */
+    public ExecutorResponse resolveInputValidationResponse(FlowExecutionContext context) {
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        if (MapUtils.isNotEmpty(context.getUserInputData())) {
+            try {
+                InputValidationService.getInstance().validateUserInputs(context);
+                InputValidationService.getInstance().handleUserInputs(context);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Input validation passed for flow: " + context.getFlowType());
+                }
+                executorResponse.setResult(STATUS_COMPLETE);
+            } catch (FlowEngineClientException | FlowEngineServerException e) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Input validation failed for flow: " + context.getFlowType() +
+                            ", error: " + e.getMessage());
+                }
+                executorResponse.setErrorCode(e.getErrorCode());
+                executorResponse.setErrorMessage(e.getMessage());
+                executorResponse.setResult(STATUS_RETRY);
+            }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User input data is empty for flow: " + context.getFlowType() +
+                        ". Requesting user input.");
+            }
+            executorResponse.setResult(STATUS_USER_INPUT_REQUIRED);
+        }
+        return executorResponse;
+    }
+
+    /**
+     * Retrieve validation rules from claim metadata for the given claim URI.
+     * Validates claim uniqueness if configured and throws exception on failure.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param claimUri     Claim URI.
+     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     */
+    public void validateUserClaims(String tenantDomain, String claimUri, String claimValue)
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        try {
+            if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
+                LOG.debug("ClaimMetadataManagementService is not available. Skipping claim validation.");
+                return;
+            }
+
+            Optional<LocalClaim> localClaim = FlowExecutionEngineDataHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaim(claimUri, tenantDomain);
+
+            if (!localClaim.isPresent() || localClaim.get().getClaimProperties() == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No claim metadata found for claim URI: " + claimUri);
+                }
+                return;
+            }
+
+            Map<String, String> claimProperties = localClaim.get().getClaimProperties();
+            ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
+                    .getClaimUniquenessScope(claimProperties);
+            if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) || claimUri.equals(USERNAME_CLAIM_URI)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Uniqueness validation found for claim " + claimUri + " with scope: " +
+                            uniquenessScope);
+                }
+                if (StringUtils.isNotBlank(claimValue)) {
+                    validateClaimUniqueness(claimUri, claimValue);
+                }
+            }
+        } catch (ClaimMetadataException e) {
+            throw handleServerException(ERROR_CODE_CLAIM_META_DATA_NOT_FOUND, e, claimUri, tenantDomain);
+        } catch (UserStoreException e) {
+            throw handleServerException(ERROR_CODE_GET_CLAIM_META_DATA_FAILURE, e, tenantDomain);
+        } catch (FlowEngineClientException e) {
+            throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED, claimUri);
+        }
+    }
+
+    /**
+     * Validate claim uniqueness against the configured scope.
+     *
+     * @param claimUri        Claim URI.
+     * @param claimValue      Claim value to validate.
+     * @throws FlowEngineClientException If the claim value is not unique.
+     */
+    private static void validateClaimUniqueness(String claimUri, String claimValue)
+            throws FlowEngineClientException, UserStoreException {
+
+        boolean isDuplicated = ClaimValidationUtil.isClaimDuplicated(claimUri, claimValue);
+        if (isDuplicated) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Claim uniqueness validation failed for claim: " + claimUri);
+            }
+            throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED, claimUri);
         }
     }
 

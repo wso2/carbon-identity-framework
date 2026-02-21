@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -54,6 +55,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -88,6 +90,9 @@ public class TaskExecutionNodeTest {
 
     @Mock
     private AuthenticationExecutor executor;
+
+    @Mock
+    private InputValidationService inputValidationService;
 
     @BeforeClass
     public void setUp() {
@@ -156,10 +161,17 @@ public class TaskExecutionNodeTest {
 
         ExecutorResponse executorResponse = new ExecutorResponse();
         executorResponse.setResult(STATUS_COMPLETE);
+        context.setCurrentNode(nodeConfig);
 
-        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
+        try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
+             MockedStatic<InputValidationService> validationServiceStatic = mockStatic(
+                     InputValidationService.class)) {
+            validationServiceStatic.when(InputValidationService::getInstance)
+                    .thenReturn(inputValidationService);
+
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
             assertEquals(nodeResponse.getStatus(), STATUS_COMPLETE);
+            verify(inputValidationService).clearUserInputs(context);
         }
     }
 
@@ -171,6 +183,7 @@ public class TaskExecutionNodeTest {
         Map<String, Object> updatedClaims = new HashMap<>();
         updatedClaims.put("email", "test@example.com");
         executorResponse.setUpdatedUserClaims(updatedClaims);
+        context.setCurrentNode(nodeConfig);
 
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
@@ -186,6 +199,7 @@ public class TaskExecutionNodeTest {
         executorResponse.setResult(STATUS_RETRY);
         executorResponse.setRequiredData(new ArrayList<>());
         executorResponse.setErrorMessage("Retry error");
+        context.setCurrentNode(nodeConfig);
 
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
@@ -205,6 +219,7 @@ public class TaskExecutionNodeTest {
         requiredData.add("attribute2");
         executorResponse.setRequiredData(requiredData);
         executorResponse.setAdditionalInfo(new HashMap<>());
+        context.setCurrentNode(nodeConfig);
 
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);

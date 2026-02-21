@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2025-2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.execution.engine.internal;
 
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
@@ -41,6 +42,7 @@ public class FlowExecutionEngineDataHolder {
     private FlowMgtService flowMgtService;
     private RealmService realmService;
     private InputValidationManagementService inputValidationManagementService;
+    private ClaimMetadataManagementService claimMetadataManagementService;
     private ApplicationManagementService applicationManagementService;
     private FederatedAssociationManager federatedAssociationManager;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
@@ -122,6 +124,26 @@ public class FlowExecutionEngineDataHolder {
     public void setInputValidationManagementService(InputValidationManagementService inputValidationManagementService) {
 
         this.inputValidationManagementService = inputValidationManagementService;
+    }
+
+    /**
+     * Get the claim metadata management service.
+     *
+     * @return Claim metadata management service.
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    /**
+     * Set the claim metadata management service.
+     *
+     * @param claimMetadataManagementService Claim metadata management service.
+     */
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
     /**
