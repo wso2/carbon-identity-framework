@@ -78,6 +78,8 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                 return true;
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 return getCurrentSubjectIdentifierStep() != null;
+            case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
+                return getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE) != null;
             default:
                 return super.hasMember(name);
         }
@@ -121,6 +123,8 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
             case FrameworkConstants.JSAttributes.JS_ENDPOINT_PARAMS:
                 return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                         .createJsWritableParameters(getContext().getEndpointParams());
+            case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
+                return getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE);
             default:
                 return super.getMember(name);
         }
@@ -138,7 +142,9 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                 FrameworkConstants.JSAttributes.JS_STEPS,
                 FrameworkConstants.JSAttributes.JS_CURRENT_STEP,
                 FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT,
-                FrameworkConstants.JSAttributes.JS_RETRY_STEP};
+                FrameworkConstants.JSAttributes.JS_RETRY_STEP,
+                FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE
+        };
     }
 
     public boolean setMemberObject(String name, Object value) {
