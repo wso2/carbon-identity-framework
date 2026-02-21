@@ -941,6 +941,7 @@
   "fido.metadata_service.mds_root_certificate_file_path": "${carbon.home}/repository/resources/identity/fido2/security/MDS3ROOT.crt",
   "fido.metadata_service.metadata_statement_directory": "${carbon.home}/repository/resources/identity/fido2/metadataStatements",
   "fido.metadata_service.mds_scheduler_initial_delay": "0",
+  "fido.webauthn.relying_party.use_full_effective_domain": false,
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
