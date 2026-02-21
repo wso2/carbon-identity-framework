@@ -951,6 +951,17 @@
             </RenewTokenWithoutRevokingExisting>
         </JWT>
         {% endif %}
+        
+        <!--
+            Disable this property to use the updated session-bound token behavior for OAuth tokens.
+            Default value : true
+        -->
+        <EnableLegacySessionBoundTokenBehaviour>{{oauth.enable_legacy_session_bound_token_behaviour}}</EnableLegacySessionBoundTokenBehaviour>
+        <!--
+            Enable this property to allow session bound tokens even after the idle session expiry.
+            Default value : false
+        -->
+        <AllowSessionBoundTokensAfterIdleSessionExpiry>{{oauth.allow_session_bound_tokens_after_idle_session_expiry}}</AllowSessionBoundTokensAfterIdleSessionExpiry>
     </OAuth>
 
     <RestApiAuthentication>
