@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.action.execution.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -55,11 +57,14 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -456,6 +461,35 @@ public class APIClientTest {
         assertEquals(errorResponseObject.getErrorDescription(), errorDescription);
         assertNull(apiResponse.getErrorLog());
     }
+
+    @DataProvider(name = "networkExceptionsForRetry")
+    public Object[][] networkExceptionsForRetry() {
+
+        return new Object[][]{
+                {(Supplier<Exception>) () -> new ConnectionClosedException("Connection closed")},
+                {(Supplier<Exception>) () -> new NoHttpResponseException("No response")},
+                {(Supplier<Exception>) () -> new SocketException("Socket error")},
+                {(Supplier<Exception>) () -> new UnknownHostException("Unknown host")}
+        };
+    }
+
+    @Test(dataProvider = "networkExceptionsForRetry")
+    public void testCallAPIRetryOnNetworkExceptions(Supplier<Exception> exceptionSupplier) throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class)))
+                .thenThrow(exceptionSupplier.get())
+                .thenThrow(exceptionSupplier.get());
+
+        ActionInvocationResponse response = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, new HashMap<>(), "{}");
+
+        assertNotNull(response);
+        assertTrue(response.isError());
+        assertEquals(response.getErrorLog(),
+                "Failed to execute the action request or maximum retry attempts reached.");
+        verify(httpClient, times(2)).execute(any(HttpPost.class));
+    }
+
 
     @Test
     public void testCallAPIRetryOnTimeoutAndReceiveSuccessResponse() throws Exception {
