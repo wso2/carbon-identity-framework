@@ -41,6 +41,8 @@ public class ApplicationMgtUIUtil {
     public static final String JWKS_DISPLAYNAME = "JWKS Endpoint";
     public static final String APP_NAME_JAVASCRIPT_VALIDATING_REGEX = "^[a-zA-Z0-9\\s.+_-]*$";
     private static final String SERVICE_PROVIDERS_NAME_JAVASCRIPT_REGEX = "ServiceProviders.SPNameJavascriptRegex";
+    private static final int MASK_LENGTH = 16;
+    private static final String MULTIPLE_CLIENT_SECRETS_ENABLED = "OAuth.MultipleClientSecrets.Enable";
 
     /**
      * Get related application bean from the session.
@@ -131,5 +133,29 @@ public class ApplicationMgtUIUtil {
             spValidatorJavascriptRegex = APP_NAME_JAVASCRIPT_VALIDATING_REGEX;
         }
         return spValidatorJavascriptRegex;
+    }
+
+    /**
+     * Check whether multiple client secrets feature is enabled.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean isMultipleClientSecretsEnabled() {
+        String multipleSecretsAllowedProperty = IdentityUtil.getProperty(MULTIPLE_CLIENT_SECRETS_ENABLED);
+        return Boolean.parseBoolean(multipleSecretsAllowedProperty);
+    }
+
+    /**
+     * Masks the given value with asterisks.
+     *
+     * @return Masked value.
+     */
+    public static String mask() {
+
+        StringBuilder masked = new StringBuilder(MASK_LENGTH);
+        for (int i = 0; i < MASK_LENGTH; i++) {
+            masked.append('*');
+        }
+        return masked.toString();
     }
 }
