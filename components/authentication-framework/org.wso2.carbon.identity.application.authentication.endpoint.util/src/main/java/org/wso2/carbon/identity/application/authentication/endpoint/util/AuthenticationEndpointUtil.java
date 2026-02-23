@@ -596,5 +596,4 @@ public class AuthenticationEndpointUtil {
                 .contains("javascript:") && !url.toLowerCase().contains("file:") && !url.toLowerCase()
                 .contains("ftp:") && !url.toLowerCase().contains("data:");
     }
-    
 }
