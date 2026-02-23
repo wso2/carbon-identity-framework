@@ -33,17 +33,12 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResp
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.execution.api.service.ActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.api.service.ActionVersioningHandler;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionRequestBuilder;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionExecutorServiceImpl;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionVersioningHandlerFactory;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
 /**
@@ -69,15 +64,6 @@ public class ActionExecutionServiceComponent {
 
             // Store reference for internal use
             ActionExecutionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
-
-            // Register In-Flow Extension services
-            bundleCtx.registerService(ActionExecutionRequestBuilder.class.getName(),
-                    new InFlowExtensionRequestBuilder(), null);
-            bundleCtx.registerService(ActionExecutionResponseProcessor.class.getName(),
-                    new InFlowExtensionResponseProcessor(), null);
-
-            // Register InFlowExtensionExecutor for the flow engine
-            bundleCtx.registerService(Executor.class.getName(), new InFlowExtensionExecutor(), null);
 
             LOG.debug("Action execution bundle is activated.");
         } catch (Throwable e) {
@@ -228,28 +214,5 @@ public class ActionExecutionServiceComponent {
         LOG.debug("Unregistering ActionVersioningHandler: " + actionVersionHandler.getClass().getName() +
                 " in the ActionExecutionServiceComponent.");
         ActionVersioningHandlerFactory.unregisterActionVersioningHandler(actionVersionHandler);
-    }
-
-    @Reference(
-            name = "claim.metadata.management.service",
-            service = ClaimMetadataManagementService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetClaimMetadataManagementService"
-    )
-    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        LOG.debug("Registering a reference for ClaimMetadataManagementService in the ActionExecutionServiceComponent.");
-        ActionExecutionServiceComponentHolder.getInstance()
-                .setClaimMetadataManagementService(claimMetadataManagementService);
-    }
-
-    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        LOG.debug("Unregistering reference for ClaimMetadataManagementService in the ActionExecutionServiceComponent.");
-        if (ActionExecutionServiceComponentHolder.getInstance().getClaimMetadataManagementService()
-                .equals(claimMetadataManagementService)) {
-            ActionExecutionServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
-        }
     }
 }

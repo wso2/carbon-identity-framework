@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.action.execution.internal.component;
 
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
 /**
@@ -33,7 +32,6 @@ public class ActionExecutionServiceComponentHolder {
     private ActionManagementService actionManagementService;
     private RuleEvaluationService ruleEvaluationService;
     private ActionExecutorService actionExecutorService;
-    private ClaimMetadataManagementService claimMetadataManagementService;
 
     private ActionExecutionServiceComponentHolder() {
 
@@ -82,25 +80,5 @@ public class ActionExecutionServiceComponentHolder {
     public void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         this.actionExecutorService = actionExecutorService;
-    }
-
-    /**
-     * Get the ClaimMetadataManagementService instance.
-     *
-     * @return ClaimMetadataManagementService instance.
-     */
-    public ClaimMetadataManagementService getClaimMetadataManagementService() {
-
-        return claimMetadataManagementService;
-    }
-
-    /**
-     * Set the ClaimMetadataManagementService instance.
-     *
-     * @param claimMetadataManagementService ClaimMetadataManagementService instance.
-     */
-    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

@@ -42,12 +42,4 @@
             <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImplTest"/>
         </classes>
     </test>
-    <test name="in-flow-extension-executor-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.action.execution.executor.HierarchicalPrefixMatcherTest"/>
-            <class name="org.wso2.carbon.identity.action.execution.executor.InFlowExtensionRequestBuilderTest"/>
-            <class name="org.wso2.carbon.identity.action.execution.executor.InFlowExtensionResponseProcessorTest"/>
-            <class name="org.wso2.carbon.identity.action.execution.executor.InFlowExtensionExecutorTest"/>
-        </classes>
-    </test>
 </suite>

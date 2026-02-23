@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.executor;
+package org.wso2.carbon.identity.flow.execution.engine.executor;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
@@ -35,9 +35,7 @@ import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
-import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionResponseProcessor;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -68,6 +66,7 @@ public class InFlowExtensionResponseProcessorTest {
 
     private InFlowExtensionResponseProcessor responseProcessor;
     private MockedStatic<LoggerUtils> loggerUtilsMock;
+    private MockedStatic<FlowExecutionEngineDataHolder> holderMock;
     private ClaimMetadataManagementService claimService;
 
     @BeforeMethod
@@ -85,13 +84,16 @@ public class InFlowExtensionResponseProcessorTest {
         when(countryClaim.getClaimURI()).thenReturn("http://wso2.org/claims/country");
         when(claimService.getLocalClaims(anyString())).thenReturn(Arrays.asList(emailClaim, countryClaim));
 
-        ActionExecutionServiceComponentHolder.getInstance()
-                .setClaimMetadataManagementService(claimService);
+        FlowExecutionEngineDataHolder holderInstance = mock(FlowExecutionEngineDataHolder.class);
+        when(holderInstance.getClaimMetadataManagementService()).thenReturn(claimService);
+        holderMock = mockStatic(FlowExecutionEngineDataHolder.class);
+        holderMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(holderInstance);
     }
 
     @AfterMethod
     public void tearDown() {
 
+        holderMock.close();
         loggerUtilsMock.close();
     }
 

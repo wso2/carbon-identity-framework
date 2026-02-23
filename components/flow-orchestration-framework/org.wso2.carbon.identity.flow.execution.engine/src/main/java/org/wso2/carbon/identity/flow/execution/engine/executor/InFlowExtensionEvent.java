@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.internal.executor;
+package org.wso2.carbon.identity.flow.execution.engine.executor;
 
 import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
@@ -163,13 +163,13 @@ public class InFlowExtensionEvent extends Event {
 
         public Builder userInputs(Map<String, String> userInputs) {
 
-            this.userInputs = userInputs;
+            this.userInputs = userInputs != null ? new HashMap<>(userInputs) : null;
             return this;
         }
 
         public Builder flowProperties(Map<String, Object> flowProperties) {
 
-            this.flowProperties = flowProperties;
+            this.flowProperties = flowProperties != null ? new HashMap<>(flowProperties) : null;
             return this;
         }
 

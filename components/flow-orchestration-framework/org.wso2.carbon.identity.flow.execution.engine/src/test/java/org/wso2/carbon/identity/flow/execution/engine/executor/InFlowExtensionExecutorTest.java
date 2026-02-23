@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.executor;
+package org.wso2.carbon.identity.flow.execution.engine.executor;
 
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -32,9 +32,8 @@ import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
-import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionExecutor.ExecutorResult;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionExecutor.ExecutorResult;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
@@ -67,7 +66,7 @@ public class InFlowExtensionExecutorTest {
     private ActionExecutorService actionExecutorService;
 
     private AutoCloseable mocks;
-    private MockedStatic<ActionExecutionServiceComponentHolder> holderMock;
+    private MockedStatic<FlowExecutionEngineDataHolder> holderMock;
 
     @BeforeMethod
     public void setUp() {
@@ -75,12 +74,12 @@ public class InFlowExtensionExecutorTest {
         mocks = MockitoAnnotations.openMocks(this);
         executor = new InFlowExtensionExecutor();
 
-        ActionExecutionServiceComponentHolder holderInstance =
-                mock(ActionExecutionServiceComponentHolder.class);
+        FlowExecutionEngineDataHolder holderInstance =
+                mock(FlowExecutionEngineDataHolder.class);
         when(holderInstance.getActionExecutorService()).thenReturn(actionExecutorService);
 
-        holderMock = mockStatic(ActionExecutionServiceComponentHolder.class);
-        holderMock.when(ActionExecutionServiceComponentHolder::getInstance).thenReturn(holderInstance);
+        holderMock = mockStatic(FlowExecutionEngineDataHolder.class);
+        holderMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(holderInstance);
     }
 
     @AfterMethod
@@ -414,12 +413,12 @@ public class InFlowExtensionExecutorTest {
         // Override holder mock to return null service.
         holderMock.close();
 
-        ActionExecutionServiceComponentHolder holderInstance =
-                mock(ActionExecutionServiceComponentHolder.class);
+        FlowExecutionEngineDataHolder holderInstance =
+                mock(FlowExecutionEngineDataHolder.class);
         when(holderInstance.getActionExecutorService()).thenReturn(null);
 
-        holderMock = mockStatic(ActionExecutionServiceComponentHolder.class);
-        holderMock.when(ActionExecutionServiceComponentHolder::getInstance).thenReturn(holderInstance);
+        holderMock = mockStatic(FlowExecutionEngineDataHolder.class);
+        holderMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(holderInstance);
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("actionId", "test-action-001");

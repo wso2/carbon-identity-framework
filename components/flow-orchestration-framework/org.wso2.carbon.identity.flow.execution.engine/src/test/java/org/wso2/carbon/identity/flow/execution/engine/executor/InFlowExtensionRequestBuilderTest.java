@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.executor;
+package org.wso2.carbon.identity.flow.execution.engine.executor;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
@@ -29,10 +29,6 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
-import org.wso2.carbon.identity.action.execution.internal.executor.HierarchicalPrefixMatcher;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionEvent;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.action.execution.internal.executor.InFlowExtensionRequestBuilder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;

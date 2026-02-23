@@ -16,12 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.executor;
+package org.wso2.carbon.identity.flow.execution.engine.executor;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.internal.executor.HierarchicalPrefixMatcher;
-import org.wso2.carbon.identity.action.execution.internal.executor.HierarchicalPrefixMatcher.ContextArea;
+import org.wso2.carbon.identity.flow.execution.engine.executor.HierarchicalPrefixMatcher.ContextArea;
 
 import java.util.Arrays;
 import java.util.Collections;

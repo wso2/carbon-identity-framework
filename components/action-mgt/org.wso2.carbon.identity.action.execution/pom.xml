@@ -50,14 +50,6 @@
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.flow.execution.engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
@@ -108,12 +100,6 @@
                             org.wso2.carbon.identity.action.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.*;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.flow.execution.engine.*;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.flow.mgt.*;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.claim.metadata.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
