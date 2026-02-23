@@ -25,7 +25,7 @@ enableReindexing boolean;
 enableTblAnalyzing boolean;
 
 tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
-tablename  IN ('idn_oauth2_access_token', 'idn_oauth2_authorization_code', 'idn_oauth2_access_token_scope','idn_oidc_req_object_reference','idn_oidc_req_object_claims','idn_oidc_req_obj_claim_values');
+tablename  IN ('idn_oauth2_access_token', 'idn_oauth2_authorization_code', 'idn_oauth2_ciba_auth_code', 'idn_oauth2_access_token_scope','idn_oidc_req_object_reference','idn_oidc_req_object_claims','idn_oidc_req_obj_claim_values');
 
 
 BEGIN
@@ -138,6 +138,19 @@ THEN
     ELSE
         IF (enableLog AND logLevel IN ('TRACE')) THEN
         RAISE NOTICE 'USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_AUTHORIZATION_CODE_CLEANUP ..!';
+        END IF;
+    END IF;
+
+    SELECT count(1) INTO rowcount  from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename IN ('auditlog_idn_oauth2_ciba_auth_code_cleanup');
+    IF (rowcount = 0)
+    THEN
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        RAISE NOTICE 'CREATING AUDIT TABLE AUDITLOG_IDN_OAUTH2_CIBA_AUTH_CODE_CLEANUP .. !';
+        END IF;
+        CREATE TABLE auditlog_idn_oauth2_ciba_auth_code_cleanup as SELECT * FROM idn_oauth2_ciba_auth_code WHERE 1 = 2;
+    ELSE
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        RAISE NOTICE 'USING AUDIT TABLE AUDITLOG_IDN_OAUTH2_CIBA_AUTH_CODE_CLEANUP ..!';
         END IF;
     END IF;
 END IF;
@@ -403,6 +416,125 @@ IF (enableLog)
 THEN
 RAISE NOTICE '';
 RAISE NOTICE 'CODE DELETE ON IDN_OAUTH2_AUTHORIZATION_CODE COMPLETED .... !';
+END IF;
+
+-- ------------------------------------------------------
+-- DELETE IDN_OAUTH2_CIBA_AUTH_CODE CALCULATION
+-- ------------------------------------------------------
+
+IF (enableLog) THEN
+    RAISE NOTICE '';
+    RAISE NOTICE 'CALCULATING CIBA AUTH CODES ON IDN_OAUTH2_CIBA_AUTH_CODE .... !';
+
+    IF (enableLog AND logLevel IN ('TRACE','DEBUG')) THEN
+    SELECT COUNT(1) INTO rowcount FROM idn_oauth2_ciba_auth_code;
+    RAISE NOTICE 'TOTAL CIBA AUTH CODES ON IDN_OAUTH2_CIBA_AUTH_CODE TABLE BEFORE DELETE: %',rowcount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE')) THEN
+    SELECT COUNT(1) INTO cleanupCount FROM idn_oauth2_ciba_auth_code WHERE AUTH_REQ_STATUS IN ('EXPIRED','TOKEN_ISSUED','FAILED') OR (EXPIRES_IN > 0 AND deleteTillTime > (ISSUED_TIME + INTERVAL '1second' * EXPIRES_IN));
+    RAISE NOTICE 'TOTAL CIBA AUTH CODES SHOULD BE DELETED FROM IDN_OAUTH2_CIBA_AUTH_CODE: %',cleanupCount;
+    END IF;
+
+    IF (enableLog AND logLevel IN ('TRACE')) THEN
+    rowcount := (rowcount - cleanupCount);
+    RAISE NOTICE 'TOTAL CIBA AUTH CODES SHOULD BE RETAIN IN IDN_OAUTH2_CIBA_AUTH_CODE: %',rowcount;
+    END IF;
+END IF;
+
+-- ------------------------------------------------------
+-- BATCH DELETE IDN_OAUTH2_CIBA_AUTH_CODE
+-- ------------------------------------------------------
+
+IF (enableLog)
+THEN
+RAISE NOTICE '';
+RAISE NOTICE 'CIBA AUTH CODE DELETE ON IDN_OAUTH2_CIBA_AUTH_CODE STARTED .... !';
+END IF;
+
+LOOP
+      SELECT count(1) INTO rowcount  from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename IN ('idn_oauth2_ciba_auth_code_chunk');
+      IF (rowcount = 1)
+      THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+            RAISE NOTICE '';
+            RAISE NOTICE 'DROPPING EXISTING TABLE IDN_OAUTH2_CIBA_AUTH_CODE_CHUNK !';
+            END IF;
+            DROP TABLE idn_oauth2_ciba_auth_code_chunk;
+      END IF;
+
+      CREATE TABLE idn_oauth2_ciba_auth_code_chunk (AUTH_CODE_KEY CHAR(36));
+
+      INSERT INTO idn_oauth2_ciba_auth_code_chunk (AUTH_CODE_KEY) SELECT AUTH_CODE_KEY FROM idn_oauth2_ciba_auth_code WHERE AUTH_REQ_STATUS IN ('EXPIRED','TOKEN_ISSUED','FAILED') OR (EXPIRES_IN > 0 AND deleteTillTime > (ISSUED_TIME + INTERVAL '1second' * EXPIRES_IN)) LIMIT chunkSize;
+      GET diagnostics chunkCount := ROW_COUNT;
+
+      IF (chunkCount < checkCount)
+      THEN
+      EXIT;
+      END IF;
+
+      CREATE INDEX idx_idn_oauth2_ciba_auth_code_chunk ON idn_oauth2_ciba_auth_code_chunk (AUTH_CODE_KEY);
+
+      IF (enableLog AND logLevel IN ('TRACE')) THEN
+      RAISE NOTICE '';
+      RAISE NOTICE 'PROCEEDING WITH NEW CHUNK TABLE IDN_OAUTH2_CIBA_AUTH_CODE_CHUNK WITH %',chunkCount;
+      RAISE NOTICE '';
+      END IF;
+
+      IF (enableAudit)
+      THEN
+      INSERT INTO auditlog_idn_oauth2_ciba_auth_code_cleanup SELECT ciba.* FROM idn_oauth2_ciba_auth_code ciba , idn_oauth2_ciba_auth_code_chunk CHK WHERE ciba.AUTH_CODE_KEY=CHK.AUTH_CODE_KEY;
+      COMMIT;
+      END IF;
+
+      LOOP
+
+      SELECT count(1) INTO rowcount  from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename IN ('idn_oauth2_ciba_auth_code_batch');
+      IF (rowcount = 1)
+      THEN
+      DROP TABLE idn_oauth2_ciba_auth_code_batch;
+      END IF;
+
+      CREATE TABLE idn_oauth2_ciba_auth_code_batch (AUTH_CODE_KEY CHAR(36));
+
+      INSERT INTO idn_oauth2_ciba_auth_code_batch (AUTH_CODE_KEY) SELECT AUTH_CODE_KEY FROM idn_oauth2_ciba_auth_code_chunk LIMIT batchSize;
+      GET diagnostics batchCount := ROW_COUNT;
+
+      IF (batchCount = 0)
+      THEN
+      EXIT WHEN batchCount=0;
+      END IF;
+
+      IF (enableLog AND logLevel IN ('TRACE')) THEN
+      RAISE NOTICE '';
+      RAISE NOTICE 'BATCH DELETE START ON TABLE IDN_OAUTH2_CIBA_AUTH_CODE WITH : %',batchCount;
+      END IF;
+
+      DELETE FROM idn_oauth2_ciba_auth_code where AUTH_CODE_KEY in (select AUTH_CODE_KEY from idn_oauth2_ciba_auth_code_batch);
+      GET diagnostics deleteCount := ROW_COUNT;
+      COMMIT;
+
+      IF (enableLog AND logLevel IN ('TRACE','DEBUG')) THEN
+      RAISE NOTICE 'BATCH DELETE FINISHED ON IDN_OAUTH2_CIBA_AUTH_CODE WITH : %',deleteCount;
+      END IF;
+
+      DELETE FROM idn_oauth2_ciba_auth_code_chunk WHERE AUTH_CODE_KEY in (select AUTH_CODE_KEY from idn_oauth2_ciba_auth_code_batch);
+      IF (enableLog AND logLevel IN ('TRACE')) THEN
+      RAISE NOTICE 'DELETED BATCH ON IDN_OAUTH2_CIBA_AUTH_CODE_CHUNK !';
+      END IF;
+
+      IF (enableLog AND logLevel IN ('TRACE')) THEN
+      RAISE NOTICE 'SLEEPING ...';
+      END IF;
+      perform pg_sleep(sleepTime);
+
+      END LOOP;
+END LOOP;
+
+IF (enableLog)
+THEN
+RAISE NOTICE '';
+RAISE NOTICE 'CIBA AUTH CODE DELETE ON IDN_OAUTH2_CIBA_AUTH_CODE COMPLETED .... !';
 END IF;
 
 -- ------------------------------------------------------

@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.10.15-SNAPSHOT</version>
+    <version>7.10.23-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -2192,8 +2192,8 @@
         <version.equinox.osgi>3.19.0</version.equinox.osgi>
         <equinox.osgi.stax-api.imp.pkg.version.range>[1.0.1,2.0.0)</equinox.osgi.stax-api.imp.pkg.version.range>
 
-        <saml.common.util.version>1.4.1</saml.common.util.version>
-        <saml.common.util.version.range>[1.4.0,1.5.0)</saml.common.util.version.range>
+        <saml.common.util.version>1.6.0</saml.common.util.version>
+        <saml.common.util.version.range>[1.4.0,2.0.0)</saml.common.util.version.range>
 
         <bcprov-jdk18.version>1.78.1.wso2v1</bcprov-jdk18.version>
         <bcpkix-jdk18.version>1.78.1.wso2v1</bcpkix-jdk18.version>
@@ -2320,8 +2320,8 @@
         <jersey-version>1.19.1</jersey-version>
 
         <!-- Pax Logging Version -->
-        <pax.logging.api.version>1.10.1</pax.logging.api.version>
-        <pax.logging.log4j2.version>1.10.1</pax.logging.log4j2.version>
+        <pax.logging.api.version>1.10.9</pax.logging.api.version>
+        <pax.logging.log4j2.version>1.10.9</pax.logging.log4j2.version>
 
         <!-- Log4j -->
         <log4j.api.version>2.17.1</log4j.api.version>

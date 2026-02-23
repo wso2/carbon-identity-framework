@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -76,6 +76,7 @@ public class IdentityEventConstants {
         public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN= "PRE_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN= "POST_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_SCIM= "POST_UPDATE_CREDENTIAL_BY_SCIM";
+        public static final String POST_UPDATE_CREDENTIAL_BY_ME_API= "POST_UPDATE_CREDENTIAL_BY_ME_API";
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
