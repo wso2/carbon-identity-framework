@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.provisioning;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -118,8 +117,10 @@ public class ProvisioningThread implements Callable<Boolean> {
             }
             success = true;
         } catch (Exception e) {
-            String errMsg = "Fail the Provisioning for Entity " + provisioningEntity.getEntityName() +
-                    " For operation = " + provisioningEntity.getOperation();
+            String maskedEntityName = ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName());
+            String errMsg = "Outbound provisioning failed for IDP: " + idPName + ", connector: " + connectorType
+                    + ", entity: " + maskedEntityName + ", entity type: " + provisioningEntity.getEntityType()
+                    + ", operation: " + provisioningEntity.getOperation();
             log.warn(errMsg);
             throw new IdentityProvisioningException(errMsg, e);
         } finally {

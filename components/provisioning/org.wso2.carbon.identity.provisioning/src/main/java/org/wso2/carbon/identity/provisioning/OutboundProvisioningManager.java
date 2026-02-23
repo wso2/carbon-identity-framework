@@ -357,9 +357,7 @@ public class OutboundProvisioningManager {
             }
 
             // Any provisioning request coming via Console, considered as coming from the resident SP.
-            // If the application based outbound provisioning is disabled, resident SP configuration will be used.
-            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier) ||
-                    !isApplicationBasedOutboundProvisioningEnabled()) {
+            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier)) {
                 serviceProviderIdentifier = LOCAL_SP;
                 inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
             }
@@ -392,6 +390,21 @@ public class OutboundProvisioningManager {
             // TODO: stop loading connectors all the time.
             Map<String, RuntimeProvisioningConfig> connectors =
                     getOutboundProvisioningConnectors(serviceProvider, spTenantDomainName);
+
+            // When application-based outbound provisioning is disabled and the application has no
+            // outbound provisioning connectors configured, fall back to LOCAL_SP (resident app) connectors.
+            if (!isApplicationBasedOutboundProvisioningEnabled() && MapUtils.isEmpty(connectors)
+                    && !LOCAL_SP.equals(serviceProviderIdentifier)) {
+                ServiceProvider localSP = ApplicationManagementService.getInstance()
+                        .getServiceProvider(LOCAL_SP, spTenantDomainName);
+                if (localSP != null) {
+                    serviceProvider = localSP;
+                    connectors = getOutboundProvisioningConnectors(localSP, spTenantDomainName);
+                    inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+                    // LOCAL_SP uses WSO2_CARBON_DIALECT; spClaimMappings is not needed.
+                    spClaimMappings = null;
+                }
+            }
 
             ProvisioningEntity outboundProEntity;
 
