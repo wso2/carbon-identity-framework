@@ -595,7 +595,7 @@ public class ServiceProvider implements Serializable {
 
     public String getAccessUrl() {
 
-        return accessUrl == null ? null : accessUrl.trim();
+        return accessUrl;
     }
 
     public void setAccessUrl(String accessUrl) {
