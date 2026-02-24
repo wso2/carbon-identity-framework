@@ -35,11 +35,9 @@ import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerEx
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
-import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
-import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.io.IOException;
@@ -58,6 +56,11 @@ import javax.servlet.http.HttpServletResponse;
 public class DebugRequestCoordinator implements DebugCommonAuthHandler {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
+    private static final String CONTEXT_KEY_CONNECTION_ID = "connectionId";
+    private static final String CONTEXT_KEY_RESOURCE_NAME = "resourceName";
+    private static final String REQUEST_KEY_CONNECTION_ID = "connectionId";
+    private static final String REQUEST_KEY_RESOURCE_ID = "resourceId";
+    private static final String REQUEST_KEY_IDP_NAME = "idpName";
 
     /**
      * Constructs a DebugRequestCoordinator instance.
@@ -82,55 +85,12 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
-        try {
-            String connectionId = debugRequest.getEffectiveConnectionId();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Handling initial debug request for resource: " + connectionId);
-            }
-
-            // Default to IDP if resource type is not provided (legacy support).
-            String resourceType = debugRequest.getResourceType();
-            if (resourceType == null) {
-                resourceType = "IDP";
-            }
-
-            // Get executor via Handler.
-            DebugResourceHandler handler = (DebugResourceHandler) DebugProtocolRouter
-                    .getDebugResourceHandler(resourceType);
-            if (handler == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No DebugResourceHandler found for resource type: " + resourceType);
-                }
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, resourceType);
-            }
-
-            DebugExecutor executor = handler.getExecutor(connectionId);
-
-            if (executor == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No DebugExecutor found for the given resource ID: " + connectionId);
-                }
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);
-            }
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Delegating to executor: " + executor.getClass().getSimpleName());
-            }
-
-            // Convert DebugRequest to DebugContext and execute.
-            DebugContext debugContext = DebugContext.buildFromMap(debugRequest.toMap());
-            DebugResult result = executor.execute(debugContext);
-            return DebugResponse.fromDebugResult(result);
-
-        } catch (DebugFrameworkClientException e) {
-            throw e;
-        } catch (Exception e) {
-            LOG.error("Error handling initial debug request.", e);
-            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
+        // Default to IDP if resource type is not provided (legacy support).
+        if (debugRequest.getResourceType() == null) {
+            debugRequest.setResourceType(DebugFrameworkConstants.RESOURCE_TYPE_IDP);
         }
+
+        return handleResourceDebugRequest(debugRequest);
     }
 
     /**
@@ -182,7 +142,13 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             throw e;
         } catch (DebugFrameworkException e) {
             LOG.error("Debug framework error in request orchestration.", e);
-            throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
+            if (e instanceof DebugFrameworkServerException) {
+                throw (DebugFrameworkServerException) e;
+            }
+            if (e.getErrorCode() != null) {
+                throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
+            }
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         } catch (Exception e) {
             LOG.error("Unexpected error in debug request orchestration.", e);
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
@@ -263,7 +229,7 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
         // Create a minimal request context for the listeners.
         DebugRequest debugRequest = new DebugRequest();
         debugRequest.setConnectionId(sessionId);
-        debugRequest.setResourceType("DEBUG_RESULT_RETRIEVAL");
+        debugRequest.setResourceType(DebugFrameworkConstants.DEBUG_RESULT_RETRIEVAL);
 
         try {
             // Pre-execute Listeners.
@@ -291,6 +257,9 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             throw e;
         } catch (Exception e) {
             LOG.error("Error retrieving debug result for session: " + sessionId, e);
+            if (e instanceof DebugFrameworkServerException) {
+                throw (DebugFrameworkServerException) e;
+            }
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
@@ -304,15 +273,19 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
      */
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
 
+        boolean isDebugFlow = isDebugFlowCallback(request);
         try {
-            if (isDebugFlowCallback(request)) {
+            if (isDebugFlow) {
                 handleDebugFlowCallback(request, response);
                 return true;
             }
             return false;
         } catch (Exception e) {
             LOG.error("Error processing /commonauth request", e);
-            return false;
+            if (isDebugFlow && !response.isCommitted()) {
+                sendServerErrorResponse(response, e);
+            }
+            return isDebugFlow;
         }
     }
 
@@ -361,16 +334,19 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             setContextProperties(context, code, state, sessionDataKey);
             DebugProcessor processor = getProtocolSpecificProcessor(request, context);
 
-            if (processor != null && !response.isCommitted()) {
-                processor.processCallback(request, response, context);
-            } else if (processor == null) {
+            if (processor == null) {
                 LOG.error("No suitable DebugProcessor found for callback");
+                return;
+            }
+
+            if (!response.isCommitted()) {
+                processor.processCallback(request, response, context);
             }
 
         } catch (Exception e) {
             LOG.error("Error processing debug flow callback", e);
             if (!response.isCommitted()) {
-                sendErrorResponse(response, "DEBUG_PROCESSING_ERROR", e.getMessage());
+                sendServerErrorResponse(response, e);
             }
         }
     }
@@ -382,7 +358,8 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
         }
         LOG.error("OAuth error in debug callback.");
         if (!response.isCommitted()) {
-            sendErrorResponse(response, "OAUTH_ERROR", "OAuth error occurred.");
+            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "OAUTH_ERROR", "OAuth error occurred.");
         }
         return true;
     }
@@ -406,7 +383,8 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
 
         LOG.error("Cannot process debug callback: missing context and/or OAuth parameters");
         if (!response.isCommitted()) {
-            sendErrorResponse(response, "MISSING_CONTEXT", "Authentication context not found");
+            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "MISSING_CONTEXT", "Authentication context not found");
         }
     }
 
@@ -429,8 +407,12 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
 
         try {
             String connectionId = extractConnectionId(context, request);
-            return ((DebugResourceHandler) DebugProtocolRouter.getDebugResourceHandler("IDP"))
-                .getProcessor(connectionId);
+            DebugResourceHandler resourceHandler =
+                    DebugProtocolRouter.getDebugResourceHandler(DebugFrameworkConstants.RESOURCE_TYPE_IDP);
+            if (resourceHandler == null) {
+                return null;
+            }
+            return resourceHandler.getProcessor(connectionId);
         } catch (Exception e) {
             LOG.error("Error discovering protocol-specific DebugProcessor: " + e.getMessage(), e);
             return null;
@@ -440,10 +422,7 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
     private String extractConnectionId(AuthenticationContext context, HttpServletRequest request) {
 
         String connectionId = extractConnectionIdFromContext(context);
-        if (connectionId == null) {
-            connectionId = extractConnectionIdFromRequest(request);
-        }
-        return connectionId;
+        return connectionId != null ? connectionId : extractConnectionIdFromRequest(request);
     }
 
     private String extractConnectionIdFromContext(AuthenticationContext context) {
@@ -451,14 +430,10 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
         if (context == null) {
             return null;
         }
-        String connectionId = (String) context.getProperty("connectionId");
-        if (connectionId == null) {
-            connectionId = (String) context.getProperty("resourceName");
-        }
-        if (connectionId == null) {
-            connectionId = (String) context.getProperty("DEBUG_RESOURCE_ID");
-        }
-        return connectionId;
+        return firstNonBlankString(
+                context.getProperty(CONTEXT_KEY_CONNECTION_ID),
+                context.getProperty(CONTEXT_KEY_RESOURCE_NAME),
+                context.getProperty(DebugFrameworkConstants.DEBUG_RESOURCE_ID));
     }
 
     private String extractConnectionIdFromRequest(HttpServletRequest request) {
@@ -466,14 +441,10 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
         if (request == null) {
             return null;
         }
-        String state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
-        if (state != null) {
-            String debugSessionId = extractDebugSessionIdFromState(state);
-            if (debugSessionId != null) {
-                return debugSessionId;
-            }
-        }
-        return null;
+        return firstNonBlankString(
+                request.getParameter(REQUEST_KEY_CONNECTION_ID),
+                request.getParameter(REQUEST_KEY_RESOURCE_ID),
+                request.getParameter(REQUEST_KEY_IDP_NAME));
     }
 
     private AuthenticationContext createDebugContextForCallback(String code, String state) {
@@ -524,10 +495,42 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
 
     private void sendErrorResponse(HttpServletResponse response, String errorCode, String errorMessage) {
 
+        sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorCode, errorMessage);
+    }
+
+    private void sendServerErrorResponse(HttpServletResponse response, Exception e) {
+
+        if (e instanceof DebugFrameworkClientException) {
+            DebugFrameworkClientException clientException = (DebugFrameworkClientException) e;
+            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST,
+                    resolveErrorCode(clientException.getErrorCode(), 
+                        ErrorMessages.ERROR_CODE_INVALID_REQUEST.getCode()),
+                    resolveErrorMessage(clientException.getDescription(), clientException.getMessage(),
+                            ErrorMessages.ERROR_CODE_INVALID_REQUEST.getDescription()));
+            return;
+        }
+
+        if (e instanceof DebugFrameworkException) {
+            DebugFrameworkException frameworkException = (DebugFrameworkException) e;
+            sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    resolveErrorCode(frameworkException.getErrorCode(), 
+                        ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode()),
+                    resolveErrorMessage(frameworkException.getDescription(), frameworkException.getMessage(),
+                            ErrorMessages.ERROR_CODE_SERVER_ERROR.getDescription()));
+            return;
+        }
+
+        sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                ErrorMessages.ERROR_CODE_SERVER_ERROR.getDescription());
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, int status, String errorCode, String errorMessage) {
+
         try {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(status);
 
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("error", errorCode != null ? errorCode : "");
@@ -539,5 +542,37 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
         } catch (IOException e) {
             LOG.error("Error sending error response: " + e.getMessage(), e);
         }
+    }
+
+    private String resolveErrorCode(String value, String fallback) {
+
+        if (value != null && !value.trim().isEmpty()) {
+            return value;
+        }
+        return fallback;
+    }
+
+    private String resolveErrorMessage(String description, String message, String fallback) {
+
+        if (description != null && !description.trim().isEmpty()) {
+            return description;
+        }
+        if (message != null && !message.trim().isEmpty()) {
+            return message;
+        }
+        return fallback;
+    }
+
+    private String firstNonBlankString(Object... values) {
+
+        for (Object value : values) {
+            if (value instanceof String) {
+                String text = (String) value;
+                if (!text.trim().isEmpty()) {
+                    return text;
+                }
+            }
+        }
+        return null;
     }
 }

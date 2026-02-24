@@ -61,7 +61,7 @@ public abstract class DebugProcessor {
 
         try {
             // Extract protocol-specific parameters.
-            state = request.getParameter("state");
+            state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
             if (state == null || state.trim().isEmpty()) {
                 state = (String) context.getProperty("DEBUG_STATE");
             }
@@ -100,7 +100,7 @@ public abstract class DebugProcessor {
 
             // Try to extract state for error response.
             if (state == null) {
-                state = request.getParameter("state");
+                state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
                 if (state == null || state.trim().isEmpty()) {
                     state = (String) context.getProperty("DEBUG_STATE");
                 }
@@ -123,12 +123,12 @@ public abstract class DebugProcessor {
     protected String extractConnectionId(AuthenticationContext context) {
 
         // Try common property names for resource ID.
-        Object connectionId = context.getProperty("RESOURCE_ID");
+        Object connectionId = context.getProperty(DebugFrameworkConstants.RESOURCE_ID);
         if (connectionId == null) {
-            connectionId = context.getProperty("IDP_RESOURCE_ID");
+            connectionId = context.getProperty(DebugFrameworkConstants.IDP_RESOURCE_ID);
         }
         if (connectionId == null) {
-            connectionId = context.getProperty("DEBUG_RESOURCE_ID");
+            connectionId = context.getProperty(DebugFrameworkConstants.DEBUG_RESOURCE_ID);
         }
         return connectionId != null ? connectionId.toString() : "";
     }

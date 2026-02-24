@@ -136,6 +136,7 @@ public final class DebugSessionCache {
             }
         } catch (Exception e) {
             LOG.error("Error retrieving debug session from DB: " + e.getMessage(), e);
+            throw new IllegalStateException("Error retrieving debug session from DB", e);
         }
         return null;
     }
@@ -194,7 +195,7 @@ public final class DebugSessionCache {
             DebugSessionData sessionData = new DebugSessionData();
             sessionData.setSessionId(key);
             sessionData.setResultJson(result);
-            sessionData.setStatus("COMPLETED");
+            sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_COMPLETED);
             sessionData.setCreatedTime(System.currentTimeMillis());
             sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
             sessionData.setResourceType(resourceType);
@@ -228,6 +229,7 @@ public final class DebugSessionCache {
             }
         } catch (Exception e) {
             LOG.error("Error retrieving debug result from DB: " + e.getMessage(), e);
+            throw new IllegalStateException("Error retrieving debug result from DB", e);
         }
         return null;
     }
@@ -248,4 +250,3 @@ public final class DebugSessionCache {
         }
     }
 }
-

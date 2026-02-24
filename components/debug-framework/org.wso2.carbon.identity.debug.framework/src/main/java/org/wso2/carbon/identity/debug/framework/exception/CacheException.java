@@ -57,7 +57,7 @@ public class CacheException extends DebugFrameworkException {
      */
     public CacheException(String message) {
 
-        super("CACHE_ERROR", message, "");
+        super(message);
     }
 
     /**
@@ -67,7 +67,7 @@ public class CacheException extends DebugFrameworkException {
      * @param cause   Root cause exception.
      */
     public CacheException(String message, Throwable cause) {
-        
-        super("CACHE_ERROR", message, "", cause);
+
+        super(message, cause);
     }
 }

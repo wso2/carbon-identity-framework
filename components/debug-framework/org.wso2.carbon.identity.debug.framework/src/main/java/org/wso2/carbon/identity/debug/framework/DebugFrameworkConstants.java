@@ -55,9 +55,15 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
     public static final String DEBUG_CREATION_TIMESTAMP = "DEBUG_CREATION_TIMESTAMP";
     public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
+    public static final String RESOURCE_TYPE_IDP = "IDP";
+    public static final String DEBUG_RESULT_RETRIEVAL = "DEBUG_RESULT_RETRIEVAL";
+    public static final String DEBUG_RESOURCE_ID = "DEBUG_RESOURCE_ID";
+    public static final String RESOURCE_ID = "RESOURCE_ID";
+    public static final String IDP_RESOURCE_ID = "IDP_RESOURCE_ID";
 
     // Session Status Constants.
     public static final String SESSION_STATUS_PENDING = "PENDING";
+    public static final String SESSION_STATUS_COMPLETED = "COMPLETED";
 
     private DebugFrameworkConstants() {
         // Private constructor to prevent instantiation.

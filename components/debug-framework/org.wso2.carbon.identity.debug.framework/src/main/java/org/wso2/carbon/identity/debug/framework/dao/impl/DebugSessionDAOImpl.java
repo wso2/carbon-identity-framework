@@ -32,6 +32,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.Locale;
 
 /**
  * Implementation of the DebugSessionDAO using JdbcTemplate.
@@ -39,6 +41,7 @@ import java.sql.Timestamp;
 public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionDAOImpl.class);
+    private static final String DEBUG_SESSION_PREFIX = "debug-";
 
     private static final String SQL_INSERT_DEBUG_SESSION = "INSERT INTO IDN_DEBUG_SESSION " +
             "(SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) " +
@@ -47,9 +50,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     private static final String SQL_GET_DEBUG_SESSION = "SELECT SESSION_ID, STATUS, SESSION_DATA, " +
             "RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, " +
             "RESOURCE_ID FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
-
-    private static final String SQL_UPDATE_DEBUG_SESSION = "UPDATE IDN_DEBUG_SESSION SET " +
-            "STATUS = ?, RESULT_JSON = ? WHERE SESSION_ID = ?";
 
     private static final String SQL_DELETE_DEBUG_SESSION = "DELETE FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
 
@@ -83,11 +83,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION, preparedStatement -> {
                 preparedStatement.setString(1, normalizedSessionId);
                 preparedStatement.setString(2, sessionData.getStatus());
-                if (sessionData.getSessionData() != null) {
-                    preparedStatement.setBinaryStream(3, sessionData.getSessionData());
-                } else {
-                    preparedStatement.setBinaryStream(3, null);
-                }
+                setSessionData(preparedStatement, 3, sessionData);
                 preparedStatement.setString(4, sessionData.getResultJson());
                 preparedStatement.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
                 preparedStatement.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
@@ -96,19 +92,14 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             });
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
-            if (e.getCause() instanceof SQLException &&
-                    e.getCause().getMessage().contains("Column \"RESOURCE_TYPE\" not found")) {
+            if (isMissingResourceTypeColumnError(e.getCause())) {
                 LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                         "Falling back to legacy insert without resource info.");
                 try {
                     jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION_LEGACY, preparedStatement -> {
                         preparedStatement.setString(1, normalizedSessionId);
                         preparedStatement.setString(2, sessionData.getStatus());
-                        if (sessionData.getSessionData() != null) {
-                            preparedStatement.setBinaryStream(3, sessionData.getSessionData());
-                        } else {
-                            preparedStatement.setBinaryStream(3, null);
-                        }
+                        setSessionData(preparedStatement, 3, sessionData);
                         preparedStatement.setString(4, sessionData.getResultJson());
                         preparedStatement.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
                         preparedStatement.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
@@ -151,8 +142,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }, preparedStatement -> preparedStatement.setString(1, normalizedSessionId));
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
-            if (e.getCause() instanceof SQLException &&
-                    e.getCause().getMessage().contains("Column \"RESOURCE_TYPE\" not found")) {
+            if (isMissingResourceTypeColumnError(e.getCause())) {
                 LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                         "Falling back to legacy retrieval without resource info.");
                 try {
@@ -185,7 +175,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     @Override
     public void deleteDebugSession(String sessionId) throws DebugFrameworkServerException {
 
-        // Implementation remains same
         String normalizedSessionId = normalizeSessionId(sessionId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -219,11 +208,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION)) {
                     prepStmt.setString(1, normalizedSessionId);
                     prepStmt.setString(2, sessionData.getStatus());
-                    if (sessionData.getSessionData() != null) {
-                        prepStmt.setBinaryStream(3, sessionData.getSessionData());
-                    } else {
-                        prepStmt.setBinaryStream(3, null);
-                    }
+                    setSessionData(prepStmt, 3, sessionData);
                     prepStmt.setString(4, sessionData.getResultJson());
                     prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
                     prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
@@ -234,17 +219,13 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     success = true;
                 }
             } catch (SQLException e) {
-                if (e.getMessage() != null && e.getMessage().contains("Column \"RESOURCE_TYPE\" not found")) {
+                if (isMissingResourceTypeColumnError(e)) {
                     LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                             "Falling back to legacy upsert without resource info.");
                     try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_LEGACY)) {
                         prepStmt.setString(1, normalizedSessionId);
                         prepStmt.setString(2, sessionData.getStatus());
-                        if (sessionData.getSessionData() != null) {
-                            prepStmt.setBinaryStream(3, sessionData.getSessionData());
-                        } else {
-                            prepStmt.setBinaryStream(3, null);
-                        }
+                        setSessionData(prepStmt, 3, sessionData);
                         prepStmt.setString(4, sessionData.getResultJson());
                         prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
                         prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
@@ -262,7 +243,9 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 if (!connection.getAutoCommit()) {
                     connection.commit();
                 }
-                LOG.info("Debug session upserted successfully: " + normalizedSessionId);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Debug session upserted successfully: " + normalizedSessionId);
+                }
             }
         } catch (SQLException e) {
             String errorMsg = "Error while upserting debug session: " + sessionData.getSessionId();
@@ -311,12 +294,35 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
      */
     private String normalizeSessionId(String sessionId) {
 
-        if (sessionId == null || !sessionId.startsWith("debug-")) {
+        if (sessionId == null || !sessionId.startsWith(DEBUG_SESSION_PREFIX)) {
             return sessionId;
         }
 
-        String uuidPart = sessionId.substring(6);
-        String normalizedUuid = uuidPart.replaceAll("-", "");
-        return "debug-" + normalizedUuid;
+        String uuidPart = sessionId.substring(DEBUG_SESSION_PREFIX.length());
+        String normalizedUuid = uuidPart.replace("-", "");
+        return DEBUG_SESSION_PREFIX + normalizedUuid;
+    }
+
+    private void setSessionData(PreparedStatement preparedStatement, int parameterIndex,
+                                DebugSessionData sessionData) throws SQLException {
+
+        if (sessionData.getSessionData() == null) {
+            preparedStatement.setNull(parameterIndex, Types.BLOB);
+            return;
+        }
+        preparedStatement.setBinaryStream(parameterIndex, sessionData.getSessionData());
+    }
+
+    private boolean isMissingResourceTypeColumnError(Throwable throwable) {
+
+        if (!(throwable instanceof SQLException)) {
+            return false;
+        }
+        String message = throwable.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String normalizedMessage = message.toLowerCase(Locale.ENGLISH);
+        return normalizedMessage.contains("resource_type") && normalizedMessage.contains("not found");
     }
 }

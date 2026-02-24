@@ -23,9 +23,9 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -36,14 +36,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class DebugFrameworkServiceDataHolder {
 
-    private static final DebugFrameworkServiceDataHolder instance = new DebugFrameworkServiceDataHolder();
-
     private ClaimMetadataManagementService claimMetadataManagementService;
 
     /**
      * List of registered debug execution listeners.
      */
-    private final List<DebugExecutionListener> debugExecutionListeners = new ArrayList<>();
+    private final List<DebugExecutionListener> debugExecutionListeners = new CopyOnWriteArrayList<>();
 
     /**
      * Thread-safe map storing protocol providers indexed by protocol type.
@@ -66,7 +64,13 @@ public class DebugFrameworkServiceDataHolder {
      */
     public static DebugFrameworkServiceDataHolder getInstance() {
 
-        return instance;
+        return InstanceHolder.INSTANCE;
+    }
+
+    private static class InstanceHolder {
+
+        private static final DebugFrameworkServiceDataHolder INSTANCE =
+                new DebugFrameworkServiceDataHolder();
     }
 
     /**
@@ -98,8 +102,10 @@ public class DebugFrameworkServiceDataHolder {
     public void addDebugProtocolProvider(DebugProtocolProvider provider) {
 
         if (provider != null) {
-            String protocolType = provider.getProtocolType();
-            debugProtocolProviders.put(protocolType, provider);
+            String protocolType = normalizeProtocolType(provider.getProtocolType());
+            if (protocolType != null) {
+                debugProtocolProviders.put(protocolType, provider);
+            }
         }
     }
 
@@ -112,8 +118,10 @@ public class DebugFrameworkServiceDataHolder {
     public void removeDebugProtocolProvider(DebugProtocolProvider provider) {
 
         if (provider != null) {
-            String protocolType = provider.getProtocolType();
-            debugProtocolProviders.remove(protocolType);
+            String protocolType = normalizeProtocolType(provider.getProtocolType());
+            if (protocolType != null) {
+                debugProtocolProviders.remove(protocolType);
+            }
         }
     }
 
@@ -125,7 +133,11 @@ public class DebugFrameworkServiceDataHolder {
      */
     public DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
 
-        return debugProtocolProviders.get(protocolType);
+        String normalizedType = normalizeProtocolType(protocolType);
+        if (normalizedType == null) {
+            return null;
+        }
+        return debugProtocolProviders.get(normalizedType);
     }
 
     /**
@@ -146,7 +158,11 @@ public class DebugFrameworkServiceDataHolder {
      */
     public boolean hasDebugProtocolProvider(String protocolType) {
 
-        return debugProtocolProviders.containsKey(protocolType);
+        String normalizedType = normalizeProtocolType(protocolType);
+        if (normalizedType == null) {
+            return false;
+        }
+        return debugProtocolProviders.containsKey(normalizedType);
     }
 
     /**
@@ -209,7 +225,10 @@ public class DebugFrameworkServiceDataHolder {
      */
     public void addDebugExecutionListener(DebugExecutionListener listener) {
 
-        this.debugExecutionListeners.add(listener);
+        if (listener != null) {
+            this.debugExecutionListeners.add(listener);
+            this.debugExecutionListeners.sort(Comparator.comparingInt(DebugExecutionListener::getExecutionOrderId));
+        }
     }
 
     /**
@@ -219,7 +238,17 @@ public class DebugFrameworkServiceDataHolder {
      */
     public void removeDebugExecutionListener(DebugExecutionListener listener) {
 
-        this.debugExecutionListeners.remove(listener);
+        if (listener != null) {
+            this.debugExecutionListeners.remove(listener);
+        }
+    }
+
+    private String normalizeProtocolType(String protocolType) {
+
+        if (protocolType == null || protocolType.trim().isEmpty()) {
+            return null;
+        }
+        return protocolType.trim().toLowerCase(Locale.ENGLISH);
     }
 
 }

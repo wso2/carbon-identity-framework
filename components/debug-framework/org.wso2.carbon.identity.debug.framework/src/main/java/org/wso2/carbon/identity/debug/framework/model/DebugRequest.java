@@ -121,15 +121,11 @@ public class DebugRequest {
             return connectionId;
         }
 
-        // Check for common connection ID keys in additional context (properties).
-        String[] possibleKeys = { "connectionId" };
-        for (String key : possibleKeys) {
-            Object value = additionalContext.get(key);
-            if (value instanceof String && StringUtils.isNotEmpty((String) value)) {
-                return (String) value;
-            }
+        Object value = additionalContext.get("connectionId");
+        if (value instanceof String && StringUtils.isNotEmpty((String) value)) {
+            return (String) value;
         }
 
-        return connectionId;
+        return null;
     }
 }

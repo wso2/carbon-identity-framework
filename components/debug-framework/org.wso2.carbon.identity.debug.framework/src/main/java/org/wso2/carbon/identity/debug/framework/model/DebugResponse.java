@@ -182,6 +182,16 @@ public class DebugResponse {
     }
 
     /**
+     * Gets the response status.
+     *
+     * @return Status string.
+     */
+    public String getStatus() {
+
+        return status;
+    }
+
+    /**
      * Sets the response message.
      *
      * @param message Message string.
@@ -189,6 +199,16 @@ public class DebugResponse {
     public void setMessage(String message) {
 
         this.message = message;
+    }
+
+    /**
+     * Gets the response message.
+     *
+     * @return Response message.
+     */
+    public String getMessage() {
+
+        return message;
     }
 
     /**

@@ -56,7 +56,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String message) {
 
-        super("EXECUTION_ERROR", message, "");
+        super(message);
     }
 
     /**
@@ -66,7 +66,7 @@ public class ExecutionException extends DebugFrameworkException {
      * @param cause   Root cause exception.
      */
     public ExecutionException(String message, Throwable cause) {
-        
-        super("EXECUTION_ERROR", message, "", cause);
+
+        super(message, cause);
     }
 }

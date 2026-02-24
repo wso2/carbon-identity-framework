@@ -26,12 +26,16 @@ import java.io.Serializable;
  */
 public class DebugSessionData implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private String sessionId;
     private String status;
     private InputStream sessionData; // Serialized context map.
     private String resultJson;
     private long createdTime;
     private long expiryTime;
+    private String resourceType;
+    private String connectionId;
 
     public String getSessionId() {
 
@@ -92,9 +96,6 @@ public class DebugSessionData implements Serializable {
 
         this.expiryTime = expiryTime;
     }
-
-    private String resourceType;
-    private String connectionId;
 
     public String getResourceType() {
 

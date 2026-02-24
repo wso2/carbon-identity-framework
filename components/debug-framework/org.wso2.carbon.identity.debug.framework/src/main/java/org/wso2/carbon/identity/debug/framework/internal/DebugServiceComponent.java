@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
 
 /**
@@ -57,10 +58,7 @@ public class DebugServiceComponent {
                 LOG.debug("Debug Framework OSGi component activating");
             }
 
-            // Register DebugRequestCoordinator as an OSGi service for backward
-            // compatibility.
-            // This service is deprecated and delegates to DebugFlowOrchestrator internally.
-            @SuppressWarnings("deprecation")
+            // Register DebugRequestCoordinator as an OSGi service.
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
             context.getBundleContext().registerService(
                     DebugRequestCoordinator.class.getName(),
@@ -77,7 +75,7 @@ public class DebugServiceComponent {
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugRequestCoordinator registered as OSGi service (deprecated, use DebugFlowOrchestrator)");
+                LOG.debug("DebugRequestCoordinator registered as OSGi service");
                 LOG.debug("DebugSessionCleanupExecutionListener registered for automatic database cleanup");
             }
 
@@ -149,6 +147,39 @@ public class DebugServiceComponent {
             }
             DebugFrameworkServiceDataHolder.getInstance().removeDebugProtocolProvider(provider);
             LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
+        }
+    }
+
+    /**
+     * Sets a debug protocol resolver.
+     *
+     * @param resolver Debug protocol resolver implementation.
+     */
+    @Reference(name = "debug.protocol.resolver", service = DebugProtocolResolver.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugProtocolResolver")
+    protected void setDebugProtocolResolver(DebugProtocolResolver resolver) {
+
+        if (resolver != null) {
+            DebugFrameworkServiceDataHolder.getInstance().addDebugProtocolResolver(resolver);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugProtocolResolver registered: " + resolver.getClass().getName());
+            }
+        }
+    }
+
+    /**
+     * Unsets a debug protocol resolver.
+     *
+     * @param resolver Debug protocol resolver implementation.
+     */
+    protected void unsetDebugProtocolResolver(DebugProtocolResolver resolver) {
+
+        if (resolver != null) {
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugProtocolResolver(resolver);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugProtocolResolver unregistered: " + resolver.getClass().getName());
+            }
         }
     }
 

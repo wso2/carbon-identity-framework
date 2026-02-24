@@ -44,7 +44,7 @@ public class DebugFrameworkServerException extends DebugFrameworkException {
      */
     public DebugFrameworkServerException(String message, Throwable cause) {
 
-        super("SERVER_ERROR", message, "", cause);
+        super(message, cause);
     }
 
     /**

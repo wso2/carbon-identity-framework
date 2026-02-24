@@ -30,26 +30,15 @@ import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
  */
 public enum DebugResourceType {
 
-    IDP("idp", "Identity Provider"),
-    FRAUD_DETECTION("fraud_detection", "Fraud Detection"),
-    CUSTOM("custom", "Custom Resource");
+    IDP,
+    FRAUD_DETECTION,
+    CUSTOM;
 
     private static final Log LOG = LogFactory.getLog(DebugResourceType.class);
 
     /**
-     * Constructor for DebugResourceType enum.
-     *
-     * @param resourceType The unique identifier for the resource type.
-     * @param displayName    The display name for the resource type.
-     */
-    DebugResourceType(String resourceType, String displayName) {
-
-        // Fields removed as they were never used.
-    }
-
-    /**
      * Converts a string to the corresponding DebugResourceType.
-     * Handles case-insensitive matching and common variations.
+     * Matching is case-insensitive for explicit resource type values.
      *
      * @param resourceType The resource type identifier.
      * @return The corresponding DebugResourceType, or CUSTOM if not found.

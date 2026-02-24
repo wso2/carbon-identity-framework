@@ -42,11 +42,7 @@ public class DebugFrameworkUtils {
      */
     public static DebugFrameworkClientException handleClientException(ErrorMessages error, Object... data) {
 
-        String description = error.getDescription();
-        if (ArrayUtils.isNotEmpty(data)) {
-            description = String.format(description, data);
-        }
-        return new DebugFrameworkClientException(error.getCode(), error.getMessage(), description);
+        return new DebugFrameworkClientException(error.getCode(), error.getMessage(), formatDescription(error, data));
     }
 
     /**
@@ -60,11 +56,8 @@ public class DebugFrameworkUtils {
     public static DebugFrameworkClientException handleClientException(ErrorMessages error, Throwable e,
                                                                       Object... data) {
 
-        String description = error.getDescription();
-        if (ArrayUtils.isNotEmpty(data)) {
-            description = String.format(description, data);
-        }
-        return new DebugFrameworkClientException(error.getCode(), error.getMessage(), description, e);
+        return new DebugFrameworkClientException(error.getCode(), error.getMessage(),
+                formatDescription(error, data), e);
     }
 
     /**
@@ -76,11 +69,7 @@ public class DebugFrameworkUtils {
      */
     public static DebugFrameworkServerException handleServerException(ErrorMessages error, Object... data) {
 
-        String description = error.getDescription();
-        if (ArrayUtils.isNotEmpty(data)) {
-            description = String.format(description, data);
-        }
-        return new DebugFrameworkServerException(error.getCode(), error.getMessage(), description);
+        return new DebugFrameworkServerException(error.getCode(), error.getMessage(), formatDescription(error, data));
     }
 
     /**
@@ -94,11 +83,15 @@ public class DebugFrameworkUtils {
     public static DebugFrameworkServerException handleServerException(ErrorMessages error, Throwable e,
                                                                       Object... data) {
 
-        String description = error.getDescription();
-        if (ArrayUtils.isNotEmpty(data)) {
-            description = String.format(description, data);
+        return new DebugFrameworkServerException(error.getCode(), error.getMessage(),
+                formatDescription(error, data), e);
+    }
+
+    private static String formatDescription(ErrorMessages error, Object... data) {
+
+        if (ArrayUtils.isEmpty(data)) {
+            return error.getDescription();
         }
-        return new DebugFrameworkServerException(error.getCode(), error.getMessage(), description, e);
+        return String.format(error.getDescription(), data);
     }
 }
-
