@@ -292,6 +292,15 @@
              Supported versions: IS 5.6.0 onwards.
         -->
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
+        <!-- Multiple client secret configurations -->
+        {% if oauth.multiple_client_secrets.enable %}
+        <MultipleClientSecrets>
+            <Enable>{{oauth.multiple_client_secrets.enable}}</Enable>
+            {% if oauth.multiple_client_secrets.secret_count is defined %}
+            <SecretCount>{{oauth.multiple_client_secrets.secret_count}}</SecretCount>
+            {% endif %}
+        </MultipleClientSecrets>
+        {% endif %}
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
         <!-- Supported Response Types -->
