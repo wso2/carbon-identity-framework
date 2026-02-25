@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -1135,6 +1135,7 @@
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_idp_view"/>
                 <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
                 <Scope name="internal_authenticator_view"/>
                 <Scope name="internal_governance_view"/>
@@ -1637,6 +1638,7 @@
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
                 <Scope name="internal_org_authenticator_view"/>
                 <Scope name="internal_org_governance_view"/>
@@ -2111,6 +2113,28 @@
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_residentOutboundProvisioning" displayName="Resident Application Outbound Provisioning" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:residentOutboundProvisioning"/>
+                <Scope name="console:org:residentOutboundProvisioning_view"/>
+                <Scope name="console:org:residentOutboundProvisioning_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

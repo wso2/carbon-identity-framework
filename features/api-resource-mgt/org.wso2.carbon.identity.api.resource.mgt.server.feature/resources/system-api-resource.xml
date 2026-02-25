@@ -1563,6 +1563,19 @@
                    description="Manage edits of resident application outbound provisioning configuration from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Resident Application Outbound Provisioning Configuration Feature" identifier="console:org:residentOutboundProvisioning"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Resident Application Outbound Provisioning Configuration Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Resident Application Outbound Provisioning Feature" name="console:org:residentOutboundProvisioning"
+                   description="Manage resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning View Feature" name="console:org:residentOutboundProvisioning_view"
+                   description="Manage views of resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Edit Feature" name="console:org:residentOutboundProvisioning_edit"
+                   description="Manage edits of resident application outbound provisioning configuration in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
                  requiresAuthorization="true"
                  description="Resource representation of the Role Management Feature"
