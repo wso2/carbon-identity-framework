@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -236,5 +237,24 @@ public class WorkflowManagementUtil {
         }
 
         return WFConstant.DEFAULT_RESULTS_PER_PAGE;
+    }
+
+    /**
+     * Check if a string is a valid UUID.
+     *
+     * @param value String to validate.
+     * @return True if the string is a valid UUID, false otherwise.
+     */
+    public static boolean isUUID(String value) {
+
+        if (value == null) {
+            return false;
+        }
+        try {
+            UUID.fromString(value);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

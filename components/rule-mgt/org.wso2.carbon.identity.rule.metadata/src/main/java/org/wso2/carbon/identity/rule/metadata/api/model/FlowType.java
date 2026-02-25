@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,7 +28,8 @@ public enum FlowType {
     PRE_ISSUE_ACCESS_TOKEN("preIssueAccessToken"),
     PRE_UPDATE_PASSWORD("preUpdatePassword"),
     PRE_UPDATE_PROFILE("preUpdateProfile"),
-    PRE_ISSUE_ID_TOKEN("preIssueIdToken");
+    PRE_ISSUE_ID_TOKEN("preIssueIdToken"),
+    APPROVAL_WORKFLOW("approvalWorkflow");
 
     private final String flowAlias;
 

@@ -28,6 +28,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheById;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheByIdentifier;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheEntry;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdCacheKey;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdentifierCacheKey;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
@@ -50,7 +55,10 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CacheBackedAPIResourceManagementDAOTest {
 
@@ -495,6 +503,80 @@ public class CacheBackedAPIResourceManagementDAOTest {
             identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(TENANT_ID))
                     .thenReturn(getTenantDomain(TENANT_ID));
             Assert.assertFalse(daoImpl.isScopeExistByName(scopeName, TENANT_ID));
+        }
+    }
+
+    @Test(priority = 14)
+    public void testDeleteScopeByIdWithCacheClearingVerification() throws Exception {
+
+        try (MockedStatic<APIResourceCacheById> apiResourceCacheByIdStatic = mockStatic(APIResourceCacheById.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenReturn("test-domain");
+
+            APIResourceCacheById apiResourceCacheById = mock(APIResourceCacheById.class);
+            apiResourceCacheByIdStatic.when(APIResourceCacheById::getInstance).thenReturn(apiResourceCacheById);
+
+            APIResource apiResource = mock(APIResource.class);
+            when(apiResource.getId()).thenReturn("apiId");
+            when(apiResource.getIdentifier()).thenReturn("apiIdentifier");
+
+            APIResourceCacheEntry apiResourceCacheEntry = mock(APIResourceCacheEntry.class);
+            when(apiResourceCacheEntry.getAPIResource()).thenReturn(apiResource);
+
+            when(apiResourceCacheById.getValueFromCache(any(APIResourceIdCacheKey.class), anyInt())).thenReturn(
+                    apiResourceCacheEntry);
+
+            APIResourceManagementDAOImpl apiResourceManagementDAO = mock(APIResourceManagementDAOImpl.class);
+            CacheBackedAPIResourceMgtDAO cacheBackedAPIResourceMgtDAO =
+                    new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
+            cacheBackedAPIResourceMgtDAO.deleteScopeById("apiId", "scopeId", 0);
+
+            verify(apiResourceCacheById).clearCacheEntry(any(APIResourceIdCacheKey.class), anyInt());
+            verify(apiResourceManagementDAO).deleteScopeById("apiId", "scopeId", 0);
+        }
+    }
+
+    @Test(priority = 15)
+    public void testUpdateScopeMetadataByIdWithCacheClearingVerification() throws Exception {
+
+        try (MockedStatic<APIResourceCacheByIdentifier> apiResourceCacheByIdentifierStatic = mockStatic(
+                APIResourceCacheByIdentifier.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenReturn("test-domain");
+
+            APIResourceCacheByIdentifier apiResourceCacheByIdentifier = mock(APIResourceCacheByIdentifier.class);
+            apiResourceCacheByIdentifierStatic.when(APIResourceCacheByIdentifier::getInstance)
+                    .thenReturn(apiResourceCacheByIdentifier);
+
+            APIResource apiResource = mock(APIResource.class);
+            when(apiResource.getId()).thenReturn("apiId");
+            when(apiResource.getIdentifier()).thenReturn("apiIdentifier");
+
+            APIResourceCacheEntry apiResourceCacheEntry = mock(APIResourceCacheEntry.class);
+            when(apiResourceCacheEntry.getAPIResource()).thenReturn(apiResource);
+
+            when(apiResourceCacheByIdentifier.getValueFromCache(any(APIResourceIdentifierCacheKey.class),
+                    anyInt())).thenReturn(apiResourceCacheEntry);
+
+            // Create a scope with metadata to update.
+            Scope scope = new Scope.ScopeBuilder()
+                    .id("scopeId")
+                    .name("testScope")
+                    .displayName("Updated Display Name")
+                    .description("Updated Description")
+                    .build();
+
+            APIResourceManagementDAOImpl apiResourceManagementDAO = mock(APIResourceManagementDAOImpl.class);
+            CacheBackedAPIResourceMgtDAO cacheBackedAPIResourceMgtDAO =
+                    new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
+            cacheBackedAPIResourceMgtDAO.updateScopeMetadataById(scope, apiResource, 0);
+
+            // Verify that cache clearing was called.
+            verify(apiResourceCacheByIdentifier).clearCacheEntry(any(APIResourceIdentifierCacheKey.class), anyInt());
+            // Verify the DAO method was called.
+            verify(apiResourceManagementDAO).updateScopeMetadataById(scope, apiResource, 0);
         }
     }
 
