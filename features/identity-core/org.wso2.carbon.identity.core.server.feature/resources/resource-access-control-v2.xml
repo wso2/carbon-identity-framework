@@ -1991,8 +1991,10 @@
     <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
     <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vci/.well-known/jwt-vc-issuer" secured="false" http-method="GET"/>
     <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
     <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

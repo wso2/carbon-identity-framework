@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
-import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
@@ -65,6 +64,8 @@ import java.util.Objects;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowManagementUtil.isUUID;
 
 /**
  * WorkflowService class provides all the common functionality for the basic workflows.
@@ -418,9 +419,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     public void addAssociation(String associationName, String workflowId, String eventId, String condition) throws
             WorkflowException {
 
-        if (condition == null) {
-            condition = WFConstant.DEFAULT_ASSOCIATION_CONDITION;
-        }
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -438,12 +436,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throw new InternalWorkflowException("Event type cannot be null");
         }
 
-        if (StringUtils.isBlank(condition)) {
-            log.error("Null or empty string given as condition expression when associating " + workflowId +
-                    " to event " + eventId);
-            throw new InternalWorkflowException("Condition cannot be null");
-        }
-
         List<Association> existingAssociations = associationDAO.listAssociationsForWorkflow(workflowId);
         if (hasDuplicateAssociation(existingAssociations, eventId, condition)) {
             if (log.isDebugEnabled()) {
@@ -453,17 +445,19 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
                     "event " + eventId + " with the same condition.");
         }
-
-        // Check for xpath syntax errors.
-        XPathFactory factory = XPathFactory.newInstance();
-        XPath xpath = factory.newXPath();
-        try {
-            xpath.compile(condition);
-            associationDAO.addAssociation(associationName, workflowId, eventId, condition);
-        } catch (XPathExpressionException e) {
-            log.error("The condition:" + condition + " is not an valid xpath expression.", e);
-            throw new WorkflowRuntimeException("The condition is not a valid xpath expression.");
+           
+        if (condition != null && !isUUID(condition)) {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
+            try {
+                xpath.compile(condition);
+            } catch (XPathExpressionException e) {
+                log.error("The condition: " + condition + " is not a valid xpath expression.", e);
+                throw new WorkflowClientException("The condition is not a valid xpath expression.");
+            }
         }
+        associationDAO.addAssociation(associationName, workflowId, eventId, condition);
+
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
                 workflowListener.doPostAddAssociation(associationName, workflowId, eventId, condition);
@@ -883,14 +877,11 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         if (eventId != null) {
             association.setEventId(eventId);
         }
-
-        if (condition != null) {
-            if (WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition)) {
-                association.setCondition(condition);
-            } else {
-                log.error("Conditions are not supported. Provided condition: " + condition);
-                throw new WorkflowRuntimeException("Conditions are not supported.");
-            }
+        if (condition == null || WFConstant.DEFAULT_ASSOCIATION_CONDITION.equals(condition) || isUUID(condition)) {
+            association.setCondition(condition);
+        } else {
+            log.debug("The condition: " + condition + " is not a valid condition.");
+            throw new WorkflowClientException("The condition is not a valid condition.");
         }
 
         List<Association> existingAssociations =
