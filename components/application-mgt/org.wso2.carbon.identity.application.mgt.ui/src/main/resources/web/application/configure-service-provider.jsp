@@ -373,6 +373,8 @@
         }
     }
 
+    boolean multipleSecretsAllowed = ApplicationMgtUIUtil.isMultipleClientSecretsEnabled();
+
 %>
 
 <script>
@@ -2306,18 +2308,27 @@
                                                                 }
                                                                 if (oauthConsumerSecret != null) {
                                                             %>
-                                                            <% if (!(appBean.getOauthConsumerSecret() == null || "false".equals(isHashDisabled))) { %>
+                                                            <% if (!(appBean.getOauthConsumerSecret() == null || "false".equals(isHashDisabled))) {
+                                                                // If multiple secrets are allowed, mask the secret
+                                                                String displayValue = oauthConsumerSecret;
+                                                                if (multipleSecretsAllowed) {
+                                                                    displayValue = ApplicationMgtUIUtil.mask();
+                                                                }
+                                                            %>
                                                             <div>
                                                                 <input style="border: none; background: white;"
                                                                        type="password" autocomplete="off"
                                                                        id="oauthConsumerSecret"
                                                                        name="oauthConsumerSecret"
-                                                                       value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"
+                                                                       value="<%=Encode.forHtmlAttribute(displayValue)%>"
                                                                        readonly="readonly">
+                                                                <%-- Show/hide button only if multiple secrets are NOT allowed --%>
+                                                                <% if (!multipleSecretsAllowed) { %>
                                                                 <span style="float: right;">
-                                                        <a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
-                                                    </span>
+                                                                    <a style="margin-top: 5px;" class="showHideBtn"
+                                                                        onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
+                                                                </span>
+                                                                <% } %>
                                                             </div>
                                                             <% } %>
                                                             <%} %>
@@ -2335,12 +2346,13 @@
                                                                style="background-image: url(images/disabled.png)">Revoke</a>
 
 
-                                                            <a title="Regenerate Secret Key"
-                                                               onclick="updateBeanAndPostToWithConfirmation('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
-                                                               class="icon-link"
-                                                               style="background-image: url(images/enabled.png)">Regenerate
-                                                                Secret</a>
-
+                                                            <% if (!multipleSecretsAllowed) { %>
+                                                                <a title="Regenerate Secret Key"
+                                                                   onclick="updateBeanAndPostToWithConfirmation('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
+                                                                   class="icon-link"
+                                                                   style="background-image: url(images/enabled.png)">Regenerate
+                                                                    Secret</a>
+                                                            <% } %>
 
                                                             <a title="Delete Service Providers"
                                                                onclick="updateBeanAndPostWithConfirmation('../oauth/remove-app-ajaxprocessor.jsp',
