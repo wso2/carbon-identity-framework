@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -92,6 +92,29 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         return executePreUpdatePasswordAction(userID, credential, userStoreManager, null);
+    }
+
+    /**
+     * This method is responsible for handling the pre update password action execution when the user updates
+     * their own credential. Since the listener is a secret handleable listener, the receiving credential
+     * will be in Secret object type.
+     *
+     * @param userID           User id of the user.
+     * @param newCredential    Updating credential.
+     * @param oldCredential    Existing credential.
+     * @param userStoreManager User store manager.
+     * @return True if the operation is successful.
+     * @throws UserStoreException If an error occurs while executing the action.
+     */
+    @Override
+    public boolean doPreUpdateCredentialWithID(String userID, Object newCredential, Object oldCredential,
+                                               UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable() || !isPasswordUpdatingFlow()) {
+            return true;
+        }
+
+        return executePreUpdatePasswordAction(userID, newCredential, userStoreManager, null);
     }
 
     /**
@@ -259,6 +282,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return ((Secret) credential).getChars();
         } else if (credential instanceof StringBuffer) {
             return ((StringBuffer) credential).toString().toCharArray();
+        } else if (credential instanceof String) {
+            return ((String) credential).toCharArray();
         } else {
             throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET,
                     "Credential is not in the expected format.");

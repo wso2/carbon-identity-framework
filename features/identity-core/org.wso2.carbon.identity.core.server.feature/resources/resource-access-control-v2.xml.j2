@@ -82,6 +82,7 @@
         <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/ciba(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/authn(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
@@ -129,6 +130,7 @@
         <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
         <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oid4vci/.well-known/jwt-vc-issuer" secured="false" http-method="GET"/>
         <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
         <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
@@ -898,6 +900,16 @@
         </Resource>
         <Resource context="(.*)/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_approval_task_update</Scopes>
+        </Resource>
+
+        <!-- [Organization] User Password Update API -->
+        <Resource context="(.*)/o/api/users/v1/me/change-password" secured="true" http-method="POST">
+            <Scopes>internal_org_user_password_update</Scopes>
+        </Resource>
+        
+        <!-- User Password Update API -->
+        <Resource context="(.*)/api/users/v1/me/change-password" secured="true" http-method="POST">
+            <Scopes>internal_user_password_update</Scopes>
         </Resource>
 
         <!-- Me APIs -->
@@ -1974,6 +1986,46 @@
              <Scopes>internal_user_shared_access_view</Scopes>
          </Resource>
          <Resource context="(.*)/api/server/v1/users/(.*)/shared-roles" secured="true" http-method="GET">
+             <Scopes>internal_user_shared_access_view</Scopes>
+         </Resource>
+
+         <!-- [Organization] User share API V2 -->
+         <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/share-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/unshare(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/unshare-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_org_user_shared_access_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
+             <Scopes>internal_org_user_shared_access_view</Scopes>
+         </Resource>
+
+         <!-- User share API V2 -->
+         <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/share-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/unshare(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/unshare-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_user_shared_access_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
              <Scopes>internal_user_shared_access_view</Scopes>
          </Resource>
 

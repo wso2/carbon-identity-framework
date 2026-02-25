@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -3997,20 +3997,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         // Format the filter value to fit in a SQL where clause.
         String formattedFilterValue;
+        String processedSearchValue = searchValue;
+        
+        // Escape SQL wildcards for operations that use LIKE clause.
+        if (FILTER_STARTS_WITH.equals(searchOperation) || FILTER_ENDS_WITH.equals(searchOperation) ||
+                FILTER_CONTAINS.equals(searchOperation)) {
+            processedSearchValue = IdentityUtil.processSingleCharWildcard(searchValue);
+        }
+        
         switch (searchOperation) {
             case FILTER_STARTS_WITH:
-                formattedFilterValue = searchValue + ASTERISK;
+                formattedFilterValue = processedSearchValue + ASTERISK;
                 break;
             case FILTER_ENDS_WITH:
-                formattedFilterValue = ASTERISK + searchValue;
+                formattedFilterValue = ASTERISK + processedSearchValue;
                 break;
             case FILTER_CONTAINS:
-                formattedFilterValue = ASTERISK + searchValue + ASTERISK;
+                formattedFilterValue = ASTERISK + processedSearchValue + ASTERISK;
                 break;
             default:
-                formattedFilterValue = searchValue;
+                formattedFilterValue = processedSearchValue;
         }
-
         return formattedFilterValue;
     }
 

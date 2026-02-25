@@ -28,6 +28,10 @@
             <class name="org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstantsTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.WorkflowManagementServiceImplTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.util.UtilsTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.rule.WorkflowRuleFieldRegistryTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.rule.FieldDefinitionBuilderTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.rule.ApprovalWorkflowMetadataProviderTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.rule.WorkFlowRuleEvaluationDataProviderTest"/>
         </classes>
     </test>
 </suite>

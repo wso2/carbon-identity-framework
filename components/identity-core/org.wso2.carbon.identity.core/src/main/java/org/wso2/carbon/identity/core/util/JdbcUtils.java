@@ -142,7 +142,7 @@ public class JdbcUtils {
      */
     public static boolean isH2DB(String databaseProductName) {
 
-        return H2.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(H2);
     }
 
     /**
@@ -165,7 +165,7 @@ public class JdbcUtils {
      */
     public static boolean isDB2DB(String databaseProductName) {
 
-        return DB2.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(DB2);
     }
 
     /**
@@ -187,7 +187,7 @@ public class JdbcUtils {
      */
     public static boolean isMySQLDB(String databaseProductName) {
 
-        return MY_SQL.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(MY_SQL);
     }
 
     /**
@@ -221,7 +221,8 @@ public class JdbcUtils {
      */
     public static boolean isMSSqlDB(String databaseProductName) {
 
-        return MICROSOFT.equalsIgnoreCase(databaseProductName) || S_MICROSOFT.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && (databaseProductName.contains(MICROSOFT) || 
+                databaseProductName.toLowerCase().contains(S_MICROSOFT));
     }
 
     /**
@@ -255,7 +256,7 @@ public class JdbcUtils {
      */
     public static boolean isMariaDB(String databaseProductName) {
 
-        return MARIADB.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(MARIADB);
     }
 
     /**
@@ -289,7 +290,7 @@ public class JdbcUtils {
      */
     public static boolean isPostgreSQLDB(String databaseProductName) {
 
-        return POSTGRE_SQL.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(POSTGRE_SQL);
     }
 
     /**
@@ -323,7 +324,7 @@ public class JdbcUtils {
      */
     public static boolean isInformixDB(String databaseProductName) {
 
-        return INFORMIX.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(INFORMIX);
     }
 
     /**
@@ -357,7 +358,7 @@ public class JdbcUtils {
      */
     public static boolean isOracleDB(String databaseProductName) {
 
-        return ORACLE.equalsIgnoreCase(databaseProductName);
+        return databaseProductName != null && databaseProductName.contains(ORACLE);
     }
 
     /**

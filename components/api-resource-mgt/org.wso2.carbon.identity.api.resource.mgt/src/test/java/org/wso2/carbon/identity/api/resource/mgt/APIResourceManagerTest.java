@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -26,6 +27,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -36,6 +38,7 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
@@ -48,7 +51,11 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.APIResourceTypes;
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_ROOT_ORGANIZATION_TENANT_DOMAIN;
 
@@ -405,6 +412,62 @@ public class APIResourceManagerTest {
         addTestAPIResources();
         List<Scope> scopes = apiResourceManager.getScopesByTenantDomain(tenantDomain, filter);
         Assert.assertEquals(scopes.size(), expected);
+    }
+
+    @Test
+    public void testDeleteScopeById() throws Exception {
+
+        try (MockedConstruction<CacheBackedAPIResourceMgtDAO> mockedDAO = mockConstruction(
+                CacheBackedAPIResourceMgtDAO.class);
+             MockedStatic<APIResourceManagementServiceComponentHolder> mockedServiceHolder = mockStatic(
+                     APIResourceManagementServiceComponentHolder.class)) {
+
+            APIResourceManagementServiceComponentHolder apiResourceManagementServiceComponentHolder =
+                    mock(APIResourceManagementServiceComponentHolder.class);
+            mockedServiceHolder.when(APIResourceManagementServiceComponentHolder::getInstance)
+                    .thenReturn(apiResourceManagementServiceComponentHolder);
+            IdentityEventService identityEventService = mock(IdentityEventService.class);
+            when(apiResourceManagementServiceComponentHolder.getIdentityEventService())
+                    .thenReturn(identityEventService);
+
+            apiResourceManager.deleteAPIScopeByScopeId("test-id", "test-id", "test-domain");
+
+            verify(identityEventService, times(2)).handleEvent(any(Event.class));
+        }
+    }
+
+    @Test
+    public void testUpdateScopeMetadataById() throws Exception {
+
+        try (MockedConstruction<CacheBackedAPIResourceMgtDAO> mockedDAO = mockConstruction(
+                CacheBackedAPIResourceMgtDAO.class);
+             MockedStatic<APIResourceManagementServiceComponentHolder> mockedServiceHolder = mockStatic(
+                     APIResourceManagementServiceComponentHolder.class)) {
+
+            APIResourceManagementServiceComponentHolder apiResourceManagementServiceComponentHolder =
+                    mock(APIResourceManagementServiceComponentHolder.class);
+            mockedServiceHolder.when(APIResourceManagementServiceComponentHolder::getInstance)
+                    .thenReturn(apiResourceManagementServiceComponentHolder);
+            IdentityEventService identityEventService = mock(IdentityEventService.class);
+            when(apiResourceManagementServiceComponentHolder.getIdentityEventService())
+                    .thenReturn(identityEventService);
+
+            // Create a scope with updated metadata.
+            Scope updatedScope = new Scope.ScopeBuilder()
+                    .id("test-scope-id")
+                    .name("test-scope")
+                    .displayName("Updated Display Name")
+                    .description("Updated Description")
+                    .build();
+
+            // Create a mock API resource.
+            APIResource apiResource = createAPIResource("test", APIResourceTypes.BUSINESS);
+
+            apiResourceManager.updateScopeMetadataById(updatedScope, apiResource, "test-domain");
+
+            // Verify that identity event service handleEvent was called twice (pre and post events).
+            verify(identityEventService, times(2)).handleEvent(any(Event.class));
+        }
     }
 
     /**

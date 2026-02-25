@@ -471,16 +471,31 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String sessionContextKey = null;
             String analyticsSessionAction = null;
 
-            //When getting the cookie, it will not give the path. When paths are tenant qualified, it will only give
-            // the cookies matching that path.
-            Cookie authCookie = FrameworkUtils.getAuthCookie(request);
-            // Force authentication requires the creation of a new session. Therefore skip using the existing session
-            if (authCookie != null && !context.isForceAuthenticate()) {
+            // When forceAuthenticate is true, it will not check for the existing session and create a new session
+            // for the user.
+            if (!context.isForceAuthenticate()) {
+                // When getting the cookie, it will not give the path. When paths are tenant qualified, it will only
+                // give the cookies matching that path.
+                Cookie authCookie = FrameworkUtils.getAuthCookie(request);
+                if (authCookie != null) {
+                    commonAuthCookie = authCookie.getValue();
+                    if (commonAuthCookie != null) {
+                        sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
+                    }
+                } else if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
+                    // If it's an API-based authentication flow, the sha256 hashed value of the session identifier can
+                    // be passed as a query param as well.
+                    String hashedSessionId = request.getParameter(FrameworkConstants.RequestParams.SESSION_ID);
+                    if (StringUtils.isNotBlank(hashedSessionId)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(FrameworkConstants.RequestParams.SESSION_ID +
+                                    " query param is available with the value: " + hashedSessionId);
+                        }
+                        sessionContextKey = hashedSessionId;
+                    }
+                }
 
-                commonAuthCookie = authCookie.getValue();
-
-                if (commonAuthCookie != null) {
-                    sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
+                if (sessionContextKey != null) {
                     sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
                             context.getLoginTenantDomain());
                 }

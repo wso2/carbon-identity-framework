@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.fraud.detection.core.IdentityFraudDetector;
 import org.wso2.carbon.identity.fraud.detection.core.constant.FraudDetectionConstants;
 import org.wso2.carbon.identity.fraud.detection.core.exception.FraudDetectionConfigServerException;
+import org.wso2.carbon.identity.fraud.detection.core.exception.IdentityFraudDetectionRequestException;
 import org.wso2.carbon.identity.fraud.detection.core.exception.UnsupportedFraudDetectionEventException;
 import org.wso2.carbon.identity.fraud.detection.core.internal.IdentityFraudDetectionDataHolder;
 import org.wso2.carbon.identity.fraud.detection.core.model.FraudDetectorRequestDTO;
@@ -68,8 +69,6 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.EventPropert
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.SCENARIO;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.Scenario.ScenarioTypes.POST_CREDENTIAL_UPDATE_BY_ADMIN;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.Scenario.ScenarioTypes.POST_CREDENTIAL_UPDATE_BY_USER;
-import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.Scenario.ScenarioTypes.POST_USER_PROFILE_UPDATE_BY_ADMIN;
-import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.Scenario.ScenarioTypes.POST_USER_PROFILE_UPDATE_BY_USER;
 import static org.wso2.carbon.identity.fraud.detection.core.constant.FraudDetectionConstants.ACCOUNT_CONFIRMATION_TEMPLATE_TYPE;
 import static org.wso2.carbon.identity.fraud.detection.core.constant.FraudDetectionConstants.ExecutionStatus.ERROR;
 import static org.wso2.carbon.identity.fraud.detection.core.constant.FraudDetectionConstants.ExecutionStatus.FAILURE;
@@ -183,11 +182,11 @@ public class EventUtil {
                     responseDTO.getErrorReason() : "Unknown";
             resultMessage = "Error occurred while processing the request to the fraud detector: " + fraudDetectorName
                     + ". Event name: " + eventName + ". Error Type: " + errorType + ". Error Reason: " + errorReason;
-            LOG.error(resultMessage);
+            LOG.debug(resultMessage);
         } else if (FAILURE.equals(responseDTO.getStatus())) {
             resultMessage = "Request to the fraud detector: " + fraudDetectorName + " failed."
                     + " Event name: " + eventName;
-            LOG.error(resultMessage);
+            LOG.debug(resultMessage);
         }
 
         publishDiagnosticLogOnResponse(resultStatus, resultMessage, fraudDetectorName, eventName);
@@ -229,9 +228,21 @@ public class EventUtil {
      * @param claims          Claims to be retrieved.
      * @return Map of claim URIs and their values.
      * @throws UserStoreException If an error occurs while retrieving the claim values.
+     * @throws IdentityFraudDetectionRequestException If the input parameters are invalid.
      */
     public static Map<String, String> getUserClaimValues(String username, String tenantDomain, String userStoreDomain,
-                                           String[] claims) throws UserStoreException {
+                                                         String[] claims)
+            throws UserStoreException, IdentityFraudDetectionRequestException {
+
+        if (StringUtils.isBlank(username)) {
+            throw new IdentityFraudDetectionRequestException("Username is blank. Cannot retrieve user claim values.");
+        } else if (StringUtils.isBlank(tenantDomain)) {
+            throw new IdentityFraudDetectionRequestException("TenantDomain is blank. Cannot retrieve user " +
+                    "claim values.");
+        } else if (StringUtils.isBlank(userStoreDomain)) {
+            throw new IdentityFraudDetectionRequestException("UserStoreDomain is blank. Cannot retrieve user " +
+                    "claim values.");
+        }
 
         UserRealm userRealm = getUserRealm(tenantDomain);
         UserStoreManager userStoreManager = getUserStoreManager(userRealm, userStoreDomain);
@@ -463,9 +474,7 @@ public class EventUtil {
                 return false;
             }
 
-            String scenario = (String) event.getEventProperties().get(SCENARIO);
-            return POST_USER_PROFILE_UPDATE_BY_ADMIN.equals(scenario)
-                    || POST_USER_PROFILE_UPDATE_BY_USER.equals(scenario);
+            return true;
         }
         return false;
     }

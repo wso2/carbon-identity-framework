@@ -1010,12 +1010,15 @@ public class IdPManagementDAO {
                         filter.append(attributeName).append(" = ? AND ");
                         filterQueryBuilder.setFilterAttributeValue(value);
                     } else if (IdPManagementConstants.SW.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue(value + "%");
                     } else if (IdPManagementConstants.EW.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value);
                     } else if (IdPManagementConstants.CO.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                     } else {

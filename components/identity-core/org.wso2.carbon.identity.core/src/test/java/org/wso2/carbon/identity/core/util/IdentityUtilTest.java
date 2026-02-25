@@ -1471,4 +1471,33 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
         assertEquals(jsonArrayWithNulls.get(2), "element3");
         assertNull(jsonArrayWithNulls.get(3), "Null element in list should remain null in JSONArray.");
     }
+
+    @DataProvider
+    public Object[][] processSingleCharWildcardTestData() {
+
+        return new Object[][]{
+                {null, null, null},
+                {"", null, ""},
+                {"test_value", "_", "test_value"},
+                {"test_value", "", "test\\_value"},
+                {"test*value", "*", "test_value"},
+                {"test*value_name", "*", "test_value\\_name"},
+                {"test??value", "??", "test??value"}
+        };
+    }
+
+    @Test(dataProvider = "processSingleCharWildcardTestData")
+    public void testProcessSingleCharWildcard(String value, String wildcardChar, String expected) {
+
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class);
+             MockedStatic<org.wso2.carbon.identity.core.util.JdbcUtils> jdbcUtilsMock =
+                     mockStatic(org.wso2.carbon.identity.core.util.JdbcUtils.class)) {
+
+            identityUtilMock.when(() -> IdentityUtil.getProperty(any())).thenReturn(wildcardChar);
+            identityUtilMock.when(() -> IdentityUtil.processSingleCharWildcard(any())).thenCallRealMethod();
+
+            String result = IdentityUtil.processSingleCharWildcard(value);
+            assertEquals(result, expected);
+        }
+    }
 }

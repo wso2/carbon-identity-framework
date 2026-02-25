@@ -125,7 +125,11 @@ public class RuleEvaluatorTest {
                         createEvaluationData("user@wso2.com"), true},
                 {createRuleWithTwoANDExpressionsUsingListValueTypes(),
                         createEvaluationData(Arrays.asList("http://wso2.org/claims/givenname",
-                                "http://wso2.org/claims/country")), true}
+                                "http://wso2.org/claims/country")), true},
+                {createRuleWithListValueTypeAndContainsOperator(),
+                        createEvaluationDataForRoleList(Arrays.asList("role1", "role2", "role3")), true},
+                {createRuleWithListValueTypeAndContainsOperator(),
+                        createEvaluationDataForRoleList(Arrays.asList("role4", "role5")), false}
         };
     }
 
@@ -226,6 +230,17 @@ public class RuleEvaluatorTest {
         return ruleBuilder.build();
     }
 
+    private Rule createRuleWithListValueTypeAndContainsOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("roles").operator("contains")
+                .value(new Value(Value.Type.REFERENCE, "role1")).build();
+        ruleBuilder.addAndExpression(expression);
+
+        return ruleBuilder.build();
+    }
+
     private Rule createRuleWithTwoANDExpressionsUsingListValueTypes() throws Exception {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -275,6 +290,13 @@ public class RuleEvaluatorTest {
 
         Map<String, FieldValue> evaluationData = new HashMap<>();
         evaluationData.put("claim", new FieldValue("claim", claims));
+        return evaluationData;
+    }
+
+    private Map<String, FieldValue> createEvaluationDataForRoleList(List<String> roles) {
+
+        Map<String, FieldValue> evaluationData = new HashMap<>();
+        evaluationData.put("roles", new FieldValue("roles", roles));
         return evaluationData;
     }
 
@@ -333,6 +355,17 @@ public class RuleEvaluatorTest {
                         org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.REFERENCE)
                 .links(linksForClaim).build();
         fieldDefinitionList.add(new FieldDefinition(claimField, operatorsForClaim, claimValue));
+
+        Field rolesField = new Field("roles", "user.roles");
+        List<Operator> operatorsForRoles = Collections.singletonList(new Operator("contains", "contains"));
+        List<Link> linksForRoles = Collections.singletonList(
+                new Link("/roles?offset=0&limit=10", "GET", "values"));
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
+                rolesValue = new OptionsReferenceValue.Builder().valueReferenceAttribute("id")
+                .valueDisplayAttribute("name").valueType(
+                        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.REFERENCE)
+                .links(linksForRoles).build();
+        fieldDefinitionList.add(new FieldDefinition(rolesField, operatorsForRoles, rolesValue));
 
         return fieldDefinitionList;
     }
