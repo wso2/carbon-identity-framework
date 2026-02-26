@@ -814,7 +814,7 @@
             Default value : true
         -->
         <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
-        <AllowIssuerSelectionForSubOrgApplications>false</AllowIssuerSelectionForSubOrgApplications>
+        <AllowIssuerSelectionForSubOrgApplications>true</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
     <RestApiAuthentication>
