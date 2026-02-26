@@ -46,7 +46,7 @@ public class RuntimeProvisioningConfig implements Serializable {
 
     /**
      * Get JIT provisioning enabled or not.
-     * @return JIT provisioning enabled or not
+     * @return JIT provisioning enabled or not.
      */
     public boolean isJitProvisioningEnabled() {
 

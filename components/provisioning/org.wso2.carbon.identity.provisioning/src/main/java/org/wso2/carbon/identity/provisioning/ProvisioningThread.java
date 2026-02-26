@@ -63,6 +63,18 @@ public class ProvisioningThread implements Callable<Boolean> {
         this.provisioningEntityTenantDomainName = provisioningEntityTenantDomainName;
     }
 
+    /**
+     * Parameterized constructor to propagate JIT provisioning state to the connector.
+     *
+     * @param provisioningEntity Provisioning entity containing details of the provisioning operation.
+     * @param spTenantDomainName Service provider tenant domain name.
+     * @param provisioningEntityTenantDomainName Tenant domain name of the provisioning entity.
+     * @param connector Outbound provisioning connector to perform the provisioning operation.
+     * @param connectorType Type of the outbound provisioning connector.
+     * @param idPName Name of the identity provider through which provisioning is triggered.
+     * @param dao Data access object to store and manage provisioning entity identifiers.
+     * @param jitProvisioningEnabledForIdP Flag indicating whether JIT provisioning is enabled or not.
+     */
     public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName,
                               String provisioningEntityTenantDomainName,
                               AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
@@ -103,9 +115,6 @@ public class ProvisioningThread implements Callable<Boolean> {
                 return true;
             }
             ProvisionedIdentifier provisionedIdentifier = null;
-            // Propagate JIT state to connector for backward compatibility with connectors
-            // that check isJitProvisioningEnabled() in their provision() method.
-            connector.jitProvisioningEnabled = jitProvisioningEnabledForIdP;
             // real provisioning happens now.
             provisionedIdentifier = connector.provision(provisioningEntity);
 

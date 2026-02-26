@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCache;
@@ -294,6 +295,18 @@ public class OutboundProvisioningManager {
                 Property[] provisioningProperties = defaultProvisioningConfig
                         .getProvisioningProperties();
 
+                /*
+                 * Always set JIT provisioning as enabled at the connector level. The actual JIT enablement check is
+                 * performed in ProvisioningThread before executing outbound provisioning for JIT provisioned entity.
+                 * Therefore, validating JIT conditions at the connector level is unnecessary and may cause issues
+                 * when the same connector is used by applications with different JIT configurations.
+                 */
+                Property jitEnabled = new Property();
+                jitEnabled.setName(IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED);
+                jitEnabled.setValue("1");
+                provisioningProperties = IdentityApplicationManagementUtil.concatArrays(
+                        provisioningProperties, new Property[]{jitEnabled});
+
                 Property userIdClaimURL = new Property();
                 userIdClaimURL.setName("userIdClaimUri");
 
@@ -376,6 +389,12 @@ public class OutboundProvisioningManager {
                 ServiceProvider localSP = ApplicationManagementService.getInstance()
                         .getServiceProvider(LOCAL_SP, spTenantDomainName);
                 if (localSP != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format(
+                                "No outbound provisioning connectors are configured for the application: %s. " +
+                                        "Falling back to resident application outbound provisioning connectors.",
+                                serviceProviderIdentifier));
+                    }
                     serviceProvider = localSP;
                     connectors = getOutboundProvisioningConnectors(localSP, spTenantDomainName);
                     inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
