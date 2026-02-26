@@ -4,7 +4,7 @@
     "description": "Provision users and groups to external systems",
     "image": "assets/images/logos/outbound-provisioning.svg",
     "category": "DEFAULT",
-    "displayOrder": 8,
+    "displayOrder": 12,
     "tags": [ "Provisioning", "Outbound" ],
     "type": "outbound-provisioning-connection"
 }

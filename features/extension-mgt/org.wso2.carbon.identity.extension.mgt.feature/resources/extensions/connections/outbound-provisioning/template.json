@@ -1,7 +1,7 @@
 {
     "category": "DEFAULT",
     "description": "Provision users and groups to external systems",
-    "displayOrder": 8,
+    "displayOrder": 12,
     "id": "outbound-provisioning-connection",
     "idp": {
         "alias": "",
