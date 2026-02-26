@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCache;
@@ -204,24 +203,17 @@ public class OutboundProvisioningManager {
                         String connectorType = fIdP.getDefaultProvisioningConnectorConfig()
                                 .getName();
 
-                        boolean enableJitProvisioning = false;
+                        boolean enableJitProvisioning = fIdP.getJustInTimeProvisioningConfig() != null
+                                && fIdP.getJustInTimeProvisioningConfig().isProvisioningEnabled();
 
-                        if (fIdP.getJustInTimeProvisioningConfig() != null
-                            && fIdP.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
-                            enableJitProvisioning = true;
-                        }
-
-                        connector = getOutboundProvisioningConnector(fIdP,
-                                                                     registeredConnectorFactories, tenantDomain,
-                                                                     enableJitProvisioning);
+                        connector = getOutboundProvisioningConnector(fIdP, registeredConnectorFactories, tenantDomain);
                         // add to the provisioning connectors list. there will be one item for each
                         // provisioning identity provider found in the out-bound provisioning
                         // configuration of the local service provider.
                         if (connector != null) {
                             RuntimeProvisioningConfig proConfig = new RuntimeProvisioningConfig();
-                            proConfig
-                                    .setProvisioningConnectorEntry(new SimpleEntry<>(
-                                            connectorType, connector));
+                            proConfig.setJitProvisioningEnabled(enableJitProvisioning);
+                            proConfig.setProvisioningConnectorEntry(new SimpleEntry<>(connectorType, connector));
                             proConfig.setBlocking(defaultConnector.isBlocking());
                             proConfig.setPolicyEnabled(defaultConnector.isRulesEnabled());
                             connectors.put(fIdP.getIdentityProviderName(), proConfig);
@@ -250,7 +242,6 @@ public class OutboundProvisioningManager {
      * @param fIdP
      * @param registeredConnectorFactories
      * @param tenantDomainName
-     * @param enableJitProvisioning
      * @return
      * @throws IdentityProviderManagementException
      * @throws UserStoreException
@@ -258,7 +249,7 @@ public class OutboundProvisioningManager {
     private AbstractOutboundProvisioningConnector getOutboundProvisioningConnector(
             IdentityProvider fIdP,
             Map<String, AbstractProvisioningConnectorFactory> registeredConnectorFactories,
-            String tenantDomainName, boolean enableJitProvisioning)
+            String tenantDomainName)
             throws IdentityProviderManagementException, IdentityProvisioningException {
 
         String idpName = fIdP.getIdentityProviderName();
@@ -302,14 +293,6 @@ public class OutboundProvisioningManager {
                 // connector.
                 Property[] provisioningProperties = defaultProvisioningConfig
                         .getProvisioningProperties();
-
-                if (enableJitProvisioning) {
-                    Property jitEnabled = new Property();
-                    jitEnabled.setName(IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED);
-                    jitEnabled.setValue("1");
-                    provisioningProperties = IdentityApplicationManagementUtil.concatArrays(
-                            provisioningProperties, new Property[]{jitEnabled});
-                }
 
                 Property userIdClaimURL = new Property();
                 userIdClaimURL.setName("userIdClaimUri");
@@ -373,11 +356,6 @@ public class OutboundProvisioningManager {
                         + serviceProviderIdentifier);
             }
 
-            String provisioningEntityTenantDomainName = spTenantDomainName;
-            if (serviceProvider.isSaasApp() && isUserTenantBasedOutboundProvisioningEnabled()) {
-                provisioningEntityTenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-
             ClaimMapping[] spClaimMappings = null;
 
             // if we know the serviceProviderClaimDialect - we do not need to find it again.
@@ -406,6 +384,11 @@ public class OutboundProvisioningManager {
                 }
             }
 
+            String provisioningEntityTenantDomainName = spTenantDomainName;
+            if (serviceProvider.isSaasApp() && isUserTenantBasedOutboundProvisioningEnabled()) {
+                provisioningEntityTenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+
             ProvisioningEntity outboundProEntity;
 
             ExecutorService executors = null;
@@ -425,6 +408,7 @@ public class OutboundProvisioningManager {
                 AbstractOutboundProvisioningConnector connector = connectorEntry.getValue();
                 String connectorType = connectorEntry.getKey();
                 String idPName = entry.getKey();
+                boolean jitProvisioningEnabledForIdP = entry.getValue().isJitProvisioningEnabled();
 
                 IdentityProvider provisioningIdp =
                         IdentityProviderManager.getInstance().getIdPByName(idPName, spTenantDomainName);
@@ -548,7 +532,8 @@ public class OutboundProvisioningManager {
                         outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
                                                                    user, ProvisioningOperation.POST, mappedUserClaims);
                         Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao,
+                                jitProvisioningEnabledForIdP);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
                         boolean isBlocking = entry.getValue().isBlocking();
@@ -573,7 +558,8 @@ public class OutboundProvisioningManager {
                             outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
                                                                        user, ProvisioningOperation.DELETE, mappedUserClaims);
                             Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                                    provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                                    provisioningEntityTenantDomainName, connector, connectorType, idPName, dao,
+                                    jitProvisioningEnabledForIdP);
                             outboundProEntity.setIdentifier(provisionedUserIdentifier);
                             outboundProEntity.setJitProvisioning(jitProvisioning);
                             boolean isBlocking = entry.getValue().isBlocking();
@@ -599,7 +585,8 @@ public class OutboundProvisioningManager {
                                 provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
 
                         Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao,
+                                jitProvisioningEnabledForIdP);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
                         boolean isAllowed = true;

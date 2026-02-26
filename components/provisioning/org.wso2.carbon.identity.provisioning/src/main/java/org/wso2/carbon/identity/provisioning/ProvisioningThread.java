@@ -39,6 +39,7 @@ public class ProvisioningThread implements Callable<Boolean> {
     private String connectorType;
     private String idPName;
     private CacheBackedProvisioningMgtDAO dao;
+    private boolean jitProvisioningEnabledForIdP;
     private static final Log log = LogFactory.getLog(ProvisioningThread.class);
 
     public ProvisioningThread(ProvisioningEntity provisioningEntity, String tenantDomainName,
@@ -62,6 +63,16 @@ public class ProvisioningThread implements Callable<Boolean> {
         this.provisioningEntityTenantDomainName = provisioningEntityTenantDomainName;
     }
 
+    public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName,
+                              String provisioningEntityTenantDomainName,
+                              AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
+                              CacheBackedProvisioningMgtDAO dao, boolean jitProvisioningEnabledForIdP) {
+
+        this(provisioningEntity, spTenantDomainName, provisioningEntityTenantDomainName, connector, connectorType,
+                idPName, dao);
+        this.jitProvisioningEnabledForIdP = jitProvisioningEnabledForIdP;
+    }
+
     @Override
     public Boolean call() throws IdentityProvisioningException {
 
@@ -82,10 +93,19 @@ public class ProvisioningThread implements Callable<Boolean> {
 
             /* Skip outbound provisioning triggered for JIT provisioning flow, where the JIT outbound is disabled for
                the configured connector. */
-            if (provisioningEntity.isJitProvisioning() && !connector.isJitProvisioningEnabled()) {
+            if (provisioningEntity.isJitProvisioning() && !jitProvisioningEnabledForIdP) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Skipping outbound provisioning for entity: %s via IDP: %s, connector: " +
+                            "%s. Reason: JIT provisioning is not enabled for this provisioning connector.",
+                            ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()), idPName,
+                            connectorType));
+                }
                 return true;
             }
             ProvisionedIdentifier provisionedIdentifier = null;
+            // Propagate JIT state to connector for backward compatibility with connectors
+            // that check isJitProvisioningEnabled() in their provision() method.
+            connector.jitProvisioningEnabled = jitProvisioningEnabledForIdP;
             // real provisioning happens now.
             provisionedIdentifier = connector.provision(provisioningEntity);
 
@@ -118,7 +138,7 @@ public class ProvisioningThread implements Callable<Boolean> {
             success = true;
         } catch (Exception e) {
             String maskedEntityName = ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName());
-            String errMsg = "Outbound provisioning failed for IDP: " + idPName + ", connector: " + connectorType
+            String errMsg = "Outbound provisioning failed for connection: " + idPName + ", connector: " + connectorType
                     + ", entity: " + maskedEntityName + ", entity type: " + provisioningEntity.getEntityType()
                     + ", operation: " + provisioningEntity.getOperation();
             log.warn(errMsg);
