@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -82,5 +82,48 @@ public class APIInvocationConfigTest {
 
         APIInvocationConfig config = new APIInvocationConfig();
         config.setAllowedRetryCount(-1);
+    }
+
+    /**
+     * Test that response limit is null by default (defers to the client-level config).
+     */
+    @Test
+    public void testDefaultResponseLimitIsNull() {
+
+        APIInvocationConfig config = new APIInvocationConfig();
+        assertEquals(config.getResponseLimitInBytes(), null,
+                "Response limit should be null by default so the client-level limit is used.");
+    }
+
+    /**
+     * Test that the response limit can be overridden to a positive value for a specific invocation.
+     */
+    @Test
+    public void testSetResponseLimitOverridesClientDefault() throws APIClientConfigException {
+
+        APIInvocationConfig config = new APIInvocationConfig();
+        config.setResponseLimitInBytes(512L * 1024L);
+        assertEquals((long) config.getResponseLimitInBytes(), 512L * 1024L,
+                "Response limit should reflect the value set for this invocation.");
+    }
+
+    /**
+     * Test that setting a zero response limit throws an exception.
+     */
+    @Test(expectedExceptions = APIClientConfigException.class)
+    public void testSetNonPositiveResponseLimitThrowsException() throws APIClientConfigException {
+
+        APIInvocationConfig config = new APIInvocationConfig();
+        config.setResponseLimitInBytes(0L);
+    }
+
+    /**
+     * Test that setting a negative response limit also throws an exception.
+     */
+    @Test(expectedExceptions = APIClientConfigException.class)
+    public void testSetNegativeResponseLimitThrowsException() throws APIClientConfigException {
+
+        APIInvocationConfig config = new APIInvocationConfig();
+        config.setResponseLimitInBytes(-1L);
     }
 }
