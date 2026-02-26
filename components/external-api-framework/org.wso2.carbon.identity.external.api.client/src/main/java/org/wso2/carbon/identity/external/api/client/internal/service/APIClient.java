@@ -216,8 +216,8 @@ public class APIClient {
             }
             // Read the response stream in fixed-size chunks. We abort as soon as
             // the running byte count exceeds the limit so we never buffer more than
-            // (responseLimitInBytes + READ_CHUNK_SIZE - 1) bytes, regardless of
-            // whether the server sent a Content-Length header.
+            // responseLimitInBytes bytes, regardless of whether the server sent 
+            // a Content-Length header.
             try (InputStream inputStream = responseEntity.getContent();
                  ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
                 byte[] chunk = new byte[READ_CHUNK_SIZE];
