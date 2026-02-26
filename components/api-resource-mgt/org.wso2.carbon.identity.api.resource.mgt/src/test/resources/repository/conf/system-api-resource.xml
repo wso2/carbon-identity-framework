@@ -125,6 +125,22 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Password Update API" identifier="/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_user_password_update"
+                   description="Update password of the authenticated user"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Password Update API" identifier="/o/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_org_user_password_update"
+                   description="Update password of the authenticated user in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">

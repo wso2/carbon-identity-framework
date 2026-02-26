@@ -1279,6 +1279,11 @@
       "description": "This email is sent to the user for Email OTP based verification",
       "displayName": "Email OTP Verification",
       "id": "RW1haWxPVFBWZXJpZmljYXRpb24"
+    },
+    {
+      "description": "This email is sent to the user to complete the CIBA authentication request.",
+      "displayName": "CIBA Authentication Request",
+      "id": "Q0lCQUF1dGhlbnRpY2F0aW9uTm90aWZpY2F0aW9u"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1341,6 +1346,11 @@
       "description": "This SMS is sent to notify the user that their account has been set up successfully.",
       "displayName": "Invited User Registration Success",
       "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
+    },
+    {
+      "description": "This SMS is sent to the user to complete the CIBA authentication request.",
+      "displayName": "CIBA Authentication Request",
+      "id": "Q0lCQVNNU0F1dGhlbnRpY2F0aW9uTm90aWZpY2F0aW9u"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
@@ -2239,5 +2249,6 @@
 
   "resolve_tenant_domain_from_username.enabled": false,
   "authentication.mark_step_completed_on_interrupt": true,
-  "api.filters.single_character_wildcard": "_"
+  "api.filters.single_character_wildcard": "_",
+  "identity_providers.support_multiple_certificate_export": true
 }

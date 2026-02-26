@@ -211,6 +211,22 @@
                    description="Update workflow approval Tasks"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Password Update API" identifier="/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_user_password_update"
+                   description="Update password of the authenticated user"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Password Update API" identifier="/o/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_org_user_password_update"
+                   description="Update password of the authenticated user in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -1190,6 +1206,34 @@
                    description="Unshare users from organizations"/>
             <Scope displayName="View Shared Users" name="internal_org_user_shared_access_view"
                    description="View users shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Sharing API V2" identifier="/api/server/v2/users"
+                     requiresAuthorization="true"
+                     description="API representation of the user share API V2" type="TENANT">
+        <Scopes>
+            <Scope displayName="Share Users" name="internal_user_share"
+                   description="Share users with organizations"/>
+            <Scope displayName="Unshare users" name="internal_user_unshare"
+                   description="Unshare users from organizations"/>
+            <Scope displayName="View Shared Users" name="internal_user_shared_access_view"
+                   description="View users shared with organizations"/>
+            <Scope displayName="Update Shared Users Attributes" name="internal_user_shared_access_update"
+                   description="Update the attributes of users shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Sharing API V2" identifier="/o/api/server/v2/users"
+                 requiresAuthorization="true"
+                 description="API representation of the user share API V2" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Share Users" name="internal_org_user_share"
+                   description="Share users with organizations"/>
+            <Scope displayName="Unshare users" name="internal_org_user_unshare"
+                   description="Unshare users from organizations"/>
+            <Scope displayName="View Shared Users" name="internal_org_user_shared_access_view"
+                   description="View users shared with organizations"/>
+            <Scope displayName="Update Shared Users Attributes" name="internal_org_user_shared_access_update"
+                   description="Update the attributes of users shared with organizations"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management Feature" identifier="console:applications"
