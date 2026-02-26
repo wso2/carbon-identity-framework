@@ -2244,4 +2244,6 @@
         <EnableSHA256>false</EnableSHA256>
     </CertThumbprint>
 
+    <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
+
 </Server>
