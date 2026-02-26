@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2011-2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2011-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -1346,6 +1346,18 @@
             <HttpConnectionRequestTimeout>2000</HttpConnectionRequestTimeout>
         </SCIM2Client>
     </OutboundProvisioning>
+
+    <ExternalAPIClient>
+        <HTTPClient>
+            <HTTPConnectionTimeout>2000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>3000</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>20</HTTPConnectionPoolSize>
+            <HTTPConnectionMaxPerRoute>3</HTTPConnectionMaxPerRoute>
+        </HTTPClient>
+        <DefaultRetryCount>0</DefaultRetryCount>
+        <DefaultResponseLimit>51200</DefaultResponseLimit>
+    </ExternalAPIClient>
 
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>

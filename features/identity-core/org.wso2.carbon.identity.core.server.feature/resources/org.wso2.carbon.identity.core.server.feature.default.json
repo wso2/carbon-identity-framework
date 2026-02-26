@@ -2185,6 +2185,7 @@
   "external_api_client.http_client.connection_pool_size": "20",
   "external_api_client.http_client.max_connection_per_route": "3",
   "external_api_client.retry_count": "0",
+  "external_api_client.response_limit": "51200",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
