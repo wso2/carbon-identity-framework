@@ -24,5 +24,6 @@ package org.wso2.carbon.identity.core.circuitbreaker;
 public enum CircuitState {
 
     CLOSED,
+    HALF_OPEN,
     OPEN
 }

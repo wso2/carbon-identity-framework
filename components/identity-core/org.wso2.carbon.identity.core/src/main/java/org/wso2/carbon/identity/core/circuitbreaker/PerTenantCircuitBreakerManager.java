@@ -102,23 +102,10 @@ public class PerTenantCircuitBreakerManager {
 
         synchronized (entry) {
             CircuitState previousState = entry.getState();
+            entry.releaseBulkhead(nowMs);
             entry.recordResult(success, nowMs);
             notifyTransitionIfRequired(tenantKey, previousState, entry);
         }
-    }
-
-    public void releaseBulkhead(String tenantKey, long nowMs) {
-
-        if (!policy.isEnabled()) {
-            return;
-        }
-
-        TenantBreakerEntry entry = getEntry(tenantKey);
-        if (entry == null) {
-            return;
-        }
-
-        entry.releaseBulkhead(nowMs);
     }
 
     public void cleanupIdleEntries(long nowMs) {

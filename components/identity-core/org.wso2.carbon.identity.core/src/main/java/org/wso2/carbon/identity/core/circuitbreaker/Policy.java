@@ -137,6 +137,39 @@ public final class Policy {
 
         public Policy build() {
 
+            if (windowSize < 1) {
+                throw new IllegalArgumentException("windowSize must be >= 1");
+            }
+            if (minCallsToEvaluate < 1) {
+                throw new IllegalArgumentException("minCallsToEvaluate must be >= 1");
+            }
+            if (failureRateThreshold <= 0.0 || failureRateThreshold > 1.0) {
+                throw new IllegalArgumentException("failureRateThreshold must be > 0.0 and <= 1.0");
+            }
+            if (openDurationMs < 1) {
+                throw new IllegalArgumentException("openDurationMs must be >= 1");
+            }
+            if (maxInFlight < 1) {
+                throw new IllegalArgumentException("maxInFlight must be >= 1");
+            }
+            if (tenantEntryIdleEvictMs < 1) {
+                throw new IllegalArgumentException("tenantEntryIdleEvictMs must be >= 1");
+            }
+            if (maxTenantsInCache < 1) {
+                throw new IllegalArgumentException("maxTenantsInCache must be >= 1");
+            }
+            if (cleanupTriggerEveryRequests < 0) {
+                throw new IllegalArgumentException("cleanupTriggerEveryRequests must be >= 0");
+            }
+            if (evictionScanLimit < 1) {
+                throw new IllegalArgumentException("evictionScanLimit must be >= 1");
+            }
+            if (hardCapEvictionScanLimit < 1) {
+                throw new IllegalArgumentException("hardCapEvictionScanLimit must be >= 1");
+            }
+            if (cacheStripes < 1) {
+                throw new IllegalArgumentException("cacheStripes must be >= 1");
+            }
             return new Policy(this);
         }
 

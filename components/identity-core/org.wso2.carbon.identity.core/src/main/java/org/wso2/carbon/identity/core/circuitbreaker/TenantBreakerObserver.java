@@ -40,8 +40,4 @@ public interface TenantBreakerObserver {
     default void onForcedEviction(String tenantKey) {
 
     }
-
-    default void onUncachedAdmission(String tenantKey, RejectReason reason) {
-
-    }
 }

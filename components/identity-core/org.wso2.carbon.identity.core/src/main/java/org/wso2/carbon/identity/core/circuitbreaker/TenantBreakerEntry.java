@@ -53,9 +53,14 @@ class TenantBreakerEntry {
             if ((nowMs - stateSinceMs) < openDurationMs) {
                 return Decision.rejected(RejectReason.CIRCUIT_OPEN);
             }
-            state = CircuitState.CLOSED;
+            state = CircuitState.HALF_OPEN;
             stateSinceMs = nowMs;
-            window.reset();
+        }
+
+        if (state == CircuitState.HALF_OPEN) {
+            if (inFlight > 0) {
+                return Decision.rejected(RejectReason.CIRCUIT_OPEN);
+            }
         }
 
         return Decision.allowed();
@@ -82,6 +87,18 @@ class TenantBreakerEntry {
     synchronized void recordResult(boolean success, long nowMs) {
 
         lastAccessMs = nowMs;
+
+        if (state == CircuitState.HALF_OPEN) {
+            if (success) {
+                state = CircuitState.CLOSED;
+                stateSinceMs = nowMs;
+                window.reset();
+            } else {
+                state = CircuitState.OPEN;
+                stateSinceMs = nowMs;
+            }
+            return;
+        }
 
         if (state != CircuitState.CLOSED) {
             return;
