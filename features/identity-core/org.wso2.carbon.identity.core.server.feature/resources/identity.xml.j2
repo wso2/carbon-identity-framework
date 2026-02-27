@@ -3006,6 +3006,11 @@
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
                    capacity="{{cache.push_device_registration_request_cache.capacity}}"
                    isDistributed="false"/>
+            <Cache id="saml_cert_cache" name="SAMLCertCache"
+                   enable="{{cache.saml_cert_cache.enable}}"
+                   timeout="{{cache.saml_cert_cache.timeout}}"
+                   capacity="{{cache.saml_cert_cache.capacity}}"
+                   isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
                     enable="true"
