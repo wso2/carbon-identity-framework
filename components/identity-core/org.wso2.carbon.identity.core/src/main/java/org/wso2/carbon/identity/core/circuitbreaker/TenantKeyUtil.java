@@ -33,8 +33,7 @@ public final class TenantKeyUtil {
 
         String normalizedTenantDomain = normalize(tenantDomain, "tenantDomain");
         String normalizedService = normalize(service, "service");
-        return normalizedTenantDomain.length() + String.valueOf(KEY_SEGMENT_SEPARATOR) + normalizedTenantDomain
-                + KEY_SEGMENT_SEPARATOR + normalizedService;
+        return normalizedTenantDomain + KEY_SEGMENT_SEPARATOR + normalizedService;
     }
 
     public static String extractTenantDomain(String tenantServiceKey) {
@@ -52,34 +51,14 @@ public final class TenantKeyUtil {
     private static KeySegments parseTenantServiceKey(String tenantServiceKey) {
 
         String normalizedTenantServiceKey = normalize(tenantServiceKey, "tenantServiceKey");
-        int headerSeparatorIndex = normalizedTenantServiceKey.indexOf(KEY_SEGMENT_SEPARATOR);
-        if (headerSeparatorIndex <= 0) {
+        int separatorIndex = normalizedTenantServiceKey.indexOf(KEY_SEGMENT_SEPARATOR);
+        if (separatorIndex <= 0 || separatorIndex == normalizedTenantServiceKey.length() - 1) {
             throw new IllegalArgumentException("Invalid tenantServiceKey format");
         }
 
-        int tenantDomainLength;
-        try {
-            tenantDomainLength = Integer.parseInt(normalizedTenantServiceKey.substring(0, headerSeparatorIndex));
-        } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Invalid tenantServiceKey format", exception);
-        }
-
-        if (tenantDomainLength <= 0) {
-            throw new IllegalArgumentException("Invalid tenantServiceKey format");
-        }
-
-        int tenantDomainStartIndex = headerSeparatorIndex + 1;
-        int tenantDomainEndIndex = tenantDomainStartIndex + tenantDomainLength;
-        if (tenantDomainEndIndex >= normalizedTenantServiceKey.length()) {
-            throw new IllegalArgumentException("Invalid tenantServiceKey format");
-        }
-        if (normalizedTenantServiceKey.charAt(tenantDomainEndIndex) != KEY_SEGMENT_SEPARATOR) {
-            throw new IllegalArgumentException("Invalid tenantServiceKey format");
-        }
-
-        String tenantDomain = normalizedTenantServiceKey.substring(tenantDomainStartIndex, tenantDomainEndIndex);
-        String service = normalizedTenantServiceKey.substring(tenantDomainEndIndex + 1);
-        if (isBlank(service)) {
+        String tenantDomain = normalizedTenantServiceKey.substring(0, separatorIndex);
+        String service = normalizedTenantServiceKey.substring(separatorIndex + 1);
+        if (isBlank(tenantDomain) || isBlank(service)) {
             throw new IllegalArgumentException("Invalid tenantServiceKey format");
         }
 
