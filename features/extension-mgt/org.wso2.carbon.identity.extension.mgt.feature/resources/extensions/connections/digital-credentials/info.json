@@ -1,0 +1,10 @@
+{
+    "id": "digital-credentials",
+    "name": "Digital Credentials",
+    "description": "Login users with their Digital Credentials.",
+    "image": "assets/images/logos/wallet.svg",
+    "category": "DEFAULT",
+    "displayOrder": 1,
+    "tags": [ "Wallet", "Verifiable Credentials" ],
+    "type": "identity-provider"
+}
