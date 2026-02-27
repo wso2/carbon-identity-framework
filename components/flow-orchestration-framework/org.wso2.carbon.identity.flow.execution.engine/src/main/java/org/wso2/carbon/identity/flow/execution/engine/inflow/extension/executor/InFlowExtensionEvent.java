@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.executor;
+package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
 import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.Event;

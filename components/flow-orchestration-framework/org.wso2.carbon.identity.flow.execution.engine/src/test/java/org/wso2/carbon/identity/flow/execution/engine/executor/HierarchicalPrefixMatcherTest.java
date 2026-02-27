@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.flow.execution.engine.executor;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.flow.execution.engine.executor.HierarchicalPrefixMatcher.ContextArea;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.HierarchicalPrefixMatcher;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.HierarchicalPrefixMatcher.ContextArea;
 
 import java.util.Arrays;
 import java.util.Collections;
