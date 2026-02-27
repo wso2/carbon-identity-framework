@@ -1356,7 +1356,7 @@
             <HTTPConnectionMaxPerRoute>3</HTTPConnectionMaxPerRoute>
         </HTTPClient>
         <DefaultRetryCount>0</DefaultRetryCount>
-        <DefaultResponseLimit>51200</DefaultResponseLimit>
+        <DefaultResponseLimit>1048576</DefaultResponseLimit>
     </ExternalAPIClient>
 
     <Webhooks>

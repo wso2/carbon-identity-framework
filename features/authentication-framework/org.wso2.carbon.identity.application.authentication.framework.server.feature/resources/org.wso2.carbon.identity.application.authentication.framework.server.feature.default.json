@@ -88,6 +88,8 @@
   "authentication.authenticator.saml.name": "SAMLSSOAuthenticator",
   "authentication.authenticator.saml.enable": true,
   "authentication.authenticator.saml.parameters.Tags": "SAML",
+  "authentication.authenticator.saml.parameters.CertRefreshRetryBlockDuration": "5m",
+  "authentication.authenticator.saml.parameters.CertCacheMaxLifetime": "24h",
 
   "authentication.authenticator.iproov.name": "IproovAuthenticator",
   "authentication.authenticator.iproov.parameters.Tags": "Passwordless,MFA",
