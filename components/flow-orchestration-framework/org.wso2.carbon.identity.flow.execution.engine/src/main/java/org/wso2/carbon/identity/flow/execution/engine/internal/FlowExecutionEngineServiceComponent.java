@@ -34,10 +34,10 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.FlowExecutionService;
-import org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionRequestBuilder;
-import org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;

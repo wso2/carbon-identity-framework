@@ -57,14 +57,8 @@ public class ActionExecutionServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-
-            // Register ActionExecutorService
-            ActionExecutorService actionExecutorService = ActionExecutorServiceImpl.getInstance();
-            bundleCtx.registerService(ActionExecutorService.class.getName(), actionExecutorService, null);
-
-            // Store reference for internal use
-            ActionExecutionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
-
+            bundleCtx.registerService(ActionExecutorService.class.getName(), ActionExecutorServiceImpl.getInstance(),
+                    null);
             LOG.debug("Action execution bundle is activated.");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action execution service component.", e);

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.executor;
+package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
 import java.util.Arrays;
 import java.util.Collections;

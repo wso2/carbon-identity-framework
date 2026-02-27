@@ -196,7 +196,7 @@
                             org.wso2.carbon.identity.flow.execution.engine.listener,
                             org.wso2.carbon.identity.flow.execution.engine.validation,
                             org.wso2.carbon.identity.flow.execution.engine.exception,
-                            org.wso2.carbon.identity.flow.execution.engine.executor,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor,
                             org.wso2.carbon.identity.flow.execution.engine.graph;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
