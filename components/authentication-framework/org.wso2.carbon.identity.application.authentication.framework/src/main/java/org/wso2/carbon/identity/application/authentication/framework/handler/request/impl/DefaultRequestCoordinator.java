@@ -104,6 +104,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -1058,44 +1059,34 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             SessionContext loadedSessionContext = getSessionContext(request, context, sessionContextKey);
             SessionContext sessionContext = null;
             String orgIdForSessionDataLookup = null;
+
             if (loadedSessionContext != null) {
-                String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                        .getAccessingOrganizationId();
-                if (loadedSessionContext.isOrganizationLogin() && !context.isOrgApplicationLogin()) {
-                    if (StringUtils.isBlank(accessingOrgId) ||
-                            StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedOrgId())) {
-                        try {
-                            boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
-                                    loadedSessionContext.getAuthenticatedOrgId());
-                            if (hasOrganizationAccess) {
-                                updateContextForOrganizationLogin(request, context);
-                                orgIdForSessionDataLookup = loadedSessionContext.getAuthenticatedOrgId();
-                                sessionContext = loadedSessionContext;
-                            }
-                        } catch (AuthenticationFailedException e) {
-                            throw  new FrameworkException(e.getMessage(), e);
-                        }
-                    }
+                // Handle the shared app direct access and organization app access scenarios if applicable.
+                Optional<String> previousSessionOrgId =
+                        handleOrganizationSessions(loadedSessionContext, request, context, applicationConfig);
+                if  (previousSessionOrgId.isPresent()) {
+                    orgIdForSessionDataLookup = previousSessionOrgId.get();
+                    sessionContext = loadedSessionContext;
                 }
 
-                if (context.isOrgApplicationLogin()) {
-                    if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
-                        orgIdForSessionDataLookup = accessingOrgId;
-                        sessionContext = loadedSessionContext;
-                    }
-                }
-
-                if (!context.isOrgApplicationLogin() || !loadedSessionContext.isOrganizationLogin()) {
+                // Handle session context loading for root sessions if organization sessions are not applicable.
+                boolean hasRootSessionContext = (loadedSessionContext.getAuthenticatedIdPs() != null);
+                if (previousSessionOrgId.isEmpty() && hasRootSessionContext) {
+                    boolean invalidSessionInCurrentContext = false;
                     if (applicationConfig != null && !applicationConfig.isSaaSApp()
                             && loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN) != null) {
-                        boolean isMatchingTenantDomain = StringUtils.equals(
+                        /*
+                        Consider the session context as invalid if the tenant domain in the session context is
+                        different from the login tenant domain in the current context for non-SaaS applications.
+                         */
+                        invalidSessionInCurrentContext = !StringUtils.equals(
                                 loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
                                 context.getLoginTenantDomain());
-                        if (!isMatchingTenantDomain) {
-                            request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
-                        } else {
-                            sessionContext = loadedSessionContext;
-                        }
+                    }
+                    if (invalidSessionInCurrentContext) {
+                        request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
+                    } else {
+                        sessionContext = loadedSessionContext;
                     }
                 }
             }
@@ -1254,6 +1245,71 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             context.setServiceProviderResourceId(
                     effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
         }
+    }
+
+    /**
+     * Handles the organization session scenarios for shared app direct access and organization application login.
+     * In both scenarios, it checks the applicability of existing organization sessions in the current context and
+     * returns the organization ID to be used for session data lookup if applicable.
+     * In shared app direct access scenario, it also performs necessary validations and
+     * context updates for organization login before session data loading.
+     *
+     * @param loadedSessionContext Loaded session context from the session context key.
+     * @param request              The HTTP servlet request.
+     * @param context              The authentication context.
+     * @param applicationConfig    The application config for the current authentication flow.
+     * @return Optional organization ID for session data lookup if organization sessions are applicable.
+     * @throws FrameworkException If an error occurs during organization session handling.
+     */
+    private Optional<String> handleOrganizationSessions(SessionContext loadedSessionContext, HttpServletRequest request,
+                                                        AuthenticationContext context,
+                                                        ApplicationConfig applicationConfig)
+            throws FrameworkException {
+
+        boolean sharedAppLoginSession = (loadedSessionContext.getAuthenticatedOrgId() != null) &&
+                (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()));
+        String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getAccessingOrganizationId();
+
+        // Check for previous organization sessions for organization application logins.
+        if (context.isOrgApplicationLogin()) {
+            String accessingTenantDomain = FrameworkUtils.resolveTenantDomainFromOrganizationId(accessingOrgId);
+            if (StringUtils.equals(accessingTenantDomain, context.getTenantDomain())) {
+                if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+                    // Return the org ID for session data lookup.
+                    return Optional.of(accessingOrgId);
+                }
+            }
+        }
+
+        // Check previous shared app login sessions are applicable in shared app direct access scenario.
+        if (sharedAppLoginSession) {
+            if (StringUtils.isBlank(accessingOrgId)) {
+                // Not a direct accessing scenario.
+                return Optional.empty();
+            }
+            if (!applicationConfig.getServiceProvider().isNewB2BLoginEnabled()) {
+                // Direct access is only allowed for applications with new B2B login enabled.
+                return Optional.empty();
+            }
+            // Need to check the authenticated shared app org in previous session equals accessing organization.
+            if (StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedOrgId())) {
+                try {
+                    // Validate the access to the accessing organization.
+                    boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
+                            loadedSessionContext.getAuthenticatedOrgId());
+                    if (hasOrganizationAccess) {
+                        // Update the context for organization login before session data loading.
+                        updateContextForOrganizationLogin(request, context);
+                        // Return the org ID for session data lookup.
+                        return Optional.of(loadedSessionContext.getAuthenticatedOrgId());
+                    }
+                } catch (AuthenticationFailedException e) {
+                    throw  new FrameworkException(e.getMessage(), e);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -511,17 +512,27 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         if (context.isSharedAppLogin()) {
                             String authenticatedOrgId =
                                     context.getOrganizationLoginData().getAccessingOrganization().getId();
-                            if (loadedSessionContext.getAuthenticatedOrgData().get(authenticatedOrgId) != null) {
+                            if (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()) &&
+                                    loadedSessionContext.getAuthenticatedOrgData().get(authenticatedOrgId) != null) {
                                 sessionContext = loadedSessionContext;
                             }
                         } else if (context.isOrgApplicationLogin()) {
                             String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                     .getAccessingOrganizationId();
-                            if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+                            if (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()) &&
+                                    loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
                                 sessionContext = loadedSessionContext;
                             }
                         } else {
                             sessionContext = loadedSessionContext;
+                        }
+                        if (sessionContext == null) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Previous session context is not applicable for the current authentication." +
+                                        " Hence, a new session context will be created for the authentication flow.");
+                            }
+                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey,
+                                    context.getLoginTenantDomain());
                         }
                     }
                 }
