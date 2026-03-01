@@ -562,8 +562,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                                 appConfig.getApplicationName());
                     }
                     if (context.isSharedAppLogin()) {
-                        sessionContext.setAuthenticatedOrgId(organizationId);
-                        sessionContext.setOrganizationLogin(true);
+                        sessionContext.setAuthenticatedSharedAppOrgId(organizationId);
                     }
                 } else {
                     sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
@@ -672,7 +671,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     String orgId;
                     if (context.isSharedAppLogin()) {
                         orgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
-                        sessionContext.setAuthenticatedOrgId(orgId);
+                        sessionContext.setAuthenticatedSharedAppOrgId(orgId);
                     } else {
                         orgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
                     }
@@ -684,7 +683,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             appConfig.getApplicationName());
                     authenticatedOrgData.setRememberMe(context.isRememberMe());
                     sessionContext.getAuthenticatedOrgData().put(orgId, authenticatedOrgData);
-                    sessionContext.setOrganizationLogin(true);
                     sessionContext.setAuthenticatedIdPs(new HashMap<>());
                     sessionContext.setAuthenticatedIdPsOfApp(new HashMap<>());
                     sessionContext.addProperty(FrameworkUtils.TENANT_DOMAIN,

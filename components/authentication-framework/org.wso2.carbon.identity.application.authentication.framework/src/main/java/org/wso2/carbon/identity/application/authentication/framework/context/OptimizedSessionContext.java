@@ -59,8 +59,7 @@ public class OptimizedSessionContext implements Serializable {
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
-//    private final String authenticatedOrgId;
-//    private final boolean isOrganizationLogin;
+//    private final String authenticatedSharedAppOrgId;
 //    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
     private final String impersonatedUser;
 
@@ -77,8 +76,7 @@ public class OptimizedSessionContext implements Serializable {
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
         this.impersonatedUser = sessionContext.getImpersonatedUser();
-//        this.authenticatedOrgId = sessionContext.getAuthenticatedOrgId();
-//        this.isOrganizationLogin = sessionContext.isOrganizationLogin();
+//        this.authenticatedSharedAppOrgId = sessionContext.getAuthenticatedSharedAppOrgId();
 //        this.optimizedAuthenticatedOrgData =
 //                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
         if (LOG.isDebugEnabled()) {
@@ -178,8 +176,7 @@ public class OptimizedSessionContext implements Serializable {
         }
         sessionContext.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
         sessionContext.setImpersonatedUser(this.impersonatedUser);
-//        sessionContext.setAuthenticatedOrgId(this.authenticatedOrgId);
-//        sessionContext.setOrganizationLogin(this.isOrganizationLogin);
+//        sessionContext.setAuthenticatedSharedAppOrgId(this.authenticatedSharedAppOrgId);
 //        if (optimizedAuthenticatedOrgData != null) {
 //            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
 //        }

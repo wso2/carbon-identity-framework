@@ -40,9 +40,8 @@ public class SessionContext implements Serializable {
     private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
     // This authenticatedIdPsOfApp has the mapping of application and the map of authenticated IDPs.
     private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp;
-    private String authenticatedOrgId;
-    private boolean isOrganizationLogin;
     private String impersonatedUser;
+    private String authenticatedSharedAppOrgId;
     private Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
 
     public Map<String, SequenceConfig> getAuthenticatedSequences() {
@@ -135,24 +134,14 @@ public class SessionContext implements Serializable {
         this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
     }
 
-    public String getAuthenticatedOrgId() {
+    public String getAuthenticatedSharedAppOrgId() {
 
-        return authenticatedOrgId;
+        return authenticatedSharedAppOrgId;
     }
 
-    public void setAuthenticatedOrgId(String authenticatedOrgId) {
+    public void setAuthenticatedSharedAppOrgId(String authenticatedSharedAppOrgId) {
 
-        this.authenticatedOrgId = authenticatedOrgId;
-    }
-
-    public boolean isOrganizationLogin() {
-
-        return isOrganizationLogin;
-    }
-
-    public void setOrganizationLogin(boolean organizationLogin) {
-
-        isOrganizationLogin = organizationLogin;
+        this.authenticatedSharedAppOrgId = authenticatedSharedAppOrgId;
     }
 
     public Map<String, AuthenticatedOrgData> getAuthenticatedOrgData() {

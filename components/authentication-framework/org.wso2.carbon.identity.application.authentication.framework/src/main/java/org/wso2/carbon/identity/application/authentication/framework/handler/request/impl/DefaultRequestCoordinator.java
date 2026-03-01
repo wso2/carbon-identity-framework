@@ -1266,7 +1266,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                                         ApplicationConfig applicationConfig)
             throws FrameworkException {
 
-        boolean sharedAppLoginSession = (loadedSessionContext.getAuthenticatedOrgId() != null) &&
+        boolean sharedAppLoginSession = (loadedSessionContext.getAuthenticatedSharedAppOrgId() != null) &&
                 (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()));
         String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getAccessingOrganizationId();
@@ -1293,16 +1293,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 return Optional.empty();
             }
             // Need to check the authenticated shared app org in previous session equals accessing organization.
-            if (StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedOrgId())) {
+            if (StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedSharedAppOrgId())) {
                 try {
                     // Validate the access to the accessing organization.
                     boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
-                            loadedSessionContext.getAuthenticatedOrgId());
+                            loadedSessionContext.getAuthenticatedSharedAppOrgId());
                     if (hasOrganizationAccess) {
                         // Update the context for organization login before session data loading.
                         updateContextForOrganizationLogin(request, context);
                         // Return the org ID for session data lookup.
-                        return Optional.of(loadedSessionContext.getAuthenticatedOrgId());
+                        return Optional.of(loadedSessionContext.getAuthenticatedSharedAppOrgId());
                     }
                 } catch (AuthenticationFailedException e) {
                     throw  new FrameworkException(e.getMessage(), e);
