@@ -808,6 +808,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
 
+        // Commenting out session related improvements until a proper fix for session deserialization compatibility.
 //        try {
 //            String accessingOrgId =
 //                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();

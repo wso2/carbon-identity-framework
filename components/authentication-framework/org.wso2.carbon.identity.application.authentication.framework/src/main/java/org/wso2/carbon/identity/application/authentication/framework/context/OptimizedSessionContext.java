@@ -59,6 +59,7 @@ public class OptimizedSessionContext implements Serializable {
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
+    // Commenting out session related improvements until a proper fix for session deserialization compatibility.
 //    private final String authenticatedSharedAppOrgId;
 //    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
     private final String impersonatedUser;
