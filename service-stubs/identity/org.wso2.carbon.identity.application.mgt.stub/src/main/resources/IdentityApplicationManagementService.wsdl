@@ -379,6 +379,7 @@
                     <xs:element minOccurs="0" name="jwksUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="localAndOutBoundAuthenticationConfig" nillable="true" type="ax2163:LocalAndOutboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="managementApp" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="newB2BLoginEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="outboundProvisioningConfig" nillable="true" type="ax2163:OutboundProvisioningConfig"/>
                     <xs:element minOccurs="0" name="owner" nillable="true" type="ax2163:User"/>
                     <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2163:PermissionsAndRoleConfig"/>
