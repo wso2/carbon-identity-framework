@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.Collections;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -159,6 +161,12 @@ public class AuthenticationEndpointFilter implements Filter {
             }
 
             Set<String> configuredAuthenticatorsSet = new HashSet<>();
+            String defaultAuthenticatorsValue = context.getInitParameter(Constants.DEFAULT_AUTHENTICATORS);
+            Set<String> defaultAuthenticatorsSet = Collections.emptySet();
+            if (defaultAuthenticatorsValue != null) {
+                defaultAuthenticatorsSet = new HashSet<>(
+                        Arrays.asList(defaultAuthenticatorsValue.split(",")));
+            }
             String serviceProviderId = servletRequest.getParameter(FrameworkConstants.REQUEST_PARAM_SP_UUID);
             String tenantDomain;
 
@@ -217,7 +225,11 @@ public class AuthenticationEndpointFilter implements Filter {
                             if (log.isDebugEnabled()) {
                                 log.debug("Checking authenticator: " + authenticatorIDP + ", exists: " + authenticatorExists);
                             }
-                            if (authenticatorExists) {
+                            //Whitelisting Identifier First Authenticator in the case it is added automatically for Email OTP/ SMS OTP / Magic Link first step.
+                            // Whitelisting default authenticators defined in the deployment.toml
+                            if (authenticatorExists ||
+                                    defaultAuthenticatorsSet.contains(authenticatorIDP) ||
+                                    authenticatorIDP.equals(Constants.IDF_AUTHENTICATOR_NAME)) {
                                 if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                                     idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
                                             idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);

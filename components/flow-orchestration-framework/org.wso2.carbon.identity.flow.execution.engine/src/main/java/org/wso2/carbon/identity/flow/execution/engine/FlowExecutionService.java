@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.context.IdentityContext;
@@ -77,6 +79,16 @@ public class FlowExecutionService {
     public FlowExecutionStep executeFlow(String tenantDomain, String applicationId, String flowId, String actionId,
                                          String flowType, Map<String, String> inputs) throws FlowEngineException {
 
+        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotBlank(appResidentOrgId)) {
+            try {
+                tenantDomain = FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrgId);
+            } catch (FrameworkException e) {
+                throw FlowExecutionEngineUtils.handleServerException(Constants.ErrorMessages
+                        .ERROR_CODE_TENANT_RESOLVE_FROM_ORGANIZATION_FAILURE, appResidentOrgId);
+            }
+        }
         FlowExecutionStep step;
         FlowExecutionContext context = null;
         boolean isFlowEnteredInIdentityContext = false;

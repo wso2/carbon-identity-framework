@@ -18,19 +18,25 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.validation;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,8 +46,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
 
 public class InputValidationServiceTest {
 
@@ -179,6 +193,238 @@ public class InputValidationServiceTest {
         Assert.assertEquals(FlowExecutionContext.getFlowUser().getClaims().get(CLAIM_URI_PREFIX + "input1"),
                 "value1");
         Assert.assertEquals(FlowExecutionContext.getUserInputData().get("input2"), "value2");
+    }
+
+    @Test
+    public void testPrepareStepInputsWithUsernameValidationDisabled() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        // Mock the InputValidationManagementService.
+        InputValidationManagementService mockValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockValidationService);
+
+        // Create a form with username input.
+        List<ComponentDTO> formComponents = new ArrayList<>();
+        Map<String, Object> usernameConfig = new HashMap<>();
+        usernameConfig.put(IDENTIFIER, USERNAME_CLAIM_URI);
+        usernameConfig.put("required", true);
+        ComponentDTO usernameInput = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.INPUT)
+                .configs(usernameConfig)
+                .build();
+
+        ComponentDTO button = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.BUTTON)
+                .id("submitButton")
+                .action(new ActionDTO.Builder().type(Constants.ActionTypes.EXECUTOR).nextId("action2").build())
+                .build();
+
+        formComponents.add(usernameInput);
+        formComponents.add(button);
+
+        ComponentDTO formDTO = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.FORM)
+                .components(formComponents)
+                .build();
+
+        List<ComponentDTO> components = new ArrayList<>();
+        components.add(formDTO);
+
+        DataDTO dataDTO = new DataDTO.Builder()
+                .components(components)
+                .build();
+
+        // Mock IdentityUtil to return false for username validation enabled.
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(
+                            org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED))
+                    .thenReturn("false");
+
+            // Execute the method.
+            inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+            // Verify that the username input does not have validations added.
+            ComponentDTO processedForm = dataDTO.getComponents().get(0);
+            ComponentDTO processedUsernameInput = processedForm.getComponents().get(0);
+            Object validations = processedUsernameInput.getConfigs().get(VALIDATIONS);
+
+            // Validations should be null or empty since username validation is disabled.
+            Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty(),
+                    "Username field should not have validations when username validation is disabled");
+        }
+    }
+
+    @Test
+    public void testPrepareStepInputsWithUsernameValidationEnabled() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        // Mock the InputValidationManagementService.
+        InputValidationManagementService mockValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockValidationService);
+
+        // Create mock validation configurations for username.
+        List<ValidationConfiguration> validationConfigurations = new ArrayList<>();
+        ValidationConfiguration usernameValidationConfig = mock(ValidationConfiguration.class);
+        when(usernameValidationConfig.getField()).thenReturn("username");
+
+        // Mock rules for username validation.
+        RulesConfiguration rulesConfig = mock(RulesConfiguration.class);
+        when(rulesConfig.getValidatorName()).thenReturn("length");
+        Map<String, String> properties = new HashMap<>();
+        properties.put("min", "3");
+        properties.put("max", "50");
+        when(rulesConfig.getProperties()).thenReturn(properties);
+
+        List<RulesConfiguration> rules = new ArrayList<>();
+        rules.add(rulesConfig);
+        when(usernameValidationConfig.getRules()).thenReturn(rules);
+        when(usernameValidationConfig.getRegEx()).thenReturn(new ArrayList<>());
+
+        validationConfigurations.add(usernameValidationConfig);
+
+        when(mockValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(validationConfigurations);
+
+        // Create a form with username input.
+        List<ComponentDTO> formComponents = new ArrayList<>();
+        Map<String, Object> usernameConfig = new HashMap<>();
+        usernameConfig.put(IDENTIFIER, USERNAME_CLAIM_URI);
+        usernameConfig.put("required", true);
+        ComponentDTO usernameInput = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.INPUT)
+                .configs(usernameConfig)
+                .build();
+
+        ComponentDTO button = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.BUTTON)
+                .id("submitButton")
+                .action(new ActionDTO.Builder().type(Constants.ActionTypes.EXECUTOR).nextId("action2").build())
+                .build();
+
+        formComponents.add(usernameInput);
+        formComponents.add(button);
+
+        ComponentDTO formDTO = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.FORM)
+                .components(formComponents)
+                .build();
+
+        List<ComponentDTO> components = new ArrayList<>();
+        components.add(formDTO);
+
+        DataDTO dataDTO = new DataDTO.Builder()
+                .components(components)
+                .build();
+
+        // Mock IdentityUtil to return true for username validation enabled.
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(
+                            org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED))
+                    .thenReturn("true");
+
+            // Execute the method.
+            inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+            // Verify that the username input has validations added.
+            ComponentDTO processedForm = dataDTO.getComponents().get(0);
+            ComponentDTO processedUsernameInput = processedForm.getComponents().get(0);
+            Object validations = processedUsernameInput.getConfigs().get(VALIDATIONS);
+
+            // Validations should be present since username validation is enabled.
+            Assert.assertNotNull(validations, "Username field should have validations when username validation is enabled");
+            Assert.assertTrue(validations instanceof List, "Validations should be a list");
+            List<?> validationsList = (List<?>) validations;
+            Assert.assertFalse(validationsList.isEmpty(), "Username field should have at least one validation rule");
+        }
+    }
+
+    @Test
+    public void testPrepareStepInputsWithPasswordValidation() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        // Mock the InputValidationManagementService.
+        InputValidationManagementService mockValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockValidationService);
+
+        // Create mock validation configurations for password.
+        List<ValidationConfiguration> validationConfigurations = new ArrayList<>();
+        ValidationConfiguration passwordValidationConfig = mock(ValidationConfiguration.class);
+        when(passwordValidationConfig.getField()).thenReturn("password");
+
+        // Mock rules for password validation.
+        RulesConfiguration rulesConfig = mock(RulesConfiguration.class);
+        when(rulesConfig.getValidatorName()).thenReturn("length");
+        Map<String, String> properties = new HashMap<>();
+        properties.put("min", "8");
+        when(rulesConfig.getProperties()).thenReturn(properties);
+
+        List<RulesConfiguration> rules = new ArrayList<>();
+        rules.add(rulesConfig);
+        when(passwordValidationConfig.getRules()).thenReturn(rules);
+        when(passwordValidationConfig.getRegEx()).thenReturn(new ArrayList<>());
+
+        validationConfigurations.add(passwordValidationConfig);
+
+        when(mockValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(validationConfigurations);
+
+        // Create a form with password input.
+        List<ComponentDTO> formComponents = new ArrayList<>();
+        Map<String, Object> passwordConfig = new HashMap<>();
+        passwordConfig.put(IDENTIFIER, "password");
+        passwordConfig.put("required", true);
+        ComponentDTO passwordInput = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.INPUT)
+                .configs(passwordConfig)
+                .build();
+
+        ComponentDTO button = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.BUTTON)
+                .id("submitButton")
+                .action(new ActionDTO.Builder().type(Constants.ActionTypes.EXECUTOR).nextId("action2").build())
+                .build();
+
+        formComponents.add(passwordInput);
+        formComponents.add(button);
+
+        ComponentDTO formDTO = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.FORM)
+                .components(formComponents)
+                .build();
+
+        List<ComponentDTO> components = new ArrayList<>();
+        components.add(formDTO);
+
+        DataDTO dataDTO = new DataDTO.Builder()
+                .components(components)
+                .build();
+
+        // Mock IdentityUtil to return false for username validation (should not affect password).
+        try (MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(
+                            org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED))
+                    .thenReturn("false");
+
+            // Execute the method.
+            inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+            // Verify that the password input has validations added even when username validation is disabled.
+            ComponentDTO processedForm = dataDTO.getComponents().get(0);
+            ComponentDTO processedPasswordInput = processedForm.getComponents().get(0);
+            Object validations = processedPasswordInput.getConfigs().get(VALIDATIONS);
+
+            // Validations should be present for password regardless of username validation setting.
+            Assert.assertNotNull(validations, "Password field should have validations");
+            Assert.assertTrue(validations instanceof List, "Validations should be a list");
+            List<?> validationsList = (List<?>) validations;
+            Assert.assertFalse(validationsList.isEmpty(), "Password field should have at least one validation rule");
+        }
     }
 
     private FlowExecutionContext initiateFlowContext() {

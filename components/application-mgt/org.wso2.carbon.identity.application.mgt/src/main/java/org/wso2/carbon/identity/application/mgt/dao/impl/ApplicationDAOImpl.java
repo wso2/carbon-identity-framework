@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -171,6 +171,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
@@ -281,8 +283,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<ServiceProviderProperty> idpProperties = new ArrayList<ServiceProviderProperty>();
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
-            prepStmt = isH2DB() ? dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID);
             prepStmt.setInt(1, spId);
             rs = prepStmt.executeQuery();
@@ -293,7 +297,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving SP metadata for SP ID: " + spId, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -315,8 +319,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws SQLException {
 
         PreparedStatement prepStmt = null;
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         try {
-            prepStmt = isH2DB() ? dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
+            prepStmt = isH2DB(databaseProductName) ?
+                    dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA_H2) :
                     dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_SP_METADATA);
             for (ServiceProviderProperty property : properties) {
                 if (StringUtils.isNotBlank(property.getValue())) {
@@ -335,7 +341,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             }
             prepStmt.executeBatch();
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding SP properties for SP ID: " + spId + " and tenant ID: " + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
@@ -414,6 +420,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                                                        String tenantDomain)
             throws IdentityApplicationManagementException, SQLException {
 
+        String resourceId;
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         String qualifiedUsername;
         if (LOCAL_SP.equals(application.getApplicationName())) {
@@ -439,7 +446,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
                 templatedAccessUrl = ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(templatedAccessUrl);
             }
-            String resourceId = generateApplicationResourceId(application);
+            if (application.getApplicationResourceId() != null) {
+                resourceId = application.getApplicationResourceId();
+            } else {
+                resourceId = generateApplicationResourceId(application);
+            }
             String dbProductName = connection.getMetaData().getDatabaseProductName();
             storeAppPrepStmt = connection.prepareStatement(
                     ApplicationMgtDBQueries.STORE_BASIC_APPINFO,
@@ -508,6 +519,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(application);
             serviceProviderProperties.add(allowedRoleAudienceProperty);
+
+            ServiceProviderProperty isNewB2BLoginEnabled = buildIsNewB2BLoginEnabledProperty(application);
+            serviceProviderProperties.add(isNewB2BLoginEnabled);
             application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 
@@ -2253,6 +2267,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setApplicationEnabled(getIsApplicationEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
+            serviceProvider.setNewB2BLoginEnabled(getIsNewB2BLoginEnabled(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
             ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
             clientAttestationMetaData.setAttestationEnabled(getIsAttestationEnabled(propertyList));
@@ -2351,27 +2366,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 int offset = 1;
                 int maximumPage = IdentityUtil.getMaximumItemPerPage();
                 List<RoleBasicInfo> allRoles = new ArrayList<>();
+                String filter = RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE + RoleConstants.ORGANIZATION;
                 if (roleManagementService != null) {
                     do {
-                        chunkOfRoles = roleManagementService.
-                                getRoles(RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE +
-                                                RoleConstants.ORGANIZATION, maximumPage, offset, null, null,
-                                        tenantDomain);
+                        chunkOfRoles = roleManagementService.getRoles(filter, maximumPage, offset, null, null,
+                                tenantDomain);
                         if (!chunkOfRoles.isEmpty()) {
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
                     } while (chunkOfRoles.size() == maximumPage);
 
-                    List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
-                            toList());
-                    associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(roleIds, tenantDomain));
+                    RoleV2[] roles = allRoles.stream().map(role -> new RoleV2(role.getId(), role.getName()))
+                            .toArray(RoleV2[]::new);
+                    associatedRolesConfig.setRoles(roles);
                 }
             } catch (IdentityRoleManagementException e) {
                 throw new IdentityApplicationManagementException("Error while retrieving associated roles for " +
                         "application ID: " + applicationId, e);
             }
-
         }
 
         associatedRolesConfig.setAllowedAudience(
@@ -2386,7 +2399,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         RoleManagementService roleManagementServiceV2 =
                 ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
         for (String roleId : roleIds) {
-            String roleName = roleManagementServiceV2.getRoleNameByRoleId(roleId, tenantDomain);
+            String roleName = roleManagementServiceV2.getRoleBasicInfoById(roleId, tenantDomain).getName();
             rolesList.add(new RoleV2(roleId, roleName));
         }
         return rolesList.toArray(new RoleV2[0]);
@@ -2571,6 +2584,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+    }
+
+    private boolean getIsNewB2BLoginEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
     }
 
     private String getAndroidAttestationServiceCredentials(ServiceProvider serviceProvider)
@@ -3990,20 +4013,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         // Format the filter value to fit in a SQL where clause.
         String formattedFilterValue;
+        String processedSearchValue = searchValue;
+        
+        // Escape SQL wildcards for operations that use LIKE clause.
+        if (FILTER_STARTS_WITH.equals(searchOperation) || FILTER_ENDS_WITH.equals(searchOperation) ||
+                FILTER_CONTAINS.equals(searchOperation)) {
+            processedSearchValue = IdentityUtil.processSingleCharWildcard(searchValue);
+        }
+        
         switch (searchOperation) {
             case FILTER_STARTS_WITH:
-                formattedFilterValue = searchValue + ASTERISK;
+                formattedFilterValue = processedSearchValue + ASTERISK;
                 break;
             case FILTER_ENDS_WITH:
-                formattedFilterValue = ASTERISK + searchValue;
+                formattedFilterValue = ASTERISK + processedSearchValue;
                 break;
             case FILTER_CONTAINS:
-                formattedFilterValue = ASTERISK + searchValue + ASTERISK;
+                formattedFilterValue = ASTERISK + processedSearchValue + ASTERISK;
                 break;
             default:
-                formattedFilterValue = searchValue;
+                formattedFilterValue = processedSearchValue;
         }
-
         return formattedFilterValue;
     }
 
@@ -5393,6 +5423,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isAPIBasedAuthenticationEnabled = buildIsAPIBasedAuthenticationEnabledProperty(sp);
         spPropertyMap.put(isAPIBasedAuthenticationEnabled.getName(), isAPIBasedAuthenticationEnabled);
 
+        ServiceProviderProperty isNewB2BLoginEnabledProperty = buildIsNewB2BLoginEnabledProperty(sp);
+        spPropertyMap.put(isNewB2BLoginEnabledProperty.getName(), isNewB2BLoginEnabledProperty);
+
         if (sp.getClientAttestationMetaData() != null) {
             ServiceProviderProperty isAttestationEnabled =
                     buildIsAttestationEnabledProperty(sp.getClientAttestationMetaData());
@@ -5458,6 +5491,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appleAppId.setValue(String.valueOf(clientAttestationMetaData.getAppleAppId()));
         }
         return appleAppId;
+    }
+
+    private ServiceProviderProperty buildIsNewB2BLoginEnabledProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isNewB2BLoginEnabledProperty = new ServiceProviderProperty();
+        isNewB2BLoginEnabledProperty.setName(IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_NAME);
+        isNewB2BLoginEnabledProperty.setDisplayName(IS_NEW_B2B_LOGIN_ENABLED_SP_PROPERTY_DISPLAY_NAME);
+        isNewB2BLoginEnabledProperty.setValue(String.valueOf(sp.isNewB2BLoginEnabled()));
+        return isNewB2BLoginEnabledProperty;
     }
 
     private void storeAndroidAttestationServiceCredentialAsSecret(ServiceProvider sp)

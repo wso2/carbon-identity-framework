@@ -13,6 +13,7 @@
 
     "session.timeout.idle_session_timeout": "m",
     "session.timeout.remember_me_session_timeout": "m",
+    "session.timeout.maximum_session_timeout": "m",
 
     "par.cleanup.clean_expired_requests_every": "m",
 

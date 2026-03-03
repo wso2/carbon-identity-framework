@@ -40,6 +40,21 @@ public class User {
      * If the user is not shared, this value will be null.
      */
     private String sharedUserId;
+    /**
+     * Represents the type of the user whether the user is 'local', 'federated' or 'shared'.
+     */
+    private String userType;
+    /**
+     * Represents the federated identity provider if the user is a federated user.
+     * If the user is not federated, this value will be null.
+     */
+    private String federatedIdP;
+    /**
+     * Represents the organization which user is accessing.
+     * Applicable in the Organization switch grant, in this context accessing organization is the organization
+     * which the user is switching to.
+     */
+    private Organization accessingOrganization;
 
     public User(String id) {
 
@@ -54,6 +69,9 @@ public class User {
         this.roles.addAll(builder.roles);
         this.organization = builder.organization;
         this.sharedUserId = builder.sharedUserId;
+        this.userType = builder.userType;
+        this.federatedIdP = builder.federatedIdP;
+        this.accessingOrganization = builder.accessingOrganization;
     }
 
     public String getId() {
@@ -86,6 +104,21 @@ public class User {
         return sharedUserId;
     }
 
+    public String getUserType() {
+
+        return userType;
+    }
+
+    public String getFederatedIdP() {
+
+        return federatedIdP;
+    }
+
+    public Organization getAccessingOrganization() {
+
+        return accessingOrganization;
+    }
+
     /**
      * Builder for the User.
      */
@@ -97,6 +130,9 @@ public class User {
         private final List<String> roles = new ArrayList<>();
         private Organization organization;
         private String sharedUserId;
+        private String userType;
+        private String federatedIdP;
+        private Organization accessingOrganization;
 
         public Builder(String id) {
 
@@ -130,6 +166,24 @@ public class User {
         public Builder sharedUserId(String sharedUserId) {
 
             this.sharedUserId = sharedUserId;
+            return this;
+        }
+
+        public Builder userType(String userType) {
+
+            this.userType = userType;
+            return this;
+        }
+
+        public Builder federatedIdP(String federatedIdP) {
+
+            this.federatedIdP = federatedIdP;
+            return this;
+        }
+
+        public Builder accessingOrganization(Organization accessingOrganization) {
+
+            this.accessingOrganization = accessingOrganization;
             return this;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
 import org.wso2.carbon.identity.application.authentication.framework.model.OptimizedAuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.OptimizedAuthenticatedOrgData;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -57,6 +59,9 @@ public class OptimizedSessionContext implements Serializable {
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
+    // Commenting out session related improvements until a proper fix for session deserialization compatibility.
+//    private final String authenticatedSharedAppOrgId;
+//    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
     private final String impersonatedUser;
 
     private static final Log LOG = LogFactory.getLog(OptimizedSessionContext.class);
@@ -72,6 +77,9 @@ public class OptimizedSessionContext implements Serializable {
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
         this.impersonatedUser = sessionContext.getImpersonatedUser();
+//        this.authenticatedSharedAppOrgId = sessionContext.getAuthenticatedSharedAppOrgId();
+//        this.optimizedAuthenticatedOrgData =
+//                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
         if (LOG.isDebugEnabled()) {
             LOG.debug("Optimization process for the session context is completed.");
         }
@@ -119,6 +127,17 @@ public class OptimizedSessionContext implements Serializable {
         return optimizedAuthenticatedIdPs;
     }
 
+    private Map<String, OptimizedAuthenticatedOrgData> getOptimizedAuthenticatedOrgData(
+            Map<String, AuthenticatedOrgData> authenticatedOrgData) throws SessionDataStorageOptimizationException {
+
+        Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData = new HashMap<>();
+        for (Map.Entry<String, AuthenticatedOrgData> entry : authenticatedOrgData.entrySet()) {
+            optimizedAuthenticatedOrgData.put(entry.getKey(),
+                    new OptimizedAuthenticatedOrgData(entry.getValue()));
+        }
+        return optimizedAuthenticatedOrgData;
+    }
+
     private Map<String, Map<String, OptimizedAuthenticatedIdPData>> getOptimizedAuthenticatedIdPsOfApp(
             Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp) {
 
@@ -158,6 +177,10 @@ public class OptimizedSessionContext implements Serializable {
         }
         sessionContext.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
         sessionContext.setImpersonatedUser(this.impersonatedUser);
+//        sessionContext.setAuthenticatedSharedAppOrgId(this.authenticatedSharedAppOrgId);
+//        if (optimizedAuthenticatedOrgData != null) {
+//            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
+//        }
         return sessionContext;
     }
 
@@ -172,6 +195,18 @@ public class OptimizedSessionContext implements Serializable {
             authenticatedIdPs.put(idpName, optimizedAuthenticatedIdPData.getAuthenticatedIdPData());
         }
         return authenticatedIdPs;
+    }
+
+    private Map<String, AuthenticatedOrgData> getAuthenticatedOrgDataMap(Map<String,
+            OptimizedAuthenticatedOrgData> optimizedMap) throws SessionDataStorageOptimizationException {
+
+        Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
+        for (Map.Entry<String, OptimizedAuthenticatedOrgData> entry : optimizedMap.entrySet()) {
+            String orgId = entry.getKey();
+            OptimizedAuthenticatedOrgData optimizedAuthenticatedOrgData = entry.getValue();
+            authenticatedOrgData.put(orgId, optimizedAuthenticatedOrgData.getAuthenticatedOrgData());
+        }
+        return authenticatedOrgData;
     }
 
     private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)

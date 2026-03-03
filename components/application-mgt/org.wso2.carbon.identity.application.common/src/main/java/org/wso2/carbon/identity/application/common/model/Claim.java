@@ -118,7 +118,11 @@ public class Claim implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = claimUri != null ? claimUri.hashCode() : 0;
+
+        if (claimUri == null) {
+            return claimId;
+        }
+        int result = claimUri.hashCode();
         result = 31 * result + claimId;
         return result;
     }

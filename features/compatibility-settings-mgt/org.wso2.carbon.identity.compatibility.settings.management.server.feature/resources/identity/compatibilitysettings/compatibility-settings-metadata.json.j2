@@ -1,0 +1,43 @@
+{#
+  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+
+  WSO2 LLC. licenses this file to you under the Apache License,
+  Version 2.0 (the "License"); you may not use this file except
+  in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+#}
+{#
+  ------------------------------------------------------------------------------
+  Compatibility Settings Configuration Guide
+  ------------------------------------------------------------------------------
+
+  How to add a new compatibility setting entry:
+
+  1. Add a new top-level setting group (e.g., "flowExecution", "scim2", etc.).
+  2. Under the group, define a unique setting key.
+  3. Each setting MUST define the following attributes:
+     - timestampReference : ISO-8601 timestamp used as the cut-off for behavior change
+     - targetValue        : Value applied for tenants created before/after the timestamp
+     - defaultValue       : Value applied when the timestamp condition is not met
+
+  4. Values can be overridden via Jinja variables using the following naming pattern:
+     compatibility_setting.<group>.<setting>.<attribute>
+#}
+{
+  "flowExecution" : {
+      "enableLegacyFlows" : {
+          "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_flows.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
+          "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.target_value | default("true")}},
+          "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.default_value | default("false")}}
+    }
+  }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.provisioning;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -40,6 +39,7 @@ public class ProvisioningThread implements Callable<Boolean> {
     private String connectorType;
     private String idPName;
     private CacheBackedProvisioningMgtDAO dao;
+    private boolean jitProvisioningEnabledForIdP;
     private static final Log log = LogFactory.getLog(ProvisioningThread.class);
 
     public ProvisioningThread(ProvisioningEntity provisioningEntity, String tenantDomainName,
@@ -63,6 +63,28 @@ public class ProvisioningThread implements Callable<Boolean> {
         this.provisioningEntityTenantDomainName = provisioningEntityTenantDomainName;
     }
 
+    /**
+     * Parameterized constructor to propagate JIT provisioning state to the connector.
+     *
+     * @param provisioningEntity Provisioning entity containing details of the provisioning operation.
+     * @param spTenantDomainName Service provider tenant domain name.
+     * @param provisioningEntityTenantDomainName Tenant domain name of the provisioning entity.
+     * @param connector Outbound provisioning connector to perform the provisioning operation.
+     * @param connectorType Type of the outbound provisioning connector.
+     * @param idPName Name of the identity provider through which provisioning is triggered.
+     * @param dao Data access object to store and manage provisioning entity identifiers.
+     * @param jitProvisioningEnabledForIdP Flag indicating whether JIT provisioning is enabled or not.
+     */
+    public ProvisioningThread(ProvisioningEntity provisioningEntity, String spTenantDomainName,
+                              String provisioningEntityTenantDomainName,
+                              AbstractOutboundProvisioningConnector connector, String connectorType, String idPName,
+                              CacheBackedProvisioningMgtDAO dao, boolean jitProvisioningEnabledForIdP) {
+
+        this(provisioningEntity, spTenantDomainName, provisioningEntityTenantDomainName, connector, connectorType,
+                idPName, dao);
+        this.jitProvisioningEnabledForIdP = jitProvisioningEnabledForIdP;
+    }
+
     @Override
     public Boolean call() throws IdentityProvisioningException {
 
@@ -83,7 +105,13 @@ public class ProvisioningThread implements Callable<Boolean> {
 
             /* Skip outbound provisioning triggered for JIT provisioning flow, where the JIT outbound is disabled for
                the configured connector. */
-            if (provisioningEntity.isJitProvisioning() && !connector.isJitProvisioningEnabled()) {
+            if (provisioningEntity.isJitProvisioning() && !jitProvisioningEnabledForIdP) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Skipping outbound provisioning for entity: %s via IDP: %s, connector: " +
+                            "%s. Reason: JIT provisioning is not enabled for this provisioning connector.",
+                            ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()), idPName,
+                            connectorType));
+                }
                 return true;
             }
             ProvisionedIdentifier provisionedIdentifier = null;
@@ -106,11 +134,11 @@ public class ProvisioningThread implements Callable<Boolean> {
                 storeProvisionedEntityIdentifier(idPName, connectorType, provisioningEntity,
                         tenantDomainName);
             } else if (provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP &&
-                       provisioningEntity.getOperation() == ProvisioningOperation.PUT) {
-
+                    (provisioningEntity.getOperation() == ProvisioningOperation.PUT
+                            || provisioningEntity.getOperation() == ProvisioningOperation.PATCH)) {
                 String newGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity,
                                                                 IdentityProvisioningConstants.NEW_GROUP_NAME_CLAIM_URI);
-                if(newGroupName != null){
+                if (newGroupName != null){
                     // update provisioned entity name for future reference. this is applicable for only
                     // group name update
                     dao.updateProvisionedEntityName(provisioningEntity);
@@ -118,8 +146,10 @@ public class ProvisioningThread implements Callable<Boolean> {
             }
             success = true;
         } catch (Exception e) {
-            String errMsg = "Fail the Provisioning for Entity " + provisioningEntity.getEntityName() +
-                    " For operation = " + provisioningEntity.getOperation();
+            String maskedEntityName = ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName());
+            String errMsg = "Outbound provisioning failed for connection: " + idPName + ", connector: " + connectorType
+                    + ", entity: " + maskedEntityName + ", entity type: " + provisioningEntity.getEntityType()
+                    + ", operation: " + provisioningEntity.getOperation();
             log.warn(errMsg);
             throw new IdentityProvisioningException(errMsg, e);
         } finally {

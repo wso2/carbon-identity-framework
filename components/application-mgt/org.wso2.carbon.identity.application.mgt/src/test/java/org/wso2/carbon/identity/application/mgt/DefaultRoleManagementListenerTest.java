@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementLi
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -264,5 +266,18 @@ public class DefaultRoleManagementListenerTest {
         serviceProvider.setApplicationName(APPLICATION_NAME);
         serviceProvider.setApplicationResourceId(APPLICATION_RES_ID);
         return serviceProvider;
+    }
+
+    @Test(priority = 8)
+    public void testDoPostUpdateApplication() throws Exception {
+
+        try (MockedStatic<RoleManagementUtils> roleManagementUtilsMockedStatic =
+                     mockStatic(RoleManagementUtils.class)) {
+            ServiceProvider serviceProvider = createServiceProvider();
+            defaultRoleManagementListener.doPostUpdateApplication(serviceProvider, TENANT_DOMAIN, "admin");
+            roleManagementUtilsMockedStatic.verify(() ->
+                    RoleManagementUtils.clearRoleBasicInfoCacheByTenant(TENANT_DOMAIN),
+                    times(1));
+        }
     }
 }

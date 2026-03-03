@@ -44,6 +44,8 @@
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
   "session.timeout.extend_remember_me_session_timeout_on_auth": true,
+  "session.timeout.enable_maximum_session_timeout": false,
+  "session.timeout.maximum_session_timeout": "30d",
   "par.cleanup.enable_expired_requests_cleanup": true,
   "par.cleanup.clean_expired_requests_every": "1d",
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
@@ -58,7 +60,7 @@
   "server.enable_admin_services": false,
   "authenticationendpoint.hostname": "$ref{server.hostname}",
   "authenticationendpoint.path": "/authenticationendpoint",
-  "authenticationendpoint.authenticator_validation_enabled": false,
+  "authenticationendpoint.authenticator_validation.enabled": false,
   "recoveryendpoint.hostname": "$ref{server.hostname}",
   "recoveryendpoint.path": "/accountrecoveryendpoint",
   "recovery.v0_9_api.include_display_order_property_in_claims": false,
@@ -165,6 +167,9 @@
   "oauth.response_type.id_token_subject_token.enable": true,
   "oauth.response_type.id_token_subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
   "oauth.response_type.id_token_subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
+  "oauth.response_type.ciba.enable": false,
+  "oauth.response_type.ciba.class": "org.wso2.carbon.identity.oauth.ciba.handlers.CibaResponseTypeHandler",
+  "oauth.response_type.ciba.validator": "org.wso2.carbon.identity.oauth.ciba.handlers.CibaResponseTypeValidator",
 
   "oauth.grant_type.jwt.enable_iat_validation": "true",
   "oauth.grant_type.jwt.iat_validity_period": "30",
@@ -223,6 +228,10 @@
   "oauth.grant_type.token_exchange.enable": true,
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
+  "oauth.grant_type.ciba.enable": false,
+  "oauth.grant_type.ciba.grant_handler": "org.wso2.carbon.identity.oauth.ciba.grant.CibaGrantHandler",
+  "oauth.grant_type.ciba.grant_validator": "org.wso2.carbon.identity.oauth.ciba.grant.CibaGrantValidator",
+  "oauth.grant_type.ciba.allow_public_client": false,
   "oauth.dcrm.application_role_permission_required_to_view": true,
   "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
@@ -258,6 +267,7 @@
 
   "oauth.oidc.id_token.signature_algorithm": "SHA256withRSA",
   "oauth.oidc.id_token.issuer": "$ref{oauth.endpoints.oauth2_token_url}",
+  "oauth.oidc.id_token.use_entityid_as_issuer": false,
   "oauth.oidc.extensions.claim_callback_handler": "org.wso2.carbon.identity.openidconnect.SAMLAssertionClaimsCallback",
   "oauth.oidc.token_validation.id_token_validity": "1h",
   "oauth.oidc.id_token.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
@@ -321,11 +331,16 @@
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
+  "oauth.callback.restrict_fragment_components": true,
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
+  "oauth.allow_issuer_selection_for_sub_org_applications": false,
 
   "oauth.enable_legacy_session_bound_token_behaviour": false,
   "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
+  "oauth.listener.agent_application_creator.enable": false,
+  "oauth.listener.agent_application_creator.class": "org.wso2.carbon.identity.oauth.listener.UserApplicationCreationListener",
+  "oauth.listener.agent_application_creator.order": "99",
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
@@ -337,6 +352,7 @@
   "saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert": true,
   "saml.response.validity": "5m",
   "saml.artifact.validity": "4m",
+  "saml.artifact.disable_double_encoding": true,
   "saml.use_tenant_key_of": "user",
   "saml.tenant_partitioning.enable": false,
   "saml.signing_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
@@ -419,6 +435,7 @@
   "scim2.default_role_api_version_for_ref": "v2",
   "scim2.return_conflict_on_claim_uniqueness_violation": true,
   "scim2.throw_userstore_exception_on_user_creation_error": true,
+  "scim2.enable_spec_compliant_email_handling": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -428,6 +445,8 @@
   "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.recovery.notify_recovery_email_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
+  "identity_mgt.recovery.hide_user_existence": false,
+  "identity_mgt.recovery.enable_normalized_retry_error_response": true,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -469,6 +488,7 @@
 
   "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
   "identity_mgt.challenge_questions.min_required_answers": "1",
+  "identity_mgt.challenge_questions.skip_sending_questions_in_url": true,
 
   "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
   "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
@@ -481,6 +501,7 @@
   "identity_mgt.password_reset_by_admin.code_validity_period": "1440m",
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
+  "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": true,
 
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
@@ -585,6 +606,12 @@
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
   "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
+  "outbound_provisioning_management.enable_scim_patch_for_updates": true,
+  "outbound_provisioning_management.confidential_data_protection_enabled": true,
+  "outbound_provisioning_management.scim2_client.http_retry_count": "1",
+  "outbound_provisioning_management.scim2_client.http_read_timeout": "5000",
+  "outbound_provisioning_management.scim2_client.http_connection_timeout": "2000",
+  "outbound_provisioning_management.scim2_client.http_connection_request_timeout": "2000",
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
@@ -712,6 +739,9 @@
 
   "event.default_listener.identity_role_workflow_operation.enable": true,
   "event.default_listener.identity_role_workflow_operation.priority": "11",
+
+  "event.default_listener.privileged_user_authenticator.priority": "200",
+  "event.default_listener.privileged_user_authenticator.enable": false,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
@@ -842,7 +872,8 @@
     "/emailotpauthenticationendpoint/",
     "/smsotpauthenticationendpoint/",
     "/totpauthenticationendpoint/",
-    "/accounts/"
+    "/accounts/",
+    "/oid4vci/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -918,6 +949,7 @@
   "fido.metadata_service.mds_root_certificate_file_path": "${carbon.home}/repository/resources/identity/fido2/security/MDS3ROOT.crt",
   "fido.metadata_service.metadata_statement_directory": "${carbon.home}/repository/resources/identity/fido2/metadataStatements",
   "fido.metadata_service.mds_scheduler_initial_delay": "0",
+  "fido.webauthn.relying_party.use_full_effective_domain": false,
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
@@ -1247,6 +1279,11 @@
       "description": "This email is sent to the user for Email OTP based verification",
       "displayName": "Email OTP Verification",
       "id": "RW1haWxPVFBWZXJpZmljYXRpb24"
+    },
+    {
+      "description": "This email is sent to the user to complete the CIBA authentication request.",
+      "displayName": "CIBA Authentication Request",
+      "id": "Q0lCQUF1dGhlbnRpY2F0aW9uTm90aWZpY2F0aW9u"
     }
   ],
   "console.extensions.smsTemplates": [
@@ -1309,6 +1346,11 @@
       "description": "This SMS is sent to notify the user that their account has been set up successfully.",
       "displayName": "Invited User Registration Success",
       "id": "YXNrUGFzc3dvcmRTZXRTdWNjZXNz"
+    },
+    {
+      "description": "This SMS is sent to the user to complete the CIBA authentication request.",
+      "displayName": "CIBA Authentication Request",
+      "id": "Q0lCQVNNU0F1dGhlbnRpY2F0aW9uTm90aWZpY2F0aW9u"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
@@ -1323,6 +1365,7 @@
   "console.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "console.ui.email_templates.default_logo_url": "/libs/themes/default/assets/images/branding/logo.svg",
   "console.ui.email_templates.default_white_logo_url": "/libs/themes/default/assets/images/branding/logo-inverted.svg",
+  "console.ui.enable_blocking_outbound_provisioning": true,
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
   "console.ui.idp_templates.hypr.enabled": false,
@@ -1352,6 +1395,7 @@
   "console.ui.routes.organizationEnabledRoutes.approvalWorkflows": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.approvals": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.attributeDialects": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.attributeUpdateVerificationSettings": "v1.0.0",
   "console.ui.routes.organizationEnabledRoutes.branding": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.consoleSettings": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.emailTemplates": "v0.0.0",
@@ -1830,6 +1874,13 @@
   "console.user_stores.scopes.read": ["internal_userstore_view"],
   "console.user_stores.scopes.update": ["internal_userstore_update"],
   "console.user_stores.scopes.delete": ["internal_userstore_delete"],
+  "console.verifiable_credentials.enabled": true,
+  "console.verifiable_credentials.disabled_features": [],
+  "console.verifiable_credentials.feature_flags": [],
+  "console.verifiable_credentials.scopes.create": ["internal_vc_template_create"],
+  "console.verifiable_credentials.scopes.read": ["internal_vc_template_view"],
+  "console.verifiable_credentials.scopes.update": ["internal_vc_template_update"],
+  "console.verifiable_credentials.scopes.delete": ["internal_vc_template_delete"],
   "console.ws_fed_configuration.enabled": true,
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
@@ -1917,6 +1968,22 @@
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
   "console.guest_user.scopes.update": ["internal_guest_mgt_invite_update"],
   "console.guest_user.scopes.delete": ["internal_guest_mgt_invite_delete", "internal_guest_mgt_user_delete"],
+  "console.onboarding.enabled": false,
+  "console.onboarding.disabled_features": [],
+  "console.onboarding.feature_flags": [],
+  "console.onboarding.scopes.feature": [
+    "console:applications",
+    "console:loginAndRegistration",
+    "console:branding"
+  ],
+  "console.onboarding.scopes.create": [
+    "internal_application_mgt_create",
+    "internal_branding_preference_update",
+    "internal_governance_update"
+  ],
+  "console.onboarding.scopes.read": [],
+  "console.onboarding.scopes.update": [],
+  "console.onboarding.scopes.delete": [],
   "console.parent_user_invitation.enabled": true,
   "console.parent_user_invitation.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.parent_user_invitation.scopes.read": ["internal_guest_mgt_invite_list"],
@@ -2104,6 +2171,8 @@
   "actions.maximum_actions_per_action_type": "1",
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.pre_issue_access_token.version.latest": "v1",
+  "actions.types.pre_issue_id_token.enable": true,
+  "actions.types.pre_issue_id_token.version.latest": "v1",
   "actions.types.authentication.enable": true,
   "actions.types.authentication.version.latest": "v1",
   "actions.types.authentication.default_userstore": "PRIMARY",
@@ -2112,9 +2181,11 @@
   "actions.types.pre_update_password.version.latest": "v2",
 
   "external_api_client.http_client.connection_timeout": "2000",
-  "external_api_client.http_client.read_timeout": "2000",
-  "external_api_client.http_client.request_timeout": "2000",
+  "external_api_client.http_client.read_timeout": "3000",
+  "external_api_client.http_client.connection_request_timeout": "1000",
   "external_api_client.http_client.connection_pool_size": "20",
+  "external_api_client.http_client.max_connection_per_route": "3",
+  "external_api_client.retry_count": "0",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
@@ -2175,5 +2246,10 @@
   "configs.endpoint.elevate_permission": true,
 
   "identifier_first.preserve_case_sensitivity.enabled": true,
-  "pastr_cookie.max_age": "-1"
+  "pastr_cookie.max_age": "-1",
+
+  "resolve_tenant_domain_from_username.enabled": false,
+  "authentication.mark_step_completed_on_interrupt": true,
+  "api.filters.single_character_wildcard": "_",
+  "identity_providers.support_multiple_certificate_export": true
 }

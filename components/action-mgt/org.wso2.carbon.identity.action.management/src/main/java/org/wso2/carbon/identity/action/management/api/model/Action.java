@@ -60,7 +60,13 @@ public class Action {
                 "AUTHENTICATION",
                 "Authentication",
                 "Configure an extension point for user authentication via a custom service.",
-                Category.IN_FLOW);
+                Category.IN_FLOW),
+        PRE_ISSUE_ID_TOKEN(
+                "preIssueIdToken",
+                "PRE_ISSUE_ID_TOKEN",
+                "Pre Issue ID Token",
+                "Configure an extension point for modifying ID token via a custom service.",
+                Category.PRE_POST);
 
         private final String pathParam;
         private final String actionType;

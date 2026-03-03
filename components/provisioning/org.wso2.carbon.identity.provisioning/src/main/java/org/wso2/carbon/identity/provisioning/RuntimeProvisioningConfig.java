@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -27,6 +27,7 @@ public class RuntimeProvisioningConfig implements Serializable {
 
     private boolean blocking;
     private boolean policyEnabled;
+    private boolean jitProvisioningEnabled;
     private Entry<String, AbstractOutboundProvisioningConnector> provisioningConnectorEntry;
 
     /**
@@ -41,6 +42,24 @@ public class RuntimeProvisioningConfig implements Serializable {
      */
     public void setBlocking(boolean blocking) {
         this.blocking = blocking;
+    }
+
+    /**
+     * Get JIT provisioning enabled or not.
+     * @return JIT provisioning enabled or not.
+     */
+    public boolean isJitProvisioningEnabled() {
+
+        return jitProvisioningEnabled;
+    }
+
+    /**
+     * Set JIT provisioning enabled or not.
+     * @param jitProvisioningEnabled JIT provisioning enabled or not.
+     */
+    public void setJitProvisioningEnabled(boolean jitProvisioningEnabled) {
+
+        this.jitProvisioningEnabled = jitProvisioningEnabled;
     }
 
     /**

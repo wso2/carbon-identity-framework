@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -30,6 +31,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -39,6 +41,15 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Identity Servlet.
  */
+@Component(
+        service = Servlet.class,
+        immediate = true,
+        property = {
+                "osgi.http.whiteboard.servlet.pattern=/identity/*",
+                "osgi.http.whiteboard.servlet.name=IdentityServlet",
+                "osgi.http.whiteboard.servlet.asyncSupported=true"
+        }
+)
 public class IdentityServlet extends HttpServlet {
 
     private static final Log log = LogFactory.getLog(IdentityServlet.class);

@@ -63,6 +63,8 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
             accountLookupAttributeMappingConfigs = new AccountLookupAttributeMappingConfig[0];
     @XmlElement(name = "AttributeSyncMethod")
     private String attributeSyncMethod;
+    @XmlElement(name = "IdpGroupSyncMethod")
+    private String idpGroupSyncMethod;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -218,6 +220,26 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     public String getAttributeSyncMethod() {
 
         return attributeSyncMethod;
+    }
+
+    /**
+     * To sync IDP groups coming from the federated identity providers.
+     *
+     * @param idpGroupSyncMethod to specify way on how to sync the IDP groups.
+     */
+    public void setIdpGroupSyncMethod(String idpGroupSyncMethod) {
+
+        this.idpGroupSyncMethod = idpGroupSyncMethod;
+    }
+
+    /**
+     * Get the IDP group sync method.
+     *
+     * @return IDP group sync method.
+     */
+    public String getIdpGroupSyncMethod() {
+
+        return idpGroupSyncMethod;
     }
 
     /**

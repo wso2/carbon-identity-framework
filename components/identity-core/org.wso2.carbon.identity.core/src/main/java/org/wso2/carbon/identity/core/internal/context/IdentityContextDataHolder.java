@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core.internal.context;
 import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.context.model.Organization;
+import org.wso2.carbon.identity.core.context.model.Request;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -32,6 +33,7 @@ import java.util.Deque;
  */
 public class IdentityContextDataHolder {
 
+    private Request request;
     private Flow flow;
     private Actor actor;
     private String accessTokenIssuedOrganization;
@@ -66,6 +68,27 @@ public class IdentityContextDataHolder {
     public static IdentityContextDataHolder getThreadLocalIdentityContextHolder() {
 
         return currentContextHolder.get();
+    }
+
+    /**
+     * Set the request.
+     *
+     * @param request Request.
+     */
+    public void setRequest(Request request) {
+
+        CarbonUtils.checkSecurity();
+        this.request = request;
+    }
+
+    /**
+     * Get the request.
+     *
+     * @return Request.
+     */
+    public Request getRequest() {
+
+        return request;
     }
 
     /**

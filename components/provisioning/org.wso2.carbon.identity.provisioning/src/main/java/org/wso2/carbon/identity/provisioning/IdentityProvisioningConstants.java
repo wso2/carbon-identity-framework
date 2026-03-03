@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -50,6 +50,7 @@ public class IdentityProvisioningConstants {
     public static final String USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS = "OutboundProvisioning.useUserTenantDomainInSaasApps";
     public static final String APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED = "OutboundProvisioning.enableApplicationBasedOutboundProvisioning";
     public static final String FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE = "OutboundProvisioning.FailOnBlockingOutboundProvisionFailure";
+    public static final String ENABLE_SCIM_PATCH_FOR_UPDATES = "OutboundProvisioning.EnableSCIMPatchForUpdates";
 
     public static class SQLQueries {
 
@@ -70,7 +71,7 @@ public class IdentityProvisioningConstants {
                                                                      " WHERE ENTITY_LOCAL_ID=?";
 
         public static final String UPDATE_PROVISIONED_ENTITY_NAME_SQL = "UPDATE IDP_PROVISIONING_ENTITY SET " +
-                                                                        "ENTITY_NAME=? WHERE ENTITY_LOCAL_ID=?";
+                                                                        "ENTITY_NAME=? WHERE ENTITY_VALUE=?";
 
         public static final String GET_SP_NAMES_OF_PROVISIONING_CONNECTORS_BY_IDP = "SELECT DISTINCT(APP.APP_NAME) " +
                                                                                     "FROM SP_PROVISIONING_CONNECTOR " +

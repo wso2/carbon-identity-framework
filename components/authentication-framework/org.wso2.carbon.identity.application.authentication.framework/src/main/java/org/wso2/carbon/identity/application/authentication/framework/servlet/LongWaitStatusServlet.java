@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.servlet;
 
 import com.google.gson.Gson;
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.javascript.flow.LongWaitStatusRequest;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +41,15 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet to get the status of long wait process.
  */
+@Component(
+        service = Servlet.class,
+        immediate = true,
+        property = {
+                "osgi.http.whiteboard.servlet.pattern=/longwaitstatus",
+                "osgi.http.whiteboard.servlet.name=LongWaitStatusServlet",
+                "osgi.http.whiteboard.servlet.asyncSupported=true"
+        }
+)
 public class LongWaitStatusServlet extends HttpServlet {
 
     private static final long serialVersionUID = -3714283612680472526L;

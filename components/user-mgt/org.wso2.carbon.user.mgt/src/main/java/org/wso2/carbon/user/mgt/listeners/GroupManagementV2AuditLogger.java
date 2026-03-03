@@ -21,6 +21,7 @@ package org.wso2.carbon.user.mgt.listeners;
 import org.apache.commons.collections.CollectionUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityGroupOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -47,6 +48,13 @@ import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiato
 /**
  * This v2 audit logger logs the Group Management success activities.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.user.core.listener.GroupOperationEventListener",
+                "service.scope=singleton"
+        }
+)
 public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperationEventListener {
 
     @Override

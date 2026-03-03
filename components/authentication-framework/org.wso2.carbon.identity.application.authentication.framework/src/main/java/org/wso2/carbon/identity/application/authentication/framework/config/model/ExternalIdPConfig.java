@@ -294,6 +294,21 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
+     * Get IDP group sync method.
+     *
+     * @return IDP group sync method. Defaults to MERGE_WITH_EXISTING if not configured.
+     */
+    public String getIdpGroupSyncMethod() {
+
+        String method = FrameworkConstants.MERGE_WITH_EXISTING;
+        if (justInTimeProConfig != null &&
+                StringUtils.isNotEmpty(justInTimeProConfig.getIdpGroupSyncMethod())) {
+            method = justInTimeProConfig.getIdpGroupSyncMethod();
+        }
+        return method;
+    }
+
+    /**
      * @return
      */
     public String getRoleClaimUri() {

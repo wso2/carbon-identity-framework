@@ -18,9 +18,10 @@
 
 package org.wso2.carbon.identity.servlet.mgt;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
-import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PrimitiveUtils;
 import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.common.util.StringUtils;
@@ -54,7 +55,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -67,7 +67,7 @@ import javax.ws.rs.core.Application;
 public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
 
     private static final long serialVersionUID = -8916352798780577499L;
-    private static final Logger LOG = LogUtils.getL7dLogger(CustomCXFNonSpringJaxrsServlet.class);
+    private static final Log LOG = LogFactory.getLog(CustomCXFNonSpringJaxrsServlet.class);
     private static final String USER_MODEL_PARAM = "user.model";
     private static final String SERVICE_ADDRESS_PARAM = "jaxrs.address";
     private static final String IGNORE_APP_PATH_PARAM = "jaxrs.application.address.ignore";
@@ -265,7 +265,7 @@ public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
                     } catch (ServletException exception) {
                         throw exception;
                     } catch (Exception exception) {
-                        LOG.warning("Interceptor class " + theValue + " can not be created");
+                        LOG.warn("Interceptor class " + theValue + " can not be created");
                         throw new ServletException(exception);
                     }
                 }
@@ -298,7 +298,7 @@ public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
                 } catch (ServletException exception) {
                     throw exception;
                 } catch (Exception exception) {
-                    LOG.warning("Invoker class " + classNameAndProperties + " can not be created");
+                    LOG.warn("Invoker class " + classNameAndProperties + " can not be created");
                     throw new ServletException(exception);
                 }
             }
@@ -483,14 +483,11 @@ public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
                 Object instance = provider.getProvider();
                 this.injectProperties(instance, props);
                 return isApplication ? provider : instance;
-            } catch (InstantiationException exception) {
-                throw new ServletException("Resource class " + cls.getName() + " can not be instantiated");
-            } catch (IllegalAccessException exception) {
-                throw new ServletException("Resource class " + cls.getName() + " " +
-                        "can not be instantiated due to IllegalAccessException");
-            } catch (InvocationTargetException exception) {
-                throw new ServletException("Resource class " + cls.getName() + " " +
-                        "can not be instantiated due to InvocationTargetException");
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException exception) {
+                String exceptionType = exception.getClass().getSimpleName();
+                String message = "Resource class " + cls.getName() + " can not be instantiated due to " + exceptionType;
+                LOG.error(message, exception);
+                throw new ServletException(message);
             }
         }
     }

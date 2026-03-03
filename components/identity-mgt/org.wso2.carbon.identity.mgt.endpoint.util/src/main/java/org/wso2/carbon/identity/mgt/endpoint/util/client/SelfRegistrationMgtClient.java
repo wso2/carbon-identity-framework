@@ -35,6 +35,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -229,12 +230,20 @@ public class SelfRegistrationMgtClient {
     private JSONObject checkUserNameValidityInternal(User user, boolean skipSignUpCheck) throws
             SelfRegistrationMgtClientException {
 
+        return HTTPClientManager.executeWithHttpClient(httpClient ->
+                checkUserNameValidityInternal(user, skipSignUpCheck, httpClient));
+    }
+
+    private JSONObject checkUserNameValidityInternal(User user, boolean skipSignUpCheck,
+                                                     CloseableHttpClient httpclient)
+            throws SelfRegistrationMgtClientException {
+
         if (log.isDebugEnabled()) {
             log.debug("Checking username validating for username: " + user.getUsername()
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
+        try {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 

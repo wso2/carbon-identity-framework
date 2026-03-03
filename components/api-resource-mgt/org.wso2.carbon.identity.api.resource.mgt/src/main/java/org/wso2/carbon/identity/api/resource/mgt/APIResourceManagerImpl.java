@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
@@ -38,6 +39,13 @@ import java.util.List;
 /**
  * API resource management service.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.api.resource.mgt.APIResourceManager",
+                "service.scope=singleton"
+        }
+)
 public class APIResourceManagerImpl implements APIResourceManager {
 
     private static final APIResourceManager INSTANCE = new APIResourceManagerImpl();
@@ -181,6 +189,16 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
+    public void updateScopeMetadataById(Scope scope, APIResource apiResource, String tenantDomain)
+            throws APIResourceMgtException {
+
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreUpdateScopeMetadataWithException(scope, apiResource, tenantDomain);
+        CACHE_BACKED_DAO.updateScopeMetadataById(scope, apiResource, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostUpdateScopeMetadataWithException(scope, apiResource, tenantDomain);
+    }
+
+    @Override
     public APIResource getAPIResourceByIdentifier(String apiResourceIdentifier, String tenantDomain)
             throws APIResourceMgtException {
 
@@ -215,6 +233,16 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
+    public void deleteAPIScopeByScopeId(String apiResourceId, String scopeId, String tenantDomain)
+            throws APIResourceMgtException {
+
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreDeleteAPIScopeByScopeIdWithException(apiResourceId, scopeId, tenantDomain);
+        CACHE_BACKED_DAO.deleteScopeById(apiResourceId, scopeId, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostDeleteAPIScopeByScopeId(apiResourceId, scopeId, tenantDomain);
+    }
+
+    @Override
     public void putScopes(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes, String tenantDomain)
             throws APIResourceMgtException {
 
@@ -236,6 +264,14 @@ public class APIResourceManagerImpl implements APIResourceManager {
     public Scope getScopeByName(String scopeName, String tenantDomain) throws APIResourceMgtException {
 
         return CACHE_BACKED_DAO.getScopeByNameAndTenantId(scopeName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public Scope getScopeByNameAndApiResourceId(String scopeName, String apiResourceId, String tenantDomain)
+            throws APIResourceMgtException {
+
+        return CACHE_BACKED_DAO.getScopeByNameTenantIdAPIId(scopeName, IdentityTenantUtil.getTenantId(tenantDomain),
+                apiResourceId);
     }
 
     @Override

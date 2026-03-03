@@ -265,15 +265,28 @@ public class AIAccessTokenManagerTest {
                 "Both calls should return the exact same singleton instance.");
     }
 
+    /**
+     * Set a static final field using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @param clazz     The class containing the field.
+     * @param fieldName The field name.
+     * @param value     The value to set.
+     * @throws Exception If an error occurs.
+     */
     private void setStaticField(Class<?> clazz, String fieldName, String value) throws Exception {
 
         java.lang.reflect.Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
-        java.lang.reflect.Field modifiersField = java.lang.reflect.Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
-        field.set(null, value);
+        // Use Unsafe to modify static final fields in Java 12+
+        java.lang.reflect.Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
+
+        Object fieldBase = unsafe.staticFieldBase(field);
+        long fieldOffset = unsafe.staticFieldOffset(field);
+        unsafe.putObject(fieldBase, fieldOffset, value);
     }
 
     @AfterMethod

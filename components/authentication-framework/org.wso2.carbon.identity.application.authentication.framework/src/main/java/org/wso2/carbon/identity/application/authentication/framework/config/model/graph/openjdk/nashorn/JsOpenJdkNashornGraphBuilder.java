@@ -98,6 +98,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
             "var readFully=function(){Log.error('readFully function is restricted.')};" +
             "var readLine=function(){Log.error('readLine function is restricted.')};" +
             "var load=function(){Log.error('load function is restricted.')};" +
+            "var printErr=function(){Log.error('printErr function is restricted.')};" +
             "var loadWithNewGlobal=function(){Log.error('loadWithNewGlobal function is restricted.')};" +
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +

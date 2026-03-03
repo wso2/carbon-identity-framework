@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -79,7 +80,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
+import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
 
 /**
  * Default provisioning handler.
@@ -469,6 +472,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throws UserStoreException, FrameworkException {
 
         try {
+            // Get the IDP group sync method from thread local.
+            String idpGroupSyncMethod = getIdpGroupSyncMethod();
+
+            // Check if manually added local roles should be preserved (backward compatible property).
             boolean includeManuallyAddedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
 
@@ -484,35 +491,134 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     organizationId, tenantDomain, rolesToAdd);
 
             List<String> currentRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
-            List<String> rolesToDelete;
+            List<String> rolesToDelete = new ArrayList<>();
 
-            rolesToAdd.removeAll(currentRoleIdList);
-            if (includeManuallyAddedLocalRoles) {
-                rolesToDelete = new ArrayList<>();
+            // Get the everyone role ID to exclude from deletion.
+            String everyoneRoleId = getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm);
+
+            if (FrameworkConstants.OVERRIDE_ALL.equals(idpGroupSyncMethod)) {
+                /*
+                 * OVERRIDE_ALL: Replace all roles of the user with IDP roles.
+                 * Remove all existing roles (except everyone role) and add only roles from IDP.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to OVERRIDE_ALL. Replacing all roles with IDP roles " +
+                            "for user: " + LoggerUtils.getMaskedContent(username));
+                }
+
+                rolesToDelete = currentRoleIdList.stream()
+                        .filter(roleId -> !rolesToAdd.contains(roleId))
+                        .collect(Collectors.toList());
+
+                rolesToAdd.removeAll(currentRoleIdList);
+
             } else {
-                rolesToDelete = new ArrayList<>(currentRoleIdList);
-                rolesToDelete.removeAll(rolesToAdd);
+                /*
+                 * MERGE_WITH_EXISTING: Merge IDP roles with existing roles of the user.
+                 * Behavior depends on includeManuallyAddedLocalRoles property.
+                 * - If true: Only add new IDP roles without removing any existing roles.
+                 * - If false: Remove roles not in IDP list and add new IDP roles.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to MERGE_WITH_EXISTING for user: " +
+                            LoggerUtils.getMaskedContent(username) + ". includeManuallyAddedLocalRoles: " +
+                            includeManuallyAddedLocalRoles);
+                }
+
+                rolesToAdd.removeAll(currentRoleIdList);
+
+                if (!includeManuallyAddedLocalRoles) {
+                    /*
+                     * This is kept to preserve backward compatibility. If the property to include manually
+                     * added local roles is not enabled, the behavior will be same as OVERRIDE_ALL to remove
+                     * all existing roles that are not in the IDP role list and add new IDP roles.
+                     */
+                    rolesToDelete = new ArrayList<>(currentRoleIdList);
+                    rolesToDelete.removeAll(rolesToAdd);
+                }
             }
+
             // Remove everyone role from deleting roles.
-            rolesToDelete.remove(getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm));
+            rolesToDelete.remove(everyoneRoleId);
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
-                            new ArrayList<>(), tenantDomain);
-                }
+                assignUserToRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
             // Remove the assignment of the user from the deleting roles.
             for (String roleId : rolesToDelete) {
-                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
-                    roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
-                            Arrays.asList(userId), tenantDomain);
-                }
+                removeUserFromRoleV2(userId, username, roleId, tenantDomain, roleManagementService);
             }
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
             throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
+    }
+
+    /**
+     * Get IDP group sync method from thread local.
+     *
+     * @return IDP group sync method. Defaults to MERGE_WITH_EXISTING if not set.
+     */
+    private String getIdpGroupSyncMethod() {
+
+        Object idpGroupSyncMethodObj = IdentityUtil.threadLocalProperties.get()
+                .get(FrameworkConstants.IDP_GROUP_SYNC_METHOD);
+        if (idpGroupSyncMethodObj != null && StringUtils.isNotBlank(idpGroupSyncMethodObj.toString())) {
+            return idpGroupSyncMethodObj.toString();
+        }
+        // Default to MERGE_WITH_EXISTING (backward compatible behavior) if not set or blank.
+        return FrameworkConstants.MERGE_WITH_EXISTING;
+    }
+
+    /**
+     * Helper method to assign a user to a V2 role and handle workflow engagement.
+     */
+    private void assignUserToRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                    RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
+                        new ArrayList<>(), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "assigning role");
+        }
+    }
+
+    /**
+     * Helper method to remove a user from a V2 role and handle workflow engagement.
+     */
+    private void removeUserFromRoleV2(String userId, String username, String roleId, String tenantDomain,
+                                      RoleManagementService roleManagementService)
+            throws IdentityRoleManagementException {
+
+        try {
+            if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
+                        Arrays.asList(userId), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            handleWorkflowEngagement(e, roleId, username, "removing role");
+        }
+    }
+
+    /**
+     * Handles the workflow exception check.
+     */
+    private void handleWorkflowEngagement(IdentityRoleManagementException e, String roleId, String username,
+                                          String actionContext) throws IdentityRoleManagementException {
+
+        if (ROLE_WORKFLOW_CREATED.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE.getCode().equals(e.getErrorCode())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Workflow engaged for " + actionContext + ": " + roleId + " to user: " +
+                        LoggerUtils.getMaskedContent(username));
+            }
+            return;
+        }
+        throw e;
     }
 
     /**

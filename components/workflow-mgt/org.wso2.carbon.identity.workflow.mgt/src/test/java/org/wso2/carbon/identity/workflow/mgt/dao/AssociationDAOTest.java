@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.workflow.mgt.dao;
 
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -28,6 +30,7 @@ import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +40,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertThrows;
@@ -47,6 +51,17 @@ import static org.testng.Assert.fail;
  * Test class for AssociationDAO.
  */
 public class AssociationDAOTest {
+
+    private final String mySqlDbName = "MySQL";
+
+    @Mock
+    private DatabaseMetaData mockDatabaseMetaData;
+
+    @BeforeMethod
+    public void setUp() {
+
+        openMocks(this);
+    }
 
     @Test
     public void testGetAssociationByInvalidAssociationId() {
@@ -136,16 +151,17 @@ public class AssociationDAOTest {
 
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
                     .thenReturn(mockConnection);
+            when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
+            when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(mySqlDbName);
             
             // Mock JdbcUtils to return MySQL database type (simplest case).
-            jdbcUtils.when(JdbcUtils::isMySQLDB).thenReturn(true);
-            jdbcUtils.when(JdbcUtils::isH2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMariaDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isOracleDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMSSqlDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isPostgreSQLDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isDB2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isInformixDB).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isDB2DB(mySqlDbName)).thenReturn(true);
+            jdbcUtils.when(() -> JdbcUtils.isMariaDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isH2DB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isMSSqlDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isOracleDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isPostgreSQLDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isInformixDB(mySqlDbName)).thenReturn(false);
 
             when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
             when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
@@ -176,16 +192,17 @@ public class AssociationDAOTest {
 
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
                     .thenReturn(mockConnection);
-            
-            // Mock JdbcUtils to return MySQL database type.
-            jdbcUtils.when(JdbcUtils::isMySQLDB).thenReturn(true);
-            jdbcUtils.when(JdbcUtils::isH2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMariaDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isOracleDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMSSqlDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isPostgreSQLDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isDB2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isInformixDB).thenReturn(false);
+            when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
+            when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(mySqlDbName);
+
+            // Mock JdbcUtils to return MySQL database type (simplest case).
+            jdbcUtils.when(() -> JdbcUtils.isDB2DB(mySqlDbName)).thenReturn(true);
+            jdbcUtils.when(() -> JdbcUtils.isMariaDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isH2DB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isMSSqlDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isOracleDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isPostgreSQLDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isInformixDB(mySqlDbName)).thenReturn(false);
 
             AssociationDAO dao = new AssociationDAO();
             int tenantId = 1;
@@ -202,6 +219,8 @@ public class AssociationDAOTest {
             } catch (InternalWorkflowException e) {
                 fail("Unexpected InternalWorkflowException for filter: " + description);
             }
+        } catch (SQLException e) {
+            fail("Unexpected SQLException for filter: " + description);
         }
     }
 
@@ -248,16 +267,17 @@ public class AssociationDAOTest {
 
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
                     .thenReturn(mockConnection);
+            when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
+            when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(mySqlDbName);
             
             // Mock JdbcUtils to return MySQL database type.
-            jdbcUtils.when(JdbcUtils::isMySQLDB).thenReturn(true);
-            jdbcUtils.when(JdbcUtils::isH2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMariaDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isOracleDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMSSqlDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isPostgreSQLDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isDB2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isInformixDB).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isDB2DB(mySqlDbName)).thenReturn(true);
+            jdbcUtils.when(() -> JdbcUtils.isMariaDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isH2DB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isMSSqlDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isOracleDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isPostgreSQLDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isInformixDB(mySqlDbName)).thenReturn(false);
 
             when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
             when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
@@ -287,14 +307,17 @@ public class AssociationDAOTest {
 
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
                     .thenReturn(mockConnection);
-            jdbcUtils.when(JdbcUtils::isMySQLDB).thenReturn(true);
-            jdbcUtils.when(JdbcUtils::isH2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMariaDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isOracleDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMSSqlDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isPostgreSQLDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isDB2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isInformixDB).thenReturn(false);
+            when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
+            when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(mySqlDbName);
+
+            // Mock JdbcUtils to return MySQL database type (simplest case).
+            jdbcUtils.when(() -> JdbcUtils.isDB2DB(mySqlDbName)).thenReturn(true);
+            jdbcUtils.when(() -> JdbcUtils.isMariaDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isH2DB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isMSSqlDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isOracleDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isPostgreSQLDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isInformixDB(mySqlDbName)).thenReturn(false);
 
             when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
             when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
@@ -323,14 +346,17 @@ public class AssociationDAOTest {
 
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false))
                     .thenReturn(mockConnection);
-            jdbcUtils.when(JdbcUtils::isMySQLDB).thenReturn(true);
-            jdbcUtils.when(JdbcUtils::isH2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMariaDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isOracleDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isMSSqlDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isPostgreSQLDB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isDB2DB).thenReturn(false);
-            jdbcUtils.when(JdbcUtils::isInformixDB).thenReturn(false);
+            when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
+            when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(mySqlDbName);
+
+            // Mock JdbcUtils to return MySQL database type (simplest case).
+            jdbcUtils.when(() -> JdbcUtils.isDB2DB(mySqlDbName)).thenReturn(true);
+            jdbcUtils.when(() -> JdbcUtils.isMariaDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isH2DB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isMSSqlDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isOracleDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isPostgreSQLDB(mySqlDbName)).thenReturn(false);
+            jdbcUtils.when(() -> JdbcUtils.isInformixDB(mySqlDbName)).thenReturn(false);
 
             when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
             when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);

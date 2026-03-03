@@ -28,7 +28,8 @@ public enum ActionType {
     PRE_ISSUE_ACCESS_TOKEN,
     PRE_UPDATE_PASSWORD,
     PRE_UPDATE_PROFILE,
-    AUTHENTICATION;
+    AUTHENTICATION,
+    PRE_ISSUE_ID_TOKEN;
 
     public String getDisplayName() {
 

@@ -209,8 +209,14 @@ public class ClaimMapping implements Serializable {
     @Override
     public int hashCode() {
 
-        int result = localClaim != null ? localClaim.hashCode() : 0;
-        result = 31 * result + (remoteClaim != null ? remoteClaim.hashCode() : 0);
+        int result = 0;
+        if (localClaim != null) {
+            result = localClaim.hashCode();
+        }
+        result = 31 * result;
+        if (remoteClaim != null) {
+            result += remoteClaim.hashCode();
+        }
         return result;
     }
 

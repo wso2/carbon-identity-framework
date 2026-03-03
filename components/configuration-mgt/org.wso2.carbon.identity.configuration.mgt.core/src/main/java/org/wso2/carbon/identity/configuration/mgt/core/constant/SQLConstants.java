@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  */
 public class SQLConstants {
 
+    public static final String POSTGRESQL_UNIQUE_CONSTRAINT_VIOLATION_ERROR_CODE = "23505";
     public static final String MAX_QUERY_LENGTH_IN_BYTES_SQL =
             IdentityUtil.getProperty("ConfigurationStore.MaximumQueryLengthInBytes");
     public static final String INSERT_RESOURCE_TYPE_SQL = "INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) " +
