@@ -68,7 +68,7 @@ public class ClaimConstants {
     public static final String SUB_ATTRIBUTES_PROPERTY = "subAttributes";
     public static final String SUB_ATTRIBUTE_PREFIX = "subAttribute.";
     public static final String CANONICAL_VALUE_PREFIX = "canonicalValue.";
-    public static final String EXTENDED_VALUE_PROPERTY = "extendedValued";
+    public static final String EXTENDED_VALUED_PROPERTY = "extendedValued";
 
     /**
      * Enum for error messages.
