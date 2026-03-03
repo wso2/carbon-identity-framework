@@ -2967,4 +2967,5 @@
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
+    <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
 </Server>
