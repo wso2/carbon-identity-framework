@@ -270,12 +270,12 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
             if (threadLocalServiceProvider != null) {
                 serviceProviderIdentifier = threadLocalServiceProvider.getServiceProviderName();
-                tenantDomainName = threadLocalServiceProvider.getTenantDomain();
                 if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
                     serviceProviderIdentifier = ApplicationManagementService.getInstance()
                             .getServiceProviderNameByClientId(
                                     serviceProviderIdentifier,
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                                    IdentityApplicationConstants.OAuth2.NAME,
+                                    threadLocalServiceProvider.getTenantDomain());
                 }
             }
 
@@ -570,13 +570,13 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         if (threadLocalServiceProvider != null) {
             String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
             if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
                 try {
                     serviceProvider = ApplicationManagementService.getInstance()
                             .getServiceProviderNameByClientId(
                                     threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                                    IdentityApplicationConstants.OAuth2.NAME,
+                                    threadLocalServiceProvider.getTenantDomain());
                 } catch (IdentityApplicationManagementException e) {
                     log.error("Error while provisioning", e);
                     return true;
