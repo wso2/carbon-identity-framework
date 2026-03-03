@@ -1365,6 +1365,7 @@
   "console.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "console.ui.email_templates.default_logo_url": "/libs/themes/default/assets/images/branding/logo.svg",
   "console.ui.email_templates.default_white_logo_url": "/libs/themes/default/assets/images/branding/logo-inverted.svg",
+  "console.ui.enable_blocking_outbound_provisioning": true,
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
   "console.ui.idp_templates.hypr.enabled": false,
