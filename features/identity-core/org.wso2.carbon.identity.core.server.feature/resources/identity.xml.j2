@@ -2341,6 +2341,9 @@
             -->
             <ConfidentialDataProtectionEnabled>{{outbound_provisioning_management.confidential_data_protection_enabled}}</ConfidentialDataProtectionEnabled>
         {% endif %}
+        {% if outbound_provisioning_management.enable_scim_compliant_email_attribute is defined %}
+            <EnableSCIMCompliantEmailAttribute>{{outbound_provisioning_management.enable_scim_compliant_email_attribute}}</EnableSCIMCompliantEmailAttribute>
+        {% endif %}
         <SCIM2Client>
             <!--
                 HTTP retry count for SCIM2 outbound provisioning client.
