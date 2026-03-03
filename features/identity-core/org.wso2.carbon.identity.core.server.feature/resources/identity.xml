@@ -1339,6 +1339,7 @@
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
         <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
         <ConfidentialDataProtectionEnabled>true</ConfidentialDataProtectionEnabled>
+        <EnableSCIMCompliantEmailAttribute>true</EnableSCIMCompliantEmailAttribute>
         <SCIM2Client>
             <HttpRetryCount>1</HttpRetryCount>
             <HttpReadTimeout>5000</HttpReadTimeout>
