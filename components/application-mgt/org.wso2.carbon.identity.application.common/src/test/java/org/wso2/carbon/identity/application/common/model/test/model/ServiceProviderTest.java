@@ -138,4 +138,118 @@ public class ServiceProviderTest {
         ServiceProvider serviceProvider = ServiceProvider.build(rootElement);
         assertNull(serviceProvider.getDiscoverableGroups());
     }
+
+    /**
+     * Test trimming of access URL when setting the access URL.
+     */
+    @Test(description = "Test trimming of access URL with leading and trailing whitespaces")
+    public void testAccessUrlTrimming() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String urlWithWhitespace = "  https://example.com/app  ";
+        String expectedUrl = "https://example.com/app";
+
+        serviceProvider.setAccessUrl(urlWithWhitespace);
+        assertEquals(serviceProvider.getAccessUrl(), expectedUrl,
+                "Access URL should be trimmed to remove leading and trailing whitespaces");
+    }
+
+    /**
+     * Test trimming of access URL returns null when null is set.
+     */
+    @Test(description = "Test access URL returns null when null is set")
+    public void testAccessUrlNullHandling() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setAccessUrl(null);
+        assertNull(serviceProvider.getAccessUrl(),
+                "Access URL should return null when null is set");
+    }
+
+    /**
+     * Test trimming of access URL with only whitespaces.
+     */
+    @Test(description = "Test access URL with only whitespaces")
+    public void testAccessUrlOnlyWhitespaces() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String urlWithOnlyWhitespaces = "   ";
+
+        serviceProvider.setAccessUrl(urlWithOnlyWhitespaces);
+        assertEquals(serviceProvider.getAccessUrl(), "",
+                "Access URL with only whitespaces should be trimmed to empty string");
+    }
+
+    /**
+     * Test trimming of access URL with no whitespaces.
+     */
+    @Test(description = "Test access URL with no whitespaces")
+    public void testAccessUrlNoWhitespaces() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String urlWithoutWhitespace = "https://example.com/app";
+
+        serviceProvider.setAccessUrl(urlWithoutWhitespace);
+        assertEquals(serviceProvider.getAccessUrl(), urlWithoutWhitespace,
+                "Access URL without whitespaces should remain unchanged");
+    }
+
+    /**
+     * Test trimming of access URL with leading whitespaces only.
+     */
+    @Test(description = "Test access URL with leading whitespaces only")
+    public void testAccessUrlLeadingWhitespacesOnly() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String urlWithLeadingWhitespace = "   https://example.com/app";
+        String expectedUrl = "https://example.com/app";
+
+        serviceProvider.setAccessUrl(urlWithLeadingWhitespace);
+        assertEquals(serviceProvider.getAccessUrl(), expectedUrl,
+                "Access URL with leading whitespaces should be trimmed");
+    }
+
+    /**
+     * Test trimming of access URL with trailing whitespaces only.
+     */
+    @Test(description = "Test access URL with trailing whitespaces only")
+    public void testAccessUrlTrailingWhitespacesOnly() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String urlWithTrailingWhitespace = "https://example.com/app   ";
+        String expectedUrl = "https://example.com/app";
+
+        serviceProvider.setAccessUrl(urlWithTrailingWhitespace);
+        assertEquals(serviceProvider.getAccessUrl(), expectedUrl,
+                "Access URL with trailing whitespaces should be trimmed");
+    }
+
+    /**
+     * Test trimming of access URL with tabs and newlines.
+     */
+    @Test(description = "Test access URL with tabs and newlines")
+    public void testAccessUrlWithTabsAndNewlines() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String urlWithTabsAndNewlines = "\t\nhttps://example.com/app\n\t";
+        String expectedUrl = "https://example.com/app";
+
+        serviceProvider.setAccessUrl(urlWithTabsAndNewlines);
+        assertEquals(serviceProvider.getAccessUrl(), expectedUrl,
+                "Access URL with tabs and newlines should be trimmed");
+    }
+
+    /**
+     * Test trimming of access URL with empty string.
+     */
+    @Test(description = "Test access URL with empty string")
+    public void testAccessUrlEmptyString() {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        String emptyUrl = "";
+
+        serviceProvider.setAccessUrl(emptyUrl);
+        assertEquals(serviceProvider.getAccessUrl(), "",
+                "Empty access URL should remain empty");
+    }
 }
