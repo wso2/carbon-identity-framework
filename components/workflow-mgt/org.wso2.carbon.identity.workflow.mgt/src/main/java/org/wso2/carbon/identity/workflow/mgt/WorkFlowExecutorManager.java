@@ -143,7 +143,16 @@ public class WorkFlowExecutorManager {
                     if (!requestSaved) {
                         WorkflowRequestDAO requestDAO = new WorkflowRequestDAO();
                         int tenant = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+                        // Get current user from thread-local context (for logged-in users).
                         String currentUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+
+                        // If no logged-in user (e.g: self-registration flow),extract username from request parameters.
+                        if (StringUtils.isBlank(currentUser)) {
+                            currentUser = extractUsernameFromRequest(workFlowRequest);
+                                log.debug("No logged-in user found. Extracted username from workflow request.");
+                        }
+
                         requestDAO.addWorkflowEntry(workFlowRequest, currentUser, tenant);
                         requestSaved = true;
                     }
@@ -307,5 +316,31 @@ public class WorkFlowExecutorManager {
         WorkflowRequestDAO workflowRequestDAO = new WorkflowRequestDAO();
         requestEntityRelationshipDAO.deleteRelationshipsOfRequest(requestId);
         workflowRequestDAO.updateStatusOfRequest(requestId, status);
+    }
+
+    /**
+     * Extracts the username from workflow request parameters.
+     * This is useful for scenarios like self-registration where there's no logged-in user.
+     *
+     * @param workFlowRequest The workflow request.
+     * @return The username if found in parameters, null otherwise.
+     */
+    private String extractUsernameFromRequest(WorkflowRequest workFlowRequest) {
+
+        if (workFlowRequest == null || CollectionUtils.isEmpty(workFlowRequest.getRequestParameters())) {
+            log.debug("Cannot extract username: workflow request or parameters are empty");
+            return null;
+        }
+
+        String userNameParam = "Username";
+
+        for (RequestParameter parameter : workFlowRequest.getRequestParameters()) {
+            if (parameter != null && StringUtils.isNotBlank(parameter.getName()) && userNameParam.
+                    equalsIgnoreCase(parameter.getName()) && parameter.getValue() != null) {
+                return parameter.getValue().toString();
+            }
+        }
+
+        return null;
     }
 }
