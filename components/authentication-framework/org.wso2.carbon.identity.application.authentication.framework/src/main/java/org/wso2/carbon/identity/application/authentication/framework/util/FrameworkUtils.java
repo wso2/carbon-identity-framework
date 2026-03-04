@@ -1644,6 +1644,51 @@ public class FrameworkUtils {
 
         // We use the tenant domain set in context only in tenanted session is enabled.
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String appResidentOrganization = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            if (StringUtils.isNotBlank(appResidentOrganization)) {
+                try {
+                    return FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrganization);
+                } catch (FrameworkException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error occurred while resolving tenant domain from organization id: "
+                                + appResidentOrganization + ". Hence falling back to get the root tenant domain " +
+                                "from carbon context considering the whole organization hierarchy", e);
+                    }
+                    return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                }
+            }
+
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantedSessionsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+        }
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+    }
+
+
+    /**
+     * Get the tenant domain from the context if tenanted session is enabled, else return carbon.super.
+     *
+     * @return tenant domain
+     */
+    public static String getLoginTenantDomain() throws FrameworkException {
+
+        // We use the tenant domain set in context only in tenanted session is enabled.
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String appResidentOrganization = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            if (StringUtils.isNotBlank(appResidentOrganization)) {
+                return FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrganization);
+            }
+
             String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
             if (StringUtils.isNotBlank(tenantDomain)) {
                 return tenantDomain;
