@@ -2139,18 +2139,18 @@
 
           <!-- [Organization] User Credential Management API -->
           <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
-              <Scopes>internal_org_user_mgt_view</Scopes>
+              <Scopes>internal_org_user_credential_mgt_view</Scopes>
           </Resource>
           <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
-              <Scopes>internal_org_user_mgt_delete</Scopes>
+              <Scopes>internal_org_user_credential_mgt_delete</Scopes>
           </Resource>
 
           <!-- User Credential Management API -->
           <Resource context="(.*)/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
-              <Scopes>internal_user_mgt_view</Scopes>
+              <Scopes>internal_user_credential_mgt_view</Scopes>
           </Resource>
           <Resource context="(.*)/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
-              <Scopes>internal_user_mgt_delete</Scopes>
+              <Scopes>internal_user_credential_mgt_delete</Scopes>
           </Resource>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
