@@ -449,7 +449,7 @@
             </Create>
             <Delete>
                 <Scope name="internal_user_unshare"/>
-                <Scope name="internal_user_mgt_delete"/>
+
             </Delete>
             <Read>
                 <Scope name="console:users_view"/>
@@ -591,11 +591,11 @@
             <Create>
                 <Scope name="internal_org_user_share"/>
                 <Scope name="console:org:users_edit"/>
-                <Scope name="internal_org_user_mgt_update"/>
+
             </Create>
             <Delete>
                 <Scope name="internal_org_user_unshare"/>
-                <Scope name="internal_org_user_mgt_delete"/>
+
             </Delete>
             <Read>
                 <Scope name="console:org:users_view"/>
@@ -1460,11 +1460,11 @@
             <Create>
                 <Scope name="internal_user_share"/>
                 <Scope name="console:users_edit"/>
-                <Scope name="internal_user_mgt_update"/>
+
             </Create>
             <Delete>
                 <Scope name="internal_user_unshare"/>
-                <Scope name="internal_user_mgt_delete"/>
+
             </Delete>
             <Read>
                 <Scope name="console:users_view"/>
@@ -1755,11 +1755,11 @@
             <Create>
                 <Scope name="internal_org_user_share"/>
                 <Scope name="console:org:users_edit"/>
-                <Scope name="internal_org_user_mgt_update"/>
+
             </Create>
             <Delete>
                 <Scope name="internal_org_user_unshare"/>
-                <Scope name="internal_org_user_mgt_delete"/>
+
             </Delete>
             <Read>
                 <Scope name="console:org:users_view"/>
