@@ -28,6 +28,8 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -59,6 +61,7 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -358,6 +361,27 @@ public class OutboundProvisioningManager {
                 inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
             }
 
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                        LogConstants.OutboundProvisioning.EXECUTE_OUTBOUND_PROVISIONING);
+                diagLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER, serviceProviderIdentifier)
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_TYPE,
+                                provisioningEntity.getEntityType() != null
+                                        ? provisioningEntity.getEntityType().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                        .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
+                                provisioningEntity.getOperation() != null
+                                        ? provisioningEntity.getOperation().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.JIT_PROVISIONING, String.valueOf(jitProvisioning))
+                        .resultMessage("Initiating outbound provisioning.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
+
             // get details about the service provider.any in-bound provisioning request via
             // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
             // Authentication is considered as coming from the local service provider.
@@ -401,6 +425,19 @@ public class OutboundProvisioningManager {
                     // LOCAL_SP uses WSO2_CARBON_DIALECT; spClaimMappings is not needed.
                     spClaimMappings = null;
                 }
+            }
+
+            if (LoggerUtils.isDiagnosticLogsEnabled() && MapUtils.isEmpty(connectors)) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                        LogConstants.OutboundProvisioning.RESOLVE_PROVISIONING_CONNECTORS)
+                        .inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                                serviceProvider.getApplicationName())
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
+                        .resultMessage("No outbound provisioning connectors configured for the application." +
+                                " Provisioning will be skipped.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
 
             String provisioningEntityTenantDomainName = spTenantDomainName;
@@ -501,6 +538,19 @@ public class OutboundProvisioningManager {
                     (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null)) {
                     //No provisioning identifier found. User has not outbound provisioned to this idp. So no need to
                     // send outbound delete request. Continue the flow
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                                LogConstants.OutboundProvisioning.DETERMINE_PROVISIONING_OPERATION)
+                                .inputParam(LogConstants.InputKeys.IDP, idPName)
+                                .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                                .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                        ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                                .resultMessage("Skipping DELETE operation. Entity has not been provisioned" +
+                                        " to this IdP.")
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                    }
                     continue;
                 }
                 if (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null) {
@@ -593,6 +643,18 @@ public class OutboundProvisioningManager {
                     if (!canUserBeProvisioned(provisioningEntity, provisionByRoleList,
                             provisioningEntityTenantDomainName)) {
                         if (!canUserBeDeProvisioned(provisionedIdentifier)) {
+                            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                                        LogConstants.OutboundProvisioning.CHECK_PROVISIONING_ELIGIBILITY)
+                                        .inputParam(LogConstants.InputKeys.IDP, idPName)
+                                        .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                                        .resultMessage("User is not eligible for provisioning or de-provisioning")
+                                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                            }
                             continue;
                         } else {
                             // This is used when user removed from the provisioning role
