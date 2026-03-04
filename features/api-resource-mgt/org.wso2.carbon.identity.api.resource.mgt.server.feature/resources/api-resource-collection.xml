@@ -434,7 +434,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="userSharing" displayName="User Sharing" type="tenant">
+    <APIResourceCollection name="userSharing" displayName="User Sharing V2" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:userSharing"/>
@@ -580,7 +580,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_userSharing" displayName="User Sharing" type="organization">
+    <APIResourceCollection name="org_userSharing" displayName="User Sharing V2" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:userSharing"/>
@@ -1449,7 +1449,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="userSharing" displayName="User Sharing" type="tenant">
+    <APIResourceCollection name="userSharing" displayName="User Sharing V2" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:userSharing"/>
@@ -1744,7 +1744,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_userSharing" displayName="User Sharing" type="organization">
+    <APIResourceCollection name="org_userSharing" displayName="User Sharing V2" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:userSharing"/>

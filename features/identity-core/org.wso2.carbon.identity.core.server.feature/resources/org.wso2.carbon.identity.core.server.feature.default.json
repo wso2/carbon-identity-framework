@@ -1841,16 +1841,16 @@
   ],
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
-  "console.users.sub_features.userSharing.scopes.create": [
+  "console.users.sub_features.userSharingV2.scopes.create": [
     "internal_user_share"
   ],
-  "console.users.sub_features.userSharing.scopes.delete": [
+  "console.users.sub_features.userSharingV2.scopes.delete": [
     "internal_user_unshare"
   ],
-  "console.users.sub_features.userSharing.scopes.read": [
+  "console.users.sub_features.userSharingV2.scopes.read": [
     "internal_user_shared_access_view"
   ],
-  "console.users.sub_features.userSharing.scopes.update": [
+  "console.users.sub_features.userSharingV2.scopes.update": [
     "internal_user_shared_access_update"
   ],
   "console.secrets_management.enabled": true,

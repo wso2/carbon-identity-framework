@@ -1654,17 +1654,17 @@
                    description="Manage edits of users from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="User Sharing Management Feature" identifier="console:userSharing"
+    <APIResource name="User Sharing V2 Management Feature" identifier="console:userSharing"
                  requiresAuthorization="true"
-                 description="Resource representation of the User Sharing Management Feature"
+                 description="Resource representation of the User Sharing V2 Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="User Sharing Feature" name="console:userSharing"
-                   description="Manage user sharing from the Console"/>
-            <Scope displayName="User Sharing View Feature" name="console:userSharing_view"
-                   description="View user sharing from the Console"/>
-            <Scope displayName="User Sharing Edit Feature" name="console:userSharing_edit"
-                   description="Manage edits of user sharing from the Console"/>
+            <Scope displayName="User Sharing V2 Feature" name="console:userSharing"
+                   description="Manage user sharing V2 from the Console"/>
+            <Scope displayName="User Sharing V2 View Feature" name="console:userSharing_view"
+                   description="View user sharing V2 from the Console"/>
+            <Scope displayName="User Sharing V2 Edit Feature" name="console:userSharing_edit"
+                   description="Manage edits of user sharing V2 from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"
@@ -1693,17 +1693,17 @@
                    description="Manage edits of users in the organization from the Console"/>
         </Scopes>
     </APIResource>
-    <APIResource name="User Sharing Management Feature" identifier="console:org:userSharing"
+    <APIResource name="User Sharing V2 Management Feature" identifier="console:org:userSharing"
                  requiresAuthorization="true"
-                 description="Resource representation of the User Sharing Management Feature"
+                 description="Resource representation of the User Sharing V2 Management Feature"
                  type="CONSOLE_ORG_FEATURE">
         <Scopes>
-            <Scope displayName="User Sharing Feature" name="console:org:userSharing"
-                   description="Manage user sharing in the organization from the Console"/>
-            <Scope displayName="User Sharing View Feature" name="console:org:userSharing_view"
-                   description="View user sharing in the organization from the Console"/>
-            <Scope displayName="User Sharing Edit Feature" name="console:org:userSharing_edit"
-                   description="Manage edits of user sharing in the organization from the Console"/>
+            <Scope displayName="User Sharing V2 Feature" name="console:org:userSharing"
+                   description="Manage user sharing V2 in the organization from the Console"/>
+            <Scope displayName="User Sharing V2 View Feature" name="console:org:userSharing_view"
+                   description="View user sharing V2 in the organization from the Console"/>
+            <Scope displayName="User Sharing V2 Edit Feature" name="console:org:userSharing_edit"
+                   description="Manage edits of user sharing V2 in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
