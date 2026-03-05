@@ -239,6 +239,8 @@ public class DefaultInboundUserProvisioningListenerTest {
                 {new Flow.Builder().name(Flow.Name.JUST_IN_TIME_PROVISION)
                         .initiatingPersona(Flow.InitiatingPersona.USER).build()},
                 {new Flow.Builder().name(Flow.Name.INVITE).initiatingPersona(Flow.InitiatingPersona.ADMIN).build()},
+                {new Flow.Builder().name(Flow.Name.INVITED_USER_REGISTRATION)
+                        .initiatingPersona(Flow.InitiatingPersona.ADMIN).build()},
         };
     }
 

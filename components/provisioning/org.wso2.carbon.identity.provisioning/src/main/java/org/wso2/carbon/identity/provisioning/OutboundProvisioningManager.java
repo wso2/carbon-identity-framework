@@ -73,7 +73,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
@@ -429,7 +429,7 @@ public class OutboundProvisioningManager {
 
             ProvisioningEntity outboundProEntity;
 
-            ExecutorService executors = Executors.newFixedThreadPool(connectors.size());
+            ExecutorService executors = ThreadLocalAwareExecutors.newFixedThreadPool(connectors.size());
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
