@@ -2933,6 +2933,8 @@
         <CustomContent>
             <MaxFileSize>1048576</MaxFileSize>
         </CustomContent>
+        <UseIntermediateLoaderPage>false</UseIntermediateLoaderPage>
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>false</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>

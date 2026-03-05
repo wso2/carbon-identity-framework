@@ -5079,6 +5079,10 @@
         <CustomContent>
             <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
         </CustomContent>
+        <!-- When enabled, only a generic loading indicator will be shown on intermediate SAML (Inbound and Federated) and Passive STS pages. -->
+        <UseIntermediateLoaderPage>{{branding_configuration.use_intermediate_loader_page}}</UseIntermediateLoaderPage>
+        <!-- When enabled, the invalid tenant domain error page will be served from the Authentication Portal. -->
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>{{branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal}}</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
