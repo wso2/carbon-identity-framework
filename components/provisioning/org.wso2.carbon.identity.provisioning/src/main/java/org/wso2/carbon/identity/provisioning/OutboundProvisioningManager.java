@@ -361,27 +361,6 @@ public class OutboundProvisioningManager {
                 inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
             }
 
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
-                        LogConstants.OutboundProvisioning.EXECUTE_OUTBOUND_PROVISIONING);
-                diagLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER, serviceProviderIdentifier)
-                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
-                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_TYPE,
-                                provisioningEntity.getEntityType() != null
-                                        ? provisioningEntity.getEntityType().toString() : null)
-                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
-                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
-                        .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
-                                provisioningEntity.getOperation() != null
-                                        ? provisioningEntity.getOperation().toString() : null)
-                        .inputParam(LogConstants.OutboundProvisioning.JIT_PROVISIONING, String.valueOf(jitProvisioning))
-                        .resultMessage("Initiating outbound provisioning.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
-                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-            }
-
             // get details about the service provider.any in-bound provisioning request via
             // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
             // Authentication is considered as coming from the local service provider.
@@ -427,17 +406,20 @@ public class OutboundProvisioningManager {
                 }
             }
 
-            if (LoggerUtils.isDiagnosticLogsEnabled() && MapUtils.isEmpty(connectors)) {
-                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
-                        LogConstants.OutboundProvisioning.RESOLVE_PROVISIONING_CONNECTORS)
-                        .inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
-                                serviceProvider.getApplicationName())
-                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
-                        .resultMessage("No outbound provisioning connectors configured for the application." +
-                                " Provisioning will be skipped.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+            if (MapUtils.isEmpty(connectors)) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                            LogConstants.OutboundProvisioning.RESOLVE_PROVISIONING_CONNECTORS)
+                            .inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                                    serviceProvider.getApplicationName())
+                            .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
+                            .resultMessage("No outbound provisioning connectors configured. " +
+                                    "Provisioning will be skipped.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                }
+                return;
             }
 
             String provisioningEntityTenantDomainName = spTenantDomainName;
@@ -447,10 +429,28 @@ public class OutboundProvisioningManager {
 
             ProvisioningEntity outboundProEntity;
 
-            ExecutorService executors = null;
-
-            if (MapUtils.isNotEmpty(connectors)) {
-                executors = Executors.newFixedThreadPool(connectors.size());
+            ExecutorService executors = Executors.newFixedThreadPool(connectors.size());
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                        LogConstants.OutboundProvisioning.EXECUTE_OUTBOUND_PROVISIONING);
+                diagLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                                serviceProvider.getApplicationName())
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_TYPE,
+                                provisioningEntity.getEntityType() != null
+                                        ? provisioningEntity.getEntityType().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                        .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
+                                provisioningEntity.getOperation() != null
+                                        ? provisioningEntity.getOperation().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.JIT_PROVISIONING,
+                                String.valueOf(jitProvisioning))
+                        .resultMessage("Initiating outbound provisioning.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
 
             for (Iterator<Entry<String, RuntimeProvisioningConfig>> iterator = connectors
@@ -542,12 +542,12 @@ public class OutboundProvisioningManager {
                         LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                                 LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
                                 LogConstants.OutboundProvisioning.DETERMINE_PROVISIONING_OPERATION)
-                                .inputParam(LogConstants.InputKeys.IDP, idPName)
+                                .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
                                 .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
                                 .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
                                         ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
                                 .resultMessage("Skipping DELETE operation. Entity has not been provisioned" +
-                                        " to this IdP.")
+                                        " to this connection.")
                                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                                 .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
                     }
@@ -647,7 +647,7 @@ public class OutboundProvisioningManager {
                                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                                         LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
                                         LogConstants.OutboundProvisioning.CHECK_PROVISIONING_ELIGIBILITY)
-                                        .inputParam(LogConstants.InputKeys.IDP, idPName)
+                                        .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
                                         .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
                                         .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
                                                 ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
@@ -693,10 +693,7 @@ public class OutboundProvisioningManager {
                 }
             }
 
-            if (executors != null) {
-                executors.shutdown();
-            }
-
+            executors.shutdown();
         } catch (CarbonException | IdentityApplicationManagementException | IdentityProviderManagementException | UserStoreException e) {
             throw new IdentityProvisioningException("Error occurred while checking for user " +
                                                     "provisioning", e);

@@ -153,6 +153,7 @@
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*;version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.registry.core.service;version="${carbon.kernel.registry.imp.pkg.version}",

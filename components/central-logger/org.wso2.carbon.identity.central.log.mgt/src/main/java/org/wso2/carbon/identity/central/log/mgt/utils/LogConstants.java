@@ -190,6 +190,7 @@ public class LogConstants {
         public static final String PROVISION_USER = "provision-user";
         public static final String PROVISION_GROUP = "provision-group";
 
+        public static final String CONNECTION = "connection";
         public static final String CONNECTOR_TYPE = "connector-type";
         public static final String PROVISIONING_OPERATION = "provisioning-operation";
         public static final String ENTITY_TYPE = "entity-type";

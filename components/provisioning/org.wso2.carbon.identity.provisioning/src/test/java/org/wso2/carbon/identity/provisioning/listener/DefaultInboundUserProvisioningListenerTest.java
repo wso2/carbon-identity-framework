@@ -26,10 +26,13 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
@@ -41,6 +44,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -226,5 +230,39 @@ public class DefaultInboundUserProvisioningListenerTest {
         assertTrue(hasOldGroupName, "OLD_GROUP_NAME_CLAIM_URI should be present");
         assertTrue(hasNewGroupName, "NEW_GROUP_NAME_CLAIM_URI should be present");
         assertTrue(hasGroupClaim, "GROUP_CLAIM_URI should be present");
+    }
+
+    @DataProvider(name = "userCreationFlows")
+    public Object[][] userCreationFlows() {
+        return new Object[][]{
+                {new Flow.Builder().name(Flow.Name.REGISTER).initiatingPersona(Flow.InitiatingPersona.ADMIN).build()},
+                {new Flow.Builder().name(Flow.Name.JUST_IN_TIME_PROVISION)
+                        .initiatingPersona(Flow.InitiatingPersona.USER).build()},
+                {new Flow.Builder().name(Flow.Name.INVITE).initiatingPersona(Flow.InitiatingPersona.ADMIN).build()},
+        };
+    }
+
+    @Test(dataProvider = "userCreationFlows")
+    public void testDoPreSetUserClaimValues_DuringUserCreationWithOnlyLastPasswordUpdateTime_SkipsProvisioning(
+            Flow flow) throws UserStoreException {
+
+        try (MockedStatic<IdentityContext> identityContextMockedStatic =
+                     Mockito.mockStatic(IdentityContext.class)) {
+            IdentityContext mockIdentityContext = Mockito.mock(IdentityContext.class);
+            identityContextMockedStatic.when(IdentityContext::getThreadLocalIdentityContext)
+                    .thenReturn(mockIdentityContext);
+            when(mockIdentityContext.getCurrentFlow()).thenReturn(flow);
+
+            Map<String, String> inboundAttributes = new HashMap<>();
+            inboundAttributes.put("http://wso2.org/claims/identity/lastPasswordUpdateTime",
+                    String.valueOf(System.currentTimeMillis()));
+
+            boolean result = listener.doPreSetUserClaimValues(
+                    "testUser", inboundAttributes, "default", userStoreManager);
+
+            assertTrue(result, "Should return true without triggering provisioning");
+            verify(outboundProvisioningManager, Mockito.never()).provision(
+                    any(ProvisioningEntity.class), anyString(), anyString(), anyString(), anyBoolean());
+        }
     }
 }

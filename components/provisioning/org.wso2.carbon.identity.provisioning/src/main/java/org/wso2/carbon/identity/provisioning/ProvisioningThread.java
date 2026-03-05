@@ -120,7 +120,7 @@ public class ProvisioningThread implements Callable<Boolean> {
                     LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                             LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
                             LogConstants.OutboundProvisioning.EXECUTE_OUTBOUND_PROVISIONING)
-                            .inputParam(LogConstants.InputKeys.IDP, idPName)
+                            .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
                             .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
                             .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
                                     ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
@@ -168,7 +168,7 @@ public class ProvisioningThread implements Callable<Boolean> {
                         : LogConstants.OutboundProvisioning.PROVISION_USER;
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT, actionId);
-                diagLogBuilder.inputParam(LogConstants.InputKeys.IDP, idPName)
+                diagLogBuilder.inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
                         .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
                         .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
                                 ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
@@ -194,7 +194,7 @@ public class ProvisioningThread implements Callable<Boolean> {
                         : LogConstants.OutboundProvisioning.PROVISION_USER;
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                         LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT, actionId)
-                        .inputParam(LogConstants.InputKeys.IDP, idPName)
+                        .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
                         .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
                         .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
                                 ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
@@ -204,7 +204,6 @@ public class ProvisioningThread implements Callable<Boolean> {
                         .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
                                 provisioningEntity.getOperation() != null
                                         ? provisioningEntity.getOperation().toString() : null)
-                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getClass().getSimpleName())
                         .resultMessage("Outbound provisioning failed.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
