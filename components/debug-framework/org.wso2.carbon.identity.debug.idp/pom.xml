@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>debug-framework</artifactId>
-        <version>7.8.615-SNAPSHOT</version>
+        <version>7.10.35</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -57,6 +57,16 @@
             <groupId>org.wso2.carbon.identity.outbound.auth.oidc</groupId>
             <artifactId>org.wso2.carbon.identity.application.authenticator.oidc</artifactId>
             <version>5.12.36</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.debug.framework</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                    <artifactId>org.wso2.carbon.identity.debug.idp</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -67,8 +77,9 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
+            <version>${equinox.osgi.services.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.oltu.oauth2</groupId>
@@ -111,14 +122,15 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.debug.idp.internal,
-                            org.wso2.carbon.identity.debug.idp.core.*; version="${project.version}"
+                            org.wso2.carbon.identity.debug.idp.core.*; version="${project.version}",
+                            org.wso2.carbon.identity.debug.idp.resolver.*; version="${project.version}"
                         </Export-Package>
                         <Import-Package>
-                            org.wso2.carbon.identity.debug.framework.core.*; version="[7.8,8.0)",
-                            org.wso2.carbon.identity.debug.framework.model.*; version="[7.8,8.0)",
-                            org.wso2.carbon.identity.debug.framework.exception.*; version="[7.8,8.0)",
-                            org.wso2.carbon.identity.debug.framework.extension.*; version="[7.8,8.0)",
-                            org.wso2.carbon.identity.debug.framework.registry.*; version="[7.8,8.0)",
+                            org.wso2.carbon.identity.debug.framework.core.*; version="[7.8.0,8.0.0)",
+                            org.wso2.carbon.identity.debug.framework.model.*; version="[7.8.0,8.0.0)",
+                            org.wso2.carbon.identity.debug.framework.exception.*; version="[7.8.0,8.0.0)",
+                            org.wso2.carbon.identity.debug.framework.extension.*; version="[7.8.0,8.0.0)",
+                            org.wso2.carbon.identity.debug.framework.registry.*; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}",

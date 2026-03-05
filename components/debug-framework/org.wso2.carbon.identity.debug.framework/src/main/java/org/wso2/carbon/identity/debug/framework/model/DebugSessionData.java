@@ -28,7 +28,7 @@ public class DebugSessionData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String sessionId;
+    private String debugId;
     private String status;
     private InputStream sessionData; // Serialized context map.
     private String resultJson;
@@ -37,14 +37,14 @@ public class DebugSessionData implements Serializable {
     private String resourceType;
     private String connectionId;
 
-    public String getSessionId() {
+    public String getDebugId() {
 
-        return sessionId;
+        return debugId;
     }
 
-    public void setSessionId(String sessionId) {
+    public void setDebugId(String debugId) {
 
-        this.sessionId = sessionId;
+        this.debugId = debugId;
     }
 
     public String getStatus() {

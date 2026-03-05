@@ -27,6 +27,9 @@ import java.util.Map;
  */
 public class DebugResponse {
 
+    private static final String STATUS_KEY = "status";
+    private static final String SUCCESS_STATUS = "SUCCESS";
+
     private String status;
     private String message;
     private String errorCode;
@@ -47,8 +50,9 @@ public class DebugResponse {
      */
     public DebugResponse(Map<String, Object> data) {
 
-        this.status = "SUCCESS";
+        this.status = SUCCESS_STATUS;
         this.data = data != null ? data : new HashMap<>();
+        this.data.put(STATUS_KEY, this.status);
     }
 
     /**
@@ -62,6 +66,7 @@ public class DebugResponse {
         this.status = status;
         this.message = message;
         this.data = new HashMap<>();
+        this.data.put(STATUS_KEY, this.status);
     }
 
     /**
@@ -148,6 +153,7 @@ public class DebugResponse {
 
         // Add basic fields for backward compatibility.
         data.put("successful", result.isSuccessful());
+        data.put(STATUS_KEY, response.getStatus());
         data.put("resultId", result.getResultId());
         data.put("timestamp", result.getTimestamp());
 
@@ -179,6 +185,9 @@ public class DebugResponse {
     public void setStatus(String status) {
 
         this.status = status;
+        if (data != null) {
+            data.put(STATUS_KEY, status);
+        }
     }
 
     /**
@@ -238,6 +247,6 @@ public class DebugResponse {
      */
     public boolean isSuccess() {
 
-        return "SUCCESS".equals(status);
+        return SUCCESS_STATUS.equals(status);
     }
 }

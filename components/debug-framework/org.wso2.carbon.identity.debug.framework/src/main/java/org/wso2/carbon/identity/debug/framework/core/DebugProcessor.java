@@ -207,7 +207,7 @@ public abstract class DebugProcessor {
      * Result should be stored in a format that can be retrieved later.
      *
      * @param context AuthenticationContext containing all debug information and
-     *                session identifiers.
+     *                debug identifiers.
      */
     protected abstract void buildAndCacheDebugResult(AuthenticationContext context, String state);
 
@@ -221,7 +221,7 @@ public abstract class DebugProcessor {
      * - Custom response format.
      *
      * @param response   HttpServletResponse for sending the response.
-     * @param state      The state parameter for session identification.
+     * @param state      The state parameter for debug identification.
      * @param connectionId The connection identifier.
      * @throws IOException If response cannot be sent.
      */

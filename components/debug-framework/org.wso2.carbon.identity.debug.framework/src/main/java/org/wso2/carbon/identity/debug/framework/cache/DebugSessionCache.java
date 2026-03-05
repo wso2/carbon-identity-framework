@@ -71,7 +71,7 @@ public final class DebugSessionCache {
         }
         try {
             DebugSessionData sessionData = new DebugSessionData();
-            sessionData.setSessionId(key);
+            sessionData.setDebugId(key);
             sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_PENDING);
             sessionData.setCreatedTime(System.currentTimeMillis());
             sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
@@ -193,7 +193,7 @@ public final class DebugSessionCache {
 
         try {
             DebugSessionData sessionData = new DebugSessionData();
-            sessionData.setSessionId(key);
+            sessionData.setDebugId(key);
             sessionData.setResultJson(result);
             sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_COMPLETED);
             sessionData.setCreatedTime(System.currentTimeMillis());

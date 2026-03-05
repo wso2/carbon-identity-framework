@@ -44,44 +44,44 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     private static final String DEBUG_SESSION_PREFIX = "debug-";
 
     private static final String SQL_INSERT_DEBUG_SESSION = "INSERT INTO IDN_DEBUG_SESSION " +
-            "(SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) " +
+            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-    private static final String SQL_GET_DEBUG_SESSION = "SELECT SESSION_ID, STATUS, SESSION_DATA, " +
+    private static final String SQL_GET_DEBUG_SESSION = "SELECT DEBUG_ID, STATUS, SESSION_DATA, " +
             "RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, " +
-            "RESOURCE_ID FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
+            "RESOURCE_ID FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
 
-    private static final String SQL_DELETE_DEBUG_SESSION = "DELETE FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
+    private static final String SQL_DELETE_DEBUG_SESSION = "DELETE FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
 
     private static final String SQL_DELETE_EXPIRED_DEBUG_SESSIONS 
         = "DELETE FROM IDN_DEBUG_SESSION WHERE EXPIRY_TIME < ?";
 
     // MERGE statement for atomic upsert (H2 and most databases support this)
     private static final String SQL_UPSERT_DEBUG_SESSION 
-        = "MERGE INTO IDN_DEBUG_SESSION (SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, "
+        = "MERGE INTO IDN_DEBUG_SESSION (DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, "
             +
-            "CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) KEY (SESSION_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            "CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) KEY (DEBUG_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     // Legacy SQLs for backward compatibility (if DB schema is not updated)
     private static final String SQL_INSERT_DEBUG_SESSION_LEGACY = "INSERT INTO IDN_DEBUG_SESSION " +
-            "(SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
+            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
             "VALUES (?, ?, ?, ?, ?, ?)";
 
-    private static final String SQL_GET_DEBUG_SESSION_LEGACY = "SELECT SESSION_ID, STATUS, SESSION_DATA, " +
-            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME FROM IDN_DEBUG_SESSION WHERE SESSION_ID = ?";
+    private static final String SQL_GET_DEBUG_SESSION_LEGACY = "SELECT DEBUG_ID, STATUS, SESSION_DATA, " +
+            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
 
     private static final String SQL_UPSERT_DEBUG_SESSION_LEGACY = "MERGE INTO IDN_DEBUG_SESSION " +
-            "(SESSION_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
-            "KEY (SESSION_ID) VALUES (?, ?, ?, ?, ?, ?)";
+            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
+            "KEY (DEBUG_ID) VALUES (?, ?, ?, ?, ?, ?)";
 
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
-        String normalizedSessionId = normalizeSessionId(sessionData.getSessionId());
+        String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         try {
             jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION, preparedStatement -> {
-                preparedStatement.setString(1, normalizedSessionId);
+                preparedStatement.setString(1, normalizedDebugId);
                 preparedStatement.setString(2, sessionData.getStatus());
                 setSessionData(preparedStatement, 3, sessionData);
                 preparedStatement.setString(4, sessionData.getResultJson());
@@ -97,7 +97,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                         "Falling back to legacy insert without resource info.");
                 try {
                     jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION_LEGACY, preparedStatement -> {
-                        preparedStatement.setString(1, normalizedSessionId);
+                        preparedStatement.setString(1, normalizedDebugId);
                         preparedStatement.setString(2, sessionData.getStatus());
                         setSessionData(preparedStatement, 3, sessionData);
                         preparedStatement.setString(4, sessionData.getResultJson());
@@ -107,26 +107,26 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     return;
                 } catch (DataAccessException ex) {
                     // Log the fallback error
-                    String errorMsg = "Error while creating debug session (fallback): " + sessionData.getSessionId();
+                    String errorMsg = "Error while creating debug session (fallback): " + sessionData.getDebugId();
                     LOG.error(errorMsg, ex);
                     throw new DebugFrameworkServerException(errorMsg, ex);
                 }
             }
-            String errorMsg = "Error while creating debug session: " + sessionData.getSessionId();
+            String errorMsg = "Error while creating debug session: " + sessionData.getDebugId();
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
 
     @Override
-    public DebugSessionData getDebugSession(String sessionId) throws DebugFrameworkServerException {
+    public DebugSessionData getDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String normalizedSessionId = normalizeSessionId(sessionId);
+        String normalizedDebugId = normalizeDebugId(debugId);
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         try {
             return jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION, (resultSet, rowNumber) -> {
                 DebugSessionData data = new DebugSessionData();
-                data.setSessionId(resultSet.getString("SESSION_ID"));
+                data.setDebugId(resultSet.getString("DEBUG_ID"));
                 data.setStatus(resultSet.getString("STATUS"));
                 try {
                     data.setSessionData(resultSet.getBinaryStream("SESSION_DATA"));
@@ -139,7 +139,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 data.setResourceType(resultSet.getString("RESOURCE_TYPE"));
                 data.setConnectionId(resultSet.getString("RESOURCE_ID"));
                 return data;
-            }, preparedStatement -> preparedStatement.setString(1, normalizedSessionId));
+            }, preparedStatement -> preparedStatement.setString(1, normalizedDebugId));
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
             if (isMissingResourceTypeColumnError(e.getCause())) {
@@ -148,7 +148,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 try {
                     return jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION_LEGACY, (resultSet, rowNumber) -> {
                         DebugSessionData data = new DebugSessionData();
-                        data.setSessionId(resultSet.getString("SESSION_ID"));
+                        data.setDebugId(resultSet.getString("DEBUG_ID"));
                         data.setStatus(resultSet.getString("STATUS"));
                         try {
                             data.setSessionData(resultSet.getBinaryStream("SESSION_DATA"));
@@ -159,27 +159,27 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                         data.setCreatedTime(resultSet.getTimestamp("CREATED_TIME").getTime());
                         data.setExpiryTime(resultSet.getTimestamp("EXPIRY_TIME").getTime());
                         return data;
-                    }, preparedStatement -> preparedStatement.setString(1, normalizedSessionId));
+                    }, preparedStatement -> preparedStatement.setString(1, normalizedDebugId));
                 } catch (DataAccessException ex) {
-                    String errorMsg = "Error while retrieving debug session (fallback): " + sessionId;
+                    String errorMsg = "Error while retrieving debug session (fallback): " + debugId;
                     LOG.error(errorMsg, ex);
                     throw new DebugFrameworkServerException(errorMsg, ex);
                 }
             }
-            String errorMsg = "Error while retrieving debug session: " + sessionId;
+            String errorMsg = "Error while retrieving debug session: " + debugId;
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
 
     @Override
-    public void deleteDebugSession(String sessionId) throws DebugFrameworkServerException {
+    public void deleteDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String normalizedSessionId = normalizeSessionId(sessionId);
+        String normalizedDebugId = normalizeDebugId(debugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
-                prepStmt.setString(1, normalizedSessionId);
+                prepStmt.setString(1, normalizedDebugId);
                 prepStmt.executeUpdate();
 
                 if (!connection.getAutoCommit()) {
@@ -187,11 +187,11 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while deleting debug session: " + sessionId;
+            String errorMsg = "Error while deleting debug session: " + debugId;
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         } catch (Exception e) {
-            String errorMsg = "Unexpected error while deleting debug session: " + sessionId;
+            String errorMsg = "Unexpected error while deleting debug session: " + debugId;
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -200,13 +200,13 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     @Override
     public void upsertDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
-        String normalizedSessionId = normalizeSessionId(sessionData.getSessionId());
+        String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             boolean success = false;
             try {
                 try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION)) {
-                    prepStmt.setString(1, normalizedSessionId);
+                    prepStmt.setString(1, normalizedDebugId);
                     prepStmt.setString(2, sessionData.getStatus());
                     setSessionData(prepStmt, 3, sessionData);
                     prepStmt.setString(4, sessionData.getResultJson());
@@ -223,7 +223,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                             "Falling back to legacy upsert without resource info.");
                     try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_LEGACY)) {
-                        prepStmt.setString(1, normalizedSessionId);
+                        prepStmt.setString(1, normalizedDebugId);
                         prepStmt.setString(2, sessionData.getStatus());
                         setSessionData(prepStmt, 3, sessionData);
                         prepStmt.setString(4, sessionData.getResultJson());
@@ -244,15 +244,15 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     connection.commit();
                 }
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug session upserted successfully: " + normalizedSessionId);
+                    LOG.debug("Debug session upserted successfully: " + normalizedDebugId);
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while upserting debug session: " + sessionData.getSessionId();
+            String errorMsg = "Error while upserting debug session: " + sessionData.getDebugId();
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         } catch (Exception e) {
-            String errorMsg = "Unexpected error while upserting debug session: " + sessionData.getSessionId();
+            String errorMsg = "Unexpected error while upserting debug session: " + sessionData.getDebugId();
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -286,19 +286,19 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     }
 
     /**
-     * Normalizes the session ID by removing hyphens from the UUID part.
+     * Normalizes the debug ID by removing hyphens from the UUID part.
      * This ensures consistent storage and retrieval regardless of format.
      *
-     * @param sessionId The session ID to normalize.
-     * @return Normalized session ID (e.g., debug-32charuuid).
+     * @param debugId The debug ID to normalize.
+     * @return Normalized debug ID (e.g., debug-32charuuid).
      */
-    private String normalizeSessionId(String sessionId) {
+    private String normalizeDebugId(String debugId) {
 
-        if (sessionId == null || !sessionId.startsWith(DEBUG_SESSION_PREFIX)) {
-            return sessionId;
+        if (debugId == null || !debugId.startsWith(DEBUG_SESSION_PREFIX)) {
+            return debugId;
         }
 
-        String uuidPart = sessionId.substring(DEBUG_SESSION_PREFIX.length());
+        String uuidPart = debugId.substring(DEBUG_SESSION_PREFIX.length());
         String normalizedUuid = uuidPart.replace("-", "");
         return DEBUG_SESSION_PREFIX + normalizedUuid;
     }

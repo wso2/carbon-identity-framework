@@ -106,30 +106,30 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             return true;
         }
 
-        String sessionId = debugRequest != null ? debugRequest.getEffectiveConnectionId() : null;
-        if (sessionId == null || sessionId.isEmpty()) {
+        String debugId = debugRequest != null ? debugRequest.getEffectiveConnectionId() : null;
+        if (debugId == null || debugId.isEmpty()) {
             return true;
         }
 
-        deleteSessionRecord(sessionId);
+        deleteSessionRecord(debugId);
         return true;
     }
 
     /**
      * Deletes the debug session record from the database.
      *
-     * @param sessionId The session ID to delete.
+     * @param debugId The debug ID to delete.
      */
-    private void deleteSessionRecord(String sessionId) {
+    private void deleteSessionRecord(String debugId) {
 
         try {
-            debugSessionDAO.deleteDebugSession(sessionId);
+            debugSessionDAO.deleteDebugSession(debugId);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully deleted debug session record from database: " + sessionId);
+                LOG.debug("Successfully deleted debug session record from database: " + debugId);
             }
         } catch (DebugFrameworkServerException e) {
             // Log the error. Cleanup should not affect the main flow.
-            LOG.error("Failed to delete debug session record from database: " + sessionId, e);
+            LOG.error("Failed to delete debug session record from database: " + debugId, e);
         }
     }
 }

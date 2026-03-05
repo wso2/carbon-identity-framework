@@ -211,24 +211,24 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
     }
 
     /**
-     * Retrieves the debug result for the given session ID, invoking listeners.
+     * Retrieves the debug result for the given debug ID, invoking listeners.
      * This ensures that post-execution listeners (like cleanup) are executed.
      *
-     * @param sessionId The session ID to retrieve.
-     * @return The debug result JSON string.
+     * @param debugId The debug ID to retrieve.
+     * @return The debug result as a typed map.
      * @throws DebugFrameworkClientException If the session is not found or validation fails.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public String getDebugResult(String sessionId)
+    public Map<String, Object> getDebugResult(String debugId)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        if (sessionId == null) {
+        if (debugId == null) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
         // Create a minimal request context for the listeners.
         DebugRequest debugRequest = new DebugRequest();
-        debugRequest.setConnectionId(sessionId);
+        debugRequest.setConnectionId(debugId);
         debugRequest.setResourceType(DebugFrameworkConstants.DEBUG_RESULT_RETRIEVAL);
 
         try {
@@ -236,27 +236,35 @@ public class DebugRequestCoordinator implements DebugCommonAuthHandler {
             executePreListeners(debugRequest);
 
             // Execution: Get from cache (Pure Read).
-            String resultJson = DebugSessionCache.getInstance().getResult(sessionId);
+            String resultJson = DebugSessionCache.getInstance().getResult(debugId);
 
             if (resultJson == null) {
                 throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, sessionId);
+                        ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
+            }
+
+            Map<String, Object> resultData;
+            try {
+                resultData = new JSONObject(resultJson).toMap();
+            } catch (Exception e) {
+                LOG.error("Invalid debug result JSON for session: " + debugId, e);
+                throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
             }
 
             // Create response object for listeners.
             Map<String, Object> data = new HashMap<>();
-            data.put("result", resultJson);
+            data.put("result", resultData);
             DebugResponse debugResponse = DebugResponse.success(data);
 
             // Post-Execute Listeners.
             executePostListeners(debugResponse, debugRequest);
 
-            return resultJson;
+            return resultData;
 
         } catch (DebugFrameworkClientException e) {
             throw e;
         } catch (Exception e) {
-            LOG.error("Error retrieving debug result for session: " + sessionId, e);
+            LOG.error("Error retrieving debug result for session: " + debugId, e);
             if (e instanceof DebugFrameworkServerException) {
                 throw (DebugFrameworkServerException) e;
             }
