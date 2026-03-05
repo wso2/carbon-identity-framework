@@ -20,8 +20,13 @@ package org.wso2.carbon.identity.flow.mgt.internal;
 
 import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.flow.mgt.FlowUpdateInterceptor;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A singleton class to hold the data of the flow management service.
@@ -32,6 +37,7 @@ public class FlowMgtServiceDataHolder {
     private OrgResourceResolverService orgResourceResolverService;
     private ConfigurationManager configurationManager;
     private CompatibilitySettingsManager compatibilitySettingsManager;
+    private final List<FlowUpdateInterceptor> flowUpdateInterceptors = new ArrayList<>();
 
     private static final FlowMgtServiceDataHolder INSTANCE = new FlowMgtServiceDataHolder();
 
@@ -82,5 +88,20 @@ public class FlowMgtServiceDataHolder {
     public void setCompatibilitySettingsManager(CompatibilitySettingsManager compatibilitySettingsManager) {
 
         this.compatibilitySettingsManager = compatibilitySettingsManager;
+    }
+
+    public List<FlowUpdateInterceptor> getFlowUpdateInterceptors() {
+
+        return Collections.unmodifiableList(flowUpdateInterceptors);
+    }
+
+    public void addFlowUpdateInterceptor(FlowUpdateInterceptor interceptor) {
+
+        flowUpdateInterceptors.add(interceptor);
+    }
+
+    public void removeFlowUpdateInterceptor(FlowUpdateInterceptor interceptor) {
+
+        flowUpdateInterceptors.remove(interceptor);
     }
 }

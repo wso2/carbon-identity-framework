@@ -81,7 +81,7 @@ public class Action {
                 "IN_FLOW_EXTENSION",
                 "In-Flow Extension",
                 "Configure an extension point within an any flow via a custom service.",
-                Category.IN_FLOW);
+                Category.EXTENSION);
 
         private final String pathParam;
         private final String actionType;
@@ -137,7 +137,8 @@ public class Action {
          */
         public enum Category {
             PRE_POST,
-            IN_FLOW
+            IN_FLOW,
+            EXTENSION
         }
     }
 

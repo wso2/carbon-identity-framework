@@ -46,6 +46,8 @@ public class ActionDTOModelResolverFactory {
                 return actionDTOModelResolvers.get(Action.ActionTypes.PRE_UPDATE_PASSWORD);
             case PRE_ISSUE_ACCESS_TOKEN:
                 return actionDTOModelResolvers.get(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+            case IN_FLOW_EXTENSION:
+                return actionDTOModelResolvers.get(Action.ActionTypes.IN_FLOW_EXTENSION);
             default:
                 return null;
         }
