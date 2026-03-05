@@ -76,6 +76,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
         </dependency>
         <dependency>
@@ -175,6 +179,8 @@
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.action.execution.api.*;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.*;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
@@ -197,6 +203,8 @@
                             org.wso2.carbon.identity.flow.execution.engine.validation,
                             org.wso2.carbon.identity.flow.execution.engine.exception,
                             org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management,
                             org.wso2.carbon.identity.flow.execution.engine.graph;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>

@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,9 +29,14 @@ import org.wso2.carbon.identity.action.execution.api.model.Error;
 import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
@@ -51,8 +55,9 @@ import java.util.Map;
  *
  * <p>Execution lifecycle:</p>
  * <ol>
- *   <li>Extract executor metadata: {@code actionId}, {@code expose}, {@code allowedOperations}.</li>
- *   <li>Build the final expose list </li>
+ *   <li>Extract executor metadata: {@code actionId}.</li>
+ *   <li>Resolve access config from the action (with per-flow-type override support via
+ *       {@link ActionManagementService}). Falls back to system defaults if unavailable.</li>
  *   <li>Build a minimal {@link FlowContext} containing only three entries:
  *       the full {@link FlowExecutionContext}, the expose list, and the allowed operations
  *       JSON. The request builder will use these to construct the filtered request.</li>
@@ -61,6 +66,10 @@ import java.util.Map;
  *       Context updates are already applied directly to the {@link FlowExecutionContext}
  *       by the response processor.</li>
  * </ol>
+ *
+ * <p><b>Note:</b> Access config is never read from executor metadata. It is stored exclusively
+ * in action properties (default and per-flow-type overrides in {@code IDN_ACTION_PROPERTIES}).
+ * Executor metadata only provides the {@code actionId}.</p>
  */
 public class InFlowExtensionExecutor implements Executor {
 
@@ -68,16 +77,11 @@ public class InFlowExtensionExecutor implements Executor {
     private static final String EXECUTOR_NAME = "ExtensionExecutor";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static final TypeReference<List<String>> STRING_LIST_TYPE_REF =
-            new TypeReference<List<String>>() { };
-
     public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
     public static final String EXPOSE_KEY = "expose";
     public static final String ALLOWED_OPERATIONS_KEY = "allowedOperations";
     public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
     private static final String ACTION_ID_METADATA_KEY = "actionId";
-    private static final String ALLOWED_OPERATIONS_METADATA_KEY = "allowedOperations";
-    private static final String EXPOSE_METADATA_KEY = "expose";
 
     @Override
     public String getName() {
@@ -102,14 +106,32 @@ public class InFlowExtensionExecutor implements Executor {
                 LOG.debug("Executing In-Flow Extension action with ID: " + actionId);
             }
 
-            String exposeJson = getMetadataValue(context, EXPOSE_METADATA_KEY);
-            List<String> expose = buildExposeList(exposeJson);
+            // Resolve access config exclusively from the action (with flow-type override support).
+            // Access config is NOT stored in executor metadata — it is stored in action properties.
+            AccessConfig resolvedConfig = resolveAccessConfigFromAction(actionId, context);
+
+            List<String> expose;
+            String allowedOpsJson = null;
+
+            if (resolvedConfig != null && resolvedConfig.getExpose() != null) {
+                expose = resolvedConfig.getExpose();
+            } else {
+                // No access config on action — use system defaults.
+                expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+            }
+
+            if (resolvedConfig != null && resolvedConfig.getAllowedOperations() != null) {
+                try {
+                    allowedOpsJson = OBJECT_MAPPER.writeValueAsString(resolvedConfig.getAllowedOperations());
+                } catch (JsonProcessingException e) {
+                    LOG.error("Failed to serialize resolved allowed operations.", e);
+                }
+            }
 
             FlowContext flowContext = FlowContext.create()
                     .add(FLOW_EXECUTION_CONTEXT_KEY, context)
                     .add(EXPOSE_KEY, expose);
 
-            String allowedOpsJson = getMetadataValue(context, ALLOWED_OPERATIONS_METADATA_KEY);
             if (allowedOpsJson != null) {
                 flowContext.add(ALLOWED_OPERATIONS_KEY, allowedOpsJson);
             }
@@ -147,29 +169,6 @@ public class InFlowExtensionExecutor implements Executor {
     public ExecutorResponse rollback(FlowExecutionContext context) {
 
         return null;
-    }
-
-    /**
-     * Build the effective expose list from executor metadata.
-     *
-     * @param exposeJson JSON array of string prefixes from metadata.
-     * @return The effective expose list.
-     */
-    private List<String> buildExposeList(String exposeJson) {
-
-        List<String> expose;
-        if (exposeJson != null && !exposeJson.isEmpty()) {
-            try {
-                expose = new ArrayList<>(OBJECT_MAPPER.readValue(exposeJson, STRING_LIST_TYPE_REF));
-            } catch (JsonProcessingException e) {
-                LOG.error("Failed to parse expose configuration: " + e.getMessage(), e);
-                expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
-            }
-        } else {
-            expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
-        }
-
-        return Collections.unmodifiableList(expose);
     }
 
     /**
@@ -266,6 +265,45 @@ public class InFlowExtensionExecutor implements Executor {
     private ActionExecutorService getActionExecutorService() {
 
         return FlowExecutionEngineDataHolder.getInstance().getActionExecutorService();
+    }
+
+    private ActionManagementService getActionManagementService() {
+
+        return FlowExecutionEngineDataHolder.getInstance().getActionManagementService();
+    }
+
+    /**
+     * Resolve the effective access config for the given action ID and flow context.
+     * Uses the action's flow-type-specific overrides if available, otherwise falls back to
+     * the action's default access config.
+     *
+     * @param actionId The action ID.
+     * @param context  The flow execution context (contains flow type and tenant info).
+     * @return The resolved AccessConfig, or {@code null} if the action cannot be resolved.
+     */
+    private AccessConfig resolveAccessConfigFromAction(String actionId, FlowExecutionContext context) {
+
+        ActionManagementService actionMgtService = getActionManagementService();
+        if (actionMgtService == null) {
+            LOG.warn("ActionManagementService is not available. Using system defaults for access config.");
+            return null;
+        }
+
+        try {
+            Action action = actionMgtService.getActionByActionId(
+                    Action.ActionTypes.IN_FLOW_EXTENSION.getActionType(),
+                    actionId, context.getTenantDomain());
+
+            if (action instanceof InFlowExtensionAction) {
+                InFlowExtensionAction extensionAction = (InFlowExtensionAction) action;
+                String flowType = context.getFlowType();
+                return extensionAction.resolveAccessConfig(flowType);
+            }
+        } catch (ActionMgtException e) {
+            LOG.error("Error retrieving action " + actionId + " for access config resolution. "
+                    + "Using system defaults.", e);
+        }
+        return null;
     }
 
     /**

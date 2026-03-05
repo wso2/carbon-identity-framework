@@ -317,8 +317,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private void validateMaxActionsPerType(String actionType, String tenantDomain) throws ActionMgtException {
 
-        // In-flow actions are not limited by the maximum actions per action type; eg: AUTHENTICATION action type.
-        if (Action.ActionTypes.Category.IN_FLOW.equals(Action.ActionTypes.valueOf(actionType).getCategory())) {
+        // In-flow and extension actions are not limited by the maximum actions per action type.
+        Action.ActionTypes.Category category = Action.ActionTypes.valueOf(actionType).getCategory();
+        if (Action.ActionTypes.Category.IN_FLOW.equals(category)
+                || Action.ActionTypes.Category.EXTENSION.equals(category)) {
             return;
         }
         Map<String, Integer> actionsCountPerType = getActionsCountPerType(tenantDomain);
@@ -365,8 +367,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
-        Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
-                Action.Status.ACTIVE : Action.Status.INACTIVE;
+        Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.PRE_POST ?
+                Action.Status.INACTIVE : Action.Status.ACTIVE;
 
         String actionVersion = ActionManagementConfig.getInstance().getLatestVersion(resolvedActionType);
 
