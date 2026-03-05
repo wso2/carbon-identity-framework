@@ -39,5 +39,12 @@
           "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.target_value | default("true")}},
           "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.default_value | default("false")}}
     }
+  },
+  "scim2": {
+    "disableBasicAuthForMeEndpoint" : {
+        "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.default_value | default("true")}}
+    }
   }
 }
