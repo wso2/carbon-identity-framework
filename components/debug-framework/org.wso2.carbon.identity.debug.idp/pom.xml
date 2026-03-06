@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <parent>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <artifactId>debug-framework</artifactId>
+        <version>7.8.615-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.wso2.carbon.identity.debug.idp</artifactId>
+    <packaging>bundle</packaging>
+    <name>WSO2 Carbon - Identity Provider Debug Handler</name>
+    <description>Identity Provider (IdP) debugging implementation for the debug framework</description>
+    <url>http://wso2.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.debug.framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.idp.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.outbound.auth.oidc</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authenticator.oidc</artifactId>
+            <version>5.12.36</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oltu.oauth2</groupId>
+            <artifactId>org.apache.oltu.oauth2.client</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oltu.oauth2</groupId>
+            <artifactId>org.apache.oltu.oauth2.common</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Bundle-Description>${project.description}</Bundle-Description>
+                        <Private-Package>
+                            org.wso2.carbon.identity.debug.idp.internal
+                        </Private-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.identity.debug.idp.internal,
+                            org.wso2.carbon.identity.debug.idp.core.*; version="${project.version}"
+                        </Export-Package>
+                        <Import-Package>
+                            org.wso2.carbon.identity.debug.framework.core.*; version="[7.8,8.0)",
+                            org.wso2.carbon.identity.debug.framework.model.*; version="[7.8,8.0)",
+                            org.wso2.carbon.identity.debug.framework.exception.*; version="[7.8,8.0)",
+                            org.wso2.carbon.identity.debug.framework.extension.*; version="[7.8,8.0)",
+                            org.wso2.carbon.identity.debug.framework.registry.*; version="[7.8,8.0)",
+                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.authenticator.oidc.*,
+                            org.osgi.framework; version="[1.7.0,2.0.0)",
+                            org.osgi.service.component; version="[1.2.0,2.0.0)",
+                            org.osgi.service.component.annotations; version="[1.2.0,2.0.0)",
+                            org.apache.commons.logging; version="[1.2.0,2.0.0)",
+                            org.apache.commons.lang; version="[2.6.0,3.0.0)",
+                            javax.servlet.http; version="[2.6.0,3.0.0)",
+                            javax.servlet; version="[2.6.0,3.0.0)"
+                        </Import-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
