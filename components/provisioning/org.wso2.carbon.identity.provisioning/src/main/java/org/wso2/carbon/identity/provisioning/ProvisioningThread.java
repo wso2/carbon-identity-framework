@@ -22,9 +22,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.utils.DiagnosticLog;
+
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -112,6 +116,19 @@ public class ProvisioningThread implements Callable<Boolean> {
                             ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()), idPName,
                             connectorType));
                 }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                            LogConstants.OutboundProvisioning.EXECUTE_OUTBOUND_PROVISIONING)
+                            .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
+                            .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                            .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                    ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                            .resultMessage("Skipping outbound provisioning. JIT provisioning is not enabled" +
+                                    " for this connector.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                }
                 return true;
             }
             ProvisionedIdentifier provisionedIdentifier = null;
@@ -145,7 +162,52 @@ public class ProvisioningThread implements Callable<Boolean> {
                 }
             }
             success = true;
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                String actionId = provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP
+                        ? LogConstants.OutboundProvisioning.PROVISION_GROUP
+                        : LogConstants.OutboundProvisioning.PROVISION_USER;
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT, actionId);
+                diagLogBuilder.inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
+                        .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_TYPE,
+                                provisioningEntity.getEntityType() != null
+                                        ? provisioningEntity.getEntityType().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
+                                provisioningEntity.getOperation() != null
+                                        ? provisioningEntity.getOperation().toString() : null);
+                if (provisionedIdentifier != null && provisionedIdentifier.getIdentifier() != null) {
+                    diagLogBuilder.inputParam(LogConstants.OutboundProvisioning.PROVISIONED_IDENTIFIER,
+                            provisionedIdentifier.getIdentifier());
+                }
+                diagLogBuilder.resultMessage("Outbound provisioning completed successfully.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
         } catch (Exception e) {
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                String actionId = provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP
+                        ? LogConstants.OutboundProvisioning.PROVISION_GROUP
+                        : LogConstants.OutboundProvisioning.PROVISION_USER;
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT, actionId)
+                        .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
+                        .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_TYPE,
+                                provisioningEntity.getEntityType() != null
+                                        ? provisioningEntity.getEntityType().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
+                                provisioningEntity.getOperation() != null
+                                        ? provisioningEntity.getOperation().toString() : null)
+                        .resultMessage("Outbound provisioning failed.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+            }
             String maskedEntityName = ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName());
             String errMsg = "Outbound provisioning failed for connection: " + idPName + ", connector: " + connectorType
                     + ", entity: " + maskedEntityName + ", entity type: " + provisioningEntity.getEntityType()
