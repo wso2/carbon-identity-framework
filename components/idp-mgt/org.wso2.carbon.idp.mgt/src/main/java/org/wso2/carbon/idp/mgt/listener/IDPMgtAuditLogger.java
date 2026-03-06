@@ -48,6 +48,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     "sf-client-secret", "scim-password", "scim-default-pwd", "scim2-default-pwd")));
 
     // Only these resident IdP properties are safe to include in audit logs.
+    // These properties will not be masked in the logs as they do not contain sensitive information.
     private static final Set<String> RESIDENT_IDP_LOGGABLE_PARAMS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
                     IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT,
@@ -188,7 +189,6 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
         StringBuilder data = new StringBuilder();
         data.append("Name:").append(identityProvider.getIdentityProviderName()).append(", ");
-        data.append("Display Name:").append(identityProvider.getDisplayName()).append(", ");
         data.append("Resource ID:").append(identityProvider.getResourceId());
         if (ArrayUtils.isNotEmpty(identityProvider.getIdpProperties())) {
             IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
@@ -199,7 +199,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     propsBuilder.append(joiner);
                     joiner = ", ";
                     propsBuilder.append("{").append(property.getName()).append(":").append(
-                            LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                        property.getValue()).append("}");
                 }
             }
             if (propsBuilder.length() > 0) {
