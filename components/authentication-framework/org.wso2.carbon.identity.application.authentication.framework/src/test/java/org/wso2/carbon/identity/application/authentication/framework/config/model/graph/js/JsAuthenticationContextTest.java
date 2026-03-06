@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -82,8 +83,9 @@ public class JsAuthenticationContextTest {
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.getUserAttributes().put(claimMapping1, "TestClaimVal1");
         authenticatedUser.getUserAttributes().put(claimMapping2, "TestClaimVal2");
-        authenticatedUser.setTenantDomain("carbon.super");
+        authenticatedUser.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsNashornAuthenticationContext jsNashornAuthenticationContext =
@@ -127,8 +129,9 @@ public class JsAuthenticationContextTest {
     public void testRemoteAddition() throws ScriptException {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setTenantDomain("carbon.super");
+        authenticatedUser.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsNashornAuthenticationContext jsNashornAuthenticationContext =

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -450,7 +450,14 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
 
     protected boolean isAuthenticatedUserInCurrentTenant() {
 
-        return authenticatedUser != null && StringUtils.equals(authenticatedUser.getTenantDomain(),
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        if (authenticatedUser == null) {
+            return false;
+        }
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return StringUtils.equals(authenticatedUser.getTenantDomain(),
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        }
+        return getContext() != null &&
+                StringUtils.equals(authenticatedUser.getTenantDomain(), getContext().getTenantDomain());
     }
 }
