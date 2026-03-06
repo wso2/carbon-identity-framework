@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -45,6 +46,12 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     private static final Set<String> UNLOGGABLE_PARAMS = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList("ClientSecret", "SPNPassword", "APISecret", "scim2-password", "sf-password",
                     "sf-client-secret", "scim-password", "scim-default-pwd", "scim2-default-pwd")));
+
+    // Only these resident IdP properties are safe to include in audit logs.
+    private static final Set<String> RESIDENT_IDP_LOGGABLE_PARAMS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(
+                    IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT,
+                    IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT)));
 
     @Override
     public boolean isEnable() {
@@ -69,6 +76,19 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         String data = buildData(identityProvider);
         audit.info(String.format(AUDIT_MESSAGE, getUser(), "Add-IDP", resourceId, data, SUCCESS));
 
+        return true;
+    }
+
+    @Override
+    public boolean doPostUpdateResidentIdP(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String resourceId = "Undefined";
+        if (identityProvider != null && StringUtils.isNotEmpty(identityProvider.getResourceId())) {
+            resourceId = identityProvider.getResourceId();
+        }
+        String data = buildResidentIdPData(identityProvider);
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update-Resident-IDP", resourceId, data, SUCCESS));
         return true;
     }
 
@@ -150,6 +170,43 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
                     LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME) :
                     CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
+    }
+
+    /**
+     * Builds the audit log data string for a resident IdP update, including only the
+     * basic identity provider details and the IDP properties listed in
+     * {@link #RESIDENT_IDP_LOGGABLE_PARAMS}.
+     *
+     * @param identityProvider The identity provider whose data is being logged.
+     * @return A formatted string containing the allowed data fields.
+     */
+    private String buildResidentIdPData(IdentityProvider identityProvider) {
+
+        if (identityProvider == null) {
+            return StringUtils.EMPTY;
+        }
+
+        StringBuilder data = new StringBuilder();
+        data.append("Name:").append(identityProvider.getIdentityProviderName()).append(", ");
+        data.append("Display Name:").append(identityProvider.getDisplayName()).append(", ");
+        data.append("Resource ID:").append(identityProvider.getResourceId());
+        if (ArrayUtils.isNotEmpty(identityProvider.getIdpProperties())) {
+            IdentityProviderProperty[] idpProperties = identityProvider.getIdpProperties();
+            StringBuilder propsBuilder = new StringBuilder();
+            String joiner = "";
+            for (IdentityProviderProperty property : idpProperties) {
+                if (property != null && RESIDENT_IDP_LOGGABLE_PARAMS.contains(property.getName())) {
+                    propsBuilder.append(joiner);
+                    joiner = ", ";
+                    propsBuilder.append("{").append(property.getName()).append(":").append(
+                            LoggerUtils.getMaskedContent(property.getValue())).append("}");
+                }
+            }
+            if (propsBuilder.length() > 0) {
+                data.append(", IDP Properties:[").append(propsBuilder).append("]");
+            }
+        }
+        return data.toString();
     }
 
     private String buildData(IdentityProvider identityProvider) {
