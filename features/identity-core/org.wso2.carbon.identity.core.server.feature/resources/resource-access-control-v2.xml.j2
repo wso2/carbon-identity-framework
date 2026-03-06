@@ -903,12 +903,12 @@
         </Resource>
 
         <!-- [Organization] User Password Update API -->
-        <Resource context="(.*)/o/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,ClientCertificate,TomcatCookieAuthentication" secured="true" http-method="POST">
+        <Resource context="(.*)/o/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,TomcatCookieAuthentication" secured="true" http-method="POST">
             <Scopes>internal_org_user_password_update</Scopes>
         </Resource>
         
         <!-- User Password Update API -->
-        <Resource context="(.*)/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,ClientCertificate,TomcatCookieAuthentication" secured="true" http-method="POST">
+        <Resource context="(.*)/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,TomcatCookieAuthentication" secured="true" http-method="POST">
             <Scopes>internal_user_password_update</Scopes>
         </Resource>
 
