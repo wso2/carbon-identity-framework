@@ -1577,12 +1577,12 @@
             <Update>
             </Update>
             <Delete>
-                <Scope name="internal_user_mgt_delete"/>
+                <Scope name="internal_user_credential_mgt_delete"/>
             </Delete>
             <Create>
             </Create>
             <Read>
-                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_credential_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -2107,12 +2107,12 @@
             <Update>
             </Update>
             <Delete>
-                <Scope name="internal_org_user_mgt_delete"/>
+                <Scope name="internal_org_user_credential_mgt_delete"/>
             </Delete>
             <Create>
             </Create>
             <Read>
-                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_credential_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

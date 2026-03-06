@@ -2171,9 +2171,9 @@
                  requiresAuthorization="true"
                  description="API representation of the User Credential Management API" type="TENANT">
         <Scopes>
-            <Scope displayName="View Credential" name="internal_user_mgt_view"
+            <Scope displayName="View Credential" name="internal_user_credential_mgt_view"
                    description="View credentials of end users in the organization"/>
-            <Scope displayName="Delete Credential" name="internal_user_mgt_delete"
+            <Scope displayName="Delete Credential" name="internal_user_credential_mgt_delete"
                    description="Delete credentials of end users in the organization"/>
         </Scopes>
     </APIResource>
@@ -2181,9 +2181,9 @@
                  requiresAuthorization="true"
                  description="API representation of the User Credential Management API" type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Credential" name="internal_org_user_mgt_view"
+            <Scope displayName="View Credential" name="internal_org_user_credential_mgt_view"
                    description="View credentials of end users in the organization"/>
-            <Scope displayName="Delete Credential" name="internal_org_user_mgt_delete"
+            <Scope displayName="Delete Credential" name="internal_org_user_credential_mgt_delete"
                    description="Delete credentials of end users in the organization"/>
         </Scopes>
     </APIResource>
