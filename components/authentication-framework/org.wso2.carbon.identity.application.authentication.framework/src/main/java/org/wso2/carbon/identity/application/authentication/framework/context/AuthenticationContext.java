@@ -947,6 +947,26 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     }
 
     /**
+     * Check whether the password reset flow is completed.
+     *
+     * @return True if the password reset flow is completed.
+     */
+    public boolean isPasswordResetComplete() {
+
+        return passwordResetComplete;
+    }
+
+    /**
+     * Set the password reset flow completion status.
+     *
+     * @param passwordResetComplete True if the password reset flow is completed.
+     */
+    public void setPasswordResetComplete(boolean passwordResetComplete) {
+
+        this.passwordResetComplete = passwordResetComplete;
+    }
+
+    /**
      * Create a deep copy of the initial authentication context.
      *
      * @return Clone of authentication context.

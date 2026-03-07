@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -79,7 +79,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 return getCurrentSubjectIdentifierStep() != null;
             case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
-                return getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE) != null;
+                return getWrapped().isPasswordResetComplete();
             default:
                 return super.hasMember(name);
         }
@@ -124,7 +124,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                 return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                         .createJsWritableParameters(getContext().getEndpointParams());
             case FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE:
-                return getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_PASSWORD_RESET_COMPLETE);
+                return getWrapped().isPasswordResetComplete();
             default:
                 return super.getMember(name);
         }
