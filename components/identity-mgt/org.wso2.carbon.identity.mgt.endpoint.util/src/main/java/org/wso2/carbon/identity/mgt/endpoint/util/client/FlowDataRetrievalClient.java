@@ -30,6 +30,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.HttpEntity;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecutionResponse;
 import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
@@ -51,15 +52,23 @@ public class FlowDataRetrievalClient {
     public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain) throws ApiException {
 
         validateInputs(jsonBody, tenantDomain);
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomHostnameVerifier().build()) {
-            String url = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH);
 
-            HttpPost postRequest = new HttpPost(url);
+        CloseableHttpClient httpClient = HTTPClientManager.isConnectionPoolEnabled() ?
+                HTTPClientManager.getHttpClient() :
+                HTTPClientUtils.createClientWithCustomHostnameVerifier().build();
+        String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Using " + (HTTPClientManager.isConnectionPoolEnabled() ? "pooled" : "new")
+                    + " HTTP client for request: POST " + path);
+        }
+
+        try {
+            HttpPost postRequest = new HttpPost(path);
             postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
             postRequest.setEntity(new StringEntity(jsonBody,
                     ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            return httpclient.execute(postRequest, response -> {
+            return httpClient.execute(postRequest, response -> {
                 int statusCode = response.getCode();
                 HttpEntity entity = response.getEntity();
 
@@ -75,6 +84,14 @@ public class FlowDataRetrievalClient {
         } catch (JSONException | IOException e) {
             LOG.error("Error while invoking flow execution request.", e);
             throw new ApiException("Error while invoking flow execution request.");
+        } finally {
+            if (!HTTPClientManager.isConnectionPoolEnabled()) {
+                try {
+                    httpClient.close();
+                } catch (IOException e) {
+                    LOG.warn("Error while closing HTTP client.", e);
+                }
+            }
         }
     }
 
