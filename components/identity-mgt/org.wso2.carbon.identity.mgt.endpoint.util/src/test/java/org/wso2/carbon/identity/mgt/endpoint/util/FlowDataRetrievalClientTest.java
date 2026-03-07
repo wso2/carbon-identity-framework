@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
@@ -32,10 +31,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.FlowDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecutionResponse;
-import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -54,16 +53,14 @@ public class FlowDataRetrievalClientTest {
 
     private static final String SUPER_TENANT_DOMAIN = "carbon.super";
     private static final String VALID_JSON_BODY =
-            "{\"flowId\":\"test-flow-id-001\",\"actionId\":\"button-a2f1\","
-                    + "\"inputs\":{\"http://wso2.com/claims/emailaddress\":\"test@example.com\"}}";
+            "{\"flowId\":\"c8e06de8-7123-44ac-8209-02be5b55387e\",\"actionId\":\"button-a2f1\","
+                    + "\"inputs\":{\"http://wso2.com/claims/emailaddress\":\"sasha@example.com\"}}";
     private static final String MOCK_RESPONSE_JSON =
-            "{\"flowId\":\"test-flow-id-001\",\"flowType\":\"REGISTRATION\","
+            "{\"flowId\":\"c8e06de8-7123-44ac-8209-02be5b55387e\",\"flowType\":\"REGISTRATION\","
                     + "\"flowStatus\":\"INCOMPLETE\",\"type\":\"VIEW\",\"data\":{\"components\":[]}}";
 
     private final FlowDataRetrievalClient flowDataRetrievalClient = new FlowDataRetrievalClient();
 
-    @Mock
-    private HttpClientBuilder httpClientBuilder;
     @Mock
     private CloseableHttpClient httpClient;
     @Mock
@@ -79,7 +76,6 @@ public class FlowDataRetrievalClientTest {
     @BeforeMethod
     public void setUp() throws IOException {
 
-        when(httpClientBuilder.build()).thenReturn(httpClient);
         when(httpClient.execute(any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
                 .thenAnswer(invocation -> {
                     HttpClientResponseHandler<?> handler = invocation.getArgument(1);
@@ -101,13 +97,16 @@ public class FlowDataRetrievalClientTest {
 
         try (MockedStatic<IdentityManagementEndpointUtil> endpointUtil = mockStatic(
                      IdentityManagementEndpointUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
 
             endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
                     SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute"))
                     .thenReturn("https://localhost:9443/api/server/v1/flow/execute");
-            httpclientUtil.when(HTTPClientUtils::createClientWithCustomHostnameVerifier)
-                    .thenReturn(httpClientBuilder);
+            httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
+                    .thenAnswer(invocation -> {
+                        HTTPClientManager.HttpClientOperation<?, ?> operation = invocation.getArgument(0);
+                        return operation.execute(httpClient);
+                    });
 
             FlowExecutionResponse response = flowDataRetrievalClient.executeFlow(
                     VALID_JSON_BODY, SUPER_TENANT_DOMAIN);
@@ -115,10 +114,13 @@ public class FlowDataRetrievalClientTest {
             Assert.assertNotNull(response, "Response should not be null.");
             Assert.assertEquals(response.getStatusCode(), 200, "Status code should be 200.");
             Assert.assertNotNull(response.getResponse(), "Response body should not be null.");
-            Assert.assertEquals(response.getResponse().getString("flowId"), "test-flow-id-001",
+            Assert.assertEquals(response.getResponse().getString("flowId"),
+                    "c8e06de8-7123-44ac-8209-02be5b55387e",
                     "Flow ID should match the expected value.");
             Assert.assertEquals(response.getResponse().getString("flowStatus"), "INCOMPLETE",
                     "Flow status should match the expected value.");
+            Assert.assertEquals(response.getResponse().getString("flowType"), "REGISTRATION",
+                    "Flow type should match the expected value.");
         }
     }
 
@@ -132,13 +134,16 @@ public class FlowDataRetrievalClientTest {
 
         try (MockedStatic<IdentityManagementEndpointUtil> endpointUtil = mockStatic(
                      IdentityManagementEndpointUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
 
             endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
                     SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute"))
                     .thenReturn("https://localhost:9443/api/server/v1/flow/execute");
-            httpclientUtil.when(HTTPClientUtils::createClientWithCustomHostnameVerifier)
-                    .thenReturn(httpClientBuilder);
+            httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
+                    .thenAnswer(invocation -> {
+                        HTTPClientManager.HttpClientOperation<?, ?> operation = invocation.getArgument(0);
+                        return operation.execute(httpClient);
+                    });
 
             // Override the entity to return null.
             when(httpResponse.getEntity()).thenReturn(null);
@@ -199,13 +204,16 @@ public class FlowDataRetrievalClientTest {
 
         try (MockedStatic<IdentityManagementEndpointUtil> endpointUtil = mockStatic(
                      IdentityManagementEndpointUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
 
             endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
                     SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute"))
                     .thenReturn("https://localhost:9443/api/server/v1/flow/execute");
-            httpclientUtil.when(HTTPClientUtils::createClientWithCustomHostnameVerifier)
-                    .thenReturn(httpClientBuilder);
+            httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
+                    .thenAnswer(invocation -> {
+                        HTTPClientManager.HttpClientOperation<?, ?> operation = invocation.getArgument(0);
+                        return operation.execute(httpClient);
+                    });
 
             // Override to throw IOException.
             when(httpClient.execute(any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))

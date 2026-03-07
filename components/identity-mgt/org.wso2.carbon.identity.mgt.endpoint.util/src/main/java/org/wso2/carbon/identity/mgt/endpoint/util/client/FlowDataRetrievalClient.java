@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -33,7 +32,6 @@ import org.json.JSONObject;
 import org.wso2.carbon.identity.core.HTTPClientManager;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.flow.v1.FlowExecutionResponse;
-import org.wso2.carbon.utils.httpclient5.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,46 +59,32 @@ public class FlowDataRetrievalClient {
 
         validateInputs(jsonBody, tenantDomain);
 
-        CloseableHttpClient httpClient = HTTPClientManager.isConnectionPoolEnabled() ?
-                HTTPClientManager.getHttpClient() :
-                HTTPClientUtils.createClientWithCustomHostnameVerifier().build();
-        String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Using " + (HTTPClientManager.isConnectionPoolEnabled() ? "pooled" : "new")
-                    + " HTTP client for request: POST " + path);
-        }
+        return HTTPClientManager.executeWithHttpClient(httpClient -> {
+            try {
+                String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH);
+                HttpPost postRequest = new HttpPost(path);
+                postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
+                postRequest.setEntity(new StringEntity(jsonBody,
+                        ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-        try {
-            HttpPost postRequest = new HttpPost(path);
-            postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
-            postRequest.setEntity(new StringEntity(jsonBody,
-                    ContentType.create(HTTPConstants.MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
+                return httpClient.execute(postRequest, response -> {
+                    int statusCode = response.getCode();
+                    HttpEntity entity = response.getEntity();
 
-            return httpClient.execute(postRequest, response -> {
-                int statusCode = response.getCode();
-                HttpEntity entity = response.getEntity();
+                    if (entity == null) {
+                        return new FlowExecutionResponse(statusCode, new JSONObject());
+                    }
 
-                if (entity == null) {
-                    return new FlowExecutionResponse(statusCode, new JSONObject());
-                }
-
-                try (InputStream is = entity.getContent()) {
-                    String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                    return new FlowExecutionResponse(statusCode, new JSONObject(content));
-                }
-            });
-        } catch (JSONException | IOException e) {
-            LOG.error("Error while invoking flow execution request.", e);
-            throw new ApiException("Error while invoking flow execution request.");
-        } finally {
-            if (!HTTPClientManager.isConnectionPoolEnabled()) {
-                try {
-                    httpClient.close();
-                } catch (IOException e) {
-                    LOG.warn("Error while closing HTTP client.", e);
-                }
+                    try (InputStream is = entity.getContent()) {
+                        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                        return new FlowExecutionResponse(statusCode, new JSONObject(content));
+                    }
+                });
+            } catch (JSONException | IOException e) {
+                LOG.error("Error while invoking flow execution request.", e);
+                throw new ApiException("Error while invoking flow execution request.");
             }
-        }
+        });
     }
 
     private void validateInputs(String jsonBody, String tenantDomain) throws ApiException {
