@@ -134,6 +134,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     // This attribute hold the organization login data for organization application and shared application login flows.
     private OrganizationLoginData organizationLoginData;
 
+    /**
+     * This attribute is used to mark whether the password reset flow is completed.
+     */
+    private boolean passwordResetComplete;
+
     public String getCallerPath() {
         return callerPath;
     }
@@ -939,6 +944,26 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setOrganizationLoginData(OrganizationLoginData organizationLoginData) {
 
         this.organizationLoginData = organizationLoginData;
+    }
+
+    /**
+     * Check whether the password reset flow is completed.
+     *
+     * @return True if the password reset flow is completed.
+     */
+    public boolean isPasswordResetComplete() {
+
+        return passwordResetComplete;
+    }
+
+    /**
+     * Set the password reset flow completion status.
+     *
+     * @param passwordResetComplete True if the password reset flow is completed.
+     */
+    public void setPasswordResetComplete(boolean passwordResetComplete) {
+
+        this.passwordResetComplete = passwordResetComplete;
     }
 
     /**
