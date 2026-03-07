@@ -49,6 +49,14 @@ public class FlowDataRetrievalClient {
     private static final String FLOW_EXECUTE_API_PATH = "/api/server/v1/flow/execute";
     private static final Log LOG = LogFactory.getLog(FlowDataRetrievalClient.class);
 
+    /**
+     * Execute a flow by invoking the Flow Execution API.
+     *
+     * @param jsonBody     The JSON body to be sent in the request.
+     * @param tenantDomain The tenant domain for which the flow is to be executed.
+     * @return FlowExecutionResponse containing the status code and response body from the API.
+     * @throws ApiException If there is an error during API invocation or if input validation fails.
+     */
     public FlowExecutionResponse executeFlow(String jsonBody, String tenantDomain) throws ApiException {
 
         validateInputs(jsonBody, tenantDomain);

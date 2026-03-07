@@ -28,17 +28,33 @@ public class FlowExecutionResponse {
     private final int statusCode;
     private final JSONObject response;
 
+    /**
+     * Constructor to initialize FlowExecutionResponse with status code and response body.
+     *
+     * @param statusCode HTTP status code from the Flow Execution API response.
+     * @param response   JSONObject containing the response body from the Flow Execution API.
+     */
     public FlowExecutionResponse(int statusCode, JSONObject response) {
 
         this.statusCode = statusCode;
         this.response = response;
     }
 
+    /**
+     * Get the HTTP status code from the Flow Execution API response.
+     *
+     * @return HTTP status code as an integer.
+     */
     public int getStatusCode() {
 
         return statusCode;
     }
 
+    /**
+     * Get the response as a JSONObject.
+     *
+     * @return JSONObject containing the response from the Flow Execution API.
+     */
     public JSONObject getResponse() {
 
         return response;
