@@ -244,4 +244,36 @@ public class JsGraalAuthenticationContextTest {
         assertEquals(result.asString(), BASIC_AUTHENTICATOR,
                 "Authenticator of the step in AuthenticationContext is not accessible from JSAuthenticationContext");
     }
+
+    @Test
+    public void testGetPasswordResetCompleteFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setPasswordResetComplete(true);
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        Value result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.passwordResetComplete", POLYGLOT_SOURCE).build());
+        assertFalse(result.isNull());
+        assertTrue(result.asBoolean());
+    }
+
+    @Test
+    public void testGetPasswordResetCompleteFalseFromWrappedContext() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setPasswordResetComplete(false);
+
+        JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember("context", jsAuthenticationContext);
+
+        Value result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.passwordResetComplete", POLYGLOT_SOURCE).build());
+        assertFalse(result.isNull());
+        assertFalse(result.asBoolean());
+    }
 }
