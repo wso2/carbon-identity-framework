@@ -1360,6 +1360,11 @@
         -->
         <DropUnregisteredScopes>{{oauth.drop_unregistered_scopes}}</DropUnregisteredScopes>
         {% endif %}
+
+        {% if oauth.drop_unrequested_oidc_scopes is defined %}
+        <DropUnrequestedOIDCScopes>{{oauth.drop_unrequested_oidc_scopes}}</DropUnrequestedOIDCScopes>
+        {% endif %}
+
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
