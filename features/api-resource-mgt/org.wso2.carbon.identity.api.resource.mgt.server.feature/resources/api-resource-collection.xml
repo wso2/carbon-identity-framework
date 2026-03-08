@@ -578,7 +578,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_userSharingV2" displayName="Shared User Management" type="organization">
+    <APIResourceCollection name="org_userSharingV2" displayName="Shared User Management" type="organization" version="v0">
         <Scopes>
             <Feature>
                 <Scope name="console:org:userSharing"/>
