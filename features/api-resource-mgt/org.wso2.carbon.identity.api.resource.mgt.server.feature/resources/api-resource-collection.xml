@@ -434,7 +434,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="userSharingV2" displayName="Shared User Management" type="tenant">
+    <APIResourceCollection name="userSharingV2" displayName="Shared User Management" type="tenant" version="v0">
         <Scopes>
             <Feature>
                 <Scope name="console:userSharing"/>
