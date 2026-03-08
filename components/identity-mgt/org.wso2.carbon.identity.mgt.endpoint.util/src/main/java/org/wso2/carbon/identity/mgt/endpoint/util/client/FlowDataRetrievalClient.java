@@ -89,11 +89,11 @@ public class FlowDataRetrievalClient {
 
     private void validateInputs(String jsonBody, String tenantDomain) throws ApiException {
 
-        if (StringUtils.isEmpty(jsonBody)) {
+        if (StringUtils.isBlank(jsonBody)) {
             throw new ApiException(HttpServletResponse.SC_BAD_REQUEST, "Missing the request body when executing flow.");
         }
 
-        if (StringUtils.isEmpty(tenantDomain)) {
+        if (StringUtils.isBlank(tenantDomain)) {
             throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
                     "Missing the required parameter 'tenantDomain' when executing flow.");
         }
