@@ -39,9 +39,12 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
@@ -58,10 +61,13 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_PROCESSING_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
@@ -154,9 +160,6 @@ public class InputValidationService {
             if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
                 try {
                     validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
-                } catch (FlowEngineClientException e) {
-                    throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED,
-                            e, userInput.getKey());
                 } catch (FlowEngineServerException e) {
                     throw handleServerException(ERROR_CODE_CLAIM_PROCESSING_FAILURE, e);
                 }
@@ -279,6 +282,30 @@ public class InputValidationService {
             }
 
             Map<String, String> claimProperties = localClaim.get().getClaimProperties();
+
+            // For username: validate against InputValidationManagementService configuration.
+            // For other claims: validate against the claim's RegEx property.
+            if (claimUri.equals(USERNAME_CLAIM_URI)) {
+                if (StringUtils.isNotBlank(claimValue)) {
+                    validateUsernameFormat(tenantDomain, claimValue);
+                }
+            } else {
+                String claimDisplayName = localClaim.get().getClaimProperties()
+                        .getOrDefault(ClaimConstants.DISPLAY_NAME_PROPERTY, claimUri);
+                String regexPattern = claimProperties.get(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
+                if (StringUtils.isNotBlank(regexPattern) && StringUtils.isNotBlank(claimValue)) {
+                    if (!claimValue.matches(regexPattern)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Claim regex validation failed for claim: " + claimUri);
+                        }
+                        throw new FlowEngineClientException(
+                                ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getCode(),
+                                String.format(ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getMessage(), claimDisplayName),
+                                ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getDescription());
+                    }
+                }
+            }
+
             ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
                     .getClaimUniquenessScope(claimProperties);
             if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) || claimUri.equals(USERNAME_CLAIM_URI)) {
@@ -294,8 +321,6 @@ public class InputValidationService {
             throw handleServerException(ERROR_CODE_CLAIM_META_DATA_NOT_FOUND, e, claimUri, tenantDomain);
         } catch (UserStoreException e) {
             throw handleServerException(ERROR_CODE_GET_CLAIM_META_DATA_FAILURE, e, tenantDomain);
-        } catch (FlowEngineClientException e) {
-            throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED, claimUri);
         }
     }
 
@@ -315,6 +340,68 @@ public class InputValidationService {
                 LOG.debug("Claim uniqueness validation failed for claim: " + claimUri);
             }
             throw handleClientException(ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED, claimUri);
+        }
+    }
+
+    /**
+     * Validate the username against the input validation configuration retrieved from
+     * InputValidationManagementService. This enforces the same rules that are presented as
+     * UI hints to the client.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param username     Username value to validate.
+     * @throws FlowEngineClientException If the username does not satisfy the configured format rules.
+     * @throws FlowEngineServerException If an error occurs while retrieving the validation configuration.
+     */
+    private void validateUsernameFormat(String tenantDomain, String username)
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        if (FlowExecutionEngineDataHolder.getInstance().getInputValidationManagementService() == null) {
+            LOG.debug("InputValidationManagementService is not available. Skipping username format validation.");
+            return;
+        }
+
+        boolean isUsernameValidationEnabled = Boolean.parseBoolean(
+                IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED));
+        if (!isUsernameValidationEnabled) {
+            LOG.debug("Username validation is disabled. Skipping username format validation.");
+            return;
+        }
+
+        try {
+            List<ValidationConfiguration> configurations = FlowExecutionEngineDataHolder.getInstance()
+                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+            Map<String, Validator> validators = FlowExecutionEngineDataHolder.getInstance()
+                    .getInputValidationManagementService().getValidators(tenantDomain);
+
+            for (ValidationConfiguration config : configurations) {
+                if (!USERNAME.equals(config.getField())) {
+                    continue;
+                }
+                List<RulesConfiguration> rules = config.getRegEx() != null ? config.getRegEx() : config.getRules();
+                if (rules == null) {
+                    continue;
+                }
+                for (RulesConfiguration rule : rules) {
+                    Validator validator = validators.get(rule.getValidatorName());
+                    if (validator == null) {
+                        continue;
+                    }
+                    ValidationContext context = new ValidationContext();
+                    context.setField(USERNAME);
+                    context.setValue(username);
+                    context.setTenantDomain(tenantDomain);
+                    context.setProperties(rule.getProperties());
+                    validator.validate(context);
+                }
+            }
+        } catch (InputValidationMgtClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Username format validation failed for username: " + username);
+            }
+            throw handleClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED, username);
+        } catch (InputValidationMgtException e) {
+            throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
     }
 

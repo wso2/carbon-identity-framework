@@ -206,7 +206,13 @@ public class Constants {
                 "%s"),
         ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED("60013",
                 "The user claim value must be unique.",
-                "The value provided for %s is already in use. Please provide a different value.")
+                "The value provided for %s is already in use. Please provide a different value."),
+        ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED("60014",
+                "The value for %s does not match the required format.",
+                "The value provided for %s does not match the required format."),
+        ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED("60015",
+                "Username does not meet the required format.",
+                "The provided username: %s does not meet the configured format requirements.")
         ;
 
         private static final String ERROR_PREFIX = "FE";
