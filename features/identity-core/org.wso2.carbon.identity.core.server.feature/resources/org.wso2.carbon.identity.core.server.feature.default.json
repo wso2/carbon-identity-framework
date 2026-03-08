@@ -1848,7 +1848,14 @@
     "internal_user_unshare"
   ],
   "console.users.sub_features.userSharingV2.scopes.read": [
-    "internal_user_shared_access_view"
+    "internal_user_shared_access_view",
+    "internal_userstore_view",
+    "internal_role_mgt_view",
+    "internal_group_mgt_view",
+    "internal_governance_view",
+    "internal_user_mgt_view",
+    "internal_user_mgt_list",
+    "internal_organization_view"
   ],
   "console.users.sub_features.userSharingV2.scopes.update": [
     "internal_user_shared_access_update"
