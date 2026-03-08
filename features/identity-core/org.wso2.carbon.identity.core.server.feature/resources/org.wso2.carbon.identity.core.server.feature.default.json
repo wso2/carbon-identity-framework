@@ -1374,6 +1374,7 @@
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [
+    "OrganizationIdentifierHandler",
     "BasicAuthRequestPathAuthenticator",
     "OAuthRequestPathAuthenticator"
   ],
