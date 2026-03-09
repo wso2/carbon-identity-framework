@@ -262,6 +262,104 @@ public class ClaimValidationUtilTest {
         ClaimValidationUtil.isClaimDuplicated(TEST_CLAIM_URI, TEST_CLAIM_VALUE);
     }
 
+    @Test
+    public void testGetClaimUniquenessScopeWithBlankUniquenessScopeAndIsUniqueTrue() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, "   ");
+        properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+
+        ClaimUniquenessScope result = ClaimValidationUtil.getClaimUniquenessScope(properties);
+        assertEquals(result, ClaimUniquenessScope.ACROSS_USERSTORES);
+    }
+
+    @Test
+    public void testGetClaimUniquenessScopeWithBlankUniquenessScopeAndIsUniqueFalse() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, "   ");
+        properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "false");
+
+        ClaimUniquenessScope result = ClaimValidationUtil.getClaimUniquenessScope(properties);
+        assertEquals(result, ClaimUniquenessScope.NONE);
+    }
+
+    @Test
+    public void testGetClaimUniquenessScopeWithEmptyStringUniquenessScope() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, "");
+
+        ClaimUniquenessScope result = ClaimValidationUtil.getClaimUniquenessScope(properties);
+        assertEquals(result, ClaimUniquenessScope.NONE);
+    }
+
+    @Test
+    public void testGetClaimUniquenessScopeWithNoRelevantProperties() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("someOtherProperty", "someValue");
+
+        ClaimUniquenessScope result = ClaimValidationUtil.getClaimUniquenessScope(properties);
+        assertEquals(result, ClaimUniquenessScope.NONE);
+    }
+
+    @Test
+    public void testIsClaimDuplicatedWhenSingleUserExists() throws Exception {
+
+        when(claimManager.getClaim(TEST_CLAIM_URI)).thenReturn(claim);
+        when(claim.isMultiValued()).thenReturn(false);
+        when(userStoreManager.getUserList(eq(TEST_CLAIM_URI), eq(TEST_CLAIM_VALUE), isNull()))
+                .thenReturn(new String[]{"user1"});
+
+        boolean result = ClaimValidationUtil.isClaimDuplicated(TEST_CLAIM_URI, TEST_CLAIM_VALUE);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsClaimDuplicatedWhenClaimManagerIsNull() throws Exception {
+
+        doReturn(null).when(userStoreManager).getClaimManager();
+        when(userStoreManager.getUserList(eq(TEST_CLAIM_URI), eq(TEST_CLAIM_VALUE), isNull()))
+                .thenReturn(new String[]{"user1"});
+
+        boolean result = ClaimValidationUtil.isClaimDuplicated(TEST_CLAIM_URI, TEST_CLAIM_VALUE);
+        assertTrue(result);
+    }
+
+    @Test(expectedExceptions = org.wso2.carbon.user.core.UserStoreException.class)
+    public void testIsClaimDuplicatedWhenTenantUserRealmIsNull() throws Exception {
+
+        when(realmService.getTenantUserRealm(anyInt())).thenReturn(null);
+        ClaimValidationUtil.isClaimDuplicated(TEST_CLAIM_URI, TEST_CLAIM_VALUE);
+    }
+
+    @Test(expectedExceptions = Exception.class)
+    public void testIsClaimDuplicatedWhenUserStoreManagerIsNull() throws Exception {
+
+        when(userRealm.getUserStoreManager()).thenReturn(null);
+        ClaimValidationUtil.isClaimDuplicated(TEST_CLAIM_URI, TEST_CLAIM_VALUE);
+    }
+
+    @Test
+    public void testIsClaimDuplicatedWhenClaimIsNotMultiValuedAndNoDuplicates() throws Exception {
+
+        when(claimManager.getClaim(TEST_CLAIM_URI)).thenReturn(claim);
+        when(claim.isMultiValued()).thenReturn(false);
+        when(userStoreManager.getUserList(eq(TEST_CLAIM_URI), eq(TEST_CLAIM_VALUE), isNull()))
+                .thenReturn(new String[]{});
+
+        boolean result = ClaimValidationUtil.isClaimDuplicated(TEST_CLAIM_URI, TEST_CLAIM_VALUE);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testShouldValidateUniquenessWithNull() {
+
+        boolean result = ClaimValidationUtil.shouldValidateUniqueness(null);
+        assertTrue(result);
+    }
+
     /**
      * Helper method to create a properties map with a single entry.
      */
