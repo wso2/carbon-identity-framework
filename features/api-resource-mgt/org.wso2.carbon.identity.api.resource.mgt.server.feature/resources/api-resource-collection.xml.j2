@@ -1521,6 +1521,37 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="userSharingV2" displayName="Shared User Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:userSharing"/>
+                <Scope name="console:userSharing_view"/>
+                <Scope name="console:userSharing_edit"/>
+                <Scope name="console:users"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_user_share"/>
+                <Scope name="console:users_edit"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_user_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:users_view"/>
+                <Scope name="internal_user_shared_access_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_organization_view"/>
+            </Read>
+            <Update>
+                <Scope name="internal_user_shared_access_update"/>
+            </Update>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="users" displayName="Users" type="tenant">
         <Scopes>
             <Feature>
@@ -1762,6 +1793,37 @@
                 <Scope name="internal_org_extensions_view"/>
                 <Scope name="internal_org_config_mgt_view"/>
             </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_userSharingV2" displayName="Shared User Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:userSharing"/>
+                <Scope name="console:org:userSharing_view"/>
+                <Scope name="console:org:userSharing_edit"/>
+                <Scope name="console:org:users"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_org_user_share"/>
+                <Scope name="console:org:users_edit"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_org_user_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:org:users_view"/>
+                <Scope name="internal_org_user_shared_access_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_organization_view"/>
+            </Read>
+            <Update>
+                <Scope name="internal_org_user_shared_access_update"/>
+            </Update>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="org_users" displayName="Users" type="organization">
