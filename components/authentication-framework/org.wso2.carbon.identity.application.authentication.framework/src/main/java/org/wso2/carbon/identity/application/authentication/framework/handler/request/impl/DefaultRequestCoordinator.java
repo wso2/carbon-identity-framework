@@ -1289,8 +1289,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 // Not a direct accessing scenario.
                 return Optional.empty();
             }
-            if (!applicationConfig.getServiceProvider().isNewB2BLoginEnabled()) {
-                // Direct access is only allowed for applications with new B2B login enabled.
+            if (!applicationConfig.getServiceProvider().isEnhancedB2BLoginEnabled()) {
+                // Direct access is only allowed for applications with enhanced B2B login enabled.
                 return Optional.empty();
             }
             // Need to check the authenticated shared app org in previous session equals accessing organization.
@@ -1871,8 +1871,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (serviceProvider == null) {
             return false;
         }
-        // Direct access is only supported for new B2B login enabled apps.
-        if (!serviceProvider.isNewB2BLoginEnabled()) {
+        // Direct access is only supported for enhanced B2B login enabled apps.
+        if (!serviceProvider.isEnhancedB2BLoginEnabled()) {
             return false;
         }
         // Currently, skipping org application logins also since sharing capability is not supported.
