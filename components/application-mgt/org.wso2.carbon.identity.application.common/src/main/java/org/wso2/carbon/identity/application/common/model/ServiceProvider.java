@@ -55,7 +55,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
-    private static final String IS_NEW_B2B_LOGIN_ENABLED = "IsNewB2BLoginEnabled";
+    private static final String IS_ENHANCED_B2B_LOGIN_ENABLED = "IsEnhancedB2BLoginEnabled";
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
@@ -156,8 +156,8 @@ public class ServiceProvider implements Serializable {
     private boolean isB2BSelfServiceApp;
 
     @IgnoreNullElement
-    @XmlElement(name = IS_NEW_B2B_LOGIN_ENABLED)
-    private boolean isNewB2BLoginEnabled;
+    @XmlElement(name = IS_ENHANCED_B2B_LOGIN_ENABLED)
+    private boolean isEnhancedB2BLoginEnabled;
 
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
@@ -699,23 +699,23 @@ public class ServiceProvider implements Serializable {
     }
 
     /**
-     * Check whether the new B2B login (without federation) is enabled for the service provider.
+     * Check whether the enhanced B2B login (without federation) is enabled for the service provider.
      *
-     * @return true if the new B2B login is enabled, false otherwise.
+     * @return true if the enhanced B2B login is enabled, false otherwise.
      */
-    public boolean isNewB2BLoginEnabled() {
+    public boolean isEnhancedB2BLoginEnabled() {
 
-        return isNewB2BLoginEnabled;
+        return isEnhancedB2BLoginEnabled;
     }
 
     /**
-     * Set whether the new B2B login (without federation) is enabled for the service provider.
+     * Set whether the enhanced B2B login (without federation) is enabled for the service provider.
      *
-     * @param isNewB2BLoginEnabled true to enable the new B2B login, false to disable.
+     * @param isEnhancedB2BLoginEnabled true to enable the enhanced B2B login, false to disable.
      */
-    public void setNewB2BLoginEnabled(boolean isNewB2BLoginEnabled) {
+    public void setEnhancedB2BLoginEnabled(boolean isEnhancedB2BLoginEnabled) {
 
-        this.isNewB2BLoginEnabled = isNewB2BLoginEnabled;
+        this.isEnhancedB2BLoginEnabled = isEnhancedB2BLoginEnabled;
     }
 
     public boolean isAPIBasedAuthenticationEnabled() {
