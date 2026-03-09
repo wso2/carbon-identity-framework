@@ -2971,4 +2971,5 @@
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedB2BLoginFeatureEnabled>false</EnhancedB2BLoginFeatureEnabled>
 </Server>
