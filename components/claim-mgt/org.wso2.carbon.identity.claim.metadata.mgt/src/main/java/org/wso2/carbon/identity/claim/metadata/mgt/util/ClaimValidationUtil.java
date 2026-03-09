@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ClaimUniq
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -81,9 +82,9 @@ public class ClaimValidationUtil {
      * @param uniquenessScope The ClaimUniquenessScope to check
      * @return true if uniqueness validation should be performed, false otherwise
      */
-    public static boolean shouldValidateUniqueness(ClaimConstants.ClaimUniquenessScope uniquenessScope) {
+    public static boolean shouldValidateUniqueness(ClaimUniquenessScope uniquenessScope) {
 
-        return !ClaimConstants.ClaimUniquenessScope.NONE.equals(uniquenessScope);
+        return !ClaimUniquenessScope.NONE.equals(uniquenessScope);
     }
 
     /**
@@ -97,7 +98,7 @@ public class ClaimValidationUtil {
     public static boolean isClaimDuplicated(String claimURI, String claimValue)
             throws UserStoreException {
 
-        org.wso2.carbon.user.core.UserStoreManager userStoreManager = getUserstoreManager();
+        UserStoreManager userStoreManager = getUserstoreManager();
         Claim claim = getClaimObject(userStoreManager, claimURI);
 
         if (claim != null && claim.isMultiValued()) {
@@ -121,7 +122,7 @@ public class ClaimValidationUtil {
      * @param claimUri         The claim URI to retrieve.
      * @return The corresponding claim object, or null if retrieval fails.
      */
-    private static Claim getClaimObject(org.wso2.carbon.user.core.UserStoreManager userStoreManager, String claimUri) {
+    private static Claim getClaimObject(UserStoreManager userStoreManager, String claimUri) {
 
         try {
             return userStoreManager.getClaimManager().getClaim(claimUri);
@@ -137,9 +138,9 @@ public class ClaimValidationUtil {
      * Get the UserStoreManager for the current tenant.
      *
      * @return UserStoreManager instance.
-     * @throws org.wso2.carbon.user.core.UserStoreException If an error occurs while retrieving the user store manager.
+     * @throws UserStoreException If an error occurs while retrieving the user store manager.
      */
-    private static org.wso2.carbon.user.core.UserStoreManager getUserstoreManager() throws UserStoreException {
+    private static UserStoreManager getUserstoreManager() throws UserStoreException {
 
         try {
             RealmService userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService();
@@ -149,8 +150,8 @@ public class ClaimValidationUtil {
                         .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
             }
         } catch (UserStoreException e) {
-            throw new org.wso2.carbon.user.core.UserStoreException(e);
+            throw new UserStoreException(e);
         }
-        throw new org.wso2.carbon.user.core.UserStoreException("User realm is null for the tenant.");
+        throw new UserStoreException("User realm is null for the tenant.");
     }
 }

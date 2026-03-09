@@ -229,8 +229,8 @@ public class InputValidationService {
         ExecutorResponse executorResponse = new ExecutorResponse();
         if (MapUtils.isNotEmpty(context.getUserInputData())) {
             try {
-                InputValidationService.getInstance().validateUserInputs(context);
-                InputValidationService.getInstance().handleUserInputs(context);
+                validateUserInputs(context);
+                handleUserInputs(context);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Input validation passed for flow: " + context.getFlowType());
                 }
