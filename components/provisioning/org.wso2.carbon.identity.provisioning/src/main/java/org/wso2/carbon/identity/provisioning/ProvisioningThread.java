@@ -204,6 +204,7 @@ public class ProvisioningThread implements Callable<Boolean> {
                         .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
                                 provisioningEntity.getOperation() != null
                                         ? provisioningEntity.getOperation().toString() : null)
+                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                         .resultMessage("Outbound provisioning failed.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
@@ -212,7 +213,7 @@ public class ProvisioningThread implements Callable<Boolean> {
             String errMsg = "Outbound provisioning failed for connection: " + idPName + ", connector: " + connectorType
                     + ", entity: " + maskedEntityName + ", entity type: " + provisioningEntity.getEntityType()
                     + ", operation: " + provisioningEntity.getOperation();
-            log.warn(errMsg);
+            log.warn(errMsg + ". " + e.getMessage());
             throw new IdentityProvisioningException(errMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
