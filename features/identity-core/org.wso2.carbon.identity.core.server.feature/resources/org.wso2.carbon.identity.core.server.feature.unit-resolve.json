@@ -91,7 +91,10 @@
     "authentication.adaptive.long_wait.timout": "ms",
     "authentication.adaptive.execution_supervisor.timeout": "ms",
 
-    "authentication.authenticator.saml.parameters.CertRefreshRetryBlockDuration": "ms",
-    "authentication.authenticator.saml.parameters.CertCacheMaxLifetime": "ms"
+    "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionTimeout": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateClientReadTimeout": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionRequestTimeout": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateRefreshRetryBlockDuration": "ms",
+    "authentication.authenticator.saml.parameters.RemoteCertificateCacheMaxLifetime": "ms"
   }
 }
