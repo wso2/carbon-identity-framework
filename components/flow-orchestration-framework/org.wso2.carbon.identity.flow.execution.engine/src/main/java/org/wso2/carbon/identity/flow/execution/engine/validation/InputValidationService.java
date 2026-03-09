@@ -66,6 +66,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_ID;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USER_INPUT;
@@ -163,6 +164,8 @@ public class InputValidationService {
                 } catch (FlowEngineServerException e) {
                     throw handleServerException(ERROR_CODE_CLAIM_PROCESSING_FAILURE, e);
                 }
+            } else if (userInput.getKey().equals(PASSWORD_KEY)) {
+                validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
         }
     }
@@ -344,9 +347,8 @@ public class InputValidationService {
     }
 
     /**
-     * Validate the username against the input validation configuration retrieved from
-     * InputValidationManagementService. This enforces the same rules that are presented as
-     * UI hints to the client.
+     * Validate the username against the input validation configuration. Skips validation if
+     * {@code InputValidation.Username.Enabled} is not set to {@code true}.
      *
      * @param tenantDomain Tenant domain.
      * @param username     Username value to validate.
@@ -356,45 +358,16 @@ public class InputValidationService {
     private void validateUsernameFormat(String tenantDomain, String username)
             throws FlowEngineClientException, FlowEngineServerException {
 
-        if (FlowExecutionEngineDataHolder.getInstance().getInputValidationManagementService() == null) {
-            LOG.debug("InputValidationManagementService is not available. Skipping username format validation.");
-            return;
-        }
-
         boolean isUsernameValidationEnabled = Boolean.parseBoolean(
                 IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED));
         if (!isUsernameValidationEnabled) {
-            LOG.debug("Username validation is disabled. Skipping username format validation.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Username validation is disabled. Skipping username format validation.");
+            }
             return;
         }
-
         try {
-            List<ValidationConfiguration> configurations = FlowExecutionEngineDataHolder.getInstance()
-                    .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
-            Map<String, Validator> validators = FlowExecutionEngineDataHolder.getInstance()
-                    .getInputValidationManagementService().getValidators(tenantDomain);
-
-            for (ValidationConfiguration config : configurations) {
-                if (!USERNAME.equals(config.getField())) {
-                    continue;
-                }
-                List<RulesConfiguration> rules = config.getRegEx() != null ? config.getRegEx() : config.getRules();
-                if (rules == null) {
-                    continue;
-                }
-                for (RulesConfiguration rule : rules) {
-                    Validator validator = validators.get(rule.getValidatorName());
-                    if (validator == null) {
-                        continue;
-                    }
-                    ValidationContext context = new ValidationContext();
-                    context.setField(USERNAME);
-                    context.setValue(username);
-                    context.setTenantDomain(tenantDomain);
-                    context.setProperties(rule.getProperties());
-                    validator.validate(context);
-                }
-            }
+            validateFieldWithConfiguredRules(tenantDomain, USERNAME, username);
         } catch (InputValidationMgtClientException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Username format validation failed for username: " + username);
@@ -402,6 +375,79 @@ public class InputValidationService {
             throw handleClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED, username);
         } catch (InputValidationMgtException e) {
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
+        }
+    }
+
+    /**
+     * Validate the password against the input validation configuration retrieved from
+     * InputValidationManagementService.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param password     Password value to validate.
+     * @throws FlowEngineClientException If the password does not satisfy the configured format rules.
+     * @throws FlowEngineServerException If an error occurs while retrieving the validation configuration.
+     */
+    private void validatePasswordFormat(String tenantDomain, String password)
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        try {
+            validateFieldWithConfiguredRules(tenantDomain, PASSWORD_KEY, password);
+        } catch (InputValidationMgtClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Password format validation failed.");
+            }
+            throw handleClientException(ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED);
+        } catch (InputValidationMgtException e) {
+            throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
+        }
+    }
+
+    /**
+     * Executes the input validation rules for a given field using InputValidationManagementService.
+     * Iterates both regex and rule-based configurations and invokes each configured validator.
+     * Returns without validation if InputValidationManagementService is unavailable.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param field        Field name as used in InputValidationManagementService (e.g., "username", "password").
+     * @param value        Value to validate.
+     * @throws InputValidationMgtClientException If the value fails a validation rule.
+     * @throws InputValidationMgtException       If an error occurs while loading configurations or validators.
+     */
+    private void validateFieldWithConfiguredRules(String tenantDomain, String field, String value)
+            throws InputValidationMgtClientException, InputValidationMgtException {
+
+        if (FlowExecutionEngineDataHolder.getInstance().getInputValidationManagementService() == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("InputValidationManagementService is not available. Skipping " + field +
+                        " format validation.");
+            }
+            return;
+        }
+        List<ValidationConfiguration> configurations = FlowExecutionEngineDataHolder.getInstance()
+                .getInputValidationManagementService().getInputValidationConfiguration(tenantDomain);
+        Map<String, Validator> validators = FlowExecutionEngineDataHolder.getInstance()
+                .getInputValidationManagementService().getValidators(tenantDomain);
+
+        for (ValidationConfiguration config : configurations) {
+            if (!field.equals(config.getField())) {
+                continue;
+            }
+            List<RulesConfiguration> rules = config.getRegEx() != null ? config.getRegEx() : config.getRules();
+            if (rules == null) {
+                continue;
+            }
+            for (RulesConfiguration rule : rules) {
+                Validator validator = validators.get(rule.getValidatorName());
+                if (validator == null) {
+                    continue;
+                }
+                ValidationContext validationContext = new ValidationContext();
+                validationContext.setField(field);
+                validationContext.setValue(value);
+                validationContext.setTenantDomain(tenantDomain);
+                validationContext.setProperties(rule.getProperties());
+                validator.validate(validationContext);
+            }
         }
     }
 

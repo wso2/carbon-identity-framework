@@ -66,8 +66,10 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_A
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_PROCESSING_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
@@ -1285,6 +1287,249 @@ public class InputValidationServiceTest {
                 Assert.assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getCode());
             }
         }
+    }
+
+    @Test
+    public void testValidatePasswordFormatPassesWithValidPassword()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "ValidPass@123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class))).thenReturn(true);
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidatePasswordFormatFailsWithInvalidPassword()
+            throws FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "weak");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class)))
+                .thenThrow(new InputValidationMgtClientException("60001", "Password too short", "Password too short"));
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineClientException to be thrown");
+        } catch (FlowEngineClientException e) {
+            Assert.assertEquals(e.getErrorCode(), ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED.getCode());
+        }
+    }
+
+    @Test
+    public void testValidatePasswordFormatErrorCodeDoesNotExposePassword()
+            throws FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "secret123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class)))
+                .thenThrow(new InputValidationMgtClientException("60001", "Fail", "Fail"));
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineClientException to be thrown");
+        } catch (FlowEngineClientException e) {
+            Assert.assertFalse(e.getMessage() != null && e.getMessage().contains("secret123"),
+                    "Error message must not expose the password value");
+        }
+    }
+
+    @Test
+    public void testValidatePasswordFormatSkippedWhenServiceIsNull()
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "AnyPassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(null);
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidatePasswordFormatServerErrorThrowsServerException()
+            throws FlowEngineClientException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "SomePassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenThrow(new InputValidationMgtException("65000", "Server error", "Server error"));
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineServerException to be thrown");
+        } catch (FlowEngineServerException e) {
+            Assert.assertNotNull(e.getErrorCode());
+        }
+    }
+
+    @Test
+    public void testRunInputValidationSkipsWhenNoConfigMatchesField()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "weak");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        ValidationConfiguration usernameConfig = new ValidationConfiguration();
+        usernameConfig.setField("username");
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(usernameConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(new HashMap<>());
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testRunInputValidationSkipsRuleWhenValidatorNotInMap()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "SomePassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("UnknownValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(new HashMap<>());
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testRunInputValidationSkipsWhenRulesAndRegexAreNull()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "SomePassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(new HashMap<>());
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testRunInputValidationUsesRegexConfigWhenRegexIsNotNull()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "ValidPass@123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class))).thenReturn(true);
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("RegexValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration regexRule = new RulesConfiguration();
+        regexRule.setValidatorName("RegexValidator");
+        regexRule.setProperties(new HashMap<>());
+        passwordConfig.setRegEx(Collections.singletonList(regexRule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
     }
 
     private FlowExecutionContext initiateFlowContext() {

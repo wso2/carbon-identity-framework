@@ -212,7 +212,10 @@ public class Constants {
                 "The value provided for %s does not match the required format."),
         ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED("60015",
                 "Username does not meet the required format.",
-                "The provided username: %s does not meet the configured format requirements.")
+                "The provided username: %s does not meet the configured format requirements."),
+        ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED("60016",
+                "Password does not meet the required format.",
+                "The provided password does not meet the configured format requirements.")
         ;
 
         private static final String ERROR_PREFIX = "FE";
