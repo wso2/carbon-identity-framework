@@ -2257,5 +2257,6 @@
   "identity_providers.support_multiple_certificate_export": true,
   "tenant_level_application_authentication_config.enabled_for_auth_sequence": true,
   "branding_configuration.use_intermediate_loader_page": false,
-  "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false
+  "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
+  "workflow_engine.max_approver_notifications": 15
 }
