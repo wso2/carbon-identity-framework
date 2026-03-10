@@ -23,10 +23,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 import org.wso2.carbon.identity.debug.framework.util.DebugSessionUtil;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,9 +38,6 @@ import java.util.Map;
  * Unified caching layer for:
  * - Intermediate debug context (passed from initiator to processor via state parameter)
  * - Final debug results (persisted for API retrieval)
- * 
- * Thread-safe singleton that delegates persistence to the framework's DebugSessionDAO.
- * Uses generic storage model to support any data type and payload.
  */
 public final class DebugSessionCache {
 
@@ -64,7 +63,7 @@ public final class DebugSessionCache {
      * @param key   Cache key (typically state parameter).
      * @param value Debug context map to cache.
      */
-    public void put(String key, Map<String, Object> value) {
+    public void put(String key, Map<String, Object> value) throws DebugFrameworkServerException {
 
         if (key == null || value == null) {
             return;
@@ -86,8 +85,11 @@ public final class DebugSessionCache {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Debug context cached for key: " + key);
             }
-        } catch (Exception e) {
+        } catch (DebugFrameworkServerException e) {
+            throw e;
+        } catch (IOException e) {
             LOG.error("Error persisting debug session to DB: " + e.getMessage(), e);
+            throw new DebugFrameworkServerException("Error persisting debug session to DB", e);
         }
     }
 
@@ -97,7 +99,7 @@ public final class DebugSessionCache {
      * @param key     Cache key (typically state parameter).
      * @param context DebugContext to cache.
      */
-    public void put(String key, DebugContext context) {
+    public void put(String key, DebugContext context) throws DebugFrameworkServerException {
 
         if (key == null || context == null) {
             return;
@@ -123,8 +125,7 @@ public final class DebugSessionCache {
      * @param key Cache key.
      * @return Debug context map or null if not found.
      */
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> get(String key) {
+    public Map<String, Object> get(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
             return null;
@@ -132,11 +133,26 @@ public final class DebugSessionCache {
         try {
             DebugSessionData data = debugSessionDAO.getDebugSession(key);
             if (data != null && data.getSessionData() != null) {
-                return (Map<String, Object>) DebugSessionUtil.deserializeObject(data.getSessionData());
+                Object deserializedObject = DebugSessionUtil.deserializeObject(data.getSessionData());
+                if (deserializedObject instanceof Map<?, ?>) {
+                    Map<String, Object> contextData = new HashMap<>();
+                    for (Map.Entry<?, ?> entry : ((Map<?, ?>) deserializedObject).entrySet()) {
+                        if (entry.getKey() instanceof String) {
+                            contextData.put((String) entry.getKey(), entry.getValue());
+                        }
+                    }
+                    return contextData;
+                }
+                LOG.warn("Unexpected debug session payload type for key: " + key);
             }
-        } catch (Exception e) {
+        } catch (DebugFrameworkServerException e) {
+            throw e;
+        } catch (IOException e) {
             LOG.error("Error retrieving debug session from DB: " + e.getMessage(), e);
-            throw new IllegalStateException("Error retrieving debug session from DB", e);
+            throw new DebugFrameworkServerException("Error retrieving debug session from DB", e);
+        } catch (ClassNotFoundException e) {
+            LOG.error("Error deserializing debug session: " + e.getMessage(), e);
+            throw new DebugFrameworkServerException("Error deserializing debug session", e);
         }
         return null;
     }
@@ -147,19 +163,14 @@ public final class DebugSessionCache {
      * @param key Cache key.
      * @return Previously cached context map or null.
      */
-    public Map<String, Object> remove(String key) {
+    public Map<String, Object> remove(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
             return null;
         }
-        try {
-            Map<String, Object> value = get(key);
-            debugSessionDAO.deleteDebugSession(key);
-            return value;
-        } catch (Exception e) {
-            LOG.error("Error removing debug session from DB: " + e.getMessage(), e);
-        }
-        return null;
+        Map<String, Object> value = get(key);
+        debugSessionDAO.deleteDebugSession(key);
+        return value;
     }
 
     /**
@@ -169,7 +180,7 @@ public final class DebugSessionCache {
      * @param key    Cache key (typically state parameter).
      * @param result JSON-serialized result to cache.
      */
-    public void putResult(String key, String result) {
+    public void putResult(String key, String result) throws DebugFrameworkServerException {
 
         putResult(key, result, null, null);
     }
@@ -182,7 +193,8 @@ public final class DebugSessionCache {
      * @param resourceType Type of debug resource (IDP, FRAUD_DETECTION).
      * @param connectionId   Identifier of the resource.
      */
-    public void putResult(String key, String result, String resourceType, String connectionId) {
+    public void putResult(String key, String result, String resourceType, String connectionId)
+            throws DebugFrameworkServerException {
 
         if (key == null || result == null) {
             if (LOG.isDebugEnabled()) {
@@ -191,23 +203,19 @@ public final class DebugSessionCache {
             return;
         }
 
-        try {
-            DebugSessionData sessionData = new DebugSessionData();
-            sessionData.setDebugId(key);
-            sessionData.setResultJson(result);
-            sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_COMPLETED);
-            sessionData.setCreatedTime(System.currentTimeMillis());
-            sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
-            sessionData.setResourceType(resourceType);
-            sessionData.setConnectionId(connectionId);
+        DebugSessionData sessionData = new DebugSessionData();
+        sessionData.setDebugId(key);
+        sessionData.setResultJson(result);
+        sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_COMPLETED);
+        sessionData.setCreatedTime(System.currentTimeMillis());
+        sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
+        sessionData.setResourceType(resourceType);
+        sessionData.setConnectionId(connectionId);
 
-            debugSessionDAO.upsertDebugSession(sessionData);
+        debugSessionDAO.upsertDebugSession(sessionData);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug result cached for key: " + key);
-            }
-        } catch (Exception e) {
-            LOG.error("Error persisting debug result: " + e.getMessage(), e);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Debug result cached for key: " + key);
         }
     }
 
@@ -217,7 +225,7 @@ public final class DebugSessionCache {
      * @param key Cache key.
      * @return JSON result or null if not found.
      */
-    public String getResult(String key) {
+    public String getResult(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
             return null;
@@ -227,9 +235,8 @@ public final class DebugSessionCache {
             if (data != null && data.getResultJson() != null) {
                 return data.getResultJson();
             }
-        } catch (Exception e) {
-            LOG.error("Error retrieving debug result from DB: " + e.getMessage(), e);
-            throw new IllegalStateException("Error retrieving debug result from DB", e);
+        } catch (DebugFrameworkServerException e) {
+            throw e;
         }
         return null;
     }
@@ -239,14 +246,10 @@ public final class DebugSessionCache {
      *
      * @param key Cache key.
      */
-    public void removeResult(String key) {
+    public void removeResult(String key) throws DebugFrameworkServerException {
 
         if (key != null) {
-            try {
-                debugSessionDAO.deleteDebugSession(key);
-            } catch (Exception e) {
-                LOG.error("Error removing debug result from DB: " + e.getMessage(), e);
-            }
+            debugSessionDAO.deleteDebugSession(key);
         }
     }
 }

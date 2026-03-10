@@ -94,7 +94,7 @@ public abstract class DebugProcessor {
             // Step 6: Send response to client.
             sendDebugResponse(response, state, connectionId);
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             LOG.error("Unexpected error processing debug callback.", e);
             handleUnexpectedError(e, context);
 
@@ -104,9 +104,6 @@ public abstract class DebugProcessor {
                 if (state == null || state.trim().isEmpty()) {
                     state = (String) context.getProperty("DEBUG_STATE");
                 }
-            }
-            if (connectionId == null) {
-                connectionId = extractConnectionId(context);
             }
             sendDebugResponse(response, state, connectionId);
         }

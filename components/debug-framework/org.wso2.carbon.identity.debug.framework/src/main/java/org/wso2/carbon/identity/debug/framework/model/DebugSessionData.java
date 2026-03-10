@@ -30,7 +30,7 @@ public class DebugSessionData implements Serializable {
 
     private String debugId;
     private String status;
-    private InputStream sessionData; // Serialized context map.
+    private transient InputStream sessionData; // Serialized context map (transient as InputStream is not serializable).
     private String resultJson;
     private long createdTime;
     private long expiryTime;

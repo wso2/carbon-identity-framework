@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -69,7 +70,7 @@ public class DebugHandlerRegistry {
             return;
         }
 
-        handlers.put(resourceType.toLowerCase(), handler);
+        handlers.put(resourceType.toLowerCase(Locale.ENGLISH), handler);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registered debug resource handler for type: " + resourceType);
         }
@@ -84,7 +85,7 @@ public class DebugHandlerRegistry {
     public void unregister(String resourceType) {
 
         if (resourceType != null) {
-            handlers.remove(resourceType.toLowerCase());
+            handlers.remove(resourceType.toLowerCase(Locale.ENGLISH));
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Unregistered debug resource handler for type: " + resourceType);
             }
@@ -102,7 +103,7 @@ public class DebugHandlerRegistry {
         if (resourceType == null) {
             return null;
         }
-        return handlers.get(resourceType.toLowerCase());
+        return handlers.get(resourceType.toLowerCase(Locale.ENGLISH));
     }
 
     /**

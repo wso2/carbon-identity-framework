@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -27,12 +28,13 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
-import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
+import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
 
 /**
@@ -47,61 +49,60 @@ public class DebugServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
 
-    private DebugSessionCleanupExecutionListener cleanupListener;
+    private ServiceRegistration<DebugExecutionListener> cleanupListenerServiceRegistration;
     private DebugSessionCleanupService cleanupService;
 
     @Activate
-    protected void activate(ComponentContext context) throws DebugFrameworkException {
+    protected void activate(ComponentContext context) {
 
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug Framework OSGi component activating");
-            }
+            LOG.debug("Debug Framework OSGi component activating");
 
-            // Register DebugRequestCoordinator as an OSGi service.
+            // Register DebugRequestCoordinator as an OSGi interceptor service.
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
             context.getBundleContext().registerService(
-                    DebugRequestCoordinator.class.getName(),
+                    new String[] {
+                            DebugAuthenticationInterceptor.class.getName(),
+                            DebugRequestCoordinator.class.getName()
+                    },
                     requestCoordinator,
                     null);
 
-            // Register the cleanup listener for post-execution database cleanup.
-            cleanupListener = new DebugSessionCleanupExecutionListener();
-            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(cleanupListener);
+            // Register the cleanup listener as an OSGi service.
+            cleanupListenerServiceRegistration = context.getBundleContext().registerService(
+                    DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
 
             // Start the periodic cleanup service for expired sessions.
             cleanupService = new DebugSessionCleanupService();
             cleanupService.activate();
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugRequestCoordinator registered as OSGi service");
-                LOG.debug("DebugSessionCleanupExecutionListener registered for automatic database cleanup");
-            }
-
-        } catch (Exception e) {
-            LOG.error("Debug Framework activation failed", e);
-            throw new DebugFrameworkException("Debug Framework activation failed: " + e.getMessage(), e);
+            LOG.debug("DebugRequestCoordinator registered as DebugAuthenticationInterceptor service");
+        } catch (Throwable e) {
+            LOG.error("Error while activating debug framework component.", e);
         }
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        // Unregister the cleanup listener.
-        if (cleanupListener != null) {
-            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(cleanupListener);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugSessionCleanupExecutionListener unregistered");
+        try {
+            // Unregister cleanup listener service.
+            if (cleanupListenerServiceRegistration != null) {
+                cleanupListenerServiceRegistration.unregister();
+                cleanupListenerServiceRegistration = null;
+                LOG.debug("DebugSessionCleanupExecutionListener service unregistered");
             }
-        }
 
-        // Shutdown the cleanup service.
-        if (cleanupService != null) {
-            cleanupService.deactivate();
-        }
+            // Shutdown the cleanup service.
+            if (cleanupService != null) {
+                cleanupService.deactivate();
+            }
 
-        LOG.info("Debug Framework OSGi component deactivated");
+            LOG.info("Debug Framework OSGi component deactivated");
+        } catch (Throwable e) {
+            LOG.error("Error while deactivating debug framework component.", e);
+        }
     }
 
     /**
@@ -183,6 +184,29 @@ public class DebugServiceComponent {
         }
     }
 
+    @Reference(name = "debug.execution.listener", service = DebugExecutionListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugExecutionListener")
+    protected void setDebugExecutionListener(DebugExecutionListener listener) {
+
+        if (listener != null) {
+            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(listener);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugExecutionListener registered: " + listener.getClass().getName());
+            }
+        }
+    }
+
+    protected void unsetDebugExecutionListener(DebugExecutionListener listener) {
+
+        if (listener != null) {
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugExecutionListener unregistered: " + listener.getClass().getName());
+            }
+        }
+    }
+
     /**
      * Sets the ClaimMetadataManagementService.
      *
@@ -195,9 +219,7 @@ public class DebugServiceComponent {
 
     protected void setClaimMetadataManagementService(ClaimMetadataManagementService service) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("ClaimMetadataManagementService set in DebugServiceComponent");
-        }
+        LOG.debug("ClaimMetadataManagementService set in DebugServiceComponent");
         DebugFrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(service);
     }
 
@@ -209,9 +231,7 @@ public class DebugServiceComponent {
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("ClaimMetadataManagementService unset in DebugServiceComponent");
-        }
+        LOG.debug("ClaimMetadataManagementService unset in DebugServiceComponent");
         DebugFrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }

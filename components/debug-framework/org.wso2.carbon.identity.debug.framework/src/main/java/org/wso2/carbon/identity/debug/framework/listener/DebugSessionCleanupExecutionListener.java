@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.debug.framework.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
@@ -106,7 +107,12 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             return true;
         }
 
-        String debugId = debugRequest != null ? debugRequest.getEffectiveConnectionId() : null;
+        if (debugRequest == null || !DebugFrameworkConstants.DEBUG_RESULT_RETRIEVAL
+                .equals(debugRequest.getResourceType())) {
+            return true;
+        }
+
+        String debugId = debugRequest.getEffectiveConnectionId();
         if (debugId == null || debugId.isEmpty()) {
             return true;
         }

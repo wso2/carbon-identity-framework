@@ -26,8 +26,6 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,6 +38,11 @@ import java.util.Locale;
 public class DebugProtocolRouter {
 
     private static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
+
+    private DebugProtocolRouter() {
+
+        // Utility class.
+    }
 
     /**
      * Enum representing different debug protocol types.
@@ -113,9 +116,8 @@ public class DebugProtocolRouter {
     public static DebugProtocolType detectProtocol(String connectionId) {
 
         if (StringUtils.isEmpty(connectionId)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Connection ID is empty, defaulting to OAuth2/OIDC");
-            }
+            LOG.debug("Connection ID is empty, defaulting to OAuth2/OIDC");
+
             return DebugProtocolType.OAUTH2_OIDC;
         }
 
@@ -177,9 +179,7 @@ public class DebugProtocolRouter {
      */
     public static DebugProcessor getProcessorForResource(String connectionId) {
 
-        // Cast to DebugProcessor is handled by the generic helper.
-        return (DebugProcessor) getProtocolProviderComponent(connectionId, DebugProtocolProvider::getProcessor,
-                "Processor");
+        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getProcessor, "Processor");
     }
 
     /**
@@ -192,33 +192,45 @@ public class DebugProtocolRouter {
     public static DebugResourceHandler getDebugResourceHandler(String resourceType) {
 
         if (StringUtils.isEmpty(resourceType)) {
-            logDebug("Resource type is empty, unable to route debug request");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Resource type is empty, unable to route debug request");
+            }
             return null;
         }
 
-        try {
-            return DebugResourceType.fromString(resourceType).getHandler();
-        } catch (Exception e) {
-            LOG.error("Error getting debug resource handler.", e);
-            return null;
+        DebugResourceType resolvedType = DebugResourceType.fromString(resourceType);
+        DebugResourceHandler resourceHandler = resolvedType.getHandler();
+        if (resourceHandler == null && LOG.isDebugEnabled()) {
+            LOG.debug("No DebugResourceHandler registered for resource type: " + resourceType);
         }
+        return resourceHandler;
     }
 
-    /**
-     * Gets all registered protocol types.
-     * Used for diagnostics and logging.
-     *
-     * @return Collection of registered protocol type names.
-     */
-    public static Collection<String> getAllRegisteredProtocolTypes() {
+    public static DebugProtocolType resolveProtocolFromAuthenticator(String authenticatorName) {
 
-        try {
-            return DebugFrameworkServiceDataHolder.getInstance()
-                    .getAllDebugProtocolProviders().keySet();
-        } catch (Exception e) {
-            LOG.error("Error retrieving registered protocol types: " + e.getMessage(), e);
-            return Collections.emptySet();
+        if (StringUtils.isBlank(authenticatorName)) {
+            return null;
         }
+        if ("GoogleOAuth2Authenticator".equalsIgnoreCase(authenticatorName)
+                || "GoogleAuthenticator".equalsIgnoreCase(authenticatorName)
+                || "GoogleOIDCAuthenticator".equalsIgnoreCase(authenticatorName)) {
+            return DebugProtocolType.GOOGLE;
+        }
+        if ("GitHubAuthenticator".equalsIgnoreCase(authenticatorName)
+                || "GithubAuthenticator".equalsIgnoreCase(authenticatorName)) {
+            return DebugProtocolType.GITHUB;
+        }
+        if ("SAMLSSOAuthenticator".equalsIgnoreCase(authenticatorName)
+                || "SAMLAuthenticator".equalsIgnoreCase(authenticatorName)) {
+            return DebugProtocolType.SAML;
+        }
+        if ("OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName)
+                || "OAuth2OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName)
+                || "OIDC".equalsIgnoreCase(authenticatorName)
+                || "OAuth2".equalsIgnoreCase(authenticatorName)) {
+            return DebugProtocolType.OAUTH2_OIDC;
+        }
+        return null;
     }
 
     /**
@@ -257,24 +269,18 @@ public class DebugProtocolRouter {
             return null;
         }
 
-        try {
-            String normalizedType = normalizeProtocolType(protocolType);
-            DebugProtocolProvider provider = DebugFrameworkServiceDataHolder.getInstance()
-                    .getDebugProtocolProvider(normalizedType);
+        String normalizedType = normalizeProtocolType(protocolType);
+        DebugProtocolProvider provider = DebugFrameworkServiceDataHolder.getInstance()
+                .getDebugProtocolProvider(normalizedType);
 
-            if (provider != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Retrieved protocol provider for type: " + normalizedType);
-                }
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol provider not found for type: " + normalizedType);
+        if (provider != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved protocol provider for type: " + normalizedType);
             }
-            return provider;
-
-        } catch (Exception e) {
-            LOG.error("Error retrieving protocol provider for type: " + protocolType + ": " + e.getMessage(), e);
+        } else if (LOG.isDebugEnabled()) {
+            LOG.debug("Protocol provider not found for type: " + normalizedType);
         }
-        return null;
+        return provider;
     }
 
     private static DebugProtocolProvider resolveProtocolProvider(String connectionId) {
@@ -307,12 +313,5 @@ public class DebugProtocolRouter {
     private static String normalizeProtocolType(String protocolType) {
 
         return protocolType.trim().toLowerCase(Locale.ENGLISH);
-    }
-
-    private static void logDebug(String message) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(message);
-        }
     }
 }

@@ -51,7 +51,10 @@ public class DebugContext {
         }
 
         DebugContext context = new DebugContext();
-        context.setResourceType((String) contextMap.get("resourceType"));
+        Object resourceType = contextMap.get("resourceType");
+        if (resourceType != null) {
+            context.setResourceType(String.valueOf(resourceType));
+        }
 
         // Copy all properties.
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {

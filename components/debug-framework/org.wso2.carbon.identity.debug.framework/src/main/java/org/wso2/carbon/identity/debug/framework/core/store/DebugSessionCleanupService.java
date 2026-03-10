@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +44,11 @@ public class DebugSessionCleanupService {
 
     public DebugSessionCleanupService() {
 
-        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread cleanupThread = new Thread(runnable, "IdentityDebugSessionCleanupTask");
+            cleanupThread.setDaemon(true);
+            return cleanupThread;
+        });
         this.debugSessionDAO = new DebugSessionDAOImpl();
     }
 
@@ -52,8 +57,13 @@ public class DebugSessionCleanupService {
      */
     public void activate() {
 
-        scheduler.scheduleWithFixedDelay(new DebugSessionCleanupTask(), INITIAL_DELAY,
-                DELAY_BETWEEN_RUNS, TimeUnit.MINUTES);
+        try {
+            scheduler.scheduleWithFixedDelay(new DebugSessionCleanupTask(), INITIAL_DELAY,
+                    DELAY_BETWEEN_RUNS, TimeUnit.MINUTES);
+        } catch (RejectedExecutionException e) {
+            LOG.error("Failed to activate debug session cleanup service.", e);
+            return;
+        }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Debug session cleanup service activated.");

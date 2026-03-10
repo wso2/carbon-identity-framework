@@ -53,18 +53,14 @@ public class IdpDebugServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Activating IDP Debug Handler Component.");
-        }
-
         try {
+            LOG.debug("Activating IDP Debug Handler Component.");
+
             // Register the IDP debug resource handler with the framework.
             IdpDebugResourceHandler idpHandler = new IdpDebugResourceHandler();
             DebugHandlerRegistry.getInstance().register(IDP_HANDLER_TYPE, idpHandler);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Registered IdpDebugResourceHandler with DebugHandlerRegistry.");
-            }
+            LOG.debug("Registered IdpDebugResourceHandler with DebugHandlerRegistry.");
 
             // Register the IDP debug protocol resolver as an OSGi service.
             // The framework's DebugServiceComponent will pick this up via @Reference.
@@ -72,13 +68,9 @@ public class IdpDebugServiceComponent {
             resolverServiceRegistration = context.getBundleContext().registerService(
                     DebugProtocolResolver.class, resolver, null);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Registered IdpDebugProtocolResolver service.");
-            }
-
-        } catch (Exception e) {
-            LOG.error("Failed to activate IDP Debug Handler Component.", e);
-            throw new RuntimeException("Failed to activate IDP Debug Handler Component.", e);
+            LOG.debug("Registered IdpDebugProtocolResolver service.");
+        } catch (Throwable e) {
+            LOG.error("Error while activating IDP Debug Handler Component.", e);
         }
     }
 
@@ -90,20 +82,20 @@ public class IdpDebugServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (LOG.isDebugEnabled()) {
+        try {
             LOG.debug("Deactivating IDP Debug Handler Component.");
-        }
 
-        // Clear the IDP handler registration.
-        DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
+            // Clear the IDP handler registration.
+            DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
 
-        if (resolverServiceRegistration != null) {
-            resolverServiceRegistration.unregister();
-            resolverServiceRegistration = null;
-        }
+            if (resolverServiceRegistration != null) {
+                resolverServiceRegistration.unregister();
+                resolverServiceRegistration = null;
+            }
 
-        if (LOG.isDebugEnabled()) {
             LOG.debug("IDP Debug Handler Component deactivated.");
+        } catch (Throwable e) {
+            LOG.error("Error while deactivating IDP Debug Handler Component.", e);
         }
     }
 }

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
+import org.wso2.carbon.identity.debug.framework.exception.ExecutionException;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
@@ -89,7 +90,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             throw e;
         } catch (ContextResolutionException e) {
             throw new DebugFrameworkClientException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
-        } catch (Exception e) {
+        } catch (ExecutionException e) {
             LOG.error("Error in IdP debug handler for resource: " + connectionId, e);
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
@@ -132,15 +133,6 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             return DebugContext.buildFromMap(contextMap);
         } catch (ContextResolutionException e) {
             throw e;
-        } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Context resolution failed for resource: " + connectionId + ". Error: " + e.getMessage());
-            }
-            throw new ContextResolutionException(
-                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getCode(),
-                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getMessage(),
-                    String.format(ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED
-                        .getDescription(), connectionId), e);
         }
     }
 

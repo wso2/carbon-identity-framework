@@ -35,6 +35,10 @@
     <description>Core debug framework for protocol-agnostic debugging capabilities</description>
     <url>http://wso2.org</url>
 
+    <properties>
+        <spotbugs.skip>false</spotbugs.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -77,7 +81,8 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
+                    <excludeFilterFile>../../../spotbugs-exclude.xml</excludeFilterFile>
                 </configuration>
             </plugin>
             <plugin>

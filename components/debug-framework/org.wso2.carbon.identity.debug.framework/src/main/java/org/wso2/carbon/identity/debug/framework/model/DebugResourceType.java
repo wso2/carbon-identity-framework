@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 
+import java.util.Locale;
+
 /**
  * Enum for debug resource types.
  * Defines the different types of resources that can be debugged (IdP,
@@ -49,7 +51,7 @@ public enum DebugResourceType {
             return CUSTOM;
         }
 
-        switch (resourceType.toLowerCase().trim()) {
+        switch (resourceType.toLowerCase(Locale.ENGLISH).trim()) {
             case "idp":
                 return IDP;
 
@@ -100,10 +102,10 @@ public enum DebugResourceType {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("CUSTOM resource type handler lookup would use registry");
                 }
-                return null;
 
-            default:
                 return null;
         }
+
+        return null;
     }
 }

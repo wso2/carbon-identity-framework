@@ -24,6 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
+import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter.DebugProtocolType;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -56,7 +58,7 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
             return detectProtocolFromIdP(resource);
 
-        } catch (Exception e) {
+        } catch (IdentityProviderManagementException e) {
             LOG.error("Error resolving protocol for IdP resource: " + resourceId, e);
         }
         return null;
@@ -133,34 +135,7 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         if (StringUtils.isEmpty(authenticatorName)) {
             return null;
         }
-
-        // Check for Google authenticators.
-        if ("GoogleOAuth2Authenticator".equalsIgnoreCase(authenticatorName) ||
-                "GoogleAuthenticator".equalsIgnoreCase(authenticatorName) ||
-                "GoogleOIDCAuthenticator".equalsIgnoreCase(authenticatorName)) {
-            return "Google";
-        }
-
-        // Check for GitHub authenticators.
-        if ("GitHubAuthenticator".equalsIgnoreCase(authenticatorName) ||
-                "GithubAuthenticator".equalsIgnoreCase(authenticatorName)) {
-            return "GitHub";
-        }
-
-        // Check for SAML authenticators.
-        if ("SAMLSSOAuthenticator".equalsIgnoreCase(authenticatorName) ||
-                "SAMLAuthenticator".equalsIgnoreCase(authenticatorName)) {
-            return "SAML";
-        }
-
-        // Check for OIDC/OAuth2 authenticators.
-        if ("OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName) ||
-                "OAuth2OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName) ||
-                "OIDC".equalsIgnoreCase(authenticatorName) ||
-                "OAuth2".equalsIgnoreCase(authenticatorName)) {
-            return "OAuth2/OIDC";
-        }
-
-        return null;
+        DebugProtocolType protocolType = DebugProtocolRouter.resolveProtocolFromAuthenticator(authenticatorName);
+        return protocolType != null ? protocolType.getDisplayName() : null;
     }
 }
