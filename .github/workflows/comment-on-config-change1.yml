@@ -1,0 +1,25 @@
+name: Comment on config file change
+
+on:
+  pull_request:
+    paths:
+      - 'features/identity-core/org.wso2.carbon.identity.core.server.feature/resources/org.wso2.carbon.identity.core.server.feature.default.json'
+
+jobs:
+  review-comment:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Post review on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: 'COMMENT',
+              body: 'abc'
+            })
