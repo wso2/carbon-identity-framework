@@ -579,6 +579,8 @@
 
   "identity_mgt.claims.add_userstore_domain_to_group_claims": false,
 
+  "identity_secret_manager.secret_value_clob_column_exists": true,
+
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
 

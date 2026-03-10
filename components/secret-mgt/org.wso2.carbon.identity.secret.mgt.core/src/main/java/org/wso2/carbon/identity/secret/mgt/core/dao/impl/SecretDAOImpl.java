@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.com).
+ * Copyright (c) 2021-2026, WSO2 Inc. (http://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,11 +24,14 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.NamedTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
@@ -36,6 +39,8 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -46,15 +51,20 @@ import java.util.TimeZone;
 import static java.time.ZoneOffset.UTC;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRETS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_ID;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_ID_ORACLE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_NAME;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_BY_NAME_ORACLE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_CREATED_TIME_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_NAME_BY_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.GET_SECRET_TYPE_BY_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.INSERT_SECRET;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.INSERT_SECRET_ORACLE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_DESCRIPTION;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_ORACLE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_TYPE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_VALUE;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SQLConstants.UPDATE_SECRET_VALUE_ORACLE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_DESCRIPTION;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_ID;
@@ -62,6 +72,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_SECRET_NAME;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_SECRET_VALUE;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_SECRET_VALUE_CLOB;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_TENANT_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.DB_SCHEMA_COLUMN_NAME_TYPE;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_ADD_SECRET;
@@ -75,6 +86,7 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_SECRET_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.ErrorMessages.ERROR_CODE_UPDATE_SECRET_TYPE;
+import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.IS_SECRET_VALUE_CLOB_COLUMN_EXISTS;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleClientException;
 import static org.wso2.carbon.identity.secret.mgt.core.util.SecretUtils.handleServerException;
 
@@ -99,7 +111,8 @@ public class SecretDAOImpl implements SecretDAO {
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
         try {
-            String query = GET_SECRET_BY_NAME;
+            boolean isOracleDBAndClobColumnExists = isOracleDBAndClobColumnExists(jdbcTemplate);
+            String query = isOracleDBAndClobColumnExists ? GET_SECRET_BY_NAME_ORACLE : GET_SECRET_BY_NAME;
             secretRawDataCollectors = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         SecretRawDataCollector.SecretRawDataCollectorBuilder
@@ -108,7 +121,7 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setSecretId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
                                         .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
                                         .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME))
-                                        .setSecretValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE))
+                                        .setSecretValue(resolveSecretValue(resultSet, isOracleDBAndClobColumnExists))
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
@@ -134,7 +147,8 @@ public class SecretDAOImpl implements SecretDAO {
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         List<SecretRawDataCollector> secretRawDataCollectors;
         try {
-            String query = GET_SECRET_BY_ID;
+            boolean isOracleDBAndClobColumnExists = isOracleDBAndClobColumnExists(jdbcTemplate);
+            String query = isOracleDBAndClobColumnExists ? GET_SECRET_BY_ID_ORACLE : GET_SECRET_BY_ID;
             secretRawDataCollectors = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) -> {
                         SecretRawDataCollector.SecretRawDataCollectorBuilder
                                 secretRawDataCollectorBuilder =
@@ -142,7 +156,7 @@ public class SecretDAOImpl implements SecretDAO {
                                         .setSecretId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
                                         .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
                                         .setSecretName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME))
-                                        .setSecretValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE))
+                                        .setSecretValue(resolveSecretValue(resultSet, isOracleDBAndClobColumnExists))
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, calendar))
                                         .setCreatedTime(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
                                                 calendar))
@@ -233,17 +247,19 @@ public class SecretDAOImpl implements SecretDAO {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
+            boolean isOracleDBAndClobColumnExists = isOracleDBAndClobColumnExists(jdbcTemplate);
+            String query = isOracleDBAndClobColumnExists ? INSERT_SECRET_ORACLE : INSERT_SECRET;
             jdbcTemplate.withTransaction(template -> {
 
                 // Insert secret metadata.
-                template.executeInsert(INSERT_SECRET,
+                template.executeInsert(query,
                         preparedStatement -> {
                             preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
                             preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
                                     PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                             .getTenantId());
                             preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, secret.getSecretName());
-                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secret.getSecretValue());
+                            addSecretValue(secret.getSecretValue(), preparedStatement, isOracleDBAndClobColumnExists);
                             preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME, currentTime, calendar);
 
                             preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
@@ -256,7 +272,7 @@ public class SecretDAOImpl implements SecretDAO {
             secret.setCreatedTime(currentTime.toInstant().toString());
             secret.setSecretType(secretType.getName());
 
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_ADD_SECRET, secret.getSecretName(), e);
         }
     }
@@ -285,17 +301,19 @@ public class SecretDAOImpl implements SecretDAO {
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
+            boolean isOracleDBAndClobColumnExists = isOracleDBAndClobColumnExists(jdbcTemplate);
+            String query = isOracleDBAndClobColumnExists ? UPDATE_SECRET_VALUE_ORACLE : UPDATE_SECRET_VALUE;
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(UPDATE_SECRET_VALUE, preparedStatement -> {
+                template.executeUpdate(query, preparedStatement -> {
                     preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
-                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, value);
+                    replaceSecretValue(secret.getSecretValue(), preparedStatement, isOracleDBAndClobColumnExists);
                     preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
                 });
                 return null;
             });
             secret.setLastModified(currentTime.toInstant().toString());
             secret.setSecretValue(value);
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             throw handleServerException(ERROR_CODE_UPDATE_SECRET, "value", e);
         }
         return secret;
@@ -431,9 +449,10 @@ public class SecretDAOImpl implements SecretDAO {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
+            boolean isOracleDBAndClobColumnExists = isOracleDBAndClobColumnExists(jdbcTemplate);
             Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
 
-                updateSecretMetadata(template, secret, secretType, currentTime);
+                updateSecretMetadata(template, secret, secretType, currentTime, isOracleDBAndClobColumnExists);
                 return getCreatedTimeInResponse(secret, secretType.getId());
             });
             secret.setLastModified(currentTime.toInstant().toString());
@@ -441,7 +460,7 @@ public class SecretDAOImpl implements SecretDAO {
                 secret.setCreatedTime(createdTime.toInstant().toString());
             }
             secret.setSecretType(secretType.getName());
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             if (e.getCause() instanceof SecretManagementException) {
                 throw (SecretManagementException) e.getCause();
             }
@@ -449,13 +468,15 @@ public class SecretDAOImpl implements SecretDAO {
         }
     }
 
-    private void updateSecretMetadata(NamedTemplate<Timestamp> template, Secret secret, SecretType secretType, Timestamp currentTime)
+    private void updateSecretMetadata(NamedTemplate<Timestamp> template, Secret secret, SecretType secretType,
+                                      Timestamp currentTime, boolean isOracleDBAndClobColumnExists)
             throws SecretManagementException, DataAccessException {
 
+        String query = isOracleDBAndClobColumnExists ? UPDATE_SECRET_ORACLE : UPDATE_SECRET;
         try {
-            template.executeUpdate(UPDATE_SECRET, preparedStatement -> {
+            template.executeUpdate(query, preparedStatement -> {
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, secret.getSecretName());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secret.getSecretValue());
+                replaceSecretValue(secret.getSecretValue(), preparedStatement, isOracleDBAndClobColumnExists);
                 preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretType.getId());
                 preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_DESCRIPTION, secret.getDescription());
@@ -478,5 +499,94 @@ public class SecretDAOImpl implements SecretDAO {
     private NamedJdbcTemplate getNewTemplate() {
 
         return new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+    }
+
+    /**
+     * Add secret value to the PreparedStatement.
+     *
+     * @param secretValue                   Secret value to be added to the PreparedStatement.
+     * @param preparedStatement             PreparedStatement to which the secret value needs to be added.
+     * @param isOracleDBAndClobColumnExists Whether the database is Oracle DB and the secret value CLOB column exists
+     *                                      in the database.
+     * @throws SQLException If an error occurs while adding the secret value to the PreparedStatement.
+     */
+    private void addSecretValue(String secretValue, NamedPreparedStatement preparedStatement,
+                                boolean isOracleDBAndClobColumnExists) throws SQLException {
+
+        if (isOracleDBAndClobColumnExists) {
+            /* When the database is Oracle DB, always populate the CLOB column with the secret value. */
+            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE_CLOB, secretValue);
+        } else {
+            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secretValue);
+        }
+    }
+
+    /**
+     * Replace secret value in the PreparedStatement.
+     *
+     * @param secretValue   Secret value to be replaced in the PreparedStatement.
+     * @param preparedStatement PreparedStatement in which the secret value needs to be replaced.
+     * @param isOracleDB    Whether the database is Oracle DB or not.
+     * @throws SQLException If an error occurs while replacing the secret value in the PreparedStatement.
+     */
+    private void replaceSecretValue(String secretValue, NamedPreparedStatement preparedStatement, boolean isOracleDB)
+            throws SQLException {
+
+        if (isOracleDB) {
+            /* When the database is Oracle DB, populate the CLOB column with the new secret value and update the
+            VARCHAR column with empty string to preserve backward compatibility.*/
+            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE_CLOB, secretValue);
+            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, StringUtils.EMPTY);
+        } else {
+            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secretValue);
+        }
+    }
+
+    /**
+     * Resolve the secret value from the ResultSet.
+     *
+     * @param resultSet                     ResultSet from which the secret value needs to be resolved.
+     * @param isOracleDBAndClobColumnExists Whether the database is Oracle DB and the secret value CLOB column exists
+     *                                      in the database.
+     * @return Resolved secret value.
+     * @throws SQLException If an error occurs while resolving the secret value from the ResultSet.
+     */
+    private String resolveSecretValue(ResultSet resultSet, boolean isOracleDBAndClobColumnExists) throws SQLException {
+
+        if (isOracleDBAndClobColumnExists) {
+            /* hen the database is Oracle DB and the secret value CLOB column exists, try to resolve the secret
+            value from the CLOB column first. */
+            String secretValueFromClob = resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE_CLOB);
+            if (StringUtils.isNotEmpty(secretValueFromClob)) {
+                return secretValueFromClob;
+            }
+        }
+
+        return resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE);
+    }
+
+    /**
+     * Check whether the database is Oracle DB and the secret value CLOB column exists in the database.
+     *
+     * @param jdbcTemplate NamedJdbcTemplate to be used to check whether the database is Oracle DB.
+     * @return true if the database is Oracle DB and the secret value CLOB column exists in the database, false
+     * otherwise.
+     * @throws DataAccessException If an error occurs while checking whether the database is Oracle DB.
+     */
+    private boolean isOracleDBAndClobColumnExists(NamedJdbcTemplate jdbcTemplate) throws DataAccessException {
+
+        return JdbcUtils.isOracleDB(jdbcTemplate) && isSecretValueClobColumnExists();
+    }
+
+    /**
+     * Check whether the secret value CLOB column exists in the database. This is governed by a server
+     * level configuration.
+     *
+     * @return true if the secret value CLOB column exists in the database, false otherwise.
+     */
+    private boolean isSecretValueClobColumnExists() {
+
+        return Boolean.parseBoolean((String) IdentityConfigParser.getInstance()
+                .getConfiguration().get(IS_SECRET_VALUE_CLOB_COLUMN_EXISTS));
     }
 }

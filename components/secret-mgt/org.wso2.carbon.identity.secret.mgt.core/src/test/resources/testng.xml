@@ -21,6 +21,7 @@
     <test name="SecretManagementCoreTests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.secret.mgt.core.SecretManagerTest"/>
+            <class name="org.wso2.carbon.identity.secret.mgt.core.SecretDAOImplTest"/>
         </classes>
     </test>
 </suite>
