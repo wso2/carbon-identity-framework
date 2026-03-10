@@ -23,29 +23,53 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @WithCarbonHome
@@ -58,6 +82,10 @@ public class IdentityProviderManagerTest {
     private static final String OAUTH2_JWKS_EP_URL = "/oauth2/jwks";
     private static final String TENANT_DOMAIN = "foo.com";
     private static final String IDP_NAME = "https://localhost/oauth2/token";
+    private static final String TEST_TENANT_DOMAIN = "carbon.super";
+    private static final String TEST_RESOURCE_ID = "test-resource-id";
+    private static final String TEST_IDP_NAME = "TestIDP";
+    private static final int TEST_TENANT_ID = -1234;
 
     @Mock
     private CacheBackedIdPMgtDAO dao;
@@ -122,6 +150,419 @@ public class IdentityProviderManagerTest {
             assertTrue(Arrays.stream(result.getIdpProperties())
                     .anyMatch(p -> JWKS_URI.equals(p.getName()) &&
                             p.getValue().equals(jwtIssuer.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL))));
+        }
+    }
+
+    @Test(description = "Test validation passes when provisioning role is blank.")
+    public void testValidateOutboundProvisioningRolesWithBlankRole() throws Exception {
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation passes for existing Internal/ roles.")
+    public void testValidateOutboundProvisioningRolesWithExistingRoles() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN)).thenReturn(true);
+        when(mockRoleManagementService.isExistingRoleName("Internal/everyone", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin,Internal/everyone");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        // Should not throw any exception.
+        verify(mockRoleManagementService).isExistingRoleName("Internal/admin", TENANT_DOMAIN);
+        verify(mockRoleManagementService).isExistingRoleName("Internal/everyone", TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation fails for non-existing Internal/ roles.",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testValidateOutboundProvisioningRolesWithNonExistingRole() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/nonExistent", TENANT_DOMAIN)).thenReturn(false);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/nonExistent");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation passes for existing groups.")
+    public void testValidateOutboundProvisioningRolesWithExistingGroup() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("engineers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("engineers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        // Should not throw any exception.
+        verify(mockUserStoreManager).isGroupExistWithName("engineers");
+    }
+
+    @Test(description = "Test validation fails for non-existing groups.",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testValidateOutboundProvisioningRolesWithNonExistingGroup() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("nonExistentGroup")).thenReturn(false);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("nonExistentGroup");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+    }
+
+    @Test(description = "Test validation passes for mixed roles and groups when all exist.")
+    public void testValidateOutboundProvisioningRolesWithMixedRolesAndGroups() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("engineers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin,engineers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        verify(mockRoleManagementService).isExistingRoleName("Internal/admin", TENANT_DOMAIN);
+        verify(mockUserStoreManager).isGroupExistWithName("engineers");
+    }
+
+    @Test(description = "Test validation fails when role exists but group does not in mixed input.",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testValidateOutboundProvisioningRolesWithMixedExistingRoleAndNonExistingGroup() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("nonExistentGroup")).thenReturn(false);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin,nonExistentGroup");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+    }
+
+    @Test(description = "Test validation passes for domain-qualified group names.")
+    public void testValidateOutboundProvisioningRolesWithDomainQualifiedGroup() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("SECONDARY/engineers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("SECONDARY/engineers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        verify(mockUserStoreManager).isGroupExistWithName("SECONDARY/engineers");
+    }
+
+    @Test(description = "Test Application/ prefixed entries are validated as roles, not groups.")
+    public void testValidateOutboundProvisioningRolesWithApplicationRole() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Application/myAppRole", TENANT_DOMAIN)).thenReturn(true);
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Application/myAppRole");
+
+        invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        verify(mockRoleManagementService).isExistingRoleName("Application/myAppRole", TENANT_DOMAIN);
+    }
+
+    @Test(description = "Test validation wraps IdentityRoleManagementException as server exception.")
+    public void testValidateOutboundProvisioningRolesWithRoleManagementException() throws Exception {
+
+        RoleManagementService mockRoleManagementService = mock(RoleManagementService.class);
+        when(mockRoleManagementService.isExistingRoleName("Internal/admin", TENANT_DOMAIN))
+                .thenThrow(new IdentityRoleManagementException("ROLE-00001", "Test error"));
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(mockRoleManagementService);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("Internal/admin");
+
+        try {
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+            fail("Expected IdentityProviderManagementServerException to be thrown.");
+        } catch (IdentityProviderManagementServerException e) {
+            assertEquals(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES.getCode(), e.getErrorCode());
+        }
+    }
+
+    @Test(description = "Test validation passes for multiple existing groups.")
+    public void testValidateOutboundProvisioningRolesWithMultipleExistingGroups() throws Exception {
+
+        AbstractUserStoreManager mockUserStoreManager = mock(AbstractUserStoreManager.class);
+        when(mockUserStoreManager.isGroupExistWithName("engineers")).thenReturn(true);
+        when(mockUserStoreManager.isGroupExistWithName("managers")).thenReturn(true);
+        setupRealmService(mockUserStoreManager);
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setProvisioningRole("engineers,managers");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            invokeValidateOutboundProvisioningRoles(idp, TENANT_DOMAIN);
+        }
+        verify(mockUserStoreManager).isGroupExistWithName("engineers");
+        verify(mockUserStoreManager).isGroupExistWithName("managers");
+    }
+
+    /**
+     * Invokes the private validateOutboundProvisioningRoles method via reflection.
+     * Unwraps InvocationTargetException to throw the actual cause.
+     */
+    private void invokeValidateOutboundProvisioningRoles(IdentityProvider idp, String tenantDomain) throws Exception {
+
+        Method method = IdentityProviderManager.class.getDeclaredMethod(
+                "validateOutboundProvisioningRoles", IdentityProvider.class, String.class);
+        method.setAccessible(true);
+        try {
+            method.invoke(identityProviderManager, idp, tenantDomain);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof Exception) {
+                throw (Exception) e.getCause();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Sets up the RealmService mock so that IdPManagementServiceComponent.getRealmService() returns a mock chain
+     * leading to the provided userStoreManager.
+     */
+    private void setupRealmService(AbstractUserStoreManager userStoreManager)
+            throws org.wso2.carbon.user.api.UserStoreException {
+
+        RealmService mockRealmService = mock(RealmService.class);
+        UserRealm mockUserRealm = mock(UserRealm.class);
+        RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        when(mockUserRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        when(userStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        when(mockRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME))
+                .thenReturn("PRIMARY");
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(mockRealmService);
+    }
+
+    /**
+     * Provides test data for maximum session timeout configuration tests.
+     *
+     * @return Test data with enable flag, timeout value, and expected results.
+     */
+    @DataProvider(name = "sessionTimeoutConfigProvider")
+    public Object[][] sessionTimeoutConfigProvider() {
+
+        return new Object[][]{
+                // Valid configuration.
+                {"true", "43260", "true", "43260"},
+                // Invalid boolean value should default to false.
+                {"invalid", "43200", "false", IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT},
+                // Invalid numeric value should default to default timeout.
+                {"false", "0", "false", IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT},
+                {"true", "invalid", "true", IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT},
+                // Empty values should use defaults.
+                {"false", "", "false", IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT}
+        };
+    }
+
+    @Test(description = "Tests resident IdP properties include maximum session timeout configurations.",
+            dataProvider = "sessionTimeoutConfigProvider")
+    public void testAddResidentIdPWithSessionTimeoutProperties(String enableMaxSessionTimeout,
+                                                                String maxSessionTimeout,
+                                                                String expectedEnableValue,
+                                                                String expectedTimeoutValue)
+            throws Exception {
+
+        IdentityProvider residentIdP = new IdentityProvider();
+        residentIdP.setIdentityProviderName("LOCAL");
+
+        when(dao.addIdP(any(IdentityProvider.class), anyInt(), anyString())).thenReturn("test-resource-id");
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN)).thenReturn(false);
+
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT))
+                    .thenReturn("20160");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.SESSION_IDLE_TIMEOUT))
+                    .thenReturn("15");
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn(enableMaxSessionTimeout);
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT))
+                    .thenReturn(maxSessionTimeout);
+
+            identityProviderManager.addResidentIdP(residentIdP, TENANT_DOMAIN);
+
+            // Verify the properties are set correctly.
+            IdentityProviderProperty[] idpProperties = residentIdP.getIdpProperties();
+            assertNotNull("IdP properties should not be null", idpProperties);
+            assertEquals("Should have 4 properties", 4, idpProperties.length);
+
+            // Verify enable maximum session timeout property.
+            IdentityProviderProperty enableProp = Arrays.stream(idpProperties)
+                    .filter(p -> IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT.equals(p.getName()))
+                    .findFirst()
+                    .orElse(null);
+            assertNotNull("Enable maximum session timeout property should exist", enableProp);
+            assertEquals("Enable value should match expected", expectedEnableValue, enableProp.getValue());
+
+            // Verify maximum session timeout property.
+            IdentityProviderProperty timeoutProp = Arrays.stream(idpProperties)
+                    .filter(p -> IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT.equals(p.getName()))
+                    .findFirst()
+                    .orElse(null);
+            assertNotNull("Maximum session timeout property should exist", timeoutProp);
+            assertEquals("Timeout value should match expected", expectedTimeoutValue, timeoutProp.getValue());
+        }
+    }
+
+    /**
+     * Provides test data for update resident IdP validation tests.
+     *
+     * @return Test data with property values and expected validation results.
+     */
+    @DataProvider(name = "updateResidentIdPValidationProvider")
+    public Object[][] updateResidentIdPValidationProvider() {
+
+        return new Object[][]{
+                // Valid boolean and numeric values should pass.
+                {"true", "43200", true},
+                {"false", "86400", true},
+                // Invalid boolean values should fail.
+                {"invalid", "43200", false},
+                {"", "43200", false},
+                // Invalid numeric values should fail.
+                {"true", "0", false},
+                {"true", "-100", false},
+                {"true", "invalid", false},
+                {"true", "", false}
+        };
+    }
+
+    @Test(description = "Tests updateResidentIdP validation for maximum session timeout properties.",
+            dataProvider = "updateResidentIdPValidationProvider")
+    public void testUpdateResidentIdPWithSessionTimeoutValidation(String enableMaxSessionTimeout,
+                                                                   String maxSessionTimeout,
+                                                                   boolean shouldPass)
+            throws Exception {
+
+        // Create existing resident IdP with default properties.
+        IdentityProvider existingResidentIdP = new IdentityProvider();
+        existingResidentIdP.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+        IdentityProviderProperty[] existingProps = new IdentityProviderProperty[4];
+
+        IdentityProviderProperty rememberMeProp = new IdentityProviderProperty();
+        rememberMeProp.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
+        rememberMeProp.setValue("20160");
+        existingProps[0] = rememberMeProp;
+
+        IdentityProviderProperty sessionIdleProp = new IdentityProviderProperty();
+        sessionIdleProp.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
+        sessionIdleProp.setValue("15");
+        existingProps[1] = sessionIdleProp;
+
+        IdentityProviderProperty enableMaxSessionProp = new IdentityProviderProperty();
+        enableMaxSessionProp.setName(IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+        enableMaxSessionProp.setValue("false");
+        existingProps[2] = enableMaxSessionProp;
+
+        IdentityProviderProperty maxSessionProp = new IdentityProviderProperty();
+        maxSessionProp.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+        maxSessionProp.setValue("43200");
+        existingProps[3] = maxSessionProp;
+
+        existingResidentIdP.setIdpProperties(existingProps);
+
+        // Create updated IdP with new property values.
+        IdentityProvider updatedIdP = new IdentityProvider();
+        updatedIdP.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+        IdentityProviderProperty[] updatedProps = new IdentityProviderProperty[2];
+
+        IdentityProviderProperty updatedEnableProp = new IdentityProviderProperty();
+        updatedEnableProp.setName(IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT);
+        updatedEnableProp.setValue(enableMaxSessionTimeout);
+        updatedProps[0] = updatedEnableProp;
+
+        IdentityProviderProperty updatedTimeoutProp = new IdentityProviderProperty();
+        updatedTimeoutProp.setName(IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT);
+        updatedTimeoutProp.setValue(maxSessionTimeout);
+        updatedProps[1] = updatedTimeoutProp;
+
+        updatedIdP.setIdpProperties(updatedProps);
+
+        when(dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME, 1, TENANT_DOMAIN))
+                .thenReturn(existingResidentIdP);
+        doNothing().when(dao).updateIdP(any(IdentityProvider.class), any(IdentityProvider.class), anyInt(),
+                anyString());
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<OrganizationManagementUtil> mockedOrgUtil = mockStatic(OrganizationManagementUtil.class)) {
+
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            mockedOrgUtil.when(() -> OrganizationManagementUtil.isOrganization(TENANT_DOMAIN)).thenReturn(false);
+
+            if (shouldPass) {
+                // Should not throw exception.
+                identityProviderManager.updateResidentIdP(updatedIdP, TENANT_DOMAIN);
+
+                // Verify properties are set correctly.
+                IdentityProviderProperty[] finalProps = updatedIdP.getIdpProperties();
+                assertNotNull("IdP properties should not be null", finalProps);
+                assertEquals("Should have 4 properties", 4, finalProps.length);
+            } else {
+                // Should throw IdentityProviderManagementException.
+                try {
+                    identityProviderManager.updateResidentIdP(updatedIdP, TENANT_DOMAIN);
+                    fail("Expected IdentityProviderManagementException to be thrown");
+                } catch (IdentityProviderManagementException e) {
+                    // Expected exception - verify it mentions the session timeout property.
+                    assertNotNull("Exception message should not be null", e.getMessage());
+                    assertTrue("Exception message should mention session timeout property. Message: " + e.getMessage(),
+                            e.getMessage().toLowerCase().contains("session") ||
+                                    e.getMessage().toLowerCase().contains("timeout"));
+                }
+            }
         }
     }
 
@@ -197,5 +638,361 @@ public class IdentityProviderManagerTest {
                 .filter(c -> IdentityApplicationConstants.Authenticator.OIDC.NAME.equals(c.getName()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Test getConnectedApplications with valid parameters and filter.
+     */
+    @Test(description = "Test getConnectedApplications with valid filter")
+    public void testGetConnectedApplicationsWithValidFilter() throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(5, 50, 10, 0);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, "name sw \"test\"", TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+            assertEquals(5, result.getApps().size());
+            assertEquals(50, result.getTotalAppCount());
+        }
+    }
+
+    /**
+     * Test with null filter (should work without exception).
+     */
+    @Test(description = "Test getConnectedApplications with null filter")
+    public void testGetConnectedApplicationsWithNullFilter() throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(3, 30, 10, 0);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, null, TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+        }
+    }
+
+    /**
+     * Test with empty filter (should work without exception).
+     */
+    @Test(description = "Test getConnectedApplications with empty filter")
+    public void testGetConnectedApplicationsWithEmptyFilter() throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(3, 30, 10, 0);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, "", TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+        }
+    }
+
+    /**
+     * Test with complex filter expression.
+     */
+    @Test(description = "Test getConnectedApplications with complex filter")
+    public void testGetConnectedApplicationsWithComplexFilter() throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(2, 20, 10, 0);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            String complexFilter = "name sw \"app\" and name ew \"test\"";
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, complexFilter, TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+        }
+    }
+
+    /**
+     * Test with invalid resource ID (should throw exception).
+     */
+    @Test(description = "Test getConnectedApplications with invalid resource ID",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testGetConnectedApplicationsWithInvalidResourceId() throws Exception {
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(null);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, "name sw \"test\"", TEST_TENANT_DOMAIN);
+        }
+    }
+
+    /**
+     * Test with null resource ID (should throw exception).
+     */
+    @Test(description = "Test getConnectedApplications with null resource ID",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testGetConnectedApplicationsWithNullResourceId() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            identityProviderManager.getConnectedApplications(
+                    null, 10, 0, "name sw \"test\"", TEST_TENANT_DOMAIN);
+        }
+    }
+
+    /**
+     * Test with empty resource ID (should throw exception).
+     */
+    @Test(description = "Test getConnectedApplications with empty resource ID",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testGetConnectedApplicationsWithEmptyResourceId() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            identityProviderManager.getConnectedApplications(
+                    "", 10, 0, "name sw \"test\"", TEST_TENANT_DOMAIN);
+        }
+    }
+
+    /**
+     * Test limit validation with negative limit (should throw exception).
+     */
+    @Test(description = "Test getConnectedApplications with negative limit",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testGetConnectedApplicationsWithNegativeLimit() throws Exception {
+
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, -5, 0, "name sw \"test\"", TEST_TENANT_DOMAIN);
+        }
+    }
+
+    /**
+     * Test offset validation with negative offset (should throw exception).
+     */
+    @Test(description = "Test getConnectedApplications with negative offset",
+            expectedExceptions = IdentityProviderManagementClientException.class)
+    public void testGetConnectedApplicationsWithNegativeOffset() throws Exception {
+
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, -1, "name sw \"test\"", TEST_TENANT_DOMAIN);
+        }
+    }
+
+    /**
+     * Test with pagination parameters.
+     */
+    @Test(description = "Test getConnectedApplications with pagination")
+    public void testGetConnectedApplicationsWithPagination() throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(5, 50, 5, 10);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 5, 10, "name co \"app\"", TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+            assertEquals(5, result.getApps().size());
+            assertEquals(50, result.getTotalAppCount());
+            assertEquals(5, result.getLimit());
+            assertEquals(10, result.getOffSet());
+        }
+    }
+
+    /**
+     * Test with invalid filter format that causes parsing exception.
+     */
+    @Test(description = "Test getConnectedApplications with invalid filter")
+    public void testGetConnectedApplicationsWithInvalidFilter() throws Exception {
+
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+
+        // Mock ConnectedAppsResult for when filter parsing succeeds unexpectedly.
+        ConnectedAppsResult mockResult = createConnectedAppsResult(0, 0, 10, 0);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(mockResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            // Invalid filter format with unclosed quote which might cause parser exception.
+            String invalidFilter = "name eq \"unclosed";
+
+            try {
+                ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                        TEST_RESOURCE_ID, 10, 0, invalidFilter, TEST_TENANT_DOMAIN);
+                // If no exception thrown, parser handled it. Verify method was called.
+                assertNotNull(result);
+            } catch (IdentityProviderManagementClientException e) {
+                // Should fail during filter parsing with ERROR_CODE_RETRIEVE_IDP.
+                assertEquals(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_RETRIEVE_IDP.getCode(), e.getErrorCode());
+                assertNotNull(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Data provider for various filter expressions.
+     */
+    @DataProvider(name = "filterExpressions")
+    public Object[][] filterExpressions() {
+
+        return new Object[][]{
+                {"name eq \"test\""},
+                {"name ne \"test\""},
+                {"name sw \"test\""},
+                {"name ew \"test\""},
+                {"name co \"test\""},
+                {"name sw \"test\" and name ew \"app\""},
+                {"name sw \"test\" or name co \"app\""}
+        };
+    }
+
+    /**
+     * Test various filter expressions.
+     */
+    @Test(dataProvider = "filterExpressions", description = "Test getConnectedApplications with various filters")
+    public void testGetConnectedApplicationsWithVariousFilters(String filter) throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(5, 50, 10, 0);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, filter, TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+        }
+    }
+
+    /**
+     * Test when no connected applications are found.
+     */
+    @Test(description = "Test getConnectedApplications with no results")
+    public void testGetConnectedApplicationsWithNoResults() throws Exception {
+
+        ConnectedAppsResult expectedResult = createConnectedAppsResult(0, 0, 10, 0);
+        IdentityProvider mockIdp = createMockIdentityProvider(TEST_RESOURCE_ID, TEST_IDP_NAME);
+
+        when(dao.getIdPByResourceId(TEST_RESOURCE_ID, TEST_TENANT_ID, TEST_TENANT_DOMAIN))
+                .thenReturn(mockIdp);
+        when(dao.getConnectedApplications(anyString(), anyInt(), anyInt(), anyList()))
+                .thenReturn(expectedResult);
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TEST_TENANT_DOMAIN))
+                    .thenReturn(TEST_TENANT_ID);
+
+            ConnectedAppsResult result = identityProviderManager.getConnectedApplications(
+                    TEST_RESOURCE_ID, 10, 0, "name sw \"nonexistent\"", TEST_TENANT_DOMAIN);
+
+            assertNotNull(result);
+            assertEquals(0, result.getApps().size());
+            assertEquals(0, result.getTotalAppCount());
+        }
+    }
+
+    /**
+     * Helper method to create a mock ConnectedAppsResult.
+     */
+    private ConnectedAppsResult createConnectedAppsResult(int appCount, int totalCount, int limit, int offset) {
+
+        ConnectedAppsResult result = new ConnectedAppsResult();
+        List<String> apps = new ArrayList<>();
+        for (int i = 0; i < appCount; i++) {
+            apps.add("App" + i);
+        }
+        result.setApps(apps);
+        result.setTotalAppCount(totalCount);
+        result.setLimit(limit);
+        result.setOffSet(offset);
+        return result;
+    }
+
+    /**
+     * Helper method to create a mock IdentityProvider.
+     */
+    private IdentityProvider createMockIdentityProvider(String resourceId, String idpName) {
+
+        IdentityProvider idp = new IdentityProvider();
+        idp.setResourceId(resourceId);
+        idp.setIdentityProviderName(idpName);
+        return idp;
     }
 }

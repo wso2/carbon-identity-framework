@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.workflow.mgt.bean.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,8 +69,14 @@ public class UtilsTest {
     @Mock
     private PreparedStatement mockPreparedStatement;
 
+    @Mock
+    private DatabaseMetaData mockDatabaseMetaData;
+
     private MockedStatic<WorkflowServiceDataHolder> workflowServiceDataHolderMock;
     private MockedStatic<CarbonContext> carbonContextMock;
+
+    private final String postgresqlDbName = "PostgreSQL";
+    private final String mssqlDbName = "MSSQL";
 
     @BeforeMethod
     public void setUp() {
@@ -104,10 +111,13 @@ public class UtilsTest {
     public void testGeneratePrepStmtPostgreSQL() throws Exception {
 
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+        when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(postgresqlDbName);
+        when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
 
         try (MockedStatic<org.wso2.carbon.identity.core.util.JdbcUtils> jdbcUtilsMock =
                 mockStatic(org.wso2.carbon.identity.core.util.JdbcUtils.class)) {
-            jdbcUtilsMock.when(org.wso2.carbon.identity.core.util.JdbcUtils::isPostgreSQLDB).thenReturn(true);
+            jdbcUtilsMock.when(() -> org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB(postgresqlDbName))
+                    .thenReturn(true);
 
             PreparedStatement result = Utils.generatePrepStmt(mockConnection, "SELECT * FROM table", 1,
                     "filter", 10, 20);
@@ -124,10 +134,13 @@ public class UtilsTest {
     public void testGeneratePrepStmtNonPostgreSQL() throws Exception {
 
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+        when(mockDatabaseMetaData.getDatabaseProductName()).thenReturn(mssqlDbName);
+        when(mockConnection.getMetaData()).thenReturn(mockDatabaseMetaData);
 
         try (MockedStatic<org.wso2.carbon.identity.core.util.JdbcUtils> jdbcUtilsMock =
                 mockStatic(org.wso2.carbon.identity.core.util.JdbcUtils.class)) {
-            jdbcUtilsMock.when(org.wso2.carbon.identity.core.util.JdbcUtils::isPostgreSQLDB).thenReturn(false);
+            jdbcUtilsMock.when(() -> org.wso2.carbon.identity.core.util.JdbcUtils.isPostgreSQLDB(mssqlDbName))
+                    .thenReturn(false);
 
             PreparedStatement result = Utils.generatePrepStmt(mockConnection, "SELECT * FROM table", 1,
                     "filter", 10, 20);

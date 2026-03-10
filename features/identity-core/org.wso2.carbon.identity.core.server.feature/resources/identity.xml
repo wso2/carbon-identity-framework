@@ -814,6 +814,7 @@
             Default value : true
         -->
         <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
+        <AllowIssuerSelectionForSubOrgApplications>true</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1096,6 +1097,14 @@
            Supported versions : IS 7.2.0 onwards
         -->
         <ThrowUserStoreExceptionOnUserCreationError>true</ThrowUserStoreExceptionOnUserCreationError>
+
+        <!--
+            If you want to enable the spec compliant email handling in SCIM 2.0, then enable this property value.
+
+            Default value: true
+            Supported versions : IS 7.0.0 onwards
+        -->
+        <EnableSpecCompliantEmailHandling>true</EnableSpecCompliantEmailHandling>
     </SCIM2>
 
     <PasswordPolicy>
@@ -1329,6 +1338,8 @@
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
         <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
+        <ConfidentialDataProtectionEnabled>true</ConfidentialDataProtectionEnabled>
+        <EnableSCIMCompliantEmailAttribute>true</EnableSCIMCompliantEmailAttribute>
         <SCIM2Client>
             <HttpRetryCount>1</HttpRetryCount>
             <HttpReadTimeout>5000</HttpReadTimeout>
@@ -2922,6 +2933,8 @@
         <CustomContent>
             <MaxFileSize>1048576</MaxFileSize>
         </CustomContent>
+        <UseIntermediateLoaderPage>false</UseIntermediateLoaderPage>
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>false</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
@@ -2957,4 +2970,6 @@
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
+    <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>false</EnhancedOrganizationAuthenticationFeatureEnabled>
 </Server>

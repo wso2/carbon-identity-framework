@@ -249,6 +249,19 @@ public class SelfRegisterApi {
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
     public User validateCodeUserPostCall(CodeValidationRequest code) throws ApiException {
+
+        // Call the overloaded method with null headers.
+        return validateCodeUserPostCall(code, null);
+    }
+
+    /**
+     * This API is used to validate code of self registered users.
+     *
+     * @param code    Code retried after user self registration and optional property parameters (required).
+     * @param headers Map of request headers.
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body.
+     */
+    public User validateCodeUserPostCall(CodeValidationRequest code, Map<String, String> headers) throws ApiException {
         Object localVarPostBody = code;
 
         // verify the required parameter 'code' is set
@@ -278,6 +291,9 @@ public class SelfRegisterApi {
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        if (headers != null) {
+            localVarHeaderParams.putAll(headers);
+        }
 
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 

@@ -1052,19 +1052,24 @@ public class RoleDAOImpl implements RoleDAO {
                                                     String mainRoleTenantDomain, String sharedRoleTenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleBasicInfo mainRoleBasicInfo = getRoleBasicInfoById(mainRoleUUID, mainRoleTenantDomain);
+        RoleBasicInfo sharedRoleBasicInfo = getRoleBasicInfoById(sharedRoleUUID, sharedRoleTenantDomain);
+        addMainRoleToSharedRoleRelationship(mainRoleBasicInfo.getRoleId(), sharedRoleBasicInfo.getRoleId(),
+                sharedRoleBasicInfo.getName(), mainRoleTenantDomain, sharedRoleTenantDomain);
+    }
+
+    @Override
+    public void addMainRoleToSharedRoleRelationship(int mainRoleUMId, int sharedRoleUMId, String sharedRoleName,
+                                                    String mainRoleTenantDomain, String sharedRoleTenantDomain)
+            throws IdentityRoleManagementException {
+
         int mainRoleTenantId = IdentityTenantUtil.getTenantId(mainRoleTenantDomain);
         int sharedRoleTenantId = IdentityTenantUtil.getTenantId(sharedRoleTenantDomain);
-
-        RoleBasicInfo mainRoleBasicInfo = getRoleBasicInfoById(mainRoleUUID, mainRoleTenantDomain);
-        int mainRoleUMId = mainRoleBasicInfo.getRoleId();
-
-        RoleBasicInfo sharedRoleBasicInfo = getRoleBasicInfoById(sharedRoleUUID, sharedRoleTenantDomain);
-        int sharedRoleUMId = sharedRoleBasicInfo.getRoleId();
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
 
             try (NamedPreparedStatement statementForAddRoleRelationship = new NamedPreparedStatement(connection,
-                         INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP)) {
+                    INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP)) {
 
                 // Add main role to shared role relationship.
                 statementForAddRoleRelationship.setInt(RoleConstants.RoleTableColumns.UM_SHARED_ROLE_ID,
@@ -1080,12 +1085,12 @@ public class RoleDAOImpl implements RoleDAO {
                 IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
                 String message = "Error while adding the role relationship of role: %s.";
                 throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
-                        String.format(message, sharedRoleBasicInfo.getName()), e);
+                        String.format(message, sharedRoleName), e);
             }
         } catch (SQLException e) {
             String message = "Error while adding the role relationship of role: %s.";
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
-                    String.format(message, sharedRoleBasicInfo.getName()), e);
+                    String.format(message, sharedRoleName), e);
         }
     }
 

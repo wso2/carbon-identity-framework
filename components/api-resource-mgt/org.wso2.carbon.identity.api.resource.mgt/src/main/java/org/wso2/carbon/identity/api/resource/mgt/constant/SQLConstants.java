@@ -175,6 +175,8 @@ public class SQLConstants {
             " WHERE ID = ?";
     public static final String UPDATE_SCOPE_METADATA = "UPDATE SCOPE SET DISPLAY_NAME  = ?, DESCRIPTION  = ? " +
             "WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String UPDATE_SCOPE_METADATA_BY_ID = "UPDATE SCOPE SET DISPLAY_NAME  = ?, DESCRIPTION  = ? " +
+            "WHERE ID = ? AND TENANT_ID = ?";
     public static final String IS_SCOPE_EXIST_BY_ID = "SELECT ID FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_SCOPE_BY_NAME = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID "
             + "FROM SCOPE WHERE NAME = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
@@ -192,6 +194,7 @@ public class SQLConstants {
     public static final String GET_SCOPES_BY_TENANT_ID_FOR_ORGANIZATIONS_TAIL = "(AR.TENANT_ID = ? OR AR.TENANT_ID " +
             "IS NULL) AND TYPE NOT IN ('TENANT', 'SYSTEM', 'CONSOLE_FEATURE')";
     public static final String DELETE_SCOPE_BY_NAME = "DELETE FROM SCOPE WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String DELETE_SCOPE_BY_ID = "DELETE FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID = "SELECT ID, NAME, VALUE FROM " +
             "API_RESOURCE_PROPERTY WHERE API_ID = ?";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID_H2 = "SELECT ID, NAME, `VALUE` FROM " +

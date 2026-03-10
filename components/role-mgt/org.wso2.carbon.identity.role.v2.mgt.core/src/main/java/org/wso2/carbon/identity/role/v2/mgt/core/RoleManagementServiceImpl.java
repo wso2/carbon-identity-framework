@@ -80,6 +80,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getCacheBackedRoleDAO();
     private final UserIDResolver userIDResolver = new UserIDResolver();
     private static final String IS_FRAGMENT_APP = "isFragmentApp";
+    private static final String IS_JIT_PROVISIONING_FLOW = "isJitProvisioningFlow";
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -804,8 +805,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreAddMainRoleToSharedRoleRelationshipWithException(mainRoleUUID,
                 sharedRoleUUID, mainRoleTenantDomain, sharedRoleTenantDomain);
-        roleDAO.addMainRoleToSharedRoleRelationship(mainRoleUUID, sharedRoleUUID, mainRoleTenantDomain,
-                sharedRoleTenantDomain);
+
+        RoleBasicInfo mainRoleBasicInfo = getRoleBasicInfoById(mainRoleUUID, mainRoleTenantDomain);
+        RoleBasicInfo sharedRoleBasicInfo = getRoleBasicInfoById(sharedRoleUUID, sharedRoleTenantDomain);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRoleBasicInfo.getRoleId(), sharedRoleBasicInfo.getRoleId(),
+                sharedRoleBasicInfo.getName(), mainRoleTenantDomain, sharedRoleTenantDomain);
         roleManagementEventPublisherProxy.publishPostAddMainRoleToSharedRoleRelationship(mainRoleUUID, sharedRoleUUID,
                 mainRoleTenantDomain, sharedRoleTenantDomain);
     }
@@ -1151,9 +1155,17 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
                         !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
                                 .equalsIgnoreCase(username, adminUserName))) {
-                    String errorMessage = "Invalid operation. Only the tenant owner can remove users from the role: %s";
-                    throw new IdentityRoleManagementClientException(RoleConstants.Error.OPERATION_FORBIDDEN.getCode(),
-                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                    Map<String, Object> threadLocalProps = IdentityUtil.threadLocalProperties.get();
+                    boolean isJITProvisioningFlow = threadLocalProps != null &&
+                            threadLocalProps.get(IS_JIT_PROVISIONING_FLOW) != null &&
+                            (boolean) threadLocalProps.get(IS_JIT_PROVISIONING_FLOW);
+                    if (!isJITProvisioningFlow) {
+                        String errorMessage = "Invalid operation. Only the tenant owner can remove " +
+                                "users from the role: %s";
+                        throw new IdentityRoleManagementClientException(
+                                RoleConstants.Error.OPERATION_FORBIDDEN.getCode(),
+                                String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                    }
                 } else {
                     List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
                     // Tenant owner cannot be removed from Administrator role.

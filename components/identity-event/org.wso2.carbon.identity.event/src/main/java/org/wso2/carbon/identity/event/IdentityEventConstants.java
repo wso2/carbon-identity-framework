@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -76,6 +76,7 @@ public class IdentityEventConstants {
         public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN= "PRE_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN= "POST_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_SCIM= "POST_UPDATE_CREDENTIAL_BY_SCIM";
+        public static final String POST_UPDATE_CREDENTIAL_BY_ME_API= "POST_UPDATE_CREDENTIAL_BY_ME_API";
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
@@ -480,6 +481,7 @@ public class IdentityEventConstants {
         public static final String API_RESOURCE = "API_RESOURCE";
         public static final String API_ID = "API_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
+        public static final String SCOPE_ID = "SCOPE_ID";
         public static final String ADDED_SCOPES = "ADDED_SCOPES";
         public static final String SCOPE = "SCOPE";
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
@@ -508,6 +510,15 @@ public class IdentityEventConstants {
         public static final String JTI = "JTI";
         public static final String TOKEN_TYPE = "TOKEN_TYPE";
         public static final String GRANT_TYPE = "GRANT_TYPE";
+        public static final String TOKEN_ID = "TOKEN_ID";
+        public static final String USER_TYPE = "USER_TYPE";
+        public static final String CLIENT_ID = "CLIENT_ID";
+        public static final String ISSUER_ORGANIZATION_ID = "ISSUER_ORGANIZATION_ID";
+        public static final String ACCESSING_ORGANIZATION_ID = "ACCESSING_ORGANIZATION_ID";
+        public static final String APP_RESIDENT_TENANT_ID = "APP_RESIDENT_TENANT_ID";
+        public static final String EXISTING_TOKEN_USED = "EXISTING_TOKEN_USED";
+        public static final String SERVICE_PROVIDER = "SERVICE_PROVIDER";
+        public static final String ROOT_TENANT_DOMAIN = "ROOT_TENANT_DOMAIN";
 
         public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 

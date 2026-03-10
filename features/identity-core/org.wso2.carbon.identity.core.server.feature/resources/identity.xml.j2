@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
-~ Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
+~ Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
 ~
 ~ WSO2 LLC. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
@@ -111,6 +111,14 @@
         will change.
         -->
         <ExtendRememberMeSessionTimeoutOnAuth>{{session.timeout.extend_remember_me_session_timeout_on_auth}}</ExtendRememberMeSessionTimeoutOnAuth>
+        <!--
+            Setting EnableMaximumSessionTimeout to TRUE will make the session to expire after the time specified in
+            MaximumSessionTimeout regardless of the user activity. The default value will be FALSE and the session will
+            not expire until the IdleSessionTimeout or RememberMeSessionTimeout is reached based on the session type
+            (normal or remember me).
+         -->
+        <EnableMaximumSessionTimeout>{{session.timeout.enable_maximum_session_timeout}}</EnableMaximumSessionTimeout>
+        <MaximumSessionTimeout>{{session.timeout.maximum_session_timeout}}</MaximumSessionTimeout>
     </TimeConfig>
 
     <!-- Security configurations -->
@@ -612,6 +620,13 @@
                 <ResponseTypeValidatorImplClass>{{oauth.response_type.id_token_subject_token.validator}}</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.ciba.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>cibaAuthCode</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.ciba.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.ciba.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
@@ -738,6 +753,15 @@
                 <IdTokenAllowed>false</IdTokenAllowed>
                 <IsRefreshTokenAllowed>{{oauth.grant_type.token_exchange.allow_refresh_tokens}}</IsRefreshTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.token_exchange.allow_public_client}}</PublicClientAllowed>
+            </SupportedGrantType>
+            {% endif %}
+            {% if oauth.grant_type.ciba.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>urn:openid:params:grant-type:ciba</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.ciba.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.ciba.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.ciba.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
@@ -1336,6 +1360,11 @@
         -->
         <DropUnregisteredScopes>{{oauth.drop_unregistered_scopes}}</DropUnregisteredScopes>
         {% endif %}
+
+        {% if oauth.drop_unrequested_oidc_scopes is defined %}
+        <DropUnrequestedOIDCScopes>{{oauth.drop_unrequested_oidc_scopes}}</DropUnrequestedOIDCScopes>
+        {% endif %}
+
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
@@ -1451,6 +1480,7 @@
         -->
         <EnableLegacySessionBoundTokenBehaviour>{{oauth.enable_legacy_session_bound_token_behaviour}}</EnableLegacySessionBoundTokenBehaviour>
         <AllowSessionBoundTokensAfterIdleSessionExpiry>{{oauth.allow_session_bound_tokens_after_idle_session_expiry}}</AllowSessionBoundTokensAfterIdleSessionExpiry>
+        <AllowIssuerSelectionForSubOrgApplications>{{oauth.allow_issuer_selection_for_sub_org_applications}}</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1786,6 +1816,14 @@
             {% endif %}
         </ConsoleRoles>
         {% endif %}
+
+        <!--
+            If you want to enable the spec compliant email handling in SCIM 2.0, then enable this property value.
+
+            Default value: true
+            Supported versions : IS 7.0.0 onwards
+        -->
+        <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
     </SCIM2>
 
     <Captcha>
@@ -2300,6 +2338,16 @@
                 PATCH operations for partial updates.
             -->
             <EnableSCIMPatchForUpdates>{{outbound_provisioning_management.enable_scim_patch_for_updates}}</EnableSCIMPatchForUpdates>
+        {% endif %}
+        {% if outbound_provisioning_management.confidential_data_protection_enabled is defined %}
+            <!--
+                When enabled, confidential outbound provisioning configuration values (such as credentials or secrets)
+                are securely stored in the secret store. These values will be omitted from API response.
+            -->
+            <ConfidentialDataProtectionEnabled>{{outbound_provisioning_management.confidential_data_protection_enabled}}</ConfidentialDataProtectionEnabled>
+        {% endif %}
+        {% if outbound_provisioning_management.enable_scim_compliant_email_attribute is defined %}
+            <EnableSCIMCompliantEmailAttribute>{{outbound_provisioning_management.enable_scim_compliant_email_attribute}}</EnableSCIMCompliantEmailAttribute>
         {% endif %}
         <SCIM2Client>
             <!--
@@ -4528,6 +4576,9 @@
     <FIDO>
         <WebAuthn>
             <Enable>{{fido.webauthn.enable}}</Enable>
+            <RelyingParty>
+                <UseFullEffectiveDomain>{{fido.webauthn.relying_party.use_full_effective_domain}}</UseFullEffectiveDomain>
+            </RelyingParty>
         </WebAuthn>
         <EnablePasskeyProgressiveEnrollment>{{fido.enable_passkey_progressive_enrollment}}</EnablePasskeyProgressiveEnrollment>
         <EnableUsernamelessAuthentication>{{fido.enable_usernameless_authentication}}</EnableUsernamelessAuthentication>
@@ -5033,6 +5084,10 @@
         <CustomContent>
             <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
         </CustomContent>
+        <!-- When enabled, only a generic loading indicator will be shown on intermediate SAML (Inbound and Federated) and Passive STS pages. -->
+        <UseIntermediateLoaderPage>{{branding_configuration.use_intermediate_loader_page}}</UseIntermediateLoaderPage>
+        <!-- When enabled, the invalid tenant domain error page will be served from the Authentication Portal. -->
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>{{branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal}}</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
@@ -5092,4 +5147,15 @@
     <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
     <MarkStepCompletedOnInterrupt>{{authentication.mark_step_completed_on_interrupt}}</MarkStepCompletedOnInterrupt>
 
+    <!-- API filtering controls -->
+    <APIFiltering>
+        <SingleCharacterWildcard>{{api.filters.single_character_wildcard}}</SingleCharacterWildcard>
+    </APIFiltering>
+
+    <IdentityProviders>
+        <SupportMultipleCertificateExport>{{identity_providers.support_multiple_certificate_export}}</SupportMultipleCertificateExport>
+    </IdentityProviders>
+
+    <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>
 </Server>

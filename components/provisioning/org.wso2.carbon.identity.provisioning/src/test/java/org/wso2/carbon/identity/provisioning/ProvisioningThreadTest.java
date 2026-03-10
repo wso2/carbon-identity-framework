@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCache;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
@@ -39,10 +40,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.wso2.carbon.identity.provisioning.ProvisioningEntityType.GROUP;
@@ -65,6 +69,7 @@ public class ProvisioningThreadTest {
     @Mock
     private AbstractOutboundProvisioningConnector mockConnector;
     private MockedStatic<IdPManagementUtil> idPManagementUtil;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -76,12 +81,14 @@ public class ProvisioningThreadTest {
         int tenantId = -1234;
         idPManagementUtil = mockStatic(IdPManagementUtil.class);
         idPManagementUtil.when(() -> IdPManagementUtil.getTenantIdOfDomain(tenantDomainName)).thenReturn(tenantId);
+        loggerUtils = mockStatic(LoggerUtils.class);
     }
 
     @AfterMethod
     public void tearDown() {
 
         idPManagementUtil.close();
+        loggerUtils.close();
     }
 
 
@@ -95,14 +102,13 @@ public class ProvisioningThreadTest {
             provisioningEntity = new ProvisioningEntity((ProvisioningEntityType) entityType,
                     (ProvisioningOperation) entityOperation, attributeMap);
             provisioningEntity.setJitProvisioning(true);
-            when(mockConnector.isJitProvisioningEnabled()).thenReturn(true);
             CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgDAO = mock(CacheBackedProvisioningMgtDAO.class);
             mockCarbonContext(privilegedCarbonContext);
             doNothing().when(mockCacheBackedProvisioningMgDAO).addProvisioningEntity(idPName, connectorType,
                     provisioningEntity, -1234, tenantDomainName);
             ProvisioningThread provisioningThread =
-                    new ProvisioningThread(provisioningEntity, tenantDomainName, mockConnector, connectorType,
-                            idPName, mockCacheBackedProvisioningMgDAO);
+                    new ProvisioningThread(provisioningEntity, tenantDomainName, null, mockConnector, connectorType,
+                            idPName, mockCacheBackedProvisioningMgDAO, true);
 
             Boolean result = provisioningThread.call();
             Assert.assertTrue(result);
@@ -123,15 +129,15 @@ public class ProvisioningThreadTest {
             CacheBackedProvisioningMgtDAO cacheBackedProvisioningMgtDAO =
                     mockCacheBackedProvisioningMgtDAO(privilegedCarbonContext, provisioningEntityCache);
             ProvisioningThread provisioningThread =
-                    new ProvisioningThread(provisioningEntity, "", mockConnector, connectorType,
-                            idPName, cacheBackedProvisioningMgtDAO);
+                    new ProvisioningThread(provisioningEntity, "", null, mockConnector, connectorType,
+                            idPName, cacheBackedProvisioningMgtDAO, false);
 
             provisioningThread.call();
         }
     }
 
     @Test
-    public void testJITProvisionFlowWithJitOutboundDisabledConnector() throws IdentityProvisioningException {
+    public void testJITProvisionFlowWithJitOutboundDisabledConnector() throws Exception {
 
         System.setProperty("carbon.home", "");
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -143,12 +149,34 @@ public class ProvisioningThreadTest {
             CacheBackedProvisioningMgtDAO cacheBackedProvisioningMgtDAO =
                     mockCacheBackedProvisioningMgtDAO(privilegedCarbonContext, provisioningEntityCache);
             ProvisioningThread provisioningThread =
-                    new ProvisioningThread(provisioningEntity, "", mockConnector, connectorType,
-                            idPName, cacheBackedProvisioningMgtDAO);
+                    new ProvisioningThread(provisioningEntity, "", null, mockConnector, connectorType,
+                            idPName, cacheBackedProvisioningMgtDAO, false);
 
-            when(mockConnector.isJitProvisioningEnabled()).thenReturn(false);
             Boolean result = provisioningThread.call();
             Assert.assertTrue(result);
+            // The thread must short-circuit before reaching the connector.
+            verify(mockConnector, never()).provision(any());
+        }
+    }
+
+    @Test
+    public void testNonJitRequestProceedsWhenJitDisabledForIdP() throws Exception {
+
+        System.setProperty("carbon.home", "");
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class)) {
+
+            provisioningEntity = new ProvisioningEntity(USER, POST, null);
+            provisioningEntity.setJitProvisioning(false);
+            CacheBackedProvisioningMgtDAO mockDao = mock(CacheBackedProvisioningMgtDAO.class);
+            mockCarbonContext(privilegedCarbonContext);
+            // jitProvisioningEnabledForIdP=false must not block regular provisioning.
+            ProvisioningThread provisioningThread =
+                    new ProvisioningThread(provisioningEntity, tenantDomainName, null, mockConnector, connectorType,
+                            idPName, mockDao, false);
+
+            Boolean result = provisioningThread.call();
+            Assert.assertTrue(result);
+            verify(mockConnector).provision(provisioningEntity);
         }
     }
 

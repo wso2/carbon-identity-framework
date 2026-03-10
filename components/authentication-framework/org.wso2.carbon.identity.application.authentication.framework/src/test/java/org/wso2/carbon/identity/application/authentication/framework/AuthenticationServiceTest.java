@@ -289,6 +289,82 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         }
     }
 
+    @DataProvider(name = "mappedErrorProvider")
+    public Object[][] mappedErrorProvider() {
+
+        // String retryStatus, AuthServiceConstants.ErrorMessage expectedError
+        return new Object[][]{
+                {FrameworkConstants.ERROR_STATUS_AUTH_FLOW_TIMEOUT,
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FLOW_TIMEOUT},
+                {FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL,
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL},
+                {FrameworkConstants.ERROR_STATUS_APP_DISABLED,
+                        AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION},
+                {FrameworkConstants.ERROR_STATUS_INVALID_AUTHENTICATOR,
+                        AuthServiceConstants.ErrorMessage.ERROR_INVALID_AUTHENTICATOR},
+                {FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED,
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED},
+                {FrameworkConstants.ERROR_STATUS_ALLOWED_RETRY_LIMIT_EXCEEDED,
+                        AuthServiceConstants.ErrorMessage.ERROR_RETRY_COUNT_EXCEEDED},
+                {FrameworkConstants.ERROR_STATUS_ALLOWED_RESEND_LIMIT_EXCEEDED,
+                        AuthServiceConstants.ErrorMessage.ERROR_RESEND_COUNT_EXCEEDED},
+        };
+    }
+
+    @Test(dataProvider = "mappedErrorProvider")
+    public void testGetMappedError(String retryStatus,
+                                   AuthServiceConstants.ErrorMessage expectedError) throws Exception {
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+
+        // Simulate a concluded failed flow that was sent to retry with the given retryStatus.
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.FAIL_COMPLETED);
+        when(request.getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.IS_SENT_TO_RETRY)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.REQ_ATTR_RETRY_STATUS)).thenReturn(retryStatus);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+        when(response.getHeader(LOCATION_HEADER)).thenReturn(getFinalRedirectUrl(SESSION_DATA_KEY));
+
+        AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+
+        Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.FAIL_COMPLETED,
+                "Expected FAIL_COMPLETED flow status.");
+        Optional<AuthServiceErrorInfo> errorInfo = authServiceResponse.getErrorInfo();
+        Assert.assertTrue(errorInfo.isPresent(), "Expected error info to be present.");
+        Assert.assertEquals(errorInfo.get().getErrorCode(), expectedError.code(),
+                "Expected error code to match for retry status: " + retryStatus);
+        Assert.assertEquals(errorInfo.get().getErrorMessage(), expectedError.message(),
+                "Expected error message to match for retry status: " + retryStatus);
+    }
+
+    @Test
+    public void testGetMappedErrorForUnknownErrorCode() throws Exception {
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+
+        // Simulate a concluded failed flow with an unknown retryStatus — should fall to the default error.
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.FAIL_COMPLETED);
+        when(request.getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.IS_SENT_TO_RETRY)).thenReturn(true);
+        when(request.getAttribute(FrameworkConstants.REQ_ATTR_RETRY_STATUS)).thenReturn("unknown.error.code");
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+        when(response.getHeader(LOCATION_HEADER)).thenReturn(getFinalRedirectUrl(SESSION_DATA_KEY));
+
+        AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+
+        Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.FAIL_COMPLETED,
+                "Expected FAIL_COMPLETED flow status.");
+        Optional<AuthServiceErrorInfo> errorInfo = authServiceResponse.getErrorInfo();
+        Assert.assertTrue(errorInfo.isPresent(), "Expected error info to be present.");
+        Assert.assertEquals(errorInfo.get().getErrorCode(),
+                AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE.code(),
+                "Expected default error code for unknown error status.");
+    }
+
     @Test
     public void testHandleAuthenticationWithNonApiBasedAuthenticator() throws Exception {
 

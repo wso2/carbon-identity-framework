@@ -99,6 +99,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_IDENTIFIER_HANDLER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
@@ -809,6 +810,14 @@ public class DefaultStepHandler implements StepHandler {
             AuthenticatorFlowStatus status;
             if (isAuthenticationRequired) {
                 status = authenticator.process(request, response, context);
+                if (isOrgDiscoverySuccessful(authenticator, status)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Organization is discovered to initiate an organization login." +
+                                " Setting up the necessary flags and returning to execute the organization login.");
+                    }
+                    context.setSharedAppLoginContextUpdateRequired(true);
+                    return;
+                }
             } else {
                 // If the authenticator does not require authentication based on the assertion, we can skip the process.
                 status = AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -859,6 +868,12 @@ public class DefaultStepHandler implements StepHandler {
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
                 // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
+            }
+
+            if (context.getSubject() != null && context.isSharedAppLogin()) {
+                String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+                context.getSubject().setAccessingOrganization(accessingOrgId);
+                context.getSubject().setUserResidentOrganization(accessingOrgId);
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
@@ -1742,5 +1757,11 @@ public class DefaultStepHandler implements StepHandler {
             return false;
         }
         return true;
+    }
+
+    private boolean isOrgDiscoverySuccessful(ApplicationAuthenticator authenticator, AuthenticatorFlowStatus status) {
+
+        return ORGANIZATION_IDENTIFIER_HANDLER.equals(authenticator.getName()) &&
+                status == AuthenticatorFlowStatus.SUCCESS_COMPLETED;
     }
 }

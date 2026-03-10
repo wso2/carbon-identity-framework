@@ -35,7 +35,7 @@ public class ServiceProviderProvisioningConnectorCache extends
      */
     public static ServiceProviderProvisioningConnectorCache getInstance() {
         if (instance == null) {
-            synchronized (ProvisioningConnectorCache.class) {
+            synchronized (ServiceProviderProvisioningConnectorCache.class) {
                 if (instance == null) {
                     instance = new ServiceProviderProvisioningConnectorCache();
                 }

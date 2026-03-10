@@ -413,7 +413,38 @@ public class ClaimMetadataUtilsTest {
 
         LocalClaim localClaim4 = new LocalClaim(localClaimURI4, attributeMappingList, claimPropertiesMap2);
 
-        return new Object[][] {{localClaim1}, {localClaim2}, {localClaim3}, {localClaim4}};
+        String localClaimURI5 = "testLocalClaimURI5";
+
+        Map<String, String> claimPropertiesMap3 = new HashMap<>();
+        claimPropertiesMap3.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "username");
+        claimPropertiesMap3.put(ClaimConstants.DESCRIPTION_PROPERTY, "Username of the system");
+        claimPropertiesMap3.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[\\S]{5,30}$");
+        claimPropertiesMap3.put(ClaimConstants.DISPLAY_ORDER_PROPERTY, "1");
+        claimPropertiesMap3.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "false");
+        claimPropertiesMap3.put(ClaimConstants.REQUIRED_PROPERTY, "false");
+        claimPropertiesMap3.put(ClaimConstants.READ_ONLY_PROPERTY, "false");
+        claimPropertiesMap3.put(ClaimConstants.DEFAULT_ATTRIBUTE, "uid");
+        claimPropertiesMap3.put(ClaimConstants.EXTENDED_VALUED_PROPERTY, "true");
+
+        LocalClaim localClaim5 = new LocalClaim(localClaimURI5, attributeMappingList, claimPropertiesMap3);
+
+        String localClaimURI6 = "testLocalClaimURI6";
+
+        Map<String, String> claimPropertiesMap4 = new HashMap<>();
+        claimPropertiesMap4.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "username");
+        claimPropertiesMap4.put(ClaimConstants.DESCRIPTION_PROPERTY, "Username of the system");
+        claimPropertiesMap4.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[\\S]{5,30}$");
+        claimPropertiesMap4.put(ClaimConstants.DISPLAY_ORDER_PROPERTY, "1");
+        claimPropertiesMap4.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "false");
+        claimPropertiesMap4.put(ClaimConstants.REQUIRED_PROPERTY, "false");
+        claimPropertiesMap4.put(ClaimConstants.READ_ONLY_PROPERTY, "false");
+        claimPropertiesMap4.put(ClaimConstants.DEFAULT_ATTRIBUTE, "uid");
+        claimPropertiesMap4.put(ClaimConstants.EXTENDED_VALUED_PROPERTY, "false");
+
+        LocalClaim localClaim6 = new LocalClaim(localClaimURI6, attributeMappingList, claimPropertiesMap4);
+
+        return new Object[][] {{localClaim1}, {localClaim2}, {localClaim3}, {localClaim4},
+                {localClaim5}, {localClaim6}};
 
     }
 
@@ -460,6 +491,11 @@ public class ClaimMetadataUtilsTest {
         if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
             Assert.assertEquals(claimMapping.getClaim().isReadOnly(), Boolean.parseBoolean(claimProperties.get(
                     ClaimConstants.READ_ONLY_PROPERTY)));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.EXTENDED_VALUED_PROPERTY)) {
+            Assert.assertEquals(claimMapping.getClaim().isExtendedValued(), Boolean.parseBoolean(claimProperties.get(
+                    ClaimConstants.EXTENDED_VALUED_PROPERTY)));
         }
 
         for (AttributeMapping attributeMapping : localClaim.getMappedAttributes()) {

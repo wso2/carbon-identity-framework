@@ -202,6 +202,22 @@
                    description="Update workflow approval Tasks"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Password Update API" identifier="/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_user_password_update"
+                   description="Update password of the authenticated user"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Password Update API" identifier="/o/api/users/v1/me/change-password"
+                 requiresAuthorization="false"
+                 description="API representation of the User Password Update API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Update User Password" name="internal_org_user_password_update"
+                   description="Update password of the authenticated user in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -1183,6 +1199,34 @@
                    description="View users shared with organizations"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Sharing API V2" identifier="/api/server/v2/users"
+                 requiresAuthorization="true"
+                 description="API representation of the user share API V2" type="TENANT">
+        <Scopes>
+            <Scope displayName="Share Users" name="internal_user_share"
+                   description="Share users with organizations"/>
+            <Scope displayName="Unshare users" name="internal_user_unshare"
+                   description="Unshare users from organizations"/>
+            <Scope displayName="View Shared Users" name="internal_user_shared_access_view"
+                   description="View users shared with organizations"/>
+            <Scope displayName="Update Shared Users Attributes" name="internal_user_shared_access_update"
+                   description="Update the attributes of users shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Sharing API V2" identifier="/o/api/server/v2/users"
+                 requiresAuthorization="true"
+                 description="API representation of the user share API V2" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Share Users" name="internal_org_user_share"
+                   description="Share users with organizations"/>
+            <Scope displayName="Unshare users" name="internal_org_user_unshare"
+                   description="Unshare users from organizations"/>
+            <Scope displayName="View Shared Users" name="internal_org_user_shared_access_view"
+                   description="View users shared with organizations"/>
+            <Scope displayName="Update Shared Users Attributes" name="internal_org_user_shared_access_update"
+                   description="Update the attributes of users shared with organizations"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Application Management Feature" identifier="console:applications"
                  requiresAuthorization="true"
                  description="Resource representation of the Application Management Feature"
@@ -1519,6 +1563,19 @@
                    description="Manage edits of resident application outbound provisioning configuration from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Resident Application Outbound Provisioning Configuration Feature" identifier="console:org:residentOutboundProvisioning"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Resident Application Outbound Provisioning Configuration Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Resident Application Outbound Provisioning Feature" name="console:org:residentOutboundProvisioning"
+                   description="Manage resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning View Feature" name="console:org:residentOutboundProvisioning_view"
+                   description="Manage views of resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Edit Feature" name="console:org:residentOutboundProvisioning_edit"
+                   description="Manage edits of resident application outbound provisioning configuration in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
                  requiresAuthorization="true"
                  description="Resource representation of the Role Management Feature"
@@ -1610,6 +1667,19 @@
                    description="Manage edits of users from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Sharing Management Feature" identifier="console:userSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Sharing Management Feature" name="console:userSharing"
+                   description="Manage user sharing from the Console"/>
+            <Scope displayName="User Sharing Management View Feature" name="console:userSharing_view"
+                   description="View user sharing from the Console"/>
+            <Scope displayName="User Sharing Management Edit Feature" name="console:userSharing_edit"
+                   description="Manage edits of user sharing from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"
                  requiresAuthorization="true"
                  description="Resource representation of the Agent Management Feature"
@@ -1634,6 +1704,19 @@
                    description="Manage views of users in the organization from the Console"/>
             <Scope displayName="User Edit Feature" name="console:org:users_edit"
                    description="Manage edits of users in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Sharing Management Feature" identifier="console:org:userSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="User Sharing Management Feature" name="console:org:userSharing"
+                   description="Manage user sharing in the organization from the Console"/>
+            <Scope displayName="User Sharing Management View Feature" name="console:org:userSharing_view"
+                   description="View user sharing in the organization from the Console"/>
+            <Scope displayName="User Sharing Management Edit Feature" name="console:org:userSharing_edit"
+                   description="Manage edits of user sharing in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
@@ -2114,9 +2197,9 @@
                  requiresAuthorization="true"
                  description="API representation of the User Credential Management API" type="TENANT">
         <Scopes>
-            <Scope displayName="View Credential" name="internal_user_mgt_view"
+            <Scope displayName="View Credential" name="internal_user_credential_mgt_view"
                    description="View credentials of end users in the organization"/>
-            <Scope displayName="Delete Credential" name="internal_user_mgt_delete"
+            <Scope displayName="Delete Credential" name="internal_user_credential_mgt_delete"
                    description="Delete credentials of end users in the organization"/>
         </Scopes>
     </APIResource>
@@ -2124,24 +2207,37 @@
                  requiresAuthorization="true"
                  description="API representation of the User Credential Management API" type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Credential" name="internal_org_user_mgt_view"
+            <Scope displayName="View Credential" name="internal_org_user_credential_mgt_view"
                    description="View credentials of end users in the organization"/>
-            <Scope displayName="Delete Credential" name="internal_org_user_mgt_delete"
+            <Scope displayName="Delete Credential" name="internal_org_user_credential_mgt_delete"
                    description="Delete credentials of end users in the organization"/>
         </Scopes>
     </APIResource>
-<!--    <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc-templates"-->
-<!--                 requiresAuthorization="true"-->
-<!--                 description="API representation of the VC Templates Management API" type="TENANT">-->
-<!--        <Scopes>-->
-<!--            <Scope displayName="View VC Templates" name="internal_vc_template_view"-->
-<!--                   description="View VC Templates"/>-->
-<!--            <Scope displayName="Create VC Credential Configuration" name="internal_vc_template_create"-->
-<!--                   description="Create new VC Credential Configuration"/>-->
-<!--            <Scope displayName="Update VC Credential Configuration" name="internal_vc_template_update"-->
-<!--                   description="Update VC Credential Configuration"/>-->
-<!--            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_template_delete"-->
-<!--                   description="Delete VC Credential Configuration"/>-->
-<!--        </Scopes>-->
-<!--    </APIResource>-->
+    <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc-templates"
+                 requiresAuthorization="true"
+                 description="API representation of the VC Templates Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View VC Templates" name="internal_vc_template_view"
+                   description="View VC Templates"/>
+            <Scope displayName="Create VC Credential Configuration" name="internal_vc_template_create"
+                   description="Create new VC Credential Configuration"/>
+            <Scope displayName="Update VC Credential Configuration" name="internal_vc_template_update"
+                   description="Update VC Credential Configuration"/>
+            <Scope displayName="Delete VC Credential Configuration" name="internal_vc_template_delete"
+                   description="Delete VC Credential Configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="VC Templates Management Feature" identifier="console:vc_templates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the VC Templates Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="VC Template Feature" name="console:vc_templates"
+                   description="Manage VC templates from the Console"/>
+            <Scope displayName="VC Template View Feature" name="console:vc_templates_view"
+                   description="Manage views of VC templates from the Console"/>
+            <Scope displayName="VC Templates Edit Feature" name="console:vc_templates_edit"
+                   description="Manage edits of VC templates from the Console"/>
+        </Scopes>
+    </APIResource>
 </APIResources>

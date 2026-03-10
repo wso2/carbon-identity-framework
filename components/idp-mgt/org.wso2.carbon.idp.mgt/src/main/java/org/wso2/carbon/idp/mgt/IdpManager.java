@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -517,6 +517,24 @@ public interface IdpManager {
      */
     default ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String
             tenantDomain) throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
+     * Retrieve applications that are connected to the identity provider identified by resource ID with a filter.
+     *
+     * @param resourceId   Identity Provider's resource ID.
+     * @param limit        Limit parameter for pagination.
+     * @param offset       Offset parameter for pagination.
+     * @param filter       Filter parameter for filtering connected applications.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @return Connected apps UUID list with the total count.
+     * @throws IdentityProviderManagementException if an error occurs while retrieving connected applications.
+     */
+    default ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset,
+                                                         String filter, String tenantDomain)
+            throws IdentityProviderManagementException {
 
         return null;
     }

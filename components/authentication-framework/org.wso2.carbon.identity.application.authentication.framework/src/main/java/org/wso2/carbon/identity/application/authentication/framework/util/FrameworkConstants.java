@@ -165,6 +165,7 @@ public abstract class FrameworkConstants {
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
     public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
     public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";
@@ -248,9 +249,12 @@ public abstract class FrameworkConstants {
 
     // Attribute sync related constants.
     public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";
+    public static final String IDP_GROUP_SYNC_METHOD = "idpGroupSyncMethod";
+    public static final String IS_JIT_PROVISIONING_FLOW = "isJitProvisioningFlow";
     public static final String OVERRIDE_ALL = "OVERRIDE_ALL";
     public static final String SYNC_NONE = "NONE";
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
+    public static final String MERGE_WITH_EXISTING = "MERGE_WITH_EXISTING";
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
     public static final String REMOVE_COMMONAUTH_COOKIE = "removeCommonAuthCookie";
     public static final String INITIAL_CONTEXT = "initialContext";
@@ -272,6 +276,10 @@ public abstract class FrameworkConstants {
     public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
     public static final String ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED = "authentication.api.based.unsupported" +
             ".authenticator";
+    public static final String ERROR_STATUS_ALLOWED_RETRY_LIMIT_EXCEEDED =
+            "authentication.failure.retry.limit.exceeded";
+    public static final String ERROR_STATUS_ALLOWED_RESEND_LIMIT_EXCEEDED =
+            "authentication.failure.resend.limit.exceeded";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";

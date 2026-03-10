@@ -135,6 +135,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is H2 for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if H2, false otherwise.
+     */
+    public static boolean isH2DB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(H2);
+    }
+
+    /**
      * Check if the DB is DB2 for the given database type.
      *
      * @param database database type.
@@ -147,6 +158,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is DB2 for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if DB2, false otherwise.
+     */
+    public static boolean isDB2DB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(DB2);
+    }
+
+    /**
      * Check if the DB is MySQL. Identity database is used.
      *
      * @return true if DB is MySQL.
@@ -155,6 +177,17 @@ public class JdbcUtils {
     public static boolean isMySQLDB() throws DataAccessException {
 
         return isDBTypeOf(MY_SQL, Database.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is MySQL for the given database product name.
+     *
+     * @param databaseProductName Database product name.
+     * @return true if DB is MySQL.
+     */
+    public static boolean isMySQLDB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(MY_SQL);
     }
 
     /**
@@ -181,6 +214,18 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is MSSql for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if MSSql, false otherwise.
+     */
+    public static boolean isMSSqlDB(String databaseProductName) {
+
+        return databaseProductName != null && (databaseProductName.contains(MICROSOFT) || 
+                databaseProductName.toLowerCase().contains(S_MICROSOFT));
+    }
+
+    /**
      * Check if the DB is MSSql for the given database type.
      *
      * @param database database type.
@@ -201,6 +246,17 @@ public class JdbcUtils {
     public static boolean isMariaDB() throws DataAccessException {
 
         return isDBTypeOf(MARIADB, Database.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is MariaDB for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if MariaDB, false otherwise.
+     */
+    public static boolean isMariaDB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(MARIADB);
     }
 
     /**
@@ -227,6 +283,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is PostgreSQL for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if PostgreSQL, false otherwise.
+     */
+    public static boolean isPostgreSQLDB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(POSTGRE_SQL);
+    }
+
+    /**
      * Check if the DB is PostgreSQL for the given database type.
      *
      * @param database database type.
@@ -250,6 +317,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is Informix for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if Informix, false otherwise.
+     */
+    public static boolean isInformixDB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(INFORMIX);
+    }
+
+    /**
      * Check if the DB is Informix for the given database type.
      *
      * @param database database type.
@@ -270,6 +348,17 @@ public class JdbcUtils {
     public static boolean isOracleDB() throws DataAccessException {
 
         return isDBTypeOf(ORACLE, Database.IDENTITY);
+    }
+
+    /**
+     * Check if the DB is Oracle for the given database product name.
+     *
+     * @param databaseProductName database product name.
+     * @return true if Oracle, false otherwise.
+     */
+    public static boolean isOracleDB(String databaseProductName) {
+
+        return databaseProductName != null && databaseProductName.contains(ORACLE);
     }
 
     /**

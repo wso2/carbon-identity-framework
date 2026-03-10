@@ -1,0 +1,16 @@
+language: en-US
+tone_instructions: ""
+early_access: false
+enable_free_tier: true
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  auto_assign_reviewers: true
+  poem: false
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns: [".github/LOG_ENHANCEMENT_GUIDELINES.md"]

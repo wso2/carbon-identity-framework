@@ -116,6 +116,9 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ENABLE_MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.MAXIMUM_SESSION_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE;
@@ -1007,12 +1010,15 @@ public class IdPManagementDAO {
                         filter.append(attributeName).append(" = ? AND ");
                         filterQueryBuilder.setFilterAttributeValue(value);
                     } else if (IdPManagementConstants.SW.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue(value + "%");
                     } else if (IdPManagementConstants.EW.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value);
                     } else if (IdPManagementConstants.CO.equals(operation)) {
+                        value = IdentityUtil.processSingleCharWildcard(value);
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                     } else {
@@ -1059,8 +1065,10 @@ public class IdPManagementDAO {
         boolean isAdminForcePasswordResetOfflineEnabled = false;
 
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
             rs = prepStmt.executeQuery();
@@ -1126,7 +1134,7 @@ public class IdPManagementDAO {
                     && !isAdminForcePasswordResetSMSOTPEnabled && !isAdminForcePasswordResetOfflineEnabled) {
                 performConfigCorrectionForAdminForcedPasswordResetConfigs(idpProperties);
             }
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
@@ -1148,8 +1156,9 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt = null;
         try {
-            boolean isOracleDB = isOracleDB();
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            boolean isOracleDB = isOracleDB(databaseProductName);
+            String sqlStmt = isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
                     IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
@@ -1171,7 +1180,7 @@ public class IdPManagementDAO {
             }
             prepStmt.executeBatch();
 
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             String errorMsg = "Error while adding IDP properties for IDP ID: " + idpId + " and tenant ID:" + tenantId;
             throw new SQLException(errorMsg, e);
         } finally {
@@ -3435,22 +3444,7 @@ public class IdPManagementDAO {
                         dbConnection, idPName, federatedIdp, tenantId));
 
                 // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
-                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
-                        federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
-                    try {
-                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
-                            PrivilegedCarbonContext.startTenantFlow();
-                            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                    .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
-                        }
-                        federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
-                    } finally {
-                        if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
-                            PrivilegedCarbonContext.endTenantFlow();
-                        }
-                    }
-                }
+                federatedIdp = decryptSystemDefinedFederatedAuthenticatorSecrets(tenantDomain, federatedIdp);
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
                     federatedIdp.setDefaultAuthenticatorConfig(IdentityApplicationManagementUtil
@@ -3470,6 +3464,9 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                federatedIdp = decryptProvisioningConnectorConfigSecrets(tenantDomain, federatedIdp);
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -3512,6 +3509,68 @@ public class IdPManagementDAO {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
+    }
+
+    /**
+     * Decrypts the secrets of system defined federated authenticators if there are any.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @param federatedIdp The federated IDP which may contain system defined federated authenticators.
+     * @return The federated IDP with decrypted secrets in system defined federated authenticators.
+     * @throws SecretManagementException When an error occurs while decrypting the secrets.
+     */
+    private IdentityProvider decryptSystemDefinedFederatedAuthenticatorSecrets(String tenantDomain,
+                                                                           IdentityProvider federatedIdp)
+            throws SecretManagementException {
+
+        if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
+                federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+            try {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                }
+                federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
+            } finally {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
+            }
+        }
+        return federatedIdp;
+    }
+
+    /**
+     * Decrypts the secrets of provisioning connectors if there are any.
+     *
+     * @param tenantDomain Tenant domain of the IDP.
+     * @param federatedIdp The federated IDP which may contain provisioning connectors with secrets.
+     * @return The federated IDP with decrypted secrets in provisioning connectors.
+     * @throws SecretManagementException When an error occurs while decrypting the secrets.
+     */
+    private IdentityProvider decryptProvisioningConnectorConfigSecrets(String tenantDomain,
+                                                                       IdentityProvider federatedIdp)
+            throws SecretManagementException {
+
+        if (federatedIdp.getProvisioningConnectorConfigs() != null &&
+                federatedIdp.getProvisioningConnectorConfigs().length > 0) {
+            try {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.startTenantFlow();
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .setTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
+                }
+                federatedIdp = idpSecretsProcessorService.decryptProvisioningConnectorSecrets(federatedIdp);
+            } finally {
+                if (!StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+                    PrivilegedCarbonContext.endTenantFlow();
+                }
+            }
+        }
+        return federatedIdp;
     }
 
     /**
@@ -3673,6 +3732,9 @@ public class IdPManagementDAO {
                 } else if (IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
                         .equals(identityProviderProperty.getName())) {
                     justInTimeProvisioningConfig.setAttributeSyncMethod(identityProviderProperty.getValue());
+                } else if (IdPManagementConstants.SYNC_IDP_GROUP_METHOD
+                        .equals(identityProviderProperty.getName())) {
+                    justInTimeProvisioningConfig.setIdpGroupSyncMethod(identityProviderProperty.getValue());
                 }
             });
             populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
@@ -3714,6 +3776,8 @@ public class IdPManagementDAO {
                         IdPManagementConstants.SKIP_JIT_ON_ATTR_ACCOUNT_LOOKUP_FAILURE
                                         .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.SYNC_IDP_GROUP_METHOD
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
@@ -3891,14 +3955,17 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
             int idpId = -1;
             String idPName = "";
+            String idpResourceId = "";
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
 
                 idpId = rs.getInt("ID");
                 idPName = rs.getString("NAME");
+                idpResourceId = rs.getString("UUID");
 
                 federatedIdp.setIdentityProviderName(idPName);
+                federatedIdp.setResourceId(idpResourceId);
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -3974,6 +4041,9 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                federatedIdp = decryptSystemDefinedFederatedAuthenticatorSecrets(tenantDomain, federatedIdp);
+
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                             idPName, userClaimUri, roleClaimUri, idpId, tenantId));
@@ -3986,6 +4056,9 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                federatedIdp = decryptProvisioningConnectorConfigSecrets(tenantDomain, federatedIdp);
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -4011,6 +4084,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider for " +
+                    "Authenticator Property : " + property + " and value : " + value, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -4057,14 +4133,17 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
             int idpId = -1;
             String idPName = "";
+            String idpResourceId = "";
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
 
                 idpId = rs.getInt("ID");
                 idPName = rs.getString("NAME");
+                idpResourceId = rs.getString("UUID");
 
                 federatedIdp.setIdentityProviderName(idPName);
+                federatedIdp.setResourceId(idpResourceId);
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -4137,6 +4216,9 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                federatedIdp = decryptSystemDefinedFederatedAuthenticatorSecrets(tenantDomain, federatedIdp);
+
                 if (federatedIdp.getClaimConfig().isLocalClaimDialect()) {
                     federatedIdp.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                             idPName, userClaimUri, roleClaimUri, idpId, tenantId));
@@ -4149,6 +4231,9 @@ public class IdPManagementDAO {
                 // get provisioning connectors.
                 federatedIdp.setProvisioningConnectorConfigs(getProvisioningConnectorConfigs(
                         dbConnection, idPName, idpId, tenantId));
+
+                // Decrypt provisioning connector secrets.
+                federatedIdp = decryptProvisioningConnectorConfigSecrets(tenantDomain, federatedIdp);
 
                 // get permission and role configuration.
                 federatedIdp.setPermissionAndRoleConfig(getPermissionsAndRoleConfiguration(
@@ -4175,6 +4260,9 @@ public class IdPManagementDAO {
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
                     "configurations.", e);
+        } catch (SecretManagementException e) {
+            throw new IdentityProviderManagementException("Error while retrieving secrets of Identity provider for " +
+                    "Authenticator Property : " + property + " and value : " + value, e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -4397,14 +4485,16 @@ public class IdPManagementDAO {
                 throw new IdentityProviderManagementException(msg);
             }
 
+            identityProvider.setId(createdIDP.getId());
+
             // add provisioning connectors.
             if (identityProvider.getProvisioningConnectorConfigs() != null
                     && identityProvider.getProvisioningConnectorConfigs().length > 0) {
+                identityProvider = idpSecretsProcessorService.encryptProvisioningConnectorSecrets(identityProvider);
                 addProvisioningConnectorConfigs(identityProvider.getProvisioningConnectorConfigs(),
                         dbConnection, idPId, tenantId);
             }
 
-            identityProvider.setId(createdIDP.getId());
             // Add system federated authenticator secret properties to IDN_SECRET table.
             if (identityProvider.getFederatedAuthenticatorConfigs().length > 0 &&
                     identityProvider.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
@@ -4554,6 +4644,10 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
         }
 
+        IdentityProviderProperty idpGroupSyncMethod = new IdentityProviderProperty();
+        idpGroupSyncMethod.setName(IdPManagementConstants.SYNC_IDP_GROUP_METHOD);
+        idpGroupSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_IDP_GROUP);
+
         if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
@@ -4565,6 +4659,7 @@ public class IdPManagementDAO {
             fillAccountLookUpAttributesIdpProperties(justInTimeProvisioningConfig, primaryAccountLookupAttributeMapping,
                     secondaryAccountLookupAttributeMapping);
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
+            idpGroupSyncMethod.setValue(justInTimeProvisioningConfig.getIdpGroupSyncMethod());
         }
 
         if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
@@ -4582,6 +4677,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(primaryAccountLookupAttributeMapping);
         identityProviderProperties.add(secondaryAccountLookupAttributeMapping);
         identityProviderProperties.add(attributeSyncMethod);
+        identityProviderProperties.add(idpGroupSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
         if (lookupAttribute != null) {
             identityProviderProperties.add(lookupAttribute);
@@ -4769,6 +4865,13 @@ public class IdPManagementDAO {
                 if (newIdentityProvider.getFederatedAuthenticatorConfigs().length > 0 && newIdentityProvider
                         .getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
                     newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
+                }
+
+                // Update secrets of provisioning connectors in IDN_SECRET table.
+                if (newIdentityProvider.getProvisioningConnectorConfigs() != null
+                        && newIdentityProvider.getProvisioningConnectorConfigs().length > 0) {
+                    newIdentityProvider =
+                            idpSecretsProcessorService.encryptProvisioningConnectorSecrets(newIdentityProvider);
                 }
 
                 // update federated authenticators.
@@ -5184,6 +5287,7 @@ public class IdPManagementDAO {
                 IdPManagementConstants.PRIMARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SECONDARY_ACCOUNT_LOOKUP_ATTRIBUTE_MAPPING.equals(idpProperty.getName()) ||
                 IdPManagementConstants.SYNC_ATTRIBUTE_METHOD.equals(idpProperty.getName()) ||
+                IdPManagementConstants.SYNC_IDP_GROUP_METHOD.equals(idpProperty.getName()) ||
                 IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED.equals(idpProperty.getName()) ||
                 IdPManagementConstants.LOOKUP_ATTRIBUTES.equals(idpProperty.getName());
     }
@@ -6141,6 +6245,107 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Get the list of applications that are connected to the identity provider from DB with a filter.
+     *
+     * @param resourceId      IDP resource ID.
+     * @param limit           Limit for pagination.
+     * @param offset          Offset for pagination.
+     * @param expressionNodes Filter expression nodes.
+     * @return Connected apps result.
+     * @throws IdentityProviderManagementException If an error occurred while retrieving connected applications.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset,
+                                                        List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementException {
+
+        // If no filter is provided, use the non-filter version.
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            return getConnectedApplications(resourceId, limit, offset);
+        }
+
+        ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
+        List<String> connectedApps = new ArrayList<>();
+        FilterQueryBuilder filterQueryBuilder = getConnectedAppsQueryBuilder(expressionNodes);
+        String filterSQL = filterQueryBuilder.getFilterQuery();
+        String filter = filterQueryBuilder.getFilterAttributeValue().get(1);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = createConnectedAppsSqlStatementWithFilter(connection, resourceId, limit,
+                    offset, filterSQL, filter)) {
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        connectedApps.add(resultSet.getString(IdPManagementConstants.UUID));
+                    }
+                }
+            }
+            String sqlQuery =
+                    String.format(IdPManagementConstants.SQLQueries.CONNECTED_APPS_TOTAL_COUNT_SQL_WITH_FILTER,
+                            filterSQL, filterSQL);
+            try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
+                prepStmt.setString(1, filter);
+                prepStmt.setString(2, resourceId);
+                prepStmt.setString(3, filter);
+                prepStmt.setString(4, resourceId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred during retrieving connected applications of IDP: " + resourceId, e);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, resourceId);
+        }
+        connectedAppsResult.setApps(connectedApps);
+        connectedAppsResult.setLimit(limit);
+        connectedAppsResult.setOffSet(offset);
+        return connectedAppsResult;
+    }
+
+    private FilterQueryBuilder getConnectedAppsQueryBuilder(List<ExpressionNode> expressionNodes)
+            throws IdentityProviderManagementClientException {
+
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        StringBuilder filter = new StringBuilder();
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+        } else {
+            if (expressionNodes.size() == 1 &&
+                    StringUtils.equals(IdPManagementConstants.APP_NAME, expressionNodes.get(0).getAttributeValue())) {
+                ExpressionNode expressionNode = expressionNodes.get(0);
+                String operation = expressionNode.getOperation();
+                String value = expressionNode.getValue();
+                String attributeName = IdPManagementConstants.ApplicationTableColumns.APP_NAME;
+                if (IdPManagementConstants.EQ.equals(operation)) {
+                    filter.append(attributeName).append(" = ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue(value);
+                } else if (IdPManagementConstants.SW.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue(value + "%");
+                } else if (IdPManagementConstants.EW.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value);
+                } else if (IdPManagementConstants.CO.equals(operation)) {
+                    filter.append(attributeName).append(" like ? AND ");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
+                } else {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_INVALID_CONNECTED_APPS_FILTER_OPERATION, null);
+                }
+                if (StringUtils.isBlank(filter.toString())) {
+                    filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+                } else {
+                    filterQueryBuilder.setFilterQuery(filter.toString());
+                }
+            } else {
+                throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_INVALID_CONNECTED_APPS_FILTER, null);
+            }
+        }
+        return filterQueryBuilder;
+    }
+
+    /**
      * Get configured applications for a local authenticator.
      *
      * @param authenticatorId   ID of local authenticator.
@@ -6244,6 +6449,88 @@ public class IdPManagementDAO {
             prepStmt.setInt(1, offset);
             prepStmt.setInt(2, limit);
             prepStmt.setString(3, id);
+        } else {
+            String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
+                    "could not be identified or not supported.";
+            log.error(message);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt;
+    }
+
+    private PreparedStatement createConnectedAppsSqlStatementWithFilter(Connection connection, String id, int limit,
+                                                                        int offset, String filterSQL, String filter)
+            throws SQLException, IdentityProviderManagementServerException {
+
+        String sqlQuery;
+        PreparedStatement prepStmt;
+        String databaseProductName = connection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset);
+            prepStmt.setInt(7, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset + limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, offset);
+            prepStmt.setInt(7, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL_WITH_FILTER,
+                    filterSQL, filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL_WITH_FILTER, filterSQL,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, filter);
+            prepStmt.setString(2, id);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
+            prepStmt.setString(5, id);
+            prepStmt.setInt(6, limit);
+            prepStmt.setInt(7, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX_WITH_FILTER,
+                    filterSQL);
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            prepStmt.setString(3, filter);
+            prepStmt.setString(4, id);
         } else {
             String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
                     "could not be identified or not supported.";
@@ -6387,6 +6674,35 @@ public class IdPManagementDAO {
             propertiesFromConnectors.put(SESSION_IDLE_TIME_OUT, sessionIdleTimeOut);
         }
 
+        if (propertiesFromConnectors.get(ENABLE_MAXIMUM_SESSION_TIME_OUT) == null) {
+            String enableMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.ENABLE_MAXIMUM_SESSION_TIMEOUT);
+            if (!StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), enableMaximumSessionTimeout) &&
+                    !StringUtils.equalsIgnoreCase(Boolean.FALSE.toString(), enableMaximumSessionTimeout)) {
+                enableMaximumSessionTimeout = Boolean.FALSE.toString().toLowerCase();
+            }
+
+            IdentityProviderProperty enableMaximumSessionTimeOut = new IdentityProviderProperty();
+            enableMaximumSessionTimeOut.setName(ENABLE_MAXIMUM_SESSION_TIME_OUT);
+            enableMaximumSessionTimeOut.setValue(enableMaximumSessionTimeout);
+            propertiesFromConnectors.put(ENABLE_MAXIMUM_SESSION_TIME_OUT, enableMaximumSessionTimeOut);
+        }
+
+        if (propertiesFromConnectors.get(MAXIMUM_SESSION_TIME_OUT) == null) {
+            String configuredMaximumSessionTimeout = IdentityUtil.getProperty(
+                    IdentityConstants.ServerConfig.MAXIMUM_SESSION_TIMEOUT);
+            if (StringUtils.isBlank(configuredMaximumSessionTimeout) ||
+                    !StringUtils.isNumeric(configuredMaximumSessionTimeout) ||
+                    Integer.parseInt(configuredMaximumSessionTimeout) <= 0) {
+                configuredMaximumSessionTimeout = MAXIMUM_SESSION_TIME_OUT_DEFAULT;
+            }
+
+            IdentityProviderProperty maximumSessionTimeOut = new IdentityProviderProperty();
+            maximumSessionTimeOut.setName(MAXIMUM_SESSION_TIME_OUT);
+            maximumSessionTimeOut.setValue(configuredMaximumSessionTimeout);
+            propertiesFromConnectors.put(MAXIMUM_SESSION_TIME_OUT, maximumSessionTimeOut);
+        }
+      
         if (propertiesFromConnectors.get(PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE) == null) {
             String preserveLoggedInSessionAtPasswordUpdate = IdentityUtil.getProperty(
                     IdentityConstants.ServerConfig.PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE);
@@ -6472,8 +6788,10 @@ public class IdPManagementDAO {
             dbConnectionInitialized = false;
         }
         try {
-            String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
-                    IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt =
+                    isH2DB(databaseProductName) ? IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA_H2 :
+                            IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, property);
             prepStmt.setString(2, value);
@@ -6485,7 +6803,7 @@ public class IdPManagementDAO {
                 idPName = rs.getString(1);
             }
             return idPName;
-        } catch (DataAccessException | SQLException e) {
+        } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for IDP metadata property name: " + property + " value: " + value, e);
         } finally {

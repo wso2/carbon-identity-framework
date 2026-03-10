@@ -472,6 +472,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throws UserStoreException, FrameworkException {
 
         try {
+            // Get the IDP group sync method from thread local.
+            String idpGroupSyncMethod = getIdpGroupSyncMethod();
+
+            // Check if manually added local roles should be preserved (backward compatible property).
             boolean includeManuallyAddedLocalRoles = Boolean
                     .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
 
@@ -487,17 +491,55 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     organizationId, tenantDomain, rolesToAdd);
 
             List<String> currentRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
-            List<String> rolesToDelete;
+            List<String> rolesToDelete = new ArrayList<>();
 
-            rolesToAdd.removeAll(currentRoleIdList);
-            if (includeManuallyAddedLocalRoles) {
-                rolesToDelete = new ArrayList<>();
+            // Get the everyone role ID to exclude from deletion.
+            String everyoneRoleId = getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm);
+
+            if (FrameworkConstants.OVERRIDE_ALL.equals(idpGroupSyncMethod)) {
+                /*
+                 * OVERRIDE_ALL: Replace all roles of the user with IDP roles.
+                 * Remove all existing roles (except everyone role) and add only roles from IDP.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to OVERRIDE_ALL. Replacing all roles with IDP roles " +
+                            "for user: " + LoggerUtils.getMaskedContent(username));
+                }
+
+                rolesToDelete = currentRoleIdList.stream()
+                        .filter(roleId -> !rolesToAdd.contains(roleId))
+                        .collect(Collectors.toList());
+
+                rolesToAdd.removeAll(currentRoleIdList);
+
             } else {
-                rolesToDelete = new ArrayList<>(currentRoleIdList);
-                rolesToDelete.removeAll(rolesToAdd);
+                /*
+                 * MERGE_WITH_EXISTING: Merge IDP roles with existing roles of the user.
+                 * Behavior depends on includeManuallyAddedLocalRoles property.
+                 * - If true: Only add new IDP roles without removing any existing roles.
+                 * - If false: Remove roles not in IDP list and add new IDP roles.
+                 */
+                if (log.isDebugEnabled()) {
+                    log.debug("IDP group sync method is set to MERGE_WITH_EXISTING for user: " +
+                            LoggerUtils.getMaskedContent(username) + ". includeManuallyAddedLocalRoles: " +
+                            includeManuallyAddedLocalRoles);
+                }
+
+                rolesToAdd.removeAll(currentRoleIdList);
+
+                if (!includeManuallyAddedLocalRoles) {
+                    /*
+                     * This is kept to preserve backward compatibility. If the property to include manually
+                     * added local roles is not enabled, the behavior will be same as OVERRIDE_ALL to remove
+                     * all existing roles that are not in the IDP role list and add new IDP roles.
+                     */
+                    rolesToDelete = new ArrayList<>(currentRoleIdList);
+                    rolesToDelete.removeAll(rolesToAdd);
+                }
             }
+
             // Remove everyone role from deleting roles.
-            rolesToDelete.remove(getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm));
+            rolesToDelete.remove(everyoneRoleId);
 
             // Assign the user to the adding roles.
             for (String roleId : rolesToAdd) {
@@ -510,6 +552,22 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
             throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
+    }
+
+    /**
+     * Get IDP group sync method from thread local.
+     *
+     * @return IDP group sync method. Defaults to MERGE_WITH_EXISTING if not set.
+     */
+    private String getIdpGroupSyncMethod() {
+
+        Object idpGroupSyncMethodObj = IdentityUtil.threadLocalProperties.get()
+                .get(FrameworkConstants.IDP_GROUP_SYNC_METHOD);
+        if (idpGroupSyncMethodObj != null && StringUtils.isNotBlank(idpGroupSyncMethodObj.toString())) {
+            return idpGroupSyncMethodObj.toString();
+        }
+        // Default to MERGE_WITH_EXISTING (backward compatible behavior) if not set or blank.
+        return FrameworkConstants.MERGE_WITH_EXISTING;
     }
 
     /**
