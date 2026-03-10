@@ -25,6 +25,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
@@ -37,45 +38,22 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Locale;
 
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_DEBUG_SESSION;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_EXPIRED_DEBUG_SESSIONS;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION_LEGACY;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION_LEGACY;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_LEGACY;
+
 /**
  * Implementation of the DebugSessionDAO using JdbcTemplate.
  */
 public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionDAOImpl.class);
-    private static final String DEBUG_SESSION_PREFIX = "debug-";
-
-    private static final String SQL_INSERT_DEBUG_SESSION = "INSERT INTO IDN_DEBUG_SESSION " +
-            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-    private static final String SQL_GET_DEBUG_SESSION = "SELECT DEBUG_ID, STATUS, SESSION_DATA, " +
-            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, " +
-            "RESOURCE_ID FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
-
-    private static final String SQL_DELETE_DEBUG_SESSION = "DELETE FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
-
-    private static final String SQL_DELETE_EXPIRED_DEBUG_SESSIONS 
-        = "DELETE FROM IDN_DEBUG_SESSION WHERE EXPIRY_TIME < ?";
-
-    // MERGE statement for atomic upsert (H2 and most databases support this)
-    private static final String SQL_UPSERT_DEBUG_SESSION 
-        = "MERGE INTO IDN_DEBUG_SESSION (DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, "
-            +
-            "CREATED_TIME, EXPIRY_TIME, RESOURCE_TYPE, RESOURCE_ID) KEY (DEBUG_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-    // Legacy SQLs for backward compatibility (if DB schema is not updated)
-    private static final String SQL_INSERT_DEBUG_SESSION_LEGACY = "INSERT INTO IDN_DEBUG_SESSION " +
-            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
-            "VALUES (?, ?, ?, ?, ?, ?)";
-
-    private static final String SQL_GET_DEBUG_SESSION_LEGACY = "SELECT DEBUG_ID, STATUS, SESSION_DATA, " +
-            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
-
-    private static final String SQL_UPSERT_DEBUG_SESSION_LEGACY = "MERGE INTO IDN_DEBUG_SESSION " +
-            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
-            "KEY (DEBUG_ID) VALUES (?, ?, ?, ?, ?, ?)";
-
+    
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
@@ -95,7 +73,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             });
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
-            if (isMissingColumnError(e, "resource_type", "resource_id")) {
+            if (isMissingColumnError(e, DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE,
+                    DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
                 LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                         "Falling back to legacy insert without resource info.");
                 try {
@@ -128,99 +107,24 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         String storageDebugId = toStorageDebugId(normalizedDebugId);
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         try {
-            DebugSessionData data = jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION, (resultSet, rowNumber) -> {
-                DebugSessionData sessionData = new DebugSessionData();
-                sessionData.setDebugId(debugId);
-                sessionData.setStatus(resultSet.getString("STATUS"));
-                try {
-                    sessionData.setSessionData(resultSet.getBinaryStream("SESSION_DATA"));
-                } catch (SQLException e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Error reading session data stream for debug ID: " + debugId, e);
-                    }
-                }
-                sessionData.setResultJson(resultSet.getString("RESULT_JSON"));
-                sessionData.setCreatedTime(getTimeInMillis(resultSet, "CREATED_TIME"));
-                sessionData.setExpiryTime(getTimeInMillis(resultSet, "EXPIRY_TIME"));
-                sessionData.setResourceType(resultSet.getString("RESOURCE_TYPE"));
-                sessionData.setConnectionId(resultSet.getString("RESOURCE_ID"));
-                return sessionData;
-            }, preparedStatement -> preparedStatement.setString(1, storageDebugId));
+            DebugSessionData data = getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION,
+                    debugId, storageDebugId, true);
             if (data != null) {
                 return data;
             }
             // Backward compatibility for rows persisted without tenant scope.
             if (!storageDebugId.equals(normalizedDebugId)) {
-                return jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION, (resultSet, rowNumber) -> {
-                    DebugSessionData legacyData = new DebugSessionData();
-                    legacyData.setDebugId(debugId);
-                    legacyData.setStatus(resultSet.getString("STATUS"));
-                    try {
-                        legacyData.setSessionData(resultSet.getBinaryStream("SESSION_DATA"));
-                    } catch (SQLException e) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Error reading session data stream for debug ID: " + debugId, e);
-                        }
-                    }
-                    legacyData.setResultJson(resultSet.getString("RESULT_JSON"));
-                    legacyData.setCreatedTime(getTimeInMillis(resultSet, "CREATED_TIME"));
-                    legacyData.setExpiryTime(getTimeInMillis(resultSet, "EXPIRY_TIME"));
-                    legacyData.setResourceType(resultSet.getString("RESOURCE_TYPE"));
-                    legacyData.setConnectionId(resultSet.getString("RESOURCE_ID"));
-                    return legacyData;
-                }, preparedStatement -> preparedStatement.setString(1, normalizedDebugId));
+                return getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION,
+                        debugId, normalizedDebugId, true);
             }
             return null;
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
-            if (isMissingColumnError(e, "resource_type", "resource_id")) {
+            if (isMissingColumnError(e, DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE,
+                    DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
                 LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                         "Falling back to legacy retrieval without resource info.");
-                try {
-                    DebugSessionData data = jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION_LEGACY,
-                            (resultSet, rowNumber) -> {
-                        DebugSessionData sessionData = new DebugSessionData();
-                        sessionData.setDebugId(debugId);
-                        sessionData.setStatus(resultSet.getString("STATUS"));
-                        try {
-                            sessionData.setSessionData(resultSet.getBinaryStream("SESSION_DATA"));
-                        } catch (SQLException ex) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("Error reading session data stream for debug ID: " + debugId, ex);
-                            }
-                        }
-                        sessionData.setResultJson(resultSet.getString("RESULT_JSON"));
-                        sessionData.setCreatedTime(getTimeInMillis(resultSet, "CREATED_TIME"));
-                        sessionData.setExpiryTime(getTimeInMillis(resultSet, "EXPIRY_TIME"));
-                        return sessionData;
-                    }, preparedStatement -> preparedStatement.setString(1, storageDebugId));
-                    if (data != null) {
-                        return data;
-                    }
-                    if (!storageDebugId.equals(normalizedDebugId)) {
-                        return jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION_LEGACY, (resultSet, rowNumber) -> {
-                            DebugSessionData legacyData = new DebugSessionData();
-                            legacyData.setDebugId(debugId);
-                            legacyData.setStatus(resultSet.getString("STATUS"));
-                            try {
-                                legacyData.setSessionData(resultSet.getBinaryStream("SESSION_DATA"));
-                            } catch (SQLException ex) {
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug("Error reading session data stream for debug ID: " + debugId, ex);
-                                }
-                            }
-                            legacyData.setResultJson(resultSet.getString("RESULT_JSON"));
-                            legacyData.setCreatedTime(getTimeInMillis(resultSet, "CREATED_TIME"));
-                            legacyData.setExpiryTime(getTimeInMillis(resultSet, "EXPIRY_TIME"));
-                            return legacyData;
-                        }, preparedStatement -> preparedStatement.setString(1, normalizedDebugId));
-                    }
-                    return null;
-                } catch (DataAccessException ex) {
-                    String errorMsg = "Error while retrieving debug session (fallback): " + debugId;
-                    LOG.error(errorMsg, ex);
-                    throw new DebugFrameworkServerException(errorMsg, ex);
-                }
+                return getDebugSessionLegacyFallback(jdbcTemplate, debugId, storageDebugId, normalizedDebugId);
             }
             String errorMsg = "Error while retrieving debug session: " + debugId;
             LOG.error(errorMsg, e);
@@ -277,7 +181,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     success = true;
                 }
             } catch (SQLException e) {
-                if (isMissingColumnError(e, "resource_type", "resource_id")) {
+                if (isMissingColumnError(e, DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE,
+                        DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
                     LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                             "Falling back to legacy upsert without resource info.");
                     try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_LEGACY)) {
@@ -336,6 +241,93 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     }
 
     /**
+     * Retrieves a debug session from the database using the specified SQL query and identifier.
+     *
+     * @param jdbcTemplate The JDBC template.
+     * @param sqlQuery The SQL query to execute.
+     * @param debugId The debug ID.
+     * @param identifier The identifier (storage debug ID or normalized debug ID).
+     * @param includeResourceColumns Whether to include resource type and connection ID columns.
+     * @return The debug session data or null if not found.
+     * @throws DataAccessException If database access fails.
+     */
+    private DebugSessionData getDebugSessionFromDatabase(JdbcTemplate jdbcTemplate, String sqlQuery,
+                                                         String debugId, String identifier,
+                                                         boolean includeResourceColumns)
+            throws DataAccessException {
+
+        return jdbcTemplate.fetchSingleRecord(sqlQuery, (resultSet, rowNumber) ->
+                mapResultSetToDebugSessionData(resultSet, debugId, includeResourceColumns),
+                preparedStatement -> preparedStatement.setString(1, identifier));
+    }
+
+    /**
+     * Attempts to retrieve a debug session from the legacy database schema as a fallback.
+     *
+     * @param jdbcTemplate The JDBC template.
+     * @param debugId The debug ID.
+     * @param storageDebugId The storage debug ID.
+     * @param normalizedDebugId The normalized debug ID.
+     * @return The debug session data or null if not found.
+     * @throws DebugFrameworkServerException If database access fails.
+     */
+    private DebugSessionData getDebugSessionLegacyFallback(JdbcTemplate jdbcTemplate, String debugId,
+                                                           String storageDebugId, String normalizedDebugId)
+            throws DebugFrameworkServerException {
+
+        try {
+            DebugSessionData data = getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION_LEGACY,
+                    debugId, storageDebugId, false);
+            if (data != null) {
+                return data;
+            }
+            if (!storageDebugId.equals(normalizedDebugId)) {
+                return getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION_LEGACY,
+                        debugId, normalizedDebugId, false);
+            }
+            return null;
+        } catch (DataAccessException ex) {
+            String errorMsg = "Error while retrieving debug session (fallback): " + debugId;
+            LOG.error(errorMsg, ex);
+            throw new DebugFrameworkServerException(errorMsg, ex);
+        }
+    }
+
+    /**
+     * Maps a ResultSet row to a DebugSessionData object.
+     *
+     * @param resultSet The result set.
+     * @param debugId The debug ID.
+     * @param includeResourceColumns Whether to include resource type and connection ID columns.
+     * @return The debug session data.
+     * @throws SQLException If a SQL error occurs.
+     */
+    private DebugSessionData mapResultSetToDebugSessionData(ResultSet resultSet, String debugId,
+                                                           boolean includeResourceColumns)
+            throws SQLException {
+
+        DebugSessionData sessionData = new DebugSessionData();
+        sessionData.setDebugId(debugId);
+        sessionData.setStatus(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_STATUS));
+        try {
+            sessionData.setSessionData(resultSet.getBinaryStream(DebugFrameworkConstants.DB_COLUMN_SESSION_DATA));
+        } catch (SQLException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error reading session data stream for debug ID: " + debugId, e);
+            }
+        }
+        sessionData.setResultJson(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_RESULT_JSON));
+        sessionData.setCreatedTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_CREATED_TIME));
+        sessionData.setExpiryTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_EXPIRY_TIME));
+
+        if (includeResourceColumns) {
+            sessionData.setResourceType(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE));
+            sessionData.setConnectionId(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID));
+        }
+        return sessionData;
+    }
+
+    /**
      * Normalizes the debug ID by removing hyphens from the UUID part.
      * This ensures consistent storage and retrieval regardless of format.
      *
@@ -344,13 +336,13 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
      */
     private String normalizeDebugId(String debugId) {
 
-        if (debugId == null || !debugId.startsWith(DEBUG_SESSION_PREFIX)) {
+        if (debugId == null || !debugId.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
             return debugId;
         }
 
-        String uuidPart = debugId.substring(DEBUG_SESSION_PREFIX.length());
+        String uuidPart = debugId.substring(DebugFrameworkConstants.DEBUG_PREFIX.length());
         String normalizedUuid = uuidPart.replace("-", "");
-        return DEBUG_SESSION_PREFIX + normalizedUuid;
+        return DebugFrameworkConstants.DEBUG_PREFIX + normalizedUuid;
     }
 
     private String toStorageDebugId(String normalizedDebugId) {
@@ -387,37 +379,84 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         while (current != null) {
             if (current instanceof SQLException) {
                 SQLException sqlException = (SQLException) current;
-                String sqlState = sqlException.getSQLState();
-                if ("42S22".equals(sqlState) || "42703".equals(sqlState)) {
+                if (isMissingColumnSQLState(sqlException) || isMissingColumnMessage(sqlException, columnHints)) {
                     return true;
-                }
-                String message = sqlException.getMessage();
-                if (message != null) {
-                    String normalizedMessage = message.toLowerCase(Locale.ENGLISH);
-                    boolean mentionsColumn = false;
-                    if (columnHints != null && columnHints.length > 0) {
-                        for (String columnHint : columnHints) {
-                            if (columnHint != null
-                                    && normalizedMessage.contains(columnHint.toLowerCase(Locale.ENGLISH))) {
-                                mentionsColumn = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        mentionsColumn = true;
-                    }
-                    if (mentionsColumn && (normalizedMessage.contains("not found")
-                            || normalizedMessage.contains("does not exist")
-                            || normalizedMessage.contains("unknown column")
-                            || normalizedMessage.contains("invalid column")
-                            || normalizedMessage.contains("invalid identifier")
-                            || normalizedMessage.contains("no such column"))) {
-                        return true;
-                    }
                 }
             }
             current = current.getCause();
         }
         return false;
+    }
+
+    /**
+     * Checks if the SQL exception represents a missing column error based on SQL state codes.
+     *
+     * @param sqlException The SQL exception to check.
+     * @return True if the SQL state indicates a missing column error, false otherwise.
+     */
+    private boolean isMissingColumnSQLState(SQLException sqlException) {
+
+        String sqlState = sqlException.getSQLState();
+        return "42S22".equals(sqlState) || "42703".equals(sqlState);
+    }
+
+    /**
+     * Checks if the SQL exception message indicates a missing column error.
+     *
+     * @param sqlException The SQL exception to check.
+     * @param columnHints Optional column name hints to match in the message.
+     * @return True if the message indicates a missing column error, false otherwise.
+     */
+    private boolean isMissingColumnMessage(SQLException sqlException, String... columnHints) {
+
+        String message = sqlException.getMessage();
+        if (message == null) {
+            return false;
+        }
+
+        String normalizedMessage = message.toLowerCase(Locale.ENGLISH);
+        boolean mentionsColumn = containsColumnHint(normalizedMessage, columnHints);
+        if (!mentionsColumn) {
+            return false;
+        }
+
+        return isMissingColumnPattern(normalizedMessage);
+    }
+
+    /**
+     * Checks if the normalized message contains any of the column hints.
+     *
+     * @param normalizedMessage The normalized (lowercase) message.
+     * @param columnHints Column name hints to check.
+     * @return True if the message contains any hint, false otherwise.
+     */
+    private boolean containsColumnHint(String normalizedMessage, String... columnHints) {
+
+        if (columnHints == null || columnHints.length == 0) {
+            return true;
+        }
+
+        for (String columnHint : columnHints) {
+            if (columnHint != null && normalizedMessage.contains(columnHint.toLowerCase(Locale.ENGLISH))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the message contains patterns that indicate a missing column error.
+     *
+     * @param normalizedMessage The normalized (lowercase) message.
+     * @return True if the message matches missing column error patterns, false otherwise.
+     */
+    private boolean isMissingColumnPattern(String normalizedMessage) {
+
+        return normalizedMessage.contains("not found")
+                || normalizedMessage.contains("does not exist")
+                || normalizedMessage.contains("unknown column")
+                || normalizedMessage.contains("invalid column")
+                || normalizedMessage.contains("invalid identifier")
+                || normalizedMessage.contains("no such column");
     }
 }

@@ -50,6 +50,19 @@ public final class DebugFrameworkConstants {
     public static final String TRUE = "true";
     public static final String FALSE = "false";
 
+    // Database Column Names.
+    public static final String DB_COLUMN_STATUS = "STATUS";
+    public static final String DB_COLUMN_SESSION_DATA = "SESSION_DATA";
+    public static final String DB_COLUMN_RESULT_JSON = "RESULT_JSON";
+    public static final String DB_COLUMN_CREATED_TIME = "CREATED_TIME";
+    public static final String DB_COLUMN_EXPIRY_TIME = "EXPIRY_TIME";
+    public static final String DB_COLUMN_RESOURCE_TYPE = "RESOURCE_TYPE";
+    public static final String DB_COLUMN_CONNECTION_ID = "CONNECTION_ID";
+
+    // Debug Status Constants.
+    public static final String DEBUG_STATUS_FAILURE = "FAILURE";
+    public static final String DEBUG_STATUS_SUCCESS = "SUCCESS";
+
     // Debug Flow Type Constants.
     public static final String DEBUG_FLOW_TYPE = "DEBUG_FLOW_TYPE";
     public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
@@ -57,9 +70,9 @@ public final class DebugFrameworkConstants {
     public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
     public static final String RESOURCE_TYPE_IDP = "IDP";
     public static final String DEBUG_RESULT_RETRIEVAL = "DEBUG_RESULT_RETRIEVAL";
-    public static final String DEBUG_RESOURCE_ID = "DEBUG_RESOURCE_ID";
-    public static final String RESOURCE_ID = "RESOURCE_ID";
-    public static final String IDP_RESOURCE_ID = "IDP_RESOURCE_ID";
+    public static final String DEBUG_CONNECTION_ID = "DEBUG_CONNECTION_ID";
+    public static final String CONNECTION_ID = "CONNECTION_ID";
+    public static final String IDP_CONNECTION_ID = "IDP_CONNECTION_ID";
 
     // Session Status Constants.
     public static final String SESSION_STATUS_PENDING = "PENDING";

@@ -78,7 +78,7 @@ public class DebugServiceComponent {
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             LOG.debug("DebugRequestCoordinator registered as DebugAuthenticationInterceptor service");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error while activating debug framework component.", e);
         }
     }
@@ -100,7 +100,7 @@ public class DebugServiceComponent {
             }
 
             LOG.info("Debug Framework OSGi component deactivated");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error while deactivating debug framework component.", e);
         }
     }

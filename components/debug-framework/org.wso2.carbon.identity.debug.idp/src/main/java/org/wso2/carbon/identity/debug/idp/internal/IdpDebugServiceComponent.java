@@ -69,7 +69,7 @@ public class IdpDebugServiceComponent {
                     DebugProtocolResolver.class, resolver, null);
 
             LOG.debug("Registered IdpDebugProtocolResolver service.");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error while activating IDP Debug Handler Component.", e);
         }
     }
@@ -94,7 +94,7 @@ public class IdpDebugServiceComponent {
             }
 
             LOG.debug("IDP Debug Handler Component deactivated.");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error while deactivating IDP Debug Handler Component.", e);
         }
     }

@@ -61,7 +61,6 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
     private static final String CONTEXT_KEY_RESOURCE_NAME = "resourceName";
     private static final String CONTEXT_KEY_RESOURCE_TYPE = "resourceType";
     private static final String REQUEST_KEY_CONNECTION_ID = "connectionId";
-    private static final String REQUEST_KEY_RESOURCE_ID = "resourceId";
     private static final String REQUEST_KEY_IDP_NAME = "idpName";
     private static final String REQUEST_KEY_RESOURCE_TYPE = "resourceType";
 
@@ -319,41 +318,7 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
     private void handleDebugFlowCallback(HttpServletRequest request, HttpServletResponse response) {
 
         try {
-            String code = request.getParameter(DebugFrameworkConstants.OAUTH2_CODE_PARAM);
-            String state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
-            String error = request.getParameter(DebugFrameworkConstants.OAUTH2_ERROR_PARAM);
-            String sessionDataKey = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
-
-            if (handleOAuthError(error, response)) {
-                return;
-            }
-
-            AuthenticationContext context = retrieveOrCreateContext(code, state, sessionDataKey);
-            if (context == null) {
-                handleMissingContext(response);
-                return;
-            }
-
-            setContextProperties(context, code, state, sessionDataKey);
-            DebugProcessor processor = getProtocolSpecificProcessor(request, context);
-
-            if (processor == null) {
-                LOG.error("No suitable DebugProcessor found for callback");
-                if (!response.isCommitted()) {
-                    String connectionId = extractConnectionId(context, request);
-                    String description = String.format(ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND.getDescription(),
-                            connectionId != null ? connectionId : "unknown");
-                    sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                            ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND.getCode(),
-                            description);
-                }
-                return;
-            }
-
-            if (!response.isCommitted()) {
-                processor.processCallback(request, response, context);
-            }
-
+            processDebugFlowCallback(request, response);
         } catch (IOException e) {
             LOG.error("Error processing debug flow callback", e);
             if (!response.isCommitted()) {
@@ -364,6 +329,53 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
             if (!response.isCommitted()) {
                 sendIOErrorResponse(response);
             }
+        }
+    }
+
+    /**
+     * Processes the debug flow callback by extracting OAuth parameters,
+     * retrieving the authentication context, and delegating to the appropriate processor.
+     *
+     * @param request  The HTTP servlet request.
+     * @param response The HTTP servlet response.
+     * @throws IOException If an I/O error occurs during response handling.
+     */
+    private void processDebugFlowCallback(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String code = request.getParameter(DebugFrameworkConstants.OAUTH2_CODE_PARAM);
+        String state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
+        String error = request.getParameter(DebugFrameworkConstants.OAUTH2_ERROR_PARAM);
+        String sessionDataKey = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
+
+        if (handleOAuthError(error, response)) {
+            return;
+        }
+
+        AuthenticationContext context = retrieveOrCreateContext(code, state, sessionDataKey);
+        if (context == null) {
+            handleMissingContext(response);
+            return;
+        }
+
+        setContextProperties(context, code, state, sessionDataKey);
+        DebugProcessor processor = getProtocolSpecificProcessor(request, context);
+
+        if (processor == null) {
+            LOG.error("No suitable DebugProcessor found for callback");
+            if (!response.isCommitted()) {
+                String connectionId = extractConnectionId(context, request);
+                String description = String.format(ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND.getDescription(),
+                        connectionId != null ? connectionId : "unknown");
+                sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND.getCode(),
+                        description);
+            }
+            return;
+        }
+
+        if (!response.isCommitted()) {
+            processor.processCallback(request, response, context);
         }
     }
 
@@ -456,7 +468,7 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
         return firstNonBlankString(
                 context.getProperty(CONTEXT_KEY_CONNECTION_ID),
                 context.getProperty(CONTEXT_KEY_RESOURCE_NAME),
-                context.getProperty(DebugFrameworkConstants.DEBUG_RESOURCE_ID));
+                context.getProperty(DebugFrameworkConstants.DEBUG_CONNECTION_ID));
     }
 
     private String extractConnectionIdFromRequest(HttpServletRequest request) {
@@ -466,7 +478,6 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
         }
         return firstNonBlankString(
                 request.getParameter(REQUEST_KEY_CONNECTION_ID),
-                request.getParameter(REQUEST_KEY_RESOURCE_ID),
                 request.getParameter(REQUEST_KEY_IDP_NAME));
     }
 

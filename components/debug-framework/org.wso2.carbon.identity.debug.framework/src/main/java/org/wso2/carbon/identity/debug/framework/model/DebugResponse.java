@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.debug.framework.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_FAILURE;
+import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS;
+
 /**
  * Represents a debug response with status and result information.
  * This model provides type-safe access to debug response data.
@@ -28,7 +31,6 @@ import java.util.Map;
 public class DebugResponse {
 
     private static final String STATUS_KEY = "status";
-    private static final String SUCCESS_STATUS = "SUCCESS";
 
     private String status;
     private String message;
@@ -50,7 +52,7 @@ public class DebugResponse {
      */
     public DebugResponse(Map<String, Object> data) {
 
-        this.status = SUCCESS_STATUS;
+        this.status = DEBUG_STATUS_SUCCESS;
         this.data = data != null ? data : new HashMap<>();
         this.data.put(STATUS_KEY, this.status);
     }
@@ -89,7 +91,7 @@ public class DebugResponse {
     public static DebugResponse error(String message) {
 
         String fallbackMessage = message != null ? message : "Unknown error occurred during debug execution";
-        return new DebugResponse("FAILURE", fallbackMessage);
+        return new DebugResponse(DEBUG_STATUS_FAILURE, fallbackMessage);
     }
 
     /**
@@ -101,7 +103,7 @@ public class DebugResponse {
      */
     public static DebugResponse error(String errorCode, String message) {
 
-        DebugResponse response = new DebugResponse("FAILURE", message);
+        DebugResponse response = new DebugResponse(DEBUG_STATUS_FAILURE, message);
         response.setErrorCode(errorCode);
         return response;
     }
@@ -141,7 +143,7 @@ public class DebugResponse {
 
         // Set top-level status and message.
         DebugResponse response = new DebugResponse();
-        response.setStatus(result.isSuccessful() ? "SUCCESS" : "FAILURE");
+        response.setStatus(result.isSuccessful() ? DEBUG_STATUS_SUCCESS : DEBUG_STATUS_FAILURE);
 
         String message = result.getErrorMessage();
         if (message == null) {
@@ -247,6 +249,6 @@ public class DebugResponse {
      */
     public boolean isSuccess() {
 
-        return SUCCESS_STATUS.equals(status);
+        return DEBUG_STATUS_SUCCESS.equals(status);
     }
 }

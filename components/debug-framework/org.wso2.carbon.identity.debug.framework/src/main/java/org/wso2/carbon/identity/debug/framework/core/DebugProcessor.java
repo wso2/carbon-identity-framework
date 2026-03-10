@@ -120,12 +120,12 @@ public abstract class DebugProcessor {
     protected String extractConnectionId(AuthenticationContext context) {
 
         // Try common property names for resource ID.
-        Object connectionId = context.getProperty(DebugFrameworkConstants.RESOURCE_ID);
+        Object connectionId = context.getProperty(DebugFrameworkConstants.CONNECTION_ID);
         if (connectionId == null) {
-            connectionId = context.getProperty(DebugFrameworkConstants.IDP_RESOURCE_ID);
+            connectionId = context.getProperty(DebugFrameworkConstants.IDP_CONNECTION_ID);
         }
         if (connectionId == null) {
-            connectionId = context.getProperty(DebugFrameworkConstants.DEBUG_RESOURCE_ID);
+            connectionId = context.getProperty(DebugFrameworkConstants.DEBUG_CONNECTION_ID);
         }
         return connectionId != null ? connectionId.toString() : "";
     }

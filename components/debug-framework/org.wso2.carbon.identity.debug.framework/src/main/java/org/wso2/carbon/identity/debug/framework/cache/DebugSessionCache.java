@@ -123,12 +123,12 @@ public final class DebugSessionCache {
      * Retrieves a debug context map from the session cache.
      *
      * @param key Cache key.
-     * @return Debug context map or null if not found.
+     * @return Debug context map or empty map if not found.
      */
     public Map<String, Object> get(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
-            return null;
+            return new HashMap<>();
         }
         try {
             DebugSessionData data = debugSessionDAO.getDebugSession(key);
@@ -154,19 +154,19 @@ public final class DebugSessionCache {
             LOG.error("Error deserializing debug session: " + e.getMessage(), e);
             throw new DebugFrameworkServerException("Error deserializing debug session", e);
         }
-        return null;
+        return new HashMap<>();
     }
 
     /**
      * Removes a debug context from the session cache.
      *
      * @param key Cache key.
-     * @return Previously cached context map or null.
+     * @return Previously cached context map or empty map if not found.
      */
     public Map<String, Object> remove(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
-            return null;
+            return new HashMap<>();
         }
         Map<String, Object> value = get(key);
         debugSessionDAO.deleteDebugSession(key);
