@@ -832,7 +832,7 @@
   "cache.push_device_registration_request_cache.capacity": "$ref{cache.default_capacity}",
   "cache.saml_cert_cache.enable": true,
   "cache.saml_cert_cache.timeout": "900",
-  "cache.saml_cert_cache.capacity": "$ref{cache.default_capacity}",
+  "cache.saml_cert_cache.capacity": "100",
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
