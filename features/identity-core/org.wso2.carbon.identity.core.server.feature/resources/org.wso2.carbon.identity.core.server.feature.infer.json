@@ -328,7 +328,8 @@
       "scim2.enable_spec_compliant_email_handling": false,
       "identity_providers.support_multiple_certificate_export": false,
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
-      "api.filters.single_character_wildcard": "_"
+      "api.filters.single_character_wildcard": "_",
+      "transport.https.client.provider_name": ""
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -388,7 +389,8 @@
       "scim2.enable_spec_compliant_email_handling": false,
       "identity_providers.support_multiple_certificate_export": false,
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
-      "api.filters.single_character_wildcard": "_"
+      "api.filters.single_character_wildcard": "_",
+      "transport.https.client.provider_name": ""
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -409,7 +411,8 @@
       "scim2.enable_spec_compliant_email_handling": false,
       "identity_providers.support_multiple_certificate_export": false,
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
-      "api.filters.single_character_wildcard": "_"
+      "api.filters.single_character_wildcard": "_",
+      "transport.https.client.provider_name": ""
     }
   }
 }
