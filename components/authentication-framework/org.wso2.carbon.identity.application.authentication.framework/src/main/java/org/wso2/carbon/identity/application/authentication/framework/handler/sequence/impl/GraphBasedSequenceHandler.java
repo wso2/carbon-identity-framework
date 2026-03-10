@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -563,6 +563,13 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
 
         FrameworkUtils.getStepHandler().handle(request, response, context);
+        if (context.isSharedAppLoginContextUpdateRequired()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Context update is required for the organization login. " +
+                        "Hence, returning to Request Coordinator.");
+            }
+            return true;
+        }
 
         flowStatus = (AuthenticatorFlowStatus) request
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);

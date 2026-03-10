@@ -759,12 +759,12 @@
     </Resource>
 
     <!-- [Organization] User Password Update API -->
-    <Resource context="(.*)/o/api/users/v1/me/change-password" secured="true" http-method="POST">
+    <Resource context="(.*)/o/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,TomcatCookieAuthentication" secured="true" http-method="POST">
         <Scopes>internal_org_user_password_update</Scopes>
     </Resource>
-        
+
     <!-- User Password Update API -->
-    <Resource context="(.*)/api/users/v1/me/change-password" secured="true" http-method="POST">
+    <Resource context="(.*)/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,TomcatCookieAuthentication" secured="true" http-method="POST">
         <Scopes>internal_user_password_update</Scopes>
     </Resource>
 
@@ -1933,18 +1933,18 @@
 
     <!-- [Organization] User Credential Management API -->
     <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
-        <Scopes>internal_org_user_mgt_view</Scopes>
+        <Scopes>internal_org_user_credential_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_user_mgt_delete</Scopes>
+        <Scopes>internal_org_user_credential_mgt_delete</Scopes>
     </Resource>
 
     <!-- User Credential Management API -->
     <Resource context="(.*)/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
-        <Scopes>internal_user_mgt_view</Scopes>
+        <Scopes>internal_user_credential_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_user_mgt_delete</Scopes>
+        <Scopes>internal_user_credential_mgt_delete</Scopes>
     </Resource>
 
     <!-- VC Template Management API -->
@@ -1966,6 +1966,8 @@
     <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_vc_template_delete</Scopes>
     </Resource>
+
+    <Resource context="/.well-known/oauth-authorization-server/(.*)oauth2/token" secured="false" http-method="GET"/>
 
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>

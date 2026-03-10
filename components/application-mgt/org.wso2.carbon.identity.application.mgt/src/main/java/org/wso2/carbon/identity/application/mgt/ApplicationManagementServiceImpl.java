@@ -1748,6 +1748,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        // Organization roles are environment-specific and should not be included in the exported application.
+        AssociatedRolesConfig associatedRolesConfig = serviceProviderCopy.getAssociatedRolesConfig();
+        if (associatedRolesConfig != null &&
+                RoleConstants.ORGANIZATION.equals(associatedRolesConfig.getAllowedAudience())) {
+            AssociatedRolesConfig exportConfig = new AssociatedRolesConfig();
+            exportConfig.setAllowedAudience(associatedRolesConfig.getAllowedAudience());
+            serviceProviderCopy.setAssociatedRolesConfig(exportConfig);
+        }
+
         return serviceProviderCopy;
     }
 

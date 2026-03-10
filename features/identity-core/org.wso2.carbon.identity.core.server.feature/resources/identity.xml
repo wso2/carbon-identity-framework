@@ -814,7 +814,7 @@
             Default value : true
         -->
         <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
-        <AllowIssuerSelectionForSubOrgApplications>false</AllowIssuerSelectionForSubOrgApplications>
+        <AllowIssuerSelectionForSubOrgApplications>true</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1339,6 +1339,7 @@
         <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
         <EnableSCIMPatchForUpdates>true</EnableSCIMPatchForUpdates>
         <ConfidentialDataProtectionEnabled>true</ConfidentialDataProtectionEnabled>
+        <EnableSCIMCompliantEmailAttribute>true</EnableSCIMCompliantEmailAttribute>
         <SCIM2Client>
             <HttpRetryCount>1</HttpRetryCount>
             <HttpReadTimeout>5000</HttpReadTimeout>
@@ -2945,6 +2946,8 @@
         <CustomContent>
             <MaxFileSize>1048576</MaxFileSize>
         </CustomContent>
+        <UseIntermediateLoaderPage>false</UseIntermediateLoaderPage>
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>false</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
@@ -2980,4 +2983,6 @@
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
+    <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>false</EnhancedOrganizationAuthenticationFeatureEnabled>
 </Server>

@@ -106,6 +106,10 @@ public class IdentityApplicationConstants {
     public static final String TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME = "Template Version";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_NAME = "isB2BSelfServiceApp";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME = "Is B2B Self Service Application";
+    public static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME =
+            "isEnhancedOrganizationAuthenticationEnabled";
+    public static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_DISPLAY_NAME =
+            "Is Enhanced Organization Authentication Enabled";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";

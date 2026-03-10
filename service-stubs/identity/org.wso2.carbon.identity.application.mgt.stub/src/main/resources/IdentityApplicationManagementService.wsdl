@@ -373,6 +373,7 @@
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="discoverable" type="xs:boolean"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="discoverableGroups" nillable="true" type="ax2163:DiscoverableGroup"/>
+                    <xs:element minOccurs="0" name="enhancedOrganizationAuthenticationEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2163:InboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true" type="ax2163:InboundProvisioningConfig"/>

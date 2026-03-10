@@ -1360,6 +1360,11 @@
         -->
         <DropUnregisteredScopes>{{oauth.drop_unregistered_scopes}}</DropUnregisteredScopes>
         {% endif %}
+
+        {% if oauth.drop_unrequested_oidc_scopes is defined %}
+        <DropUnrequestedOIDCScopes>{{oauth.drop_unrequested_oidc_scopes}}</DropUnrequestedOIDCScopes>
+        {% endif %}
+
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
@@ -2340,6 +2345,9 @@
                 are securely stored in the secret store. These values will be omitted from API response.
             -->
             <ConfidentialDataProtectionEnabled>{{outbound_provisioning_management.confidential_data_protection_enabled}}</ConfidentialDataProtectionEnabled>
+        {% endif %}
+        {% if outbound_provisioning_management.enable_scim_compliant_email_attribute is defined %}
+            <EnableSCIMCompliantEmailAttribute>{{outbound_provisioning_management.enable_scim_compliant_email_attribute}}</EnableSCIMCompliantEmailAttribute>
         {% endif %}
         <SCIM2Client>
             <!--
@@ -5082,6 +5090,10 @@
         <CustomContent>
             <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
         </CustomContent>
+        <!-- When enabled, only a generic loading indicator will be shown on intermediate SAML (Inbound and Federated) and Passive STS pages. -->
+        <UseIntermediateLoaderPage>{{branding_configuration.use_intermediate_loader_page}}</UseIntermediateLoaderPage>
+        <!-- When enabled, the invalid tenant domain error page will be served from the Authentication Portal. -->
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>{{branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal}}</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
@@ -5145,7 +5157,11 @@
     <APIFiltering>
         <SingleCharacterWildcard>{{api.filters.single_character_wildcard}}</SingleCharacterWildcard>
     </APIFiltering>
+
     <IdentityProviders>
         <SupportMultipleCertificateExport>{{identity_providers.support_multiple_certificate_export}}</SupportMultipleCertificateExport>
     </IdentityProviders>
+
+    <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>
 </Server>

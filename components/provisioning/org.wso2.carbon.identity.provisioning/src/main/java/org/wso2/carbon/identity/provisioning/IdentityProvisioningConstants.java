@@ -51,6 +51,7 @@ public class IdentityProvisioningConstants {
     public static final String APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED = "OutboundProvisioning.enableApplicationBasedOutboundProvisioning";
     public static final String FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE = "OutboundProvisioning.FailOnBlockingOutboundProvisionFailure";
     public static final String ENABLE_SCIM_PATCH_FOR_UPDATES = "OutboundProvisioning.EnableSCIMPatchForUpdates";
+    public static final String ENABLE_SCIM_COMPLIANT_EMAIL_ATTRIBUTE = "OutboundProvisioning.EnableSCIMCompliantEmailAttribute";
 
     public static class SQLQueries {
 

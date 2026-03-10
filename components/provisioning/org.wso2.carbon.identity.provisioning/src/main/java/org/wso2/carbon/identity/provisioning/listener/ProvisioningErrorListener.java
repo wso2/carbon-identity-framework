@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org)
+ * Copyright (c) 2022-2026, WSO2 Inc. (http://www.wso2.org)
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -296,13 +296,13 @@ public class ProvisioningErrorListener extends AbstractIdentityUserMgtFailureEve
 
         if (threadLocalServiceProvider != null) {
             String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
             if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
                 try {
                     serviceProvider = ApplicationManagementService.getInstance()
                             .getServiceProviderNameByClientId(
                                     threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                                    IdentityApplicationConstants.OAuth2.NAME,
+                                    threadLocalServiceProvider.getTenantDomain());
                 } catch (IdentityApplicationManagementException e) {
                     log.error("Error while provisioning", e);
                     return true;

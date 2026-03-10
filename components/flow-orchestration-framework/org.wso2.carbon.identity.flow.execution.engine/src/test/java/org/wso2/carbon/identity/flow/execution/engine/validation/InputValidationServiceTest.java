@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,19 +23,29 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimValidationUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
+import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 
 import java.util.ArrayList;
@@ -44,8 +54,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -53,6 +63,16 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_PROCESSING_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.IS_USERNAME_VALIDATION_ENABLED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIER;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.VALIDATIONS;
@@ -179,7 +199,7 @@ public class InputValidationServiceTest {
     }
 
     @Test
-    public void testHandleUserInputs() throws FlowEngineServerException {
+    public void testHandleUserInputs() {
 
         FlowExecutionContext = initiateFlowContext();
         FlowExecutionContext.setGraphConfig(defaultGraph);
@@ -425,6 +445,1091 @@ public class InputValidationServiceTest {
             List<?> validationsList = (List<?>) validations;
             Assert.assertFalse(validationsList.isEmpty(), "Password field should have at least one validation rule");
         }
+    }
+
+    @Test
+    public void testResolveInputValidationResponseWithEmptyUserInput() {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+        Assert.assertEquals(response.getResult(), STATUS_USER_INPUT_REQUIRED);
+    }
+
+    @Test
+    public void testResolveInputValidationResponseWithValidInput() {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put("input1", "value1");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+        Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+    }
+
+    @Test
+    public void testClearUserInputs() {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put("input1", "value1");
+        userInputData.put("input2", "value2");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        Assert.assertEquals(FlowExecutionContext.getUserInputData().size(), 2);
+
+        inputValidationService.clearUserInputs(FlowExecutionContext);
+
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testClearUserInputsWithNullContext() {
+
+        // Should not throw any exception when context is null.
+        inputValidationService.clearUserInputs(null);
+    }
+
+    @Test
+    public void testValidateUserClaimsWhenClaimMetadataServiceIsNull()
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        // Set ClaimMetadataManagementService to null.
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+
+        // Should not throw any exception when ClaimMetadataManagementService is null.
+        inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "testuser");
+    }
+
+    @Test
+    public void testValidateUserClaimsWhenLocalClaimNotPresent()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.empty());
+
+        // Should not throw any exception when local claim is not present.
+        inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "test@example.com");
+    }
+
+    @Test
+    public void testValidateUserClaimsWhenClaimPropertiesAreNull()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        when(mockLocalClaim.getClaimProperties()).thenReturn(null);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        // Should not throw any exception when claim properties are null.
+        inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "test@example.com");
+    }
+
+    @Test
+    public void testValidateUserClaimsWhenUniquenessValidationNotRequired()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should not throw any exception when uniqueness validation is not required.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "givenname", "John");
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsWhenClaimIsUnique()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(false);
+
+            // Should not throw any exception when claim is unique.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "unique@example.com");
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineClientException.class)
+    public void testValidateUserClaimsWhenClaimIsDuplicate()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(true);
+
+            // Should throw FlowEngineClientException when claim is duplicate.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "duplicate@example.com");
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsWithUsernameClaimUnique()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            // Even if shouldValidateUniqueness returns false, username claim should be validated.
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(false);
+
+            // Should not throw any exception when username claim is unique.
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "uniqueuser");
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineClientException.class)
+    public void testValidateUserClaimsWithUsernameClaimDuplicate()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(true);
+
+            // Should throw FlowEngineClientException when username claim is duplicate.
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "duplicateuser");
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineServerException.class)
+    public void testValidateUserClaimsWhenClaimMetadataExceptionThrown()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        when(mockClaimService.getLocalClaim(anyString(), anyString()))
+                .thenThrow(new ClaimMetadataException("Test exception"));
+
+        // Should throw FlowEngineServerException when ClaimMetadataException is thrown.
+        inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "testuser");
+    }
+
+    @Test
+    public void testValidateUserClaimsWithBlankClaimValue()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+
+            // Should not validate uniqueness when claim value is blank.
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "");
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "   ");
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, null);
+
+            // Verify isClaimDuplicated was never called for blank values.
+            claimValidationUtilMock.verify(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()),
+                    org.mockito.Mockito.never());
+        }
+    }
+
+    @Test
+    public void testValidateUserInputsWithEmptyInputData()
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        FlowExecutionContext = initiateFlowContext();
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidateUserInputsWithNonClaimInputsOnly()
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put("password", "password123");
+        userInputData.put("confirmPassword", "password123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidateUserInputsWithValidClaimInput()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "unique@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(false);
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineClientException.class)
+    public void testValidateUserInputsWithDuplicateClaimValue()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "duplicate@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(true);
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+        }
+    }
+
+    @Test
+    public void testValidateUserInputsDuplicateClaimErrorCode()
+            throws FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "duplicate@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(true);
+
+            try {
+                inputValidationService.validateUserInputs(FlowExecutionContext);
+                Assert.fail("Expected FlowEngineClientException to be thrown");
+            } catch (FlowEngineClientException e) {
+                Assert.assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED.getCode());
+            }
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineServerException.class)
+    public void testValidateUserInputsWithServerError()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "test@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        when(mockClaimService.getLocalClaim(anyString(), anyString()))
+                .thenThrow(new ClaimMetadataException("Test server error"));
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidateUserInputsServerErrorCode()
+            throws FlowEngineClientException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "test@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+        when(mockClaimService.getLocalClaim(anyString(), anyString()))
+                .thenThrow(new ClaimMetadataException("Test server error"));
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineServerException to be thrown");
+        } catch (FlowEngineServerException e) {
+            Assert.assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_PROCESSING_FAILURE.getCode());
+        }
+    }
+
+    @Test
+    public void testValidateUserInputsWithMultipleValidClaimInputs()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "unique@example.com");
+        userInputData.put(CLAIM_URI_PREFIX + "givenname", "John");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(false);
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+        }
+    }
+
+    @Test
+    public void testValidateUserInputsWithMixedClaimAndNonClaimInputs()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "unique@example.com");
+        userInputData.put("password", "password123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(false);
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+        }
+    }
+
+    @Test
+    public void testValidateUserInputsWhenClaimMetadataServiceIsNull()
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "test@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testResolveInputValidationResponseWithDuplicateClaim()
+            throws ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "duplicate@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
+                    .thenReturn(true);
+
+            ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+
+            Assert.assertEquals(response.getResult(), STATUS_RETRY);
+            Assert.assertNotNull(response.getErrorCode());
+            Assert.assertNotNull(response.getErrorMessage());
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsWithMatchingRegex()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[0-9]{10}$");
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should not throw any exception when value matches the regex.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", "0771234567");
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineClientException.class)
+    public void testValidateUserClaimsWithNonMatchingRegex()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[0-9]{10}$");
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should throw FlowEngineClientException when value does not match the regex.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
+                    "not-a-phone-number");
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsRegexValidationErrorCode()
+            throws FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[0-9]{10}$");
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            try {
+                inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
+                        "not-a-phone-number");
+                Assert.fail("Expected FlowEngineClientException to be thrown");
+            } catch (FlowEngineClientException e) {
+                Assert.assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getCode());
+            }
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsSkipsRegexForBlankValue()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[0-9]{10}$");
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should not throw for blank values even when regex is configured.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", "");
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", null);
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsSkipsRegexWhenNotConfigured()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        // No regex property configured.
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should not throw even for values that would fail a regex, since none is configured.
+            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
+                    "not-a-phone-number");
+        }
+    }
+
+    @Test
+    public void testValidateUserClaimsSkipsRegexForUsernameClaim()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+        // Null out the service so username format validation via InputValidationManagementService is skipped.
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(null);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        // Regex that would reject the value if applied to username.
+        claimProperties.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[0-9]+$");
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Claim RegEx property should be skipped for username — validated via InputValidationManagementService.
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "john@example.com");
+        }
+    }
+
+    @Test
+    public void testValidateUsernameFormatPassesWithValidUsername()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException,
+            InputValidationMgtException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class))).thenReturn(true);
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration usernameConfig = new ValidationConfiguration();
+        usernameConfig.setField("username");
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        usernameConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(usernameConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class);
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED))
+                    .thenReturn("true");
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should pass when all validators return true.
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "validuser");
+        }
+    }
+
+    @Test
+    public void testValidateUsernameFormatFailsWithInvalidUsername()
+            throws FlowEngineServerException, ClaimMetadataException, InputValidationMgtException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class)))
+                .thenThrow(new InputValidationMgtClientException("60001", "Username too short", "Username too short"));
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration usernameConfig = new ValidationConfiguration();
+        usernameConfig.setField("username");
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        usernameConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(usernameConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class);
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED))
+                    .thenReturn("true");
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            try {
+                inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "ab");
+                Assert.fail("Expected FlowEngineClientException to be thrown");
+            } catch (FlowEngineClientException e) {
+                Assert.assertEquals(e.getErrorCode(), ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getCode());
+            }
+        }
+    }
+
+    @Test
+    public void testValidateUsernameFormatSkippedWhenValidationDisabled()
+            throws FlowEngineClientException, FlowEngineServerException, ClaimMetadataException,
+            InputValidationMgtException {
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class)))
+                .thenThrow(new InputValidationMgtClientException("60001", "Fail", "Fail"));
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration usernameConfig = new ValidationConfiguration();
+        usernameConfig.setField("username");
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        usernameConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(usernameConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class);
+             MockedStatic<IdentityUtil> identityUtilMock = mockStatic(IdentityUtil.class)) {
+            identityUtilMock.when(() -> IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED))
+                    .thenReturn("false");
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            // Should not throw even with a failing validator when username validation is disabled.
+            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "ab");
+        }
+    }
+
+    @Test
+    public void testValidateUserInputsWithRegexMismatch() throws FlowEngineServerException, ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "mobile", "not-a-phone-number");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.REGULAR_EXPRESSION_PROPERTY, "^[0-9]{10}$");
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.NONE);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
+
+            try {
+                inputValidationService.validateUserInputs(FlowExecutionContext);
+                Assert.fail("Expected FlowEngineClientException to be thrown");
+            } catch (FlowEngineClientException e) {
+                Assert.assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getCode());
+            }
+        }
+    }
+
+    @Test
+    public void testValidatePasswordFormatPassesWithValidPassword()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "ValidPass@123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class))).thenReturn(true);
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidatePasswordFormatFailsWithInvalidPassword()
+            throws FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "weak");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class)))
+                .thenThrow(new InputValidationMgtClientException("60001", "Password too short", "Password too short"));
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineClientException to be thrown");
+        } catch (FlowEngineClientException e) {
+            Assert.assertEquals(e.getErrorCode(), ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED.getCode());
+        }
+    }
+
+    @Test
+    public void testValidatePasswordFormatErrorCodeDoesNotExposePassword()
+            throws FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "secret123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class)))
+                .thenThrow(new InputValidationMgtClientException("60001", "Fail", "Fail"));
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("LengthValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("LengthValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineClientException to be thrown");
+        } catch (FlowEngineClientException e) {
+            Assert.assertFalse(e.getMessage() != null && e.getMessage().contains("secret123"),
+                    "Error message must not expose the password value");
+        }
+    }
+
+    @Test
+    public void testValidatePasswordFormatSkippedWhenServiceIsNull()
+            throws FlowEngineClientException, FlowEngineServerException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "AnyPassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(null);
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testValidatePasswordFormatServerErrorThrowsServerException()
+            throws FlowEngineClientException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "SomePassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenThrow(new InputValidationMgtException("65000", "Server error", "Server error"));
+
+        try {
+            inputValidationService.validateUserInputs(FlowExecutionContext);
+            Assert.fail("Expected FlowEngineServerException to be thrown");
+        } catch (FlowEngineServerException e) {
+            Assert.assertNotNull(e.getErrorCode());
+        }
+    }
+
+    @Test
+    public void testRunInputValidationSkipsWhenNoConfigMatchesField()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "weak");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        ValidationConfiguration usernameConfig = new ValidationConfiguration();
+        usernameConfig.setField("username");
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(usernameConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(new HashMap<>());
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testRunInputValidationSkipsRuleWhenValidatorNotInMap()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "SomePassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName("UnknownValidator");
+        rule.setProperties(new HashMap<>());
+        passwordConfig.setRules(Collections.singletonList(rule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(new HashMap<>());
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testRunInputValidationSkipsWhenRulesAndRegexAreNull()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "SomePassword");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(new HashMap<>());
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
+    }
+
+    @Test
+    public void testRunInputValidationUsesRegexConfigWhenRegexIsNotNull()
+            throws FlowEngineClientException, FlowEngineServerException, InputValidationMgtException {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(PASSWORD_KEY, "ValidPass@123");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        InputValidationManagementService mockInputValidationService = mock(InputValidationManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setInputValidationManagementService(mockInputValidationService);
+
+        Validator mockValidator = mock(Validator.class);
+        when(mockValidator.validate(org.mockito.ArgumentMatchers.any(ValidationContext.class))).thenReturn(true);
+        Map<String, Validator> validators = new HashMap<>();
+        validators.put("RegexValidator", mockValidator);
+
+        ValidationConfiguration passwordConfig = new ValidationConfiguration();
+        passwordConfig.setField(PASSWORD_KEY);
+        RulesConfiguration regexRule = new RulesConfiguration();
+        regexRule.setValidatorName("RegexValidator");
+        regexRule.setProperties(new HashMap<>());
+        passwordConfig.setRegEx(Collections.singletonList(regexRule));
+
+        when(mockInputValidationService.getInputValidationConfiguration(anyString()))
+                .thenReturn(Collections.singletonList(passwordConfig));
+        when(mockInputValidationService.getValidators(anyString())).thenReturn(validators);
+
+        inputValidationService.validateUserInputs(FlowExecutionContext);
     }
 
     private FlowExecutionContext initiateFlowContext() {

@@ -482,6 +482,10 @@ public class AuthenticationService {
                 return AuthServiceConstants.ErrorMessage.ERROR_INVALID_AUTHENTICATOR;
             case FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED:
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED;
+            case FrameworkConstants.ERROR_STATUS_ALLOWED_RESEND_LIMIT_EXCEEDED:
+                return AuthServiceConstants.ErrorMessage.ERROR_RESEND_COUNT_EXCEEDED;
+            case FrameworkConstants.ERROR_STATUS_ALLOWED_RETRY_LIMIT_EXCEEDED:
+                return AuthServiceConstants.ErrorMessage.ERROR_RETRY_COUNT_EXCEEDED;
             default:
                 return null;
         }

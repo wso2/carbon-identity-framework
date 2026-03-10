@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -1209,6 +1209,7 @@
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_idp_view"/>
                 <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
                 <Scope name="internal_authenticator_view"/>
                 <Scope name="internal_governance_view"/>
@@ -1520,6 +1521,37 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="userSharingV2" displayName="Shared User Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:userSharing"/>
+                <Scope name="console:userSharing_view"/>
+                <Scope name="console:userSharing_edit"/>
+                <Scope name="console:users"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_user_share"/>
+                <Scope name="console:users_edit"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_user_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:users_view"/>
+                <Scope name="internal_user_shared_access_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_organization_view"/>
+            </Read>
+            <Update>
+                <Scope name="internal_user_shared_access_update"/>
+            </Update>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="users" displayName="Users" type="tenant">
         <Scopes>
             <Feature>
@@ -1684,12 +1716,12 @@
             <Update>
             </Update>
             <Delete>
-                <Scope name="internal_user_mgt_delete"/>
+                <Scope name="internal_user_credential_mgt_delete"/>
             </Delete>
             <Create>
             </Create>
             <Read>
-                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_credential_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1754,12 +1786,44 @@
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
                 <Scope name="internal_org_authenticator_view"/>
                 <Scope name="internal_org_governance_view"/>
                 <Scope name="internal_org_extensions_view"/>
                 <Scope name="internal_org_config_mgt_view"/>
             </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_userSharingV2" displayName="Shared User Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:userSharing"/>
+                <Scope name="console:org:userSharing_view"/>
+                <Scope name="console:org:userSharing_edit"/>
+                <Scope name="console:org:users"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_org_user_share"/>
+                <Scope name="console:org:users_edit"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_org_user_unshare"/>
+            </Delete>
+            <Read>
+                <Scope name="console:org:users_view"/>
+                <Scope name="internal_org_user_shared_access_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_organization_view"/>
+            </Read>
+            <Update>
+                <Scope name="internal_org_user_shared_access_update"/>
+            </Update>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="org_users" displayName="Users" type="organization">
@@ -2290,12 +2354,34 @@
             <Update>
             </Update>
             <Delete>
-                <Scope name="internal_org_user_mgt_delete"/>
+                <Scope name="internal_org_user_credential_mgt_delete"/>
             </Delete>
             <Create>
             </Create>
             <Read>
-                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_credential_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_residentOutboundProvisioning" displayName="Resident Application Outbound Provisioning" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:residentOutboundProvisioning"/>
+                <Scope name="console:org:residentOutboundProvisioning_view"/>
+                <Scope name="console:org:residentOutboundProvisioning_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

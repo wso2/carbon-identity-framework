@@ -167,7 +167,7 @@
   "oauth.response_type.id_token_subject_token.enable": true,
   "oauth.response_type.id_token_subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
   "oauth.response_type.id_token_subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
-  "oauth.response_type.ciba.enable": false,
+  "oauth.response_type.ciba.enable": true,
   "oauth.response_type.ciba.class": "org.wso2.carbon.identity.oauth.ciba.handlers.CibaResponseTypeHandler",
   "oauth.response_type.ciba.validator": "org.wso2.carbon.identity.oauth.ciba.handlers.CibaResponseTypeValidator",
 
@@ -228,10 +228,10 @@
   "oauth.grant_type.token_exchange.enable": true,
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
-  "oauth.grant_type.ciba.enable": false,
+  "oauth.grant_type.ciba.enable": true,
   "oauth.grant_type.ciba.grant_handler": "org.wso2.carbon.identity.oauth.ciba.grant.CibaGrantHandler",
   "oauth.grant_type.ciba.grant_validator": "org.wso2.carbon.identity.oauth.ciba.grant.CibaGrantValidator",
-  "oauth.grant_type.ciba.allow_public_client": false,
+  "oauth.grant_type.ciba.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
   "oauth.dcrm.return_null_fields_in_response": false,
   "oauth.dcr.enable_fapi_enforcement": false,
@@ -328,13 +328,14 @@
   "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
   "oauth.drop_unregistered_scopes": true,
+  "oauth.drop_unrequested_oidc_scopes": true,
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
   "oauth.callback.restrict_fragment_components": true,
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
-  "oauth.allow_issuer_selection_for_sub_org_applications": false,
+  "oauth.allow_issuer_selection_for_sub_org_applications": true,
 
   "oauth.enable_legacy_session_bound_token_behaviour": false,
   "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
@@ -607,10 +608,11 @@
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
   "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
   "outbound_provisioning_management.enable_scim_patch_for_updates": true,
+  "outbound_provisioning_management.enable_scim_compliant_email_attribute": true,
   "outbound_provisioning_management.confidential_data_protection_enabled": true,
   "outbound_provisioning_management.scim2_client.http_retry_count": "1",
   "outbound_provisioning_management.scim2_client.http_read_timeout": "5000",
-  "outbound_provisioning_management.scim2_client.http_connection_timeout": "2000",
+  "outbound_provisioning_management.scim2_client.http_connection_timeout": "5000",
   "outbound_provisioning_management.scim2_client.http_connection_request_timeout": "2000",
 
   "authentication_policy.check_account_exist": true,
@@ -1368,6 +1370,7 @@
   "console.ui.app_white_logo_path": "/assets/images/branding/logo-inverted.svg",
   "console.ui.email_templates.default_logo_url": "/libs/themes/default/assets/images/branding/logo.svg",
   "console.ui.email_templates.default_white_logo_url": "/libs/themes/default/assets/images/branding/logo-inverted.svg",
+  "console.ui.enable_blocking_outbound_provisioning": true,
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
   "console.ui.idp_templates.hypr.enabled": false,
@@ -1375,6 +1378,7 @@
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [
+    "OrganizationIdentifierHandler",
     "BasicAuthRequestPathAuthenticator",
     "OAuthRequestPathAuthenticator"
   ],
@@ -1844,6 +1848,26 @@
   ],
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
+  "console.users.sub_features.userSharingV2.enabled": true,
+  "console.users.sub_features.userSharingV2.scopes.create": [
+    "internal_user_share"
+  ],
+  "console.users.sub_features.userSharingV2.scopes.delete": [
+    "internal_user_unshare"
+  ],
+  "console.users.sub_features.userSharingV2.scopes.read": [
+    "internal_user_shared_access_view",
+    "internal_userstore_view",
+    "internal_role_mgt_view",
+    "internal_group_mgt_view",
+    "internal_governance_view",
+    "internal_user_mgt_view",
+    "internal_user_mgt_list",
+    "internal_organization_view"
+  ],
+  "console.users.sub_features.userSharingV2.scopes.update": [
+    "internal_user_shared_access_update"
+  ],
   "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
@@ -2254,5 +2278,10 @@
   "resolve_tenant_domain_from_username.enabled": false,
   "authentication.mark_step_completed_on_interrupt": true,
   "api.filters.single_character_wildcard": "_",
-  "identity_providers.support_multiple_certificate_export": true
+  "identity_providers.support_multiple_certificate_export": true,
+  "tenant_level_application_authentication_config.enabled_for_auth_sequence": true,
+  "branding_configuration.use_intermediate_loader_page": false,
+  "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
+
+  "enhanced_organization_authentication_feature.enabled": false
 }

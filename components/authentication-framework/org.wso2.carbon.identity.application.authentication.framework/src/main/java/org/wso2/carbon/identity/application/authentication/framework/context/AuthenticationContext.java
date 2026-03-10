@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
@@ -88,6 +89,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean returning;
     private boolean retrying;
     private boolean previousSessionFound;
+    private boolean sharedAppLoginContextUpdateRequired;
 
     //Adaptive Authentication control and status
     private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
@@ -124,6 +126,13 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * This attribute holds the context expiry time in epoch timestamp (nanoseconds).
      */
     private long expiryTimeNano = 0L;
+
+    // This attribute is used to indicate whether the login request is for an organization application.
+    private boolean orgApplicationLogin;
+    // This attribute is updated when the login flow is switched for shared application sequence.
+    private boolean isSharedAppLogin;
+    // This attribute hold the organization login data for organization application and shared application login flows.
+    private OrganizationLoginData organizationLoginData;
 
     public String getCallerPath() {
         return callerPath;
@@ -846,6 +855,90 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setExpiryTime(long expiryTimeNano) {
 
         this.expiryTimeNano = expiryTimeNano;
+    }
+
+    /**
+     * Returns whether the shared app login context update is required.
+     * When this flag is set to true, the flow will return to request coordinator and switch the flow for shared login.
+     *
+     * @return True if the shared app login context update is required. False otherwise.
+     */
+    public boolean isSharedAppLoginContextUpdateRequired() {
+
+        return this.sharedAppLoginContextUpdateRequired;
+    }
+
+    /**
+     * Set whether the shared app login context update is required.
+     * When this flag is set to true, the flow will return to request coordinator and switch the flow for shared login.
+     *
+     * @param sharedAppLoginContextUpdateRequired Whether the shared app login context update is required.
+     */
+    public void setSharedAppLoginContextUpdateRequired(boolean sharedAppLoginContextUpdateRequired) {
+
+        this.sharedAppLoginContextUpdateRequired = sharedAppLoginContextUpdateRequired;
+    }
+
+    /**
+     * Returns whether the login request is for an organization application.
+     *
+     * @return True if the login request is for an organization application. False otherwise.
+     */
+    public boolean isOrgApplicationLogin() {
+
+        return this.orgApplicationLogin;
+    }
+
+    /**
+     * Set whether the login request is for an organization application.
+     *
+     * @param orgApplicationLogin Whether the login request is for an organization application.
+     */
+    public void setOrgApplicationLogin(boolean orgApplicationLogin) {
+
+        this.orgApplicationLogin = orgApplicationLogin;
+    }
+
+    /**
+     * Returns whether the current flow is switched to shared application login flow.
+     * This is updated when the flow is switched to shared application login flow from main application login flow.
+     *
+     * @return True if the login request is for a shared application login flow. False otherwise.
+     */
+    public boolean isSharedAppLogin() {
+
+        return this.isSharedAppLogin;
+    }
+
+    /**
+     * Set whether the current flow is switched to shared application login flow.
+     * This is updated when the flow is switched to shared application login flow from main application login flow.
+     *
+     * @param sharedAppLogin Whether login flow is switched to shared application login flow or not.
+     */
+    public void setSharedAppLogin(boolean sharedAppLogin) {
+
+        this.isSharedAppLogin = sharedAppLogin;
+    }
+
+    /**
+     * Get the organization login data for organization application and shared application login flows.
+     *
+     * @return OrganizationLoginData Context data for organization application and shared application login flows.
+     */
+    public OrganizationLoginData getOrganizationLoginData() {
+
+        return this.organizationLoginData;
+    }
+
+    /**
+     * Set the organization login data for organization application and shared application login flows.
+     *
+     * @param organizationLoginData Context data for organization application and shared application login flows.
+     */
+    public void setOrganizationLoginData(OrganizationLoginData organizationLoginData) {
+
+        this.organizationLoginData = organizationLoginData;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -40,6 +41,8 @@ public class SessionContext implements Serializable {
     // This authenticatedIdPsOfApp has the mapping of application and the map of authenticated IDPs.
     private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp;
     private String impersonatedUser;
+    private String authenticatedSharedAppOrgId;
+    private Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
 
     public Map<String, SequenceConfig> getAuthenticatedSequences() {
         return authenticatedSequences;
@@ -129,5 +132,25 @@ public class SessionContext implements Serializable {
             Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp) {
 
         this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
+    }
+
+    public String getAuthenticatedSharedAppOrgId() {
+
+        return authenticatedSharedAppOrgId;
+    }
+
+    public void setAuthenticatedSharedAppOrgId(String authenticatedSharedAppOrgId) {
+
+        this.authenticatedSharedAppOrgId = authenticatedSharedAppOrgId;
+    }
+
+    public Map<String, AuthenticatedOrgData> getAuthenticatedOrgData() {
+
+        return authenticatedOrgData;
+    }
+
+    public void setAuthenticatedOrgData(Map<String, AuthenticatedOrgData> authenticatedOrgData) {
+
+        this.authenticatedOrgData = authenticatedOrgData;
     }
 }

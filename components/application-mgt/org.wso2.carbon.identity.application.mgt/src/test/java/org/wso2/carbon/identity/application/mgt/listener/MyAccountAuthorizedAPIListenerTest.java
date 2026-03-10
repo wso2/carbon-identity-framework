@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -146,12 +146,19 @@ public class MyAccountAuthorizedAPIListenerTest {
 
         myAccountAuthorizedAPIListener.postGetAuthorizedAPIs(authorizedAPIList, MY_ACCOUNT_APP_ID, tenantDomain);
 
-        assertEquals(authorizedAPIList.size(), 1);
-        AuthorizedAPI authorizedAPI = authorizedAPIList.get(0);
-        assertEquals(authorizedAPI.getAppId(), MY_ACCOUNT_APP_ID);
-        assertEquals(authorizedAPI.getAPIId(), "api-1");
-        assertEquals(authorizedAPI.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
-        assertEquals(authorizedAPI.getAPIIdentifier(), "/api/users/v2/me/approval-tasks");
+        assertEquals(authorizedAPIList.size(), 2);
+        AuthorizedAPI approvalAPI = authorizedAPIList.getFirst();
+
+        assertEquals(approvalAPI.getAppId(), MY_ACCOUNT_APP_ID);
+        assertEquals(approvalAPI.getAPIId(), "api-1");
+        assertEquals(approvalAPI.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
+        assertEquals(approvalAPI.getAPIIdentifier(), "/api/users/v2/me/approval-tasks");
+
+        AuthorizedAPI changePasswordAPI = authorizedAPIList.get(1);
+        assertEquals(changePasswordAPI.getAppId(), MY_ACCOUNT_APP_ID);
+        assertEquals(changePasswordAPI.getAPIId(), "api-2");
+        assertEquals(changePasswordAPI.getPolicyId(), APIResourceManagementConstants.NO_POLICY);
+        assertEquals(changePasswordAPI.getAPIIdentifier(), "/api/users/v1/me/change-password");
     }
 
     @Test
@@ -200,6 +207,8 @@ public class MyAccountAuthorizedAPIListenerTest {
                 assertTrue(authorizedScopes.getScopes().contains("internal_approval_task_update"));
                 assertTrue(authorizedScopes.getScopes().contains("internal_org_approval_task_view"));
                 assertTrue(authorizedScopes.getScopes().contains("internal_org_approval_task_update"));
+                assertTrue(authorizedScopes.getScopes().contains("internal_user_password_update"));
+                assertTrue(authorizedScopes.getScopes().contains("internal_org_user_password_update"));
             }
 
             if (APIResourceManagementConstants.RBAC_AUTHORIZATION.equals(authorizedScopes.getPolicyId())) {
@@ -323,11 +332,13 @@ public class MyAccountAuthorizedAPIListenerTest {
         List<APIResource> resources = new ArrayList<>();
         
         APIResource resource1 = createTestAPIResource("api-1", "/api/users/v2/me/approval-tasks");
-        APIResource resource2 = createTestAPIResource("api-2", "/unauthorized/api");
-        
+        APIResource resource2 = createTestAPIResource("api-2", "/api/users/v1/me/change-password");
+        APIResource resource3 = createTestAPIResource("api-3", "/unauthorized/api");
+
         resources.add(resource1);
         resources.add(resource2);
-        
+        resources.add(resource3);
+
         return resources;
     }
 

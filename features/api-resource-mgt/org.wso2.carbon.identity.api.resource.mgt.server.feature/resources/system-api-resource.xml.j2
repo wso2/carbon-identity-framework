@@ -1598,6 +1598,19 @@
                     description="Manage edits of resident application outbound provisioning configuration from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Resident Application Outbound Provisioning Configuration Feature" identifier="console:org:residentOutboundProvisioning"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Resident Application Outbound Provisioning Configuration Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Resident Application Outbound Provisioning Feature" name="console:org:residentOutboundProvisioning"
+                   description="Manage resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning View Feature" name="console:org:residentOutboundProvisioning_view"
+                   description="Manage views of resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Edit Feature" name="console:org:residentOutboundProvisioning_edit"
+                   description="Manage edits of resident application outbound provisioning configuration in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
                  requiresAuthorization="true"
                  description="Resource representation of the Role Management Feature"
@@ -1689,6 +1702,19 @@
                     description="Manage edits of users from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Sharing Management Feature" identifier="console:userSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Sharing Management Feature" name="console:userSharing"
+                   description="Manage user sharing from the Console"/>
+            <Scope displayName="User Sharing Management View Feature" name="console:userSharing_view"
+                   description="View user sharing status from the Console"/>
+            <Scope displayName="User Sharing Management Edit Feature" name="console:userSharing_edit"
+                   description="Update user sharing status from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -1700,6 +1726,19 @@
                    description="Manage views of users in the organization from the Console"/>
             <Scope displayName="User Edit Feature" name="console:org:users_edit"
                    description="Manage edits of users in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Sharing Management Feature" identifier="console:org:userSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="User Sharing Management Feature" name="console:org:userSharing"
+                   description="Manage user sharing in the organization from the Console"/>
+            <Scope displayName="User Sharing Management View Feature" name="console:org:userSharing_view"
+                   description="View the shared status of users within the organization from the Console"/>
+            <Scope displayName="User Sharing Management Edit Feature" name="console:org:userSharing_edit"
+                   description="Manage edits of user sharing status in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"
@@ -2211,9 +2250,9 @@
                              requiresAuthorization="true"
                              description="API representation of the User Credential Management API" type="TENANT">
             <Scopes>
-                <Scope displayName="View Credential" name="internal_user_mgt_view"
+                <Scope displayName="View Credential" name="internal_user_credential_mgt_view"
                        description="View credentials of end users in the organization"/>
-                <Scope displayName="Delete Credential" name="internal_user_mgt_delete"
+                <Scope displayName="Delete Credential" name="internal_user_credential_mgt_delete"
                        description="Delete credentials of end users in the organization"/>
             </Scopes>
         </APIResource>
@@ -2221,9 +2260,9 @@
                      requiresAuthorization="true"
                      description="API representation of the User Credential Management API" type="ORGANIZATION">
             <Scopes>
-                <Scope displayName="View Credential" name="internal_org_user_mgt_view"
+                <Scope displayName="View Credential" name="internal_org_user_credential_mgt_view"
                        description="View credentials of end users in the organization"/>
-                <Scope displayName="Delete Credential" name="internal_org_user_mgt_delete"
+                <Scope displayName="Delete Credential" name="internal_org_user_credential_mgt_delete"
                        description="Delete credentials of end users in the organization"/>
             </Scopes>
     </APIResource>
