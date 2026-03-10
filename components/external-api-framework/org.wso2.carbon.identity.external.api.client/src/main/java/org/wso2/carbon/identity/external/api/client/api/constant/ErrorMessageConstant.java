@@ -51,7 +51,7 @@ public class ErrorMessageConstant {
         ERROR_CODE_NON_REPEATABLE_ENTITY("APICLIENT-65011", "Non‑repeatable HttpEntity.",
                 "Non-repeatable HttpEntity is not supported due to request retry requirements."),
         ERROR_CODE_INVALID_RESPONSE_LIMIT("APICLIENT-65012", "Invalid response size limit.",
-                "The response size limit %s must be a positive integer."),
+                "The response size limit %s must be a positive number."),
         ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED("APICLIENT-65013", "Response size limit exceeded.",
                 "The response body size exceeded the configured limit for endpoint: %s");
 

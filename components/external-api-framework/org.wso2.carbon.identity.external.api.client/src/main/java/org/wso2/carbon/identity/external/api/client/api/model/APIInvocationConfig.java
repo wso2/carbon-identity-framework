@@ -63,11 +63,11 @@ public class APIInvocationConfig {
     }
 
     /**
-     * Get the per-request response size limit in bytes, or {@code null} if no override is set for this invocation
+     * Get the per-request response size limit in bytes, or null if no override is set for this invocation
      * (meaning the client-level limit from
      * {@link org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig} will be used).
      *
-     * @return response size limit in bytes, or {@code null} to defer to the client-level default.
+     * @return response size limit in bytes, or null to fallback to the client-level default.
      */
     public Long getResponseLimitInBytes() {
 
