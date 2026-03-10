@@ -306,7 +306,7 @@ public class SecretDAOImpl implements SecretDAO {
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(query, preparedStatement -> {
                     preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
-                    replaceSecretValue(secret.getSecretValue(), preparedStatement, isOracleDBAndClobColumnExists);
+                    replaceSecretValue(value, preparedStatement, isOracleDBAndClobColumnExists);
                     preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
                 });
                 return null;
@@ -554,7 +554,7 @@ public class SecretDAOImpl implements SecretDAO {
     private String resolveSecretValue(ResultSet resultSet, boolean isOracleDBAndClobColumnExists) throws SQLException {
 
         if (isOracleDBAndClobColumnExists) {
-            /* hen the database is Oracle DB and the secret value CLOB column exists, try to resolve the secret
+            /* When the database is Oracle DB and the secret value CLOB column exists, try to resolve the secret
             value from the CLOB column first. */
             String secretValueFromClob = resultSet.getString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE_CLOB);
             if (StringUtils.isNotEmpty(secretValueFromClob)) {
@@ -586,7 +586,14 @@ public class SecretDAOImpl implements SecretDAO {
      */
     private boolean isSecretValueClobColumnExists() {
 
-        return Boolean.parseBoolean((String) IdentityConfigParser.getInstance()
-                .getConfiguration().get(IS_SECRET_VALUE_CLOB_COLUMN_EXISTS));
+        Object value = IdentityConfigParser.getInstance()
+                .getConfiguration().get(IS_SECRET_VALUE_CLOB_COLUMN_EXISTS);
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+            return Boolean.parseBoolean((String) value);
+        }
+        return false;
     }
 }

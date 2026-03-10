@@ -382,8 +382,8 @@ public class JdbcUtils {
      */
     public static boolean isOracleDB(NamedJdbcTemplate namedJdbcTemplate) throws DataAccessException {
 
-        return namedJdbcTemplate.getDriverName().contains(ORACLE)
-                || namedJdbcTemplate.getDatabaseProductName().contains(ORACLE);
+        return isOracleDB(namedJdbcTemplate.getDriverName())
+                || isOracleDB(namedJdbcTemplate.getDatabaseProductName());
     }
 
     /**

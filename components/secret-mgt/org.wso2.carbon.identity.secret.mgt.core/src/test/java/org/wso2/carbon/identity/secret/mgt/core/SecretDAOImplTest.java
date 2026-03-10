@@ -188,7 +188,6 @@ public class SecretDAOImplTest {
         Secret added = buildSampleSecret();
         secretDAO.addSecret(added);
 
-        added.setSecretValue(SAMPLE_SECRET_VALUE_UPDATED);
         secretDAO.updateSecretValue(added, SAMPLE_SECRET_VALUE_UPDATED);
 
         String[] columns = querySecretColumns(SAMPLE_SECRET_NAME);
@@ -274,7 +273,6 @@ public class SecretDAOImplTest {
         Secret added = buildSampleSecret();
         secretDAO.addSecret(added);
 
-        added.setSecretValue(SAMPLE_SECRET_VALUE_UPDATED);
         secretDAO.updateSecretValue(added, SAMPLE_SECRET_VALUE_UPDATED);
 
         String[] columns = querySecretColumns(SAMPLE_SECRET_NAME);
