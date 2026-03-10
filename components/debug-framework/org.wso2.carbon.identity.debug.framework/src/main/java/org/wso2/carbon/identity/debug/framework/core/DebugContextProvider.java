@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Abstract base class for resolving and creating debug context.
  * Extensions should implement specific context resolution logic for different authentication protocols.
- * Examples: OAuth2ContextResolver, SAMLContextResolver, etc.
  */
 public abstract class DebugContextProvider {
 

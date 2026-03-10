@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.debug.framework.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
@@ -50,7 +51,7 @@ public class DebugProtocolRouter {
      */
     public enum DebugProtocolType {
 
-        OAUTH2_OIDC("OAuth2/OIDC", "oauth2"),
+        OIDC("OIDC", "openidconnect"),
         GOOGLE("Google", "google"),
         GITHUB("GitHub", "github"),
         SAML("SAML", "saml"),
@@ -111,14 +112,14 @@ public class DebugProtocolRouter {
      * Delegates to registered DebugProtocolResolvers.
      *
      * @param connectionId connection ID or name.
-     * @return Detected DebugProtocolType, defaults to OAUTH2_OIDC if detection fails.
+     * @return Detected DebugProtocolType, defaults to OIDC if detection fails.
      */
     public static DebugProtocolType detectProtocol(String connectionId) {
 
         if (StringUtils.isEmpty(connectionId)) {
-            LOG.debug("Connection ID is empty, defaulting to OAuth2/OIDC");
+            LOG.debug("Connection ID is empty, defaulting to OIDC");
 
-            return DebugProtocolType.OAUTH2_OIDC;
+            return DebugProtocolType.OIDC;
         }
 
         List<DebugProtocolResolver> resolvers 
@@ -140,9 +141,9 @@ public class DebugProtocolRouter {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("No protocol resolved for resource: " + connectionId + ", defaulting to OAuth2/OIDC");
+            LOG.debug("No protocol resolved for resource: " + connectionId + ", defaulting to OIDC");
         }
-        return DebugProtocolType.OAUTH2_OIDC;
+        return DebugProtocolType.OIDC;
     }
 
     /**
@@ -183,6 +184,18 @@ public class DebugProtocolRouter {
     }
 
     /**
+     * Gets the protocol-specific debug callback handler for the given connection ID.
+     *
+     * @param connectionId Connection ID.
+     * @return DebugCallbackHandler for the resource, or null if not available.
+     */
+    public static DebugCallbackHandler getCallbackHandlerForResource(String connectionId) {
+
+        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getCallbackHandler,
+                "Callback Handler");
+    }
+
+    /**
      * Gets the debug resource handler for the given resource type.
      * Routes based on explicit resourceType values supported by DebugResourceType.
      *
@@ -206,29 +219,29 @@ public class DebugProtocolRouter {
         return resourceHandler;
     }
 
+    /**
+     * Returns all registered callback handlers.
+     *
+     * @return List of DebugCallbackHandler.
+     */
+    public static List<DebugCallbackHandler> getAllCallbackHandlers() {
+
+        return DebugFrameworkServiceDataHolder.getInstance().getDebugCallbackHandlers();
+    }
+
     public static DebugProtocolType resolveProtocolFromAuthenticator(String authenticatorName) {
 
         if (StringUtils.isBlank(authenticatorName)) {
             return null;
         }
-        if ("GoogleOAuth2Authenticator".equalsIgnoreCase(authenticatorName)
-                || "GoogleAuthenticator".equalsIgnoreCase(authenticatorName)
-                || "GoogleOIDCAuthenticator".equalsIgnoreCase(authenticatorName)) {
+        if ("OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName)) {
+            return DebugProtocolType.OIDC;
+        }
+        if ("GoogleOAuth2Authenticator".equalsIgnoreCase(authenticatorName)) {
             return DebugProtocolType.GOOGLE;
         }
-        if ("GitHubAuthenticator".equalsIgnoreCase(authenticatorName)
-                || "GithubAuthenticator".equalsIgnoreCase(authenticatorName)) {
+        if ("GitHubAuthenticator".equalsIgnoreCase(authenticatorName)) {
             return DebugProtocolType.GITHUB;
-        }
-        if ("SAMLSSOAuthenticator".equalsIgnoreCase(authenticatorName)
-                || "SAMLAuthenticator".equalsIgnoreCase(authenticatorName)) {
-            return DebugProtocolType.SAML;
-        }
-        if ("OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName)
-                || "OAuth2OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName)
-                || "OIDC".equalsIgnoreCase(authenticatorName)
-                || "OAuth2".equalsIgnoreCase(authenticatorName)) {
-            return DebugProtocolType.OAUTH2_OIDC;
         }
         return null;
     }

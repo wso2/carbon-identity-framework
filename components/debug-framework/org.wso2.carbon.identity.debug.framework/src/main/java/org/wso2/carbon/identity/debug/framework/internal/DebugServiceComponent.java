@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.DebugAuthen
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
+import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
@@ -40,10 +41,7 @@ import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExec
 /**
  * OSGi service component for Debug Framework.
  * This component provides the framework infrastructure for debug operations.
- * Protocol-specific implementations (e.g., OAuth2ContextResolver,
- * OAuth2Executor) are provided
- * by protocol modules and automatically discovered via OSGi service lookups.
- */
+*/
 @Component(name = "identity.debug.service.component", immediate = true)
 public class DebugServiceComponent {
 
@@ -203,6 +201,29 @@ public class DebugServiceComponent {
             DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugExecutionListener unregistered: " + listener.getClass().getName());
+            }
+        }
+    }
+
+    @Reference(name = "debug.callback.handler", service = DebugCallbackHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugCallbackHandler")
+    protected void setDebugCallbackHandler(DebugCallbackHandler handler) {
+
+        if (handler != null) {
+            DebugFrameworkServiceDataHolder.getInstance().addDebugCallbackHandler(handler);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugCallbackHandler registered: " + handler.getClass().getName());
+            }
+        }
+    }
+
+    protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
+
+        if (handler != null) {
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugCallbackHandler(handler);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("DebugCallbackHandler unregistered: " + handler.getClass().getName());
             }
         }
     }

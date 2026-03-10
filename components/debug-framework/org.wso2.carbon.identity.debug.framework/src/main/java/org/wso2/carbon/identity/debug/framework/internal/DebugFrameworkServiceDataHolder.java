@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
@@ -45,10 +46,13 @@ public class DebugFrameworkServiceDataHolder {
 
     /**
      * Thread-safe map storing protocol providers indexed by protocol type.
-     * Key: Protocol type (e.g., "OAUTH2_OIDC", "GOOGLE", "SAML").
-     * Value: DebugProtocolProvider implementation.
      */
     private final Map<String, DebugProtocolProvider> debugProtocolProviders = new ConcurrentHashMap<>();
+
+    /**
+     * List of registered debug callback handlers.
+     */
+    private final List<DebugCallbackHandler> debugCallbackHandlers = new CopyOnWriteArrayList<>();
 
     /**
      * Private constructor to prevent instantiation.
@@ -105,6 +109,10 @@ public class DebugFrameworkServiceDataHolder {
             String protocolType = normalizeProtocolType(provider.getProtocolType());
             if (protocolType != null) {
                 debugProtocolProviders.put(protocolType, provider);
+                DebugCallbackHandler callbackHandler = provider.getCallbackHandler();
+                if (callbackHandler != null) {
+                    debugCallbackHandlers.add(callbackHandler);
+                }
             }
         }
     }
@@ -121,14 +129,52 @@ public class DebugFrameworkServiceDataHolder {
             String protocolType = normalizeProtocolType(provider.getProtocolType());
             if (protocolType != null) {
                 debugProtocolProviders.remove(protocolType);
+                DebugCallbackHandler callbackHandler = provider.getCallbackHandler();
+                if (callbackHandler != null) {
+                    debugCallbackHandlers.remove(callbackHandler);
+                }
             }
         }
     }
 
     /**
+     * Adds a debug callback handler.
+     *
+     * @param handler DebugCallbackHandler instance.
+     */
+    public void addDebugCallbackHandler(DebugCallbackHandler handler) {
+
+        if (handler != null) {
+            debugCallbackHandlers.add(handler);
+        }
+    }
+
+    /**
+     * Removes a debug callback handler.
+     *
+     * @param handler DebugCallbackHandler instance.
+     */
+    public void removeDebugCallbackHandler(DebugCallbackHandler handler) {
+
+        if (handler != null) {
+            debugCallbackHandlers.remove(handler);
+        }
+    }
+
+    /**
+     * Returns a snapshot of registered callback handlers.
+     *
+     * @return List of DebugCallbackHandler.
+     */
+    public List<DebugCallbackHandler> getDebugCallbackHandlers() {
+
+        return new CopyOnWriteArrayList<>(debugCallbackHandlers);
+    }
+
+    /**
      * Gets a debug protocol provider by protocol type.
      *
-     * @param protocolType The protocol type (e.g., "OAUTH2_OIDC").
+     * @param protocolType The protocol type.
      * @return The DebugProtocolProvider for the type, or null if not registered.
      */
     public DebugProtocolProvider getDebugProtocolProvider(String protocolType) {

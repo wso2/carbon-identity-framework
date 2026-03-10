@@ -61,7 +61,7 @@ public abstract class DebugProcessor {
 
         try {
             // Extract protocol-specific parameters.
-            state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
+            state = request.getParameter(DebugFrameworkConstants.OIDC_STATE_PARAM);
             if (state == null || state.trim().isEmpty()) {
                 state = (String) context.getProperty("DEBUG_STATE");
             }
@@ -100,7 +100,7 @@ public abstract class DebugProcessor {
 
             // Try to extract state for error response.
             if (state == null) {
-                state = request.getParameter(DebugFrameworkConstants.OAUTH2_STATE_PARAM);
+                state = request.getParameter(DebugFrameworkConstants.OIDC_STATE_PARAM);
                 if (state == null || state.trim().isEmpty()) {
                     state = (String) context.getProperty("DEBUG_STATE");
                 }
@@ -135,7 +135,7 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific validation logic.
      * 
      * Examples:
-     * - OAuth2: Validate authorization code, state parameter, error responses.
+     * - OIDC: Validate authorization code, state parameter, error responses.
      * - SAML: Validate SAMLResponse, RelayState.
      * - Custom: Validate any protocol-specific parameters.
      *
@@ -153,7 +153,7 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific authentication logic.
      * 
      * Examples:
-     * - OAuth2: Exchange authorization code for tokens.
+     * - OIDC: Exchange authorization code for tokens.
      * - SAML: Validate and process SAML assertion.
      * - Custom: Implement protocol-specific authentication.
      *
@@ -171,7 +171,7 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific data extraction logic.
      * 
      * Examples:
-     * - OAuth2: Extract claims from ID token and access token.
+     * - OIDC: Extract claims from ID token and access token.
      * - SAML: Extract attributes from SAML assertion.
      * - Custom: Extract any protocol-specific debug data.
      *
@@ -185,7 +185,7 @@ public abstract class DebugProcessor {
      * Subclasses MUST implement with specific validation logic.
      * 
      * Examples:
-     * - OAuth2: Validate required claims are present.
+     * - OIDC: Validate required claims are present.
      * - SAML: Validate required attributes are present.
      * - Custom: Validate protocol-specific data requirements.
      *

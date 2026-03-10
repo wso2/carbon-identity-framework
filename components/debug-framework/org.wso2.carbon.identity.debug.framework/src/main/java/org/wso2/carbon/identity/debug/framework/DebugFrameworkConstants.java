@@ -28,10 +28,10 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
 
-    // OAuth2 specific callback parameters.
-    public static final String OAUTH2_CODE_PARAM = "code";
-    public static final String OAUTH2_STATE_PARAM = "state";
-    public static final String OAUTH2_ERROR_PARAM = "error";
+    // OIDC specific callback parameters.
+    public static final String OIDC_CODE_PARAM = "code";
+    public static final String OIDC_STATE_PARAM = "state";
+    public static final String OIDC_ERROR_PARAM = "error";
 
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 5;
@@ -39,8 +39,8 @@ public final class DebugFrameworkConstants {
     // Debug Result Context Properties.
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
     public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
-    public static final String DEBUG_OAUTH_CODE = "DEBUG_OAUTH_CODE";
-    public static final String DEBUG_OAUTH_STATE = "DEBUG_OAUTH_STATE";
+    public static final String DEBUG_OIDC_CODE = "DEBUG_OIDC_CODE";
+    public static final String DEBUG_OIDC_STATE = "DEBUG_OIDC_STATE";
     public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
     public static final String DEBUG_CALLBACK_TIMESTAMP = "DEBUG_CALLBACK_TIMESTAMP";
     public static final String DEBUG_CALLBACK_PROCESSED = "DEBUG_CALLBACK_PROCESSED";

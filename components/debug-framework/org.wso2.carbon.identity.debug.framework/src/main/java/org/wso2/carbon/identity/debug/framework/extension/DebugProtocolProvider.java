@@ -61,6 +61,17 @@ public interface DebugProtocolProvider {
     DebugProcessor getProcessor();
 
     /**
+     * Gets the callback handler for this protocol.
+     * The handler determines if the incoming callback matches the protocol and processes it.
+     *
+     * @return DebugCallbackHandler implementation, or null if not applicable.
+     */
+    default DebugCallbackHandler getCallbackHandler() {
+
+        return null;
+    }
+
+    /**
      * Determines if this provider can handle the given protocol type.
      * Used for dynamic provider selection.
      *

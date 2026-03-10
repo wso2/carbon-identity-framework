@@ -27,7 +27,6 @@ import java.util.Map;
 /**
  * Abstract base class for executing debug flows.
  * Extensions should implement specific execution logic for different authentication protocols.
- * Examples: OAuth2Executor, SAMLExecutor, etc.
  */
 public abstract class DebugExecutor {
 

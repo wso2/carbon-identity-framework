@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
@@ -18,26 +18,28 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
- * Interface to resolve the debug protocol for a given resource.
- * Implementations of this interface can be registered as OSGi services to
- * dynamically contribute protocol resolution logic.
+ * Handles protocol-specific debug callbacks.
  */
-public interface DebugProtocolResolver {
+public interface DebugCallbackHandler {
 
     /**
-     * Resolves the debug protocol for the given resource ID.
+     * Checks whether this handler can process the incoming callback request.
      *
-     * @param connectionId The resource ID to resolve the protocol for.
-     * @return The resolved protocol type (e.g., "OIDC", "SAML"), or null if not resolved.
+     * @param request The HTTP servlet request.
+     * @return true if this handler can process the request.
      */
-    String resolveProtocol(String connectionId);
+    boolean canHandle(HttpServletRequest request);
 
     /**
-     * Gets the order of execution for this resolver.
-     * Resolvers are executed in ascending order of this value.
+     * Processes the debug callback request.
      *
-     * @return The order of execution.
+     * @param request  The HTTP servlet request.
+     * @param response The HTTP servlet response.
+     * @return true if the callback is handled and the normal flow should be skipped.
      */
-    int getOrder();
+    boolean handleCallback(HttpServletRequest request, HttpServletResponse response);
 }
