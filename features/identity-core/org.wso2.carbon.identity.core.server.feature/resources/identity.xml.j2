@@ -2484,6 +2484,7 @@
             <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
         </HTTPClient>
         <DefaultRetryCount>{{external_api_client.retry_count}}</DefaultRetryCount>
+        <DefaultResponseLimit>{{external_api_client.response_limit}}</DefaultResponseLimit>
     </ExternalAPIClient>
 
     <Webhooks>
@@ -3012,6 +3013,11 @@
                    enable="{{cache.push_device_registration_request_cache.enable}}"
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
                    capacity="{{cache.push_device_registration_request_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="saml_cert_cache" name="SAMLCertCache"
+                   enable="{{cache.saml_cert_cache.enable}}"
+                   timeout="{{cache.saml_cert_cache.timeout}}"
+                   capacity="{{cache.saml_cert_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"

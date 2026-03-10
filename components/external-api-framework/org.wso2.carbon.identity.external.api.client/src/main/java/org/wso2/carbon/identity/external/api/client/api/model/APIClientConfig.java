@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,6 +33,7 @@ public class APIClientConfig {
     private final int httpConnectionTimeoutInMillis;
     private final int poolSizeToBeSet;
     private final int maxPerRoute;
+    private final long responseLimitInBytes;
 
     public APIClientConfig(Builder builder) {
 
@@ -41,6 +42,7 @@ public class APIClientConfig {
         this.httpConnectionTimeoutInMillis = builder.httpConnectionTimeoutInMillis;
         this.poolSizeToBeSet = builder.poolSizeToBeSet;
         this.maxPerRoute = builder.defaultMaxPerRoute;
+        this.responseLimitInBytes = builder.responseLimitInBytes;
     }
 
     /**
@@ -94,6 +96,16 @@ public class APIClientConfig {
     }
 
     /**
+     * Get the response size limit in bytes.
+     *
+     * @return response size limit in bytes.
+     */
+    public long getResponseLimitInBytes() {
+
+        return responseLimitInBytes;
+    }
+
+    /**
      * Builder class for APIClientConfig.
      */
     public static class Builder {
@@ -104,6 +116,7 @@ public class APIClientConfig {
         protected int httpConnectionTimeoutInMillis = APIClientUtils.getDefaultHttpConnectionTimeoutInMillis();
         protected int poolSizeToBeSet = APIClientUtils.getDefaultPoolSizeToBeSet();
         protected int defaultMaxPerRoute = APIClientUtils.getDefaultMaxPerRoute();
+        protected long responseLimitInBytes = APIClientUtils.getDefaultResponseLimit();
 
         public APIClientConfig.Builder httpReadTimeoutInMillis(int httpReadTimeoutInMillis) {
 
@@ -135,6 +148,18 @@ public class APIClientConfig {
             return this;
         }
 
+        /**
+         * Set the response size limit in bytes.
+         *
+         * @param responseLimitInBytes response size limit in bytes.
+         * @return this builder.
+         */
+        public APIClientConfig.Builder responseLimitInBytes(long responseLimitInBytes) {
+
+            this.responseLimitInBytes = responseLimitInBytes;
+            return this;
+        }
+
         public APIClientConfig build() throws APIClientConfigException {
 
             validateConfigurationValues(httpReadTimeoutInMillis);
@@ -142,6 +167,7 @@ public class APIClientConfig {
             validateConfigurationValues(httpConnectionTimeoutInMillis);
             validateConfigurationValues(poolSizeToBeSet);
             validateConfigurationValues(defaultMaxPerRoute);
+            validateConfigurationValues(responseLimitInBytes);
             return new APIClientConfig(this);
         }
 
@@ -149,6 +175,13 @@ public class APIClientConfig {
 
             if (value <= 0) {
                 throw new APIClientConfigException(ERROR_CODE_INVALID_CONFIG_VALUE, Integer.toString(value));
+            }
+        }
+
+        private void validateConfigurationValues(long value) throws APIClientConfigException {
+
+            if (value <= 0) {
+                throw new APIClientConfigException(ERROR_CODE_INVALID_CONFIG_VALUE, Long.toString(value));
             }
         }
     }
