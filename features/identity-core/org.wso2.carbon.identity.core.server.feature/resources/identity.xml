@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2011-2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2011-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -814,7 +814,7 @@
             Default value : true
         -->
         <RemoveInternalPrefixFromMappedRolesAttributeInToken>true</RemoveInternalPrefixFromMappedRolesAttributeInToken>
-        <AllowIssuerSelectionForSubOrgApplications>false</AllowIssuerSelectionForSubOrgApplications>
+        <AllowIssuerSelectionForSubOrgApplications>true</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1348,6 +1348,18 @@
         </SCIM2Client>
     </OutboundProvisioning>
 
+    <ExternalAPIClient>
+        <HTTPClient>
+            <HTTPConnectionTimeout>2000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>3000</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>20</HTTPConnectionPoolSize>
+            <HTTPConnectionMaxPerRoute>3</HTTPConnectionMaxPerRoute>
+        </HTTPClient>
+        <DefaultRetryCount>0</DefaultRetryCount>
+        <DefaultResponseLimit>1048576</DefaultResponseLimit>
+    </ExternalAPIClient>
+
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
     </Webhooks>
@@ -1594,6 +1606,7 @@
             <Cache name="IdPCacheByHRI"              enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="IdPCacheByName"             enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="PrivateKeyJWT"              enable="true"  timeout="10" capacity="5000" isDistributed="false"/>
+            <Cache id="saml_cert_cache" name="SAMLCertCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
 
@@ -2937,6 +2950,8 @@
         <CustomContent>
             <MaxFileSize>1048576</MaxFileSize>
         </CustomContent>
+        <UseIntermediateLoaderPage>false</UseIntermediateLoaderPage>
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>false</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <AgentIdentity>
         <Enabled>true</Enabled>
@@ -2973,4 +2988,5 @@
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>false</EnhancedOrganizationAuthenticationFeatureEnabled>
 </Server>

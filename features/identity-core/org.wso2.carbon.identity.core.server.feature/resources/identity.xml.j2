@@ -1360,6 +1360,11 @@
         -->
         <DropUnregisteredScopes>{{oauth.drop_unregistered_scopes}}</DropUnregisteredScopes>
         {% endif %}
+
+        {% if oauth.drop_unrequested_oidc_scopes is defined %}
+        <DropUnrequestedOIDCScopes>{{oauth.drop_unrequested_oidc_scopes}}</DropUnrequestedOIDCScopes>
+        {% endif %}
+
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
@@ -2479,6 +2484,7 @@
             <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
         </HTTPClient>
         <DefaultRetryCount>{{external_api_client.retry_count}}</DefaultRetryCount>
+        <DefaultResponseLimit>{{external_api_client.response_limit}}</DefaultResponseLimit>
     </ExternalAPIClient>
 
     <Webhooks>
@@ -3011,6 +3017,11 @@
                    enable="{{cache.push_device_registration_request_cache.enable}}"
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
                    capacity="{{cache.push_device_registration_request_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="saml_cert_cache" name="SAMLCertCache"
+                   enable="{{cache.saml_cert_cache.enable}}"
+                   timeout="{{cache.saml_cert_cache.timeout}}"
+                   capacity="{{cache.saml_cert_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -5083,6 +5094,10 @@
         <CustomContent>
             <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
         </CustomContent>
+        <!-- When enabled, only a generic loading indicator will be shown on intermediate SAML (Inbound and Federated) and Passive STS pages. -->
+        <UseIntermediateLoaderPage>{{branding_configuration.use_intermediate_loader_page}}</UseIntermediateLoaderPage>
+        <!-- When enabled, the invalid tenant domain error page will be served from the Authentication Portal. -->
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>{{branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal}}</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
@@ -5152,4 +5167,5 @@
     </IdentityProviders>
 
     <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>
 </Server>

@@ -328,13 +328,14 @@
   "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
   "oauth.drop_unregistered_scopes": true,
+  "oauth.drop_unrequested_oidc_scopes": true,
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
   "oauth.callback.restrict_fragment_components": true,
   "oauth.impersonated_refresh_token.enable": true,
   "oauth.remove_internal_prefix_from_mapped_roles_attribute_in_token": true,
-  "oauth.allow_issuer_selection_for_sub_org_applications": false,
+  "oauth.allow_issuer_selection_for_sub_org_applications": true,
 
   "oauth.enable_legacy_session_bound_token_behaviour": false,
   "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
@@ -613,7 +614,7 @@
   "outbound_provisioning_management.confidential_data_protection_enabled": true,
   "outbound_provisioning_management.scim2_client.http_retry_count": "1",
   "outbound_provisioning_management.scim2_client.http_read_timeout": "5000",
-  "outbound_provisioning_management.scim2_client.http_connection_timeout": "2000",
+  "outbound_provisioning_management.scim2_client.http_connection_timeout": "5000",
   "outbound_provisioning_management.scim2_client.http_connection_request_timeout": "2000",
 
   "authentication_policy.check_account_exist": true,
@@ -833,6 +834,9 @@
   "cache.push_device_registration_request_cache.enable": true,
   "cache.push_device_registration_request_cache.timeout": "300",
   "cache.push_device_registration_request_cache.capacity": "$ref{cache.default_capacity}",
+  "cache.saml_cert_cache.enable": true,
+  "cache.saml_cert_cache.timeout": "900",
+  "cache.saml_cert_cache.capacity": "100",
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
@@ -1376,6 +1380,7 @@
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [
+    "OrganizationIdentifierHandler",
     "BasicAuthRequestPathAuthenticator",
     "OAuthRequestPathAuthenticator"
   ],
@@ -1845,6 +1850,26 @@
   ],
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
+  "console.users.sub_features.userSharingV2.enabled": true,
+  "console.users.sub_features.userSharingV2.scopes.create": [
+    "internal_user_share"
+  ],
+  "console.users.sub_features.userSharingV2.scopes.delete": [
+    "internal_user_unshare"
+  ],
+  "console.users.sub_features.userSharingV2.scopes.read": [
+    "internal_user_shared_access_view",
+    "internal_userstore_view",
+    "internal_role_mgt_view",
+    "internal_group_mgt_view",
+    "internal_governance_view",
+    "internal_user_mgt_view",
+    "internal_user_mgt_list",
+    "internal_organization_view"
+  ],
+  "console.users.sub_features.userSharingV2.scopes.update": [
+    "internal_user_shared_access_update"
+  ],
   "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
@@ -2189,6 +2214,7 @@
   "external_api_client.http_client.connection_pool_size": "20",
   "external_api_client.http_client.max_connection_per_route": "3",
   "external_api_client.retry_count": "0",
+  "external_api_client.response_limit": "1048576",
 
   "outbound_adapters.httppublisher.enabled": true,
   "outbound_adapters.httppublisher.httpConnectionTimeout": "5000",
@@ -2255,5 +2281,9 @@
   "authentication.mark_step_completed_on_interrupt": true,
   "api.filters.single_character_wildcard": "_",
   "identity_providers.support_multiple_certificate_export": true,
-  "tenant_level_application_authentication_config.enabled_for_auth_sequence": true
+  "tenant_level_application_authentication_config.enabled_for_auth_sequence": true,
+  "branding_configuration.use_intermediate_loader_page": false,
+  "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
+
+  "enhanced_organization_authentication_feature.enabled": false
 }

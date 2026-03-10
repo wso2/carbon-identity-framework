@@ -88,6 +88,15 @@
   "authentication.authenticator.saml.name": "SAMLSSOAuthenticator",
   "authentication.authenticator.saml.enable": true,
   "authentication.authenticator.saml.parameters.Tags": "SAML",
+  "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionTimeout": "1s",
+  "authentication.authenticator.saml.parameters.RemoteCertificateClientReadTimeout": "1s",
+  "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionRequestTimeout": "1s",
+  "authentication.authenticator.saml.parameters.RemoteCertificateClientConnectionPoolSize": "20",
+  "authentication.authenticator.saml.parameters.RemoteCertificateClientMaxConnectionPerRoute": "3",
+  "authentication.authenticator.saml.parameters.RemoteCertificateRetryCount": "0",
+  "authentication.authenticator.saml.parameters.RemoteCertificateClientResponseLimit": "512000",
+  "authentication.authenticator.saml.parameters.RemoteCertificateRefreshRetryBlockDuration": "5m",
+  "authentication.authenticator.saml.parameters.RemoteCertificateCacheMaxLifetime": "24h",
 
   "authentication.authenticator.iproov.name": "IproovAuthenticator",
   "authentication.authenticator.iproov.parameters.Tags": "Passwordless,MFA",
@@ -254,6 +263,9 @@
   "authentication.authenticator.push_local.parameters.Tags": "Passwordless,MFA",
   "authentication.authenticator.push_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.push_local.parameters.enableRetryFromAuthenticator": true,
+
+  "authentication.authenticator.org_identifier_handler.name": "OrganizationIdentifierHandler",
+  "authentication.authenticator.org_identifier_handler.enable": true,
 
   "authentication.local_authenticators.hide_user_existence": true,
 
