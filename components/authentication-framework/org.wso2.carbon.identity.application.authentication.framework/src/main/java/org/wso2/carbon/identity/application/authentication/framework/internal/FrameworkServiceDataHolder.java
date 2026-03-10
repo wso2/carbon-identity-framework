@@ -25,6 +25,7 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
@@ -68,6 +69,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Authentication framework data holder.
@@ -95,7 +97,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
-    private Object debugService = null;
+    private List<DebugAuthenticationInterceptor> debugAuthenticationInterceptors = new CopyOnWriteArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -856,23 +858,18 @@ public class FrameworkServiceDataHolder {
         this.organizationDiscoveryHandler = organizationDiscoveryHandler;
     }
 
-    /**
-     * Get {@link DebugService}.
-     *
-     * @return Debug service instance.
-     */
-    public Object getDebugService() {
+    public List<DebugAuthenticationInterceptor> getDebugAuthenticationInterceptors() {
 
-        return debugService;
+        return debugAuthenticationInterceptors;
     }
 
-    /**
-     * Set {@link DebugService}.
-     *
-     * @param debugService Instance of debug service.
-     */
-    public void setDebugService(Object debugService) {
+    public void addDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
-        this.debugService = debugService;
+        debugAuthenticationInterceptors.add(interceptor);
+    }
+
+    public void removeDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+
+        debugAuthenticationInterceptors.remove(interceptor);
     }
 }
