@@ -54,7 +54,7 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
-  "localization.prioritize_param": "true",
+  "localization.prioritize_param": "false",
 
   "server.internal_hostname": "localhost",
   "server.enable_admin_services": false,
