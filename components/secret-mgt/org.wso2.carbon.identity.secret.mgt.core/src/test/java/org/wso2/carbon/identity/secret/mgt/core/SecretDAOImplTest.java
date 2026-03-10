@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -55,7 +57,6 @@ import static org.testng.Assert.assertNull;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.IS_SECRET_VALUE_CLOB_COLUMN_EXISTS;
-import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.closeOracleBase;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.getSampleSecretAdd;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.getSampleSecretTypeAdd;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.initiateOracleBase;
@@ -75,6 +76,8 @@ import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.spyConnect
  */
 public class SecretDAOImplTest {
 
+    private static final Log log = LogFactory.getLog(SecretDAOImplTest.class);
+
     private SecretDAO secretDAO;
     private Connection connection;
 
@@ -84,6 +87,10 @@ public class SecretDAOImplTest {
     /* Only opened for tests that require Oracle path mocking. */
     private MockedStatic<JdbcUtils> jdbcUtils;
     private MockedStatic<IdentityConfigParser> identityConfigParser;
+
+    /* Original system property values saved before each test and restored in tearDown. */
+    private String originalCarbonHome;
+    private String originalCarbonConfigDirPath;
 
     private static final String SAMPLE_SECRET_TYPE_NAME = "sample-secret-type";
     private static final String SAMPLE_SECRET_TYPE_DESCRIPTION = "sample-description";
@@ -96,6 +103,8 @@ public class SecretDAOImplTest {
     public void setUp() throws Exception {
 
         initiateOracleBase();
+        originalCarbonHome = System.getProperty(CarbonBaseConstants.CARBON_HOME);
+        originalCarbonConfigDirPath = System.getProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH);
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH,
@@ -116,21 +125,47 @@ public class SecretDAOImplTest {
     }
 
     @AfterMethod
-    public void tearDown() throws Exception {
+    public void tearDown() {
 
-        connection.close();
-        closeOracleBase();
-        identityDatabaseUtil.close();
-        privilegedCarbonContext.close();
-        identityTenantUtil.close();
+        restoreSystemProperty(CarbonBaseConstants.CARBON_HOME, originalCarbonHome);
+        restoreSystemProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, originalCarbonConfigDirPath);
+
+        closeQuietly(connection::close, "DB connection");
+        closeQuietly(TestUtils::closeOracleBase, "Oracle H2 base");
+        closeQuietly(identityDatabaseUtil::close, "identityDatabaseUtil mock");
+        closeQuietly(privilegedCarbonContext::close, "privilegedCarbonContext mock");
+        closeQuietly(identityTenantUtil::close, "identityTenantUtil mock");
         if (jdbcUtils != null) {
-            jdbcUtils.close();
+            closeQuietly(jdbcUtils::close, "jdbcUtils mock");
             jdbcUtils = null;
         }
         if (identityConfigParser != null) {
-            identityConfigParser.close();
+            closeQuietly(identityConfigParser::close, "identityConfigParser mock");
             identityConfigParser = null;
         }
+    }
+
+    private void restoreSystemProperty(String key, String originalValue) {
+
+        if (originalValue != null) {
+            System.setProperty(key, originalValue);
+        } else {
+            System.clearProperty(key);
+        }
+    }
+
+    private void closeQuietly(ThrowingRunnable action, String resourceName) {
+
+        try {
+            action.run();
+        } catch (Exception e) {
+            log.warn("Failed to close resource: " + resourceName, e);
+        }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
     }
 
     // =====================================================================
@@ -276,8 +311,8 @@ public class SecretDAOImplTest {
         secretDAO.updateSecretValue(added, SAMPLE_SECRET_VALUE_UPDATED);
 
         String[] columns = querySecretColumns(SAMPLE_SECRET_NAME);
-        assertEquals(columns[0], "",
-                "SECRET_VALUE should be cleared to empty string after Oracle update");
+        assertNull(columns[0],
+                "SECRET_VALUE should be NULL after Oracle update");
         assertEquals(columns[1], SAMPLE_SECRET_VALUE_UPDATED,
                 "SECRET_VALUE_CLOB should contain the updated value");
     }
@@ -296,8 +331,8 @@ public class SecretDAOImplTest {
         secretDAO.replaceSecret(replacement);
 
         String[] columns = querySecretColumns(SAMPLE_SECRET_NAME);
-        assertEquals(columns[0], "",
-                "SECRET_VALUE should be cleared to empty string after Oracle replace");
+        assertNull(columns[0],
+                "SECRET_VALUE should be NULL after Oracle replace");
         assertEquals(columns[1], SAMPLE_SECRET_VALUE_UPDATED,
                 "SECRET_VALUE_CLOB should contain the replaced value");
     }

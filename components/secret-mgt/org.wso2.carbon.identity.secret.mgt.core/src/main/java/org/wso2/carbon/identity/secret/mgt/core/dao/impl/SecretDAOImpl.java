@@ -43,6 +43,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -526,17 +527,19 @@ public class SecretDAOImpl implements SecretDAO {
      *
      * @param secretValue   Secret value to be replaced in the PreparedStatement.
      * @param preparedStatement PreparedStatement in which the secret value needs to be replaced.
-     * @param isOracleDB    Whether the database is Oracle DB or not.
+     * @param isOracleDBAndClobColumnExists Whether the database is Oracle DB and the secret value CLOB column exists
+     *                                      in the database.
      * @throws SQLException If an error occurs while replacing the secret value in the PreparedStatement.
      */
-    private void replaceSecretValue(String secretValue, NamedPreparedStatement preparedStatement, boolean isOracleDB)
-            throws SQLException {
+    private void replaceSecretValue(String secretValue, NamedPreparedStatement preparedStatement,
+                                    boolean isOracleDBAndClobColumnExists) throws SQLException {
 
-        if (isOracleDB) {
-            /* When the database is Oracle DB, populate the CLOB column with the new secret value and update the
-            VARCHAR column with empty string to preserve backward compatibility.*/
+        if (isOracleDBAndClobColumnExists) {
+            /* When the database is Oracle DB, populate the CLOB column with the new secret value and explicitly
+            set the VARCHAR column to NULL. Oracle treats empty string as NULL for VARCHAR2, so using setNull
+            makes the intent clear and ensures consistent behaviour across JDBC drivers. */
             preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE_CLOB, secretValue);
-            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, StringUtils.EMPTY);
+            preparedStatement.setNull(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, Types.VARCHAR);
         } else {
             preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, secretValue);
         }
