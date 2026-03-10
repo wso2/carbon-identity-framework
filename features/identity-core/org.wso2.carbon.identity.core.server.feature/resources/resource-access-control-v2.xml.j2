@@ -54,7 +54,7 @@
            <Scopes>internal_config_update</Scopes>
         </Resource>
 
-        <Resource context="/.well-known/oauth-authorization-server/(.*)oauth2/token" secured="false" http-method="all"/>
+        <Resource context="/.well-known/oauth-authorization-server/(.*)oauth2/token" secured="false" http-method="GET"/>
         
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
