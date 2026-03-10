@@ -26,6 +26,6 @@ jobs:
               pull_number: context.issue.number,
               commit_id: '${{ steps.get-sha.outputs.sha }}',
               path: 'features/identity-core/org.wso2.carbon.identity.core.server.feature/resources/org.wso2.carbon.identity.core.server.feature.default.json',
-              body: 'abc',
-              subject_type: 'file'
+              subject_type: 'file',
+              body: `> ⚠️ **Config Migration Check**\n\nThis PR modifies \`org.wso2.carbon.identity.core.server.feature.default.json\`.\n\nPlease make sure that the corresponding configurations are also added to:\n\`\`\`\nfeatures/identity-core/org.wso2.carbon.identity.core.server.feature/resources/org.wso2.carbon.identity.core.server.feature.infer.json\n\`\`\`\nto maintain **backward compatibility** during migration.\n\n> [!NOTE]\n> The [\`infer.json\`][1] file stores the default configuration values for each version in the same release line, based on the behavioral changes introduced in the upcoming release. This ensures that existing deployments continue to behave as before after upgrading.\n\n[1]: https://github.com/wso2/carbon-identity-framework/blob/master/features/identity-core/org.wso2.carbon.identity.core.server.feature/resources/org.wso2.carbon.identity.core.server.feature.infer.json`
             })
