@@ -2989,4 +2989,7 @@
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>false</EnhancedOrganizationAuthenticationFeatureEnabled>
+    <WorkflowEngine>
+        <MaxApproverNotifications>15</MaxApproverNotifications>
+    </WorkflowEngine>
 </Server>
