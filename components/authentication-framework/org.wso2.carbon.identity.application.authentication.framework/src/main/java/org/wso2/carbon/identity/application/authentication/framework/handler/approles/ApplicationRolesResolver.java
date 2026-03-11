@@ -64,6 +64,21 @@ public interface ApplicationRolesResolver {
     }
 
     /**
+     * Get the application associated roles of the authenticated local user.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID of the application.
+     * @param appTenantDomain   Tenant domain of the application.
+     * @return Array of application associated roles.
+     * @throws ApplicationRolesException If an error occurs while getting app associated roles.
+     */
+    default String[] getAppAssociatedRolesOfLocalUser(AuthenticatedUser authenticatedUser,
+            String applicationId, String appTenantDomain) throws ApplicationRolesException {
+
+        return getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId);
+    }
+
+    /**
      * Get the application associated roles of the authenticated federated user.
      *
      * @param authenticatedUser Authenticated user.
