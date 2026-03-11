@@ -52,7 +52,7 @@ public class AppRolesConstants {
         ERROR_CODE_SERVICE_ENDPOINT_UNDEFINED("65007", "Service endpoint is not defined",
                 "Service endpoint is not defined"),
         ERROR_CODE_RESOLVING_SHARED_ROLES("65008", "Error while resolving shared roles",
-                "Error while resolving shared roles for organization: %s");
+                "Error while resolving shared roles for organization with org handle: %s");
 
         private final String code;
         private final String message;

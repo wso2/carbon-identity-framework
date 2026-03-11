@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.ap
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
@@ -80,6 +82,8 @@ import static org.wso2.carbon.user.mgt.UserMgtConstants.INTERNAL_ROLE;
 )
 public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver {
 
+    private static final Log LOG = LogFactory.getLog(AppAssociatedRolesResolverImpl.class);
+
     @Override
     public int getPriority() {
 
@@ -126,6 +130,11 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
         if (authenticatedUser == null) {
             throw RoleResolverUtils.handleClientException(ERROR_CODE_USER_NULL);
         }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Resolving app associated roles for local user: " + authenticatedUser.getLoggableMaskedUserId() +
+                    " in tenant: " + authenticatedUser.getTenantDomain() + " for application: " + applicationId +
+                    " in tenant: " + appTenantDomain);
+        }
         return getAppAssociatedRolesForLocalUser(authenticatedUser, applicationId, appTenantDomain);
     }
 
@@ -171,6 +180,9 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     private List<RoleV2> getSharedRoleAssociations(List<RoleV2> mainRolesAssociatedWithApp, String userTenantDomain)
             throws ApplicationRolesException {
 
+        if (CollectionUtils.isEmpty(mainRolesAssociatedWithApp)) {
+            return Collections.emptyList();
+        }
         List<RoleV2> sharedRoles = new ArrayList<>();
         try {
             List<String> mainRoleIds = mainRolesAssociatedWithApp.stream()

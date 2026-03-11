@@ -24,6 +24,7 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -238,7 +239,7 @@ public class AppAssociatedRolesResolverImplTest {
         assertTrue(resolvedRoles.length == 0);
     }
 
-    @Test(expectedExceptions = ApplicationRolesException.class)
+    @Test
     public void testGetAppAssociatedRolesOfLocalUserOrgLoginException() throws Exception {
 
         List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
@@ -251,7 +252,13 @@ public class AppAssociatedRolesResolverImplTest {
                 .thenThrow(new IdentityRoleManagementException("65001", "Error resolving shared roles"));
 
         AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
-        resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
+        try {
+            resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
+            throw new AssertionError("Expected ApplicationRolesException was not thrown");
+        } catch (ApplicationRolesException e) {
+            assertEquals(e.getErrorCode(),
+                    AppRolesConstants.ErrorMessages.ERROR_CODE_RESOLVING_SHARED_ROLES.getCode());
+        }
     }
 
     private AuthenticatedUser createLocalAuthenticatedUser(String userId, String userTenantDomain) {
