@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,6 +71,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
 
     private static final String ADD_USER_EVENT = "ADD_USER";
     private static final String SELF_REGISTER_USER_EVENT = "SELF_REGISTER_USER";
+    private static final String UPDATE_ROLES_OF_USERS_EVENT = "UPDATE_ROLES_OF_USERS";
 
     /**
      * Enum for supported non-claim rule fields in workflow operations.
@@ -253,13 +256,89 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     }
 
     /**
-     * Resolve user domain field value from context data.
+     * Resolve user domain field values
+     * For the UPDATE_ROLES_OF_USERS event type, the user store domain is not available directly in the context
+     * data. In this case, the domains are resolved from the user ID lists and returned as a LIST FieldValue,
+     * allowing the rule engine to check membership (i.e., if any user in the operation belongs to the
+     * specified domain, the rule evaluates to true).
+     *
+     * @param fieldValues List of field values to add to.
+     * @param field       Field being processed.
+     * @param contextData Context data from the flow context.
+     * @throws RuleEvaluationDataProviderException If an error occurs while resolving the domain.
      */
-    private void resolveUserDomainField(List<FieldValue> fieldValues, Field field, Map<String, Object> contextData) {
+    private void resolveUserDomainField(List<FieldValue> fieldValues, Field field, Map<String, Object> contextData)
+            throws RuleEvaluationDataProviderException {
 
         String userStoreDomain = (String) contextData.get(USER_STORE_DOMAIN);
-        fieldValues.add(new FieldValue(field.getName(),
-                StringUtils.isNotBlank(userStoreDomain) ? userStoreDomain : null, ValueType.STRING));
+        if (StringUtils.isNotBlank(userStoreDomain)) {
+            fieldValues.add(new FieldValue(field.getName(), userStoreDomain, ValueType.STRING));
+            return;
+        }
+        String eventType = (String) contextData.get(EVENT_TYPE);
+        if (UPDATE_ROLES_OF_USERS_EVENT.equals(eventType)) {
+            resolveUserDomainsFromUserLists(fieldValues, field, contextData);
+            return;
+        }
+        fieldValues.add(new FieldValue(field.getName(), (String) null, ValueType.STRING));
+    }
+
+    /**
+     * Resolve user domain field values from the user ID lists in the context data.
+     * This is used for the UPDATE_ROLES_OF_USERS event type where a bulk of users can be added or removed
+     * from a role.
+     *
+     * @param fieldValues List of field values to add to.
+     * @param field       Field being processed.
+     * @param contextData Context data from the flow context.
+     * @throws RuleEvaluationDataProviderException If an error occurs while resolving the domains.
+     */
+    private void resolveUserDomainsFromUserLists(List<FieldValue> fieldValues, Field field,
+                                                 Map<String, Object> contextData)
+            throws RuleEvaluationDataProviderException {
+
+        List<?> usersToBeAssigned = (List<?>) contextData.get(USERS_TO_BE_ASSIGNED);
+        List<?> usersToBeUnassigned = (List<?>) contextData.get(USERS_TO_BE_UNASSIGNED);
+        if (CollectionUtils.isEmpty(usersToBeAssigned) && CollectionUtils.isEmpty(usersToBeUnassigned)) {
+            fieldValues.add(new FieldValue(field.getName(), (String) null, ValueType.STRING));
+            return;
+        }
+        try {
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
+                    .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            Set<String> domains = new LinkedHashSet<>();
+            for (List<?> userIdList : new List<?>[] {usersToBeAssigned, usersToBeUnassigned}) {
+                if (CollectionUtils.isEmpty(userIdList)) {
+                    continue;
+                }
+                for (Object userIdObj : userIdList) {
+                    String userId = (String) userIdObj;
+                    if (StringUtils.isBlank(userId)) {
+                        continue;
+                    }
+                    try {
+                        String username = userStoreManager.getUserNameFromUserID(userId);
+                        if (StringUtils.isBlank(username)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Could not resolve username for user ID: " +
+                                        LoggerUtils.getMaskedContent(userId) + ". Skipping domain resolution.");
+                            }
+                            continue;
+                        }
+                        domains.add(IdentityUtil.extractDomainFromName(username));
+                    } catch (org.wso2.carbon.user.core.UserStoreException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Error resolving username for user ID: " +
+                                    LoggerUtils.getMaskedContent(userId) + ". Skipping.", e);
+                        }
+                    }
+                }
+            }
+            fieldValues.add(new FieldValue(field.getName(), new ArrayList<>(domains)));
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new RuleEvaluationDataProviderException(
+                    "Error retrieving user store manager for domain resolution.", e);
+        }
     }
 
     /**
