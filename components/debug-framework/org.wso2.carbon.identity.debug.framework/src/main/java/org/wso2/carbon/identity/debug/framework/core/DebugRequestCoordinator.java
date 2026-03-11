@@ -268,6 +268,12 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
 
         try {
             DebugCallbackHandler handler = resolveCallbackHandler(request);
+            if (handler == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("No debug callback handler matched the request. Skipping debug handling.");
+                }
+                return false;
+            }
             if (!handler.canHandle(request)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Request is not a debug flow callback. Skipping debug handling.");
@@ -278,7 +284,6 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
             return handler.handleCallback(request, response);
         } catch (Exception e) {
             LOG.warn("Error handling debug authentication flow. Normal authentication will proceed.", e);
-            // Don't throw exception; allow normal authentication to continue.
             return false;
         }
     }
