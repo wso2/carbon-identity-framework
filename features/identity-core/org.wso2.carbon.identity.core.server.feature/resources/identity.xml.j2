@@ -970,6 +970,14 @@
             Default value : false
         -->
         <AllowSessionBoundTokensAfterIdleSessionExpiry>{{oauth.allow_session_bound_tokens_after_idle_session_expiry}}</AllowSessionBoundTokensAfterIdleSessionExpiry>
+        
+        <!--
+            When set to true, literal characters in OAuth callback URLs are enforced.
+            Default value : true
+        -->
+        <Callback>
+            <EnforceLiteralCharacters>{{oauth.callback.enforce_literal_characters}}</EnforceLiteralCharacters>
+        </Callback>
     </OAuth>
 
     <RestApiAuthentication>
