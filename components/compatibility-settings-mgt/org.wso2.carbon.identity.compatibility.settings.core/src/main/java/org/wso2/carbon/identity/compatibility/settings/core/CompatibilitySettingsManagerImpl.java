@@ -23,6 +23,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants.ErrorMessages;
 import org.wso2.carbon.identity.compatibility.settings.core.evaluator.CompatibilitySettingsEvaluator;
 import org.wso2.carbon.identity.compatibility.settings.core.exception.CompatibilitySettingClientException;
@@ -48,6 +49,13 @@ import java.util.Set;
  * Default implementation of {@link CompatibilitySettingsManager}.
  * This class coordinates evaluators and providers to determine compatibility settings.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager",
+                "service.scope=singleton"
+        }
+)
 public class CompatibilitySettingsManagerImpl implements CompatibilitySettingsManager {
 
     private static final Log LOG = LogFactory.getLog(CompatibilitySettingsManagerImpl.class);
