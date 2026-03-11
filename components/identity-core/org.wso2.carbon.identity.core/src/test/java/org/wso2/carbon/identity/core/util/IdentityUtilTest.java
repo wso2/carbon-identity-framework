@@ -1500,4 +1500,83 @@ public void testIsAgentIdentityEnabled_Default() throws Exception {
             assertEquals(result, expected);
         }
     }
+
+    @Test
+    public void testThreadLocalIsUserServingAgent() {
+
+        // Test setting and getting the value
+        IdentityUtil.setThreadLocalIsUserServingAgent(true);
+        assertEquals(IdentityUtil.getThreadLocalIsUserServingAgent(), Boolean.TRUE);
+
+        IdentityUtil.setThreadLocalIsUserServingAgent(false);
+        assertEquals(IdentityUtil.getThreadLocalIsUserServingAgent(), Boolean.FALSE);
+
+        // Test unsetting the value
+        IdentityUtil.unsetThreadLocalIsUserServingAgent();
+        assertNull(IdentityUtil.getThreadLocalIsUserServingAgent(),
+                "ThreadLocal should be null after unsetting");
+    }
+
+    @Test
+    public void testThreadLocalApplicationClientId() {
+
+        // Test setting and getting the value
+        String testClientId = "test-client-id-123";
+        IdentityUtil.setThreadLocalApplicationClientId(testClientId);
+        assertEquals(IdentityUtil.getThreadLocalApplicationClientId(), testClientId);
+
+        // Test with different value
+        String anotherClientId = "another-client-id-456";
+        IdentityUtil.setThreadLocalApplicationClientId(anotherClientId);
+        assertEquals(IdentityUtil.getThreadLocalApplicationClientId(), anotherClientId);
+
+        // Test unsetting the value
+        IdentityUtil.unsetThreadLocalApplicationClientId();
+        assertNull(IdentityUtil.getThreadLocalApplicationClientId(),
+                "ThreadLocal should be null after unsetting");
+    }
+
+    @Test
+    public void testThreadLocalIsolation() throws Exception {
+
+        // Test that ThreadLocal values are isolated between threads
+        final String mainThreadClientId = "main-thread-client-id";
+        final String workerThreadClientId = "worker-thread-client-id";
+        final Boolean mainThreadIsAgent = true;
+        final Boolean workerThreadIsAgent = false;
+
+        // Set values in main thread
+        IdentityUtil.setThreadLocalApplicationClientId(mainThreadClientId);
+        IdentityUtil.setThreadLocalIsUserServingAgent(mainThreadIsAgent);
+
+        // Create a new thread and verify isolation
+        Thread workerThread = new Thread(() -> {
+            // Values should be null in new thread
+            assertNull(IdentityUtil.getThreadLocalApplicationClientId(),
+                    "ThreadLocal should be null in new thread");
+            assertNull(IdentityUtil.getThreadLocalIsUserServingAgent(),
+                    "ThreadLocal should be null in new thread");
+
+            // Set different values in worker thread
+            IdentityUtil.setThreadLocalApplicationClientId(workerThreadClientId);
+            IdentityUtil.setThreadLocalIsUserServingAgent(workerThreadIsAgent);
+
+            // Verify worker thread values
+            assertEquals(IdentityUtil.getThreadLocalApplicationClientId(), workerThreadClientId);
+            assertEquals(IdentityUtil.getThreadLocalIsUserServingAgent(), workerThreadIsAgent);
+        });
+
+        workerThread.start();
+        workerThread.join();
+
+        // Verify main thread values remain unchanged
+        assertEquals(IdentityUtil.getThreadLocalApplicationClientId(), mainThreadClientId,
+                "Main thread value should remain unchanged");
+        assertEquals(IdentityUtil.getThreadLocalIsUserServingAgent(), mainThreadIsAgent,
+                "Main thread value should remain unchanged");
+
+        // Clean up
+        IdentityUtil.unsetThreadLocalApplicationClientId();
+        IdentityUtil.unsetThreadLocalIsUserServingAgent();
+    }
 }
