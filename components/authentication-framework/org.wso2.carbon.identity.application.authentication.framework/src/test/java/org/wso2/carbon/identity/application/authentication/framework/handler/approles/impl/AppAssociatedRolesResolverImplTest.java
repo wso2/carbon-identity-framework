@@ -24,24 +24,38 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Unit tests for {@link AppAssociatedRolesResolverImpl}.
@@ -50,6 +64,7 @@ public class AppAssociatedRolesResolverImplTest {
 
     private final String applicationId = "testApp";
     private final String tenantDomain = "testTenant";
+    private final String appTenantDomain = "appTenant";
     private final String idpGroupClaimURI = "testIdPGroupClaimURI1";
     private final AppAssociatedRolesResolverImpl resolver = new AppAssociatedRolesResolverImpl();
 
@@ -63,17 +78,27 @@ public class AppAssociatedRolesResolverImplTest {
     private ApplicationManagementService applicationManagementService;
     @Mock
     private FrameworkServiceDataHolder frameworkServiceDataHolderInstance;
+    @Mock
+    private RealmService realmService;
+    @Mock
+    private UserRealm userRealm;
+    @Mock
+    private AbstractUserStoreManager abstractUserStoreManager;
 
     private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMock;
     private MockedStatic<FrameworkUtils> frameworkUtilsMock;
+    private MockedStatic<UserCoreUtil> userCoreUtilMock;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
 
         closeable = MockitoAnnotations.openMocks(this);
 
         frameworkServiceDataHolderMock = mockStatic(FrameworkServiceDataHolder.class);
         frameworkUtilsMock = mockStatic(FrameworkUtils.class);
+        userCoreUtilMock = mockStatic(UserCoreUtil.class);
+        identityTenantUtilMock = mockStatic(IdentityTenantUtil.class);
 
         frameworkUtilsMock.when(FrameworkUtils::getIdpGroupClaimValueSeparator).thenReturn(",");
         frameworkServiceDataHolderMock.when(FrameworkServiceDataHolder::getInstance)
@@ -82,6 +107,15 @@ public class AppAssociatedRolesResolverImplTest {
         when(frameworkServiceDataHolderInstance.getRoleManagementServiceV2()).thenReturn(roleManagementService);
         when(frameworkServiceDataHolderInstance.getApplicationManagementService()).thenReturn(
                 applicationManagementService);
+
+        userCoreUtilMock.when(UserCoreUtil::getRealmService).thenReturn(realmService);
+        identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantId(tenantDomain)).thenReturn(1);
+        when(realmService.getTenantUserRealm(1)).thenReturn(userRealm);
+        when(userRealm.getUserStoreManager()).thenReturn(abstractUserStoreManager);
+        when(abstractUserStoreManager.getGroupListOfUser(anyString(), isNull(), isNull()))
+                .thenReturn(Collections.emptyList());
+        when(roleManagementService.getRoleIdListOfGroups(anyList(), anyString()))
+                .thenReturn(Collections.emptyList());
     }
 
     @AfterClass
@@ -92,6 +126,12 @@ public class AppAssociatedRolesResolverImplTest {
         }
         if (frameworkUtilsMock != null) {
             frameworkUtilsMock.close();
+        }
+        if (userCoreUtilMock != null) {
+            userCoreUtilMock.close();
+        }
+        if (identityTenantUtilMock != null) {
+            identityTenantUtilMock.close();
         }
         closeable.close();
     }
@@ -134,6 +174,93 @@ public class AppAssociatedRolesResolverImplTest {
                 userAttributes, identityProvider, applicationId, idpGroupClaimURI, tenantDomain);
 
         assertEquals(resolvedRoles, new String[]{"Internal/role1"});
+    }
+
+    @Test(expectedExceptions = ApplicationRolesException.class)
+    public void testGetAppAssociatedRolesOfLocalUserWithNullUser() throws Exception {
+
+        resolver.getAppAssociatedRolesOfLocalUser(null, applicationId, appTenantDomain);
+    }
+
+    @Test
+    public void testGetAppAssociatedRolesOfLocalUserWithSameTenantDomain() throws Exception {
+
+        List<RoleV2> appRoles = generateTestRoleListForAppAssociation(2);
+        when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
+                .thenReturn(Arrays.asList("roleId1", "roleId2"));
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, tenantDomain))
+                .thenReturn(appRoles);
+
+        AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
+        String[] resolvedRoles = resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, tenantDomain);
+
+        assertEquals(resolvedRoles, new String[]{"Internal/role1", "Internal/role2"});
+    }
+
+    @Test
+    public void testGetAppAssociatedRolesOfLocalUserOrgLogin() throws Exception {
+
+        List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
+        when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
+                .thenReturn(Arrays.asList("sharedRoleId1"));
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, appTenantDomain))
+                .thenReturn(mainRoles);
+
+        Map<String, String> roleMapping = new HashMap<>();
+        roleMapping.put("roleId1", "sharedRoleId1");
+        when(roleManagementService.getMainRoleToSharedRoleMappingsBySubOrg(
+                Arrays.asList("roleId1", "roleId2"), tenantDomain)).thenReturn(roleMapping);
+
+        RoleBasicInfo sharedRoleInfo = new RoleBasicInfo("sharedRoleId1", "sharedRole1");
+        when(roleManagementService.getRoleBasicInfoById("sharedRoleId1", tenantDomain))
+                .thenReturn(sharedRoleInfo);
+
+        AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
+        String[] resolvedRoles = resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
+
+        assertEquals(resolvedRoles, new String[]{"Internal/sharedRole1"});
+    }
+
+    @Test
+    public void testGetAppAssociatedRolesOfLocalUserOrgLoginEmptyMapping() throws Exception {
+
+        List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
+        when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
+                .thenReturn(Arrays.asList("roleId1", "roleId2"));
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, appTenantDomain))
+                .thenReturn(mainRoles);
+        when(roleManagementService.getMainRoleToSharedRoleMappingsBySubOrg(
+                Arrays.asList("roleId1", "roleId2"), tenantDomain)).thenReturn(Collections.emptyMap());
+
+        AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
+        String[] resolvedRoles = resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
+
+        assertTrue(resolvedRoles.length == 0);
+    }
+
+    @Test(expectedExceptions = ApplicationRolesException.class)
+    public void testGetAppAssociatedRolesOfLocalUserOrgLoginException() throws Exception {
+
+        List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
+        when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
+                .thenReturn(Arrays.asList("roleId1", "roleId2"));
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, appTenantDomain))
+                .thenReturn(mainRoles);
+        when(roleManagementService.getMainRoleToSharedRoleMappingsBySubOrg(
+                Arrays.asList("roleId1", "roleId2"), tenantDomain))
+                .thenThrow(new IdentityRoleManagementException("65001", "Error resolving shared roles"));
+
+        AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
+        resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
+    }
+
+    private AuthenticatedUser createLocalAuthenticatedUser(String userId, String userTenantDomain) {
+
+        AuthenticatedUser user = new AuthenticatedUser();
+        user.setUserId(userId);
+        user.setTenantDomain(userTenantDomain);
+        user.setFederatedUser(false);
+        return user;
     }
 
     private Map<ClaimMapping, String> generateTestFederatedUserAttributes() {
