@@ -250,7 +250,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (authRequest != null) {
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
                 }
-                context = initializeFlow(request, responseWrapper);
+                String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                        .getAccessingOrganizationId();
+                if (StringUtils.isBlank(accessingOrgId)) {
+                    context = initializeFlow(request, responseWrapper);
+                } else {
+                    context = initializeFlow(request, responseWrapper, authRequest);
+                }
 
                 // Set the authentication request before the context is cloned.
                 if (authRequest != null) {
@@ -286,7 +292,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             // Check if the application is enabled.
-            if (context != null && !isApplicationEnabled(request, context)) {
+            if (context != null && !isApplicationEnabled(request, context, authRequest)) {
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, null, ERROR_STATUS_APP_DISABLED,
                         ERROR_DESCRIPTION_APP_DISABLED);
                 return;
@@ -580,7 +586,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
+    private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context,
+                                         AuthenticationRequestCacheEntry authRequest)
             throws FrameworkException {
 
         String type = request.getParameter(TYPE);
@@ -591,7 +598,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (StringUtils.isBlank(relyingParty)) {
             relyingParty = context.getRelyingParty();
         }
-        ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request));
+        ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request, authRequest));
         if (serviceProvider == null) {
             throw new FrameworkException("Unable to retrieve service provider for relying party : " + relyingParty);
         }
@@ -773,6 +780,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response)
             throws FrameworkException {
 
+        return  initializeFlow(request, response, null);
+    }
+
+    protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response,
+                                                   AuthenticationRequestCacheEntry authRequest)
+            throws FrameworkException {
+
         if (log.isDebugEnabled()) {
             log.debug("Initializing the flow");
         }
@@ -792,7 +806,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String relyingParty = request.getParameter(FrameworkConstants.RequestParams.ISSUER);
 
         // tenant domain
-        String tenantDomain = getTenantDomain(request);
+        String tenantDomain = getTenantDomain(request, authRequest);
 
         String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
         String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
@@ -988,14 +1002,28 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         return StringUtils.equalsIgnoreCase(Boolean.TRUE.toString(), logoutParam);
     }
 
-    private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
+    private String getTenantDomain(HttpServletRequest request, AuthenticationRequestCacheEntry authRequest)
+            throws FrameworkException {
 
-        String appResidentOrganization = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .getApplicationResidentOrganizationId();
-        if (StringUtils.isNotBlank(appResidentOrganization)) {
-            return FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrganization);
+        // Resolve the app tenant domain from the auth request cache entry for org-aware authentication requests.
+        String accessingOrganizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getAccessingOrganizationId();
+        if (authRequest != null && authRequest.getAuthenticationRequest() != null &&
+                StringUtils.isNotBlank(accessingOrganizationId)) {
+            if (StringUtils.isNotBlank(authRequest.getAuthenticationRequest().getTenantDomain())) {
+                return authRequest.getAuthenticationRequest().getTenantDomain();
+            }
         }
 
+        /*
+        Handle the cases where the tenant domain is not available in the auth request cache entry such as logout
+        requests coming from logout servlets.
+         */
+        if (StringUtils.isNotBlank(accessingOrganizationId)) {
+            return FrameworkUtils.resolveTenantDomainFromOrganizationId(accessingOrganizationId);
+        }
+
+        // Handle the default paths without org-aware paths.
         String tenantDomain = getTenantDomainFromContext();
         if (StringUtils.isNotBlank(tenantDomain)) {
             if (log.isDebugEnabled()) {
