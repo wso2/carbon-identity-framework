@@ -73,6 +73,19 @@ public class InFlowExtensionActionConstants {
      */
     public static final int MAX_EXPOSE_PATHS = 50;
 
+    /**
+     * Property key for the external service's certificate stored in IDN_ACTION_PROPERTIES.
+     * During persistence the certificate object is replaced with its UUID (PRIMITIVE string);
+     * during retrieval the UUID is resolved back to the full Certificate object.
+     */
+    public static final String CERTIFICATE = "CERTIFICATE";
+
+    /**
+     * Naming prefix for certificates stored via CertificateManagementService.
+     * Full name format: {@code "ACTIONS:<action-uuid>"}.
+     */
+    public static final String CERTIFICATE_NAME_PREFIX = "ACTIONS:";
+
     private InFlowExtensionActionConstants() {
     }
 }

@@ -36,12 +36,14 @@ import java.util.Map;
 public class InFlowExtensionAction extends Action {
 
     private final AccessConfig accessConfig;
+    private final Encryption encryption;
     private final Map<String, AccessConfig> flowTypeOverrides;
 
     public InFlowExtensionAction(ResponseBuilder responseBuilder) {
 
         super(responseBuilder);
         this.accessConfig = responseBuilder.accessConfig;
+        this.encryption = responseBuilder.encryption;
         this.flowTypeOverrides = responseBuilder.flowTypeOverrides != null
                 ? Collections.unmodifiableMap(new HashMap<>(responseBuilder.flowTypeOverrides))
                 : Collections.emptyMap();
@@ -51,6 +53,7 @@ public class InFlowExtensionAction extends Action {
 
         super(requestBuilder);
         this.accessConfig = requestBuilder.accessConfig;
+        this.encryption = requestBuilder.encryption;
         this.flowTypeOverrides = requestBuilder.flowTypeOverrides != null
                 ? Collections.unmodifiableMap(new HashMap<>(requestBuilder.flowTypeOverrides))
                 : Collections.emptyMap();
@@ -64,6 +67,16 @@ public class InFlowExtensionAction extends Action {
     public AccessConfig getAccessConfig() {
 
         return accessConfig;
+    }
+
+    /**
+     * Returns the encryption configuration holding the external service's certificate.
+     *
+     * @return The encryption config, or {@code null} if not configured.
+     */
+    public Encryption getEncryption() {
+
+        return encryption;
     }
 
     /**
@@ -99,6 +112,7 @@ public class InFlowExtensionAction extends Action {
     public static class ResponseBuilder extends ActionResponseBuilder {
 
         private AccessConfig accessConfig;
+        private Encryption encryption;
         private Map<String, AccessConfig> flowTypeOverrides;
 
         @Override
@@ -177,6 +191,12 @@ public class InFlowExtensionAction extends Action {
             return this;
         }
 
+        public ResponseBuilder encryption(Encryption encryption) {
+
+            this.encryption = encryption;
+            return this;
+        }
+
         public ResponseBuilder flowTypeOverrides(Map<String, AccessConfig> flowTypeOverrides) {
 
             this.flowTypeOverrides = flowTypeOverrides;
@@ -197,6 +217,7 @@ public class InFlowExtensionAction extends Action {
     public static class RequestBuilder extends ActionRequestBuilder {
 
         private AccessConfig accessConfig;
+        private Encryption encryption;
         private Map<String, AccessConfig> flowTypeOverrides;
 
         public RequestBuilder(Action action) {
@@ -232,6 +253,12 @@ public class InFlowExtensionAction extends Action {
         public RequestBuilder accessConfig(AccessConfig accessConfig) {
 
             this.accessConfig = accessConfig;
+            return this;
+        }
+
+        public RequestBuilder encryption(Encryption encryption) {
+
+            this.encryption = encryption;
             return this;
         }
 

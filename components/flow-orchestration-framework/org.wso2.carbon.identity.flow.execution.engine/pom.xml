@@ -115,6 +115,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.action</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -182,6 +186,12 @@
                             org.wso2.carbon.identity.action.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.certificate.management.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.certificate.management.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.certificate.management.service;
                             version="${carbon.identity.package.import.version.range}",
                             com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
                             com.fasterxml.jackson.databind.*;

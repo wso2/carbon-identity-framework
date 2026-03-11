@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.FlowExecutionService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
@@ -103,7 +104,9 @@ public class FlowExecutionEngineServiceComponent {
             bundleContext.registerService(ActionConverter.class.getName(),
                     new InFlowExtensionActionConverter(), null);
             bundleContext.registerService(ActionDTOModelResolver.class.getName(),
-                    new InFlowExtensionActionDTOModelResolver(), null);
+                    new InFlowExtensionActionDTOModelResolver(
+                            FlowExecutionEngineDataHolder.getInstance().getCertificateManagementService()),
+                    null);
 
             // Register flow update interceptor for access config overrides
             bundleContext.registerService(FlowUpdateInterceptor.class.getName(),
@@ -254,25 +257,6 @@ public class FlowExecutionEngineServiceComponent {
     }
 
     @Reference(
-            name = "ActionExecutorService",
-            service = ActionExecutorService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetActionExecutorService"
-    )
-    protected void setActionExecutorService(ActionExecutorService actionExecutorService) {
-
-        LOG.debug("Setting the ActionExecutorService in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance().setActionExecutorService(actionExecutorService);
-    }
-
-    protected void unsetActionExecutorService(ActionExecutorService actionExecutorService) {
-
-        LOG.debug("Unsetting the ActionExecutorService in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance().setActionExecutorService(null);
-    }
-
-    @Reference(
             name = "ClaimMetadataManagementService",
             service = ClaimMetadataManagementService.class,
             cardinality = ReferenceCardinality.MANDATORY,
@@ -291,5 +275,45 @@ public class FlowExecutionEngineServiceComponent {
 
         LOG.debug("Unsetting the ClaimMetadataManagementService in the Flow Engine component.");
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "ActionManagementService",
+            service = ActionManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionManagementService"
+    )
+    protected void setActionManagementService(ActionManagementService actionManagementService) {
+
+        LOG.debug("Setting the ActionManagementService in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setActionManagementService(actionManagementService);
+    }
+
+    protected void unsetActionManagementService(ActionManagementService actionManagementService) {
+
+        LOG.debug("Unsetting the ActionManagementService in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setActionManagementService(null);
+    }
+
+    @Reference(
+            name = "CertificateManagementService",
+            service = CertificateManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCertificateManagementService"
+    )
+    protected void setCertificateManagementService(CertificateManagementService certificateManagementService) {
+
+        LOG.debug("Setting the CertificateManagementService in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance()
+                .setCertificateManagementService(certificateManagementService);
+    }
+
+    protected void unsetCertificateManagementService(
+            CertificateManagementService certificateManagementService) {
+
+        LOG.debug("Unsetting the CertificateManagementService in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setCertificateManagementService(null);
     }
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.internal;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
@@ -50,6 +51,7 @@ public class FlowExecutionEngineDataHolder {
     private ActionExecutorService actionExecutorService;
     private ActionManagementService actionManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
+    private CertificateManagementService certificateManagementService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -270,5 +272,25 @@ public class FlowExecutionEngineDataHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Get the CertificateManagementService instance.
+     *
+     * @return CertificateManagementService instance.
+     */
+    public CertificateManagementService getCertificateManagementService() {
+
+        return certificateManagementService;
+    }
+
+    /**
+     * Set the CertificateManagementService instance.
+     *
+     * @param certificateManagementService CertificateManagementService instance.
+     */
+    public void setCertificateManagementService(CertificateManagementService certificateManagementService) {
+
+        this.certificateManagementService = certificateManagementService;
     }
 }

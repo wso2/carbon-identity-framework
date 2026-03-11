@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
@@ -120,6 +121,11 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             pathTypeAnnotations = Collections.emptyMap();
         }
 
+        // Read access config for encryption metadata.
+        // Uses AccessConfig.isOperationPathEncrypted() for canonical encryption checking.
+        AccessConfig accessConfig = flowContext.getValue(
+                InFlowExtensionExecutor.ACCESS_CONFIG_KEY, AccessConfig.class);
+
         List<OperationExecutionResult> results = new ArrayList<>();
 
         // Get operations from the response (already filtered by ActionExecutorServiceImpl).
@@ -139,6 +145,9 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     normalizedOp.setValue(operation.getValue());
                     operation = normalizedOp;
                 }
+
+                // Decrypt inbound value if this operation path is marked as encrypted in AccessConfig.
+                operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
 
                 results.add(processOperation(operation, execCtx, tenantDomain, pathTypeAnnotations));
             }
@@ -706,5 +715,62 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     public static class InFlowExtensionSuccess implements Success {
 
         // Marker class for successful execution.
+    }
+
+    // ========================= Inbound decryption =========================
+
+    /**
+     * Decrypt the operation value if the operation path has encryption enabled in the AccessConfig.
+     * Uses {@link AccessConfig#isOperationPathEncrypted(String, String)} for canonical checking.
+     * For operations with encrypted paths, checks if the value looks like a JWE compact
+     * serialization and decrypts it using the IS's private key.
+     *
+     * @param operation    The operation to potentially decrypt.
+     * @param accessConfig The access config with encryption flags (may be null).
+     * @param tenantDomain Tenant domain for IS private key resolution.
+     * @return The operation with decrypted value, or the original operation if no decryption needed.
+     */
+    private PerformableOperation decryptOperationValueIfNeeded(PerformableOperation operation,
+            AccessConfig accessConfig, String tenantDomain) {
+
+        if (accessConfig == null || operation.getValue() == null) {
+            return operation;
+        }
+
+        // Check if this operation path has encryption enabled via AccessConfig.
+        if (!accessConfig.isOperationPathEncrypted(operation.getOp().name(), operation.getPath())) {
+            return operation;
+        }
+
+        // Only decrypt string values that look like JWE compact serialization.
+        Object value = operation.getValue();
+        if (!(value instanceof String)) {
+            return operation;
+        }
+
+        String stringValue = (String) value;
+        if (!JWEEncryptionUtil.isJWEEncrypted(stringValue)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Value for encrypted path " + operation.getPath() +
+                        " is not JWE-encrypted. Using as-is.");
+            }
+            return operation;
+        }
+
+        try {
+            String decrypted = JWEEncryptionUtil.decrypt(stringValue, tenantDomain);
+            PerformableOperation decryptedOp = new PerformableOperation();
+            decryptedOp.setOp(operation.getOp());
+            decryptedOp.setPath(operation.getPath());
+            decryptedOp.setValue(decrypted);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Successfully decrypted inbound JWE value for path: " + operation.getPath());
+            }
+            return decryptedOp;
+        } catch (Exception e) {
+            LOG.warn("Failed to decrypt inbound JWE value for path: " + operation.getPath() +
+                    ". Using raw value.", e);
+            return operation;
+        }
     }
 }
