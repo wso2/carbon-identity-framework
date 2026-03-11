@@ -329,7 +329,8 @@
       "identity_providers.support_multiple_certificate_export": false,
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
       "api.filters.single_character_wildcard": "_",
-      "transport.https.client.provider_name": ""
+      "transport.https.client.provider_name": "",
+      "identity_secret_manager.secret_value_clob_column_exists": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -390,7 +391,8 @@
       "identity_providers.support_multiple_certificate_export": false,
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
       "api.filters.single_character_wildcard": "_",
-      "transport.https.client.provider_name": ""
+      "transport.https.client.provider_name": "",
+      "identity_secret_manager.secret_value_clob_column_exists": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -412,7 +414,8 @@
       "identity_providers.support_multiple_certificate_export": false,
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
       "api.filters.single_character_wildcard": "_",
-      "transport.https.client.provider_name": ""
+      "transport.https.client.provider_name": "",
+      "identity_secret_manager.secret_value_clob_column_exists": false
     }
   }
 }
