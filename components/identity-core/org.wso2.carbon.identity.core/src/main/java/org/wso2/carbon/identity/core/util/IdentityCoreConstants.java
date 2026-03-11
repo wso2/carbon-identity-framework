@@ -143,6 +143,9 @@ public class IdentityCoreConstants {
 
     public static final int MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH = 255;
 
+    public static final String WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS = "WorkflowEngine.MaxApproverNotifications";
+    public static final int DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS = 15;
+
     public static class Filter {
 
         public static final String AND = "and";
