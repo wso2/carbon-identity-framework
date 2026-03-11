@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -66,10 +67,6 @@ import java.util.Map;
  *       Context updates are already applied directly to the {@link FlowExecutionContext}
  *       by the response processor.</li>
  * </ol>
- *
- * <p><b>Note:</b> Access config is never read from executor metadata. It is stored exclusively
- * in action properties (default and per-flow-type overrides in {@code IDN_ACTION_PROPERTIES}).
- * Executor metadata only provides the {@code actionId}.</p>
  */
 public class InFlowExtensionExecutor implements Executor {
 
@@ -81,6 +78,8 @@ public class InFlowExtensionExecutor implements Executor {
     public static final String EXPOSE_KEY = "expose";
     public static final String ALLOWED_OPERATIONS_KEY = "allowedOperations";
     public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
+    public static final String ACCESS_CONFIG_KEY = "accessConfig";
+    public static final String ENCRYPTION_KEY = "encryption";
     private static final String ACTION_ID_METADATA_KEY = "actionId";
 
     @Override
@@ -106,15 +105,14 @@ public class InFlowExtensionExecutor implements Executor {
                 LOG.debug("Executing In-Flow Extension action with ID: " + actionId);
             }
 
-            // Resolve access config exclusively from the action (with flow-type override support).
-            // Access config is NOT stored in executor metadata — it is stored in action properties.
             AccessConfig resolvedConfig = resolveAccessConfigFromAction(actionId, context);
+            Encryption encryption = resolveEncryptionFromAction(actionId, context);
 
             List<String> expose;
             String allowedOpsJson = null;
 
             if (resolvedConfig != null && resolvedConfig.getExpose() != null) {
-                expose = resolvedConfig.getExpose();
+                expose = resolvedConfig.getExposePaths();
             } else {
                 // No access config on action — use system defaults.
                 expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
@@ -134,6 +132,17 @@ public class InFlowExtensionExecutor implements Executor {
 
             if (allowedOpsJson != null) {
                 flowContext.add(ALLOWED_OPERATIONS_KEY, allowedOpsJson);
+            }
+
+            // Pass the full AccessConfig so request builder and response processor can access
+            // per-path encryption flags for JWE encryption/decryption.
+            if (resolvedConfig != null) {
+                flowContext.add(ACCESS_CONFIG_KEY, resolvedConfig);
+            }
+
+            // Pass the Encryption config (certificate) separately.
+            if (encryption != null) {
+                flowContext.add(ENCRYPTION_KEY, encryption);
             }
 
             ActionExecutorService actionExecutorService = getActionExecutorService();
@@ -291,7 +300,7 @@ public class InFlowExtensionExecutor implements Executor {
 
         try {
             Action action = actionMgtService.getActionByActionId(
-                    Action.ActionTypes.IN_FLOW_EXTENSION.getActionType(),
+                    Action.ActionTypes.IN_FLOW_EXTENSION.getPathParam(),
                     actionId, context.getTenantDomain());
 
             if (action instanceof InFlowExtensionAction) {
@@ -302,6 +311,34 @@ public class InFlowExtensionExecutor implements Executor {
         } catch (ActionMgtException e) {
             LOG.error("Error retrieving action " + actionId + " for access config resolution. "
                     + "Using system defaults.", e);
+        }
+        return null;
+    }
+
+    /**
+     * Resolve the encryption configuration (certificate) from the action.
+     *
+     * @param actionId The action ID.
+     * @param context  The flow execution context.
+     * @return The Encryption config, or {@code null} if none configured.
+     */
+    private Encryption resolveEncryptionFromAction(String actionId, FlowExecutionContext context) {
+
+        ActionManagementService actionMgtService = getActionManagementService();
+        if (actionMgtService == null) {
+            return null;
+        }
+
+        try {
+            Action action = actionMgtService.getActionByActionId(
+                    Action.ActionTypes.IN_FLOW_EXTENSION.getPathParam(),
+                    actionId, context.getTenantDomain());
+
+            if (action instanceof InFlowExtensionAction) {
+                return ((InFlowExtensionAction) action).getEncryption();
+            }
+        } catch (ActionMgtException e) {
+            LOG.error("Error retrieving encryption config for action " + actionId, e);
         }
         return null;
     }

@@ -30,6 +30,12 @@ import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
+import org.wso2.carbon.identity.certificate.management.model.Certificate;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AllowedOperation;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ExposePath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.OperationPath;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,8 +48,10 @@ import java.util.Set;
 import static java.util.Collections.emptyList;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_ALLOWED_OPERATIONS;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE_NAME_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.MAX_EXPOSE_PATHS;
 
 /**
@@ -65,10 +73,13 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionActionDTOModelResolver.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final TypeReference<List<String>> STRING_LIST_TYPE_REF =
-            new TypeReference<List<String>>() { };
-    private static final TypeReference<List<Map<String, Object>>> MAP_LIST_TYPE_REF =
-            new TypeReference<List<Map<String, Object>>>() { };
+
+    private final CertificateManagementService certificateManagementService;
+
+    public InFlowExtensionActionDTOModelResolver(CertificateManagementService certificateManagementService) {
+
+        this.certificateManagementService = certificateManagementService;
+    }
 
     @Override
     public Action.ActionTypes getSupportedActionType() {
@@ -85,16 +96,19 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         Object exposeValue = actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         // Expose is an optional field.
         if (exposeValue != null) {
-            List<String> validatedExpose = validateExpose(exposeValue);
+            List<ExposePath> validatedExpose = validateExpose(exposeValue);
             properties.put(ACCESS_CONFIG_EXPOSE, createBlobProperty(validatedExpose));
         }
 
         Object allowedOpsValue = actionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS);
         // Allowed operations is an optional field.
         if (allowedOpsValue != null) {
-            List<Map<String, Object>> validatedOps = validateAllowedOperations(allowedOpsValue);
+            List<AllowedOperation> validatedOps = validateAllowedOperations(allowedOpsValue);
             properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS, createBlobProperty(validatedOps));
         }
+
+        // Handle certificate: store via CertificateManagementService and replace with ID.
+        handleCertificateAdd(actionDTO, properties, tenantDomain);
 
         // Handle per-flow-type override properties (prefixed keys).
         if (actionDTO.getProperties() != null) {
@@ -103,13 +117,13 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
                     Object overrideExpose = actionDTO.getPropertyValue(key);
                     if (overrideExpose != null) {
-                        List<String> validatedOverrideExpose = validateExpose(overrideExpose);
+                        List<ExposePath> validatedOverrideExpose = validateExpose(overrideExpose);
                         properties.put(key, createBlobProperty(validatedOverrideExpose));
                     }
                 } else if (key.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)) {
                     Object overrideOps = actionDTO.getPropertyValue(key);
                     if (overrideOps != null) {
-                        List<Map<String, Object>> validatedOverrideOps = validateAllowedOperations(overrideOps);
+                        List<AllowedOperation> validatedOverrideOps = validateAllowedOperations(overrideOps);
                         properties.put(key, createBlobProperty(validatedOverrideOps));
                     }
                 }
@@ -137,6 +151,9 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
             properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS, deserializeAllowedOpsProperty(
                     ((BinaryObject) actionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS)).getJSONString()));
         }
+
+        // Retrieve certificate by stored ID.
+        handleCertificateGet(actionDTO, properties, tenantDomain);
 
         // Deserialize per-flow-type override properties (prefixed keys).
         if (actionDTO.getProperties() != null) {
@@ -191,16 +208,19 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         // updated the existing properties should be sent to the DAO layer.
 
         // Handle default access config properties.
-        List<String> expose = getResolvedUpdatingExpose(updatingActionDTO, existingActionDTO);
+        List<ExposePath> expose = getResolvedUpdatingExpose(updatingActionDTO, existingActionDTO);
         if (!expose.isEmpty()) {
             properties.put(ACCESS_CONFIG_EXPOSE, createBlobProperty(expose));
         }
 
-        List<Map<String, Object>> allowedOps =
+        List<AllowedOperation> allowedOps =
                 getResolvedUpdatingAllowedOps(updatingActionDTO, existingActionDTO);
         if (!allowedOps.isEmpty()) {
             properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS, createBlobProperty(allowedOps));
         }
+
+        // Handle certificate update.
+        handleCertificateUpdate(updatingActionDTO, existingActionDTO, properties, tenantDomain);
 
         // Handle per-flow-type override properties. Since DAO treats update as PUT (full replace),
         // we must carry forward all existing overrides that are not explicitly being updated.
@@ -221,13 +241,13 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
                     Object overrideExpose = updatingActionDTO.getPropertyValue(key);
                     if (overrideExpose != null) {
-                        List<String> validatedOverrideExpose = validateExpose(overrideExpose);
+                        List<ExposePath> validatedOverrideExpose = validateExpose(overrideExpose);
                         properties.put(key, createBlobProperty(validatedOverrideExpose));
                     }
                 } else if (key.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)) {
                     Object overrideOps = updatingActionDTO.getPropertyValue(key);
                     if (overrideOps != null) {
-                        List<Map<String, Object>> validatedOverrideOps = validateAllowedOperations(overrideOps);
+                        List<AllowedOperation> validatedOverrideOps = validateAllowedOperations(overrideOps);
                         properties.put(key, createBlobProperty(validatedOverrideOps));
                     }
                 }
@@ -242,32 +262,34 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     @Override
     public void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
-        // No-op: properties are cascade-deleted with the action in IDN_ACTION_PROPERTIES.
+
+        // Delete the certificate if one was stored for this action.
+        handleCertificateDelete(deletingActionDTO, tenantDomain);
     }
 
     // ---- Update helpers ----
 
     @SuppressWarnings("unchecked")
-    private List<String> getResolvedUpdatingExpose(ActionDTO updatingActionDTO, ActionDTO existingActionDTO)
+    private List<ExposePath> getResolvedUpdatingExpose(ActionDTO updatingActionDTO, ActionDTO existingActionDTO)
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
             return validateExpose(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
-            return (List<String>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
+            return (List<ExposePath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         }
         return emptyList();
     }
 
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> getResolvedUpdatingAllowedOps(ActionDTO updatingActionDTO,
-                                                                    ActionDTO existingActionDTO)
+    private List<AllowedOperation> getResolvedUpdatingAllowedOps(ActionDTO updatingActionDTO,
+                                                                 ActionDTO existingActionDTO)
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS) != null) {
             return validateAllowedOperations(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS) != null) {
-            return (List<Map<String, Object>>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS);
+            return (List<AllowedOperation>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS);
         }
         return emptyList();
     }
@@ -275,28 +297,43 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     // ---- Validation ----
 
     @SuppressWarnings("unchecked")
-    private List<String> validateExpose(Object exposeValue) throws ActionDTOModelResolverException {
+    private List<ExposePath> validateExpose(Object exposeValue) throws ActionDTOModelResolverException {
 
         if (!(exposeValue instanceof List<?>)) {
             throw new ActionDTOModelResolverClientException("Invalid expose format.",
-                    "Expose should be provided as a list of strings.");
+                    "Expose should be provided as a list.");
         }
 
         List<?> exposeList = (List<?>) exposeValue;
+        List<ExposePath> result = new ArrayList<>();
+
         for (Object item : exposeList) {
-            if (!(item instanceof String)) {
+            if (item instanceof String) {
+                // Simple string path — no encryption.
+                result.add(new ExposePath((String) item, false));
+            } else if (item instanceof Map) {
+                Map<?, ?> map = (Map<?, ?>) item;
+                if (!map.containsKey("path") || !(map.get("path") instanceof String)) {
+                    throw new ActionDTOModelResolverClientException("Invalid expose format.",
+                            "Each expose entry must be a string or an object with a 'path' field.");
+                }
+                String path = (String) map.get("path");
+                boolean encrypted = map.containsKey("encrypted") && toBooleanSafe(map.get("encrypted"));
+                result.add(new ExposePath(path, encrypted));
+            } else if (item instanceof ExposePath) {
+                result.add((ExposePath) item);
+            } else {
                 throw new ActionDTOModelResolverClientException("Invalid expose format.",
-                        "Expose must contain only string values.");
+                        "Each expose entry must be a string or an object with 'path' and optional 'encrypted' fields.");
             }
         }
 
-        List<String> expose = (List<String>) exposeValue;
-        validateExposeCount(expose);
-        validateExposePathFormat(expose);
-        return expose;
+        validateExposeCount(result);
+        validateExposePathFormat(result);
+        return result;
     }
 
-    private void validateExposeCount(List<String> expose) throws ActionDTOModelResolverClientException {
+    private void validateExposeCount(List<ExposePath> expose) throws ActionDTOModelResolverClientException {
 
         if (expose.size() > MAX_EXPOSE_PATHS) {
             throw new ActionDTOModelResolverClientException("Maximum expose paths limit exceeded.",
@@ -305,10 +342,11 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         }
     }
 
-    private void validateExposePathFormat(List<String> expose) throws ActionDTOModelResolverClientException {
+    private void validateExposePathFormat(List<ExposePath> expose) throws ActionDTOModelResolverClientException {
 
         Set<String> seen = new HashSet<>();
-        for (String path : expose) {
+        for (ExposePath exposePath : expose) {
+            String path = exposePath.getPath();
             if (path == null || path.trim().isEmpty()) {
                 throw new ActionDTOModelResolverClientException("Invalid expose path.",
                         "Expose paths must not be null or empty.");
@@ -325,7 +363,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     }
 
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> validateAllowedOperations(Object allowedOpsValue)
+    private List<AllowedOperation> validateAllowedOperations(Object allowedOpsValue)
             throws ActionDTOModelResolverClientException {
 
         if (!(allowedOpsValue instanceof List<?>)) {
@@ -334,23 +372,209 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         }
 
         List<?> opsList = (List<?>) allowedOpsValue;
+        List<AllowedOperation> result = new ArrayList<>();
+
         for (Object item : opsList) {
-            if (!(item instanceof Map)) {
+            if (item instanceof AllowedOperation) {
+                result.add((AllowedOperation) item);
+            } else if (item instanceof Map) {
+                Map<?, ?> opMap = (Map<?, ?>) item;
+                if (!opMap.containsKey("op") || !(opMap.get("op") instanceof String)) {
+                    throw new ActionDTOModelResolverClientException("Invalid allowed operation.",
+                            "Each allowed operation must contain an 'op' field with a string value.");
+                }
+                String op = (String) opMap.get("op");
+
+                if (!opMap.containsKey("paths") || !(opMap.get("paths") instanceof List)) {
+                    throw new ActionDTOModelResolverClientException("Invalid allowed operation.",
+                            "Each allowed operation must contain a 'paths' list.");
+                }
+
+                List<?> pathsList = (List<?>) opMap.get("paths");
+                List<OperationPath> operationPaths = new ArrayList<>();
+                for (Object pathItem : pathsList) {
+                    if (pathItem instanceof OperationPath) {
+                        operationPaths.add((OperationPath) pathItem);
+                    } else if (pathItem instanceof Map) {
+                        Map<?, ?> pathMap = (Map<?, ?>) pathItem;
+                        if (!pathMap.containsKey("path") || !(pathMap.get("path") instanceof String)) {
+                            throw new ActionDTOModelResolverClientException("Invalid operation path.",
+                                    "Each path entry must contain a 'path' field with a string value.");
+                        }
+                        String path = (String) pathMap.get("path");
+                        boolean encrypted = pathMap.containsKey("encrypted")
+                                && toBooleanSafe(pathMap.get("encrypted"));
+                        operationPaths.add(new OperationPath(path, encrypted));
+                    } else if (pathItem instanceof String) {
+                        // Simple string path — no encryption.
+                        operationPaths.add(new OperationPath((String) pathItem, false));
+                    } else {
+                        throw new ActionDTOModelResolverClientException("Invalid operation path format.",
+                                "Each path entry must be a string or an object with 'path' and "
+                                        + "optional 'encrypted' fields.");
+                    }
+                }
+                result.add(new AllowedOperation(op, operationPaths));
+            } else {
                 throw new ActionDTOModelResolverClientException("Invalid allowed operations format.",
-                        "Each allowed operation must be an object with 'op' and 'paths' keys.");
-            }
-            Map<?, ?> opMap = (Map<?, ?>) item;
-            if (!opMap.containsKey("op") || !(opMap.get("op") instanceof String)) {
-                throw new ActionDTOModelResolverClientException("Invalid allowed operation.",
-                        "Each allowed operation must contain an 'op' field with a string value.");
-            }
-            if (!opMap.containsKey("paths") || !(opMap.get("paths") instanceof List)) {
-                throw new ActionDTOModelResolverClientException("Invalid allowed operation.",
-                        "Each allowed operation must contain a 'paths' field with a list of strings.");
+                        "Each allowed operation must be an object with 'op' and 'paths' fields.");
             }
         }
 
-        return (List<Map<String, Object>>) allowedOpsValue;
+        return result;
+    }
+
+    // ---- Certificate lifecycle helpers ----
+
+    /**
+     * Stores the external service's certificate via CertificateManagementService during action creation.
+     * The certificate PEM is replaced with the stored certificate's ID as a PRIMITIVE property.
+     */
+    private void handleCertificateAdd(ActionDTO actionDTO, Map<String, ActionProperty> properties,
+                                      String tenantDomain) throws ActionDTOModelResolverException {
+
+        Object certValue = actionDTO.getPropertyValue(CERTIFICATE);
+        if (certValue == null) {
+            return;
+        }
+
+        String certificatePEM = extractCertificatePEM(certValue);
+        String certName = CERTIFICATE_NAME_PREFIX + actionDTO.getId();
+
+        try {
+            String certificateId = certificateManagementService.addCertificate(
+                    new Certificate.Builder()
+                            .name(certName)
+                            .certificateContent(certificatePEM)
+                            .build(),
+                    tenantDomain);
+
+            // Store the certificate ID as a primitive property so DAO persists just the ID.
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForDAO(certificateId).build());
+        } catch (CertificateMgtException e) {
+            throw new ActionDTOModelResolverException("Error storing certificate for action: "
+                    + actionDTO.getId(), e);
+        }
+    }
+
+    /**
+     * Retrieves the certificate by its stored ID during action get operations.
+     * Replaces the stored ID with the full Certificate object as a service-layer property.
+     */
+    private void handleCertificateGet(ActionDTO actionDTO, Map<String, ActionProperty> properties,
+                                      String tenantDomain) throws ActionDTOModelResolverException {
+
+        Object certIdValue = actionDTO.getPropertyValue(CERTIFICATE);
+        if (certIdValue == null) {
+            return;
+        }
+
+        try {
+            String certIdStr = certIdValue.toString();
+            Certificate certificate = certificateManagementService.getCertificate(
+                    certIdStr, tenantDomain);
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForService(certificate).build());
+        } catch (CertificateMgtException e) {
+            throw new ActionDTOModelResolverException("Error retrieving certificate for action: "
+                    + actionDTO.getId(), e);
+        }
+    }
+
+    /**
+     * Handles certificate lifecycle during action update: add new, update existing, delete, or carry forward.
+     */
+    private void handleCertificateUpdate(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+                                         Map<String, ActionProperty> properties, String tenantDomain)
+            throws ActionDTOModelResolverException {
+
+        Object newCertValue = updatingActionDTO.getPropertyValue(CERTIFICATE);
+        Object existingCertValue = existingActionDTO.getPropertyValue(CERTIFICATE);
+
+        if (newCertValue != null && existingCertValue != null) {
+            // Update existing certificate.
+            String certificatePEM = extractCertificatePEM(newCertValue);
+            try {
+                String existingCertId = extractCertificateId(existingCertValue);
+                certificateManagementService.updateCertificateContent(
+                        existingCertId, certificatePEM, tenantDomain);
+                // Carry forward the existing certificate ID.
+                properties.put(CERTIFICATE,
+                        new ActionProperty.BuilderForDAO(existingCertId).build());
+            } catch (CertificateMgtException e) {
+                throw new ActionDTOModelResolverException("Error updating certificate for action: "
+                        + updatingActionDTO.getId(), e);
+            }
+        } else if (newCertValue != null) {
+            // Add new certificate (previously had none).
+            handleCertificateAdd(updatingActionDTO, properties, tenantDomain);
+        } else if (existingCertValue != null) {
+            // No new certificate provided — carry forward the existing one (PUT semantics).
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForDAO(extractCertificateId(existingCertValue)).build());
+        }
+        // else: both null — no certificate to handle.
+    }
+
+    /**
+     * Deletes the certificate from IDN_CERTIFICATE during action deletion.
+     */
+    private void handleCertificateDelete(ActionDTO deletingActionDTO, String tenantDomain)
+            throws ActionDTOModelResolverException {
+
+        Object certIdValue = deletingActionDTO.getPropertyValue(CERTIFICATE);
+        if (certIdValue == null) {
+            return;
+        }
+
+        try {
+            String certId = certIdValue.toString();
+            certificateManagementService.deleteCertificate(certId, tenantDomain);
+        } catch (CertificateMgtException e) {
+            throw new ActionDTOModelResolverException("Error deleting certificate for action: "
+                    + deletingActionDTO.getId(), e);
+        }
+    }
+
+    /**
+     * Extracts the certificate UUID from a certificate property value.
+     * <p>
+     * The existing action DTO may come from the GET resolver, which replaces the stored UUID
+     * with the full {@link Certificate} object. This method handles both cases:
+     * - {@link Certificate} object: extracts the ID via {@code getId()}.
+     * - String: assumes it is already the UUID.
+     * </p>
+     */
+    private String extractCertificateId(Object certValue) {
+
+        if (certValue instanceof Certificate) {
+            return ((Certificate) certValue).getId();
+        }
+        return certValue.toString();
+    }
+
+    /**
+     * Extracts the PEM string from a certificate value, which may be a Certificate object,
+     * a Map, or a plain string.
+     */
+    private String extractCertificatePEM(Object certValue) throws ActionDTOModelResolverClientException {
+
+        if (certValue instanceof Certificate) {
+            return ((Certificate) certValue).getCertificateContent();
+        } else if (certValue instanceof Map) {
+            Map<?, ?> certMap = (Map<?, ?>) certValue;
+            Object content = certMap.get("certificateContent");
+            if (content instanceof String) {
+                return (String) content;
+            }
+            throw new ActionDTOModelResolverClientException("Invalid certificate format.",
+                    "Certificate object must contain a 'certificateContent' field.");
+        } else if (certValue instanceof String) {
+            return (String) certValue;
+        }
+        throw new ActionDTOModelResolverClientException("Invalid certificate format.",
+                "Certificate must be a PEM string, a Certificate object, or a map with 'certificateContent'.");
     }
 
     // ---- Serialization helpers ----
@@ -368,7 +592,8 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     private ActionProperty deserializeExposeProperty(String jsonString) throws ActionDTOModelResolverException {
 
         try {
-            List<String> expose = OBJECT_MAPPER.readValue(jsonString, STRING_LIST_TYPE_REF);
+            List<ExposePath> expose = OBJECT_MAPPER.readValue(jsonString,
+                    new TypeReference<List<ExposePath>>() { });
             return new ActionProperty.BuilderForService(expose).build();
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error reading expose values from storage.", e);
@@ -379,10 +604,29 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
             throws ActionDTOModelResolverException {
 
         try {
-            List<Map<String, Object>> allowedOps = OBJECT_MAPPER.readValue(jsonString, MAP_LIST_TYPE_REF);
+            List<AllowedOperation> allowedOps = OBJECT_MAPPER.readValue(jsonString,
+                    new TypeReference<List<AllowedOperation>>() { });
             return new ActionProperty.BuilderForService(allowedOps).build();
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error reading allowed operations from storage.", e);
         }
+    }
+
+    /**
+     * Safely converts a value to boolean, handling both {@link Boolean} and {@link String} types.
+     * Jackson deserializes JSON {@code true} as {@link Boolean} but JSON {@code "true"} as {@link String}.
+     *
+     * @param value The value to convert.
+     * @return {@code true} if the value is Boolean TRUE or the string "true" (case-insensitive).
+     */
+    private static boolean toBooleanSafe(Object value) {
+
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+            return Boolean.parseBoolean((String) value);
+        }
+        return false;
     }
 }

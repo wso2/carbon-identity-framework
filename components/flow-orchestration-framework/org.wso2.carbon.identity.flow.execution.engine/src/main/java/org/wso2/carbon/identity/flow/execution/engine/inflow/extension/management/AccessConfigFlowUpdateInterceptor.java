@@ -28,7 +28,10 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AllowedOperation;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ExposePath;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.OperationPath;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.mgt.FlowUpdateInterceptor;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
@@ -37,6 +40,7 @@ import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,10 +129,10 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
             // Parse the unified accessConfig JSON: {"expose": [...], "allowedOperations": [...]}
             Map<String, Object> accessConfigMap = OBJECT_MAPPER.readValue(accessConfigJson, MAP_TYPE_REF);
 
-            List<String> expose = accessConfigMap.containsKey(EXPOSE_FIELD)
-                    ? (List<String>) accessConfigMap.get(EXPOSE_FIELD) : null;
-            List<Map<String, Object>> allowedOps = accessConfigMap.containsKey(ALLOWED_OPERATIONS_FIELD)
-                    ? (List<Map<String, Object>>) accessConfigMap.get(ALLOWED_OPERATIONS_FIELD) : null;
+            List<ExposePath> expose = parseExposePaths(accessConfigMap.get(EXPOSE_FIELD));
+            List<AllowedOperation> allowedOps = parseAllowedOperations(
+                    accessConfigMap.get(ALLOWED_OPERATIONS_FIELD));
+            // Certificate is action-level only — not overridable per flow type.
             AccessConfig overrideConfig = new AccessConfig(expose, allowedOps);
 
             // Retrieve the existing action to merge overrides (preserving other flow types).
@@ -170,5 +174,102 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
                     "Error parsing access config metadata.",
                     "Error parsing access config metadata for action: " + actionId, e);
         }
+    }
+
+    /**
+     * Parse expose entries from the raw JSON value.
+     * Accepts both simple strings (no encryption) and objects ({path, encrypted}).
+     */
+    @SuppressWarnings("unchecked")
+    private List<ExposePath> parseExposePaths(Object value) {
+
+        if (value == null) {
+            return null;
+        }
+        if (!(value instanceof List)) {
+            LOG.warn("Invalid expose value in flow override accessConfig. Expected list.");
+            return null;
+        }
+
+        List<?> rawList = (List<?>) value;
+        List<ExposePath> result = new ArrayList<>();
+        for (Object item : rawList) {
+            if (item instanceof String) {
+                result.add(new ExposePath((String) item, false));
+            } else if (item instanceof Map) {
+                Map<?, ?> map = (Map<?, ?>) item;
+                String path = (String) map.get("path");
+                boolean encrypted = toBooleanSafe(map.get("encrypted"));
+                if (path != null) {
+                    result.add(new ExposePath(path, encrypted));
+                }
+            }
+        }
+        return result.isEmpty() ? null : result;
+    }
+
+    /**
+     * Parse allowed operations from the raw JSON value.
+     * Accepts the nested format: [{op, paths: [{path, encrypted}]}].
+     */
+    @SuppressWarnings("unchecked")
+    private List<AllowedOperation> parseAllowedOperations(Object value) {
+
+        if (value == null) {
+            return null;
+        }
+        if (!(value instanceof List)) {
+            LOG.warn("Invalid allowedOperations value in flow override accessConfig. Expected list.");
+            return null;
+        }
+
+        List<?> rawList = (List<?>) value;
+        List<AllowedOperation> result = new ArrayList<>();
+        for (Object item : rawList) {
+            if (item instanceof Map) {
+                Map<?, ?> map = (Map<?, ?>) item;
+                String op = (String) map.get("op");
+                Object pathsObj = map.get("paths");
+                if (op == null || !(pathsObj instanceof List)) {
+                    continue;
+                }
+                List<?> pathsList = (List<?>) pathsObj;
+                List<OperationPath> operationPaths = new ArrayList<>();
+                for (Object pathItem : pathsList) {
+                    if (pathItem instanceof Map) {
+                        Map<?, ?> pathMap = (Map<?, ?>) pathItem;
+                        String path = (String) pathMap.get("path");
+                        boolean encrypted = toBooleanSafe(pathMap.get("encrypted"));
+                        if (path != null) {
+                            operationPaths.add(new OperationPath(path, encrypted));
+                        }
+                    } else if (pathItem instanceof String) {
+                        operationPaths.add(new OperationPath((String) pathItem, false));
+                    }
+                }
+                if (!operationPaths.isEmpty()) {
+                    result.add(new AllowedOperation(op, operationPaths));
+                }
+            }
+        }
+        return result.isEmpty() ? null : result;
+    }
+
+    /**
+     * Safely converts a value to boolean, handling both {@link Boolean} and {@link String} types.
+     * Jackson deserializes JSON {@code true} as {@link Boolean} but JSON {@code "true"} as {@link String}.
+     *
+     * @param value The value to convert.
+     * @return {@code true} if the value is Boolean TRUE or the string "true" (case-insensitive).
+     */
+    private static boolean toBooleanSafe(Object value) {
+
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+            return Boolean.parseBoolean((String) value);
+        }
+        return false;
     }
 }
