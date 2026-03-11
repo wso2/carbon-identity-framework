@@ -40,7 +40,7 @@ public class ActionMgtServiceComponentHolder {
     /**
      * Get the instance of ActionMgtServiceComponentHolder.
      *
-     * @return ActionMgtServiceComponentHolder instance.
+     * @return ActionMgtdwdwedServiceComponentHolder instance.
      */
     public static ActionMgtServiceComponentHolder getInstance() {
 
