@@ -2991,7 +2991,7 @@
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
-    <EnhancedOrganizationAuthenticationFeatureEnabled>false</EnhancedOrganizationAuthenticationFeatureEnabled>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>true</EnhancedOrganizationAuthenticationFeatureEnabled>
     <WorkflowEngine>
         <MaxApproverNotifications>15</MaxApproverNotifications>
     </WorkflowEngine>
