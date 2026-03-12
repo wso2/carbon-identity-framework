@@ -95,7 +95,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
 
         ReentrantLock lock = getPermissionLock(tenantId, oldName);
         lock.lock();
-        
+
         try {
             Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                     RegistryType.USER_GOVERNANCE);
@@ -391,8 +391,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         try {
             IdentityTenantUtil.initializeRegistry(tenantId);
         } catch (IdentityException e) {
-            log.error("Error loading tenant registry for tenant domain: " +
-                    IdentityTenantUtil.getTenantDomain(tenantId), e);
+            log.error("Error loading tenant registry for tenant ID: " + tenantId, e);
         }
     }
 
