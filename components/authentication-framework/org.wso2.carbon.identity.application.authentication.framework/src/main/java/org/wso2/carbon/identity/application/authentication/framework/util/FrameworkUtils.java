@@ -4177,10 +4177,26 @@ public class FrameworkUtils {
     public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
                                                                               String tenantDomain) {
 
+        return processMultiAttributeLoginIdentification(loginIdentifier, tenantDomain, false);
+    }
+
+    /**
+     * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
+     *
+     * @param loginIdentifier         Login identifier for multi attribute login.
+     * @param tenantDomain            User tenant domain.
+     * @param allowDuplicateUsernames Indicate whether to allow duplicate usernames across user stores.
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise, returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
+                                                                              String tenantDomain,
+                                                                              boolean allowDuplicateUsernames) {
+
         ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
         if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
             resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
-                    resolveUser(loginIdentifier, tenantDomain);
+                    resolveUser(loginIdentifier, tenantDomain, allowDuplicateUsernames);
         }
         return resolvedUserResult;
     }
