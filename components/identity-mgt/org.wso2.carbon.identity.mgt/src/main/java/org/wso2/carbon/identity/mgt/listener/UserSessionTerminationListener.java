@@ -91,7 +91,8 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Terminating all the active sessions of the password reset user: " + username);
+            log.debug("Terminating all the active sessions of the password reset user: " +
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username));
         }
 
         terminateSessionsOfUser(username, userStoreManager);
