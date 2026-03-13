@@ -30,55 +30,6 @@
                         "placeholder": "Enter a description for the connection.",
                         "maxLength": "300",
                         "width": "13"
-                    },
-                    {
-                        "index": 2,
-                        "ariaLabel": "Presentation Definition ID",
-                        "name": "presentationDefinitionId",
-                        "label": "Presentation Definition ID",
-                        "type": "text",
-                        "required": true,
-                        "placeholder": "Enter the presentation definition ID.",
-                        "maxLength": "200",
-                        "minLength": "3",
-                        "width": "13"
-                    },
-                    {
-                        "index": 3,
-                        "ariaLabel": "Response Mode",
-                        "name": "responseMode",
-                        "label": "Response Mode",
-                        "type": "text",
-                        "required": true,
-                        "placeholder": "direct_post",
-                        "initialValue": "direct_post",
-                        "maxLength": "50",
-                        "minLength": "3",
-                        "width": "13"
-                    },
-                    {
-                        "index": 4,
-                        "ariaLabel": "Timeout",
-                        "name": "timeout",
-                        "label": "Timeout (seconds)",
-                        "type": "number",
-                        "required": true,
-                        "placeholder": "300",
-                        "initialValue": "300",
-                        "width": "13"
-                    },
-                    {
-                        "index": 5,
-                        "ariaLabel": "Subject Claim",
-                        "name": "subjectClaim",
-                        "label": "Subject Claim",
-                        "type": "text",
-                        "required": false,
-                        "placeholder": "email",
-                        "initialValue": "email",
-                        "maxLength": "200",
-                        "minLength": "1",
-                        "width": "13"
                     }
                 ]
             }
