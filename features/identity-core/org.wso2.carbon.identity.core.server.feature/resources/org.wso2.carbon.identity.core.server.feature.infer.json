@@ -296,6 +296,9 @@
         "POST_ADD_ORGANIZATION"
       ],
       "flow_execution.enable_legacy_flows": true,
+      "flow_execution.enable_legacy_self_registration_flow": true,
+      "flow_execution.enable_legacy_password_recovery_flow": true,
+      "flow_execution.enable_legacy_invited_user_registration_flow": true,
       "organization_discovery.default_param": "orgName",
       "console.ui.organizations.organization_display_name.enable": false,
       "console.ui.organizations.organization_handle.enable": false,
