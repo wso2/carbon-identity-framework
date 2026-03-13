@@ -884,6 +884,7 @@
         <SAMLIdpInitLogoutResponseSigningEnabled>true</SAMLIdpInitLogoutResponseSigningEnabled>
         <SAML2AuthnRequestsSigningEnabled>false</SAML2AuthnRequestsSigningEnabled>
         <SAMLAssertionEncyptWithAppCert>true</SAMLAssertionEncyptWithAppCert>
+        <SAMLAllowNestedAssertionsInResponse>false</SAMLAllowNestedAssertionsInResponse>
     </SSOService>
 
     <Consent>
