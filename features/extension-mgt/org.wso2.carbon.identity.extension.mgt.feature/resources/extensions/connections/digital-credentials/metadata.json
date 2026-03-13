@@ -1,0 +1,161 @@
+{
+    "create": {
+        "image": "assets/images/logos/wallet.svg",
+        "header": "Digital Credentials",
+        "Subheading": "Login users with their Digital Credentials.",
+        "documentation": "https://github.com/wso2-extensions/identity-inbound-auth-openid4vp",
+        "modal": {
+            "form": {
+                "fields": [
+                    {
+                        "index": 0,
+                        "ariaLabel": "Digital Credentials Name",
+                        "name": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter a name for the connection.",
+                        "initialValue": "Digital Credentials",
+                        "maxLength": "50",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 1,
+                        "ariaLabel": "Digital Credentials Description",
+                        "name": "description",
+                        "label": "Description",
+                        "type": "textarea",
+                        "required": false,
+                        "placeholder": "Enter a description for the connection.",
+                        "maxLength": "300",
+                        "width": "13"
+                    },
+                    {
+                        "index": 2,
+                        "ariaLabel": "Presentation Definition ID",
+                        "name": "presentationDefinitionId",
+                        "label": "Presentation Definition ID",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter the presentation definition ID.",
+                        "maxLength": "200",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 3,
+                        "ariaLabel": "Response Mode",
+                        "name": "responseMode",
+                        "label": "Response Mode",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "direct_post",
+                        "initialValue": "direct_post",
+                        "maxLength": "50",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 4,
+                        "ariaLabel": "Timeout",
+                        "name": "timeout",
+                        "label": "Timeout (seconds)",
+                        "type": "number",
+                        "required": true,
+                        "placeholder": "300",
+                        "initialValue": "300",
+                        "width": "13"
+                    },
+                    {
+                        "index": 5,
+                        "ariaLabel": "Subject Claim",
+                        "name": "subjectClaim",
+                        "label": "Subject Claim",
+                        "type": "text",
+                        "required": false,
+                        "placeholder": "email",
+                        "initialValue": "email",
+                        "maxLength": "200",
+                        "minLength": "1",
+                        "width": "13"
+                    }
+                ]
+            }
+        },
+        "properties": [
+            {
+                "key": "presentationDefinitionId",
+                "value": ""
+            },
+            {
+                "key": "responseMode",
+                "value": "direct_post"
+            },
+            {
+                "key": "timeout",
+                "value": "300"
+            },
+            {
+                "key": "subjectClaim",
+                "value": "email"
+            }
+        ]
+    },
+    "edit": {
+        "tabs": {
+            "general": [
+                {
+                    "index": 0,
+                    "name": "name",
+                    "label": "Name",
+                    "type": "text",
+                    "required": true,
+                    "placeholder": "Digital Credentials",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "width": "16"
+                },
+                {
+                    "index": 1,
+                    "name": "description",
+                    "label": "Description",
+                    "type": "textarea",
+                    "required": false,
+                    "placeholder": "Login users with their Digital Credentials.",
+                    "maxLength": "300",
+                    "width": "16"
+                }
+            ],
+            "settings": {
+                "fields": [
+                    {
+                        "index": 0,
+                        "name": "presentationDefinitionId",
+                        "label": "Presentation Definition ID",
+                        "type": "text",
+                        "required": true,
+                        "readOnly": true,
+                        "width": "16"
+                    },
+                    {
+                        "index": 1,
+                        "name": "responseMode",
+                        "label": "Response Mode",
+                        "type": "text",
+                        "required": true,
+                        "width": "16"
+                    },
+                    {
+                        "index": 2,
+                        "name": "timeout",
+                        "label": "Timeout (seconds)",
+                        "type": "number",
+                        "required": true,
+                        "width": "16"
+                    }
+                ]
+            }
+        }
+    }
+}

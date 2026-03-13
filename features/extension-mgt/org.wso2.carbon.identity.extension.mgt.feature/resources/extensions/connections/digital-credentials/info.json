@@ -5,6 +5,6 @@
     "image": "assets/images/logos/wallet.svg",
     "category": "DEFAULT",
     "displayOrder": 1,
-    "tags": [ "Wallet", "Verifiable Credentials" ],
+    "tags": [ "Wallet", "Verifiable Credentials", "OID4VP", "Digital Credentials" ],
     "type": "identity-provider"
 }

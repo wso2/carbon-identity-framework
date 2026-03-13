@@ -7,7 +7,7 @@
     "category": "DEFAULT",
     "displayOrder": 1,
     "services": [],
-    "tags": [ "Wallet" ],
+    "tags": [ "Wallet", "Digital Credentials", "OID4VP" ],
     "idp": {
         "name": "Digital Credentials",
         "description": "Login with Digital Credentials",
@@ -27,17 +27,18 @@
             "roleClaim": {
                 "uri": "http://wso2.org/claims/role"
             },
-            "provisioningClaims": []
+            "provisioningClaims": [],
+            "mappings": []
         },
         "roles": {
             "mappings": [],
             "outboundProvisioningRoles": []
         },
         "federatedAuthenticators": {
-            "defaultAuthenticatorId": "T3BlbklENFZQQXV0aGVudGljYXRvcg==", 
+            "defaultAuthenticatorId": "T3BlbklENFZQQXV0aGVudGljYXV0b3I=", 
             "authenticators": [
                 {
-                    "authenticatorId": "T3BlbklENFZQQXV0aGVudGljYXRvcg==",
+                    "authenticatorId": "T3BlbklENFZQQXV0aGVudGljYXV0b3I=",
                     "isEnabled": true,
                     "properties": [
                         {
@@ -46,7 +47,7 @@
                             "description": "ID of the presentation definition to use for VP requests",
                             "type": "STRING",
                             "displayOrder": 1,
-                            "isMandatory": false
+                            "isMandatory": true
                         },
                          {
                             "key": "responseMode",
@@ -55,7 +56,7 @@
                             "type": "STRING",
                             "displayOrder": 2,
                             "defaultValue": "direct_post",
-                            "isMandatory": false
+                            "isMandatory": true
                         },
                          {
                             "key": "timeout",
@@ -64,33 +65,16 @@
                             "type": "INTEGER",
                             "displayOrder": 3,
                             "defaultValue": "300",
-                            "isMandatory": false
-                        },
-                        {
-                            "key": "clientId",
-                            "displayName": "Client ID",
-                            "description": "Client ID to use in VP requests (auto-generated if not specified)",
-                            "type": "STRING",
-                            "displayOrder": 4,
-                            "isMandatory": false
+                            "isMandatory": true
                         },
                         {
                             "key": "subjectClaim",
                             "displayName": "Subject Claim",
                             "description": "Claim path to use as the authenticated subject identifier",
                             "type": "STRING",
-                            "displayOrder": 5,
+                            "displayOrder": 4,
                             "defaultValue": "credentialSubject.id",
                             "isMandatory": false
-                        },
-                        {
-                            "key": "presentationDefinition",
-                            "displayName": "Presentation Definition",
-                            "description": "JSON representation of the presentation definition",
-                            "type": "STRING",
-                            "displayOrder": 6,
-                            "isMandatory": false,
-                            "isConfidential": false
                         }
                     ]
                 }
