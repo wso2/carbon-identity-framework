@@ -40,6 +40,15 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
 
     @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !LoggerUtils.isEnableV2AuditLogs();
+        }
+        return false;
+    }
+
+    @Override
     public int getExecutionOrderId() {
 
         int orderId = getOrderId();
