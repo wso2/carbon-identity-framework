@@ -4,7 +4,7 @@
     "description": "Login users with their Digital Credentials.",
     "image": "assets/images/logos/wallet.svg",
     "category": "DEFAULT",
-    "displayOrder": 1,
-    "tags": [ "Wallet", "Verifiable Credentials", "OID4VP", "Digital Credentials" ],
+    "displayOrder": 3,
+    "tags": [ "Wallet", "Digital Credentials" ],
     "type": "identity-provider"
 }
