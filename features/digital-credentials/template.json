@@ -1,0 +1,102 @@
+{
+    "id": "digital-credentials",
+    "name": "Digital Credentials",
+    "description": "Login users with their Digital Credentials.",
+    "docLink": "https://github.com/wso2-extensions/identity-inbound-auth-openid4vp",
+    "image": "assets/images/logos/wallet.svg",
+    "category": "DEFAULT",
+    "displayOrder": 1,
+    "services": [],
+    "tags": [ "Wallet" ],
+    "idp": {
+        "name": "Digital Credentials",
+        "description": "Login with Digital Credentials",
+        "image": "assets/images/logos/wallet.svg",
+        "isPrimary": false,
+        "isFederationHub": false,
+        "homeRealmIdentifier": "",
+        "certificate": {
+            "certificates": []
+        },
+        "alias": "",
+        "idpIssuerName": "",
+        "claims": {
+             "userIdClaim": {
+                "uri": "http://wso2.org/claims/username"
+            },
+            "roleClaim": {
+                "uri": "http://wso2.org/claims/role"
+            },
+            "provisioningClaims": []
+        },
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        },
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "T3BlbklENFZQQXV0aGVudGljYXRvcg==", 
+            "authenticators": [
+                {
+                    "authenticatorId": "T3BlbklENFZQQXV0aGVudGljYXRvcg==",
+                    "isEnabled": true,
+                    "properties": [
+                        {
+                            "key": "presentationDefinitionId",
+                            "displayName": "Presentation Definition ID",
+                            "description": "ID of the presentation definition to use for VP requests",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "isMandatory": false
+                        },
+                         {
+                            "key": "responseMode",
+                            "displayName": "Response Mode",
+                            "description": "Response mode for VP submissions (direct_post or direct_post.jwt)",
+                            "type": "STRING",
+                            "displayOrder": 2,
+                            "defaultValue": "direct_post",
+                            "isMandatory": false
+                        },
+                         {
+                            "key": "timeout",
+                            "displayName": "Timeout (seconds)",
+                            "description": "Timeout for VP requests in seconds",
+                            "type": "INTEGER",
+                            "displayOrder": 3,
+                            "defaultValue": "300",
+                            "isMandatory": false
+                        },
+                        {
+                            "key": "clientId",
+                            "displayName": "Client ID",
+                            "description": "Client ID to use in VP requests (auto-generated if not specified)",
+                            "type": "STRING",
+                            "displayOrder": 4,
+                            "isMandatory": false
+                        },
+                        {
+                            "key": "subjectClaim",
+                            "displayName": "Subject Claim",
+                            "description": "Claim path to use as the authenticated subject identifier",
+                            "type": "STRING",
+                            "displayOrder": 5,
+                            "defaultValue": "credentialSubject.id",
+                            "isMandatory": false
+                        },
+                        {
+                            "key": "presentationDefinition",
+                            "displayName": "Presentation Definition",
+                            "description": "JSON representation of the presentation definition",
+                            "type": "STRING",
+                            "displayOrder": 6,
+                            "isMandatory": false,
+                            "isConfidential": false
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "type": "STANDARD", 
+    "templateId": "digital-credentials"
+}
