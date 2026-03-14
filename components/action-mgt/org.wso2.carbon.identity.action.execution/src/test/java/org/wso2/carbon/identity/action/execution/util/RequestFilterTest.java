@@ -324,4 +324,90 @@ public class RequestFilterTest {
                 ActionType.PRE_UPDATE_PASSWORD);
         assertEquals(filteredParams.size(), 0);
     }
+
+    @Test(description = "Ensures that for pre-issue access token v2 with no allowed headers configured, " +
+            "no headers are returned by default.")
+    public void testGetFilteredHeadersForV2PreIssueAccessTokenReturnsEmptyByDefault() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, Collections.emptyList(),
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, "v2");
+
+        assertEquals(filteredHeaders.size(), 0);
+    }
+
+    @Test(description = "Ensures that for pre-issue access token v2 with no allowed params configured, " +
+            "no params are returned by default.")
+    public void testGetFilteredParamsForV2PreIssueAccessTokenReturnsEmptyByDefault() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+
+        List<Param> filteredParams = RequestFilter.getFilteredParams(requestParams, Collections.emptyList(),
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, "v2");
+
+        assertEquals(filteredParams.size(), 0);
+    }
+
+    @Test(description = "Ensures that for pre-issue access token v2 with action-level allowed headers, " +
+            "only the allowed headers are returned.")
+    public void testGetFilteredHeadersForV2PreIssueAccessTokenWithActionAllowedHeaders() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        Mockito.when(config.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+
+        List<String> allowedHeadersInAction = new ArrayList<>();
+        allowedHeadersInAction.add("X-Header-1");
+        allowedHeadersInAction.add("X-Header-3");
+
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, allowedHeadersInAction,
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, "v2");
+
+        assertEquals(filteredHeaders.size(), 2);
+        filteredHeaders.forEach(filteredHeader -> {
+            if (filteredHeader.getName().equals("x-header-1")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-1-value"});
+            } else if (filteredHeader.getName().equals("x-header-3")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
+            }
+        });
+    }
+
+    @Test(description = "Ensures that for pre-issue access token v2 with action-level allowed params, " +
+            "only the allowed params are returned.")
+    public void testGetFilteredParamsForV2PreIssueAccessTokenWithActionAllowedParams() {
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        Mockito.when(config.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+        Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(Collections.emptySet());
+
+        List<String> allowedParamsInAction = new ArrayList<>();
+        allowedParamsInAction.add("x-param-1");
+        allowedParamsInAction.add("x-param-3");
+
+        List<Param> filteredParams = RequestFilter.getFilteredParams(requestParams, allowedParamsInAction,
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, "v2");
+
+        assertEquals(filteredParams.size(), 2);
+        filteredParams.forEach(filteredParam -> {
+            if (filteredParam.getName().equals("x-param-1")) {
+                assertEquals(filteredParam.getValue(), new String[]{"X-param-1-value"});
+            } else if (filteredParam.getName().equals("x-param-3")) {
+                assertEquals(filteredParam.getValue(), new String[]{"X-param-3-value"});
+            }
+        });
+    }
 }
