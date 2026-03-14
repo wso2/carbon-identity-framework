@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * API Resource Manager Interface.
@@ -250,4 +251,13 @@ public interface APIResourceManager {
      * @throws APIResourceMgtException If an error occurs while retrieving scopes.
      */
     List<Scope> getSystemAPIScopes(String tenantDomain) throws APIResourceMgtException;
+
+    /**
+     * Get all System API resources with scopes.
+     *
+     * @param tenantId Tenant ID.
+     * @return Map of API Resource Identifier and List of Scopes.
+     * @throws APIResourceMgtException If an error occurs while retrieving System API resources with scopes.
+     */
+    Map<String, List<String>> getAllSystemAPIResourcesWithScopes(int tenantId) throws APIResourceMgtException;
 }
