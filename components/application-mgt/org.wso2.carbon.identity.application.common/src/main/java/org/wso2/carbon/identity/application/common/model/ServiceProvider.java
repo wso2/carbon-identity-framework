@@ -606,7 +606,7 @@ public class ServiceProvider implements Serializable {
 
     public void setAccessUrl(String accessUrl) {
 
-        this.accessUrl = accessUrl;
+        this.accessUrl = accessUrl == null ? null : accessUrl.trim();
     }
 
     public String getJwksUri() {
