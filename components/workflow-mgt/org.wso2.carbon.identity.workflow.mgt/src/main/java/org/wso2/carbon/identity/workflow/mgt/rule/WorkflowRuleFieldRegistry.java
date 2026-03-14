@@ -44,7 +44,7 @@ public class WorkflowRuleFieldRegistry {
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("name")
                     .displayAttr("name")
-                    .addLink("/api/server/v1/userstores", "GET", "values")
+                    .addLink("/userstores", "GET", "values")
                 .build());
 
         fields.put("user.groups", new FieldDefinitionBuilder()
@@ -55,8 +55,8 @@ public class WorkflowRuleFieldRegistry {
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
                     .displayAttr("displayName")
-                    .addLink("/scim2/Groups?offset=0&limit=10", "GET", "values")
-                    .addLink("/scim2/Groups?filter=displayName co &limit=10", "GET", "filter")
+                    .addLink("/scim2/Groups?offset=0&count=10", "GET", "values")
+                    .addLink("/scim2/Groups?filter=&count=10", "GET", "filter")
                 .build());
 
         fields.put("user.roles", new FieldDefinitionBuilder()
@@ -67,8 +67,8 @@ public class WorkflowRuleFieldRegistry {
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
                     .displayAttr("displayName")
-                    .addLink("/scim2/v2/Roles?offset=0&limit=10", "GET", "values")
-                    .addLink("/scim2/v2/Roles?filter=displayName co &limit=10", "GET", "filter")
+                    .addLink("/scim2/v2/Roles?offset=0&count=10", "GET", "values")
+                    .addLink("/scim2/v2/Roles?filter=&count=10", "GET", "filter")
                 .build());
 
         fields.put("initiator.domain", new FieldDefinitionBuilder()
@@ -79,7 +79,7 @@ public class WorkflowRuleFieldRegistry {
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("name")
                     .displayAttr("name")
-                    .addLink("/api/server/v1/userstores", "GET", "values")
+                    .addLink("/userstores", "GET", "values")
                 .build());
 
         fields.put("initiator.groups", new FieldDefinitionBuilder()
@@ -90,8 +90,8 @@ public class WorkflowRuleFieldRegistry {
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
                     .displayAttr("displayName")
-                    .addLink("/scim2/Groups?offset=0&limit=10", "GET", "values")
-                    .addLink("/scim2/Groups?filter=displayName co &limit=10", "GET", "filter")
+                    .addLink("/scim2/Groups?offset=0&count=10", "GET", "values")
+                    .addLink("/scim2/Groups?filter=&count=10", "GET", "filter")
                 .build());
 
         fields.put("initiator.roles", new FieldDefinitionBuilder()
@@ -102,20 +102,20 @@ public class WorkflowRuleFieldRegistry {
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
                     .displayAttr("displayName")
-                    .addLink("/scim2/v2/Roles?offset=0&limit=10", "GET", "values")
-                    .addLink("/scim2/v2/Roles?filter=displayName co &limit=10", "GET", "filter")
+                    .addLink("/scim2/v2/Roles?offset=0&count=10", "GET", "values")
+                    .addLink("/scim2/v2/Roles?filter=&count=10", "GET", "filter")
                 .build());
 
         fields.put("role.id", new FieldDefinitionBuilder()
                 .name("role.id")
-                .displayName("role")
+                .displayName("target role")
                 .operators("equals", "notEquals")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
                     .displayAttr("displayName")
-                    .addLink("/scim2/v2/Roles?offset=0&limit=10", "GET", "values")
-                    .addLink("/scim2/v2/Roles?filter=displayName co &limit=10", "GET", "filter")
+                    .addLink("/scim2/v2/Roles?offset=0&count=10", "GET", "values")
+                    .addLink("/scim2/v2/Roles?filter=&count=10", "GET", "filter")
                 .build());
 
         fields.put("role.audience", new FieldDefinitionBuilder()
@@ -140,7 +140,7 @@ public class WorkflowRuleFieldRegistry {
         
         fields.put("role.hasAssignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasAssignedUsers")
-                .displayName("role has assigned users")
+                .displayName("target role has users to be assigned")
                 .operators("equals")
                 .options()
                     .valueType(Value.ValueType.STRING)
@@ -150,7 +150,7 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.hasUnassignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasUnassignedUsers")
-                .displayName("role has unassigned users")
+                .displayName("target role has users to be unassigned")
                 .operators("equals")
                 .options()
                     .valueType(Value.ValueType.STRING)
