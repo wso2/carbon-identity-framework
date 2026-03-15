@@ -466,6 +466,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
                 .rule(actionDTO.getActionRule())
+                .attributes(actionDTO.getAttributes())
                 .build();
     }
 }

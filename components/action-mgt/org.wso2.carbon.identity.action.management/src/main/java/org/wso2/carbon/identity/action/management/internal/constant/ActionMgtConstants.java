@@ -39,6 +39,7 @@ public class ActionMgtConstants {
     public static final String ALLOWED_HEADERS_PROPERTY = "allowedHeaders";
     public static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
     public static final String RULE_PROPERTY = "rule";
+    public static final String ATTRIBUTES_PROPERTY = "attributes";
 
     private ActionMgtConstants() {
     }
