@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionMgtExcepti
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -156,7 +158,28 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
-    @Test(priority = 2, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 2)
+    public void testAddActionWithAttributes() throws ActionMgtException, SecretManagementException {
+
+        List<String> attributes = Arrays.asList("attr1", "attr2");
+        Action updatingAction = new Action.ActionRequestBuilder()
+                .name(TEST_ACTION_NAME)
+                .description(TEST_ACTION_DESCRIPTION)
+                .actionVersion(TestUtil.TEST_DEFAULT_LATEST_ACTION_VERSION)
+                .attributes(attributes)
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(TEST_ACTION_URI)
+                        .authentication(TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD))
+                        .build())
+                .build();
+
+        Action updated = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                updatingAction, TENANT_DOMAIN);
+        Assert.assertEquals(updated.getAttributes(), attributes);
+        sampleAction = updated;
+    }
+
+    @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithInvalidData() throws ActionMgtException {
 
@@ -169,7 +192,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(action);
     }
 
-    @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 4, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithEmptyData() throws ActionMgtException {
 
@@ -182,7 +205,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(action);
     }
 
-    @Test(priority = 4, expectedExceptions = ActionMgtException.class,
+    @Test(priority = 5, expectedExceptions = ActionMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddMaximumActionsPerType() throws ActionMgtException {
 
@@ -195,7 +218,7 @@ public class ActionManagementServiceImplTest {
                 TENANT_DOMAIN);
     }
 
-    @Test(priority = 5)
+    @Test(priority = 6)
     public void testGetActionsByActionType() throws ActionMgtException {
 
         List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
@@ -222,7 +245,7 @@ public class ActionManagementServiceImplTest {
                 sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
-    @Test(priority = 6)
+    @Test(priority = 7)
     public void testGetActionByActionId() throws ActionMgtException {
 
         Action result = actionManagementService.getActionByActionId(sampleAction.getType().getPathParam(),
@@ -247,7 +270,7 @@ public class ActionManagementServiceImplTest {
                 sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
-    @Test(priority = 6)
+    @Test(priority = 8)
     public void testUpdateActionFailureWithNotAllowedActionVersion() throws Exception {
 
         Action updatingAction = TestUtil.buildMockActionWithVersion(
@@ -260,7 +283,7 @@ public class ActionManagementServiceImplTest {
                 PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), updatingAction, TENANT_DOMAIN));
     }
 
-    @Test(priority = 7)
+    @Test(priority = 9)
     public void testUpdateAction() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockAction(
@@ -293,7 +316,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 8)
+    @Test(priority = 10)
     public void testActivateAction() throws ActionMgtException {
 
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
@@ -307,7 +330,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = activatedAction;
     }
 
-    @Test(priority = 10)
+    @Test(priority = 11)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = actionManagementService.getActionsCountPerType(TENANT_DOMAIN);
@@ -321,7 +344,7 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 11)
+    @Test(priority = 12)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
@@ -334,7 +357,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertTrue(deactivatedAction.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
-    @Test(priority = 11)
+    @Test(priority = 13)
     public void testUpdateEndpointConfigWithSameAuthenticationType() throws ActionMgtException,
             SecretManagementException {
 
@@ -355,7 +378,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
-    @Test(priority = 12)
+    @Test(priority = 14)
     public void testUpdateEndpointConfigWithDifferentAuthenticationType()
             throws ActionMgtException, SecretManagementException {
 
@@ -373,7 +396,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
-    @Test(priority = 13)
+    @Test(priority = 15)
     public void testDeleteAction() throws ActionMgtException {
 
         actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
@@ -383,7 +406,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(actions.get(PRE_ISSUE_ACCESS_TOKEN_PATH));
     }
 
-    @Test(priority = 14)
+    @Test(priority = 16)
     public void testDeleteNonExistingAction() {
 
         try {
@@ -393,7 +416,7 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 15)
+    @Test(priority = 17)
     public void testAddActionWithRule() throws ActionMgtException, SecretManagementException {
 
         Action creatingAction = TestUtil.buildMockActionWithRule(
@@ -430,7 +453,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleAction.getActionRule().getRule(), creatingAction.getActionRule().getRule());
     }
 
-    @Test(priority = 16)
+    @Test(priority = 18)
     public void testGetActionsWithRulesByActionType() throws ActionMgtException {
 
         List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
@@ -461,7 +484,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getActionRule().getRule(), sampleAction.getActionRule().getRule());
     }
 
-    @Test(priority = 17)
+    @Test(priority = 19)
     public void testUpdateActionUpdatingRule() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockActionWithRule(
