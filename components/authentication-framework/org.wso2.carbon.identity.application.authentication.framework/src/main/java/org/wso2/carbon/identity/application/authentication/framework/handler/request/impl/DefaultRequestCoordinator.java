@@ -841,11 +841,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
             try {
-                if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
-                        FrameworkUtils.isURLRelative(callerPath)) {
+                if (FrameworkUtils.isURLRelative(callerPath)) {
+                    boolean isTenantQualifiedPathWithLoginTenantDomain =
+                        callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/");
                     String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                    if (organizationId == null || !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX
-                            + organizationId + "/")) {
+                    boolean isOrgQualifiedPath = StringUtils.isNotBlank(organizationId) && callerPath.startsWith(
+                            FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId + "/");
+                    String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .getAccessingOrganizationId();
+                    boolean isOrgAwareTenantQualifiedPath = StringUtils.isNotBlank(accessingOrgId) &&
+                            callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX);
+                    if (!isTenantQualifiedPathWithLoginTenantDomain &&
+                            !isOrgQualifiedPath && !isOrgAwareTenantQualifiedPath) {
                         callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
                     }
                 }

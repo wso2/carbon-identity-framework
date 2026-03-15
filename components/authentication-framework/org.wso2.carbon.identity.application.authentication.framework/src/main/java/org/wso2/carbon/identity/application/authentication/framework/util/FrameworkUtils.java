@@ -4509,19 +4509,32 @@ public class FrameworkUtils {
          since custom domain branding capabilities are not provided for them.
          */
         if (!(MY_ACCOUNT_APP.equals(serviceProvider) || CONSOLE_APP.equals(serviceProvider))) {
-            if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
+            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+            if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX) &&
+                    StringUtils.isNotBlank(accessingOrgId)) {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
-                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                String callerPathWithoutTenantAndOrgId = callerPathWithoutTenant;
+                /*
+                When accessing organization id is present, caller path can be in the format of
+                /t/{tenant-domain} or /t/{tenant-domain}/o/{org-id}.
+                 */
+                if (callerPathWithoutTenant.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                    callerPathWithoutTenantAndOrgId = callerPathWithoutTenant.replaceFirst("/o/[^/]+/", "/");
+                }
+                return ServiceURLBuilder.create().addPath(callerPathWithoutTenantAndOrgId)
                         .setTenant(callerTenant, true).build().getAbsolutePublicURL();
-                return redirectURL;
+            } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
+                String callerTenant = callerPath.split("/")[2];
+                String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+                return ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                        .setTenant(callerTenant, true).build().getAbsolutePublicURL();
             } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
                 String callerOrgId = callerPath.split("/")[2];
                 String callerPathWithoutOrgId = callerPath.replaceFirst("/o/[^/]+/", "/");
-                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
+                return ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
                         .setTenant(context.getLoginTenantDomain()).setOrganization(callerOrgId)
                         .build().getAbsolutePublicURL();
-                return redirectURL;
             }
         }
         return callerPath;
