@@ -123,6 +123,7 @@ public class IdPManagementDAOTest {
     private static final String IDP_GROUP1 = "idpGroup1";
     private static final String IDP_GROUP2 = "idpGroup2";
     private static final String IDP_GROUP2_ID = "idpGroup2Id";
+    private static final String IDP_NAME1 = "testIdP1";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
@@ -1018,6 +1019,38 @@ public class IdPManagementDAOTest {
             assertFalse(Arrays.stream(updatedIdp.getIdpProperties()).anyMatch( prop ->
                             IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(prop.getName())),
                     "Property deletion failed for: " + IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+        }
+    }
+
+    @Test
+    public void testGetIdPByNameSetsPreserveLocalWhenAttributeSyncMethodIsNull() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            // Mock the server-level config to enable PreserveLocallyAddedClaims.
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS)).thenReturn("true");
+
+            addTestIdps();
+
+            // Simulate a migrated IDP by deleting the SYNC_ATTRIBUTE_METHOD property from the database.
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "DELETE FROM IDP_METADATA WHERE NAME = ?")) {
+                ps.setString(1, IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
+                ps.executeUpdate();
+            }
+            IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, IDP_NAME1,
+                    SAMPLE_TENANT_ID, TENANT_DOMAIN);
+
+            assertEquals(idpResult.getJustInTimeProvisioningConfig().getAttributeSyncMethod(),
+                    IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC,
+                    "IDPs with null attributeSyncMethod should get PRESERVE_LOCAL " +
+                            "when server config PreserveLocallyAddedClaims is enabled.");
         }
     }
 
