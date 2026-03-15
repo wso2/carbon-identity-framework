@@ -29,23 +29,14 @@ import java.util.List;
  */
 public class PreUpdateProfileAction extends Action {
 
-    private final List<String> attributes;
-
     public PreUpdateProfileAction(ResponseBuilder responseBuilder) {
 
         super(responseBuilder);
-        this.attributes = responseBuilder.attributes;
     }
 
     public PreUpdateProfileAction(RequestBuilder requestBuilder) {
 
         super(requestBuilder);
-        this.attributes = requestBuilder.attributes;
-    }
-
-    public List<String> getAttributes() {
-
-        return attributes;
     }
 
     /**
@@ -53,7 +44,6 @@ public class PreUpdateProfileAction extends Action {
      */
     public static class ResponseBuilder extends ActionResponseBuilder {
 
-        private List<String> attributes;
 
         @Override
         public ResponseBuilder id(String id) {
@@ -118,9 +108,10 @@ public class PreUpdateProfileAction extends Action {
             return this;
         }
 
+        @Override
         public ResponseBuilder attributes(List<String> attributes) {
 
-            this.attributes = attributes;
+            super.attributes(attributes);
             return this;
         }
 
@@ -132,11 +123,9 @@ public class PreUpdateProfileAction extends Action {
     }
 
     /**
-     * Request Builder for PreUpdatePasswordAction.
+     * Request Builder for PreUpdateProfileAction.
      */
     public static class RequestBuilder extends ActionRequestBuilder {
-
-        private List<String> attributes;
 
         public RequestBuilder(Action action) {
 
@@ -145,6 +134,7 @@ public class PreUpdateProfileAction extends Action {
             actionVersion(action.getActionVersion());
             endpoint(action.getEndpoint());
             rule(action.getActionRule());
+            attributes(action.getAttributes());
         }
 
         @Override
@@ -168,9 +158,10 @@ public class PreUpdateProfileAction extends Action {
             return this;
         }
 
+        @Override
         public RequestBuilder attributes(List<String> attributes) {
 
-            this.attributes = attributes;
+            super.attributes(attributes);
             return this;
         }
 

@@ -27,10 +27,8 @@ import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Passwo
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
 
@@ -57,7 +55,6 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
 
         PreUpdatePasswordAction preUpdatePasswordAction = (PreUpdatePasswordAction) action;
         PasswordSharing passwordSharing = preUpdatePasswordAction.getPasswordSharing();
-        List<String> attributes = preUpdatePasswordAction.getAttributes();
 
         Map<String, ActionProperty> properties = new HashMap<>();
         if (passwordSharing != null && passwordSharing.getFormat() != null) {
@@ -66,9 +63,6 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
         }
         if (passwordSharing != null && passwordSharing.getCertificate() != null) {
             properties.put(CERTIFICATE, new ActionProperty.BuilderForService(passwordSharing.getCertificate()).build());
-        }
-        if (attributes != null) {
-            properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(attributes).build());
         }
 
         return new ActionDTO.Builder(preUpdatePasswordAction)
@@ -83,7 +77,6 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
                 .format((PasswordSharing.Format) actionDTO.getPropertyValue(PASSWORD_SHARING_FORMAT))
                 .certificate((Certificate) actionDTO.getPropertyValue(CERTIFICATE))
                 .build();
-        List<String> attributes = (List<String>) actionDTO.getPropertyValue(ATTRIBUTES);
 
         return new PreUpdatePasswordAction.ResponseBuilder()
                 .id(actionDTO.getId())
@@ -96,7 +89,7 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
                 .passwordSharing(passwordSharing)
-                .attributes(attributes)
+                .attributes(actionDTO.getAttributes())
                 .rule(actionDTO.getActionRule())
                 .build();
     }
