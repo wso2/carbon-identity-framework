@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -127,6 +128,62 @@ public class ActionManagementDAOImplTest {
                 creatingActionDTO.getPropertyValue(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
         Assert.assertEquals(createdActionDTO.getPropertyValue(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
                 creatingActionDTO.getPropertyValue(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+    }
+
+    @Test(priority = 1)
+    public void testAddActionWithAttributes() throws ActionMgtException {
+
+        List<String> attributes = Arrays.asList("attr1", "attr2");
+        String actionId = String.valueOf(UUID.randomUUID());
+        ActionDTO creatingActionDTO = new ActionDTOBuilder()
+                .id(actionId)
+                .type(Action.ActionTypes.PRE_UPDATE_PROFILE)
+                .name("AttrAction")
+                .description("Attr action desc")
+                .status(Action.Status.ACTIVE)
+                .actionVersion(TestUtil.TEST_DEFAULT_LATEST_ACTION_VERSION)
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(TestUtil.TEST_ACTION_URI)
+                        .authentication(TestUtil.buildMockBasicAuthentication(
+                                TestUtil.TEST_USERNAME_SECRET_REFERENCE,
+                                TestUtil.TEST_PASSWORD_SECRET_REFERENCE))
+                        .allowedHeaders(TestUtil.buildMockAllowedHeaders())
+                        .allowedParameters(TestUtil.buildMockAllowedParameters())
+                        .build())
+                .attributes(attributes)
+                .build();
+
+        daoImpl.addAction(creatingActionDTO, TENANT_ID);
+        ActionDTO fetched = daoImpl.getActionByActionId(PRE_UPDATE_PROFILE_TYPE, actionId, TENANT_ID);
+        Assert.assertEquals(fetched.getAttributes(), attributes);
+        daoImpl.deleteAction(fetched, TENANT_ID);
+    }
+
+    @Test(priority = 1)
+    public void testGetActionWithNullAttributes() throws ActionMgtException {
+
+        String actionId = String.valueOf(UUID.randomUUID());
+        ActionDTO creatingActionDTO = new ActionDTOBuilder()
+                .id(actionId)
+                .type(Action.ActionTypes.PRE_UPDATE_PROFILE)
+                .name("NullAttrAction")
+                .description("Null Attr action desc")
+                .status(Action.Status.ACTIVE)
+                .actionVersion(TestUtil.TEST_DEFAULT_LATEST_ACTION_VERSION)
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(TestUtil.TEST_ACTION_URI)
+                        .authentication(TestUtil.buildMockBasicAuthentication(
+                                TestUtil.TEST_USERNAME_SECRET_REFERENCE,
+                                TestUtil.TEST_PASSWORD_SECRET_REFERENCE))
+                        .allowedHeaders(TestUtil.buildMockAllowedHeaders())
+                        .allowedParameters(TestUtil.buildMockAllowedParameters())
+                        .build())
+                .build();
+
+        daoImpl.addAction(creatingActionDTO, TENANT_ID);
+        ActionDTO fetched = daoImpl.getActionByActionId(PRE_UPDATE_PROFILE_TYPE, actionId, TENANT_ID);
+        Assert.assertNull(fetched.getAttributes());
+        daoImpl.deleteAction(fetched, TENANT_ID);
     }
 
     @Test(priority = 2, expectedExceptions = ActionMgtException.class,
@@ -322,11 +379,13 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 8)
     public void testUpdateActionBasicInfo() throws ActionMgtException {
 
+        List<String> updatedAttributes = Arrays.asList("attr3", "attr4");
         ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
                 .description(TestUtil.TEST_ACTION_DESCRIPTION)
+                .attributes(updatedAttributes)
                 .build();
 
         try {
@@ -335,6 +394,7 @@ public class ActionManagementDAOImplTest {
             Assert.fail();
         }
         ActionDTO result = daoImpl.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_TYPE, updatingAction.getId(), TENANT_ID);
+        Assert.assertEquals(result.getAttributes(), updatedAttributes);
         Assert.assertEquals(result.getId(), createdActionDTO.getId());
         Assert.assertEquals(result.getType(), createdActionDTO.getType());
         Assert.assertEquals(result.getName(), updatingAction.getName());
