@@ -61,13 +61,87 @@ public class InputValidatorTest {
     }
 
     @Test
+    public void testExecuteInputValidationReturnsNullWhenNodeHasNoPageMapping() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("EXECUTOR_NODE").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
+
+        // GraphConfig exists but EXECUTOR_NODE is not in pageMapping (e.g. FIDO2/passkey executor node).
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("OTHER_NODE", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNull(response);
+    }
+
+    @Test
+    public void testExecuteInputValidationReturnsNullWhenGraphConfigIsNull() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+        when(context.getGraphConfig()).thenReturn(null);
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNull(response);
+    }
+
+    @Test
+    public void testExecuteInputValidationReturnsNullWhenNodePageMappingsIsNull() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        GraphConfig graphConfig = mock(GraphConfig.class);
+        when(graphConfig.getNodePageMappings()).thenReturn(null);
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNull(response);
+    }
+
+    @Test
+    public void testExecuteInputValidationReturnsNullWhenNodeNotInPageMappings() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("PAGE_ONLY_NODE", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNull(response);
+    }
+
+    // -------------------------------------------------------------------------
+    // Has page mapping + empty/null input + not END → buildIncompleteResponse
+    // -------------------------------------------------------------------------
+
+    @Test
     public void testExecuteInputValidationReturnsIncompleteWhenInputMissingAndNotEndNode() {
 
         FlowExecutionContext context = mock(FlowExecutionContext.class);
         NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
         when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
         when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_1", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
 
         NodeResponse response = inputValidator.executeInputValidation(context);
 
@@ -77,8 +151,52 @@ public class InputValidatorTest {
         Assert.assertNull(response.getError());
     }
 
+    @Test
+    public void testExecuteInputValidationReturnsIncompleteWhenInputIsNullAndNotEndNode() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(null);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_1", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+        Assert.assertEquals(response.getType(), VIEW);
+        Assert.assertNull(response.getError());
+    }
+
+    @Test
+    public void testBuildIncompleteResponseSetsStatusAndType() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_1", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+        Assert.assertEquals(response.getType(), VIEW);
+        Assert.assertNull(response.getError());
+        Assert.assertNull(response.getRequiredData());
+        Assert.assertNull(response.getOptionalData());
+    }
+
     // -------------------------------------------------------------------------
-    // executeInputValidation — empty input + END node → validation runs, passes → null
+    // Has page mapping + empty/null input + END node → validation runs
     // -------------------------------------------------------------------------
 
     @Test
@@ -86,8 +204,38 @@ public class InputValidatorTest {
 
         FlowExecutionContext context = mock(FlowExecutionContext.class);
         NodeConfig endNode = new NodeConfig.Builder().id(END).build();
-        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
         when(context.getCurrentNode()).thenReturn(endNode);
+        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping(END, new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_COMPLETE);
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNull(response);
+        }
+    }
+
+    @Test
+    public void testExecuteInputValidationRunsValidationWhenInputIsNullAndEndNode() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig endNode = new NodeConfig.Builder().id(END).build();
+        when(context.getCurrentNode()).thenReturn(endNode);
+        when(context.getUserInputData()).thenReturn(null);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping(END, new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
 
         ExecutorResponse executorResponse = new ExecutorResponse();
         executorResponse.setResult(STATUS_COMPLETE);
@@ -104,14 +252,20 @@ public class InputValidatorTest {
     }
 
     // -------------------------------------------------------------------------
-    // executeInputValidation — non-empty input, validation passes → null
+    // Has page mapping + non-empty input → validation runs
     // -------------------------------------------------------------------------
 
     @Test
     public void testExecuteInputValidationReturnsNullWhenValidationPasses() {
 
         FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
         when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_1", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
 
         ExecutorResponse executorResponse = new ExecutorResponse();
         executorResponse.setResult(STATUS_COMPLETE);
@@ -126,10 +280,6 @@ public class InputValidatorTest {
             Assert.assertNull(response);
         }
     }
-
-    // -------------------------------------------------------------------------
-    // executeInputValidation — validation fails (STATUS_RETRY) → retry response
-    // -------------------------------------------------------------------------
 
     @Test
     public void testExecuteInputValidationReturnsRetryResponseWhenValidationFails() {
@@ -164,51 +314,8 @@ public class InputValidatorTest {
     }
 
     // -------------------------------------------------------------------------
-    // executeInputValidation — null input + non-END node → buildIncompleteResponse
+    // buildValidationRetryResponse — data forwarding and no-rollback guarantee
     // -------------------------------------------------------------------------
-
-    @Test
-    public void testExecuteInputValidationReturnsIncompleteWhenInputIsNullAndNotEndNode() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getUserInputData()).thenReturn(null);
-        when(context.getCurrentNode()).thenReturn(nodeConfig);
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeResponse response = inputValidator.executeInputValidation(context);
-
-        Assert.assertNotNull(response);
-        Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        Assert.assertEquals(response.getType(), VIEW);
-        Assert.assertNull(response.getError());
-    }
-
-    // -------------------------------------------------------------------------
-    // executeInputValidation — null input + END node → validation runs
-    // -------------------------------------------------------------------------
-
-    @Test
-    public void testExecuteInputValidationRunsValidationWhenInputIsNullAndEndNode() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        NodeConfig endNode = new NodeConfig.Builder().id(END).build();
-        when(context.getUserInputData()).thenReturn(null);
-        when(context.getCurrentNode()).thenReturn(endNode);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_COMPLETE);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            Assert.assertNull(response);
-        }
-    }
 
     @Test
     public void testBuildValidationRetryResponsePassesThroughRequiredAndOptionalData() {
@@ -249,8 +356,10 @@ public class InputValidatorTest {
     }
 
     @Test
-    public void testBuildValidationRetryResponseKeepsCurrentNodeWhenItHasPageMapping() {
+    public void testBuildValidationRetryResponseDoesNotRollBackWhenCurrentNodeHasPageMapping() {
 
+        // When the current node itself has a page mapping, findClosestNodeWithPageMapping returns
+        // the current node immediately → the "different id" condition is false → no setCurrentNode.
         FlowExecutionContext context = mock(FlowExecutionContext.class);
         when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
         when(context.getContextIdentifier()).thenReturn("flow-123");
@@ -269,352 +378,8 @@ public class InputValidatorTest {
             InputValidationService mockService = mock(InputValidationService.class);
             serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
             when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
             inputValidator.executeInputValidation(context);
-
             verify(context, never()).setCurrentNode(any());
         }
-    }
-
-    @Test
-    public void testBuildValidationRetryResponseRollsBackToAncestorWithPageMapping() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeConfig previousNode = new NodeConfig.Builder().id("NODE_1").build();
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_2").previousNodeId("NODE_1").build();
-
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.addNodeConfig(previousNode);
-        // Only NODE_1 (ancestor) has a page mapping; NODE_2 (current) does not.
-        graphConfig.addNodePageMapping("NODE_1", new StepDTO());
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-        executorResponse.setErrorMessage("Validation error");
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            // Context must roll back to the ancestor with a page mapping.
-            verify(context).setCurrentNode(previousNode);
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        }
-    }
-
-    @Test
-    public void testBuildValidationRetryResponseKeepsCurrentNodeWhenNoPageMappingFound() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeConfig previousNode = new NodeConfig.Builder().id("NODE_1").build();
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_2").previousNodeId("NODE_1").build();
-
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        // No page mappings for any node.
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.addNodeConfig(previousNode);
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            inputValidator.executeInputValidation(context);
-
-            // findClosestNodeWithPageMapping returns currentNode itself — same id → no rollback.
-            verify(context, never()).setCurrentNode(any());
-        }
-    }
-
-    @Test
-    public void testBuildValidationRetryResponseHandlesNullCurrentNode() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-        when(context.getCurrentNode()).thenReturn(null);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-        executorResponse.setErrorMessage("Error");
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            // nodeWithPageMapping is null → condition in buildValidationRetryResponse is false → no rollback.
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-            verify(context, never()).setCurrentNode(any());
-        }
-    }
-
-    @Test
-    public void testFindClosestNodeWithPageMappingNoPreviousNodeId() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        // Current node has no previousNodeId set (null) and no page mapping.
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        GraphConfig graphConfig = new GraphConfig();
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            // previousNodeId is null → while loop never entered → returns currentNode → same id → no rollback.
-            verify(context, never()).setCurrentNode(any());
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        }
-    }
-
-    @Test
-    public void testFindClosestNodeWithPageMappingFoundAtDepthGreaterThanOne() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        // Chain: NODE_0 (has page mapping) ← NODE_1 (no mapping) ← NODE_2 (no mapping, current).
-        NodeConfig node0 = new NodeConfig.Builder().id("NODE_0").build();
-        NodeConfig node1 = new NodeConfig.Builder().id("NODE_1").previousNodeId("NODE_0").build();
-        NodeConfig node2 = new NodeConfig.Builder().id("NODE_2").previousNodeId("NODE_1").build();
-
-        when(context.getCurrentNode()).thenReturn(node2);
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.addNodeConfig(node0);
-        graphConfig.addNodeConfig(node1);
-        graphConfig.addNodeConfig(node2);
-        // Only NODE_0 has page mapping.
-        graphConfig.addNodePageMapping("NODE_0", new StepDTO());
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-        executorResponse.setErrorMessage("Validation error");
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            // Should roll back to NODE_0 (found at depth 2).
-            verify(context).setCurrentNode(node0);
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        }
-    }
-
-    @Test
-    public void testFindClosestNodeWithPageMappingBreaksWhenPreviousNodeMissingFromGraph() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_2").previousNodeId("MISSING_NODE").build();
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        // Graph has no nodes and no page mappings — previousNodeId lookup returns null.
-        GraphConfig graphConfig = new GraphConfig();
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            // Loop breaks; falls back to current node — same id → no rollback.
-            verify(context, never()).setCurrentNode(any());
-            Assert.assertNotNull(response);
-        }
-    }
-
-    @Test
-    public void testFindClosestNodeWithPageMappingStopsAtMaxTraversalDepth() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        // Build a chain of 12 nodes (> DEFAULT_MAX_TRAVERSAL_DEPTH=10); none have page mappings.
-        int chainLength = 12;
-        NodeConfig[] nodes = new NodeConfig[chainLength];
-        for (int i = 0; i < chainLength; i++) {
-            NodeConfig.Builder builder = new NodeConfig.Builder().id("NODE_" + i);
-            if (i > 0) {
-                builder.previousNodeId("NODE_" + (i - 1));
-            }
-            nodes[i] = builder.build();
-        }
-        NodeConfig currentNode = nodes[chainLength - 1];
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        GraphConfig graphConfig = new GraphConfig();
-        for (NodeConfig node : nodes) {
-            graphConfig.addNodeConfig(node);
-        }
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            // Depth limit reached; falls back to current node — same id → no rollback.
-            verify(context, never()).setCurrentNode(any());
-            Assert.assertNotNull(response);
-        }
-    }
-
-    @Test
-    public void testHasPageMappingReturnsFalseWhenGraphConfigIsNull() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getCurrentNode()).thenReturn(currentNode);
-        when(context.getGraphConfig()).thenReturn(null);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        }
-    }
-
-    @Test
-    public void testHasPageMappingReturnsFalseWhenNodePageMappingsIsNull() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        GraphConfig graphConfig = mock(GraphConfig.class);
-        when(graphConfig.getNodePageMappings()).thenReturn(null);
-        when(graphConfig.getNodeConfigs()).thenReturn(Collections.emptyMap());
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        }
-    }
-
-    @Test
-    public void testHasPageMappingReturnsFalseWhenNodeIdNotInMappings() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeConfig currentNode = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getCurrentNode()).thenReturn(currentNode);
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.addNodePageMapping("OTHER_NODE", new StepDTO());
-        when(context.getGraphConfig()).thenReturn(graphConfig);
-
-        ExecutorResponse executorResponse = new ExecutorResponse();
-        executorResponse.setResult(STATUS_RETRY);
-
-        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
-            InputValidationService mockService = mock(InputValidationService.class);
-            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
-            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
-
-            NodeResponse response = inputValidator.executeInputValidation(context);
-
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-            verify(context, never()).setCurrentNode(any());
-        }
-    }
-
-    @Test
-    public void testBuildIncompleteResponseSetsStatusAndType() {
-
-        FlowExecutionContext context = mock(FlowExecutionContext.class);
-        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
-        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
-        when(context.getCurrentNode()).thenReturn(nodeConfig);
-        when(context.getContextIdentifier()).thenReturn("flow-123");
-
-        NodeResponse response = inputValidator.executeInputValidation(context);
-
-        Assert.assertNotNull(response);
-        Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
-        Assert.assertEquals(response.getType(), VIEW);
-        Assert.assertNull(response.getError());
-        Assert.assertNull(response.getRequiredData());
-        Assert.assertNull(response.getOptionalData());
     }
 }
