@@ -382,4 +382,214 @@ public class InputValidatorTest {
             verify(context, never()).setCurrentNode(any());
         }
     }
+
+    @Test
+    public void testBuildValidationRetryResponseRollsBackToPreviousNodeWithPageMapping() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        NodeConfig nodeA = new NodeConfig.Builder().id("NODE_A").build();
+        NodeConfig nodeB = new NodeConfig.Builder().id("NODE_B").previousNodeId("PREV_NODE").build();
+        NodeConfig prevNode = new NodeConfig.Builder().id("PREV_NODE").build();
+
+        when(context.getCurrentNode()).thenReturn(nodeA, nodeB);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_A", new StepDTO());
+        graphConfig.addNodePageMapping("PREV_NODE", new StepDTO());
+        graphConfig.addNodeConfig(prevNode);
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_RETRY);
+        executorResponse.setErrorMessage("Validation error");
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNotNull(response);
+            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            Assert.assertEquals(response.getType(), VIEW);
+            Assert.assertEquals(response.getError(), "Validation error");
+            verify(context).setCurrentNode(prevNode);
+        }
+    }
+
+    @Test
+    public void testFindClosestNodeTraversesThroughMultipleNodesToFindPageMapping() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        NodeConfig nodeA = new NodeConfig.Builder().id("NODE_A").build();
+        NodeConfig nodeB = new NodeConfig.Builder().id("NODE_B").previousNodeId("MID_NODE").build();
+        NodeConfig midNode = new NodeConfig.Builder().id("MID_NODE").previousNodeId("PREV_NODE").build();
+        NodeConfig prevNode = new NodeConfig.Builder().id("PREV_NODE").build();
+
+        when(context.getCurrentNode()).thenReturn(nodeA, nodeB);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_A", new StepDTO());
+        graphConfig.addNodePageMapping("PREV_NODE", new StepDTO());
+        graphConfig.addNodeConfig(midNode);
+        graphConfig.addNodeConfig(prevNode);
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_RETRY);
+        executorResponse.setErrorMessage("Validation error");
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNotNull(response);
+            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            verify(context).setCurrentNode(prevNode);
+        }
+    }
+
+    @Test
+    public void testFindClosestNodeBreaksWhenPreviousNodeNotInGraph() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        NodeConfig nodeA = new NodeConfig.Builder().id("NODE_A").build();
+        NodeConfig nodeB = new NodeConfig.Builder().id("NODE_B").previousNodeId("MISSING_NODE").build();
+
+        when(context.getCurrentNode()).thenReturn(nodeA, nodeA, nodeB);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_A", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_RETRY);
+        executorResponse.setErrorMessage("Error");
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNotNull(response);
+            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            verify(context, never()).setCurrentNode(any());
+        }
+    }
+
+    @Test
+    public void testFindClosestNodeReturnsCurrentWhenNoPreviousNodeId() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        NodeConfig nodeA = new NodeConfig.Builder().id("NODE_A").build();
+        NodeConfig nodeB = new NodeConfig.Builder().id("NODE_B").build();
+
+        when(context.getCurrentNode()).thenReturn(nodeA, nodeA, nodeB);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_A", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_RETRY);
+        executorResponse.setErrorMessage("Error");
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNotNull(response);
+            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            verify(context, never()).setCurrentNode(any());
+        }
+    }
+
+    @Test
+    public void testFindClosestNodeReturnsCurrentWhenNoPageMappingFoundInChain() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        NodeConfig nodeA = new NodeConfig.Builder().id("NODE_A").build();
+        NodeConfig nodeB = new NodeConfig.Builder().id("NODE_B").previousNodeId("MID_NODE").build();
+        NodeConfig midNode = new NodeConfig.Builder().id("MID_NODE").build();
+
+        when(context.getCurrentNode()).thenReturn(nodeA, nodeA, nodeB);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_A", new StepDTO());
+        graphConfig.addNodeConfig(midNode);
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_RETRY);
+        executorResponse.setErrorMessage("Error");
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNotNull(response);
+            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            verify(context, never()).setCurrentNode(any());
+        }
+    }
+
+    @Test
+    public void testBuildValidationRetryResponseWhenCurrentNodeBecomesNull() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+        when(context.getUserInputData()).thenReturn(Collections.singletonMap("username", "alice"));
+
+        NodeConfig nodeA = new NodeConfig.Builder().id("NODE_A").build();
+
+        when(context.getCurrentNode()).thenReturn(nodeA, nodeA, null);
+
+        GraphConfig graphConfig = new GraphConfig();
+        graphConfig.addNodePageMapping("NODE_A", new StepDTO());
+        when(context.getGraphConfig()).thenReturn(graphConfig);
+
+        ExecutorResponse executorResponse = new ExecutorResponse();
+        executorResponse.setResult(STATUS_RETRY);
+        executorResponse.setErrorMessage("Error");
+
+        try (MockedStatic<InputValidationService> serviceMock = mockStatic(InputValidationService.class)) {
+            InputValidationService mockService = mock(InputValidationService.class);
+            serviceMock.when(InputValidationService::getInstance).thenReturn(mockService);
+            when(mockService.resolveInputValidationResponse(context)).thenReturn(executorResponse);
+
+            NodeResponse response = inputValidator.executeInputValidation(context);
+
+            Assert.assertNotNull(response);
+            Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+            Assert.assertEquals(response.getType(), VIEW);
+            verify(context, never()).setCurrentNode(any());
+        }
+    }
 }
