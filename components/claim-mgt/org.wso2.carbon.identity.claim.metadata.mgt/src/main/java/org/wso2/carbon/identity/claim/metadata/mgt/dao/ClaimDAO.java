@@ -246,8 +246,11 @@ public class ClaimDAO {
                 prepStmt.setInt(4, tenantId);
                 for (Map.Entry<String, String> property : claimProperties.entrySet()) {
                     // Skip properties with empty values on Oracle, as it treats empty strings as NULL
-                    // which violates the NOT NULL constraint on PROPERTY_VALUE.
                     if (isOracle && StringUtils.isEmpty(property.getValue())) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Skipping empty property value for key: " + property.getKey() + 
+                                      " due to Oracle NULL constraint");
+                        }
                         continue;
                     }
                     if (StringUtils.equals(property.getKey(), SUB_ATTRIBUTES_PROPERTY)) {
