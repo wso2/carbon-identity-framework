@@ -640,4 +640,63 @@ public class DefaultStepHandlerTest {
                     FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
         }
     }
+
+    @DataProvider(name = "updateRetryParamForAPIBasedAuthFlowsData")
+    public Object[][] updateRetryParamForAPIBasedAuthFlowsData() {
+
+        // isAPIBased, includeFailureReason, retryParam, expectUserAccountLocked
+        return new Object[][] {
+                // API-based + flag enabled + no auth failure params → adds authFailure=true and authFailureMsg
+                {true, "true", "", true},
+                // API-based + flag enabled + authFailure=true present + no authFailureMsg → appends authFailureMsg
+                {true, "true", "&authFailure=true", true},
+                // API-based + flag enabled + authFailureMsg already exists → replaces with user.account.locked
+                {true, "true", "&authFailure=true&authFailureMsg=other.message", true},
+                // Not API-based flow → retryParam unchanged, no user.account.locked added
+                {false, "true", "", false},
+                // Flag disabled → retryParam unchanged, no user.account.locked added
+                {true, "false", "", false},
+        };
+    }
+
+    @Test(dataProvider = "updateRetryParamForAPIBasedAuthFlowsData")
+    public void testUpdateRetryParamForAPIBasedAuthFlows(boolean isAPIBased, String includeFailureReason,
+                                                         String retryParam, boolean expectUserAccountLocked)
+            throws URISyntaxException, IOException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode()).thenReturn(UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            when(errorMsgContext.getMaximumLoginAttempts()).thenReturn(5);
+            when(errorMsgContext.getFailedLoginAttempts()).thenReturn(3);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE))
+                    .thenReturn(includeFailureReason);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(isAPIBased);
+
+            AuthenticationContext context = new AuthenticationContext();
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+
+            AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
+            when(defaultStepHandler.getAuthenticatorConfig()).thenReturn(authenticatorConfig);
+            when(authenticatorConfig.getParameterMap()).thenReturn(new HashMap<>());
+
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn("http://example.com/");
+
+            String redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
+                    "true", retryParam, "");
+
+            if (expectUserAccountLocked) {
+                Assert.assertTrue(redirectUrl.contains("authFailureMsg=user.account.locked"),
+                        "Expected URL to contain authFailureMsg=user.account.locked but got: " + redirectUrl);
+            } else {
+                Assert.assertFalse(redirectUrl.contains("user.account.locked"),
+                        "Expected URL not to contain user.account.locked but got: " + redirectUrl);
+            }
+        }
+    }
 }
