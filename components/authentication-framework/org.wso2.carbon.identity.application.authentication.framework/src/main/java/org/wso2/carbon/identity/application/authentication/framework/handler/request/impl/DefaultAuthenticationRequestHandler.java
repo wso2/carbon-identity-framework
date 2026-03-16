@@ -899,6 +899,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 }
             }
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Setting auth cookie with path: " + path);
+        }
         FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);
     }
 

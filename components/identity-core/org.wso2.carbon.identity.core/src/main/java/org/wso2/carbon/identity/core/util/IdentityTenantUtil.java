@@ -378,7 +378,9 @@ public class IdentityTenantUtil {
             }
             return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         }
-
+        if (log.isDebugEnabled()) {
+            log.debug("Resolved tenant domain from the thread local: " + tenantDomain);
+        }
         return tenantDomain;
     }
 
