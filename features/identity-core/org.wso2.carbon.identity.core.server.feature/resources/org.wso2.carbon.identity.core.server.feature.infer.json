@@ -392,7 +392,9 @@
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
       "api.filters.single_character_wildcard": "_",
       "transport.https.client.provider_name": "",
-      "identity_secret_manager.secret_value_clob_column_exists": false
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "authentication.include_auth_failure_reason_in_api_based_response": false,
+      "authentication.include_multi_options_in_api_based_auth_response": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
