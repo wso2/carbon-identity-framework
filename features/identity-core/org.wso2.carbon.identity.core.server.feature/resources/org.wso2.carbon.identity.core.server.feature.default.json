@@ -339,7 +339,7 @@
 
   "oauth.enable_legacy_session_bound_token_behaviour": false,
   "oauth.allow_session_bound_tokens_after_idle_session_expiry": false,
-  "oauth.listener.agent_application_creator.enable": false,
+  "oauth.listener.agent_application_creator.enable": true,
   "oauth.listener.agent_application_creator.class": "org.wso2.carbon.identity.oauth.listener.UserApplicationCreationListener",
   "oauth.listener.agent_application_creator.order": "99",
 
