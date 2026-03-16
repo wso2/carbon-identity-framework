@@ -454,25 +454,31 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
         AuthenticationService authenticationService = new AuthenticationService();
         AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
-        // IdentityUtil not mocked, so includeMultiOptionsInResponse() returns false.
-        when(request.getAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE)).thenReturn(true);
-        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
-                .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
-        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
-        List<AuthenticatorData> expected = getAuthenticatorData(SINGLE_AUTHENTICATOR);
-        when(request.getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA)).thenReturn(expected);
-        when(response.getHeader(LOCATION_HEADER))
-                .thenReturn(getFailureRedirectUrl(SESSION_DATA_KEY, SINGLE_AUTHENTICATOR, ERROR_MSG_LOGIN_FAIL));
+        MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+        try {
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE)).thenReturn("false");
+            when(request.getAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE)).thenReturn(true);
+            when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                    .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+            when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(SESSION_DATA_KEY);
+            List<AuthenticatorData> expected = getAuthenticatorData(SINGLE_AUTHENTICATOR);
+            when(request.getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA)).thenReturn(expected);
+            when(response.getHeader(LOCATION_HEADER))
+                    .thenReturn(getFailureRedirectUrl(SESSION_DATA_KEY, SINGLE_AUTHENTICATOR, ERROR_MSG_LOGIN_FAIL));
 
-        AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+            AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
 
-        Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
-        Optional<AuthServiceResponseData> responseData = authServiceResponse.getData();
-        Assert.assertTrue(responseData.isPresent(), "Expected response data to be present.");
-        Assert.assertFalse(responseData.get().isAuthenticatorSelectionRequired(),
-                "Expected authenticatorSelectionRequired=false when multi-options flag is disabled.");
-        List<AuthenticatorData> actual = responseData.get().getAuthenticatorOptions();
-        validateReturnedAuthenticators(actual, expected, false);
+            Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
+            Optional<AuthServiceResponseData> responseData = authServiceResponse.getData();
+            Assert.assertTrue(responseData.isPresent(), "Expected response data to be present.");
+            Assert.assertFalse(responseData.get().isAuthenticatorSelectionRequired(),
+                    "Expected authenticatorSelectionRequired=false when multi-options flag is disabled.");
+            List<AuthenticatorData> actual = responseData.get().getAuthenticatorOptions();
+            validateReturnedAuthenticators(actual, expected, false);
+        } finally {
+            identityUtil.close();
+        }
     }
 
     private void validateReturnedAuthenticators(List<AuthenticatorData> actual, List<AuthenticatorData> expected,
