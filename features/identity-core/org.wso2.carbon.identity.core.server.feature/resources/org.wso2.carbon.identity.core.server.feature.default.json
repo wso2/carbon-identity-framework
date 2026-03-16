@@ -2263,6 +2263,9 @@
     "INVITED_USER_REGISTRATION": "30"
   },
   "flow_execution.enable_legacy_flows": false,
+  "flow_execution.enable_legacy_self_registration_flow": false,
+  "flow_execution.enable_legacy_password_recovery_flow": false,
+  "flow_execution.enable_legacy_invited_user_registration_flow": false,
   "flow_execution.registration.display_claim_availability": false,
   "branding_configuration.custom_content.max_file_size": "1048576",
   "captcha.enable_captcha_for_local_otp_authenticators": true,
