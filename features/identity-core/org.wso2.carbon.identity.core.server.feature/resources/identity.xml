@@ -884,6 +884,7 @@
         <SAMLIdpInitLogoutResponseSigningEnabled>true</SAMLIdpInitLogoutResponseSigningEnabled>
         <SAML2AuthnRequestsSigningEnabled>false</SAML2AuthnRequestsSigningEnabled>
         <SAMLAssertionEncyptWithAppCert>true</SAMLAssertionEncyptWithAppCert>
+        <SAMLAllowNestedAssertionsInResponse>false</SAMLAllowNestedAssertionsInResponse>
     </SSOService>
 
     <Consent>
@@ -2644,6 +2645,7 @@
                     <Path>/oauth2/userinfo</Path>
                     <Path>/oauth2/authorize</Path>
                     <Path>/oauth2/jwks</Path>
+                    <Path>/oauth2/authn</Path>
                 </SubPaths>
             </Context>
             <Context>

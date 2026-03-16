@@ -1582,6 +1582,7 @@
         {% endif %}
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
         <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
+        <SAMLAllowNestedAssertionsInResponse>{{saml.response.allow_nested_assertions}}</SAMLAllowNestedAssertionsInResponse>
     </SSOService>
 
     <Consent>
@@ -4258,6 +4259,7 @@
                     <Path>/oauth2/userinfo</Path>
                     <Path>/oauth2/authorize</Path>
                     <Path>/oauth2/jwks</Path>
+                    <Path>/oauth2/authn</Path>
                 </SubPaths>
             </Context>
             <Context>

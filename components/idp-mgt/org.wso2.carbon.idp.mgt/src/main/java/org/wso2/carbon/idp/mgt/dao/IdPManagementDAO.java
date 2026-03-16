@@ -3737,6 +3737,18 @@ public class IdPManagementDAO {
                     justInTimeProvisioningConfig.setIdpGroupSyncMethod(identityProviderProperty.getValue());
                 }
             });
+
+            // For migrated IDPs that have NULL attributeSyncMethod, apply the server-level configuration.
+            if (StringUtils.isBlank(justInTimeProvisioningConfig.getAttributeSyncMethod())) {
+                if (IdPManagementUtil.isPreserveLocallyAddedClaims()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Attribute sync method is not defined for the IDP. " +
+                                "Applying the server-level PRESERVE_LOCAL configuration.");
+                    }
+                    justInTimeProvisioningConfig
+                            .setAttributeSyncMethod(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
+                }
+            }
             populateAccountLookupAttributes(justInTimeProvisioningConfig, identityProviderProperties.toArray(
                     new IdentityProviderProperty[0]));
         }
