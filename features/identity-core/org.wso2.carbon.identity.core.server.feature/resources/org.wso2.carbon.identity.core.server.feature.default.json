@@ -3,6 +3,8 @@
   "authentication.consent.subject.prompt": true,
   "authentication.map_federated_users_to_local": false,
   "authentication.enable_scope_based_claim_filtering": true,
+  "authentication.include_auth_failure_reason_in_api_based_response": true,
+  "authentication.include_multi_options_in_api_based_auth_response": true,
   "authentication.allow_sp_requested_fed_claims_only": true,
   "authentication.endpoint.enable_custom_claim_mappings": true,
   "authentication.endpoint.enable_merging_custom_claim_mappings_with_default": true,
