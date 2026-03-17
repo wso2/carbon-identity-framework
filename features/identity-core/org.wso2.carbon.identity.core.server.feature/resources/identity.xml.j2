@@ -1994,8 +1994,27 @@
     </Cookies>
     {% endif %}
 
+    <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %}
+    {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
 
-    <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
+        <Resource context="(.*)/admin(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/am/sample/pizzashack/v1(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/admin(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/devops/v0(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/devportal(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/gateway/v2(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/governance(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/publisher(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/api/am/service-catalog/v1(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/client-registration/v0.17(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/devportal(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/internal/data/v1(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/keymanager-operations(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/publisher(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/usage-data-receiver(.*)" secured="false" http-method="all" />
+        <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
+        <Resource context="/acs(.*)" secured="false" http-method="all"/>
+
         <Resource context="(.*)/((\.+)|(.*;+.*)|%2e.*)/(.*)" secured="true" http-method="all" >
             <Permissions>/</Permissions>
         </Resource>
@@ -2207,23 +2226,6 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
-        <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
-            <Scopes>internal_application_mgt_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
-            <Scopes>internal_application_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
-            <Scopes>internal_application_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
-            <Scopes>internal_application_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
             <Scopes>internal_application_mgt_delete</Scopes>
@@ -2761,7 +2763,6 @@
         <Resource context="/services(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/samlsso(.*)" secured="false" http-method="all"/>
-        <Resource context="/acs(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
@@ -2792,7 +2793,6 @@
         <Resource context="(.*)/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
         <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
         <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
@@ -2813,10 +2813,6 @@
         </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
