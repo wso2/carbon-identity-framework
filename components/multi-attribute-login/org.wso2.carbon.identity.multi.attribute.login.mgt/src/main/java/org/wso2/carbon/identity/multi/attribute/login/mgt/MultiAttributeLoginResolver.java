@@ -52,6 +52,22 @@ public interface MultiAttributeLoginResolver {
                                    String hint);
 
     /**
+     * Resolves user from given login identifier then returns resolved claim URI and user details if found a
+     * matching user.
+     *
+     * @param loginIdentifierValue    User input when user try to login using multi attribute login.
+     * @param allowedAttributes       List of claim URIs which are allowed by admin for multi attribute login.
+     * @param tenantDomain            User tenant domain.
+     * @param allowDuplicateUsernames Indicates whether to allow duplicate usernames across user stores.
+     * @return ResolvedUserResult object with user details and resolved claim details.
+     */
+    default ResolvedUserResult resolveUser(String loginIdentifierValue, List<String> allowedAttributes,
+                                           String tenantDomain, boolean allowDuplicateUsernames) {
+
+        return null;
+    }
+
+    /**
      * Authenticates with multi attribute login identifier. User resolves by matching multi attribute login
      * identifier and user credential.
      *
