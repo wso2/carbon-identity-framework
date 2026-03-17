@@ -1427,6 +1427,7 @@
   "console.ui.routes.organizationEnabledRoutes.users": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.workflowInstanceDetails": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.workflowInstances": "v0.0.0",
+  "console.ui.routes.organizationEnabledRoutes.residentOutboundProvisioning": "v0.0.0",
   "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
