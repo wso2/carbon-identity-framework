@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -233,8 +234,17 @@ public class AuthenticationService {
 
         authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
-        List<AuthenticatorData> authenticatorDataList = request.getAuthInitiationData();
-        AuthServiceResponseData responseData = new AuthServiceResponseData(authenticatorDataList);
+        AuthServiceResponseData responseData = new AuthServiceResponseData();
+        List<AuthenticatorData> authenticatorDataList;
+        boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
+        if (includeMultiOptionsInResponse() && isMultiOptionsResponse) {
+            responseData.setAuthenticatorSelectionRequired(true);
+            authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators(),
+                    request.getAuthInitiationData(), getTenantDomain((HttpServletRequest) request.getRequest()));
+        } else {
+            authenticatorDataList = request.getAuthInitiationData();
+        }
+        responseData.setAuthenticatorOptions(authenticatorDataList);
         authServiceResponse.setData(responseData);
         errorCode = getErrorCode(response);
         errorMessage = getErrorMessage(response);
@@ -489,5 +499,11 @@ public class AuthenticationService {
             default:
                 return null;
         }
+    }
+
+    private boolean includeMultiOptionsInResponse() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE));
     }
 }
