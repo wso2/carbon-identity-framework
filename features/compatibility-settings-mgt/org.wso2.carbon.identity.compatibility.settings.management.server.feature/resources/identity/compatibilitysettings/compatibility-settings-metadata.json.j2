@@ -26,7 +26,7 @@
   2. Under the group, define a unique setting key.
   3. Each setting MUST define the following attributes:
      - timestampReference : ISO-8601 timestamp used as the cut-off for behavior change
-     - targetValue        : Value applied for tenants created before/after the timestamp
+     - targetValue        : Value applied for tenants created before the timestamp
      - defaultValue       : Value applied when the timestamp condition is not met
 
   4. Values can be overridden via Jinja variables using the following naming pattern:
@@ -38,7 +38,22 @@
           "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_flows.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
           "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.target_value | default("true")}},
           "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_flows.default_value | default("false")}}
-    }
+      },
+      "enableLegacySelfRegistrationFlow" : {
+            "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_self_registration_flow.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
+            "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_self_registration_flow.target_value | default("true")}},
+            "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_self_registration_flow.default_value | default("false")}}
+      },
+      "enableLegacyInvitedUserRegistrationFlow" : {
+            "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_invited_user_registration_flow.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
+            "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_invited_user_registration_flow.target_value | default("true")}},
+            "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_invited_user_registration_flow.default_value | default("false")}}
+      },
+      "enableLegacyPasswordRecoveryFlow" : {
+            "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_password_recovery_flow.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
+            "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_password_recovery_flow.target_value | default("true")}},
+            "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_password_recovery_flow.default_value | default("false")}}
+      }
   },
   "scim2": {
     "disableBasicAuthForMeEndpoint" : {
