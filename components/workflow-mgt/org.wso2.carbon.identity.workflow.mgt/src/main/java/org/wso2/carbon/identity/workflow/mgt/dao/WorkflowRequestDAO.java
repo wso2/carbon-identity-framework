@@ -246,7 +246,9 @@ public class WorkflowRequestDAO {
 
     public void deleteRequest(String requestId) throws InternalWorkflowException {
 
-        log.info("Deleting workflow request with ID: " + requestId);
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting workflow request with ID: " + requestId);
+        }
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
@@ -796,7 +798,9 @@ public class WorkflowRequestDAO {
      */
     public void abortWorkflowRequests(String workflowId) throws InternalWorkflowException {
 
-        log.info("Aborting workflow requests for workflow ID: " + workflowId);
+        if (log.isDebugEnabled()) {
+            log.debug("Aborting workflow requests for workflow ID: " + workflowId);
+        }
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
