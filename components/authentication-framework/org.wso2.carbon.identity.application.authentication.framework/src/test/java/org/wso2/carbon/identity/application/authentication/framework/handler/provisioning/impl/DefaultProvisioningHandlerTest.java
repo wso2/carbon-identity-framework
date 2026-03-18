@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,12 +65,16 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SUPER_TENANT;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.SUPER_ORG_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
 import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
 
 @Listeners(MockitoTestNGListener.class)
 public class DefaultProvisioningHandlerTest {
+
+    private static final String TEST_SUBJECT = "testUser";
 
     @Mock
     private RealmService mockRealmService;
@@ -909,6 +915,46 @@ public class DefaultProvisioningHandlerTest {
             // This will FAIL if OVERRIDE_ALL is used, because the role would be deleted.
             verify(mockRoleManagementService, never()).updateUserListOfRole(
                     eq(localOnlyRole), anyList(), eq(Collections.singletonList(userId)), eq(tenantDomain));
+        }
+    }
+
+    @Test
+    public void testHandleProvisioningExceptionWithOrganizationDiscoveryErrors() throws Exception {
+
+        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+        when(mockTenantManager.getTenantId(anyString())).thenReturn(-1234);
+        when(mockRealmService.getTenantUserRealm(-1234)).thenReturn(mockUserRealm);
+        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.isExistingUser(anyString())).thenReturn(false);
+
+        // Throw UserStoreException with organization discovery error during user addition.
+        org.wso2.carbon.user.core.UserStoreException userStoreException =
+                new org.wso2.carbon.user.core.UserStoreException(
+                        ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION.getMessage(),
+                        ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION.getCode());
+
+        doThrow(userStoreException).when(mockUserStoreManager).addUser(anyString(), anyString(), any(), any(), any());
+
+        Map<String, Object> threadLocalProperties = new HashMap<>();
+        threadLocalProperties.put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD, FrameworkConstants.OVERRIDE_ALL);
+        threadLocalProperties.put(FrameworkConstants.IDP_GROUP_SYNC_METHOD, FrameworkConstants.MERGE_WITH_EXISTING);
+        IdentityUtil.threadLocalProperties.set(threadLocalProperties);
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+
+            frameworkUtils.when(() -> FrameworkUtils.startTenantFlow(anyString())).thenAnswer(invocation -> null);
+            frameworkUtils.when(FrameworkUtils::endTenantFlow).thenAnswer(invocation -> null);
+            frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager)
+                    .thenReturn(mockFederatedAssociationManager);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+            provisioningHandler.handleWithV2Roles(new ArrayList<>(), TEST_SUBJECT, new HashMap<>(),
+                    IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT, SUPER_TENANT);
+
+            // Verify that a diagnostic log event was triggered for the organization discovery error.
+            loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(any()), times(1));
         }
     }
 }
