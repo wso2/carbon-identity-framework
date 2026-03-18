@@ -299,6 +299,8 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ENTITY = "auth_entity";
     public static final String AUTH_ENTITY_AGENT = "agent";
 
+    public static final String AUTHENTICATOR_MESSAGE = "authenticatorMessage";
+
     private FrameworkConstants() {
 
     }
