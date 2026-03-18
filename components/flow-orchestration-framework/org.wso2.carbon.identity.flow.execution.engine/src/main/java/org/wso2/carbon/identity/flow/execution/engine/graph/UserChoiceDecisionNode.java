@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 
@@ -59,7 +58,6 @@ public class UserChoiceDecisionNode implements Node {
             context.setCurrentActionId(null);
         }
         if (config.getNextNodeId() != null) {
-            InputValidationService.getInstance().clearUserInputs(context);
             return new NodeResponse.Builder().status(STATUS_COMPLETE).build();
         }
 
