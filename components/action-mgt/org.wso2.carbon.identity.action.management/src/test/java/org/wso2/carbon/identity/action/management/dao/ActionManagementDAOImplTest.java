@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.dao;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -29,9 +30,12 @@ import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 
@@ -39,8 +43,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_ACTION_ID;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_ACTION_ID;
@@ -66,6 +74,14 @@ public class ActionManagementDAOImplTest {
     public void setUpClass() {
 
         daoImpl = new ActionManagementDAOImpl();
+    }
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        ClaimMetadataManagementService claimMetadataManagementService = mock(ClaimMetadataManagementService.class);
+        when(claimMetadataManagementService.getLocalClaim(anyString(), anyString()))
+                .thenReturn(Optional.of(new LocalClaim("mock")));
+        ActionMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
     }
 
     @Test(priority = 1)
