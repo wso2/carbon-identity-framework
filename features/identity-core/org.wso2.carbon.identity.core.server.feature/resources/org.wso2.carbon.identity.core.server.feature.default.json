@@ -272,15 +272,28 @@
   "oauth.oidc.id_token.use_entityid_as_issuer": false,
   "oauth.oidc.extensions.claim_callback_handler": "org.wso2.carbon.identity.openidconnect.SAMLAssertionClaimsCallback",
   "oauth.oidc.token_validation.id_token_validity": "1h",
-  "oauth.oidc.id_token.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
+  "oauth.oidc.id_token.supported_encryption_algorithms": [
+    "RSA-OAEP",
+    "RSA1_5",
+    "RSA-OAEP-256",
+    "RSA-OAEP-384",
+    "RSA-OAEP-512"
+  ],
   "oauth.oidc.id_token.supported_encryption_methods": [
     "A128GCM",
     "A192GCM",
     "A256GCM",
     "A128CBC-HS256",
-    "A128CBC+HS256"
+    "A128CBC+HS256",
+    "A192CBC-HS384"
   ],
-  "oauth.oidc.request_object.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
+  "oauth.oidc.request_object.supported_encryption_algorithms": [
+    "RSA-OAEP",
+    "RSA1_5",
+    "RSA-OAEP-256",
+    "RSA-OAEP-384",
+    "RSA-OAEP-512"
+  ],
   "oauth.oidc.request_object.supported_encryption_methods": "$ref{oauth.oidc.id_token.supported_encryption_methods}",
   "oauth.oidc.token_validation.logout_token_validity": "2m",
   "oauth.oidc.logout_request_sender.pool_size": "20",
