@@ -3003,4 +3003,8 @@
     <WorkflowEngine>
         <MaxApproverNotifications>15</MaxApproverNotifications>
     </WorkflowEngine>
+
+    <AppNativeAuthentication>
+        <HandleFailCompletedAuthenticatorStatus>true</HandleFailCompletedAuthenticatorStatus>
+    </AppNativeAuthentication>
 </Server>
