@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.action.management.internal.component.ActionMgtSe
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -50,9 +52,11 @@ import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -110,6 +114,11 @@ public class ActionManagementServiceImplTest {
         when(ruleManagementService.getRuleByRuleId(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.addRule(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.updateRule(any(), any())).thenReturn(sampleRule);
+
+        ClaimMetadataManagementService claimMetadataManagementService = mock(ClaimMetadataManagementService.class);
+        when(claimMetadataManagementService.getLocalClaim(anyString(), anyString()))
+                .thenReturn(Optional.of(new LocalClaim("mock")));
+        ActionMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
 
         loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
         loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.internal.component;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -30,6 +31,7 @@ public class ActionMgtServiceComponentHolder {
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
     private RuleManagementService ruleManagementService;
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     public static final ActionMgtServiceComponentHolder INSTANCE = new ActionMgtServiceComponentHolder();
 
@@ -105,5 +107,25 @@ public class ActionMgtServiceComponentHolder {
     public void setRuleManagementService(RuleManagementService ruleManagementService) {
 
         this.ruleManagementService = ruleManagementService;
+    }
+
+    /**
+     * Get the ClaimMetadataManagementService.
+     *
+     * @return ClaimMetadataManagementService instance.
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    /**
+     * Set the ClaimMetadataManagementService.
+     *
+     * @param claimMetadataManagementService ClaimMetadataManagementService instance.
+     */
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

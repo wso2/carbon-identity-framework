@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -31,11 +34,15 @@ import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementDAOUtil;
+import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
@@ -47,8 +54,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +66,7 @@ import java.util.stream.Collectors;
  */
 public class ActionManagementDAOImpl implements ActionManagementDAO {
 
+    private static final Log LOG = LogFactory.getLog(ActionManagementDAOImpl.class);
     private static final String V1 = "1.0.0";
 
     private static final ActionManagementDAOUtil actionMgtDAOUtil = new ActionManagementDAOUtil();
@@ -519,8 +530,18 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return null;
         }
 
+        String tenantDomain = "carbon.super";
+        try {
+            tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        } catch (Exception e) {
+            // Log and fallback for unit tests if IdentityTenantUtil is not initialized.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while getting tenant domain for tenant ID: " + tenantId +
+                        ". Falling back to carbon.super.");
+            }
+        }
         return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY).getValue().toString(),
-                IdentityTenantUtil.getTenantDomain(tenantId));
+                tenantDomain);
     }
 
     /**
@@ -536,10 +557,21 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         if (attributes == null || attributes.isEmpty()) {
             return;
         }
+
+        // Validate attributes count.
+        if (attributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
+                    String.valueOf(attributes.size()),
+                    String.valueOf(ActionMgtConstants.MAX_ATTRIBUTES));
+        }
+
         try {
+            // Filter duplicates and preserve order.
+            List<String> filteredAttributes = filterValidSystemAttributes(attributes, tenantId);
             Map<String, ActionProperty> attributeProperties = Collections.singletonMap(
                     ActionMgtConstants.ATTRIBUTES_PROPERTY,
-                    actionMgtDAOUtil.buildActionPropertyFromList(attributes));
+                    actionMgtDAOUtil.buildActionPropertyFromList(filteredAttributes));
             addActionPropertiesToDB(actionDTO.getId(), attributeProperties, tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Attributes in the system.", e);
@@ -577,31 +609,34 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         List<String> updatingAttributes = updatingActionDTO.getAttributes();
         List<String> existingAttributes = existingActionDTO.getAttributes();
 
-        // Determine the resolved attributes to persist.
-        List<String> resolvedAttributes;
         if (updatingAttributes != null) {
-            resolvedAttributes = updatingAttributes;
-        } else if (existingAttributes != null) {
-            resolvedAttributes = existingAttributes;
-        } else {
-            return;
-        }
+            // Validate attributes count.
+            if (updatingAttributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
+                        String.valueOf(updatingAttributes.size()),
+                        String.valueOf(ActionMgtConstants.MAX_ATTRIBUTES));
+            }
 
-        try {
-            // Delete existing attributes property if present.
-            if (existingAttributes != null && !existingAttributes.isEmpty()) {
-                deleteActionPropertiesInDB(updatingActionDTO.getId(),
-                        Collections.singletonList(ActionMgtConstants.ATTRIBUTES_PROPERTY), tenantId);
+            try {
+                // Determine the resolved attributes to persist.
+                List<String> resolvedAttributes = filterValidSystemAttributes(updatingAttributes, tenantId);
+
+                // Delete existing attributes property if present.
+                if (existingAttributes != null && !existingAttributes.isEmpty()) {
+                    deleteActionPropertiesInDB(updatingActionDTO.getId(),
+                            Collections.singletonList(ActionMgtConstants.ATTRIBUTES_PROPERTY), tenantId);
+                }
+
+                if (!resolvedAttributes.isEmpty()) {
+                    Map<String, ActionProperty> attributeProperties = Collections.singletonMap(
+                            ActionMgtConstants.ATTRIBUTES_PROPERTY,
+                            actionMgtDAOUtil.buildActionPropertyFromList(resolvedAttributes));
+                    addActionPropertiesToDB(updatingActionDTO.getId(), attributeProperties, tenantId);
+                }
+            } catch (TransactionException e) {
+                throw new ActionMgtServerException("Error while updating Action Attributes in the system.", e);
             }
-            // Add the resolved attributes.
-            if (!resolvedAttributes.isEmpty()) {
-                Map<String, ActionProperty> attributeProperties = Collections.singletonMap(
-                        ActionMgtConstants.ATTRIBUTES_PROPERTY,
-                        actionMgtDAOUtil.buildActionPropertyFromList(resolvedAttributes));
-                addActionPropertiesToDB(updatingActionDTO.getId(), attributeProperties, tenantId);
-            }
-        } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while updating Action Attributes in the system.", e);
         }
     }
 
@@ -794,5 +829,57 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Status to " + status, e);
         }
+    }
+
+    /**
+     * Filter duplicate attributes and preserve order.
+     * This method removes duplicate attributes while maintaining the original
+     * order.
+     *
+     * @param attributes List of attributes to filter.
+     * @return Filtered list of unique attributes in original order.
+     */
+    private List<String> filterValidSystemAttributes(List<String> attributes, Integer tenantId)
+            throws ActionMgtException {
+
+        Set<String> uniqueAttributes = new LinkedHashSet<>();
+        Set<String> duplicatedAttributes = new HashSet<>();
+
+        String tenantDomain = "carbon.super";
+        try {
+            String domain = IdentityTenantUtil.getTenantDomain(tenantId);
+            if (domain != null) {
+                tenantDomain = domain;
+            }
+        } catch (Exception e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while getting tenant domain for tenant ID: " + tenantId +
+                        ". Falling back to carbon.super.");
+            }
+        }
+        ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()
+                .getClaimMetadataManagementService();
+
+        for (String attribute : attributes) {
+            if (uniqueAttributes.add(attribute)) {
+                try {
+                    if (claimMetadataManagementService == null ||
+                            claimMetadataManagementService.getLocalClaim(attribute, tenantDomain).isEmpty()) {
+                        throw ActionManagementExceptionHandler.handleClientException(
+                                ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
+                    }
+                } catch (ClaimMetadataException e) {
+                    throw ActionManagementExceptionHandler.handleServerException(
+                            ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
+                }
+            } else {
+                duplicatedAttributes.add(attribute);
+            }
+        }
+        if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
+            LOG.debug("Ignored duplicated attributes in action configuration : " +
+                    String.join(", ", duplicatedAttributes));
+        }
+        return new ArrayList<>(uniqueAttributes);
     }
 }
