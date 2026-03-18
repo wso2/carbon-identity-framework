@@ -782,7 +782,15 @@ public class FrameworkUtils {
         if (isOrganizationQualifiedRequest()) {
             path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
         } else {
-            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+            if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                path = "/";
+            } else {
+                path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Removing auth cookie with path: " + path);
         }
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
     }
@@ -3341,8 +3349,10 @@ public class FrameworkUtils {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
                 String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
-                        .setTenant(callerTenant, true)
-                        .build().getAbsolutePublicURL();
+                        .setTenant(callerTenant).build().getAbsolutePublicURL();
+                if (log.isDebugEnabled()) {
+                    log.debug("Caller path: " + callerPath + " is converted to redirect URL: " + redirectURL);
+                }
                 return redirectURL;
             } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
                 String callerOrgId = callerPath.split("/")[2];
@@ -3350,6 +3360,9 @@ public class FrameworkUtils {
                 String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
                         .setTenant(context.getLoginTenantDomain()).setOrganization(callerOrgId)
                         .build().getAbsolutePublicURL();
+                if (log.isDebugEnabled()) {
+                    log.debug("Caller path: " + callerPath + " is converted to redirect URL: " + redirectURL);
+                }
                 return redirectURL;
             }
         }

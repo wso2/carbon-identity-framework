@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.core.util;
 
 import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -362,6 +363,28 @@ public class IdentityTenantUtil {
     }
 
     /**
+     * Get the tenant name from the thread local properties if available, otherwise get from the
+     * privileged carbon context.
+     *
+     * @return Tenant domain name.
+     */
+    public static String resolveTenantDomain() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("The tenant domain is not set to the thread local. Hence using the tenant domain from the " +
+                        "privileged carbon context.");
+            }
+            return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Resolved tenant domain from the thread local: " + tenantDomain);
+        }
+        return tenantDomain;
+    }
+
+    /**
      * Checks whether the tenant URL support is enabled.
      *
      * @return true if the config is set to true, false otherwise.
@@ -399,4 +422,15 @@ public class IdentityTenantUtil {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
     }
+
+    /**
+     * Checks if it is required to specify carbon.super in tenant qualified URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static boolean isSuperTenantRequiredInUrl() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.REQUIRED_SUPER_TENANT_IN_URLS));
+    }
+
 }

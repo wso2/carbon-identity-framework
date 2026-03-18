@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.PROXY_CONTEXT_PATH;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isSuperTenantRequiredInUrl;
 
 /**
  * Implementation for {@link ServiceURLBuilder}.
@@ -124,28 +125,39 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
-                String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                if (organizationId != null) {
-                    // When requesting from an organization qualified url, the service urls should also be organization
-                    // qualified.
-                    resolvedUrlStringBuilder.append("/o/").append(organizationId);
-                } else {
-                    resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
-                }
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
+                appendTenantOrOrganizationPath(resolvedUrlStringBuilder, tenantDomain);
             }
         }
 
-        if (StringUtils.isNotBlank(resolvedUrlContext)) {
-            if (resolvedUrlContext.trim().charAt(0) != '/') {
-                resolvedUrlStringBuilder.append("/").append(resolvedUrlContext.trim());
-            } else {
-                resolvedUrlStringBuilder.append(resolvedUrlContext.trim());
-            }
-        }
+        appendUrlContext(resolvedUrlStringBuilder, resolvedUrlContext);
 
         return resolvedUrlStringBuilder.toString();
+    }
+
+    private void appendTenantOrOrganizationPath(StringBuilder urlBuilder, String tenantDomain) {
+
+        String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+        if (organizationId != null) {
+            // When requesting from an organization qualified url, the service urls should also be organization
+            // qualified.
+            urlBuilder.append("/o/").append(organizationId);
+        } else {
+            urlBuilder.append("/t/").append(tenantDomain);
+        }
+    }
+
+    private void appendUrlContext(StringBuilder urlBuilder, String resolvedUrlContext) {
+
+        if (StringUtils.isBlank(resolvedUrlContext)) {
+            return;
+        }
+        String trimmedContext = resolvedUrlContext.trim();
+        if (trimmedContext.charAt(0) != '/') {
+            urlBuilder.append("/");
+        }
+        urlBuilder.append(trimmedContext);
     }
 
     protected boolean isNotSuperTenant(String tenantDomain) {
