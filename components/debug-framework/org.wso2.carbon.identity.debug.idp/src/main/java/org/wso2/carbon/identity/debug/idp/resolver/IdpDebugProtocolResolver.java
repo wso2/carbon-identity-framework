@@ -24,9 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
-import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter.DebugProtocolType;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
+import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
+import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter.DebugProtocolType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
+import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
+import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
@@ -50,12 +52,13 @@ public interface DebugResourceHandler {
 
     /**
      * Gets the processor for the given resource ID.
-     * The processor handles callback-based flows (e.g., OAuth/OIDC).
+     * The processor handles callback-based flows.
      *
      * @param connectionId The resource ID associated with the callback.
      * @return DebugProcessor instance, or null if not applicable.
      */
-    default org.wso2.carbon.identity.debug.framework.core.DebugProcessor getProcessor(String connectionId) {
+    default DebugProcessor getProcessor(String connectionId) {
+        
         return null; // Default implementation returns null
     }
 
@@ -66,8 +69,9 @@ public interface DebugResourceHandler {
      * @param connectionId The resource ID.
      * @return DebugExecutor instance, or null if not applicable.
      */
-    default org.wso2.carbon.identity.debug.framework.core.DebugExecutor getExecutor(String connectionId) {
-        return null; // Default implementation returns null
+    default DebugExecutor getExecutor(String connectionId) {
+
+        return null; 
     }
 
 }

@@ -68,7 +68,7 @@ public enum DebugResourceType {
 
     /**
      * Gets the appropriate DebugResourceHandler for this resource type.
-     * IDP handler is looked up from OSGi registry (provided by debug.idp module).
+     * IDP handler is looked up from OSGi registry.
      * Other handlers are instantiated directly or looked up from registry.
      *
      * @return The appropriate DebugResourceHandler, or null if not found.

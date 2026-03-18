@@ -197,21 +197,6 @@ public class DebugFrameworkServiceDataHolder {
     }
 
     /**
-     * Checks if a protocol provider is registered for the given type.
-     *
-     * @param protocolType The protocol type to check.
-     * @return true if a provider is registered, false otherwise.
-     */
-    public boolean hasDebugProtocolProvider(String protocolType) {
-
-        String normalizedType = normalizeProtocolType(protocolType);
-        if (normalizedType == null) {
-            return false;
-        }
-        return debugProtocolProviders.containsKey(normalizedType);
-    }
-
-    /**
      * List of registered debug protocol resolvers.
      */
     private final List<DebugProtocolResolver> debugProtocolResolvers = 

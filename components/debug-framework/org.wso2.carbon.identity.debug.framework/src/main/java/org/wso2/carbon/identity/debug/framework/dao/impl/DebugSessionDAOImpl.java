@@ -272,8 +272,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
      * @throws DebugFrameworkServerException If database access fails.
      */
     private DebugSessionData getDebugSessionLegacyFallback(JdbcTemplate jdbcTemplate, String debugId,
-                                                           String storageDebugId, String normalizedDebugId)
-            throws DebugFrameworkServerException {
+                            String storageDebugId, String normalizedDebugId) throws DebugFrameworkServerException {
 
         try {
             DebugSessionData data = getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION_LEGACY,
@@ -303,8 +302,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
      * @throws SQLException If a SQL error occurs.
      */
     private DebugSessionData mapResultSetToDebugSessionData(ResultSet resultSet, String debugId,
-                                                           boolean includeResourceColumns)
-            throws SQLException {
+                                                           boolean includeResourceColumns) throws SQLException {
 
         DebugSessionData sessionData = new DebugSessionData();
         sessionData.setDebugId(debugId);

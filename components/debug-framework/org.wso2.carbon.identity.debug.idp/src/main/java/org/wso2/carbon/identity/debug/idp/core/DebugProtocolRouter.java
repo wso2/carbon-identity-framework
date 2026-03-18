@@ -15,26 +15,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core;
+package org.wso2.carbon.identity.debug.idp.core;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
+import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
+import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
-import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
+import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Routes debug requests to appropriate protocol-specific context providers and
- * processors based on resource type and authenticator.
- * This class leverages the OSGi service registry to find the appropriate
- * providers.
+ * Routes IdP debug requests to protocol-specific components.
  */
 public class DebugProtocolRouter {
 
@@ -66,32 +66,16 @@ public class DebugProtocolRouter {
             this.protocolKey = protocolKey;
         }
 
-        /**
-         * Gets the display name of this protocol type.
-         *
-         * @return The display name.
-         */
         public String getDisplayName() {
 
             return displayName;
         }
 
-        /**
-         * Gets the protocol key for this type.
-         *
-         * @return The protocol key.
-         */
         public String getProtocolKey() {
 
             return protocolKey;
         }
 
-        /**
-         * Finds a DebugProtocolType by display name or protocol key (case-insensitive).
-         *
-         * @param value The display name or protocol key to match.
-         * @return The matching DebugProtocolType, or null if not found.
-         */
         public static DebugProtocolType fromValue(String value) {
 
             if (StringUtils.isBlank(value)) {
@@ -107,23 +91,15 @@ public class DebugProtocolRouter {
         }
     }
 
-    /**
-     * Detects the debug protocol type for the given connectionId ID.
-     * Delegates to registered DebugProtocolResolvers.
-     *
-     * @param connectionId connection ID or name.
-     * @return Detected DebugProtocolType, defaults to OIDC if detection fails.
-     */
     public static DebugProtocolType detectProtocol(String connectionId) {
 
         if (StringUtils.isEmpty(connectionId)) {
             LOG.debug("Connection ID is empty, defaulting to OIDC");
-
             return DebugProtocolType.OIDC;
         }
 
-        List<DebugProtocolResolver> resolvers 
-            = DebugFrameworkServiceDataHolder.getInstance().getDebugProtocolResolvers();
+        List<DebugProtocolResolver> resolvers =
+                DebugProtocolRegistry.getInstance().getDebugProtocolResolvers();
         for (DebugProtocolResolver resolver : resolvers) {
             String resolvedProtocol = resolver.resolveProtocol(connectionId);
             if (resolvedProtocol != null) {
@@ -131,12 +107,12 @@ public class DebugProtocolRouter {
                 if (type != null) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Protocol resolved by " + resolver.getClass().getSimpleName()
-                                    + ": " + type.getDisplayName());
+                                + ": " + type.getDisplayName());
                     }
                     return type;
                 }
-                // If specific enum not found, we might need a more dynamic way to handle new protocols in future.
-                LOG.warn("Resolved protocol string '" + resolvedProtocol + "' doesn't match any DebugProtocolType.");
+                LOG.warn("Resolved protocol string '" + resolvedProtocol
+                        + "' doesn't match any DebugProtocolType.");
             }
         }
 
@@ -146,62 +122,28 @@ public class DebugProtocolRouter {
         return DebugProtocolType.OIDC;
     }
 
-    /**
-     * Gets the context provider for the given connection ID.
-     * Automatically detects protocol and returns appropriate provider.
-     *
-     * @param connectionId connection ID.
-     * @return DebugContextProvider for the resource, or null if not available.
-     */
     public static DebugContextProvider getContextProviderForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getContextProvider,
-             "Context Provider");
+                "Context Provider");
     }
 
-    /**
-     * Gets the executor for the given connection ID.
-     * Automatically detects protocol and returns appropriate provider.
-     *
-     * @param connectionId Connection ID.
-     * @return DebugExecutor for the resource, or null if not available.
-     */
     public static DebugExecutor getExecutorForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getExecutor, "Executor");
     }
 
-    /**
-     * Gets the processor for the given Connection ID.
-     * Automatically detects protocol and returns appropriate provider.
-     *
-     * @param connectionId Connection ID.
-     * @return DebugProcessor for the resource, or null if not available.
-     */
     public static DebugProcessor getProcessorForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getProcessor, "Processor");
     }
 
-    /**
-     * Gets the protocol-specific debug callback handler for the given connection ID.
-     *
-     * @param connectionId Connection ID.
-     * @return DebugCallbackHandler for the resource, or null if not available.
-     */
     public static DebugCallbackHandler getCallbackHandlerForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getCallbackHandler,
                 "Callback Handler");
     }
 
-    /**
-     * Gets the debug resource handler for the given resource type.
-     * Routes based on explicit resourceType values supported by DebugResourceType.
-     *
-     * @param resourceType The type of resource to debug.
-     * @return DebugResourceHandler instance if available, null otherwise.
-     */
     public static DebugResourceHandler getDebugResourceHandler(String resourceType) {
 
         if (StringUtils.isEmpty(resourceType)) {
@@ -219,14 +161,9 @@ public class DebugProtocolRouter {
         return resourceHandler;
     }
 
-    /**
-     * Returns all registered callback handlers.
-     *
-     * @return List of DebugCallbackHandler.
-     */
     public static List<DebugCallbackHandler> getAllCallbackHandlers() {
 
-        return DebugFrameworkServiceDataHolder.getInstance().getDebugCallbackHandlers();
+        return DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
     }
 
     public static DebugProtocolType resolveProtocolFromAuthenticator(String authenticatorName) {
@@ -246,18 +183,12 @@ public class DebugProtocolRouter {
         return null;
     }
 
-    /**
-     * Functional interface for extracting a component from a DebugProtocolProvider.
-     */
     @FunctionalInterface
     private interface ProviderComponentExtractor<T> {
 
         T extract(DebugProtocolProvider provider);
     }
 
-    /**
-     * Generic helper to get a component from the protocol provider.
-     */
     private static <T> T getProtocolProviderComponent(String connectionId, ProviderComponentExtractor<T> extractor,
                                                       String componentName) {
 
@@ -283,7 +214,7 @@ public class DebugProtocolRouter {
         }
 
         String normalizedType = normalizeProtocolType(protocolType);
-        DebugProtocolProvider provider = DebugFrameworkServiceDataHolder.getInstance()
+        DebugProtocolProvider provider = DebugProtocolRegistry.getInstance()
                 .getDebugProtocolProvider(normalizedType);
 
         if (provider != null) {
@@ -310,7 +241,7 @@ public class DebugProtocolRouter {
             }
         }
 
-        for (DebugProtocolResolver resolver : DebugFrameworkServiceDataHolder.getInstance()
+        for (DebugProtocolResolver resolver : DebugProtocolRegistry.getInstance()
                 .getDebugProtocolResolvers()) {
             String resolvedProtocol = resolver.resolveProtocol(connectionId);
             if (StringUtils.isNotBlank(resolvedProtocol)) {

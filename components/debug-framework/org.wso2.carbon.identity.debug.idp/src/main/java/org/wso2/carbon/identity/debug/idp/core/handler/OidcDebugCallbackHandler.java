@@ -28,9 +28,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
-import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
+import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
 
 import java.io.IOException;
 

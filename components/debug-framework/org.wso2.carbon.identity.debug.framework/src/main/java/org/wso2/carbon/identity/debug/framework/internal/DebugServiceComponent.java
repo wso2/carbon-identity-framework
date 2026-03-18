@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
+import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 
 /**
  * OSGi service component for Debug Framework.
@@ -107,8 +108,7 @@ public class DebugServiceComponent {
      * Sets the DebugProtocolProvider.
      * Called by OSGi when a protocol module registers a DebugProtocolProvider.
      * Multiple providers can be registered.
-     * 
-     * 
+     *
      * Uses 0..* cardinality (MULTIPLE is optional by default) so the framework
      * can activate even if no providers are registered initially. Providers are
      * discovered dynamically at runtime via OSGi service lookups.
@@ -125,7 +125,7 @@ public class DebugServiceComponent {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugProtocolProvider registered for protocol: " + protocolType);
             }
-            DebugFrameworkServiceDataHolder.getInstance().addDebugProtocolProvider(provider);
+            DebugProtocolRegistry.getInstance().addDebugProtocolProvider(provider);
             LOG.info("Successfully registered DebugProtocolProvider for protocol: " + protocolType);
         }
     }
@@ -144,7 +144,7 @@ public class DebugServiceComponent {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugProtocolProvider unregistered for protocol: " + protocolType);
             }
-            DebugFrameworkServiceDataHolder.getInstance().removeDebugProtocolProvider(provider);
+            DebugProtocolRegistry.getInstance().removeDebugProtocolProvider(provider);
             LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
         }
     }
@@ -160,7 +160,7 @@ public class DebugServiceComponent {
     protected void setDebugProtocolResolver(DebugProtocolResolver resolver) {
 
         if (resolver != null) {
-            DebugFrameworkServiceDataHolder.getInstance().addDebugProtocolResolver(resolver);
+            DebugProtocolRegistry.getInstance().addDebugProtocolResolver(resolver);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugProtocolResolver registered: " + resolver.getClass().getName());
             }
@@ -175,7 +175,7 @@ public class DebugServiceComponent {
     protected void unsetDebugProtocolResolver(DebugProtocolResolver resolver) {
 
         if (resolver != null) {
-            DebugFrameworkServiceDataHolder.getInstance().removeDebugProtocolResolver(resolver);
+            DebugProtocolRegistry.getInstance().removeDebugProtocolResolver(resolver);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugProtocolResolver unregistered: " + resolver.getClass().getName());
             }
@@ -211,7 +211,7 @@ public class DebugServiceComponent {
     protected void setDebugCallbackHandler(DebugCallbackHandler handler) {
 
         if (handler != null) {
-            DebugFrameworkServiceDataHolder.getInstance().addDebugCallbackHandler(handler);
+            DebugProtocolRegistry.getInstance().addDebugCallbackHandler(handler);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugCallbackHandler registered: " + handler.getClass().getName());
             }
@@ -221,7 +221,7 @@ public class DebugServiceComponent {
     protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
 
         if (handler != null) {
-            DebugFrameworkServiceDataHolder.getInstance().removeDebugCallbackHandler(handler);
+            DebugProtocolRegistry.getInstance().removeDebugCallbackHandler(handler);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("DebugCallbackHandler unregistered: " + handler.getClass().getName());
             }

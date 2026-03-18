@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
+import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.util.HashMap;
@@ -290,7 +291,7 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
 
     private DebugCallbackHandler resolveCallbackHandler(HttpServletRequest request) {
 
-        for (DebugCallbackHandler handler : DebugProtocolRouter.getAllCallbackHandlers()) {
+        for (DebugCallbackHandler handler : DebugProtocolRegistry.getInstance().getDebugCallbackHandlers()) {
             if (handler != null && handler.canHandle(request)) {
                 return handler;
             }

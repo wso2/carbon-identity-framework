@@ -91,7 +91,7 @@ public class DebugSessionCleanupService {
     }
 
     /**
-     * Runnable task to perform the actual cleanup.
+     * Runnable task to perform the cleanup.
      */
     private final class DebugSessionCleanupTask implements Runnable {
 

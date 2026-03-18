@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMes
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
-import org.wso2.carbon.identity.debug.framework.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
@@ -36,6 +35,7 @@ import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
+import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
 
 import java.util.Map;
 
