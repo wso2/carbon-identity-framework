@@ -2307,5 +2307,6 @@
 
   "enhanced_organization_authentication_feature.enabled": true,
 
-  "workflow_engine.max_approver_notifications": 15
+  "workflow_engine.max_approver_notifications": 15,
+  "app_native_authentication.handle_fail_completed_authenticator_status": true
 }
