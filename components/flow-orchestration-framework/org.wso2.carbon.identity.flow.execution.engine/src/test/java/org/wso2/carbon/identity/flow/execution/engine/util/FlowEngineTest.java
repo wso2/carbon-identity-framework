@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
-import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
@@ -27,17 +26,20 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
+import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
@@ -69,11 +71,13 @@ public class FlowEngineTest {
 
     private FlowExecutionContext context;
     private GraphConfig defaultGraph;
+    private List<FlowExecutionListener> listeners = new ArrayList<>();
 
     @BeforeClass
     public void setup() {
 
         defaultGraph = buildGraphWithDecision();
+        listeners.add(new InputValidationListener());
     }
 
     @AfterClass
@@ -81,6 +85,7 @@ public class FlowEngineTest {
         // Clean up class-level resources if any
         context = null;
         defaultGraph = null;
+        listeners = null;
         org.mockito.Mockito.framework().clearInlineMocks();
     }
 
@@ -89,50 +94,24 @@ public class FlowEngineTest {
 
         context = initiateFlowContext();
         context.setGraphConfig(defaultGraph);
-
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
-            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
-            assertEquals(step.getFlowStatus(), "INCOMPLETE");
-            assertEquals(step.getStepType(), "VIEW");
-        }
+        FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
+        assertEquals(step.getFlowStatus(), "INCOMPLETE");
+        assertEquals(step.getStepType(), "VIEW");
     }
 
     @Test(dependsOnMethods = {"testDecisionNodePrompt"})
     public void testDecisionNodeSelectionForPrompt() throws Exception {
 
         context.setCurrentActionId("button1");
-
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
-                     mockConstruction(TaskExecutionNode.class, (mock, ctx) -> {
-                         NodeResponse nodeResponse = new NodeResponse.Builder()
-                                 .status("INCOMPLETE")
-                                 .type("VIEW")
-                                 .build();
-                         when(mock.execute(any(), any())).thenReturn(nodeResponse);
-                     })) {
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
-            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
-            assertEquals(step.getFlowStatus(), "INCOMPLETE");
-            assertEquals(step.getStepType(), "VIEW");
-        }
+        FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
+        assertEquals(step.getFlowStatus(), "INCOMPLETE");
+        assertEquals(step.getStepType(), "VIEW");
     }
 
     @Test(dependsOnMethods = {"testDecisionNodeSelectionForPrompt"})
     public void testContinueAfterPrompt() throws Exception {
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status("INCOMPLETE")
@@ -141,7 +120,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
 
             assertNotNull(step);
@@ -153,24 +131,16 @@ public class FlowEngineTest {
     @Test(dependsOnMethods = {"testContinueAfterPrompt"})
     public void testContinueTaskExecution() throws Exception {
 
-        context = initiateFlowContext();
-        context.setGraphConfig(defaultGraph);
-        context.setCurrentNode(defaultGraph.getNodeConfigs().get("taskNode"));
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
         try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
                 FlowExecutionEngineUtils.class);
-             MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
              MockedConstruction<TaskExecutionNode> mocked =
-                     mockConstruction(TaskExecutionNode.class, (mock, constructionCtx) -> {
+                     mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status("COMPLETE")
                                  .build();
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             utilsMockedStatic.when(() -> FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
                     .thenReturn("https://localhost:3000/myapp/callback");
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
@@ -198,11 +168,7 @@ public class FlowEngineTest {
         FlowExecutionContext newContext = initiateFlowContext();
         newContext.setGraphConfig(graphWithRedirection);
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
@@ -211,7 +177,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionEngine.getInstance().execute(newContext);
         } catch (FlowEngineServerException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_REDIRECTION_URL_NOT_FOUND.getCode());
@@ -239,11 +204,7 @@ public class FlowEngineTest {
         Map<String, String> additionalTestInfo = new HashMap<>();
         additionalTestInfo.put(REDIRECT_URL, "https://test.com");
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
@@ -253,7 +214,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
             assertEquals(step.getStepType(), REDIRECTION);
@@ -282,11 +242,7 @@ public class FlowEngineTest {
         Map<String, String> additionalTestInfo = new HashMap<>();
         additionalTestInfo.put(WEBAUTHN_DATA, "{\"field1\":\"value1\",\"field2\":\"value2\"}");
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
@@ -297,7 +253,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
             assertEquals(step.getStepType(), WEBAUTHN);
@@ -327,11 +282,7 @@ public class FlowEngineTest {
 
         Map<String, String> emptyAdditionalInfo = new HashMap<>();
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
@@ -342,7 +293,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionEngine.getInstance().execute(newContext);
         } catch (FlowEngineServerException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_WEBAUTHN_DATA_NOT_FOUND.getCode());
@@ -370,11 +320,7 @@ public class FlowEngineTest {
         Map<String, String> additionalTestInfo = new HashMap<>();
         additionalTestInfo.put("someKey", "someValue");
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
@@ -385,7 +331,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(newContext);
             assertEquals(step.getFlowStatus(), STATUS_INCOMPLETE);
             assertEquals(step.getStepType(), INTERNAL_PROMPT);
@@ -415,11 +360,7 @@ public class FlowEngineTest {
         Map<String, String> additionalTestInfo = new HashMap<>();
         additionalTestInfo.put("someKey", "someValue");
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status(STATUS_INCOMPLETE)
@@ -429,7 +370,6 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             FlowExecutionEngine.getInstance().execute(newContext);
         } catch (FlowEngineServerException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_REQUIRED_DATA_NOT_FOUND.getCode());
@@ -451,15 +391,11 @@ public class FlowEngineTest {
         invalidGraph.setFirstNodeId("nodeId");
         invalidGraph.setNodeConfigs(nodeMap);
 
-        FlowExecutionContext newContext = initiateFlowContext();
-        newContext.setGraphConfig(invalidGraph);
+        FlowExecutionContext context = initiateFlowContext();
+        context.setGraphConfig(invalidGraph);
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class)) {
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
-            FlowExecutionEngine.getInstance().execute(newContext);
+        try {
+            FlowExecutionEngine.getInstance().execute(context);
         } catch (FlowEngineServerException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_UNSUPPORTED_NODE.getCode());
         }
@@ -509,13 +445,8 @@ public class FlowEngineTest {
         FlowExecutionContext context = initiateFlowContext();
         context.setGraphConfig(graph);
 
-        InputValidator inputValidatorMock = org.mockito.Mockito.mock(InputValidator.class);
-        org.mockito.Mockito.when(inputValidatorMock.executeInputValidation(any())).thenReturn(null);
-
-        try (MockedStatic<InputValidator> inputValidatorStatic = mockStatic(InputValidator.class);
-             MockedStatic<org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils> utilsMockedStatic =
+        try (MockedStatic<org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils> utilsMockedStatic =
                      mockStatic(org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.class)) {
-            inputValidatorStatic.when(InputValidator::getInstance).thenReturn(inputValidatorMock);
             utilsMockedStatic.when(() -> org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
                     .thenReturn("https://localhost:3000/myapp/callback");
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
@@ -573,4 +504,3 @@ public class FlowEngineTest {
         return context;
     }
 }
-
