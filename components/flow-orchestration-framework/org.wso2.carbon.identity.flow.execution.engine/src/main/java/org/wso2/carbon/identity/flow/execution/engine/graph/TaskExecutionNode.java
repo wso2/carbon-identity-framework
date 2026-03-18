@@ -27,12 +27,12 @@ import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_FAILURE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REQUEST_PROCESSING_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED;
@@ -73,7 +73,6 @@ public class TaskExecutionNode implements Node {
             throw handleServerException(context.getFlowType(), ERROR_CODE_EXECUTOR_NOT_FOUND, context.getFlowType(),
                     context.getGraphConfig().getId(), context.getTenantDomain());
         }
-
         return triggerExecutor(context, configs);
     }
 
@@ -215,7 +214,6 @@ public class TaskExecutionNode implements Node {
         if (CollectionUtils.isNotEmpty(configs.getEdges())) {
             configs.setNextNodeId(configs.getEdges().get(0).getTargetNodeId());
         }
-        InputValidationService.getInstance().clearUserInputs(context);
         return new NodeResponse.Builder().status(STATUS_COMPLETE).build();
     }
 }
