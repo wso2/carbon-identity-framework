@@ -820,6 +820,12 @@
         <AllowIssuerSelectionForSubOrgApplications>true</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
+    <PushAuthenticator>
+        <DeviceRegistrationContext>
+            <ValidityPeriod>180</ValidityPeriod>
+        </DeviceRegistrationContext>
+    </PushAuthenticator>
+
     <RestApiAuthentication>
         <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
         <AddRealmUserToError>false</AddRealmUserToError>
