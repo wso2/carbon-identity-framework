@@ -516,13 +516,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                                     loadedSessionContext.getAuthenticatedOrgData().get(authenticatedOrgId) != null) {
                                 sessionContext = loadedSessionContext;
                             }
-                        } else if (context.isOrgApplicationLogin()) {
-                            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                    .getAccessingOrganizationId();
-                            if (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()) &&
-                                    loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
-                                sessionContext = loadedSessionContext;
-                            }
+//                        } else if (context.isOrgApplicationLogin()) {
+//                            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+//                                    .getAccessingOrganizationId();
+//                            if (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()) &&
+//                                    loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+//                                sessionContext = loadedSessionContext;
+//                            }
                         } else {
                             sessionContext = loadedSessionContext;
                         }
@@ -544,7 +544,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE;
-                if (context.isSharedAppLogin() || context.isOrgApplicationLogin()) {
+                if (context.isSharedAppLogin()) {
                     String organizationId;
                     if (context.isSharedAppLogin()) {
                         organizationId = context.getOrganizationLoginData().getAccessingOrganization().getId();
@@ -667,7 +667,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.IS_INITIAL_LOGIN, true);
 
                 sessionContext = new SessionContext();
-                if (context.isSharedAppLogin() || context.isOrgApplicationLogin()) {
+                if (context.isSharedAppLogin()) {
                     String orgId;
                     if (context.isSharedAppLogin()) {
                         orgId = context.getOrganizationLoginData().getAccessingOrganization().getId();

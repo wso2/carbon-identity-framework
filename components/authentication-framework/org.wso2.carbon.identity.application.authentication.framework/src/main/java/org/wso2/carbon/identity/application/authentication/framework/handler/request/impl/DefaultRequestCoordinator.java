@@ -81,6 +81,8 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -137,6 +139,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.ROOT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT;
 
 /**
  * Request Coordinator
@@ -191,6 +195,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         boolean enteredFlow = false;
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
+        boolean isTenantFlowStarted = false;
         try {
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, true);
             AuthenticationRequestCacheEntry authRequest = null;
@@ -289,6 +294,65 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     returning = true;
                 }
                 associateTransientRequestData(request, responseWrapper, context);
+
+                String uri = request.getRequestURI();
+                String endpointName = (uri != null) ? uri.substring(uri.lastIndexOf('/') + 1) : null;
+                boolean isCommonAuthEndpoint = StringUtils.equals(endpointName, FrameworkConstants.COMMONAUTH);
+                if (isCommonAuthEndpoint) {
+                    log.info("Common Auth Endpoint is found in the request: " + endpointName);
+                    log.info("Request URI : " +  uri);
+                    if (context.isOrgApplicationLogin() && StringUtils.isEmpty(PrivilegedCarbonContext.
+                            getThreadLocalCarbonContext().getAccessingOrganizationId())) {
+                        log.info("Sub organization login detected with /o/org_id/ commonauth endpoint.");
+                        String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                .getOrganizationId();
+                        String primaryOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager().
+                                getPrimaryOrganizationId(organizationId);
+                        String primaryTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager().
+                                resolveTenantDomain(primaryOrgId);
+                        log.info("Starting the carbon context");
+                        isTenantFlowStarted = true;
+                        PrivilegedCarbonContext.startTenantFlow();
+                        PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                        carbonContext.setTenantDomain(primaryTenantDomain);
+                        carbonContext.setAccessingOrganizationId(organizationId);
+                        carbonContext.setApplicationResidentOrganizationId(organizationId);
+                        IdentityUtil.threadLocalProperties.get().put(TENANT_NAME_FROM_CONTEXT, primaryTenantDomain);
+                    } else if (!context.isSharedAppLogin()) {
+                        String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().
+                                getAccessingOrganizationId();
+                        if (StringUtils.isNotEmpty(accessingOrgId)) {
+                            log.info("Sub organization federation login detected with /t/tenant_domain/o/org_id/ " +
+                                    "commonauth endpoint.");
+                            String accessingTenantDomain = FrameworkServiceDataHolder.getInstance().
+                                    getOrganizationManager().resolveTenantDomain(accessingOrgId);
+                            ServiceProvider serviceProvider = FrameworkServiceDataHolder.getInstance().
+                                    getApplicationManagementService().getApplicationByResourceId(
+                                            context.getServiceProviderResourceId(), accessingTenantDomain);
+                            boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                                    .anyMatch(property ->
+                                            IS_FRAGMENT_APP.equals(property.getName()) &&
+                                            Boolean.parseBoolean(property.getValue()));
+                            if (isFragmentApp) {
+                                log.info("Starting the carbon context in shared app federation login");
+                                isTenantFlowStarted = true;
+                                String rootOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager().
+                                        getPrimaryOrganizationId(accessingOrgId);
+                                String rootTenantDomain = FrameworkServiceDataHolder.getInstance().
+                                        getOrganizationManager().resolveTenantDomain(rootOrgId);
+                                PrivilegedCarbonContext.startTenantFlow();
+                                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.
+                                        getThreadLocalCarbonContext();
+                                carbonContext.setOrganizationId(accessingOrgId);
+                                carbonContext.setTenantDomain(accessingTenantDomain);
+//                                IdentityUtil.threadLocalProperties.get().put(
+//                                        OrganizationManagementConstants.ROOT_TENANT_DOMAIN, rootTenantDomain);
+                            }
+
+                        }
+
+                    }
+                }
             }
 
             // Check if the application is enabled.
@@ -583,6 +647,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (enteredFlow) {
                 IdentityContext.getThreadLocalIdentityContext().exitFlow();
             }
+
+            if (isTenantFlowStarted) {
+                log.info("Closing the created carbon context");
+                PrivilegedCarbonContext.endTenantFlow();
+            }
         }
     }
 
@@ -823,20 +892,20 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 IdentityUtil.getAuthenticationContextValidityPeriod()));
 
         // Commenting out session related improvements until a proper fix for session deserialization compatibility.
-//        try {
-//            String accessingOrgId =
-//                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
-//            if (StringUtils.isNotBlank(accessingOrgId) && OrganizationManagementUtil.isOrganization(tenantDomain)) {
-//                context.setOrgApplicationLogin(true);
-//                OrganizationLoginData orgData = new OrganizationLoginData();
-//                orgData.setRootOrganizationTenantDomain(
-//                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-//                context.setOrganizationLoginData(orgData);
-//            }
-//        } catch (OrganizationManagementException e) {
-//            throw new FrameworkException("Error while checking the tenant: " + tenantDomain +
-//                    " is an organization.", e);
-//        }
+        try {
+            String accessingOrgId =
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+            if (StringUtils.isNotBlank(accessingOrgId) && OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                context.setOrgApplicationLogin(true);
+                OrganizationLoginData orgData = new OrganizationLoginData();
+                orgData.setRootOrganizationTenantDomain(
+                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                context.setOrganizationLoginData(orgData);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException("Error while checking the tenant: " + tenantDomain +
+                    " is an organization.", e);
+        }
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
@@ -1308,15 +1377,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 .getAccessingOrganizationId();
 
         // Check for previous organization sessions for organization application logins.
-        if (context.isOrgApplicationLogin()) {
-            String accessingTenantDomain = FrameworkUtils.resolveTenantDomainFromOrganizationId(accessingOrgId);
-            if (StringUtils.equals(accessingTenantDomain, context.getTenantDomain())) {
-                if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
-                    // Return the org ID for session data lookup.
-                    return Optional.of(accessingOrgId);
-                }
-            }
-        }
+//        if (context.isOrgApplicationLogin()) {
+//            String accessingTenantDomain = FrameworkUtils.resolveTenantDomainFromOrganizationId(accessingOrgId);
+//            if (StringUtils.equals(accessingTenantDomain, context.getTenantDomain())) {
+//                if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
+//                    // Return the org ID for session data lookup.
+//                    return Optional.of(accessingOrgId);
+//                }
+//            }
+//        }
 
         // Check previous shared app login sessions are applicable in shared app direct access scenario.
         if (sharedAppLoginSession) {
