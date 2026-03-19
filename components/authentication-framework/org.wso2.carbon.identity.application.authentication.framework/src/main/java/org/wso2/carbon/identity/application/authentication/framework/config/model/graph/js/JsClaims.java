@@ -482,7 +482,21 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
     private boolean isAuthenticatedUserInCurrentTenant() {
 
-        return authenticatedUser != null && StringUtils.equalsIgnoreCase(authenticatedUser.getTenantDomain(),
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        if (authenticatedUser == null) {
+            return false;
+        }
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return StringUtils.equalsIgnoreCase(authenticatedUser.getTenantDomain(),
+                    PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        }
+
+        AuthenticationContext context = getContext();
+        if (context == null || StringUtils.isBlank(context.getTenantDomain())) {
+            LOG.warn("Unable to determine the tenant domain from the authentication context. " +
+                    "Hence user tenant domain validation is considered as failed.");
+            return false;
+        }
+        return StringUtils.equalsIgnoreCase(authenticatedUser.getTenantDomain(), context.getTenantDomain());
     }
 }
