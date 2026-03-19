@@ -38,8 +38,10 @@ public class WorkflowRuleFieldRegistry {
     private static final String GROUPS_VALUES_LINK = "/scim2/Groups?offset=0&count=10";
     private static final String GROUPS_FILTER_LINK = "/scim2/Groups?filter=&count=10";
     private static final String USERSTORES_VALUES_LINK = "/userstores";
-    private static final String APPLICATIONS_VALUES_LINK = "/applications?excludeSystemPortals=true&offset=0&limit=10";
-    private static final String APPLICATIONS_FILTER_LINK = "/applications?excludeSystemPortals=true&filter=&limit=10";
+    private static final String APPLICATIONS_VALUES_LINK = "/applications?excludeSystemPortals=false&offset=0"
+        + "&limit=10&attributes=associatedRoles.allowedAudience";
+    private static final String APPLICATIONS_FILTER_LINK = "/applications?excludeSystemPortals=false&filter="
+        + "&limit=10&attributes=associatedRoles.allowedAudience";
 
     static {
         Map<String, FieldDefinition> fields = new LinkedHashMap<>();
