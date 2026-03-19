@@ -97,6 +97,10 @@
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -180,6 +184,10 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception;
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.internal,
