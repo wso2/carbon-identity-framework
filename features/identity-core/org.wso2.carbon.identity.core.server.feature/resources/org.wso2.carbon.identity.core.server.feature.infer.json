@@ -233,6 +233,14 @@
       ]
     }
   },
+  "oauth.jwks_endpoint.enable_x5t_in_response": {
+    "true": { 
+      "oauth.jwks_endpoint.is_x5t_required": true
+    },
+    "false": {
+      "oauth.jwks_endpoint.is_x5t_required": false
+    }
+  },
   "server.legacy_mode": {
     "true": {
       "oauth.enable_sha256": false,
