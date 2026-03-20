@@ -162,9 +162,6 @@ public class Constants {
         ERROR_CODE_GET_CLAIM_META_DATA_FAILURE("65032",
                 "Error while loading claim metadata.",
                 "Error occurred loading the claim metadata for tenant: %s."),
-        ERROR_CODE_CLAIM_PROCESSING_FAILURE("65033",
-                "Error while processing claims.",
-                "Error occurred while processing claims for tenant: %s. %s"),
 
 
         // Client errors.
