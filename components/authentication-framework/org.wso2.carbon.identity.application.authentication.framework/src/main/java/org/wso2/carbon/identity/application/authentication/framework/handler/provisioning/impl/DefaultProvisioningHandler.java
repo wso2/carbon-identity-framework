@@ -57,6 +57,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -80,6 +81,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_EMAIL_DOMAIN_ASSOCIATED_WITH_DIFFERENT_ORGANIZATION;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_WORKFLOW_CREATED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 import static org.wso2.carbon.identity.workflow.mgt.util.WorkflowErrorConstants.ErrorMessages.ERROR_CODE_ROLE_WF_USER_PENDING_APPROVAL_FOR_ROLE;
@@ -209,7 +212,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             handleV2Roles(username, userStoreManager, realm, roleIdList, tenantDomain);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
-            throw new FrameworkException("Error while provisioning user : " + subject, e);
+            handleProvisioningException(e, subject);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
@@ -1033,5 +1036,39 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     IdentityUtil.getProperty(ALLOW_ASSOCIATING_TO_EXISTING_USER));
         }
         return allowAssociationToExistingUser;
+    }
+
+    /**
+     * Handle provisioning exceptions and trigger diagnostic logs for organization discovery validation errors.
+     *
+     * @param e       The exception to handle.
+     * @param subject The subject being provisioned.
+     * @throws FrameworkException If the error is a server error or unhandled exception.
+     */
+    private void handleProvisioningException(Exception e, String subject) throws FrameworkException {
+
+        if (e instanceof UserStoreException) {
+            UserStoreException userStoreException = (UserStoreException) e;
+            String errorCode = userStoreException.getErrorCode();
+
+            // Trigger diagnostic log for organization discovery errors.
+            if (ERROR_CODE_EMAIL_DOMAIN_NOT_MAPPED_TO_ORGANIZATION.getCode().equals(errorCode)
+                    || ERROR_CODE_EMAIL_DOMAIN_ASSOCIATED_WITH_DIFFERENT_ORGANIZATION.getCode().equals(errorCode)) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.JIT_PROVISIONING)
+                            .resultMessage(userStoreException.getMessage())
+                            .inputParam(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
+                                    ? LoggerUtils.getMaskedContent(subject)
+                                    : subject)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                return;
+            }
+        }
+        throw new FrameworkException("Error while provisioning user : " + subject, e);
     }
 }

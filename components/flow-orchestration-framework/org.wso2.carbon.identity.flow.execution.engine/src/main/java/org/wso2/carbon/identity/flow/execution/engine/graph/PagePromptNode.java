@@ -21,10 +21,9 @@ package org.wso2.carbon.identity.flow.execution.engine.graph;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationService;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 
 public class PagePromptNode implements Node {
@@ -42,8 +41,7 @@ public class PagePromptNode implements Node {
         if (nodeConfig.getEdges() != null && !nodeConfig.getEdges().isEmpty()) {
             nodeConfig.setNextNodeId(nodeConfig.getEdges().get(0).getTargetNodeId());
         }
-        InputValidationService.getInstance().clearUserInputs(context);
-        return new NodeResponse.Builder().status(STATUS_COMPLETE).build();
+        return new NodeResponse.Builder().status(STATUS_PROMPT_ONLY).build();
     }
 
     @Override

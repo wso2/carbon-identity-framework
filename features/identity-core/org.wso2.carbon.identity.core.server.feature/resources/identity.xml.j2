@@ -4837,6 +4837,9 @@
 
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
+    <!-- Configuration options for controlling the inclusion of additional information in API-based authentication responses. -->
+    <IncludeAuthFailureReasonInAPIBasedAuthResponse>{{authentication.include_auth_failure_reason_in_api_based_response}}</IncludeAuthFailureReasonInAPIBasedAuthResponse>
+    <IncludeMultiOptionsInAPIBasedAuthResponse>{{authentication.include_multi_options_in_api_based_auth_response}}</IncludeMultiOptionsInAPIBasedAuthResponse>
 
     <!-- Configuration to allow only SP requested claims during federated flow. -->
     <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
@@ -5136,6 +5139,9 @@
             {% endfor %}
         </FlowTypeTTLs>
         <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
+        <EnableLegacySelfRegistrationFlow>{{flow_execution.enable_legacy_self_registration_flow}}</EnableLegacySelfRegistrationFlow>
+        <EnableLegacyPasswordRecoveryFlow>{{flow_execution.enable_legacy_password_recovery_flow}}</EnableLegacyPasswordRecoveryFlow>
+        <EnableLegacyInvitedUserRegistrationFlow>{{flow_execution.enable_legacy_invited_user_registration_flow}}</EnableLegacyInvitedUserRegistrationFlow>
         <Registration>
             <DisplayClaimAvailability>{{flow_execution.registration.display_claim_availability}}</DisplayClaimAvailability>
             <DefaultUserStore>{{flow_execution.registration.default_user_store}}</DefaultUserStore>

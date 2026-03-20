@@ -119,11 +119,8 @@ public class FlowExecutionService {
             if (inputs != null) {
                 context.getUserInputData().putAll(inputs);
             }
-            
+
             context.setCurrentActionId(actionId);
-            if (!FlowExecutionEngineUtils.preprocessStepInputs(context)) {
-                return null;
-            }
             for (FlowExecutionListener listener :
                     FlowExecutionEngineDataHolder.getInstance().getFlowListeners()) {
                 if (listener.isEnabled() && !listener.doPreExecute(context)) {
@@ -131,9 +128,6 @@ public class FlowExecutionService {
                 }
             }
             step = FlowExecutionEngine.getInstance().execute(context);
-            if (!FlowExecutionEngineUtils.postprocessStepInputs(step, context)) {
-                return null;
-            }
             for (FlowExecutionListener listener :
                     FlowExecutionEngineDataHolder.getInstance().getFlowListeners()) {
                 if (listener.isEnabled() && !listener.doPostExecute(step, context)) {

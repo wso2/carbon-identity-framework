@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.flow.execution.engine.FlowExecutionService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -75,6 +76,8 @@ public class FlowExecutionEngineServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(FlowExecutionService.class.getName(),
                     FlowExecutionService.getInstance(), null);
+            bundleContext.registerService(FlowExecutionListener.class.getName(), new InputValidationListener(),
+                    null);
             LOG.debug("Flow Engine service successfully activated.");
         } catch (Throwable e) {
             LOG.error("Error while initiating Flow Engine service", e);

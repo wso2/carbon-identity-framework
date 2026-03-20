@@ -2869,6 +2869,9 @@
 
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>true</EnableScopeBasedClaimFiltering>
+    <!-- Configuration options for controlling the inclusion of additional information in API-based authentication responses. -->
+    <IncludeAuthFailureReasonInAPIBasedAuthResponse>true</IncludeAuthFailureReasonInAPIBasedAuthResponse>
+    <IncludeMultiOptionsInAPIBasedAuthResponse>true</IncludeMultiOptionsInAPIBasedAuthResponse>
 
     <!-- Configuration to allow only SP requested claims during federated flow. -->
     <AllowSPRequestedFedClaimsOnly>true</AllowSPRequestedFedClaimsOnly>
@@ -2976,6 +2979,9 @@
             <FlowTypeTTL type="INVITED_USER_REGISTRATION">30</FlowTypeTTL>
         </FlowTypeTTLs>
         <EnableLegacyFlows>false</EnableLegacyFlows>
+        <EnableLegacySelfRegistrationFlow>false</EnableLegacySelfRegistrationFlow>
+        <EnableLegacyPasswordRecoveryFlow>false</EnableLegacyPasswordRecoveryFlow>
+        <EnableLegacyInvitedUserRegistrationFlow>false</EnableLegacyInvitedUserRegistrationFlow>
         <Registration>
             <DisplayClaimAvailability>false</DisplayClaimAvailability>
         </Registration>
