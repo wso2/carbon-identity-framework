@@ -4287,6 +4287,17 @@
         </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
+    <OpenApiOrgContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/validation-rules</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OpenApiOrgContextsToRewriteInTenantPerspective>
+
     <OrgContextsToRewrite>
         <WebApp>
         {% for organization_context in organization_context.rewrite %}
