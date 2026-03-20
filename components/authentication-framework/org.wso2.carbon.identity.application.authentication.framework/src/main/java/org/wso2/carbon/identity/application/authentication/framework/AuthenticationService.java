@@ -448,8 +448,8 @@ public class AuthenticationService {
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             if (request.getAttribute(AuthServiceConstants.APP_TENANT_DOMAIN) != null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Retrieving the tenant domain from request attribute since the flow started from " +
-                            "a sub organization level.");
+                    LOG.debug("Retrieving the tenant domain from request attribute in the flows initiated with " +
+                            "tenant qualified organization access paths.");
                 }
                 tenantDomain = request.getAttribute(AuthServiceConstants.APP_TENANT_DOMAIN).toString();
             } else {
