@@ -111,6 +111,7 @@ public class FlowEngineTest {
     @Test(dependsOnMethods = {"testDecisionNodeSelectionForPrompt"})
     public void testContinueAfterPrompt() throws Exception {
 
+        context.setCurrentActionId("button1");
         try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()

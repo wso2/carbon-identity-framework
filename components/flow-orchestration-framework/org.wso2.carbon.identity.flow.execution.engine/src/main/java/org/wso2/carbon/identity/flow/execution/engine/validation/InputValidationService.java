@@ -225,6 +225,11 @@ public class InputValidationService {
                 validateRequiredInputs(context);
                 validateUserInputs(context);
                 handleUserInputs(context);
+                // Clear the current step inputs after successfully consuming user inputs so that
+                // subsequent nodes triggered in the same execution cycle do not re-trigger validation
+                // against stale step input expectations.
+                context.getCurrentStepInputs().clear();
+                context.getCurrentRequiredInputs().clear();
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Input validation passed for flow: " + context.getFlowType());
                 }
