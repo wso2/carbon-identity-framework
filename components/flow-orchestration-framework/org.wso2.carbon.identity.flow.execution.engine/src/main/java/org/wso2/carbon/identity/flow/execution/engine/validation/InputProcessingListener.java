@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.listener.AbstractFlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
-import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -71,35 +70,9 @@ public class InputProcessingListener extends AbstractFlowExecutionListener {
                 stepDTO = mappings.get(currentNode.getId());
             }
             DataDTO dataDTO = (stepDTO != null) ? stepDTO.getData() : null;
-
-            // If the current node is Prompt node then there is nothing to execute
-            // hence assigning next node as the current node.
-            if (currentNode != null && Constants.NodeTypes.PROMPT_ONLY.equalsIgnoreCase(currentNode.getType())) {
-                if (currentNode.getEdges() != null && !currentNode.getEdges().isEmpty()) {
-                    currentNode.setNextNodeId(currentNode.getEdges().get(0).getTargetNodeId());
-                }
-                currentNode = moveToNextNode(graphConfig, currentNode);
-                context.setCurrentNode(currentNode);
-            }
             InputValidationService.getInstance().prepareStepInputs(dataDTO, context);
         }
         return true;
-    }
-
-    /**
-     * Set the current node as the previous node of the next node and return the next node.
-     *
-     * @param currentNode Current node.
-     * @return Next node.
-     */
-    private NodeConfig moveToNextNode(GraphConfig graphConfig, NodeConfig currentNode) {
-
-        String nextNodeId = currentNode.getNextNodeId();
-        NodeConfig nextNode = graphConfig.getNodeConfigs().get(nextNodeId);
-        if (nextNode != null) {
-            nextNode.setPreviousNodeId(currentNode.getId());
-        }
-        return nextNode;
     }
 
     @Override

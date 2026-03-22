@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
 import java.util.HashMap;
@@ -43,16 +42,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
 
 /**
  * Unit tests for InputProcessingListener.
  */
 public class InputProcessingListenerTest {
 
-    private static final String PROMPT_NODE_ID = "promptNode";
     private static final String TASK_NODE_ID = "taskNode";
-    private static final String NEXT_NODE_ID = "nextNode";
     private static final String TEST_USERNAME = "testUser";
 
     private InputProcessingListener listener;
@@ -186,129 +182,6 @@ public class InputProcessingListenerTest {
 
         Assert.assertTrue(result);
         verify(mockInputValidationService).prepareStepInputs(eq(null), eq(context));
-    }
-
-    @Test
-    public void testDoPreExecute_WithPromptOnlyNode_WithEdge_MovesToNextNodeAndSetsReverseLink()
-            throws FlowEngineException {
-
-        FlowExecutionContext context = new FlowExecutionContext();
-        context.addUserInputData("username", TEST_USERNAME);
-
-        NodeConfig promptNode = new NodeConfig.Builder()
-                .id(PROMPT_NODE_ID)
-                .type(PROMPT_ONLY)
-                .build();
-        promptNode.addEdge(new NodeEdge(PROMPT_NODE_ID, NEXT_NODE_ID, "button1"));
-
-        NodeConfig nextNode = new NodeConfig.Builder()
-                .id(NEXT_NODE_ID)
-                .type("TASK_EXECUTION")
-                .build();
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.setFirstNodeId(PROMPT_NODE_ID);
-        graphConfig.getNodeConfigs().put(PROMPT_NODE_ID, promptNode);
-        graphConfig.getNodeConfigs().put(NEXT_NODE_ID, nextNode);
-
-        context.setGraphConfig(graphConfig);
-
-        boolean result = listener.doPreExecute(context);
-
-        Assert.assertTrue(result);
-        Assert.assertEquals(context.getCurrentNode(), nextNode);
-        Assert.assertEquals(nextNode.getPreviousNodeId(), PROMPT_NODE_ID);
-    }
-
-    @Test
-    public void testDoPreExecute_WithPromptOnlyNode_WithEdgeAndMapping_UsesPromptNodeDataDTO()
-            throws FlowEngineException {
-
-        FlowExecutionContext context = new FlowExecutionContext();
-        context.addUserInputData("username", TEST_USERNAME);
-
-        DataDTO promptDataDTO = new DataDTO();
-        StepDTO promptStepDTO = new StepDTO();
-        promptStepDTO.setData(promptDataDTO);
-
-        NodeConfig promptNode = new NodeConfig.Builder()
-                .id(PROMPT_NODE_ID)
-                .type(PROMPT_ONLY)
-                .build();
-        promptNode.addEdge(new NodeEdge(PROMPT_NODE_ID, NEXT_NODE_ID, "button1"));
-
-        NodeConfig nextNode = new NodeConfig.Builder()
-                .id(NEXT_NODE_ID)
-                .type("TASK_EXECUTION")
-                .build();
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.setFirstNodeId(PROMPT_NODE_ID);
-        graphConfig.getNodeConfigs().put(PROMPT_NODE_ID, promptNode);
-        graphConfig.getNodeConfigs().put(NEXT_NODE_ID, nextNode);
-        graphConfig.getNodePageMappings().put(PROMPT_NODE_ID, promptStepDTO);
-
-        context.setGraphConfig(graphConfig);
-
-        boolean result = listener.doPreExecute(context);
-
-        Assert.assertTrue(result);
-        Assert.assertEquals(context.getCurrentNode(), nextNode);
-        verify(mockInputValidationService).prepareStepInputs(eq(promptDataDTO), eq(context));
-    }
-
-    @Test
-    public void testDoPreExecute_WithPromptOnlyNode_WithoutEdges_DoesNotSetNextNodeId()
-            throws FlowEngineException {
-
-        FlowExecutionContext context = new FlowExecutionContext();
-        context.addUserInputData("username", TEST_USERNAME);
-
-        NodeConfig promptNode = new NodeConfig.Builder()
-                .id(PROMPT_NODE_ID)
-                .type(PROMPT_ONLY)
-                .build();
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.setFirstNodeId(PROMPT_NODE_ID);
-        graphConfig.getNodeConfigs().put(PROMPT_NODE_ID, promptNode);
-
-        context.setGraphConfig(graphConfig);
-
-        boolean result = listener.doPreExecute(context);
-
-        Assert.assertTrue(result);
-        Assert.assertNull(context.getCurrentNode());
-    }
-
-    @Test
-    public void testDoPreExecute_WithPromptOnlyNodeType_IsCaseInsensitive() throws FlowEngineException {
-
-        FlowExecutionContext context = new FlowExecutionContext();
-        context.addUserInputData("username", TEST_USERNAME);
-
-        NodeConfig promptNode = new NodeConfig.Builder()
-                .id(PROMPT_NODE_ID)
-                .type("prompt_only")
-                .build();
-        promptNode.addEdge(new NodeEdge(PROMPT_NODE_ID, NEXT_NODE_ID, "button1"));
-
-        NodeConfig nextNode = new NodeConfig.Builder()
-                .id(NEXT_NODE_ID)
-                .type("TASK_EXECUTION")
-                .build();
-
-        GraphConfig graphConfig = new GraphConfig();
-        graphConfig.setFirstNodeId(PROMPT_NODE_ID);
-        graphConfig.getNodeConfigs().put(PROMPT_NODE_ID, promptNode);
-        graphConfig.getNodeConfigs().put(NEXT_NODE_ID, nextNode);
-
-        context.setGraphConfig(graphConfig);
-
-        boolean result = listener.doPreExecute(context);
-
-        Assert.assertTrue(result);
-        Assert.assertEquals(context.getCurrentNode(), nextNode);
     }
 
     @Test
