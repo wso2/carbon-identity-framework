@@ -42,16 +42,20 @@ public class PagePromptNode implements Node {
             throws FlowEngineException {
 
         String triggeredAction = context.getCurrentActionId();
+        boolean isPromptNodeSubmitted = false;
         if (triggeredAction != null) {
             if (nodeConfig.getEdges() != null && !nodeConfig.getEdges().isEmpty()) {
                 NodeEdge edge = nodeConfig.getEdges().get(0);
                 if (edge.getTriggeringActionId().equals(triggeredAction)) {
-                    nodeConfig.setNextNodeId(edge.getTargetNodeId());
+                    isPromptNodeSubmitted = true;
+                    if (nodeConfig.getNextNodeId() == null) {
+                        nodeConfig.setNextNodeId(edge.getTargetNodeId());
+                    }
                 }
             }
             context.setCurrentActionId(null);
         }
-        if (nodeConfig.getNextNodeId() != null) {
+        if (isPromptNodeSubmitted && nodeConfig.getNextNodeId() != null) {
             return new NodeResponse.Builder().status(STATUS_COMPLETE).build();
         }
         return new NodeResponse.Builder()
