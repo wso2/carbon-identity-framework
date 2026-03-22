@@ -2168,6 +2168,7 @@
   "organization.user.invitation.primary.user_domain": "PRIMARY",
   "organization.user.invitation.default.accept_url": "/accountrecoveryendpoint/acceptinvitation.do",
   "organization.user.invitation.association.wait_time": "5000",
+  "organization_user_sharing.target_user_store_domain": "PRIMARY",
   "extension_mgt.extension_types": "applications,connections,identity-verification-providers,notification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",

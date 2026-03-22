@@ -2903,6 +2903,12 @@
         <AssociationWaitTime>5000</AssociationWaitTime>
     </OrganizationUserInvitation>
 
+    <Organization>
+        <UserSharing>
+            <TargetUserStoreDomain>PRIMARY</TargetUserStoreDomain>
+        </UserSharing>
+    </Organization>
+
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
         <ExtensionTypes>applications,connections</ExtensionTypes>
