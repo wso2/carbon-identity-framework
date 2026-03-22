@@ -126,7 +126,7 @@ public class ClaimValidationUtil {
 
         try {
             return userStoreManager.getClaimManager().getClaim(claimUri);
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+        } catch (UserStoreException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Error while retrieving claim from claimUri: " + claimUri + ".", e);
             }
@@ -142,16 +142,14 @@ public class ClaimValidationUtil {
      */
     private static UserStoreManager getUserstoreManager() throws UserStoreException {
 
-        try {
-            RealmService userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService();
-            if (userRealm != null) {
-                String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                return (AbstractUserStoreManager) userRealm
-                        .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
-            }
-        } catch (UserStoreException e) {
-            throw new UserStoreException(e);
+        RealmService userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService();
+        
+        if (userRealm != null) {
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            return (AbstractUserStoreManager) userRealm
+                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
         }
+
         throw new UserStoreException("User realm is null for the tenant.");
     }
 }
