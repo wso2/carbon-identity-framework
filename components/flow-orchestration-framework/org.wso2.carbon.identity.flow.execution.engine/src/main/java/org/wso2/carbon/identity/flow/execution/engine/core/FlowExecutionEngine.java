@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidator;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
@@ -46,7 +47,6 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMess
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_PROMPT_ONLY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
@@ -134,12 +134,6 @@ public class FlowExecutionEngine {
             if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
                 return step;
             }
-
-            if (STATUS_PROMPT_ONLY.equals(nodeResponse.getStatus())) {
-                currentNode = moveToNextNode(graph, currentNode);
-                context.setCurrentNode(currentNode);
-                return step;
-            }
         }
 
         // If there are no more nodes to process, mark the flow as complete.
@@ -197,6 +191,11 @@ public class FlowExecutionEngine {
      */
     private NodeResponse triggerNode(NodeConfig nodeConfig, FlowExecutionContext context)
             throws FlowEngineException {
+
+        NodeResponse validationResponse = InputValidator.getInstance().executeInputValidation(context);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
 
         switch (nodeConfig.getType()) {
             case Constants.NodeTypes.DECISION:

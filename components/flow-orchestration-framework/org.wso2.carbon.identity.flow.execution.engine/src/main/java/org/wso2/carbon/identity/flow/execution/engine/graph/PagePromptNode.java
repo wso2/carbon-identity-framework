@@ -22,9 +22,12 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineExcept
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_PROMPT_ONLY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.NodeTypes.PROMPT_ONLY;
+import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 
 public class PagePromptNode implements Node {
 
@@ -38,10 +41,23 @@ public class PagePromptNode implements Node {
     public NodeResponse execute(FlowExecutionContext context, NodeConfig nodeConfig)
             throws FlowEngineException {
 
-        if (nodeConfig.getEdges() != null && !nodeConfig.getEdges().isEmpty()) {
-            nodeConfig.setNextNodeId(nodeConfig.getEdges().get(0).getTargetNodeId());
+        String triggeredAction = context.getCurrentActionId();
+        if (triggeredAction != null) {
+            if (nodeConfig.getEdges() != null && !nodeConfig.getEdges().isEmpty()) {
+                NodeEdge edge = nodeConfig.getEdges().get(0);
+                if (edge.getTriggeringActionId().equals(triggeredAction)) {
+                    nodeConfig.setNextNodeId(edge.getTargetNodeId());
+                }
+            }
+            context.setCurrentActionId(null);
         }
-        return new NodeResponse.Builder().status(STATUS_PROMPT_ONLY).build();
+        if (nodeConfig.getNextNodeId() != null) {
+            return new NodeResponse.Builder().status(STATUS_COMPLETE).build();
+        }
+        return new NodeResponse.Builder()
+                .status(STATUS_INCOMPLETE)
+                .type(VIEW)
+                .build();
     }
 
     @Override
