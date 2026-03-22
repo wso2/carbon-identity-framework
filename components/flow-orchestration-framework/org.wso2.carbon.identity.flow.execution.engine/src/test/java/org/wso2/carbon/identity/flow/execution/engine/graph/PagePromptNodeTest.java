@@ -79,7 +79,7 @@ public class PagePromptNodeTest {
     }
 
     @Test
-    public void testExecute_withNoTriggeredAction_andPresetNextNodeId_returnsComplete() throws FlowEngineException {
+    public void testExecute_withNoTriggeredAction_andPresetNextNodeId_returnsIncomplete() throws FlowEngineException {
 
         NodeConfig nodeConfig = new NodeConfig.Builder()
                 .id(NODE_ID)
@@ -89,7 +89,8 @@ public class PagePromptNodeTest {
 
         NodeResponse response = pagePromptNode.execute(context, nodeConfig);
 
-        assertEquals(response.getStatus(), STATUS_COMPLETE);
+        assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+        assertEquals(response.getType(), VIEW);
     }
 
     @Test
@@ -105,6 +106,28 @@ public class PagePromptNodeTest {
                 .type(PROMPT_ONLY)
                 .edges(edges)
                 .build();
+
+        NodeResponse response = pagePromptNode.execute(context, nodeConfig);
+
+        assertEquals(response.getStatus(), STATUS_COMPLETE);
+        assertEquals(nodeConfig.getNextNodeId(), TARGET_NODE_ID);
+        assertNull(context.getCurrentActionId());
+    }
+
+    @Test
+    public void testExecute_withMatchingTriggeredAction_andPresetNextNodeId_preservesNextNodeIdAndReturnsComplete()
+            throws FlowEngineException {
+
+        context.setCurrentActionId(ACTION_ID);
+        List<NodeEdge> edges = new ArrayList<>();
+        edges.add(new NodeEdge(SOURCE_NODE_ID, "edgeTargetNode", ACTION_ID));
+
+        NodeConfig nodeConfig = new NodeConfig.Builder()
+                .id(NODE_ID)
+                .type(PROMPT_ONLY)
+                .edges(edges)
+                .build();
+        nodeConfig.setNextNodeId(TARGET_NODE_ID);
 
         NodeResponse response = pagePromptNode.execute(context, nodeConfig);
 
