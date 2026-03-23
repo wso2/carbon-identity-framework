@@ -1536,7 +1536,7 @@ public class InputValidationServiceTest {
     }
 
     @Test
-    public void testUniquenessValidationSkippedForUserResolverExecutorNode()
+    public void testUniquenessValidationSkippedForUserResolveExecutorNode()
             throws ClaimMetadataException {
 
         FlowExecutionContext = initiateFlowContext();
@@ -1564,7 +1564,7 @@ public class InputValidationServiceTest {
             claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
 
-            // Uniqueness validation must be skipped for UserResolverExecutor; STATUS_COMPLETE is expected.
+            // Uniqueness validation must be skipped for UserResolveExecutor; STATUS_COMPLETE is expected.
             ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
             Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
 

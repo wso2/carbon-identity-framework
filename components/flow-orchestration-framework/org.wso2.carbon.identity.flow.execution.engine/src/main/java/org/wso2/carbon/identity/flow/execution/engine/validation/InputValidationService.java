@@ -262,12 +262,12 @@ public class InputValidationService {
     private void validateUserInputs(FlowExecutionContext context) throws FlowEngineException {
 
         // TODO: This is a temporary workaround to skip claim uniqueness validation when the current executor is a
-        // UserResolverExecutor (e.g., in password recovery flows). This makes the engine aware of specific executor
+        // UserResolveExecutor (e.g., in password recovery flows). This makes the engine aware of specific executor
         // types, which is not ideal and will be removed as an immediate fix in the future.
         // Refer: https://github.com/wso2/product-is/issues/27206
         // The proper fix is to introduce an attribute collector executor for the flow, which would allow this
         // to be handled in the graph building phase itself.
-        boolean skipUniquenessValidation = isUserResolverExecutor(context);
+        boolean skipUniquenessValidation = isUserResolveExecutor(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
                 validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
@@ -433,7 +433,7 @@ public class InputValidationService {
      * @param context Flow execution context.
      * @return True if the current executor is a User Resolver executor, false otherwise.
      */
-    private boolean isUserResolverExecutor(FlowExecutionContext context) {
+    private boolean isUserResolveExecutor(FlowExecutionContext context) {
 
         if (context.getCurrentNode() == null || context.getCurrentNode().getExecutorConfig() == null) {
             return false;
