@@ -39,7 +39,9 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
@@ -48,6 +50,8 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,6 +64,7 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
@@ -508,7 +513,7 @@ public class InputValidationServiceTest {
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
 
         // Should not throw any exception when ClaimMetadataManagementService is null.
-        inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "testuser");
+        invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "testuser", false);
     }
 
     @Test
@@ -521,7 +526,7 @@ public class InputValidationServiceTest {
         when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.empty());
 
         // Should not throw any exception when local claim is not present.
-        inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "test@example.com");
+        invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "test@example.com", false);
     }
 
     @Test
@@ -536,7 +541,7 @@ public class InputValidationServiceTest {
         when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
 
         // Should not throw any exception when claim properties are null.
-        inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "test@example.com");
+        invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "test@example.com", false);
     }
 
     @Test
@@ -558,7 +563,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should not throw any exception when uniqueness validation is not required.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "givenname", "John");
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "givenname", "John", false);
         }
     }
 
@@ -583,7 +588,7 @@ public class InputValidationServiceTest {
                     .thenReturn(false);
 
             // Should not throw any exception when claim is unique.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "unique@example.com");
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "unique@example.com", false);
         }
     }
 
@@ -608,7 +613,7 @@ public class InputValidationServiceTest {
                     .thenReturn(true);
 
             // Should throw FlowEngineClientException when claim is duplicate.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "duplicate@example.com");
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "email", "duplicate@example.com", false);
         }
     }
 
@@ -634,7 +639,7 @@ public class InputValidationServiceTest {
                     .thenReturn(false);
 
             // Should not throw any exception when username claim is unique.
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "uniqueuser");
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "uniqueuser", false);
         }
     }
 
@@ -659,7 +664,7 @@ public class InputValidationServiceTest {
                     .thenReturn(true);
 
             // Should throw FlowEngineClientException when username claim is duplicate.
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "duplicateuser");
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "duplicateuser", false);
         }
     }
 
@@ -674,7 +679,7 @@ public class InputValidationServiceTest {
                 .thenThrow(new ClaimMetadataException("Test exception"));
 
         // Should throw FlowEngineServerException when ClaimMetadataException is thrown.
-        inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "testuser");
+        invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "testuser", false);
     }
 
     @Test
@@ -696,9 +701,9 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
 
             // Should not validate uniqueness when claim value is blank.
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "");
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "   ");
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, null);
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "", false);
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "   ", false);
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, null, false);
 
             // Verify isClaimDuplicated was never called for blank values.
             claimValidationUtilMock.verify(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()),
@@ -985,7 +990,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should not throw any exception when value matches the regex.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", "0771234567");
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", "0771234567", false);
         }
     }
 
@@ -1009,8 +1014,8 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should throw FlowEngineClientException when value does not match the regex.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
-                    "not-a-phone-number");
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
+                    "not-a-phone-number", false);
         }
     }
 
@@ -1034,8 +1039,8 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             try {
-                inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
-                        "not-a-phone-number");
+                invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
+                        "not-a-phone-number", false);
                 Assert.fail("Expected FlowEngineClientException to be thrown");
             } catch (FlowEngineClientException e) {
                 Assert.assertEquals(e.getErrorCode(), ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED.getCode());
@@ -1063,8 +1068,8 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should not throw for blank values even when regex is configured.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", "");
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", null);
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", "", false);
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile", null, false);
         }
     }
 
@@ -1088,8 +1093,8 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should not throw even for values that would fail a regex, since none is configured.
-            inputValidationService.validateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
-                    "not-a-phone-number");
+            invokeValidateUserClaims("test.com", CLAIM_URI_PREFIX + "mobile",
+                    "not-a-phone-number", false);
         }
     }
 
@@ -1116,7 +1121,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Claim RegEx property should be skipped for username — validated via InputValidationManagementService.
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "john@example.com");
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "john@example.com", false);
         }
     }
 
@@ -1161,7 +1166,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should pass when all validators return true.
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "validuser");
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "validuser", false);
         }
     }
 
@@ -1207,7 +1212,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             try {
-                inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "ab");
+                invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "ab", false);
                 Assert.fail("Expected FlowEngineClientException to be thrown");
             } catch (FlowEngineClientException e) {
                 Assert.assertEquals(e.getErrorCode(), ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED.getCode());
@@ -1257,7 +1262,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.NONE)).thenReturn(false);
 
             // Should not throw even with a failing validator when username validation is disabled.
-            inputValidationService.validateUserClaims("test.com", USERNAME_CLAIM_URI, "ab");
+            invokeValidateUserClaims("test.com", USERNAME_CLAIM_URI, "ab", false);
         }
     }
 
@@ -1528,6 +1533,73 @@ public class InputValidationServiceTest {
 
         ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
         Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+    }
+
+    @Test
+    public void testUniquenessValidationSkippedForUserResolverExecutorNode()
+            throws ClaimMetadataException {
+
+        FlowExecutionContext = initiateFlowContext();
+
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "duplicate@example.com");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+
+        NodeConfig userResolverNode = new NodeConfig.Builder()
+                .executorConfig(new ExecutorDTO(Constants.ExecutorTypes.USER_RESOLVER))
+                .build();
+        FlowExecutionContext.setCurrentNode(userResolverNode);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        Map<String, String> claimProperties = new HashMap<>();
+        when(mockLocalClaim.getClaimProperties()).thenReturn(claimProperties);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.of(mockLocalClaim));
+
+        try (MockedStatic<ClaimValidationUtil> claimValidationUtilMock = mockStatic(ClaimValidationUtil.class)) {
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.getClaimUniquenessScope(claimProperties))
+                    .thenReturn(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES);
+            claimValidationUtilMock.when(() -> ClaimValidationUtil.shouldValidateUniqueness(
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
+
+            // Uniqueness validation must be skipped for UserResolverExecutor; STATUS_COMPLETE is expected.
+            ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
+            Assert.assertEquals(response.getResult(), STATUS_COMPLETE);
+
+            // Verify that isClaimDuplicated was never called since uniqueness check is skipped.
+            claimValidationUtilMock.verify(
+                    () -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()), never());
+        }
+    }
+
+    /**
+     * Invokes the private validateUserClaims method via reflection.
+     *
+     * @param tenantDomain             Tenant domain.
+     * @param claimUri                 Claim URI.
+     * @param claimValue               Claim value to validate.
+     * @param skipUniquenessValidation Whether to skip claim uniqueness validation.
+     * @throws FlowEngineException If claim validation fails.
+     */
+    private void invokeValidateUserClaims(String tenantDomain, String claimUri, String claimValue,
+                                          boolean skipUniquenessValidation) throws FlowEngineException {
+
+        try {
+            Method method = InputValidationService.class.getDeclaredMethod(
+                    "validateUserClaims", String.class, String.class, String.class, boolean.class);
+            method.setAccessible(true);
+            method.invoke(inputValidationService, tenantDomain, claimUri, claimValue, skipUniquenessValidation);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof FlowEngineException) {
+                throw (FlowEngineException) cause;
+            }
+            throw new RuntimeException(cause);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private FlowExecutionContext initiateFlowContext() {

@@ -261,9 +261,17 @@ public class InputValidationService {
      */
     private void validateUserInputs(FlowExecutionContext context) throws FlowEngineException {
 
+        // TODO: This is a temporary workaround to skip claim uniqueness validation when the current executor is a
+        // UserResolverExecutor (e.g., in password recovery flows). This makes the engine aware of specific executor
+        // types, which is not ideal and will be removed as an immediate fix in the future.
+        // Refer: https://github.com/wso2/product-is/issues/27206
+        // The proper fix is to introduce an attribute collector executor for the flow, which would allow this
+        // to be handled in the graph building phase itself.
+        boolean skipUniquenessValidation = isUserResolverExecutor(context);
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
-                validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
+                validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
+                        skipUniquenessValidation);
             } else if (userInput.getKey().equals(PASSWORD_KEY)) {
                 validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
@@ -274,11 +282,14 @@ public class InputValidationService {
      * Retrieve validation rules from claim metadata for the given claim URI.
      * Validates claim uniqueness if configured and throws exception on failure.
      *
-     * @param tenantDomain Tenant domain.
-     * @param claimUri     Claim URI.
+     * @param tenantDomain             Tenant domain.
+     * @param claimUri                 Claim URI.
+     * @param claimValue               Claim value to validate.
+     * @param skipUniquenessValidation Whether to skip claim uniqueness validation.
      * @throws FlowEngineException If claim uniqueness validation fails.
      */
-    public void validateUserClaims(String tenantDomain, String claimUri, String claimValue)
+    private void validateUserClaims(String tenantDomain, String claimUri, String claimValue,
+                                   boolean skipUniquenessValidation)
             throws FlowEngineException {
 
         try {
@@ -322,15 +333,18 @@ public class InputValidationService {
                 }
             }
 
-            ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
-                    .getClaimUniquenessScope(claimProperties);
-            if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) || claimUri.equals(USERNAME_CLAIM_URI)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Uniqueness validation found for claim " + claimUri + " with scope: " +
-                            uniquenessScope);
-                }
-                if (StringUtils.isNotBlank(claimValue)) {
-                    validateClaimUniqueness(claimUri, claimValue);
+            if (!skipUniquenessValidation) {
+                ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
+                        .getClaimUniquenessScope(claimProperties);
+                if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) ||
+                        claimUri.equals(USERNAME_CLAIM_URI)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Uniqueness validation found for claim " + claimUri + " with scope: " +
+                                uniquenessScope);
+                    }
+                    if (StringUtils.isNotBlank(claimValue)) {
+                        validateClaimUniqueness(claimUri, claimValue);
+                    }
                 }
             }
         } catch (ClaimMetadataException e) {
@@ -411,6 +425,21 @@ public class InputValidationService {
             }
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
+    }
+
+    /**
+     * Check whether the current executor in the flow context is a User Resolver executor.
+     *
+     * @param context Flow execution context.
+     * @return True if the current executor is a User Resolver executor, false otherwise.
+     */
+    private boolean isUserResolverExecutor(FlowExecutionContext context) {
+
+        if (context.getCurrentNode() == null || context.getCurrentNode().getExecutorConfig() == null) {
+            return false;
+        }
+        return Constants.ExecutorTypes.USER_RESOLVER.equals(
+                context.getCurrentNode().getExecutorConfig().getName());
     }
 
     /**

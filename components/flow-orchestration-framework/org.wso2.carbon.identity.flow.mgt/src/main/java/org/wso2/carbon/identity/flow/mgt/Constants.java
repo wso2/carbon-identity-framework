@@ -232,6 +232,7 @@ public class Constants {
     public static class ExecutorTypes {
 
         public static final String USER_ONBOARDING = "UserOnboardingExecutor";
+        public static final String USER_RESOLVER = "UserResolverExecutor";
 
         private ExecutorTypes() {
 
