@@ -1500,6 +1500,12 @@
         <AllowIssuerSelectionForSubOrgApplications>{{oauth.allow_issuer_selection_for_sub_org_applications}}</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
+    <PushAuthenticator>
+        <DeviceRegistrationContext>
+            <ValidityPeriod>{{push_authenticator.device_registration_context.validity_period}}</ValidityPeriod>
+        </DeviceRegistrationContext>
+    </PushAuthenticator>
+
     <RestApiAuthentication>
             <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
             <AddRealmUserToError>{{rest_api_authentication.add_realm_user_to_error}}</AddRealmUserToError>
