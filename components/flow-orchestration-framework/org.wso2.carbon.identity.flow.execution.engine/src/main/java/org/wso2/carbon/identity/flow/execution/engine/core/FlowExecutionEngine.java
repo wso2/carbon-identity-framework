@@ -104,7 +104,7 @@ public class FlowExecutionEngine {
         while (currentNode != null) {
             NodeResponse nodeResponse = triggerNode(currentNode, context);
             // If the current node was changed during execution, update the reference to the current node.
-            if (currentNode.getId() != context.getCurrentNode().getId()) {
+            if (currentNode.getId() != null && !currentNode.getId().equals(context.getCurrentNode().getId())) {
                 currentNode = context.getCurrentNode();
             }
             context.setCurrentNodeResponse(nodeResponse);
