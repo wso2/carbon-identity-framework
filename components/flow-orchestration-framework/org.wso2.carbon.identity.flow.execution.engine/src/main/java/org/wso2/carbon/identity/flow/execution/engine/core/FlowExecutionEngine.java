@@ -103,6 +103,10 @@ public class FlowExecutionEngine {
 
         while (currentNode != null) {
             NodeResponse nodeResponse = triggerNode(currentNode, context);
+            // If the current node was changed during execution, update the reference to the current node.
+            if (currentNode.getId() != context.getCurrentNode().getId()) {
+                currentNode = context.getCurrentNode();
+            }
             context.setCurrentNodeResponse(nodeResponse);
             if (STATUS_COMPLETE.equals(nodeResponse.getStatus())) {
                 currentNode = moveToNextNode(graph, currentNode);
@@ -192,6 +196,8 @@ public class FlowExecutionEngine {
     private NodeResponse triggerNode(NodeConfig nodeConfig, FlowExecutionContext context)
             throws FlowEngineException {
 
+        // TODO: This validation is added temporarily and will be moved to the executor.
+        // Tracking issue: https://github.com/wso2/product-is/issues/27206
         NodeResponse validationResponse = InputValidator.getInstance().executeInputValidation(context);
         if (validationResponse != null) {
             return validationResponse;
