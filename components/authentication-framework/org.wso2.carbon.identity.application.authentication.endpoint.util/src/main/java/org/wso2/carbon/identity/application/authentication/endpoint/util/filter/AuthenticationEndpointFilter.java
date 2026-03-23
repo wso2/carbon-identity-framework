@@ -202,7 +202,21 @@ public class AuthenticationEndpointFilter implements Filter {
                         configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
-                    log.error("error retrieving authenticators from ApplicationDataRetrievalClient " + e);
+                    log.error("error retrieving authenticators from ApplicationDataRetrievalClient", e);
+                }
+
+                if (StringUtils.isBlank(serviceProviderId) && StringUtils.isBlank(serviceProviderName)) {
+                    log.warn("Authenticator validation is enabled but no service provider identifier was found "
+                            + "in the request. Validation will proceed against an empty authenticator set.");
+                }
+
+                if (configuredAuthenticatorsSet.isEmpty()
+                        && (!StringUtils.isBlank(serviceProviderId) || !StringUtils.isBlank(serviceProviderName))) {
+                    log.warn("No authenticators found for application in tenant: " + tenantDomain
+                            + ". Redirecting to error page.");
+                    // todo add redirect for error
+                    
+                    return;
                 }
             }
 
@@ -251,6 +265,14 @@ public class AuthenticationEndpointFilter implements Filter {
                         }
                     }
                 }
+            }
+
+            if (authenticatorValidationEnabled && StringUtils.isNotBlank(authenticators) && idpAuthenticatorMapping.isEmpty()) {
+                log.warn("All authenticators were filtered out during validation for application: "
+                        + (StringUtils.isNotBlank(serviceProviderId) ? serviceProviderId : serviceProviderName)
+                        + ". Redirecting to error page.");
+                // todo add redirect for error
+                return;
             }
 
             if (!idpAuthenticatorMapping.isEmpty()) {
