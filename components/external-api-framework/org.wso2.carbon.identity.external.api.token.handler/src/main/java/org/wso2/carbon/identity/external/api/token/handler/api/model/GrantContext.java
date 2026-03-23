@@ -113,7 +113,12 @@ public class GrantContext {
                             Property.CLIENT_ID.getName(), getProperty(Property.CLIENT_ID.getName()));
                     resolvedGrantProperties.put(
                             Property.CLIENT_SECRET.getName(), getProperty(Property.CLIENT_SECRET.getName()));
-                    resolvedGrantProperties.put(Property.SCOPE.getName(), getProperty(Property.SCOPE.getName()));
+                    String scope = propertyMap != null ? propertyMap.get(Property.SCOPE.getName()) : null;
+                    if (StringUtils.isNotBlank(scope)) {
+                        resolvedGrantProperties.put(Property.SCOPE.getName(), scope);
+                    } else {
+                        resolvedGrantProperties.remove(Property.SCOPE.getName());
+                    }
                     break;
             }
             return new GrantContext(this);
