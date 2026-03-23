@@ -396,9 +396,7 @@ public class InputValidationService {
             validateFieldWithConfiguredRules(tenantDomain, USERNAME, username);
         } catch (InputValidationMgtException e) {
             if (e instanceof InputValidationMgtClientException) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Username format validation failed for username: " + username);
-                }
+                LOG.debug("Username format validation failed for the given username.");
                 throw handleClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED, username);
             }
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);

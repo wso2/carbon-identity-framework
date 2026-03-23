@@ -26,10 +26,10 @@ import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagem
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ClaimUniquenessScope;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.Claim;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Map;
 
@@ -142,12 +142,12 @@ public class ClaimValidationUtil {
      */
     private static UserStoreManager getUserstoreManager() throws UserStoreException {
 
-        RealmService userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        UserRealm userRealm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
+            .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
         
         if (userRealm != null) {
-            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            return (AbstractUserStoreManager) userRealm
-                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain)).getUserStoreManager();
+            return (AbstractUserStoreManager) userRealm.getUserStoreManager();
         }
 
         throw new UserStoreException("User realm is null for the tenant.");
