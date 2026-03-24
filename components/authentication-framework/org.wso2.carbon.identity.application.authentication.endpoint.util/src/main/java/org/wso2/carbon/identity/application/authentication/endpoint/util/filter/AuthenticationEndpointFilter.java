@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
@@ -206,16 +207,17 @@ public class AuthenticationEndpointFilter implements Filter {
                 }
 
                 if (StringUtils.isBlank(serviceProviderId) && StringUtils.isBlank(serviceProviderName)) {
-                    log.warn("Authenticator validation is enabled but no service provider identifier was found "
+                    log.info("Authenticator validation is enabled but no service provider identifier was found "
                             + "in the request. Validation will proceed against an empty authenticator set.");
                 }
 
                 if (configuredAuthenticatorsSet.isEmpty()
                         && (!StringUtils.isBlank(serviceProviderId) || !StringUtils.isBlank(serviceProviderName))) {
-                    log.warn("No authenticators found for application in tenant: " + tenantDomain
-                            + ". Redirecting to error page.");
-                    // todo add redirect for error
-                    
+                    log.info("No authenticators found for application in tenant: " + tenantDomain
+                            + ". Redirecting to retry page.");
+                    FrameworkUtils.sendToRetryPage((HttpServletRequest) servletRequest,
+                            (HttpServletResponse) servletResponse, null, "misconfiguration.error",
+                            "no.valid.authenticator.found.error");
                     return;
                 }
             }
@@ -268,10 +270,12 @@ public class AuthenticationEndpointFilter implements Filter {
             }
 
             if (authenticatorValidationEnabled && StringUtils.isNotBlank(authenticators) && idpAuthenticatorMapping.isEmpty()) {
-                log.warn("All authenticators were filtered out during validation for application: "
+                log.info("All authenticators were filtered out during validation for application: "
                         + (StringUtils.isNotBlank(serviceProviderId) ? serviceProviderId : serviceProviderName)
-                        + ". Redirecting to error page.");
-                // todo add redirect for error
+                        + ". Redirecting to retry page.");
+                FrameworkUtils.sendToRetryPage((HttpServletRequest) servletRequest,
+                        (HttpServletResponse) servletResponse, null, "misconfiguration.error",
+                        "no.valid.authenticator.found.error");
                 return;
             }
 
