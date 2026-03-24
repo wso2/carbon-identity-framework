@@ -83,7 +83,8 @@ public class ConfigurationConstants {
         COMPATIBILITY_SETTINGS("compatibility-settings", false),
         FRAUD_DETECTION_CONFIG("fraud-detection", false),
         // Resource Type for compatibility settings managed through /compatibility-settings endpoint.
-        COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true);
+        COMPATIBILITY_SETTINGS_V2("compatibility-settings-v2", true),
+        PUBLISHER_CONFIGURATION("Publisher", false);
 
         private final String resourceTypeName;
         private final boolean checkOrgVersionWhenInheriting;
