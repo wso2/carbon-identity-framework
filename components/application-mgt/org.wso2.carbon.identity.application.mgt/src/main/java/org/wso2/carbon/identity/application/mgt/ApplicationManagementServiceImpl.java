@@ -2138,7 +2138,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.debug(String.format("Template with name: %s is taken from database for tenant: %s ",
                         templateName, tenantDomain));
             }
-            ServiceProviderTemplateCache.getInstance().addToCache(templateCacheKey, spTemplate, tenantDomain);
+            ServiceProviderTemplateCache.getInstance().addToCacheOnRead(templateCacheKey, spTemplate, tenantDomain);
             return spTemplate;
         }
         return null;
