@@ -525,4 +525,80 @@ public class InputValidatorTest {
             verify(context, never()).setCurrentNode(any());
         }
     }
+
+    @Test
+    public void testExecuteInputValidationReturnsNullWhenTriggeredActionHasNoInputs() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+
+        Map<String, Set<String>> stepInputs = new HashMap<>();
+        stepInputs.put("DEFAULT_ACTION", new HashSet<>(Collections.singletonList("username")));
+        stepInputs.put("SOCIAL_LOGIN", Collections.emptySet());
+        when(context.getCurrentStepInputs()).thenReturn(stepInputs);
+        when(context.getCurrentActionId()).thenReturn("SOCIAL_LOGIN");
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNull(response);
+    }
+
+    @Test
+    public void testExecuteInputValidationReturnsNullWhenTriggeredActionNotInStepInputs() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+
+        Map<String, Set<String>> stepInputs = new HashMap<>();
+        stepInputs.put("DEFAULT_ACTION", new HashSet<>(Collections.singletonList("username")));
+        when(context.getCurrentStepInputs()).thenReturn(stepInputs);
+        when(context.getCurrentActionId()).thenReturn("BUTTON_2");
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNull(response);
+    }
+
+    @Test
+    public void testExecuteInputValidationProceedsWhenTriggeredActionHasInputs() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+
+        Map<String, Set<String>> stepInputs = new HashMap<>();
+        stepInputs.put("DEFAULT_ACTION", new HashSet<>(Collections.singletonList("username")));
+        when(context.getCurrentStepInputs()).thenReturn(stepInputs);
+        when(context.getCurrentActionId()).thenReturn("DEFAULT_ACTION");
+        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+        Assert.assertEquals(response.getType(), VIEW);
+    }
+
+    @Test
+    public void testExecuteInputValidationProceedsNormallyWhenActionIdIsNull() {
+
+        FlowExecutionContext context = mock(FlowExecutionContext.class);
+        NodeConfig nodeConfig = new NodeConfig.Builder().id("NODE_1").build();
+        when(context.getCurrentNode()).thenReturn(nodeConfig);
+        when(context.getCurrentStepInputs()).thenReturn(stepInputs());
+        when(context.getCurrentActionId()).thenReturn(null);
+        when(context.getUserInputData()).thenReturn(Collections.emptyMap());
+        when(context.getContextIdentifier()).thenReturn("flow-123");
+
+        NodeResponse response = inputValidator.executeInputValidation(context);
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(response.getStatus(), STATUS_INCOMPLETE);
+        Assert.assertEquals(response.getType(), VIEW);
+    }
 }
