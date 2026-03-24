@@ -79,32 +79,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
         entry.setAccessedTime();
         super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
-        Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        try {
-            entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
-        } catch (SessionDataStorageOptimizationClientException e) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Client error occurred while optimizing the Session " +
-                        "context with context id: %s", entry.getContext()), e);
-            }
-            return;
-        } catch (SessionDataStorageOptimizationServerException e) {
-            log.error("Server error occurred while optimizing the Session context with " +
-                    "context id: " + entry.getContext(), e);
-            return;
-        } catch (SessionDataStorageOptimizationException e) {
-            log.debug("Error occurred while optimizing the Session context with " +
-                    "context id: " + entry.getContext(), e);
-            return;
-        }
-        if (authUser != null && authUser instanceof AuthenticatedUser) {
-            String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            SessionDataStore.getInstance()
-                    .storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry, tenantId);
-        } else {
-            SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
-        }
+        optimizeAndStoreSessionData(key, entry);
     }
 
     /**
@@ -125,6 +100,17 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
         entry.setAccessedTime();
         super.addToCacheOnRead(key, entry, resolveLoginTenantDomain(loginTenantDomain));
+        optimizeAndStoreSessionData(key, entry);
+    }
+
+    /**
+     * Optimizes the session context cache entry and persists it to the session data store.
+     *
+     * @param key   Cache key for the session context.
+     * @param entry Cache entry to be optimized and stored.
+     */
+    private void optimizeAndStoreSessionData(SessionContextCacheKey key, SessionContextCacheEntry entry) {
+
         Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
         try {
             entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
