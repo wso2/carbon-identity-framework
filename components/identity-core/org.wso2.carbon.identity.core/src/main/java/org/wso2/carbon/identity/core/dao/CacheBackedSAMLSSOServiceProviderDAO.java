@@ -76,7 +76,7 @@ public class CacheBackedSAMLSSOServiceProviderDAO extends JDBCSAMLSSOServiceProv
                     tenantId));
         }
         samlSSOServiceProviderDO = super.getServiceProvider(issuer, tenantId);
-        samlSSOServiceProviderCache.addToCache(issuer, samlSSOServiceProviderDO, tenantId);
+        samlSSOServiceProviderCache.addToCacheOnRead(issuer, samlSSOServiceProviderDO, tenantId);
 
         return samlSSOServiceProviderDO;
     }
@@ -100,7 +100,7 @@ public class CacheBackedSAMLSSOServiceProviderDAO extends JDBCSAMLSSOServiceProv
                     tenantId));
         }
         samlSSOServiceProviderDOList = super.getServiceProviders(tenantId);
-        samlSSOServiceProviderListCache.addToCache(SAML_SP_LIST_CACHE_KEY, samlSSOServiceProviderDOList, tenantId);
+        samlSSOServiceProviderListCache.addToCacheOnRead(SAML_SP_LIST_CACHE_KEY, samlSSOServiceProviderDOList, tenantId);
 
         return samlSSOServiceProviderDOList;
     }

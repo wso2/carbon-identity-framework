@@ -146,6 +146,73 @@ public class AuthenticationContextCache extends
         }
     }
 
+    public void addToCacheOnRead(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
+
+        super.addToCacheOnRead(key, entry);
+        if (isTemporarySessionDataPersistEnabled) {
+            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+            String tenantDomain = entry.getContext().getTenantDomain();
+            if (tenantDomain != null) {
+                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            }
+
+            if (entry.getContext() != null && entry.getContext().getProperties() != null) {
+                Iterator it = entry.getContext().getProperties().entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Object> item = (Map.Entry<String, Object>) it.next();
+                    if (!(item.getValue() instanceof Serializable)) {
+                        it.remove();
+                    }
+                }
+                if (log.isDebugEnabled()) {
+                    String message = "[AddToCacheOnRead][ Context Id : " + key.getContextId() +
+                            ", Cache type : " + AUTHENTICATION_CONTEXT_CACHE_NAME +
+                            ", Operation : STORE ]";
+                    log.debug("[AddToCacheOnRead]Authentication context is stored with details " + message);
+                }
+                if (entry.getContext() != null) {
+                    try {
+                        AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
+                    } catch (SessionDataStorageOptimizationClientException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("[AddToCacheOnRead]Client error occurred while optimizing the Authentication " +
+                                    "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                        }
+                        return;
+                    } catch (SessionDataStorageOptimizationServerException e) {
+                        log.error("Server error occurred while optimizing the Authentication context with " +
+                                "context id: " + entry.getContext().getContextIdentifier(), e);
+                        return;
+                    } catch (SessionDataStorageOptimizationException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("[AddToCacheOnRead]Error occurred while optimizing the Authentication " +
+                                    "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                        }
+                        return;
+                    }
+                }
+                SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
+                        entry, tenantId);
+                try {
+                    AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+                } catch (SessionDataStorageOptimizationClientException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Client error occurred while loading optimized authentication context"
+                                + " with context id: " + entry.getContext().getContextIdentifier(), e);
+                    }
+                } catch (SessionDataStorageOptimizationServerException e) {
+                    log.error("Server error occurred while loading optimized authentication " +
+                            "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                } catch (SessionDataStorageOptimizationException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error occurred while loading optimized authentication " +
+                                "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Retrieves a cache entry.
      *
@@ -167,7 +234,7 @@ public class AuthenticationContextCache extends
             }
 
             // Update the cache again with the new value.
-            super.addToCache(key, entry);
+            super.addToCacheOnRead(key, entry);
         }
         if (entry != null) {
             try {

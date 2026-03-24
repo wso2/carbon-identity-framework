@@ -107,6 +107,52 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
     }
 
+    /**
+     * Add a cache entry during a READ operation.
+     * <p>
+     * This populates the cache only if the key does not already have a value.
+     * If a value already exists, the cache is left unchanged, which avoids
+     * unnecessary cache invalidation broadcasts in clustered environments.
+     *
+     * @param key   Key which the cache entry is indexed by.
+     * @param entry Value to be stored in the cache.
+     */
+    public void addToCacheOnRead(SessionContextCacheKey key, SessionContextCacheEntry entry, String loginTenantDomain) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding session context corresponding to the key : " + key.getContextId() +
+                " with accessed time " + entry.getAccessedTime() + " and validity time " + entry.getValidityPeriod());
+        }
+        entry.setAccessedTime();
+        super.addToCacheOnRead(key, entry, resolveLoginTenantDomain(loginTenantDomain));
+        Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        try {
+            entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
+        } catch (SessionDataStorageOptimizationClientException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Client error occurred while optimizing the Session " +
+                        "context with context id: %s", entry.getContext()), e);
+            }
+            return;
+        } catch (SessionDataStorageOptimizationServerException e) {
+            log.error("Server error occurred while optimizing the Session context with " +
+                    "context id: " + entry.getContext(), e);
+            return;
+        } catch (SessionDataStorageOptimizationException e) {
+            log.debug("Error occurred while optimizing the Session context with " +
+                    "context id: " + entry.getContext(), e);
+            return;
+        }
+        if (authUser != null && authUser instanceof AuthenticatedUser) {
+            String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            SessionDataStore.getInstance()
+                    .storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry, tenantId);
+        } else {
+            SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
+        }
+    }
+
     @Deprecated
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {
 

@@ -86,6 +86,29 @@ public class AuthenticationRequestCache extends
     }
 
     /**
+     * Add a cache entry during a READ operation.
+     * <p>
+     * This populates the cache only if the key does not already have a value.
+     * If a value already exists, the cache is left unchanged, which avoids
+     * unnecessary cache invalidation broadcasts in clustered environments.
+     *
+     * @param key   Key which the cache entry is indexed by.
+     * @param entry Value to be stored in the cache.
+    */
+    public void addToCacheOnRead(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry) {
+        super.addToCacheOnRead(key, entry);
+        if (isTemporarySessionDataPersistEnabled) {
+            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+            String tenantDomain = entry.getAuthenticationRequest().getTenantDomain();
+            if (tenantDomain != null) {
+                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            }
+            SessionDataStore.getInstance().storeSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME,
+                    entry, tenantId);
+        }
+    }
+
+    /**
      * Retrieves a cache entry.
      *
      * @param key CacheKey
