@@ -2307,5 +2307,8 @@
 
   "enhanced_organization_authentication_feature.enabled": true,
 
-  "workflow_engine.max_approver_notifications": 15
+  "workflow_engine.max_approver_notifications": 15,
+
+  "saas.enable_app_creation": false,
+  "saas.enable_cross_tenant_operations": false
 }
