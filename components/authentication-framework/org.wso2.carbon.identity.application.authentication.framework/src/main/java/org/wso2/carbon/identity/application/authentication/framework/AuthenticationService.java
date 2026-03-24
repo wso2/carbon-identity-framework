@@ -446,10 +446,19 @@ public class AuthenticationService {
 
         String tenantDomain;
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
+            if (request.getAttribute(AuthServiceConstants.APP_TENANT_DOMAIN) != null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Retrieving the tenant domain from request attribute in the flows initiated with " +
+                            "tenant qualified organization access paths.");
+                }
+                tenantDomain = request.getAttribute(AuthServiceConstants.APP_TENANT_DOMAIN).toString();
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread " +
+                            "local context.");
+                }
+                tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
             }
-            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
         } else {
             tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
         }

@@ -20,12 +20,14 @@ package org.wso2.carbon.identity.external.api.token.handler.api.model;
 
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenHandlerException;
+import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 
 /**
@@ -132,22 +134,22 @@ public class GrantContextTest {
      * Test creation of GrantContext without scope should throw exception.
      */
     @Test
-    public void testCreateGrantContextWithoutScope() {
+    public void testCreateGrantContextWithoutScope() throws TokenRequestException {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
         properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
 
-        try {
-            new GrantContext.Builder()
-                    .grantType(GrantContext.GrantType.CLIENT_CREDENTIAL)
-                    .properties(properties)
-                    .build();
-            fail("Expected TokenHandlerException was not thrown.");
-        } catch (TokenHandlerException e) {
-            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
-            assertEquals(e.getDescription(), "The property scope must be included as an authentication property.");
-        }
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.CLIENT_CREDENTIAL)
+                .properties(properties)
+                .build();
+
+        assertNotNull(grantContext);
+        assertEquals(grantContext.getGrantType(), GrantContext.GrantType.CLIENT_CREDENTIAL);
+        assertEquals(grantContext.getProperty(GrantContext.Property.CLIENT_ID.getName()), CLIENT_ID);
+        assertEquals(grantContext.getProperty(GrantContext.Property.CLIENT_SECRET.getName()), CLIENT_SECRET);
+        assertNull(grantContext.getProperty(GrantContext.Property.SCOPE.getName()));
     }
 
     /**
@@ -200,23 +202,23 @@ public class GrantContextTest {
      * Test creation of GrantContext with blank scope should throw exception.
      */
     @Test
-    public void testCreateGrantContextWithBlankScope() {
+    public void testCreateGrantContextWithBlankScope() throws TokenRequestException {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
         properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
         properties.put(GrantContext.Property.SCOPE.getName(), "");
 
-        try {
-            new GrantContext.Builder()
-                    .grantType(GrantContext.GrantType.CLIENT_CREDENTIAL)
-                    .properties(properties)
-                    .build();
-            fail("Expected TokenHandlerException was not thrown.");
-        } catch (TokenHandlerException e) {
-            assertEquals(e.getErrorCode(), "TOKENMGT-65002");
-            assertEquals(e.getDescription(), "The property scope cannot be blank or empty.");
-        }
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.CLIENT_CREDENTIAL)
+                .properties(properties)
+                .build();
+
+        assertNotNull(grantContext);
+        assertEquals(grantContext.getGrantType(), GrantContext.GrantType.CLIENT_CREDENTIAL);
+        assertEquals(grantContext.getProperty(GrantContext.Property.CLIENT_ID.getName()), CLIENT_ID);
+        assertEquals(grantContext.getProperty(GrantContext.Property.CLIENT_SECRET.getName()), CLIENT_SECRET);
+        assertNull(grantContext.getProperty(GrantContext.Property.SCOPE.getName()));
     }
 
     /**

@@ -850,6 +850,7 @@
   "cache.push_device_registration_request_cache.enable": true,
   "cache.push_device_registration_request_cache.timeout": "300",
   "cache.push_device_registration_request_cache.capacity": "$ref{cache.default_capacity}",
+  "push_authenticator.device_registration_context.validity_period": "180",
   "cache.saml_cert_cache.enable": true,
   "cache.saml_cert_cache.timeout": "900",
   "cache.saml_cert_cache.capacity": "100",
@@ -2311,4 +2312,6 @@
 
   "saas.enable_app_creation": false,
   "saas.enable_cross_tenant_operations": false
+
+  "app_native_authentication.handle_fail_completed_authenticator_status": true
 }

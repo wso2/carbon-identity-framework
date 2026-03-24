@@ -64,7 +64,7 @@ public class CacheBackedCORSConfigurationDAO extends CORSConfigurationDAOImpl {
         }
 
         CORSConfiguration corsConfiguration = corsConfigurationDAO.getCORSConfigurationByTenantDomain(tenantDomain);
-        addCORSConfigurationToCache(corsConfiguration, tenantDomain);
+        addCORSConfigurationToCacheOnRead(corsConfiguration, tenantDomain);
         return corsConfiguration;
     }
 
@@ -95,6 +95,24 @@ public class CacheBackedCORSConfigurationDAO extends CORSConfigurationDAOImpl {
         }
 
         CORSConfigurationCache.getInstance().addToCache(cacheKey, cacheEntry, tenantDomain);
+    }
+
+    /**
+     * Add CORS configurations to the cache.
+     *
+     * @param corsConfiguration The cors configuration that should be added to the cache.
+     * @param tenantDomain      The tenant domain specific to the cache entry.
+     */
+    private void addCORSConfigurationToCacheOnRead(CORSConfiguration corsConfiguration, String tenantDomain) {
+
+        CORSConfigurationCacheKey cacheKey = new CORSConfigurationCacheKey(tenantDomain);
+        CORSConfigurationCacheEntry cacheEntry = new CORSConfigurationCacheEntry(corsConfiguration);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding CORS configuration to Cache with Key: " + tenantDomain);
+        }
+
+        CORSConfigurationCache.getInstance().addToCacheOnRead(cacheKey, cacheEntry, tenantDomain);
     }
 
     /**
