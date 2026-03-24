@@ -78,6 +78,12 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImplTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.util.SessionEventPublishingUtilTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationErrorCacheTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.cache.LongWaitResultCacheTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityContextCacheTest"/>
         </classes>
     </test>
 
