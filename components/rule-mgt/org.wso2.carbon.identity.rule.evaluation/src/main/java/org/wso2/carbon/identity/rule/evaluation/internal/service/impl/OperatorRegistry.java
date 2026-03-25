@@ -114,7 +114,8 @@ public class OperatorRegistry {
                             break;
                         case GREATER_THAN:
                             operators.put(operator.getName(), new Operator(GREATER_THAN, (a, b) -> {
-                                if (a instanceof Comparable && b instanceof Comparable) {
+                                if (a instanceof Comparable && b instanceof Comparable 
+                                        && a.getClass().equals(b.getClass())) {
                                     return ((Comparable) a).compareTo(b) > 0;
                                 }
                                 return false;
@@ -122,7 +123,8 @@ public class OperatorRegistry {
                             break;
                         case LESS_THAN:
                             operators.put(operator.getName(), new Operator(LESS_THAN, (a, b) -> {
-                                if (a instanceof Comparable && b instanceof Comparable) {
+                                if (a instanceof Comparable && b instanceof Comparable
+                                        && a.getClass().equals(b.getClass())) {
                                     return ((Comparable) a).compareTo(b) < 0;
                                 }
                                 return false;
