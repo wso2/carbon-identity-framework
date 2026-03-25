@@ -129,7 +129,31 @@ public class RuleEvaluatorTest {
                 {createRuleWithListValueTypeAndContainsOperator(),
                         createEvaluationDataForRoleList(Arrays.asList("role1", "role2", "role3")), true},
                 {createRuleWithListValueTypeAndContainsOperator(),
-                        createEvaluationDataForRoleList(Arrays.asList("role4", "role5")), false}
+                        createEvaluationDataForRoleList(Arrays.asList("role4", "role5")), false},
+                {createRuleWithANDExpressionUsingStringValueTypesAndNotContainsOperator(),
+                        createEvaluationData("user@example.com"), true},
+                {createRuleWithANDExpressionUsingStringValueTypesAndNotContainsOperator(),
+                        createEvaluationData("user@wso2.com"), false},
+                {createRuleWithANDExpressionUsingStringValueTypesAndStartsWithOperator(),
+                        createEvaluationData("user@wso2.com"), true},
+                {createRuleWithANDExpressionUsingStringValueTypesAndStartsWithOperator(),
+                        createEvaluationData("admin@wso2.com"), false},
+                {createRuleWithANDExpressionUsingStringValueTypesAndEndsWithOperator(),
+                        createEvaluationData("user@wso2.com"), true},
+                {createRuleWithANDExpressionUsingStringValueTypesAndEndsWithOperator(),
+                        createEvaluationData("user@example.com"), false},
+                {createRuleWithANDExpressionUsingNumberValueTypesAndGreaterThanOperator(),
+                        createEvaluationDataForRiskScore(80), true},
+                {createRuleWithANDExpressionUsingNumberValueTypesAndGreaterThanOperator(),
+                        createEvaluationDataForRiskScore(50), false},
+                {createRuleWithANDExpressionUsingNumberValueTypesAndGreaterThanOperator(),
+                        createEvaluationDataForRiskScore(30), false},
+                {createRuleWithANDExpressionUsingNumberValueTypesAndLessThanOperator(),
+                        createEvaluationDataForRiskScore(30), true},
+                {createRuleWithANDExpressionUsingNumberValueTypesAndLessThanOperator(),
+                        createEvaluationDataForRiskScore(50), false},
+                {createRuleWithANDExpressionUsingNumberValueTypesAndLessThanOperator(),
+                        createEvaluationDataForRiskScore(80), false}
         };
     }
 
@@ -230,6 +254,61 @@ public class RuleEvaluatorTest {
         return ruleBuilder.build();
     }
 
+    private Rule createRuleWithANDExpressionUsingStringValueTypesAndNotContainsOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression1 = new Expression.Builder().field("email").operator("notContains")
+                .value(new Value(Value.Type.STRING, "wso2.com")).build();
+        ruleBuilder.addAndExpression(expression1);
+
+        return ruleBuilder.build();
+    }
+
+    private Rule createRuleWithANDExpressionUsingStringValueTypesAndStartsWithOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression1 = new Expression.Builder().field("email").operator("startsWith")
+                .value(new Value(Value.Type.STRING, "user")).build();
+        ruleBuilder.addAndExpression(expression1);
+
+        return ruleBuilder.build();
+    }
+
+    private Rule createRuleWithANDExpressionUsingStringValueTypesAndEndsWithOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression1 = new Expression.Builder().field("email").operator("endsWith")
+                .value(new Value(Value.Type.STRING, "wso2.com")).build();
+        ruleBuilder.addAndExpression(expression1);
+
+        return ruleBuilder.build();
+    }
+
+    private Rule createRuleWithANDExpressionUsingNumberValueTypesAndGreaterThanOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression1 = new Expression.Builder().field("riskScore").operator("greaterThan")
+                .value(new Value(Value.Type.NUMBER, "50")).build();
+        ruleBuilder.addAndExpression(expression1);
+
+        return ruleBuilder.build();
+    }
+
+    private Rule createRuleWithANDExpressionUsingNumberValueTypesAndLessThanOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression1 = new Expression.Builder().field("riskScore").operator("lessThan")
+                .value(new Value(Value.Type.NUMBER, "50")).build();
+        ruleBuilder.addAndExpression(expression1);
+
+        return ruleBuilder.build();
+    }
+
     private Rule createRuleWithListValueTypeAndContainsOperator() throws Exception {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -293,6 +372,13 @@ public class RuleEvaluatorTest {
         return evaluationData;
     }
 
+    private Map<String, FieldValue> createEvaluationDataForRiskScore(int riskScoreValue) {
+
+        Map<String, FieldValue> evaluationData = new HashMap<>();
+        evaluationData.put("riskScore", new FieldValue("riskScore", riskScoreValue));
+        return evaluationData;
+    }
+
     private Map<String, FieldValue> createEvaluationDataForRoleList(List<String> roles) {
 
         Map<String, FieldValue> evaluationData = new HashMap<>();
@@ -333,16 +419,24 @@ public class RuleEvaluatorTest {
         fieldDefinitionList.add(new FieldDefinition(consentedField, operators, consentedValue));
 
         Field riskScoreField = new Field("riskScore", "risk score");
+        List<Operator> operatorsForRiskScore = Arrays.asList(
+                new Operator("equals", "equals"),
+                new Operator("notEquals", "not equals"),
+                new Operator("greaterThan", "greater than"),
+                new Operator("lessThan", "less than"));
         org.wso2.carbon.identity.rule.metadata.api.model.Value riskScoreValue =
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.NUMBER);
-        fieldDefinitionList.add(new FieldDefinition(riskScoreField, operators, riskScoreValue));
+        fieldDefinitionList.add(new FieldDefinition(riskScoreField, operatorsForRiskScore, riskScoreValue));
 
         Field emailField = new Field("email", "user.email");
+        List<Operator> operatorsForEmail = Arrays.asList(
+                new Operator("contains", "contains"),
+                new Operator("notContains", "not contains"),
+                new Operator("startsWith", "starts with"),
+                new Operator("endsWith", "ends with"));
         org.wso2.carbon.identity.rule.metadata.api.model.Value
                 emailValue = new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING);
-        fieldDefinitionList.add(
-                new FieldDefinition(emailField, Collections.singletonList(new Operator("contains", "contains")),
-                        emailValue));
+        fieldDefinitionList.add(new FieldDefinition(emailField, operatorsForEmail, emailValue));
 
         Field claimField = new Field("claim", "claim");
         List<Operator> operatorsForClaim = Arrays.asList(new Operator("equals", "equals"),
