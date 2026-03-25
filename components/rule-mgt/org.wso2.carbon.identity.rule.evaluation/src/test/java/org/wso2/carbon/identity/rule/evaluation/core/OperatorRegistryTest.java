@@ -93,174 +93,68 @@ public class OperatorRegistryTest {
         assertNull(operatorRegistry.getOperator("nonExistent"));
     }
 
-    // Equals operator tests.
-
-    @DataProvider(name = "equalsDataProvider")
-    public Object[][] equalsDataProvider() {
+    @DataProvider(name = "operatorDataProvider")
+    public Object[][] operatorDataProvider() {
 
         return new Object[][]{
-                {"hello", "hello", true},
-                {"hello", "world", false},
-                {10.0, 10.0, true},
-                {10.0, 20.0, false},
-                {true, true, true},
-                {true, false, false}
+                // Equals operator.
+                {"equals", "hello", "hello", true},
+                {"equals", "hello", "world", false},
+                {"equals", 10.0, 10.0, true},
+                {"equals", 10.0, 20.0, false},
+                {"equals", true, true, true},
+                {"equals", true, false, false},
+                // NotEquals operator.
+                {"notEquals", "hello", "hello", false},
+                {"notEquals", "hello", "world", true},
+                {"notEquals", 10.0, 10.0, false},
+                {"notEquals", 10.0, 20.0, true},
+                {"notEquals", true, false, true},
+                // Contains operator.
+                {"contains", "hello world", "world", true},
+                {"contains", "hello world", "mars", false},
+                {"contains", "hello", "hello", true},
+                {"contains", "hello", "", true},
+                {"contains", 10, "hello", false},  // Non-string types.
+                // NotContains operator.
+                {"notContains", "hello world", "world", false},
+                {"notContains", "hello world", "mars", true},
+                {"notContains", "hello", "hello", false},
+                {"notContains", "hello", "", false},
+                {"notContains", 10, "hello", false},  // Non-string types.
+                // StartsWith operator.
+                {"startsWith", "hello world", "hello", true},
+                {"startsWith", "hello world", "world", false},
+                {"startsWith", "hello", "hello", true},
+                {"startsWith", "hello", "", true},
+                {"startsWith", 10, "hello", false},  // Non-string types.
+                // EndsWith operator.
+                {"endsWith", "hello world", "world", true},
+                {"endsWith", "hello world", "hello", false},
+                {"endsWith", "hello", "hello", true},
+                {"endsWith", "hello", "", true},
+                {"endsWith", 10, "hello", false},  // Non-string types.
+                // GreaterThan operator.
+                {"greaterThan", 20.0, 10.0, true},
+                {"greaterThan", 10.0, 20.0, false},
+                {"greaterThan", 10.0, 10.0, false},
+                {"greaterThan", "b", "a", true},
+                {"greaterThan", "a", "b", false},
+                {"greaterThan", "a", 1, false},  // Mismatched types.
+                // LessThan operator.
+                {"lessThan", 10.0, 20.0, true},
+                {"lessThan", 20.0, 10.0, false},
+                {"lessThan", 10.0, 10.0, false},
+                {"lessThan", "a", "b", true},
+                {"lessThan", "b", "a", false},
+                {"lessThan", "a", 1, false}  // Mismatched types.
         };
     }
 
-    @Test(dataProvider = "equalsDataProvider")
-    public void testEqualsOperator(Object a, Object b, boolean expected) {
+    @Test(dataProvider = "operatorDataProvider")
+    public void testOperator(String operatorName, Object a, Object b, boolean expected) {
 
-        Operator operator = operatorRegistry.getOperator("equals");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // NotEquals operator tests.
-
-    @DataProvider(name = "notEqualsDataProvider")
-    public Object[][] notEqualsDataProvider() {
-
-        return new Object[][]{
-                {"hello", "hello", false},
-                {"hello", "world", true},
-                {10.0, 10.0, false},
-                {10.0, 20.0, true},
-                {true, false, true}
-        };
-    }
-
-    @Test(dataProvider = "notEqualsDataProvider")
-    public void testNotEqualsOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("notEquals");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // Contains operator tests.
-
-    @DataProvider(name = "containsDataProvider")
-    public Object[][] containsDataProvider() {
-
-        return new Object[][]{
-                {"hello world", "world", true},
-                {"hello world", "mars", false},
-                {"hello", "hello", true},
-                {"hello", "", true},
-                {10, "hello", false}  // Non-string types.
-        };
-    }
-
-    @Test(dataProvider = "containsDataProvider")
-    public void testContainsOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("contains");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // NotContains operator tests.
-
-    @DataProvider(name = "notContainsDataProvider")
-    public Object[][] notContainsDataProvider() {
-
-        return new Object[][]{
-                {"hello world", "world", false},
-                {"hello world", "mars", true},
-                {"hello", "hello", false},
-                {"hello", "", false},
-                {10, "hello", false}  // Non-string types.
-        };
-    }
-
-    @Test(dataProvider = "notContainsDataProvider")
-    public void testNotContainsOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("notContains");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // StartsWith operator tests.
-
-    @DataProvider(name = "startsWithDataProvider")
-    public Object[][] startsWithDataProvider() {
-
-        return new Object[][]{
-                {"hello world", "hello", true},
-                {"hello world", "world", false},
-                {"hello", "hello", true},
-                {"hello", "", true},
-                {10, "hello", false}  // Non-string types.
-        };
-    }
-
-    @Test(dataProvider = "startsWithDataProvider")
-    public void testStartsWithOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("startsWith");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // EndsWith operator tests.
-
-    @DataProvider(name = "endsWithDataProvider")
-    public Object[][] endsWithDataProvider() {
-
-        return new Object[][]{
-                {"hello world", "world", true},
-                {"hello world", "hello", false},
-                {"hello", "hello", true},
-                {"hello", "", true},
-                {10, "hello", false}  // Non-string types.
-        };
-    }
-
-    @Test(dataProvider = "endsWithDataProvider")
-    public void testEndsWithOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("endsWith");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // GreaterThan operator tests.
-
-    @DataProvider(name = "greaterThanDataProvider")
-    public Object[][] greaterThanDataProvider() {
-
-        return new Object[][]{
-                {20.0, 10.0, true},
-                {10.0, 20.0, false},
-                {10.0, 10.0, false},
-                {"b", "a", true},
-                {"a", "b", false},
-                {"a", 1, false}  // Mismatched types.
-        };
-    }
-
-    @Test(dataProvider = "greaterThanDataProvider")
-    public void testGreaterThanOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("greaterThan");
-        assertOperatorResult(operator, a, b, expected);
-    }
-
-    // LessThan operator tests.
-
-    @DataProvider(name = "lessThanDataProvider")
-    public Object[][] lessThanDataProvider() {
-
-        return new Object[][]{
-                {10.0, 20.0, true},
-                {20.0, 10.0, false},
-                {10.0, 10.0, false},
-                {"a", "b", true},
-                {"b", "a", false},
-                {"a", 1, false}  // Mismatched types.
-        };
-    }
-
-    @Test(dataProvider = "lessThanDataProvider")
-    public void testLessThanOperator(Object a, Object b, boolean expected) {
-
-        Operator operator = operatorRegistry.getOperator("lessThan");
+        Operator operator = operatorRegistry.getOperator(operatorName);
         assertOperatorResult(operator, a, b, expected);
     }
 

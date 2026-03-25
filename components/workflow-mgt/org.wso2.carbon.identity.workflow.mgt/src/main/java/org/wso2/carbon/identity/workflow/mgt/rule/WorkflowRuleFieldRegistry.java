@@ -155,7 +155,7 @@ public class WorkflowRuleFieldRegistry {
         
         fields.put("role.hasAssignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasAssignedUsers")
-                .displayName("add users to the role")
+                .displayName("new users added to the role")
                 .operators(OPERATOR_EQUALS)
                 .options()
                     .valueType(Value.ValueType.STRING)
@@ -165,7 +165,7 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.hasUnassignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasUnassignedUsers")
-                .displayName("remove users from the role")
+                .displayName("users removed from the role")
                 .operators(OPERATOR_EQUALS)
                 .options()
                     .valueType(Value.ValueType.STRING)
