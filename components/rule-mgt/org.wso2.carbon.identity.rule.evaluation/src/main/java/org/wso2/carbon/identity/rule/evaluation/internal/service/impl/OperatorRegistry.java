@@ -38,6 +38,11 @@ public class OperatorRegistry {
     private static final String EQUALS = "equals";
     private static final String NOT_EQUALS = "notEquals";
     private static final String CONTAINS = "contains";
+    private static final String NOT_CONTAINS = "notContains";
+    private static final String STARTS_WITH = "startsWith";
+    private static final String ENDS_WITH = "endsWith";
+    private static final String GREATER_THAN = "greaterThan";
+    private static final String LESS_THAN = "lessThan";
 
     private OperatorRegistry() {
 
@@ -79,6 +84,46 @@ public class OperatorRegistry {
                             operators.put(operator.getName(), new Operator(CONTAINS, (a, b) -> {
                                 if (a instanceof String && b instanceof String) {
                                     return ((String) a).contains((String) b);
+                                }
+                                return false;
+                            }));
+                            break;
+                        case NOT_CONTAINS:
+                            operators.put(operator.getName(), new Operator(NOT_CONTAINS, (a, b) -> {
+                                if (a instanceof String && b instanceof String) {
+                                    return !((String) a).contains((String) b);
+                                }
+                                return false;
+                            }));
+                            break;
+                        case STARTS_WITH:
+                            operators.put(operator.getName(), new Operator(STARTS_WITH, (a, b) -> {
+                                if (a instanceof String && b instanceof String) {
+                                    return ((String) a).startsWith((String) b);
+                                }
+                                return false;
+                            }));
+                            break;
+                        case ENDS_WITH:
+                            operators.put(operator.getName(), new Operator(ENDS_WITH, (a, b) -> {
+                                if (a instanceof String && b instanceof String) {
+                                    return ((String) a).endsWith((String) b);
+                                }
+                                return false;
+                            }));
+                            break;
+                        case GREATER_THAN:
+                            operators.put(operator.getName(), new Operator(GREATER_THAN, (a, b) -> {
+                                if (a instanceof Comparable && b instanceof Comparable) {
+                                    return ((Comparable) a).compareTo(b) > 0;
+                                }
+                                return false;
+                            }));
+                            break;
+                        case LESS_THAN:
+                            operators.put(operator.getName(), new Operator(LESS_THAN, (a, b) -> {
+                                if (a instanceof Comparable && b instanceof Comparable) {
+                                    return ((Comparable) a).compareTo(b) < 0;
                                 }
                                 return false;
                             }));

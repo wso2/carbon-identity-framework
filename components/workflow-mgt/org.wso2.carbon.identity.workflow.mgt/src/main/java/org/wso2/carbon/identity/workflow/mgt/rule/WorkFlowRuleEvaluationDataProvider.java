@@ -67,9 +67,6 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     private static final String EVENT_TYPE = "eventType";
     private static final String CLAIMS = "Claims";
 
-    private static final String ADD_USER_EVENT = "ADD_USER";
-    private static final String SELF_REGISTER_USER_EVENT = "SELF_REGISTER_USER";
-
     /**
      * Enum for supported non-claim rule fields in workflow operations.
      */
@@ -377,10 +374,9 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                 claimsToFetch.add(claimUri);
             }
         }
-        String eventType = (String) contextData.get(EVENT_TYPE);
+
         // Batch fetch remaining claims from the user store.
-        if (!claimsToFetch.isEmpty() &&
-                (ADD_USER_EVENT.equals(eventType) || SELF_REGISTER_USER_EVENT.equals(eventType))) {
+        if (!claimsToFetch.isEmpty()) {
             String username = (String) contextData.get(USERNAME);
             if (StringUtils.isBlank(username)) {
                 if (log.isDebugEnabled()) {
