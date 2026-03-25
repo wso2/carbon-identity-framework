@@ -98,6 +98,6 @@ public class OperatorRegistry {
 
     private static BiPredicate<Object, Object> stringPredicate(BiPredicate<String, String> predicate) {
 
-        return (a, b) -> a instanceof String sa && b instanceof String sb && predicate.test(sa, sb);
+        return (a, b) -> a instanceof String && b instanceof String && predicate.test((String) a, (String) b);
     }
 }
