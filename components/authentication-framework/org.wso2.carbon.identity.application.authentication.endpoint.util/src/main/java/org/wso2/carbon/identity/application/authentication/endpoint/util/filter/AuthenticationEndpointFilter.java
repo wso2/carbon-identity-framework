@@ -217,9 +217,10 @@ public class AuthenticationEndpointFilter implements Filter {
 
                 if (configuredAuthenticatorsSet.isEmpty()
                         && (!StringUtils.isBlank(serviceProviderId) || !StringUtils.isBlank(serviceProviderName))) {
+                    String noAuthenticatorsMessage = "No authenticators found for application in tenant: "
+                            + tenantDomain + ". Redirecting to retry page.";
                     if (log.isDebugEnabled()) {
-                        log.debug("No authenticators found for application in tenant: " + tenantDomain
-                                + ". Redirecting to retry page.");
+                        log.debug(noAuthenticatorsMessage);
                     }
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
                         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
@@ -227,8 +228,7 @@ public class AuthenticationEndpointFilter implements Filter {
                                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                                         FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
                         diagnosticLogBuilder
-                                .resultMessage("No authenticators found for application in tenant: " + tenantDomain
-                                        + ". Redirecting to retry page.")
+                                .resultMessage(noAuthenticatorsMessage)
                                 .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain)
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
@@ -289,10 +289,11 @@ public class AuthenticationEndpointFilter implements Filter {
             }
 
             if (authenticatorValidationEnabled && StringUtils.isNotBlank(authenticators) && idpAuthenticatorMapping.isEmpty()) {
+                String allFilteredMessage = "All authenticators were filtered out during validation for application: "
+                        + (StringUtils.isNotBlank(serviceProviderId) ? serviceProviderId : serviceProviderName)
+                        + ". Redirecting to retry page.";
                 if (log.isDebugEnabled()) {
-                    log.debug("All authenticators were filtered out during validation for application: "
-                            + (StringUtils.isNotBlank(serviceProviderId) ? serviceProviderId : serviceProviderName)
-                            + ". Redirecting to retry page.");
+                    log.debug(allFilteredMessage);
                 }
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
@@ -300,9 +301,7 @@ public class AuthenticationEndpointFilter implements Filter {
                                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
                     diagnosticLogBuilder
-                            .resultMessage("All authenticators were filtered out during validation for application: "
-                                    + (StringUtils.isNotBlank(serviceProviderId) ? serviceProviderId
-                                    : serviceProviderName) + ". Redirecting to retry page.")
+                            .resultMessage(allFilteredMessage)
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
