@@ -2311,7 +2311,7 @@
   "workflow_engine.max_approver_notifications": 15,
 
   "saas.enable_app_creation": false,
-  "saas.enable_cross_tenant_operations": false
+  "saas.enable_cross_tenant_operations": false,
 
   "app_native_authentication.handle_fail_completed_authenticator_status": true
 }

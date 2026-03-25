@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -207,6 +207,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
+    private static final String ERROR_SAAS_APP_CREATION_DISABLED = "SaaS application creation is disabled.";
+    private static final String ERROR_SAAS_APP_CONVERSION_DISABLED =
+            "Converting application to a SaaS application is disabled.";
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
     private String message;
 
@@ -262,6 +265,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
         }
 
+        // Fetch the template and evaluate the SaaS gate.
+        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
+        if (spTemplate != null) {
+            ServiceProvider templateSP = unmarshalSP(spTemplate.getContent(), tenantDomain);
+            if (templateSP.isSaasApp() && !isSaaSAppCreationEnabled()) {
+                throw buildClientException(INVALID_REQUEST, ERROR_SAAS_APP_CREATION_DISABLED);
+            }
+        }
+
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
@@ -270,7 +282,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
         setDisplayNamesOfLocalAuthenticators(serviceProvider, tenantDomain);
-        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
             updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
             appDAO.updateApplication(serviceProvider, tenantDomain);
@@ -804,8 +815,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             // Block converting a non-SaaS application to a SaaS application when SaaS app creation is disabled.
             if (!storedSP.isSaasApp() && serviceProvider.isSaasApp() && !isSaaSAppCreationEnabled()) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Converting application to a SaaS application is disabled.");
+                throw buildClientException(INVALID_REQUEST, ERROR_SAAS_APP_CONVERSION_DISABLED);
             }
 
             doPreUpdateChecks(storedAppName, serviceProvider, tenantDomain, username);
@@ -1588,9 +1598,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     String errorMsg = String.format("Service provider %s@%s is not found", appName, tenantDomain);
                     throw new IdentityApplicationManagementClientException(APPLICATION_NOT_FOUND.getCode(), errorMsg);
                 }
+                // Block non-SaaS to SaaS conversion when SaaS app creation is disabled.
+                if (serviceProvider.isSaasApp() && !savedSP.isSaasApp() && !isSaaSAppCreationEnabled()) {
+                    throw buildClientException(INVALID_REQUEST, ERROR_SAAS_APP_CONVERSION_DISABLED);
+                }
             }
 
             if (!isUpdate) {
+                // Block creation of new SaaS apps when SaaS app creation is disabled.
+                if (serviceProvider.isSaasApp() && !isSaaSAppCreationEnabled()) {
+                    throw buildClientException(INVALID_REQUEST, ERROR_SAAS_APP_CREATION_DISABLED);
+                }
+
                 ServiceProvider basicApplication = new ServiceProvider();
                 basicApplication.setApplicationName(serviceProvider.getApplicationName());
                 basicApplication.setDescription(serviceProvider.getDescription());
@@ -2291,7 +2310,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                            String username) throws IdentityApplicationManagementException {
 
         if (serviceProvider.isSaasApp() && !isSaaSAppCreationEnabled()) {
-            throw buildClientException(INVALID_REQUEST, "SaaS application creation is disabled.");
+            throw buildClientException(INVALID_REQUEST, ERROR_SAAS_APP_CREATION_DISABLED);
         }
 
         String appName = serviceProvider.getApplicationName();
@@ -2853,8 +2872,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             // Block converting a non-SaaS application to a SaaS application when SaaS app creation is disabled.
             if (!storedApp.isSaasApp() && updatedApp.isSaasApp() && !isSaaSAppCreationEnabled()) {
-                throw buildClientException(INVALID_REQUEST,
-                        "Converting application to a SaaS application is disabled.");
+                throw buildClientException(INVALID_REQUEST, ERROR_SAAS_APP_CONVERSION_DISABLED);
             }
 
             doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
