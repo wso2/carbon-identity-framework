@@ -55,7 +55,12 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
     private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
             new Operator("equals", "equals"),
             new Operator("notEquals", "not equals"),
-            new Operator("contains", "contains")
+            new Operator("contains", "contains"),
+            new Operator("notContains", "not contains"),
+            new Operator("startsWith", "starts with"),
+            new Operator("endsWith", "ends with"),
+            new Operator("greaterThan", "greater than"),
+            new Operator("lessThan", "less than")
     ));
 
     /**
@@ -148,6 +153,23 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
         String displayName = getClaimDisplayName(localClaim);
         List<Operator> operators = CLAIM_OPERATORS;
         Value valueMeta = new InputValue(Value.ValueType.STRING);
+        String dataType = localClaim.getClaimProperties().get("dataType");
+        if (dataType != null) {
+            switch (dataType) {
+                case "boolean":
+                    valueMeta = new InputValue(Value.ValueType.BOOLEAN);
+                    break;
+                case "integer":
+                case "epoch":
+                case "double":
+                    valueMeta = new InputValue(Value.ValueType.NUMBER);
+                    break;
+                case "date":
+                case "date_time":
+                    valueMeta = new InputValue(Value.ValueType.DATE_TIME);
+                    break;
+            }
+        }
 
         List<FieldDefinition> fieldDefinitions = new ArrayList<>();
         fieldDefinitions.add(new FieldDefinition(

@@ -48,8 +48,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("user.domain", new FieldDefinitionBuilder()
                 .name("user.domain")
-                .displayName("user domain")
-                .operators("equals", "notEquals")
+                .displayName("user store domain of user")
+                .operators("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("name")
@@ -59,8 +59,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("user.groups", new FieldDefinitionBuilder()
                 .name("user.groups")
-                .displayName("user groups")
-                .operators("contains")
+                .displayName("assigned user groups")
+                .operators("contains", "notContains")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -71,8 +71,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("user.roles", new FieldDefinitionBuilder()
                 .name("user.roles")
-                .displayName("user roles")
-                .operators("contains")
+                .displayName("assigned user roles")
+                .operators("contains", "notContains")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -83,8 +83,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("initiator.domain", new FieldDefinitionBuilder()
                 .name("initiator.domain")
-                .displayName("initiator domain")
-                .operators("equals", "notEquals")
+                .displayName("user store domain of request initiator")
+                .operators("equals", "notEquals", "contains", "notContains", "startsWith", "endsWith")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("name")
@@ -94,8 +94,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("initiator.groups", new FieldDefinitionBuilder()
                 .name("initiator.groups")
-                .displayName("initiator groups")
-                .operators("contains")
+                .displayName("assigned user groups of request initiator")
+                .operators("contains", "notContains")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -106,8 +106,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("initiator.roles", new FieldDefinitionBuilder()
                 .name("initiator.roles")
-                .displayName("initiator roles")
-                .operators("contains")
+                .displayName("assigned user roles of request initiator")
+                .operators("contains", "notContains")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -118,7 +118,7 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.id", new FieldDefinitionBuilder()
                 .name("role.id")
-                .displayName("target role")
+                .displayName("role identifier")
                 .operators("equals", "notEquals")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
@@ -130,7 +130,7 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.audience", new FieldDefinitionBuilder()
                 .name("role.audience")
-                .displayName("role audience")
+                .displayName("audience of the role")
                 .operators("equals", "notEquals")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
@@ -142,15 +142,15 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.permissions", new FieldDefinitionBuilder()
                 .name("role.permissions")
-                .displayName("role permissions")
-                .operators("contains")
+                .displayName("permissions of the role")
+                .operators("contains", "notContains")
                 .input()
                     .valueType(Value.ValueType.STRING)
                 .build());
         
         fields.put("role.hasAssignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasAssignedUsers")
-                .displayName("role has users to be assigned")
+                .displayName("add users to the role")
                 .operators("equals")
                 .options()
                     .valueType(Value.ValueType.STRING)
@@ -160,7 +160,7 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.hasUnassignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasUnassignedUsers")
-                .displayName("role has users to be unassigned")
+                .displayName("remove users from the role")
                 .operators("equals")
                 .options()
                     .valueType(Value.ValueType.STRING)
