@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 /**
  * Registry for operators.
@@ -33,26 +34,28 @@ import java.util.Map;
 public class OperatorRegistry {
 
     private static final Map<String, Operator> operators = new HashMap<>();
+    private static final Map<String, BiPredicate<Object, Object>> supportedOperators = new HashMap<>();
 
-    // Operators
-    private static final String EQUALS = "equals";
-    private static final String NOT_EQUALS = "notEquals";
-    private static final String CONTAINS = "contains";
-    private static final String NOT_CONTAINS = "notContains";
-    private static final String STARTS_WITH = "startsWith";
-    private static final String ENDS_WITH = "endsWith";
-    private static final String GREATER_THAN = "greaterThan";
-    private static final String LESS_THAN = "lessThan";
+    static {
+        supportedOperators.put("equals", Object::equals);
+        supportedOperators.put("notEquals", (a, b) -> !a.equals(b));
+        supportedOperators.put("contains", stringPredicate(String::contains));
+        supportedOperators.put("notContains", stringPredicate((a, b) -> !a.contains(b)));
+        supportedOperators.put("startsWith", stringPredicate(String::startsWith));
+        supportedOperators.put("endsWith", stringPredicate(String::endsWith));
+        supportedOperators.put("greaterThan", comparablePredicate(result -> result > 0));
+        supportedOperators.put("lessThan", comparablePredicate(result -> result < 0));
+    }
 
     private OperatorRegistry() {
 
     }
 
     /**
-     * Get operator implementation by name
+     * Get operator implementation by name.
      *
-     * @param name Operator name
-     * @return Operator instance
+     * @param name Operator name.
+     * @return Operator instance.
      */
     public Operator getOperator(String name) {
 
@@ -73,68 +76,28 @@ public class OperatorRegistry {
         }
         ruleMetadataService.getApplicableOperatorsInExpressions()
                 .forEach(operator -> {
-                    switch (operator.getName()) {
-                        case EQUALS:
-                            operators.put(operator.getName(), new Operator(EQUALS, (a, b) -> a.equals(b)));
-                            break;
-                        case NOT_EQUALS:
-                            operators.put(operator.getName(), new Operator(NOT_EQUALS, (a, b) -> !a.equals(b)));
-                            break;
-                        case CONTAINS:
-                            operators.put(operator.getName(), new Operator(CONTAINS, (a, b) -> {
-                                if (a instanceof String && b instanceof String) {
-                                    return ((String) a).contains((String) b);
-                                }
-                                return false;
-                            }));
-                            break;
-                        case NOT_CONTAINS:
-                            operators.put(operator.getName(), new Operator(NOT_CONTAINS, (a, b) -> {
-                                if (a instanceof String && b instanceof String) {
-                                    return !((String) a).contains((String) b);
-                                }
-                                return false;
-                            }));
-                            break;
-                        case STARTS_WITH:
-                            operators.put(operator.getName(), new Operator(STARTS_WITH, (a, b) -> {
-                                if (a instanceof String && b instanceof String) {
-                                    return ((String) a).startsWith((String) b);
-                                }
-                                return false;
-                            }));
-                            break;
-                        case ENDS_WITH:
-                            operators.put(operator.getName(), new Operator(ENDS_WITH, (a, b) -> {
-                                if (a instanceof String && b instanceof String) {
-                                    return ((String) a).endsWith((String) b);
-                                }
-                                return false;
-                            }));
-                            break;
-                        case GREATER_THAN:
-                            operators.put(operator.getName(), new Operator(GREATER_THAN, (a, b) -> {
-                                if (a instanceof Comparable && b instanceof Comparable 
-                                        && a.getClass().equals(b.getClass())) {
-                                    return ((Comparable) a).compareTo(b) > 0;
-                                }
-                                return false;
-                            }));
-                            break;
-                        case LESS_THAN:
-                            operators.put(operator.getName(), new Operator(LESS_THAN, (a, b) -> {
-                                if (a instanceof Comparable && b instanceof Comparable
-                                        && a.getClass().equals(b.getClass())) {
-                                    return ((Comparable) a).compareTo(b) < 0;
-                                }
-                                return false;
-                            }));
-                            break;
-                        default:
-                            throw new IllegalArgumentException("Unsupported operator: " + operator.getName());
+                    String name = operator.getName();
+                    BiPredicate<Object, Object> predicate = supportedOperators.get(name);
+                    if (predicate == null) {
+                        throw new IllegalArgumentException("Unsupported operator: " + name);
                     }
+                    operators.put(name, new Operator(name, predicate));
                 });
 
         return new OperatorRegistry();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static BiPredicate<Object, Object> comparablePredicate(
+            java.util.function.IntPredicate resultCheck) {
+
+        return (a, b) -> a instanceof Comparable && b instanceof Comparable
+                && a.getClass().equals(b.getClass())
+                && resultCheck.test(((Comparable<Object>) a).compareTo(b));
+    }
+
+    private static BiPredicate<Object, Object> stringPredicate(BiPredicate<String, String> predicate) {
+
+        return (a, b) -> a instanceof String && b instanceof String && predicate.test((String) a, (String) b);
     }
 }
