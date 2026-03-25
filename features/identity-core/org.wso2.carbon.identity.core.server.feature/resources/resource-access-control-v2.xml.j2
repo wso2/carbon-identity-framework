@@ -963,9 +963,11 @@
         <!-- [Organization] Push Device Management API -->
         <Resource context="(.*)/o/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
         <Resource context="(.*)/o/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+        <Resource context="(.*)/o/api/users/v1/me/push/devices/(.*)/update" secured="false" http-method="POST"/>
         <!-- Push Device Management API -->
         <Resource context="(.*)/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
         <Resource context="(.*)/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+        <Resource context="(.*)/api/users/v1/me/push/devices/(.*)/update" secured="false" http-method="POST"/>
 
         <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Scopes>internal_login</Scopes>
