@@ -67,6 +67,9 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     private static final String EVENT_TYPE = "eventType";
     private static final String CLAIMS = "Claims";
 
+    private static final String ADD_USER_EVENT = "ADD_USER";
+    private static final String SELF_REGISTER_USER_EVENT = "SELF_REGISTER_USER";
+
     /**
      * Enum for supported non-claim rule fields in workflow operations.
      */
