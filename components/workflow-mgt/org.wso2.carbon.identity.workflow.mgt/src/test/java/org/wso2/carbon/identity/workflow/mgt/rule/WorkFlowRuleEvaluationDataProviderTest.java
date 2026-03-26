@@ -483,7 +483,7 @@ public class WorkFlowRuleEvaluationDataProviderTest {
         String bareClaimUri = "http://wso2.org/claims/mobile";
         String fieldName = "user." + bareClaimUri;
         Map<String, Object> contextData = new HashMap<>();
-        contextData.put("eventType", "ADD_USER");
+        contextData.put("eventType", "ASSIGN_USER_ROLE");
         contextData.put("Username", TEST_USERNAME);
         FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
 

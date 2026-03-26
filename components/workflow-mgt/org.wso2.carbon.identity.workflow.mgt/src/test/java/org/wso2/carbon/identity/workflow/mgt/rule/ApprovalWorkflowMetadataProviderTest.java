@@ -227,7 +227,7 @@ public class ApprovalWorkflowMetadataProviderTest {
                 .orElse(null);
 
         assertNotNull(claimField);
-        assertEquals(claimField.getOperators().size(), 3);
+        assertEquals(claimField.getOperators().size(), 8);
         List<String> opNames = claimField.getOperators().stream()
                 .map(op -> op.getName())
                 .collect(java.util.stream.Collectors.toList());
