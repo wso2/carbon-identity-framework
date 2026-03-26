@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,14 +27,24 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
+import org.wso2.carbon.ndatasource.common.DataSourceException;
+import org.wso2.carbon.ndatasource.core.DataSourceManager;
+import org.wso2.carbon.ndatasource.core.DataSourceRepository;
+import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
 
 import java.nio.file.Paths;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -59,6 +69,123 @@ public class UserStoreConfigServiceImplTest {
         userStoreConfigService = new UserStoreConfigServiceImpl();
     }
 
+    @Test
+    public void testTestRDBMSConnectionSuccess() throws Exception {
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<DataSourceManager> dataSourceManagerMockedStatic = mockStatic(DataSourceManager.class);
+             MockedStatic<JAXBContext> jaxbContextMockedStatic = mockStatic(JAXBContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+
+            // Mock JAXB so tests don't require JAXB implementation on classpath.
+            JAXBContext mockJaxbContext = mock(JAXBContext.class);
+            Marshaller mockMarshaller = mock(Marshaller.class);
+            jaxbContextMockedStatic.when(() -> JAXBContext.newInstance(RDBMSConfiguration.class))
+                    .thenReturn(mockJaxbContext);
+            when(mockJaxbContext.createMarshaller()).thenReturn(mockMarshaller);
+            doNothing().when(mockMarshaller).marshal(any(), any(java.io.OutputStream.class));
+
+            // Mock DataSourceManager and repository to return success.
+            DataSourceManager mockDataSourceManager = mock(DataSourceManager.class);
+            DataSourceRepository mockRepo = mock(DataSourceRepository.class);
+            when(mockDataSourceManager.getDataSourceRepository()).thenReturn(mockRepo);
+            dataSourceManagerMockedStatic.when(DataSourceManager::getInstance).thenReturn(mockDataSourceManager);
+            when(mockRepo.testDataSourceConnection(any())).thenReturn(true);
+
+            boolean result = userStoreConfigService.testRDBMSConnection("DOMAIN", "org.h2.Driver",
+                    "jdbc:h2:mem:testdb", "user", "pass", "msgId");
+            org.testng.Assert.assertTrue(result);
+        }
+    }
+
+    @Test
+    public void testTestRDBMSConnectionEncryptedPassword() throws Exception {
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> secondaryUserStoreConfigUtilMockedStatic
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<DataSourceManager> dataSourceManagerMockedStatic = mockStatic(DataSourceManager.class);
+             MockedStatic<JAXBContext> jaxbContextMockedStatic = mockStatic(JAXBContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+
+            // Mock JAXB so tests don't require JAXB implementation on classpath.
+            JAXBContext mockJaxbContext = mock(JAXBContext.class);
+            Marshaller mockMarshaller = mock(Marshaller.class);
+            jaxbContextMockedStatic.when(() -> JAXBContext.newInstance(RDBMSConfiguration.class))
+                    .thenReturn(mockJaxbContext);
+            when(mockJaxbContext.createMarshaller()).thenReturn(mockMarshaller);
+            doNothing().when(mockMarshaller).marshal(any(), any(java.io.OutputStream.class));
+
+            // When encrypted mask is passed, fetch the real password from tenant realm.
+            java.util.Map<String, String> props = new java.util.HashMap<>();
+            props.put("password", "realPass");
+            secondaryUserStoreConfigUtilMockedStatic.when(
+                    () -> SecondaryUserStoreConfigurationUtil.getSecondaryUserStorePropertiesFromTenantUserRealm(
+                            "DOMAIN")
+                                                         ).thenReturn(props);
+
+            DataSourceManager mockDataSourceManager = mock(DataSourceManager.class);
+            DataSourceRepository mockRepo = mock(DataSourceRepository.class);
+            when(mockDataSourceManager.getDataSourceRepository()).thenReturn(mockRepo);
+            dataSourceManagerMockedStatic.when(DataSourceManager::getInstance).thenReturn(mockDataSourceManager);
+            when(mockRepo.testDataSourceConnection(any())).thenReturn(true);
+
+            boolean result = userStoreConfigService.testRDBMSConnection("DOMAIN", "org.h2.Driver",
+                    "jdbc:h2:mem:testdb", "user", "ENCRYPTED PROPERTY", "msgId");
+            assertTrue(result);
+        }
+    }
+
+    @Test(expectedExceptions = IdentityUserStoreMgtException.class)
+    public void testTestRDBMSConnectionH2InitRejected() throws Exception {
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> secondaryUserStoreConfigUtilMockedStatic
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+
+            // Provide a connection URL containing an INIT expression which should be rejected.
+            userStoreConfigService.testRDBMSConnection("DOMAIN", "org.h2.Driver",
+                    "jdbc:h2:mem:testdb;INIT=RUNSCRIPT FROM 'init.sql'", "user", "pass", "msgId");
+        }
+    }
+
+    @Test(expectedExceptions = IdentityUserStoreMgtException.class)
+    public void testTestRDBMSConnectionDataSourceException() throws Exception {
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<SecondaryUserStoreConfigurationUtil> secondaryUserStoreConfigUtilMockedStatic
+                     = mockStatic(SecondaryUserStoreConfigurationUtil.class);
+             MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<DataSourceManager> dataSourceManagerMockedStatic = mockStatic(DataSourceManager.class);
+             MockedStatic<JAXBContext> jaxbContextMockedStatic = mockStatic(JAXBContext.class)) {
+
+            mockCarbonContext(privilegedCarbonContext, carbonContext);
+
+            // Mock JAXB so tests don't require JAXB implementation on classpath.
+            JAXBContext mockJaxbContext = mock(JAXBContext.class);
+            Marshaller mockMarshaller = mock(Marshaller.class);
+            jaxbContextMockedStatic.when(() -> JAXBContext.newInstance(RDBMSConfiguration.class))
+                    .thenReturn(mockJaxbContext);
+            when(mockJaxbContext.createMarshaller()).thenReturn(mockMarshaller);
+            doNothing().when(mockMarshaller).marshal(any(), any(java.io.OutputStream.class));
+
+            DataSourceManager mockDataSourceManager = mock(DataSourceManager.class);
+            DataSourceRepository mockRepo = mock(DataSourceRepository.class);
+            when(mockDataSourceManager.getDataSourceRepository()).thenReturn(mockRepo);
+            dataSourceManagerMockedStatic.when(DataSourceManager::getInstance).thenReturn(mockDataSourceManager);
+            when(mockRepo.testDataSourceConnection(any())).thenThrow(new DataSourceException("ds-error"));
+
+            userStoreConfigService.testRDBMSConnection("DOMAIN", "org.h2.Driver",
+                    "jdbc:h2:mem:testdb", "user", "pass", "msgId");
+        }
+    }
 
     private UserStoreDTO buildUserStoreDTO(PropertyDTO[] properties) {
 
