@@ -84,8 +84,10 @@ public abstract class AbstractIdentityFraudDetector implements IdentityFraudDete
         } catch (IOException e) {
             return new FraudDetectorResponseDTO(FAILURE, requestDTO.getEventName());
         } catch (Exception e) {
-            LOG.error("Unexpected error occurred while publishing the request to the fraud detector: "
-                    + getName(), e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Unexpected error occurred while publishing the request to the fraud detector: "
+                        + getName(), e);
+            }
             return new FraudDetectorResponseDTO(FAILURE, requestDTO.getEventName());
         }
     }
@@ -145,7 +147,10 @@ public abstract class AbstractIdentityFraudDetector implements IdentityFraudDete
                 LOG.debug("Cannot log request payload as diagnostic logs are disabled.");
             }
         } catch (IOException | IdentityFraudDetectionException e) {
-            LOG.error("Error occurred while logging the request payload for the fraud detector: " + getName(), e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error occurred while logging the request payload for the fraud detector: "
+                        + getName(), e);
+            }
         }
     }
 

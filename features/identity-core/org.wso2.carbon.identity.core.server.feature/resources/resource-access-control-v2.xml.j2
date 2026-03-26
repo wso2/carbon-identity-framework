@@ -54,9 +54,7 @@
            <Scopes>internal_config_update</Scopes>
         </Resource>
 
-        <!-- handling incorrect discovery requests -->
-        <Resource context="/.well-known/oauth-authorization-server/oauth2/token(.*)" secured="true" http-method="all"/>
-        <Resource context="/.well-known/openid-configuration(.*)" secured="true" http-method="all"/>
+        <Resource context="/.well-known/oauth-authorization-server/(.*)oauth2/token" secured="false" http-method="GET"/>
         
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
@@ -82,6 +80,7 @@
         <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/ciba(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/authn(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
@@ -128,6 +127,11 @@
         <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
         <Resource context="(.*)/accounts(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oid4vci/.well-known/openid-credential-issuer" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oid4vci/.well-known/jwt-vc-issuer" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oid4vci/credential" secured="true" http-method="POST"/>
+        <Resource context="(.*)/oid4vci/credential-offer(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
 
         <!-- 'Login only' mode migration configuration -->
         {% if resource_access_control.login_only_mode.enable is sameas true %}
@@ -894,6 +898,16 @@
         </Resource>
         <Resource context="(.*)/api/users/v2/me/approval-tasks/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_approval_task_update</Scopes>
+        </Resource>
+
+        <!-- [Organization] User Password Update API -->
+        <Resource context="(.*)/o/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,TomcatCookieAuthentication" secured="true" http-method="POST">
+            <Scopes>internal_org_user_password_update</Scopes>
+        </Resource>
+        
+        <!-- User Password Update API -->
+        <Resource context="(.*)/api/users/v1/me/change-password" allowed-auth-handlers="OAuthAuthentication,TomcatCookieAuthentication" secured="true" http-method="POST">
+            <Scopes>internal_user_password_update</Scopes>
         </Resource>
 
         <!-- Me APIs -->
@@ -1975,6 +1989,46 @@
              <Scopes>internal_user_shared_access_view</Scopes>
          </Resource>
 
+         <!-- [Organization] User share API V2 -->
+         <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/share-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/unshare(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/unshare-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_org_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_org_user_shared_access_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
+             <Scopes>internal_org_user_shared_access_view</Scopes>
+         </Resource>
+
+         <!-- User share API V2 -->
+         <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/share-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/unshare(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/unshare-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/share(.*)" secured="true" http-method="PATCH">
+             <Scopes>internal_user_shared_access_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v2/users/(.*)/share" secured="true" http-method="GET">
+             <Scopes>internal_user_shared_access_view</Scopes>
+         </Resource>
+
          <!-- [Organization] Async Operation Management API -->
          <Resource context="(.*)/o/api/server/v1/async-operations(.*)" secured="true" http-method="GET">
              <Scopes>internal_org_async_operation_status_view</Scopes>
@@ -2061,6 +2115,42 @@
           </Resource>
           <Resource context="(.*)/api/server/v1/workflow-instances(.*)" secured="true" http-method="DELETE">
               <Scopes>internal_workflow_instance_delete</Scopes>
+          </Resource>
+
+          <!-- VC Template Management API -->
+         <Resource context="(.*)/api/server/v1/vc-templates/(.*)/offer" secured="true" http-method="POST">
+             <Scopes>internal_vc_template_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-templates/(.*)/offer" secured="true" http-method="DELETE">
+             <Scopes>internal_vc_template_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="GET">
+             <Scopes>internal_vc_template_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="POST">
+             <Scopes>internal_vc_template_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_vc_template_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_vc_template_delete</Scopes>
+         </Resource>
+
+          <!-- [Organization] User Credential Management API -->
+          <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
+              <Scopes>internal_org_user_credential_mgt_view</Scopes>
+          </Resource>
+          <Resource context="(.*)/o/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
+              <Scopes>internal_org_user_credential_mgt_delete</Scopes>
+          </Resource>
+
+          <!-- User Credential Management API -->
+          <Resource context="(.*)/api/server/v1/users/(.*)/credentials" secured="true" http-method="GET">
+              <Scopes>internal_user_credential_mgt_view</Scopes>
+          </Resource>
+          <Resource context="(.*)/api/server/v1/users/(.*)/credentials/(.*)" secured="true" http-method="DELETE">
+              <Scopes>internal_user_credential_mgt_delete</Scopes>
           </Resource>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->

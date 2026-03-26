@@ -233,6 +233,14 @@
       ]
     }
   },
+  "oauth.jwks_endpoint.enable_x5t_in_response": {
+    "true": { 
+      "oauth.jwks_endpoint.is_x5t_required": true
+    },
+    "false": {
+      "oauth.jwks_endpoint.is_x5t_required": false
+    }
+  },
   "server.legacy_mode": {
     "true": {
       "oauth.enable_sha256": false,
@@ -296,6 +304,9 @@
         "POST_ADD_ORGANIZATION"
       ],
       "flow_execution.enable_legacy_flows": true,
+      "flow_execution.enable_legacy_self_registration_flow": true,
+      "flow_execution.enable_legacy_password_recovery_flow": true,
+      "flow_execution.enable_legacy_invited_user_registration_flow": true,
       "organization_discovery.default_param": "orgName",
       "console.ui.organizations.organization_display_name.enable": false,
       "console.ui.organizations.organization_handle.enable": false,
@@ -314,7 +325,24 @@
       "authenticationendpoint.authenticator_validation.enabled": false,
       "identifier_first.preserve_case_sensitivity.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
-      "oauth.callback.restrict_fragment_components": false
+      "oauth.callback.restrict_fragment_components": false,
+      "oauth.drop_unrequested_oidc_scopes": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled": true,
+      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
+      "saml.artifact.disable_double_encoding": false,
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "outbound_provisioning_management.enable_scim_patch_for_updates": false,
+      "outbound_provisioning_management.confidential_data_protection_enabled": false,
+      "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
+      "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": false,
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false,
+      "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
+      "api.filters.single_character_wildcard": "_",
+      "transport.https.client.provider_name": "",
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -359,15 +387,53 @@
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
+      "oauth.drop_unrequested_oidc_scopes": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled": true,
       "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
-      "resolve_tenant_domain_from_username.enabled": true
+      "resolve_tenant_domain_from_username.enabled": true,
+      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
+      "saml.artifact.disable_double_encoding": false,
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "outbound_provisioning_management.enable_scim_patch_for_updates": false,
+      "outbound_provisioning_management.confidential_data_protection_enabled": false,
+      "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
+      "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": false,
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false,
+      "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
+      "api.filters.single_character_wildcard": "_",
+      "transport.https.client.provider_name": "",
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "authentication.include_auth_failure_reason_in_api_based_response": false,
+      "authentication.include_multi_options_in_api_based_auth_response": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
+      "oauth.drop_unrequested_oidc_scopes": false,
+      "oauth.jwt_x5t_s256_enabled": false,
+      "oauth.jwt_x5t_enabled": true,
       "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
-      "resolve_tenant_domain_from_username.enabled": true
+      "resolve_tenant_domain_from_username.enabled": true,
+      "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
+      "saml.artifact.disable_double_encoding": false,
+      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
+      "outbound_provisioning_management.enable_scim_patch_for_updates": false,
+      "outbound_provisioning_management.confidential_data_protection_enabled": false,
+      "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
+      "identity_mgt.password_update.preserve_logged_in_session_for_all_bindings": false,
+      "scim2.enable_spec_compliant_email_handling": false,
+      "identity_providers.support_multiple_certificate_export": false,
+      "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
+      "api.filters.single_character_wildcard": "_",
+      "transport.https.client.provider_name": "",
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "authentication.include_auth_failure_reason_in_api_based_response": false,
+      "authentication.include_multi_options_in_api_based_auth_response": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false
     }
   }
 }

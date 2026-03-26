@@ -55,7 +55,7 @@
               "displayName": "organization switch"
             },
             {
-              "name": "device_code",
+              "name": "urn:ietf:params:oauth:grant-type:device_code",
               "displayName": "device code"
             }
           ]

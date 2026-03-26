@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.topic.management.internal.util.TopicManagementEx
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Collections;
 
 import static org.mockito.Mockito.doNothing;
@@ -79,13 +78,14 @@ public class TopicManagementServiceImplTest {
         Field instanceField = TopicManagementComponentServiceHolder.class.getDeclaredField("INSTANCE");
         instanceField.setAccessible(true);
 
-        // Remove final modifier
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(instanceField, instanceField.getModifiers() & ~Modifier.FINAL);
+        // Use Unsafe to modify static final fields in Java 12+
+        Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
 
-        // Now set the field
-        instanceField.set(null, componentServiceHolderMock);
+        Object fieldBase = unsafe.staticFieldBase(instanceField);
+        long fieldOffset = unsafe.staticFieldOffset(instanceField);
+        unsafe.putObject(fieldBase, fieldOffset, componentServiceHolderMock);
     }
 
     @AfterClass

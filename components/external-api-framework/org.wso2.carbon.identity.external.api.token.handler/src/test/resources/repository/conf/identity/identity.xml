@@ -27,5 +27,6 @@
             <HTTPConnectionMaxPerRoute>10</HTTPConnectionMaxPerRoute>
         </HTTPClient>
         <DefaultRetryCount>2</DefaultRetryCount>
+        <DefaultResponseLimit>1048576</DefaultResponseLimit>
     </ExternalAPIClient>
 </Server>

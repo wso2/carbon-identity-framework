@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,6 +30,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -38,6 +40,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -62,11 +67,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -482,6 +489,274 @@ public class DefaultStepHandlerTest {
 
             Assert.assertTrue(actualUrl.startsWith(expectedBaseUrl),
                     "Expected URL to start with " + expectedBaseUrl + " but found " + actualUrl);
+        }
+    }
+
+    /**
+     * Test that the authenticated user is properly set in the context subject when step is skipped in SSO.
+     */
+    @Test
+    public void testSSOStepSkippingSetsContextSubject() throws FrameworkException {
+
+        String testUsername = "ssoTestUser";
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            // Authentication Context Setup.
+            AuthenticationContext context = new AuthenticationContext();
+            context.initializeAnalyticsData();
+            context.setTenantDomain("carbon.super");
+            context.setCurrentStep(1);
+
+            // Authenticator Config Setup.
+            AuthenticatorConfig authConfig = new AuthenticatorConfig();
+            authConfig.setName("BasicAuthenticator");
+            authConfig.setIdPNames(Collections.singletonList(FrameworkConstants.LOCAL_IDP_NAME));
+            LocalApplicationAuthenticator authenticator = mock(LocalApplicationAuthenticator.class);
+            when(authenticator.getName()).thenReturn("BasicAuthenticator");
+            when(authenticator.getAuthMechanism()).thenReturn("basic");
+            authConfig.setApplicationAuthenticator(authenticator);
+
+            StepConfig stepConfig = new StepConfig();
+            stepConfig.setOrder(1);
+            stepConfig.setAuthenticatorList(Collections.singletonList(authConfig));
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            sequenceConfig.setStepMap(Collections.singletonMap(1, stepConfig));
+            context.setSequenceConfig(sequenceConfig);
+
+            AuthenticatedUser user = new AuthenticatedUser();
+            user.setUserName(testUsername);
+            user.setTenantDomain("carbon.super");
+            user.setUserStoreDomain("PRIMARY");
+
+            AuthenticatedIdPData idPData = new AuthenticatedIdPData();
+            idPData.setIdpName(FrameworkConstants.LOCAL_IDP_NAME);
+            idPData.setUser(user);
+            idPData.addAuthenticator(authConfig);
+
+            Map<String, AuthenticatedIdPData> authenticatedIdPs = new HashMap<>();
+            authenticatedIdPs.put(FrameworkConstants.LOCAL_IDP_NAME, idPData);
+            context.setPreviousAuthenticatedIdPs(authenticatedIdPs);
+            context.setCurrentAuthenticatedIdPs(new HashMap<>());
+
+            // Mock FrameworkUtils.
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(any(StepConfig.class), any(Map.class)))
+                    .thenReturn(Collections.singletonMap(FrameworkConstants.LOCAL_IDP_NAME, authConfig));
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
+                    .thenReturn("BasicAuthenticator:LOCAL");
+
+            defaultStepHandler.handle(request, response, context);
+
+            Assert.assertNotNull(context.getSubject(),
+                    "Context subject should be set when step is skipped in SSO.");
+            Assert.assertEquals(context.getSubject().getUserName(), testUsername,
+                    "Subject username should match the authenticated user.");
+            Assert.assertEquals(context.getSubject().getTenantDomain(), "carbon.super",
+                    "Subject tenant domain should match the authenticated user.");
+        }
+    }
+
+    @Test
+    public void testAPIBasedFlowWithUnsupportedAuthenticatorSetsErrorProperties() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            StepConfig stepConfig = mock(StepConfig.class);
+            AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+            ApplicationAuthenticator authenticator = mock(ApplicationAuthenticator.class);
+
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(context.getCurrentStep()).thenReturn(1);
+            Map<Integer, StepConfig> stepMap = new HashMap<>();
+            stepMap.put(1, stepConfig);
+            when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(authenticator);
+            when(authenticator.getName()).thenReturn("UnsupportedAuthenticator");
+            when(authenticator.getFriendlyName()).thenReturn("Unsupported Authenticator");
+            when(authenticator.isAPIBasedAuthenticationSupported()).thenReturn(false);
+            when(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE))
+                    .thenReturn(FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(true);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
+            verify(context).setProperty(FrameworkConstants.AUTH_ERROR_CODE,
+                    FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+        }
+    }
+
+    @Test
+    public void testUnsupportedAuthenticatorSetsAuthResultAttributes() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            StepConfig stepConfig = mock(StepConfig.class);
+            AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+            ApplicationAuthenticator authenticator = mock(ApplicationAuthenticator.class);
+
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(context.getCurrentStep()).thenReturn(1);
+            when(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE))
+                    .thenReturn(FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+            Map<Integer, StepConfig> stepMap = new HashMap<>();
+            stepMap.put(1, stepConfig);
+            when(sequenceConfig.getStepMap()).thenReturn(stepMap);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(authenticatorConfig.getApplicationAuthenticator()).thenReturn(authenticator);
+            when(authenticator.getName()).thenReturn("TestAuth");
+            when(authenticator.getFriendlyName()).thenReturn("Test Authenticator");
+            when(authenticator.isAPIBasedAuthenticationSupported()).thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(true);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            defaultStepHandler.doAuthentication(request, response, context, authenticatorConfig);
+
+            ArgumentCaptor<Boolean> flowConcludedCaptor = ArgumentCaptor.forClass(Boolean.class);
+            verify(request).setAttribute(
+                    org.mockito.ArgumentMatchers.eq(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED),
+                    flowConcludedCaptor.capture());
+            Assert.assertTrue(flowConcludedCaptor.getValue(),
+                    "Expected IS_AUTH_FLOW_CONCLUDED to be true");
+            ArgumentCaptor<AuthenticationResult> authResultCaptor =
+                    ArgumentCaptor.forClass(AuthenticationResult.class);
+            verify(request).setAttribute(
+                    org.mockito.ArgumentMatchers.eq(FrameworkConstants.RequestAttribute.AUTH_RESULT),
+                    authResultCaptor.capture());
+
+            AuthenticationResult authResult = authResultCaptor.getValue();
+            Assert.assertFalse(authResult.isAuthenticated(),
+                    "Expected authentication result to be not authenticated");
+            Assert.assertEquals(authResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE),
+                    FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+        }
+    }
+
+    @DataProvider(name = "updateRetryParamForAPIBasedAuthFlowsData")
+    public Object[][] updateRetryParamForAPIBasedAuthFlowsData() {
+
+        // isAPIBased, includeFailureReason, retryParam, expectUserAccountLocked
+        return new Object[][] {
+                // API-based + flag enabled + no auth failure params → adds authFailure=true and authFailureMsg
+                {true, "true", "", true},
+                // API-based + flag enabled + authFailure=true present + no authFailureMsg → appends authFailureMsg
+                {true, "true", "&authFailure=true", true},
+                // API-based + flag enabled + authFailureMsg already exists → replaces with user.account.locked
+                {true, "true", "&authFailure=true&authFailureMsg=other.message", true},
+                // Not API-based flow → retryParam unchanged, no user.account.locked added
+                {false, "true", "", false},
+                // Flag disabled → retryParam unchanged, no user.account.locked added
+                {true, "false", "", false},
+        };
+    }
+
+    @Test(dataProvider = "updateRetryParamForAPIBasedAuthFlowsData")
+    public void testUpdateRetryParamForAPIBasedAuthFlows(boolean isAPIBased, String includeFailureReason,
+                                                         String retryParam, boolean expectUserAccountLocked)
+            throws URISyntaxException, IOException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode()).thenReturn(UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            when(errorMsgContext.getMaximumLoginAttempts()).thenReturn(5);
+            when(errorMsgContext.getFailedLoginAttempts()).thenReturn(3);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE))
+                    .thenReturn(includeFailureReason);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(isAPIBased);
+
+            AuthenticationContext context = new AuthenticationContext();
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+
+            AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
+            when(defaultStepHandler.getAuthenticatorConfig()).thenReturn(authenticatorConfig);
+            when(authenticatorConfig.getParameterMap()).thenReturn(new HashMap<>());
+
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn("http://example.com/");
+
+            String redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
+                    "true", retryParam, "");
+
+            if (expectUserAccountLocked) {
+                Assert.assertTrue(redirectUrl.contains("authFailureMsg=user.account.locked"),
+                        "Expected URL to contain authFailureMsg=user.account.locked but got: " + redirectUrl);
+            } else {
+                Assert.assertFalse(redirectUrl.contains("user.account.locked"),
+                        "Expected URL not to contain user.account.locked but got: " + redirectUrl);
+            }
+        }
+    }
+
+    @Test
+    public void testOrgDiscoveryParamsRouteToOrgIdentifierHandler() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ConfigurationFacade> configFacadeMock = mockStatic(ConfigurationFacade.class)) {
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            ConfigurationFacade configFacade = mock(ConfigurationFacade.class);
+            configFacadeMock.when(ConfigurationFacade::getInstance).thenReturn(configFacade);
+            when(configFacade.getAuthenticationEndpointURL()).thenReturn("/authenticationendpoint/login.do");
+
+            HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+            HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+            when(mockRequest.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID))
+                    .thenReturn("org123");
+
+            ApplicationAuthenticator orgAuthenticator = mock(ApplicationAuthenticator.class);
+            when(orgAuthenticator.getName()).thenReturn(FrameworkConstants.ORGANIZATION_IDENTIFIER_HANDLER);
+            when(orgAuthenticator.isAuthenticationRequired(any(), any(), any())).thenReturn(true);
+            when(orgAuthenticator.process(any(), any(), any()))
+                    .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+
+            AuthenticatorConfig authConfig = mock(AuthenticatorConfig.class);
+            when(authConfig.getApplicationAuthenticator()).thenReturn(orgAuthenticator);
+
+            StepConfig stepConfig = mock(StepConfig.class);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(stepConfig.getAuthenticatorList()).thenReturn(Collections.singletonList(authConfig));
+
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getStepMap()).thenReturn(Collections.singletonMap(1, stepConfig));
+
+            AuthenticationContext authContext = mock(AuthenticationContext.class);
+            when(authContext.getCurrentStep()).thenReturn(1);
+            when(authContext.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(authContext.getCurrentAuthenticatedIdPs()).thenReturn(new HashMap<>());
+            when(authContext.isPassiveAuthenticate()).thenReturn(false);
+            when(authContext.isSharedAppLogin()).thenReturn(false);
+
+            frameworkUtils.when(() -> FrameworkUtils.getApplicationName(authContext))
+                    .thenReturn(Optional.empty());
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
+                    .thenReturn("");
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(
+                    any(StepConfig.class), any(Map.class))).thenReturn(new HashMap<>());
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(mockRequest))
+                    .thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorPropertyMapFromIdP(any(), any()))
+                    .thenReturn(new HashMap<>());
+
+            defaultStepHandler.handle(mockRequest, mockResponse, authContext);
+
+            verify(orgAuthenticator).process(mockRequest, mockResponse, authContext);
         }
     }
 }

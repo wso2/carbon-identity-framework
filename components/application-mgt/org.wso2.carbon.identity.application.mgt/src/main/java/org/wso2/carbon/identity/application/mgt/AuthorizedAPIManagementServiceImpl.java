@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -65,6 +66,13 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_S
 /**
  * Authorized API management service implementation.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService",
+                "service.scope=singleton"
+        }
+)
 public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManagementService {
 
     private final AuthorizedAPIDAO authorizedAPIDAO = new CacheBackedAuthorizedAPIDAOImpl(new AuthorizedAPIDAOImpl());
@@ -161,7 +169,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 if (authorizedAPI.getScopes() != null) {
                     for (Scope scope : authorizedAPI.getScopes()) {
                         Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
-                                .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
+                                .getAPIResourceManager().getScopeByNameAndApiResourceId(scope.getName(),
+                                        authorizedAPI.getAPIId(), tenantDomain);
                         scopeList.add(scopeWithMetadata);
                     }
                 }

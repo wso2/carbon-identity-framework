@@ -47,6 +47,13 @@ public class SAMLSSOServiceProviderListCache extends BaseCache<String, SAMLSSOSe
     }
 
     @Override
+    public void addToCacheOnRead(String key, SAMLSSOServiceProviderDO[] samlSSOServiceProviderDOs, int tenantId) {
+
+        SAMLSSOServiceProviderDO[] samlSSOServiceProviderDOList = createCopy(samlSSOServiceProviderDOs);
+        super.addToCacheOnRead(key, samlSSOServiceProviderDOList, tenantId);
+    }
+
+    @Override
     public SAMLSSOServiceProviderDO[] getValueFromCache(String key, int tenantId) {
 
         SAMLSSOServiceProviderDO[] samlSSOServiceProviderDOs = super.getValueFromCache(key, tenantId);

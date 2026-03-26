@@ -35,7 +35,9 @@ import static org.mockito.Mockito.spy;
 public class TestUtils {
 
     public static final String H2_SCRIPT_NAME = "h2.sql";
+    public static final String ORACLE_SCRIPT_NAME = "oracle.sql";
     private static final String DB_NAME = "Config";
+    private static final String ORACLE_DB_NAME = "OracleConfig";
     public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     public static void initiateH2Base() throws Exception {
@@ -49,6 +51,19 @@ public class TestUtils {
             connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + getFilePath(H2_SCRIPT_NAME) + "'");
         }
         dataSourceMap.put(DB_NAME, dataSource);
+    }
+
+    public static void initiateOracleBase() throws Exception {
+
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUsername("username");
+        dataSource.setPassword("password");
+        dataSource.setUrl("jdbc:h2:mem:test" + ORACLE_DB_NAME);
+        try (Connection connection = dataSource.getConnection()) {
+            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + getFilePath(ORACLE_SCRIPT_NAME) + "'");
+        }
+        dataSourceMap.put(ORACLE_DB_NAME, dataSource);
     }
 
     public static String getFilePath(String fileName) {
@@ -68,6 +83,14 @@ public class TestUtils {
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
     }
 
+    public static Connection getOracleConnection() throws SQLException {
+
+        if (dataSourceMap.get(ORACLE_DB_NAME) != null) {
+            return dataSourceMap.get(ORACLE_DB_NAME).getConnection();
+        }
+        throw new RuntimeException("No data source initiated for database: " + ORACLE_DB_NAME);
+    }
+
     public static Connection spyConnection(Connection connection) throws SQLException {
 
         Connection spy = spy(connection);
@@ -78,6 +101,14 @@ public class TestUtils {
     public static void closeH2Base() throws Exception {
 
         BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
+        if (dataSource != null) {
+            dataSource.close();
+        }
+    }
+
+    public static void closeOracleBase() throws Exception {
+
+        BasicDataSource dataSource = dataSourceMap.get(ORACLE_DB_NAME);
         if (dataSource != null) {
             dataSource.close();
         }

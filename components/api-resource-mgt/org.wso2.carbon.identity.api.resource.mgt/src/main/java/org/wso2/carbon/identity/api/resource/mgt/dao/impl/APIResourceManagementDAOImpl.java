@@ -394,6 +394,24 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     @Override
+    public void updateScopeMetadataById(Scope scope, APIResource apiResource, Integer tenantId)
+            throws APIResourceMgtException {
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement preparedStatement = dbConnection.prepareStatement(
+                     SQLConstants.UPDATE_SCOPE_METADATA_BY_ID)) {
+            preparedStatement.setString(1, scope.getDisplayName());
+            preparedStatement.setString(2, scope.getDescription());
+            preparedStatement.setString(3, scope.getId());
+            preparedStatement.setInt(4, tenantId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA, e);
+        }
+    }
+
+    @Override
     public void deleteAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
         try {
@@ -510,7 +528,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         resultSet.getString(SQLConstants.ID_COLUMN_NAME),
                         resultSet.getString(SQLConstants.NAME_COLUMN_NAME),
                         resultSet.getString(SQLConstants.DISPLAY_NAME_COLUMN_NAME),
-                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME)
+                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.SCOPE_API_ID_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.TENANT_ID_COLUMN_NAME)
                 );
             }
         } catch (SQLException e) {
@@ -545,7 +565,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         resultSet.getString(SQLConstants.ID_COLUMN_NAME),
                         resultSet.getString(SQLConstants.NAME_COLUMN_NAME),
                         resultSet.getString(SQLConstants.DISPLAY_NAME_COLUMN_NAME),
-                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME)
+                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.SCOPE_API_ID_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.TENANT_ID_COLUMN_NAME)
                 );
             }
         } catch (SQLException e) {
@@ -669,6 +691,28 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             deleteScopeByName(dbConnection, scopeName, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_SCOPES, e);
+        }
+    }
+
+    @Override
+    public void deleteScopeById(String apiId, String scopeId, Integer tenantId) throws APIResourceMgtException {
+
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                throw APIResourceManagementUtil.handleClientException(APIResourceManagementConstants.ErrorMessages
+                        .ERROR_CODE_DELETING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS);
+            }
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages.
+                            ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+            deleteScopeById(dbConnection, scopeId, tenantId);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_SCOPES, e);
@@ -1017,6 +1061,20 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         try {
             PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPE_BY_NAME);
             prepStmt.setString(1, scopeName);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.executeUpdate();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_SCOPES, e);
+        }
+    }
+
+    private void deleteScopeById(Connection dbConnection, String scopeId, Integer tenantId)
+            throws APIResourceMgtException {
+
+        try {
+            PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPE_BY_ID);
+            prepStmt.setString(1, scopeId);
             prepStmt.setInt(2, tenantId);
             prepStmt.executeUpdate();
         } catch (SQLException e) {

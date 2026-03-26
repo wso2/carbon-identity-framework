@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -165,6 +165,7 @@ public abstract class FrameworkConstants {
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
     public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
     public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";
@@ -174,6 +175,10 @@ public abstract class FrameworkConstants {
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
     public static final String CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY = "AllowSPRequestedFedClaimsOnly";
+    public static final String INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE =
+            "IncludeAuthFailureReasonInAPIBasedAuthResponse";
+    public static final String INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE =
+            "IncludeMultiOptionsInAPIBasedAuthResponse";
 
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
@@ -248,9 +253,12 @@ public abstract class FrameworkConstants {
 
     // Attribute sync related constants.
     public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";
+    public static final String IDP_GROUP_SYNC_METHOD = "idpGroupSyncMethod";
+    public static final String IS_JIT_PROVISIONING_FLOW = "isJitProvisioningFlow";
     public static final String OVERRIDE_ALL = "OVERRIDE_ALL";
     public static final String SYNC_NONE = "NONE";
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
+    public static final String MERGE_WITH_EXISTING = "MERGE_WITH_EXISTING";
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
     public static final String REMOVE_COMMONAUTH_COOKIE = "removeCommonAuthCookie";
     public static final String INITIAL_CONTEXT = "initialContext";
@@ -268,7 +276,14 @@ public abstract class FrameworkConstants {
     public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
     public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
     public static final String ERROR_STATUS_APP_DISABLED = "authentication.flow.app.disabled";
+    public static final String ERROR_STATUS_INVALID_AUTHENTICATOR = "authentication.invalid.authenticator";
     public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
+    public static final String ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED = "authentication.api.based.unsupported" +
+            ".authenticator";
+    public static final String ERROR_STATUS_ALLOWED_RETRY_LIMIT_EXCEEDED =
+            "authentication.failure.retry.limit.exceeded";
+    public static final String ERROR_STATUS_ALLOWED_RESEND_LIMIT_EXCEEDED =
+            "authentication.failure.resend.limit.exceeded";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
@@ -431,6 +446,11 @@ public abstract class FrameworkConstants {
          * JIT Provisioning configurations.
          */
         public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
+
+        /**
+         * Configuration to mark the step as completed on interrupt.
+         */
+        public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
 
         private Config() {
         }
@@ -640,6 +660,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_GET_SECRET_BY_NAME = "getSecretByName";
         public static final String JS_AUTH_FAILURE = "fail";
         public static final String JS_ENDPOINT_PARAMS = "endpointParams";
+        public static final String JS_PASSWORD_RESET_COMPLETE = "passwordResetComplete";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
@@ -825,6 +846,7 @@ public abstract class FrameworkConstants {
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
             public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
             public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
+            public static final String JIT_PROVISIONING = "jit-provisioning";
         }
     }
 

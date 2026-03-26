@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -39,6 +39,7 @@ public class APIClientUtilsTest {
     private static final int EXPECTED_HTTP_CONNECTION_REQUEST_TIMEOUT = 8000;
     private static final int EXPECTED_HTTP_CONNECTION_TIMEOUT = 5000;
     private static final int EXPECTED_POOL_SIZE = 50;
+    private static final long EXPECTED_RESPONSE_LIMIT = 1048576L;
 
     @BeforeClass
     public void setUp() {
@@ -97,5 +98,16 @@ public class APIClientUtilsTest {
         int poolSize = APIClientUtils.getDefaultPoolSizeToBeSet();
         assertEquals(poolSize, EXPECTED_POOL_SIZE,
                 "Pool size should match the configured value from identity.xml");
+    }
+
+    /**
+     * Test getting default response limit returns the configured value.
+     */
+    @Test
+    public void testGetDefaultResponseLimit() {
+
+        long responseLimit = APIClientUtils.getDefaultResponseLimit();
+        assertEquals(responseLimit, EXPECTED_RESPONSE_LIMIT,
+                "Response limit should match the configured value from identity.xml");
     }
 }

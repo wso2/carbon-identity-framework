@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.execution.engine.util;
 
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
@@ -29,7 +30,7 @@ import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionList
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
@@ -65,6 +66,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.WEBAUTHN;
 /**
  * Unit tests for FlowExecutionEngine.
  */
+@Test(singleThreaded = true)
 public class FlowEngineTest {
 
     private FlowExecutionContext context;
@@ -75,7 +77,16 @@ public class FlowEngineTest {
     public void setup() {
 
         defaultGraph = buildGraphWithDecision();
-        listeners.add(new InputValidationListener());
+        listeners.add(new InputProcessingListener());
+    }
+
+    @AfterClass
+    public void tearDown() {
+        // Clean up class-level resources if any
+        context = null;
+        defaultGraph = null;
+        listeners = null;
+        org.mockito.Mockito.framework().clearInlineMocks();
     }
 
     @Test
@@ -100,6 +111,7 @@ public class FlowEngineTest {
     @Test(dependsOnMethods = {"testDecisionNodeSelectionForPrompt"})
     public void testContinueAfterPrompt() throws Exception {
 
+        context.setCurrentActionId("button1");
         try (MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
@@ -493,4 +505,3 @@ public class FlowEngineTest {
         return context;
     }
 }
-

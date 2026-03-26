@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *   Copyright (c) 2018-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *   WSO2 Inc. licenses this file to you under the Apache License,
  *   Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -1284,19 +1286,36 @@ public class UserSessionStore {
 
         Set<String> activeSessionIds = new HashSet<>();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
         long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
         long currentTime = System.currentTimeMillis();
-        long minTimestamp = currentTime - idleSessionTimeOut;
+        long minIdleTimestamp = currentTime - idleSessionTimeOut;
+
+        Optional<Integer> maxSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+        Long minSessionTimestamp = maxSessionTimeout.isPresent()
+                ? currentTime - TimeUnit.SECONDS.toMillis(maxSessionTimeout.get()) : null;
 
         try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
-            String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
-                    ? SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT_H2
-                    : SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT;
+            String sqlStmt;
+            if (minSessionTimestamp != null) {
+                sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                        ? SQLQueries.SQL_GET_SESSION_OPS_BY_TENANT_WITH_IDLE_AND_MAX_TIMEOUT_H2
+                        : SQLQueries.SQL_GET_SESSION_OPS_BY_TENANT_WITH_IDLE_AND_MAX_TIMEOUT;
+            } else {
+                sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
+                        ? SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT_H2
+                        : SQLQueries.SQL_GET_SESSION_OPERATIONS_WITHIN_IDLE_SESSION_TIMEOUT_BY_TENANT;
+            }
             try (PreparedStatement preparedStatement = connection.prepareStatement(sqlStmt)) {
                 preparedStatement.setInt(1, tenantId);
                 preparedStatement.setString(2, SessionMgtConstants.LAST_ACCESS_TIME);
-                preparedStatement.setString(3, String.valueOf(minTimestamp));
+                preparedStatement.setString(3, String.valueOf(minIdleTimestamp));
                 preparedStatement.setString(4, String.valueOf(currentTime));
+                if (minSessionTimestamp != null) {
+                    preparedStatement.setString(5, SessionMgtConstants.LOGIN_TIME);
+                    preparedStatement.setString(6, String.valueOf(minSessionTimestamp));
+                    preparedStatement.setString(7, String.valueOf(currentTime));
+                }
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
                         String sessionId = resultSet.getString(1);
@@ -1333,5 +1352,39 @@ public class UserSessionStore {
 
         // When federated user is stored, the userDomain is added as "FEDERATED" to the store.
         return getUserId(subjectIdentifier, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
+    /**
+     * Method to retrieve user and associated IDP available in the IDN_AUTH_USER table.
+     *
+     * @param userId Id of the authenticated user
+     * @return the user and associated IDP
+     * @throws UserSessionException if an error occurs when retrieving the mapping from the database
+     */
+    public AuthenticatedUser getUser(String userId) throws UserSessionException {
+
+        if (StringUtils.isBlank(userId)) {
+            throw new UserSessionException("Invalid userId: userId cannot be null or empty.");
+        }
+
+        AuthenticatedUser user = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_USER_FROM_USER_ID)) {
+                preparedStatement.setString(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        user = new AuthenticatedUser();
+                        user.setUserName(resultSet.getString(1));
+                        user.setTenantDomain(IdentityTenantUtil.getTenantDomain(resultSet.getInt(2)));
+                        user.setUserStoreDomain(resultSet.getString(3));
+                        user.setFederatedIdPName(resultSet.getString(4));
+                    }
+                }
+            }
+            return user;
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving information of user id: " + userId, e);
+        }
     }
 }

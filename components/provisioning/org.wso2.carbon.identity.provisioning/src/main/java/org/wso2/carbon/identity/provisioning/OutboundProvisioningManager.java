@@ -28,6 +28,8 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -59,6 +61,7 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -70,7 +73,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
@@ -204,24 +207,17 @@ public class OutboundProvisioningManager {
                         String connectorType = fIdP.getDefaultProvisioningConnectorConfig()
                                 .getName();
 
-                        boolean enableJitProvisioning = false;
+                        boolean enableJitProvisioning = fIdP.getJustInTimeProvisioningConfig() != null
+                                && fIdP.getJustInTimeProvisioningConfig().isProvisioningEnabled();
 
-                        if (fIdP.getJustInTimeProvisioningConfig() != null
-                            && fIdP.getJustInTimeProvisioningConfig().isProvisioningEnabled()) {
-                            enableJitProvisioning = true;
-                        }
-
-                        connector = getOutboundProvisioningConnector(fIdP,
-                                                                     registeredConnectorFactories, tenantDomain,
-                                                                     enableJitProvisioning);
+                        connector = getOutboundProvisioningConnector(fIdP, registeredConnectorFactories, tenantDomain);
                         // add to the provisioning connectors list. there will be one item for each
                         // provisioning identity provider found in the out-bound provisioning
                         // configuration of the local service provider.
                         if (connector != null) {
                             RuntimeProvisioningConfig proConfig = new RuntimeProvisioningConfig();
-                            proConfig
-                                    .setProvisioningConnectorEntry(new SimpleEntry<>(
-                                            connectorType, connector));
+                            proConfig.setJitProvisioningEnabled(enableJitProvisioning);
+                            proConfig.setProvisioningConnectorEntry(new SimpleEntry<>(connectorType, connector));
                             proConfig.setBlocking(defaultConnector.isBlocking());
                             proConfig.setPolicyEnabled(defaultConnector.isRulesEnabled());
                             connectors.put(fIdP.getIdentityProviderName(), proConfig);
@@ -237,7 +233,7 @@ public class OutboundProvisioningManager {
 
         entry = new ServiceProviderProvisioningConnectorCacheEntry();
         entry.setConnectors(connectors);
-        ServiceProviderProvisioningConnectorCache.getInstance().addToCache(key, entry, tenantDomain);
+        ServiceProviderProvisioningConnectorCache.getInstance().addToCacheOnRead(key, entry, tenantDomain);
 
         if (log.isDebugEnabled()) {
             log.debug("Entry added successfully ");
@@ -250,7 +246,6 @@ public class OutboundProvisioningManager {
      * @param fIdP
      * @param registeredConnectorFactories
      * @param tenantDomainName
-     * @param enableJitProvisioning
      * @return
      * @throws IdentityProviderManagementException
      * @throws UserStoreException
@@ -258,7 +253,7 @@ public class OutboundProvisioningManager {
     private AbstractOutboundProvisioningConnector getOutboundProvisioningConnector(
             IdentityProvider fIdP,
             Map<String, AbstractProvisioningConnectorFactory> registeredConnectorFactories,
-            String tenantDomainName, boolean enableJitProvisioning)
+            String tenantDomainName)
             throws IdentityProviderManagementException, IdentityProvisioningException {
 
         String idpName = fIdP.getIdentityProviderName();
@@ -303,13 +298,17 @@ public class OutboundProvisioningManager {
                 Property[] provisioningProperties = defaultProvisioningConfig
                         .getProvisioningProperties();
 
-                if (enableJitProvisioning) {
-                    Property jitEnabled = new Property();
-                    jitEnabled.setName(IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED);
-                    jitEnabled.setValue("1");
-                    provisioningProperties = IdentityApplicationManagementUtil.concatArrays(
-                            provisioningProperties, new Property[]{jitEnabled});
-                }
+                /*
+                 * Always set JIT provisioning as enabled at the connector level. The actual JIT enablement check is
+                 * performed in ProvisioningThread before executing outbound provisioning for JIT provisioned entity.
+                 * Therefore, validating JIT conditions at the connector level is unnecessary and may cause issues
+                 * when the same connector is used by applications with different JIT configurations.
+                 */
+                Property jitEnabled = new Property();
+                jitEnabled.setName(IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED);
+                jitEnabled.setValue("1");
+                provisioningProperties = IdentityApplicationManagementUtil.concatArrays(
+                        provisioningProperties, new Property[]{jitEnabled});
 
                 Property userIdClaimURL = new Property();
                 userIdClaimURL.setName("userIdClaimUri");
@@ -357,9 +356,7 @@ public class OutboundProvisioningManager {
             }
 
             // Any provisioning request coming via Console, considered as coming from the resident SP.
-            // If the application based outbound provisioning is disabled, resident SP configuration will be used.
-            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier) ||
-                    !isApplicationBasedOutboundProvisioningEnabled()) {
+            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier)) {
                 serviceProviderIdentifier = LOCAL_SP;
                 inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
             }
@@ -375,11 +372,6 @@ public class OutboundProvisioningManager {
                         + serviceProviderIdentifier);
             }
 
-            String provisioningEntityTenantDomainName = spTenantDomainName;
-            if (serviceProvider.isSaasApp() && isUserTenantBasedOutboundProvisioningEnabled()) {
-                provisioningEntityTenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-
             ClaimMapping[] spClaimMappings = null;
 
             // if we know the serviceProviderClaimDialect - we do not need to find it again.
@@ -393,12 +385,72 @@ public class OutboundProvisioningManager {
             Map<String, RuntimeProvisioningConfig> connectors =
                     getOutboundProvisioningConnectors(serviceProvider, spTenantDomainName);
 
+            // When application-based outbound provisioning is disabled and the application has no
+            // outbound provisioning connectors configured, fall back to LOCAL_SP (resident app) connectors.
+            if (!isApplicationBasedOutboundProvisioningEnabled() && MapUtils.isEmpty(connectors)
+                    && !LOCAL_SP.equals(serviceProviderIdentifier)) {
+                ServiceProvider localSP = ApplicationManagementService.getInstance()
+                        .getServiceProvider(LOCAL_SP, spTenantDomainName);
+                if (localSP != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format(
+                                "No outbound provisioning connectors are configured for the application: %s. " +
+                                        "Falling back to resident application outbound provisioning connectors.",
+                                serviceProviderIdentifier));
+                    }
+                    serviceProvider = localSP;
+                    connectors = getOutboundProvisioningConnectors(localSP, spTenantDomainName);
+                    inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+                    // LOCAL_SP uses WSO2_CARBON_DIALECT; spClaimMappings is not needed.
+                    spClaimMappings = null;
+                }
+            }
+
+            if (MapUtils.isEmpty(connectors)) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                            LogConstants.OutboundProvisioning.RESOLVE_PROVISIONING_CONNECTORS)
+                            .inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                                    serviceProvider.getApplicationName())
+                            .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
+                            .resultMessage("No outbound provisioning connectors configured. " +
+                                    "Provisioning will be skipped.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                }
+                return;
+            }
+
+            String provisioningEntityTenantDomainName = spTenantDomainName;
+            if (serviceProvider.isSaasApp() && isUserTenantBasedOutboundProvisioningEnabled()) {
+                provisioningEntityTenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+
             ProvisioningEntity outboundProEntity;
 
-            ExecutorService executors = null;
-
-            if (MapUtils.isNotEmpty(connectors)) {
-                executors = Executors.newFixedThreadPool(connectors.size());
+            ExecutorService executors = ThreadLocalAwareExecutors.newFixedThreadPool(connectors.size());
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                        LogConstants.OutboundProvisioning.EXECUTE_OUTBOUND_PROVISIONING);
+                diagLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                                serviceProvider.getApplicationName())
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, spTenantDomainName)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_TYPE,
+                                provisioningEntity.getEntityType() != null
+                                        ? provisioningEntity.getEntityType().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                        .inputParam(LogConstants.OutboundProvisioning.PROVISIONING_OPERATION,
+                                provisioningEntity.getOperation() != null
+                                        ? provisioningEntity.getOperation().toString() : null)
+                        .inputParam(LogConstants.OutboundProvisioning.JIT_PROVISIONING,
+                                String.valueOf(jitProvisioning))
+                        .resultMessage("Initiating outbound provisioning.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
 
             for (Iterator<Entry<String, RuntimeProvisioningConfig>> iterator = connectors
@@ -412,6 +464,7 @@ public class OutboundProvisioningManager {
                 AbstractOutboundProvisioningConnector connector = connectorEntry.getValue();
                 String connectorType = connectorEntry.getKey();
                 String idPName = entry.getKey();
+                boolean jitProvisioningEnabledForIdP = entry.getValue().isJitProvisioningEnabled();
 
                 IdentityProvider provisioningIdp =
                         IdentityProviderManager.getInstance().getIdPByName(idPName, spTenantDomainName);
@@ -485,6 +538,19 @@ public class OutboundProvisioningManager {
                     (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null)) {
                     //No provisioning identifier found. User has not outbound provisioned to this idp. So no need to
                     // send outbound delete request. Continue the flow
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                                LogConstants.OutboundProvisioning.DETERMINE_PROVISIONING_OPERATION)
+                                .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
+                                .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                                .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                        ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                                .resultMessage("Skipping DELETE operation. Entity has not been provisioned" +
+                                        " to this connection.")
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                    }
                     continue;
                 }
                 if (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null) {
@@ -535,7 +601,8 @@ public class OutboundProvisioningManager {
                         outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
                                                                    user, ProvisioningOperation.POST, mappedUserClaims);
                         Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao,
+                                jitProvisioningEnabledForIdP);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
                         boolean isBlocking = entry.getValue().isBlocking();
@@ -560,7 +627,8 @@ public class OutboundProvisioningManager {
                             outboundProEntity = new ProvisioningEntity(ProvisioningEntityType.USER,
                                                                        user, ProvisioningOperation.DELETE, mappedUserClaims);
                             Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                                    provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                                    provisioningEntityTenantDomainName, connector, connectorType, idPName, dao,
+                                    jitProvisioningEnabledForIdP);
                             outboundProEntity.setIdentifier(provisionedUserIdentifier);
                             outboundProEntity.setJitProvisioning(jitProvisioning);
                             boolean isBlocking = entry.getValue().isBlocking();
@@ -575,6 +643,18 @@ public class OutboundProvisioningManager {
                     if (!canUserBeProvisioned(provisioningEntity, provisionByRoleList,
                             provisioningEntityTenantDomainName)) {
                         if (!canUserBeDeProvisioned(provisionedIdentifier)) {
+                            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                        LogConstants.OutboundProvisioning.OUTBOUND_PROVISIONING_COMPONENT,
+                                        LogConstants.OutboundProvisioning.CHECK_PROVISIONING_ELIGIBILITY)
+                                        .inputParam(LogConstants.OutboundProvisioning.CONNECTION, idPName)
+                                        .inputParam(LogConstants.OutboundProvisioning.CONNECTOR_TYPE, connectorType)
+                                        .inputParam(LogConstants.OutboundProvisioning.ENTITY_NAME,
+                                                ProvisioningUtil.maskIfRequired(provisioningEntity.getEntityName()))
+                                        .resultMessage("User is not eligible for provisioning or de-provisioning")
+                                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                            }
                             continue;
                         } else {
                             // This is used when user removed from the provisioning role
@@ -586,7 +666,8 @@ public class OutboundProvisioningManager {
                                 provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
 
                         Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity, spTenantDomainName,
-                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao);
+                                provisioningEntityTenantDomainName, connector, connectorType, idPName, dao,
+                                jitProvisioningEnabledForIdP);
                         outboundProEntity.setIdentifier(provisionedIdentifier);
                         outboundProEntity.setJitProvisioning(jitProvisioning);
                         boolean isAllowed = true;
@@ -612,10 +693,7 @@ public class OutboundProvisioningManager {
                 }
             }
 
-            if (executors != null) {
-                executors.shutdown();
-            }
-
+            executors.shutdown();
         } catch (CarbonException | IdentityApplicationManagementException | IdentityProviderManagementException | UserStoreException e) {
             throw new IdentityProvisioningException("Error occurred while checking for user " +
                                                     "provisioning", e);

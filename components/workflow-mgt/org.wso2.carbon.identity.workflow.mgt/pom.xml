@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>workflow-mgt</artifactId>
-        <version>7.8.637-SNAPSHOT</version>
+        <version>7.10.109-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -93,6 +93,18 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+             <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -121,7 +133,7 @@
                         <Import-Package>
                             javax.xml.bind; version="[0.0.0, 1.0.0)",
                             javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
-                            javax.activation; version="${javax.activation.import.pkg.version}",
+                            javax.activation; version="${javax.activation.import.pkg.version}"; resolution:=optional,
                             javax.xml.xpath,
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.apache.axiom.om.impl.*; version="${axiom.osgi.version.range}",
@@ -166,7 +178,11 @@
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.database.utils.*; version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.user.core.model.*; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.user.core.model.*; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.common; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.api.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.metadata.api.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.role.v2.mgt.core.*; version="${carbon.identity.package.import.version.range}",
                         </Import-Package> 
                         <Export-Package>
                             !org.wso2.carbon.identity.workflow.mgt.internal,

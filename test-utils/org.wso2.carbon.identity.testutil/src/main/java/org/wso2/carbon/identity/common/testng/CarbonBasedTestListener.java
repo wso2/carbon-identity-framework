@@ -23,6 +23,8 @@ import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.IClassListener;
+import org.testng.IInvokedMethod;
+import org.testng.IInvokedMethodListener;
 import org.testng.ITestClass;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
@@ -81,11 +83,14 @@ import javax.sql.DataSource;
 /**
  * Common TestNg Listener to provide common functions in Identity Testing.
  */
-public class CarbonBasedTestListener implements ITestListener, IClassListener {
+public class CarbonBasedTestListener implements ITestListener, IClassListener, IInvokedMethodListener {
 
     private Log log = LogFactory.getLog(CarbonBasedTestListener.class);
     private static final String REG_DB_JNDI_NAME = "jdbc/WSO2RegDB";
     private static final String REG_DB_SQL_FILE = "dbScripts/registry.sql";
+
+    private static final String UM_DB_JNDI_NAME = "jdbc/WSO2UMDB";
+    private static final String UM_DB_SQL_FILE = "dbScripts/um.sql";
 
     private RealmService testSessionRealmService;
     private RegistryService registryService;
@@ -94,11 +99,10 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     @Override
     public void onTestStart(ITestResult iTestResult) {
 
-        //TODO check this
         Object instance = iTestResult.getInstance();
         Class<?> realClass = iTestResult.getTestClass().getRealClass();
-        if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(instance)) {
-            MicroserviceServer microserviceServer = initMicroserviceServer(instance);
+        if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(realClass)) {
+            MicroserviceServer microserviceServer = initMicroserviceServer(realClass);
             scanAndLoadClasses(microserviceServer, realClass, instance);
         }
     }
@@ -228,9 +232,9 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
         }
     }
 
-    private boolean microserviceServerInitialized(Object instance) {
+    private boolean microserviceServerInitialized(Object classObj) {
 
-        MicroserviceServer microserviceServer = microserviceServerMap.get(instance);
+        MicroserviceServer microserviceServer = microserviceServerMap.get(classObj);
         if (microserviceServer != null) {
             return microserviceServer.isActive();
         }
@@ -336,7 +340,18 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                 } else {
                     setInstanceValue(testSessionRealmService, RealmService.class, singletonClass, null);
                 }
-
+            }
+            
+            Class[] injectUMDataSourceTo = withRealmService.injectUMDataSourceTo();
+            for (Class injectUMDataSource : injectUMDataSourceTo) {
+                Object instance = getSingletonInstance(injectUMDataSource);
+                try {
+                    DataSource dataSource = MockInitialContextFactory
+                            .initializeDatasource(UM_DB_JNDI_NAME, this.getClass(), new String[]{UM_DB_SQL_FILE});
+                    setInstanceValue(dataSource, DataSource.class, injectUMDataSource, instance);
+                } catch (TestCreationException e) {
+                    log.error("Could not initialize UM data source for class: " + injectUMDataSource.getName(), e);
+                }
             }
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
@@ -438,49 +453,77 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
 
     @Override
     public void onAfterClass(ITestClass iTestClass) {
-//TODO add a way to stop the microservice server
-//        MockInitialContextFactory.destroy();
-//        MicroserviceServer microserviceServer = microserviceServerMap.get(iMethodInstance.getInstance());
-//        if (microserviceServer != null) {
-//            microserviceServer.stop();
-//            microserviceServer.destroy();
-//            microserviceServerMap.remove(iMethodInstance.getInstance());
-//        }
+
+        MicroserviceServer microserviceServer = microserviceServerMap.get(iTestClass.getRealClass());
+        if (microserviceServer != null) {
+            microserviceServer.stop();
+            microserviceServer.destroy();
+            microserviceServerMap.remove(iTestClass.getRealClass());
+        }
     }
 
-    private void processFields(Field[] fields, Object realInstance) {
+    /**
+     * Before invocation of each method, scan for fields with @WithRealmService and @InjectMicroservicePort 
+     * and set the values.
+     * 
+     * @param method Invoked method
+     * @param result Test result
+     */
+    @Override
+    public void beforeInvocation(IInvokedMethod method, ITestResult result) {
+        Object instance = result.getInstance();
+        if (instance == null) return;
 
-        for (Field field : fields) {
-            if (annotationPresent(field, WithRealmService.class)) {
-                field.setAccessible(true);
-                Annotation annotation = field.getAnnotation(WithRealmService.class);
-                WithRealmService withRealmService = (WithRealmService) annotation;
-                try {
-                    RealmService realmService = createRealmService(withRealmService, true);
-                    field.set(realInstance, realmService);
-                    IdentityTenantUtil.setRealmService(realmService);
-                    CarbonCoreDataHolder.getInstance().setRealmService(realmService);
-                } catch (IllegalAccessException e) {
-                    log.error("Error in setting field value: " + field.getName() + ", Class: " + field
-                            .getDeclaringClass(), e);
-                } catch (UserStoreException e) {
-                    log.error("Error in setting user store value: " + field.getName() + ", Class: " + field
-                            .getDeclaringClass(), e);
+        Class<?> clazz = instance.getClass();
+        RealmService realmService = null;
+        while (clazz != null && clazz != Object.class) { // support inheritance.
+            for (Field field : clazz.getDeclaredFields()) {
+                WithRealmService withRealmService = field.getAnnotation(WithRealmService.class);
+                if (withRealmService != null) {
+
+                    try {
+                        if (realmService == null) {
+                            realmService = createRealmService(withRealmService, true);
+                        }
+                        field.setAccessible(true);
+                        // Handle static fields.
+                        Object target = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? null : instance;
+
+                        // If the field is already set, skip setting it again.
+                        if (field.get(target) != null) continue;
+
+                        field.set(target, realmService);
+                    } catch (IllegalAccessException e) {
+                        log.error("Error in setting field value: " + field.getName() + ", Class: " + field
+                                .getDeclaringClass(), e);
+                    } catch (UserStoreException e) {
+                        log.error("Error in setting user store value: " + field.getName() + ", Class: " + field
+                                .getDeclaringClass(), e);
+                    }
                 }
 
-            }
-            if (annotationPresent(field, InjectMicroservicePort.class)) {
-                MicroserviceServer microserviceServer = microserviceServerMap.get(realInstance);
-                if (microserviceServer != null) {
-                    field.setAccessible(true);
+                InjectMicroservicePort injectMicroservicePort = field.getAnnotation(InjectMicroservicePort.class);
+                if (injectMicroservicePort != null) {
+
                     try {
-                        field.set(realInstance, microserviceServer.getPort());
+                        MicroserviceServer microserviceServer = microserviceServerMap.get(clazz);
+                        if (microserviceServer == null) continue;
+                        field.setAccessible(true);
+                        // handle static fields.
+                        Object target = java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? null : instance;
+
+                        // If the field is already set, skip setting it again.
+                        Object currentValue = field.get(target);
+                        if (currentValue != null && !currentValue.equals(0)) continue;
+
+                        field.set(target, microserviceServer.getPort());
                     } catch (IllegalAccessException e) {
-                        log.error("Error in setting micro-service port: " + field.getName() + ", Class: " + field
+                        log.error("Error in setting field value: " + field.getName() + ", Class: " + field
                                 .getDeclaringClass(), e);
                     }
                 }
             }
+            clazz = clazz.getSuperclass();
         }
     }
 
@@ -496,24 +539,22 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             microserviceServer.addService(instance);
             microserviceServer.start();
         }
-
     }
 
     /**
      * Initializes the micro-service server.
      * Detects an available port from the system and use that for the microservice server.
      */
-    private MicroserviceServer initMicroserviceServer(Object realInstance) throws TestCreationException {
+    private MicroserviceServer initMicroserviceServer(Object classObj) throws TestCreationException {
 
         try {
-
             ServerSocket s = new ServerSocket(0);
             int port = s.getLocalPort();
             s.close();
 
             MicroserviceServer microserviceServer = new MicroserviceServer(port);
             microserviceServer.init();
-            microserviceServerMap.put(realInstance, microserviceServer);
+            microserviceServerMap.put(classObj, microserviceServer);
             return microserviceServer;
 
         } catch (IOException e) {

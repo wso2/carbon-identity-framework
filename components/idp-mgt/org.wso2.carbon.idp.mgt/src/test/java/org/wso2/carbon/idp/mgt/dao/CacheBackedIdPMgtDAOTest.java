@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -192,6 +192,10 @@ public class CacheBackedIdPMgtDAOTest {
         when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptProvisioningConnectorSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.decryptProvisioningConnectorSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
         idPManagementDAOForException = mock(IdPManagementDAO.class);
@@ -2025,15 +2029,27 @@ public class CacheBackedIdPMgtDAOTest {
         }
     }
 
+    /**
+     * Mock logger using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @return The mocked Log instance.
+     * @throws Exception If an error occurs.
+     */
     private Log mockLogger() throws Exception {
 
         Log mockedLog = Mockito.mock(Log.class);
         Field logField = IdPManagementFacade.class.getDeclaredField("LOG");
         logField.setAccessible(true);
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(logField, logField.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
-        logField.set(null, mockedLog);
+
+        // Use Unsafe to modify static final fields in Java 12+
+        Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
+
+        Object fieldBase = unsafe.staticFieldBase(logField);
+        long fieldOffset = unsafe.staticFieldOffset(logField);
+        unsafe.putObject(fieldBase, fieldOffset, mockedLog);
 
         return mockedLog;
     }

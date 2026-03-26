@@ -1,17 +1,19 @@
 /*
- * Copyright 2005-2007 WSO2, Inc. (http://wso2.com)
+ * Copyright (c) 2005-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.base;
@@ -154,6 +156,10 @@ public class IdentityConstants {
     public static final String UNKNOWN = "unknown";
     public static final String USER_IP = "user-ip";
 
+    // User-Agent header constants.
+    public static final String USER_AGENT = "User-Agent";
+    public static final String X_FORWARDED_USER_AGENT = "X-Forwarded-User-Agent";
+
     // Service provider constants
     public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
     public static final String SKIP_CONSENT="skipConsent";
@@ -267,6 +273,8 @@ public class IdentityConstants {
         public static final String ACCEPT_OPENID_LOGIN = "SSOService.AcceptOpenIDLogin";
         public static final String SAML_RESPONSE_VALIDITY_PERIOD = "SSOService.SAMLResponseValidityPeriod";
         public static final String SAML2_ARTIFACT_VALIDITY_PERIOD = "SSOService.SAML2ArtifactValidityPeriodInMinutes";
+        public static final String SAML2_ARTIFACT_DOUBLE_ENCODING_DISABLED =
+                "SSOService.SAML2ArtifactDoubleEncodingDisabled";
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
         public static final String SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM = "SSOService" +
@@ -284,6 +292,8 @@ public class IdentityConstants {
                 ".SAML2AuthnRequestsSigningEnabled";
         public static final String ADD_NAME_ID_POLICY_IF_UNSPECIFIED = "SSOService" +
                 ".SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified";
+        public static final String SAML_ALLOW_NESTED_ASSERTIONS_IN_RESPONSE = "SSOService" +
+                ".SAMLAllowNestedAssertionsInResponse";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
@@ -295,6 +305,11 @@ public class IdentityConstants {
         public static final String REMEMBER_ME_TIME_OUT = "TimeConfig.RememberMeTimeout";
         public static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH =
                 "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
+        public static final String ENABLE_MAXIMUM_SESSION_TIMEOUT = "TimeConfig.EnableMaximumSessionTimeout";
+        public static final String MAXIMUM_SESSION_TIMEOUT = "TimeConfig.MaximumSessionTimeout";
+
+        public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
+                "PasswordUpdate.PreserveLoggedInSession";
 
         public static final String CLEAN_UP_PERIOD = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpPeriod";
         public static final String CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpTimeout";

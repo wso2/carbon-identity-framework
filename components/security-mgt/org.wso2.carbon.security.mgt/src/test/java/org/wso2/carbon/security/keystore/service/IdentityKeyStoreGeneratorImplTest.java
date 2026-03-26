@@ -87,7 +87,7 @@ public class IdentityKeyStoreGeneratorImplTest extends IdentityBaseTest {
                     .thenReturn(-1234);
             identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
                     .thenAnswer((Answer<Void>) invocation -> null);
-            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon.super--cookie"))
+            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon-super--cookie", "carbon.super"))
                     .thenReturn("carbon-super--cookie.jks");
             when(this.keyStoreManager.getKeyStore("carbon-super--cookie.jks"))
                     .thenReturn(getKeyStoreFromFile("carbon-super--cookie.jks", KEYSTORE_PASSWORD));
@@ -147,7 +147,7 @@ public class IdentityKeyStoreGeneratorImplTest extends IdentityBaseTest {
                     .thenReturn(-1234);
             identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
                     .thenAnswer((Answer<Void>) invocation -> null);
-            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon.super--cookie"))
+            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon-super--cookie", "carbon.super"))
                     .thenReturn("carbon-super--cookie.jks");
             when(this.keyStoreManager.getKeyStore("carbon-super--cookie.jks"))
                     .thenThrow(new SecurityException("Key Store with a name: carbon-super--cookie.jks" +
@@ -174,7 +174,7 @@ public class IdentityKeyStoreGeneratorImplTest extends IdentityBaseTest {
                     .thenReturn(-1234);
             identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
                     .thenAnswer((Answer<Void>) invocation -> null);
-            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon.super--cookie"))
+            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon-super--cookie", "carbon.super"))
                     .thenReturn("carbon-super--cookie.jks");
             when(this.keyStoreManager.getKeyStore("carbon-super--cookie.jks"))
                     .thenThrow(new SecurityException("Key Store with a name: carbon-super--cookie.jks" +
@@ -214,7 +214,7 @@ public class IdentityKeyStoreGeneratorImplTest extends IdentityBaseTest {
                     .thenReturn(-1234);
             identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
                     .thenAnswer((Answer<Void>) invocation -> null);
-            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon.super--cookie"))
+            keyStoreUtils.when(() -> KeystoreUtils.getKeyStoreFileLocation("carbon-super--cookie", "carbon.super"))
                     .thenReturn("carbon-super--cookie.jks");
             when(this.keyStoreManager.getKeyStore("carbon-super--cookie.jks"))
                     .thenThrow(new SecurityException("Key Store with a name: carbon-super--cookie.jks" +

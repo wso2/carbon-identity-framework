@@ -38,7 +38,7 @@ import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngi
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
-import org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationListener;
+import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -75,11 +75,14 @@ public class FlowServiceTest {
     @Mock
     private FlowExecutionEngine engineMock;
 
+    private AutoCloseable autoCloseable;
+
     private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMockedStatic;
+
     @BeforeClass
     public void setup() throws Exception {
 
-        MockitoAnnotations.openMocks(this);
+        autoCloseable = MockitoAnnotations.openMocks(this);
         testFlowContext = initTestContext();
 
         ServiceURL serviceURL = mock(ServiceURL.class);
@@ -169,7 +172,7 @@ public class FlowServiceTest {
 
         GraphConfig graphConfig = buildGraphWithDecision();
         testFlowContext.setGraphConfig(graphConfig);
-        FlowExecutionEngineDataHolder.getInstance().addFlowExecutionListeners(new InputValidationListener());
+        FlowExecutionEngineDataHolder.getInstance().addFlowExecutionListeners(new InputProcessingListener());
         Map<String, String> userInputMap = new HashMap<>();
         userInputMap.put("input1", "value1");
         testFlowContext.getUserInputData().putAll(userInputMap);
@@ -293,7 +296,7 @@ public class FlowServiceTest {
             identityUtilMockedStatic.when(() -> IdentityUtil.getServerURL(anyString(), anyBoolean(), anyBoolean()))
                     .thenReturn(StringUtils.EMPTY);
             autoLoginAssertionUtilsMockedStatic.when(() -> UserAssertionUtils.
-                            generateSignedUserAssertion(any(), anyString())).thenReturn("signedAssertion");
+                    generateSignedUserAssertion(any(), anyString())).thenReturn("signedAssertion");
             when(engineMock.execute(testFlowContext)).thenReturn(expectedStep);
             FlowExecutionService service = FlowExecutionService.getInstance();
             FlowExecutionStep result = service.executeFlow(null, null, flowId, null,
@@ -321,10 +324,14 @@ public class FlowServiceTest {
     }
 
     @AfterClass
-    public void teardown() {
+    public void teardown() throws Exception {
 
         if (frameworkServiceDataHolderMockedStatic != null) {
             frameworkServiceDataHolderMockedStatic.close();
+        }
+
+        if (autoCloseable != null) {
+            autoCloseable.close();
         }
     }
 }

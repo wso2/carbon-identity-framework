@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.event.publisher.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.event.publisher.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.event.publisher.api.exception.EventPublisherException;
 import org.wso2.carbon.identity.event.publisher.api.model.EventContext;
@@ -35,6 +36,13 @@ import java.util.List;
  * Implementation of the EventPublisherService interface.
  * This class provides implementation for event publisher operations.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.event.publisher.api.service.EventPublisherService",
+                "service.scope=singleton"
+        }
+)
 public class EventPublisherServiceImpl implements EventPublisherService {
 
     private static final Log log = LogFactory.getLog(EventPublisherServiceImpl.class);

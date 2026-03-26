@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.webhook.metadata.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
 import org.wso2.carbon.identity.webhook.metadata.api.model.Adapter;
@@ -41,6 +42,13 @@ import static org.wso2.carbon.identity.webhook.metadata.internal.constant.ErrorM
  * Implementation of the EventAdapterMetadataService that manages event adapters metadata.
  * This service provides methods to retrieve available adapters and the currently active adapter.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.webhook.metadata.api.service.EventAdapterMetadataService",
+                "service.scope=singleton"
+        }
+)
 public class EventAdapterMetadataServiceImpl implements EventAdapterMetadataService {
 
     private static final Log log = LogFactory.getLog(EventAdapterMetadataServiceImpl.class);

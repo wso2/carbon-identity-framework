@@ -32,4 +32,5 @@ public @interface WithRealmService {
     String tenantDomain() default MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     Class[] injectToSingletons() default {};
     boolean initUserStoreManager() default false;
+    Class[] injectUMDataSourceTo() default {};
 }

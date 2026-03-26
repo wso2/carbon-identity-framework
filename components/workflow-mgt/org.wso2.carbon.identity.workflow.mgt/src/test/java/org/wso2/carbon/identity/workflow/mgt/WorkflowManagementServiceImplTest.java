@@ -49,7 +49,6 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
-import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
 import org.wso2.carbon.identity.workflow.mgt.internal.WorkflowServiceDataHolder;
 import org.wso2.carbon.identity.workflow.mgt.listener.WorkflowListener;
@@ -598,8 +597,7 @@ public class WorkflowManagementServiceImplTest {
 
         workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, null);
 
-        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID,
-                WFConstant.DEFAULT_ASSOCIATION_CONDITION);
+        verify(mockAssociationDAO).addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, null);
     }
 
     @Test
@@ -619,32 +617,8 @@ public class WorkflowManagementServiceImplTest {
     @Test
     public void testAddAssociationBlankCondition() {
 
-        assertThrows(InternalWorkflowException.class, () ->
-                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, ""));
-    }
-
-    /**
-     * Test addAssociation with duplicate association detection - should throw WorkflowClientException.
-     */
-    @Test
-    public void testAddAssociationDuplicateDetection() throws WorkflowException {
-
-        // Create existing association with same event and condition
-        Association existingAssociation = new Association();
-        existingAssociation.setEventId(EVENT_ID);
-        existingAssociation.setCondition(CONDITION);
-        existingAssociation.setWorkflowId(WORKFLOW_ID);
-
-        List<Association> existingAssociations = Arrays.asList(existingAssociation);
-        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
-
-        // Attempt to add duplicate association should throw exception
         assertThrows(WorkflowClientException.class, () ->
-                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, CONDITION));
-
-        // Verify that the duplicate was detected before any DAO operations
-        verify(mockAssociationDAO).listAssociationsForWorkflow(WORKFLOW_ID);
-        verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
+                workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, ""));
     }
 
     /**
@@ -737,37 +711,6 @@ public class WorkflowManagementServiceImplTest {
     }
 
     /**
-     * Test updateAssociation with duplicate detection for new values.
-     */
-    @Test
-    public void testUpdateAssociationDuplicateDetection() throws WorkflowException {
-
-        Association currentAssociation = createTestAssociation();
-        currentAssociation.setAssociationId("1");
-
-        // Create another existing association that would conflict with update.
-        Association conflictingAssociation = new Association();
-        conflictingAssociation.setAssociationId("2");
-        conflictingAssociation.setEventId("ADD_USER");
-        conflictingAssociation.setCondition(WFConstant.DEFAULT_ASSOCIATION_CONDITION);
-        conflictingAssociation.setWorkflowId(WORKFLOW_ID);
-
-        List<Association> existingAssociations = Arrays.asList(currentAssociation, conflictingAssociation);
-
-        when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(currentAssociation);
-        when(mockAssociationDAO.listAssociationsForWorkflow(WORKFLOW_ID)).thenReturn(existingAssociations);
-
-        // Attempt to update to conflicting values should throw exception.
-        assertThrows(WorkflowClientException.class, () ->
-                workflowManagementService.updateAssociation(ASSOCIATION_ID, "New Name", WORKFLOW_ID,
-                        "ADD_USER", WFConstant.DEFAULT_ASSOCIATION_CONDITION, true));
-
-        verify(mockAssociationDAO).getAssociation(ASSOCIATION_ID);
-        verify(mockAssociationDAO).listAssociationsForWorkflow(WORKFLOW_ID);
-        verify(mockAssociationDAO, times(0)).updateAssociation(any());
-    }
-
-    /**
      * Test updateAssociation succeeds when no duplicates exist.
      */
     @Test
@@ -798,7 +741,7 @@ public class WorkflowManagementServiceImplTest {
 
         String invalidXPath = "//invalid[xpath expression";
 
-        assertThrows(WorkflowRuntimeException.class, () ->
+        assertThrows(WorkflowClientException.class, () ->
                 workflowManagementService.addAssociation(ASSOCIATION_NAME, WORKFLOW_ID, EVENT_ID, invalidXPath));
 
         verify(mockAssociationDAO, times(0)).addAssociation(any(), any(), any(), any());
@@ -1061,7 +1004,7 @@ public class WorkflowManagementServiceImplTest {
         Association association = createTestAssociation();
         when(mockAssociationDAO.getAssociation(ASSOCIATION_ID)).thenReturn(association);
 
-        assertThrows(WorkflowRuntimeException.class, () ->
+        assertThrows(WorkflowClientException.class, () ->
                 workflowManagementService.updateAssociation(ASSOCIATION_ID, null, null, null, "invalid condition",
                         true));
     }

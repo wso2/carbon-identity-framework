@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.external.api.token.handler.api.model;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
 import org.wso2.carbon.identity.external.api.token.handler.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.token.handler.api.exception.TokenRequestException;
 
@@ -38,8 +39,8 @@ public class TokenRequestContext {
     private final GrantContext grantContext;
     private final String tokenEndpointUrl;
     private final Map<String, String> headers;
-    private String payload;
-    private String refreshGrantPayload;
+    private HttpEntity payload;
+    private HttpEntity refreshGrantPayload;
 
     public TokenRequestContext(TokenRequestContext.Builder builder) {
 
@@ -86,9 +87,9 @@ public class TokenRequestContext {
      * @param payload Payload.
      * @throws TokenRequestException TokenRequestException.
      */
-    public void setPayLoad(String payload) throws TokenRequestException {
+    public void setPayLoad(HttpEntity payload) throws TokenRequestException {
 
-        if (StringUtils.isBlank(payload)) {
+        if (payload == null) {
             throw new TokenRequestException(ErrorMessage.ERROR_CODE_INVALID_PAYLOAD, "token");
         }
         this.payload = payload;
@@ -99,7 +100,7 @@ public class TokenRequestContext {
      *
      * @return Payload.
      */
-    public String getPayLoad() {
+    public HttpEntity getPayLoad() {
 
         return payload;
     }
@@ -110,9 +111,9 @@ public class TokenRequestContext {
      * @param refreshGrantPayload Refresh Grant Payload.
      * @throws TokenRequestException TokenRequestException.
      */
-    public void setRefreshGrantPayload(String refreshGrantPayload) throws TokenRequestException {
+    public void setRefreshGrantPayload(HttpEntity refreshGrantPayload) throws TokenRequestException {
 
-        if (StringUtils.isBlank(refreshGrantPayload)) {
+        if (refreshGrantPayload == null) {
             throw new TokenRequestException(ErrorMessage.ERROR_CODE_INVALID_PAYLOAD, "refresh grant");
         }
         this.refreshGrantPayload = refreshGrantPayload;
@@ -123,7 +124,7 @@ public class TokenRequestContext {
      *
      * @return Refresh Grant Payload.
      */
-    public String getRefreshGrantPayload() {
+    public HttpEntity getRefreshGrantPayload() {
 
         return refreshGrantPayload;
     }
@@ -136,7 +137,7 @@ public class TokenRequestContext {
         private GrantContext grantContext;
         private String endpointUrl;
         private Map<String, String> headers = new HashMap<>();
-        private String payload;
+        private HttpEntity payload;
 
         /**
          * Set Grant Context.
@@ -180,7 +181,7 @@ public class TokenRequestContext {
          * @param payload Payload.
          * @return Builder.
          */
-        public Builder payload(String payload) {
+        public Builder payload(HttpEntity payload) {
 
             this.payload = payload;
             return this;

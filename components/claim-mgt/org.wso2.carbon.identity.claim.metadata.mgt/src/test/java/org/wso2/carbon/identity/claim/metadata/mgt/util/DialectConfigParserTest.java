@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 
 import static org.mockito.Mockito.mockStatic;
@@ -70,6 +69,12 @@ public class DialectConfigParserTest {
         identityUtilMock.close();
     }
 
+    /**
+     * Reset the singleton instance using reflection (compatible with Java 12+).
+     * Uses Unsafe API to modify static final fields.
+     *
+     * @throws Exception If an error occurs.
+     */
     private void resetSingletonInstance() throws Exception {
 
         Class<?> innerClass = Class.forName("org.wso2.carbon.identity.claim.metadata.mgt.util." +
@@ -77,13 +82,17 @@ public class DialectConfigParserTest {
         Field instanceField = innerClass.getDeclaredField("schemaConfigParser");
         instanceField.setAccessible(true);
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(instanceField, instanceField.getModifiers() & ~Modifier.FINAL);
+        // Use Unsafe to modify static final fields in Java 12+
+        Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) unsafeField.get(null);
 
         Constructor<DialectConfigParser> constructor = DialectConfigParser.class.getDeclaredConstructor();
-        constructor.setAccessible(true); // Make it public temporarily
+        constructor.setAccessible(true);
         DialectConfigParser newInstance = constructor.newInstance();
-        instanceField.set(null, newInstance);
+
+        Object fieldBase = unsafe.staticFieldBase(instanceField);
+        long fieldOffset = unsafe.staticFieldOffset(instanceField);
+        unsafe.putObject(fieldBase, fieldOffset, newInstance);
     }
 }

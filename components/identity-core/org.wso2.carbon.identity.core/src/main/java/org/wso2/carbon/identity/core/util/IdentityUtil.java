@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2005-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,9 +18,14 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.ibm.wsdl.util.xml.DOM2Writer;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.codec.binary.Hex;
@@ -44,6 +49,7 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.core.util.Utils;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -121,9 +127,13 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDE
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDENTITY_USERSTORE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SINGLE_CHARACTER_WILDCARD;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.UNDERSCORE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 public class IdentityUtil {
@@ -2298,6 +2308,8 @@ public class IdentityUtil {
             return;
         }
 
+        validateX5CLength(jwt);
+
         byte[] payloadBytes;
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
@@ -2370,5 +2382,182 @@ public class IdentityUtil {
             return;
         }
         log.debug("Validated JSON depth successfully.");
+    }
+
+    /**
+     * Check whether the X5C length in the JWT header exceeds the allowed limit.
+     * Remove this after monitoring the X5C length issue is resolved.
+     * Adding this with deprecated tag to avoid usage in new code since this will be removed in the future.
+     * @param jwt JWT string to check.
+     */
+    @Deprecated
+    public static void validateX5CLength(String jwt) {
+
+        if (StringUtils.isBlank(jwt)) {
+            return;
+        }
+
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            return;
+        }
+
+        byte[] headerBytes;
+        try {
+            headerBytes = Base64.getUrlDecoder().decode(parts[0]);
+            String jsonHeader = new String(headerBytes, StandardCharsets.UTF_8);
+            JsonObject headerObj = JsonParser.parseString(jsonHeader).getAsJsonObject();
+            if (headerObj.has("x5c")) {
+                JsonArray x5cArray = headerObj.getAsJsonArray("x5c");
+                if (x5cArray.toString().length() > 20000) {
+                    log.error("X5C length exceeds the maximum allowed limit.");
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error occurred while validating X5C length.", e);
+        }
+    }
+
+    /**
+     * The resulting JSONObject, JSONArray, or the original object if it is neither a List nor a Map.
+     * @param object The object to convert.
+     * @return The resulting JSON object.
+     */
+    public static Object convertToJson(Object object) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Converting object to JSON. Object type: "
+                    + (object != null ? object.getClass().getSimpleName() : "null"));
+        }
+
+        if (object instanceof List) {
+            return convertToJSONArray((List)object);
+        } else if (object instanceof Map) {
+            return convertToJSONObject((Map)object);
+        } else {
+            return object;
+        }
+    }
+
+    /**
+     * Convert a List to a JSONArray, recursively converting any nested Maps or Lists.
+     * @param list The List to convert.
+     * @return The resulting JSONArray.
+     */
+    public static JSONArray convertToJSONArray(List<Object> list) {
+
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.addAll(list);
+        recursivelyConvertToJSONArray(jsonArray);
+        return jsonArray;
+    }
+
+    /**
+     * Convert a Map to a JSONObject, recursively converting any nested Maps or Lists.
+     * @param map The Map to convert.
+     * @return The resulting JSONObject.
+     */
+    public static JSONObject convertToJSONObject(Map<String, Object> map) {
+
+        JSONObject jsonObject = new JSONObject(map);
+        recursivelyConvertToJSONObject(jsonObject);
+        return jsonObject;
+    }
+
+    /**
+     * Handles SQL LIKE single-character wildcard based on 'api.filters.single_character_wildcard' configuration.
+     * - If set to "_" (default): underscore acts as a wildcard, no escaping is applied.
+     * - If set to any other single character: that character is used as the wildcard (mapped to "_"),
+     *   and actual underscores are escaped.
+     * - If set to empty string: underscore is escaped to prevent wildcard behavior.
+     * - NOTE: This is not supported for MSSQL, Oracle, and DB2 databases.
+     *
+     * @param value The user input value to process.
+     * @return The processed value with wildcard handling applied.
+     */
+    public static String processSingleCharWildcard(String value) {
+
+        String wildcardChar = getProperty(SINGLE_CHARACTER_WILDCARD);
+        try {
+            if (StringUtils.isBlank(value) || UNDERSCORE.equals(wildcardChar) || JdbcUtils.isOracleDB()
+                    || JdbcUtils.isMSSqlDB() || JdbcUtils.isDB2DB()) {
+                return value;
+            }
+        } catch (DataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to check database type to process single wildcard property.", e);
+            }
+            return value;
+        }
+        // Escape backslash first to avoid double-escaping.
+        String escaped = value.replace("\\", "\\\\");
+        escaped = escaped.replace(UNDERSCORE, "\\_");
+
+        if (StringUtils.isNotBlank(wildcardChar) && wildcardChar.length() == 1) {
+            escaped = escaped.replace(wildcardChar, UNDERSCORE);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Processed wildcard value with wildcard character: " + wildcardChar);
+        }
+        return escaped;
+    }
+
+    private static void recursivelyConvertToJSONObject(JSONObject jsonObject) {
+
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            if (entry.getValue() instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) entry.getValue());
+                recursivelyConvertToJSONObject(child);
+                jsonObject.put(entry.getKey(), child);
+            } else if (entry.getValue() instanceof List) {
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.addAll((List<?>) entry.getValue());
+                recursivelyConvertToJSONArray(jsonArray);
+                jsonObject.put(entry.getKey(), jsonArray);
+            }
+        }
+    }
+
+    private static void recursivelyConvertToJSONArray(JSONArray jsonArray) {
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            Object element = jsonArray.get(i);
+            if (element instanceof Map) {
+                JSONObject child = new JSONObject((Map<String, Object>) element);
+                recursivelyConvertToJSONObject(child);
+                jsonArray.set(i, child);
+            } else if (element instanceof List) {
+                JSONArray childArray = new JSONArray();
+                childArray.addAll((List<?>) element);
+                recursivelyConvertToJSONArray(childArray);
+                jsonArray.set(i, childArray);
+            }
+        }
+    }
+
+    public static int getMaxApproverNotificationsForWorkflow() {
+
+        String configuredValue = IdentityUtil.getProperty(WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        if (StringUtils.isBlank(configuredValue)) {
+            return DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Workflow engine max approver notifications has been configured. Parsing max approver count.");
+        }
+
+        try {
+            int parsedValue = Integer.parseInt(configuredValue);
+            if (parsedValue > 0) {
+                return parsedValue;
+            }
+            log.warn("Invalid configuration for property: " + WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS +
+                    ". The value should be a positive integer. Using default value: " +
+                    DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid number format for property: " + WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS +
+                    ". Using default value: " + DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        }
+        return DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
     }
 }

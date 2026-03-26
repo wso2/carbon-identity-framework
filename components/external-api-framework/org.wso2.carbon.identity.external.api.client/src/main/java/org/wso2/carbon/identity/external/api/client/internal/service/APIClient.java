@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,11 +29,9 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.external.api.client.api.constant.ErrorMessageConstant.ErrorMessage;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientInvocationException;
 import org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig;
@@ -42,7 +40,9 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
 import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 import org.wso2.carbon.identity.external.api.client.internal.util.APIRequestBuildingUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -52,10 +52,10 @@ import java.util.Map;
 public class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
-    private static final String ACCEPT_HEADER = "Accept";
-    private static final String CONTENT_TYPE_HEADER = "Content-Type";
+    private static final int READ_CHUNK_SIZE = 8192;
 
     private final CloseableHttpClient httpClient;
+    private final long defaultResponseLimitInBytes;
 
     /**
      * Constructor to initialize the APIClient with the given configuration.
@@ -80,14 +80,17 @@ public class APIClient {
         connectionManager.setDefaultMaxPerRoute(apiClientConfig.getMaxPerRoute());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
+        defaultResponseLimitInBytes = apiClientConfig.getResponseLimitInBytes();
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Initialized APIClient with configuration: readTimeout=%d, " +
-                            "connectionRequestTimeout=%d, connectionTimeout=%d, poolSize=%d",
+                            "connectionRequestTimeout=%d, connectionTimeout=%d, poolSize=%d, " +
+                            "responseLimitInBytes=%d",
                     apiClientConfig.getHttpReadTimeoutInMillis(),
                     apiClientConfig.getHttpConnectionRequestTimeoutInMillis(),
                     apiClientConfig.getHttpConnectionTimeoutInMillis(),
-                    apiClientConfig.getPoolSizeToBeSet()
+                    apiClientConfig.getPoolSizeToBeSet(),
+                    defaultResponseLimitInBytes
             ));
         }
     }
@@ -120,8 +123,7 @@ public class APIClient {
             case POST:
                 HttpEntityEnclosingRequestBase httpEntityEnclosingRequestBase =
                         new HttpPost(requestContext.getEndpointUrl());
-                StringEntity entity = new StringEntity(requestContext.getPayload(), StandardCharsets.UTF_8);
-                httpEntityEnclosingRequestBase.setEntity(entity);
+                httpEntityEnclosingRequestBase.setEntity(requestContext.getPayload());
                 httpRequestBase = httpEntityEnclosingRequestBase;
                 break;
             case GET:
@@ -142,33 +144,17 @@ public class APIClient {
 
     private void setRequestHeaders(HttpRequestBase httpRequestBase, APIRequestContext requestContext) {
 
-        boolean isAcceptHeaderExists = false;
-        boolean isContentTypeHeaderExists = false;
         Header authHeader = APIRequestBuildingUtils.buildAuthenticationHeader(requestContext.getApiAuthentication());
         if (authHeader != null) {
             httpRequestBase.setHeader(authHeader);
         }
         for (Map.Entry<String, String> header : requestContext.getHeaders().entrySet()) {
-            if (header.getKey().equalsIgnoreCase(ACCEPT_HEADER)) {
-                isAcceptHeaderExists = true;
-            }
-            if (header.getKey().equalsIgnoreCase(CONTENT_TYPE_HEADER)) {
-                isContentTypeHeaderExists = true;
-            }
             httpRequestBase.setHeader(header.getKey(), header.getValue());
-        }
-        if (!isAcceptHeaderExists) {
-            httpRequestBase.setHeader(ACCEPT_HEADER, "application/json");
-        }
-        if (!isContentTypeHeaderExists) {
-            httpRequestBase.setHeader(CONTENT_TYPE_HEADER, "application/json");
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Request entity configured successfully for endpoint: %s with payload length: " +
-                            "%d and headers count: %d",
+            LOG.debug(String.format("Request entity configured successfully for endpoint: %s with headers count: %d",
                     requestContext.getEndpointUrl(),
-                    requestContext.getPayload() != null ? requestContext.getPayload().length() : 0,
                     requestContext.getHeaders().size()
             ));
         }
@@ -177,12 +163,15 @@ public class APIClient {
     private APIResponse executeRequest(HttpRequestBase request, APIInvocationConfig apiInvocationConfig)
             throws APIClientInvocationException {
 
+        long effectiveResponseLimit = apiInvocationConfig.getResponseLimitInBytes() != null
+                ? apiInvocationConfig.getResponseLimitInBytes()
+                : defaultResponseLimitInBytes;
 
         int allowedAttemptCount = apiInvocationConfig.getAllowedRetryCount() + 1;
         for (int attempt = 1; attempt <= allowedAttemptCount; attempt++) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Executing request to URI: %s, attempt: %d/%d",
-                        request.getURI(), attempt , allowedAttemptCount
+                        request.getURI(), attempt, allowedAttemptCount
                 ));
             }
 
@@ -192,7 +181,7 @@ public class APIClient {
                             request.getURI(), response.getStatusLine().getStatusCode()
                     ));
                 }
-                return handleResponse(response);
+                return handleResponse(response, effectiveResponseLimit);
             } catch (IOException e) {
                 if (attempt == allowedAttemptCount) {
                     throw new APIClientInvocationException(ErrorMessage.ERROR_CODE_WHILE_INVOKING_API,
@@ -204,14 +193,47 @@ public class APIClient {
         throw new APIClientInvocationException(ErrorMessage.ERROR_CODE_WHILE_INVOKING_API, request.getURI().toString());
     }
 
-    private APIResponse handleResponse(HttpResponse response) throws IOException {
+    private APIResponse handleResponse(HttpResponse response, long responseLimitInBytes)
+            throws IOException, APIClientInvocationException {
 
         int statusCode = response.getStatusLine().getStatusCode();
         HttpEntity responseEntity = response.getEntity();
 
         String responseBody = null;
         if (responseEntity != null) {
-            responseBody = EntityUtils.toString(responseEntity);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(
+                        "Reading response for status: %d with responseLimitInBytes: %d",
+                        statusCode, responseLimitInBytes
+                ));
+            }
+            // Fast-fail if Content-Length header already exceeds the limit.
+            long contentLength = responseEntity.getContentLength();
+            if (contentLength > responseLimitInBytes) {
+                throw new APIClientInvocationException(
+                        ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED,
+                        response.getStatusLine().toString());
+            }
+            // Read the response stream in fixed-size chunks. We abort as soon as
+            // the running byte count exceeds the limit so we never buffer more than
+            // responseLimitInBytes bytes, regardless of whether the server sent 
+            // a Content-Length header.
+            try (InputStream inputStream = responseEntity.getContent();
+                 ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+                byte[] chunk = new byte[READ_CHUNK_SIZE];
+                int bytesRead;
+                long totalBytesRead = 0;
+                while ((bytesRead = inputStream.read(chunk)) != -1) {
+                    totalBytesRead += bytesRead;
+                    if (totalBytesRead > responseLimitInBytes) {
+                        throw new APIClientInvocationException(
+                                ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED,
+                                response.getStatusLine().toString());
+                    }
+                    buffer.write(chunk, 0, bytesRead);
+                }
+                responseBody = buffer.toString(StandardCharsets.UTF_8);
+            }
         }
 
         return new APIResponse(statusCode, responseBody);

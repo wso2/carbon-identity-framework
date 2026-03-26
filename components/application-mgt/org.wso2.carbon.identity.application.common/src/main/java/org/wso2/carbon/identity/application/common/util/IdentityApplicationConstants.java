@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -67,8 +67,13 @@ public class IdentityApplicationConstants {
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
+    public static final String ENABLE_MAXIMUM_SESSION_TIME_OUT = "EnableMaximumSessionTimeout";
+    public static final String MAXIMUM_SESSION_TIME_OUT = "MaximumSessionTimeout";
+    public static final String PRESERVE_CURRENT_SESSION_AT_PASSWORD_UPDATE =
+            "PreserveCurrentSessionAtPasswordUpdate";
     public static final String SESSION_IDLE_TIME_OUT_DEFAULT = "15";
     public static final String REMEMBER_ME_TIME_OUT_DEFAULT = "20160";
+    public static final String MAXIMUM_SESSION_TIME_OUT_DEFAULT = "43200";
 
     public static final String NAME = "IDPProperties";
     public static final String CLEAN_UP_TIMEOUT = "CleanUpTimeout";
@@ -101,6 +106,10 @@ public class IdentityApplicationConstants {
     public static final String TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME = "Template Version";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_NAME = "isB2BSelfServiceApp";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME = "Is B2B Self Service Application";
+    public static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_NAME =
+            "isEnhancedOrganizationAuthenticationEnabled";
+    public static final String IS_ENHANCED_ORGANIZATION_AUTHENTICATION_ENABLED_SP_PROPERTY_DISPLAY_NAME =
+            "Is Enhanced Organization Authentication Enabled";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";
@@ -259,6 +268,9 @@ public class IdentityApplicationConstants {
             public static final String QUERY_PARAMS = "commonAuthQueryParams";
             public static final String IS_PKCE_ENABLED = "IsPKCEEnabled";
             public static final Object IS_PKCE_ENABLED_PARAM_NAME = "oidcPKCEEnabled";
+            public static final String ENABLE_JWT_SCOPE_AS_ARRAY = "enableJwtScopeAsArray";
+            public static final String ENABLE_JWT_SCOPE_AS_ARRAY_DEFAULT = "false";
+
         }
 
         /**

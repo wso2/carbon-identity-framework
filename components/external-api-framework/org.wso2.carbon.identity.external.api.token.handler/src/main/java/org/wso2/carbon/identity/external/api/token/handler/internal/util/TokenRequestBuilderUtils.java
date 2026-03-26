@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,9 +18,13 @@
 
 package org.wso2.carbon.identity.external.api.token.handler.internal.util;
 
-import com.google.gson.JsonObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.wso2.carbon.identity.external.api.client.api.exception.APIClientRequestException;
 import org.wso2.carbon.identity.external.api.client.api.model.APIAuthentication;
 import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
@@ -30,7 +34,10 @@ import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContex
 import org.wso2.carbon.identity.external.api.token.handler.api.model.GrantContext.Property;
 import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContext;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +46,10 @@ import java.util.Map;
 public class TokenRequestBuilderUtils {
 
     private static final Log LOG = LogFactory.getLog(TokenRequestBuilderUtils.class);
+    private static final String HEADER_CONTENT_TYPE = "Content-Type";
+    private static final String ACCEPT_HEADER = "Accept";
+    private static final String CONTENT_TYPE_FORM_URL_ENCODED = "application/x-www-form-urlencoded";
+    private static final String ACCEPT_HEADER_VALUE = "application/json";
 
     private TokenRequestBuilderUtils() {
     }
@@ -68,14 +79,16 @@ public class TokenRequestBuilderUtils {
             TokenRequestContext requestContext, String refreshToken) throws TokenRequestException {
 
         LOG.debug("Building APIRequestContext for refresh token grant.");
-        JsonObject json = new JsonObject();
-        json.addProperty("grant_type", "refresh_token");
-        json.addProperty("refresh_token", refreshToken);
-        String payload = json.toString();
-        return buildBasicAPIRequestContext(requestContext, payload);
+
+        List<NameValuePair> formParams = new ArrayList<>();
+        formParams.add(new BasicNameValuePair("grant_type", "refresh_token"));
+        formParams.add(new BasicNameValuePair("refresh_token", refreshToken));
+
+        return buildBasicAPIRequestContext(
+                requestContext, new UrlEncodedFormEntity(formParams, StandardCharsets.UTF_8));
     }
 
-    private static APIRequestContext buildBasicAPIRequestContext(TokenRequestContext requestContext, String payload)
+    private static APIRequestContext buildBasicAPIRequestContext(TokenRequestContext requestContext, HttpEntity payload)
             throws TokenRequestException {
 
         try {
@@ -83,11 +96,14 @@ public class TokenRequestBuilderUtils {
                 LOG.debug("Building basic APIRequestContext for endpoint: " +
                         requestContext.getTokenEndpointUrl());
             }
+            Map<String, String> headers = new HashMap<>(requestContext.getHeaders());
+            headers.put(HEADER_CONTENT_TYPE, CONTENT_TYPE_FORM_URL_ENCODED);
+            headers.put(ACCEPT_HEADER, ACCEPT_HEADER_VALUE);
             APIAuthentication authentication = TokenRequestBuilderUtils
                     .buildTokenRequestAPIAuthentication(requestContext);
             APIRequestContext.Builder requestContextBuilder = new APIRequestContext.Builder()
                     .httpMethod(APIRequestContext.HttpMethod.POST)
-                    .headers(requestContext.getHeaders())
+                .headers(headers)
                     .endpointUrl(requestContext.getTokenEndpointUrl())
                     .apiAuthentication(authentication)
                     .payload(payload);
@@ -128,19 +144,19 @@ public class TokenRequestBuilderUtils {
         }
     }
 
-    private static String buildTokenRequestPayload(TokenRequestContext requestContext) throws TokenRequestException {
+    private static HttpEntity buildTokenRequestPayload(TokenRequestContext requestContext)
+            throws TokenRequestException {
 
         GrantContext grantContext = requestContext.getGrantContext();
         switch (grantContext.getGrantType()) {
             case CLIENT_CREDENTIAL:
-                JsonObject json = new JsonObject();
-                json.addProperty("grant_type", "client_credentials");
-                json.addProperty("client_id", grantContext.getProperty(Property.CLIENT_ID.getName()));
-                json.addProperty("client_secret", grantContext.getProperty(Property.CLIENT_SECRET.getName()));
-                json.addProperty("scope", grantContext.getProperty(Property.SCOPE.getName()));
-                String payload = json.toString();
-                LOG.debug("Successfully built token request payload for CLIENT_CREDENTIAL grant type.");
-                return payload;
+                List<NameValuePair> formParams = new ArrayList<>();
+                formParams.add(new BasicNameValuePair("grant_type", "client_credentials"));
+                if (StringUtils.isNotBlank(grantContext.getProperty(Property.SCOPE.getName()))) {
+                    formParams.add(new BasicNameValuePair(
+                            "scope", grantContext.getProperty(Property.SCOPE.getName())));
+                }
+                return new UrlEncodedFormEntity(formParams, StandardCharsets.UTF_8);
             default:
                 throw new TokenRequestException(
                         ErrorMessage.ERROR_CODE_UNSUPPORTED_GRANT_TYPE, grantContext.getGrantType().name());

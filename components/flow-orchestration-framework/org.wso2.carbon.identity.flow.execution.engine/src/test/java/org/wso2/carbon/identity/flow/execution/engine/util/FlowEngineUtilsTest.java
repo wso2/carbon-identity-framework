@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -29,12 +30,15 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -87,11 +91,12 @@ public class FlowEngineUtilsTest {
     private FlowExecCtxCache flowContextCacheMock;
 
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private AutoCloseable mockAutoCloseable;
 
     @BeforeClass
     public void setup() throws Exception {
 
-        MockitoAnnotations.openMocks(this);
+        mockAutoCloseable = MockitoAnnotations.openMocks(this);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
 
@@ -363,11 +368,77 @@ public class FlowEngineUtilsTest {
         }
     }
 
+    @DataProvider(name = "resolveTenantDomainScenarios")
+    public Object[][] resolveTenantDomainScenarios() {
+
+        return new Object[][]{
+                // appResidentOrgId, loginTenantDomain, expectedTenantDomain
+                {null, "carbon.super", "carbon.super"},
+                {"", "testorg.com", "testorg.com"},
+                {"10084a8d-113f-4211-a0d5-efe36b082211", "carbon.super", "org1.com"}
+        };
+    }
+
+    @Test(dataProvider = "resolveTenantDomainScenarios")
+    public void testResolveTenantDomain(String appResidentOrgId, String loginTenantDomain,
+                                        String expectedTenantDomain) throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtilsMock = mockStatic(FrameworkUtils.class);
+             MockedStatic<PrivilegedCarbonContext> carbonContextMock = mockStatic(PrivilegedCarbonContext.class)) {
+
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            carbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                    .thenReturn(privilegedCarbonContext);
+
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn(loginTenantDomain);
+            when(privilegedCarbonContext.getApplicationResidentOrganizationId()).thenReturn(appResidentOrgId);
+
+            if (StringUtils.isNotBlank(appResidentOrgId)) {
+                frameworkUtilsMock.when(() -> FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrgId))
+                        .thenReturn(expectedTenantDomain);
+            }
+
+            String resolvedTenantDomain = FlowExecutionEngineUtils.resolveTenantDomain();
+
+            assertNotNull(resolvedTenantDomain);
+            assertEquals(resolvedTenantDomain, expectedTenantDomain);
+        }
+    }
+
+    @Test(expectedExceptions = FlowEngineServerException.class)
+    public void testResolveTenantDomainWithFrameworkException() throws Exception {
+
+        String loginTenantDomain = "carbon.super";
+        String appResidentOrgId = "invalid-org-id";
+
+        try (MockedStatic<FrameworkUtils> frameworkUtilsMock = mockStatic(FrameworkUtils.class);
+             MockedStatic<PrivilegedCarbonContext> carbonContextMock = mockStatic(PrivilegedCarbonContext.class)) {
+
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            carbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                    .thenReturn(privilegedCarbonContext);
+
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn(loginTenantDomain);
+            when(privilegedCarbonContext.getApplicationResidentOrganizationId()).thenReturn(appResidentOrgId);
+
+            FrameworkException frameworkException = new FrameworkException(
+                    "Failed to resolve tenant domain from organization");
+            frameworkUtilsMock.when(() -> FrameworkUtils.resolveTenantDomainFromOrganizationId(appResidentOrgId))
+                    .thenThrow(frameworkException);
+
+            FlowExecutionEngineUtils.resolveTenantDomain();
+        }
+    }
+
     @AfterClass
-    public void teardown() {
+    public void teardown() throws Exception {
 
         if (identityTenantUtil != null) {
             identityTenantUtil.close();
+        }
+
+        if (mockAutoCloseable != null) {
+            mockAutoCloseable.close();
         }
     }
 }

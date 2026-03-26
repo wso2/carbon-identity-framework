@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -67,7 +67,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -210,6 +209,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CREATED_TIMESTAMP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
@@ -1290,7 +1290,7 @@ public class FrameworkUtils {
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
         cacheEntry.setContext(sessionContext);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, getLoginTenantDomainFromContext());
     }
 
     @Deprecated
@@ -1333,9 +1333,47 @@ public class FrameworkUtils {
                     IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
         }
 
+        timeoutPeriod = validateTimeoutUsingMaxSessionLifeTime(sessionContext, tenantDomain, timeoutPeriod);
+
         cacheEntry.setContext(sessionContext);
         cacheEntry.setValidityPeriod(timeoutPeriod);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
+    }
+
+    /**
+     * This method is used to validate the session context timeout with the maximum session lifetime.
+     * If the session context timeout exceeds the maximum session lifetime, the remaining time until
+     * the session reaches the maximum session lifetime will be returned.
+     * Otherwise, the original session context timeout will be returned.
+     *
+     * @param sessionContext Session context for which the timeout needs to be validated.
+     * @param tenantDomain   Tenant domain of the application.
+     * @param timeout        Session context timeout to be validated.
+     * @return Valid session context timeout.
+     */
+    private static long validateTimeoutUsingMaxSessionLifeTime(SessionContext sessionContext, String tenantDomain,
+                                                              long timeout) {
+
+        Optional<Integer> maximumSessionTimeout = IdPManagementUtil.getMaximumSessionTimeout(tenantDomain);
+
+        if (!maximumSessionTimeout.isPresent()) {
+            return timeout;
+        }
+
+        long maxSessionLifeTimeInNanos = TimeUnit.SECONDS.toNanos(maximumSessionTimeout.get());
+        Long sessionCreationTime = (Long) sessionContext.getProperty(CREATED_TIMESTAMP);
+
+        // Convert session creation time to nanos for the timeout comparison.
+        sessionCreationTime = TimeUnit.MILLISECONDS.toNanos(sessionCreationTime);
+
+        long currentTimeInNanos = FrameworkUtils.getCurrentStandardNano();
+        long sessionFutureAgeInNanos = currentTimeInNanos + timeout;
+        if (sessionFutureAgeInNanos - sessionCreationTime > maxSessionLifeTimeInNanos) {
+            // The Minimum validity period for the session context is set to 1 nanosecond.
+            return Math.max(1, maxSessionLifeTimeInNanos - (currentTimeInNanos - sessionCreationTime));
+        }
+
+        return timeout;
     }
 
     /**
@@ -4100,6 +4138,35 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering given tenant domain and isSaaSApp flag.
+     *
+     * @param username      Username of the user.
+     * @param tenantDomain  Tenant domain.
+     * @param isSaaSApp     Is the application a SaaS application.
+     * @return Preprocessed username with the given details.
+     */
+    public static String preprocessUsername(String username, String tenantDomain, boolean isSaaSApp) {
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + tenantDomain;
+            }
+        } else if (!username.endsWith(tenantDomain)) {
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the tenant domain provided.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + tenantDomain;
+        }
+        return username;
+    }
+
+    /**
      * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
      *
      * @param loginIdentifier login identifier for multi attribute login
@@ -4110,10 +4177,26 @@ public class FrameworkUtils {
     public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
                                                                               String tenantDomain) {
 
+        return processMultiAttributeLoginIdentification(loginIdentifier, tenantDomain, false);
+    }
+
+    /**
+     * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
+     *
+     * @param loginIdentifier         Login identifier for multi attribute login.
+     * @param tenantDomain            User tenant domain.
+     * @param allowDuplicateUsernames Indicate whether to allow duplicate usernames across user stores.
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise, returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier,
+                                                                              String tenantDomain,
+                                                                              boolean allowDuplicateUsernames) {
+
         ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
         if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
             resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
-                    resolveUser(loginIdentifier, tenantDomain);
+                    resolveUser(loginIdentifier, tenantDomain, allowDuplicateUsernames);
         }
         return resolvedUserResult;
     }
@@ -4442,19 +4525,32 @@ public class FrameworkUtils {
          since custom domain branding capabilities are not provided for them.
          */
         if (!(MY_ACCOUNT_APP.equals(serviceProvider) || CONSOLE_APP.equals(serviceProvider))) {
-            if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
+            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+            if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX) &&
+                    StringUtils.isNotBlank(accessingOrgId)) {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
-                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                String callerPathWithoutTenantAndOrgId = callerPathWithoutTenant;
+                /*
+                When accessing organization id is present, caller path can be in the format of
+                /t/{tenant-domain} or /t/{tenant-domain}/o/{org-id}.
+                 */
+                if (callerPathWithoutTenant.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                    callerPathWithoutTenantAndOrgId = callerPathWithoutTenant.replaceFirst("/o/[^/]+/", "/");
+                }
+                return ServiceURLBuilder.create().addPath(callerPathWithoutTenantAndOrgId)
                         .setTenant(callerTenant, true).build().getAbsolutePublicURL();
-                return redirectURL;
+            } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
+                String callerTenant = callerPath.split("/")[2];
+                String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
+                return ServiceURLBuilder.create().addPath(callerPathWithoutTenant)
+                        .setTenant(callerTenant, true).build().getAbsolutePublicURL();
             } else if (callerPath != null && callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
                 String callerOrgId = callerPath.split("/")[2];
                 String callerPathWithoutOrgId = callerPath.replaceFirst("/o/[^/]+/", "/");
-                String redirectURL = ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
+                return ServiceURLBuilder.create().addPath(callerPathWithoutOrgId)
                         .setTenant(context.getLoginTenantDomain()).setOrganization(callerOrgId)
                         .build().getAbsolutePublicURL();
-                return redirectURL;
             }
         }
         return callerPath;
@@ -4550,8 +4646,6 @@ public class FrameworkUtils {
                 return new JsGraalGraphBuilderFactory();
             } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
-            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.NASHORN, scriptEngineName)) {
-                return new JsGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.
@@ -4563,12 +4657,7 @@ public class FrameworkUtils {
                 Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
                 return new JsOpenJdkNashornGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
-                try {
-                    Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                    return new JsGraphBuilderFactory();
-                } catch (ClassNotFoundException ex) {
-                    return null;
-                }
+                return null;
             }
         }
     }
@@ -4996,5 +5085,16 @@ public class FrameworkUtils {
             throw new FrameworkException("Error while resolving tenant domain from organization id: "
                     + appResidentOrgId + ".", e);
         }
+    }
+
+    /**
+     * Check whether to mark the step as completed on interrupt in an authentication flow.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean markStepCompletedOnInterrupt() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
     }
 }

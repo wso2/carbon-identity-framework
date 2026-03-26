@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -69,6 +70,14 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_STORE_DOMAIN_PROVIDED;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
 
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.user.profile.mgt.association.federation" +
+                        ".FederatedAssociationManager",
+                "service.scope=singleton"
+        }
+)
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
     private static final Log log = LogFactory.getLog(FederatedAssociationManagerImpl.class);

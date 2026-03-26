@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.internal.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
@@ -35,6 +36,13 @@ import java.util.Map;
 /**
  * CacheBackedActionManagementService act as the caching layer for the Action Management Service.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.action.management.api.service.ActionManagementService",
+                "service.scope=singleton"
+        }
+)
 public class CacheBackedActionManagementService implements ActionManagementService {
 
     private static final CacheBackedActionManagementService INSTANCE = new CacheBackedActionManagementService();
@@ -82,7 +90,7 @@ public class CacheBackedActionManagementService implements ActionManagementServi
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry fetched from DB for Action Type " + actionType + ". Updating cache.");
             }
-            actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(actions), tenantDomain);
+            actionCacheByType.addToCacheOnRead(cacheKey, new ActionCacheEntry(actions), tenantDomain);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry for Action Type " + actionType + " not found in cache or DB.");
