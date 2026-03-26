@@ -24,9 +24,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.Constants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -202,7 +205,39 @@ public class AuthenticationEndpointFilter implements Filter {
                         configuredAuthenticatorsSet = applicationDataRetrievalClient.getApplicationAuthenticatorsByAppName(tenantDomain, serviceProviderName);
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
-                    log.error("error retrieving authenticators from ApplicationDataRetrievalClient " + e);
+                    log.error("Error retrieving authenticators from ApplicationDataRetrievalClient", e);
+                }
+
+                if (StringUtils.isBlank(serviceProviderId) && StringUtils.isBlank(serviceProviderName)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authenticator validation is enabled but no service provider identifier was found "
+                                + "in the request. Validation will proceed against an empty authenticator set.");
+                    }
+                }
+
+                if (configuredAuthenticatorsSet.isEmpty()
+                        && (!StringUtils.isBlank(serviceProviderId) || !StringUtils.isBlank(serviceProviderName))) {
+                    String noAuthenticatorsMessage = "No authenticators found for application in tenant: "
+                            + tenantDomain + ". Redirecting to retry page.";
+                    if (log.isDebugEnabled()) {
+                        log.debug(noAuthenticatorsMessage);
+                    }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                                new DiagnosticLog.DiagnosticLogBuilder(
+                                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                        diagnosticLogBuilder
+                                .resultMessage(noAuthenticatorsMessage)
+                                .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain)
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
+                    FrameworkUtils.sendToRetryPage((HttpServletRequest) servletRequest,
+                            (HttpServletResponse) servletResponse, null, "misconfiguration.error",
+                            "no.valid.authenticator.found.error");
+                    return;
                 }
             }
 
@@ -251,6 +286,30 @@ public class AuthenticationEndpointFilter implements Filter {
                         }
                     }
                 }
+            }
+
+            if (authenticatorValidationEnabled && StringUtils.isNotBlank(authenticators) && idpAuthenticatorMapping.isEmpty()) {
+                String allFilteredMessage = "All authenticators were filtered out during validation for application: "
+                        + (StringUtils.isNotBlank(serviceProviderId) ? serviceProviderId : serviceProviderName)
+                        + ". Redirecting to retry page.";
+                if (log.isDebugEnabled()) {
+                    log.debug(allFilteredMessage);
+                }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                            new DiagnosticLog.DiagnosticLogBuilder(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                    diagnosticLogBuilder
+                            .resultMessage(allFilteredMessage)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                FrameworkUtils.sendToRetryPage((HttpServletRequest) servletRequest,
+                        (HttpServletResponse) servletResponse, null, "misconfiguration.error",
+                        "no.valid.authenticator.found.error");
+                return;
             }
 
             if (!idpAuthenticatorMapping.isEmpty()) {

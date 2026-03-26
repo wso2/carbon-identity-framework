@@ -55,7 +55,12 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
     private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
             new Operator("equals", "equals"),
             new Operator("notEquals", "not equals"),
-            new Operator("contains", "contains")
+            new Operator("contains", "contains"),
+            new Operator("notContains", "not contains"),
+            new Operator("startsWith", "starts with"),
+            new Operator("endsWith", "ends with"),
+            new Operator("greaterThan", "greater than"),
+            new Operator("lessThan", "less than")
     ));
 
     /**

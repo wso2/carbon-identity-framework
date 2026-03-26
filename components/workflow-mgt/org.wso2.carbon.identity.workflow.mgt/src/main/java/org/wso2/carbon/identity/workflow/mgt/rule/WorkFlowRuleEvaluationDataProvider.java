@@ -379,8 +379,8 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         }
         String eventType = (String) contextData.get(EVENT_TYPE);
         // Batch fetch remaining claims from the user store.
-        if (!claimsToFetch.isEmpty() &&
-                (ADD_USER_EVENT.equals(eventType) || SELF_REGISTER_USER_EVENT.equals(eventType))) {
+        if (!claimsToFetch.isEmpty() && !ADD_USER_EVENT.equals(eventType) 
+                && !SELF_REGISTER_USER_EVENT.equals(eventType)) {
             String username = (String) contextData.get(USERNAME);
             if (StringUtils.isBlank(username)) {
                 if (log.isDebugEnabled()) {
