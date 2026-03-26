@@ -18,13 +18,6 @@
 
 package org.wso2.carbon.identity.user.store.configuration;
 
-import java.nio.file.Paths;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
-import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
-import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
-
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -34,10 +27,17 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.DataSourceRepository;
+import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
+
+import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
