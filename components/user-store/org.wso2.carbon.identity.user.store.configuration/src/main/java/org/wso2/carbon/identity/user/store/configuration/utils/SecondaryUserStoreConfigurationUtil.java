@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -59,6 +59,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -73,6 +75,7 @@ import javax.xml.transform.stream.StreamResult;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DEPLOYMENT_DIRECTORY;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 
 /**
@@ -81,6 +84,8 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
 public class SecondaryUserStoreConfigurationUtil {
 
     private static final Log LOG = LogFactory.getLog(SecondaryUserStoreConfigurationUtil.class);
+
+    private static Pattern h2InitPattern = Pattern.compile(H2_INIT_REGEX, Pattern.CASE_INSENSITIVE);
 
     private SecondaryUserStoreConfigurationUtil() {
 
@@ -449,6 +454,14 @@ public class SecondaryUserStoreConfigurationUtil {
 
             String propertyDTOValue = propertyDTO.getValue();
             if (propertyDTOValue != null) {
+                if (StringUtils.isNotEmpty(propertyDTOValue)) {
+                    String validationConnectionString = propertyDTOValue.toLowerCase().replace("\\", "");
+                    Matcher matcher = h2InitPattern.matcher(validationConnectionString);
+                    if (matcher.find()) {
+                        throw new IdentityUserStoreMgtException(
+                                "INIT expressions are not allowed in the connection URL.");
+                    }
+                }
                 boolean encrypted = false;
                 if (isPropertyToBeEncrypted(mandatoryProperties, propertyDTOName)) {
                     propertyDTOValue = getPropertyValueIfMasked(secondaryUserStoreProperties, propertyDTOName,
