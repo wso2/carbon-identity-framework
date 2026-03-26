@@ -82,7 +82,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
     private static final String DB_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
-    private static Pattern h2InitPattern = Pattern.compile(H2_INIT_REGEX, Pattern.CASE_INSENSITIVE);
+    private static final Pattern h2InitPattern = Pattern.compile(H2_INIT_REGEX, Pattern.CASE_INSENSITIVE);
 
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
@@ -354,11 +354,9 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             Matcher matcher = h2InitPattern.matcher(validationConnectionString);
             if (matcher.find()) {
                 String errorMessage = "INIT expressions are not allowed in the connection URL.";
-                LOG.error(errorMessage);
                 throw new IdentityUserStoreMgtException(errorMessage);
             }
         }
-
 
         WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
 
