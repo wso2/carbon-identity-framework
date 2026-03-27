@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -370,6 +370,146 @@ public class IdentityManagementEndpointUtilTest {
                     serviceURLBuilder, isTenantQualifiedUrlsEnabled, false);
             assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context, isEndpointTenantAware),
                     expected);
+        }
+    }
+
+    @DataProvider(name = "getBasePathUseOrgHandleFalseTestData")
+    public Object[][] getBasePathUseOrgHandleFalseTestData() {
+
+        return new Object[][] {
+                // isTenantQualifiedUrlsEnabled, contextUrl, tenantDomain, isEndpointTenantAware, context, expected.
+                { true,
+                  "https://foo.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/t/test.com/api/identity/recovery/v0.9"
+                },
+                { true,
+                  "https://foo.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  "https://foo.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/t/test.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  "https://foo.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
+                  SAMPLE_TENANT_DOMAIN,
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
+                  SAMPLE_TENANT_DOMAIN,
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                },
+                { false,
+                  "https://foo.com",
+                  null,
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  "https://foo.com",
+                  null,
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
+                  null,
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
+                  null,
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
+                  MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
+                  MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                }
+        };
+    }
+
+    /**
+     * Test getBasePath with useOrgHandle set to false.
+     *
+     * @param isTenantQualifiedUrlsEnabled Whether tenant qualified URLs are enabled.
+     * @param contextUrl                   The context URL from file.
+     * @param tenantDomain                 The tenant domain.
+     * @param isEndpointTenantAware        Whether the endpoint is tenant aware.
+     * @param context                      The URL context.
+     * @param expected                     The expected base path.
+     * @throws Exception If an error occurs during test execution.
+     */
+    @Test(dataProvider = "getBasePathUseOrgHandleFalseTestData")
+    public void testGetBasePathWithUseOrgHandleFalse(boolean isTenantQualifiedUrlsEnabled, String contextUrl,
+            String tenantDomain, boolean isEndpointTenantAware, String context, String expected) throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+            prepareGetBasePathTest(contextUrl, context, identityTenantUtil,
+                    serviceURLBuilder, isTenantQualifiedUrlsEnabled, false);
+            assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context,
+                    isEndpointTenantAware, false), expected);
+        }
+    }
+
+    /**
+     * Test getBasePath with useOrgHandle false and organization-qualified URL.
+     * Verifies that org-context path replacements are skipped when useOrgHandle is false.
+     *
+     * @throws Exception If an error occurs during test execution.
+     */
+    @Test
+    public void testGetBasePathWithUseOrgHandleFalseForOrganizations() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class))
+        {
+            prepareGetBasePathTest(null,
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                    identityTenantUtil, serviceURLBuilder, true, true);
+            // When useOrgHandle is false, the organization context path should not be replaced.
+            assertEquals(IdentityManagementEndpointUtil.getBasePath(SAMPLE_TENANT_DOMAIN,
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                    true, false),
+                    SAMPLE_ORGANIZATION_URL + SAMPLE_ORG_ID
+                            + IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         }
     }
 
