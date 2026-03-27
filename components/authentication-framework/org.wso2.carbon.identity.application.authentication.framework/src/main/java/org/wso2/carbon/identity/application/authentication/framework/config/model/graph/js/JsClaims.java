@@ -520,10 +520,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
         if (context == null || context.getSequenceConfig() == null
                 || context.getSequenceConfig().getApplicationConfig() == null
                 || context.getSequenceConfig().getApplicationConfig().getServiceProvider() == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Unable to determine if the application is a SaaS app. " +
-                        "Treating as non-SaaS app.");
-            }
+            LOG.debug("Unable to determine if the application is a SaaS app. Treating as non-SaaS app.");
             return false;
         }
         return context.getSequenceConfig().getApplicationConfig().getServiceProvider().isSaasApp();
