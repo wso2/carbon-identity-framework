@@ -36,7 +36,6 @@ import org.wso2.carbon.identity.action.execution.api.model.ErrorStatus;
 import org.wso2.carbon.identity.action.execution.api.model.FailedStatus;
 import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
-import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
@@ -56,7 +55,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,21 +62,19 @@ import java.util.Set;
  * This class is responsible for processing the response from In-Flow Extension actions.
  *
  * <p><b>Responsibility</b>: operation processing and applying context updates directly to
- * the {@link FlowExecutionContext}. It processes operations (ADD, REMOVE, REPLACE) on flow
+ * the {@link FlowExecutionContext}. It processes REPLACE operations on flow
  * properties, user claims, and user inputs.</p>
  *
- * <p>The {@code allowedOperations} list (sent to the external service in the request and enforced
- * upstream by {@code ActionExecutorServiceImpl}) is the sole mechanism for gating which operations
- * are permitted. This processor performs two additional validations:</p>
+ * <p>Only {@code REPLACE} operations are supported. The {@code allowedOperations} list
+ * (derived from modify paths and sent to the external service in the request, enforced
+ * upstream by {@code ActionExecutorServiceImpl}) is the sole mechanism for gating which
+ * operations are permitted. This processor performs additional validations:</p>
  * <ul>
  *   <li><b>Read-only areas</b>: No modifications allowed to {@code /flow/} or {@code /graph/}.</li>
- *   <li><b>Claim URI validation</b>: For ADD operations on {@code /user/claims/}, validates that
- *       the claim URI exists in the system via {@code ClaimMetadataManagementService}.</li>
+ *   <li><b>Claim URI validation</b>: For {@code /user/claims/} operations, validates that
+ *       the claim URI exists in the local claim dialect and is not an identity claim.</li>
  * </ul>
  */
-
-// TODO: Consider separating claim validation and read-only path checks into utility classes.
-
 public class InFlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionResponseProcessor.class);
@@ -89,9 +85,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private static final String USER_INPUTS_PATH_PREFIX = "/input/";
     // Legacy prefix for backward compatibility
     private static final String LEGACY_USER_INPUTS_PATH_PREFIX = "/userInputs/";
-
-    private static final char PATH_SEPARATOR = '/';
-    private static final String LAST_ELEMENT_CHARACTER = "-";
 
     // Cache for valid claim URIs (per tenant)
     private Map<String, Set<String>> validClaimUrisCache = new HashMap<>();
@@ -113,8 +106,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         String tenantDomain = execCtx != null ? execCtx.getTenantDomain() : null;
 
         // Read path type annotations set by the request builder.
-        // Maps clean paths (e.g., "/properties/riskFactors") to annotation content
-        // ("" for string arrays, or schema content for complex object arrays).
+        // Maps clean paths to annotation content
         Map<String, String> pathTypeAnnotations = flowContext.getValue(
                 InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         if (pathTypeAnnotations == null) {
@@ -122,13 +114,12 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         // Read access config for encryption metadata.
-        // Uses AccessConfig.isOperationPathEncrypted() for canonical encryption checking.
+        // Uses AccessConfig.isModifyPathEncrypted() for canonical encryption checking.
         AccessConfig accessConfig = flowContext.getValue(
                 InFlowExtensionExecutor.ACCESS_CONFIG_KEY, AccessConfig.class);
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
-        // Get operations from the response (already filtered by ActionExecutorServiceImpl).
         List<PerformableOperation> operations =
                 responseContext.getActionInvocationResponse().getOperations();
 
@@ -198,269 +189,66 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                         ", " + USER_CLAIMS_PATH_PREFIX + ", " + USER_INPUTS_PATH_PREFIX);
     }
 
-    // ========================= Property operations =========================
-
     /**
-     * Handle operations on flow properties — apply directly to {@link FlowExecutionContext}.
+     * Handle operation on flow properties — apply directly to {@link FlowExecutionContext}.
      *
-     * <p>Supports terminal paths with nested segments. For example:</p>
-     * <ul>
-     *   <li>{@code /properties/riskScore} → flat property "riskScore"</li>
-     *   <li>{@code /properties/risk_margin/lower_margin} → nested: sets "lower_margin" inside
-     *       a "risk_margin" Map, auto-creating the parent Map if needed.</li>
-     * </ul>
-     *
-     * <p>Value type rules (based on path type annotations from allowed operations):</p>
-     * <ul>
-     *   <li>No annotation: value must be a string (or convertible via String.valueOf).</li>
-     *   <li>{@code []} annotation: value must be a List of strings.</li>
-     *   <li>{@code [schema]} annotation: value must be a List of objects matching the schema.</li>
-     * </ul>
-     *
-     * <p>REPLACE validation: the target path must already exist in the context.</p>
+     * <p>Only flat property paths are supported (e.g., {@code /properties/riskScore}).
+     * The property is created if it does not already exist. Value coercion is applied
+     * based on path type annotations from the request builder via
+     * {@link PathTypeAnnotationUtil#coerceValue}.</p>
      *
      * @param operation           The performable operation.
      * @param context             The FlowExecutionContext.
      * @param pathTypeAnnotations Path type annotations map from request builder.
      */
-    @SuppressWarnings("unchecked")
     private OperationExecutionResult handlePropertyOperation(PerformableOperation operation,
             FlowExecutionContext context, Map<String, String> pathTypeAnnotations) {
 
-        String remaining = extractNameFromPath(operation.getPath(), PROPERTIES_PATH_PREFIX);
+        String propertyName = extractNameFromPath(operation.getPath(), PROPERTIES_PATH_PREFIX);
 
-        if (remaining == null || remaining.isEmpty()) {
+        if (propertyName == null || propertyName.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Invalid property path. Property name is required.");
         }
-
-        // Split into path segments for nested property support.
-        // e.g., "risk_margin/lower_margin" -> ["risk_margin", "lower_margin"]
-        String[] segments = remaining.split("/");
-
-        switch (operation.getOp()) {
-            case ADD:
-                return handlePropertyAdd(operation, context, segments, pathTypeAnnotations);
-
-            case REPLACE:
-                return handlePropertyReplace(operation, context, segments, pathTypeAnnotations);
-
-            case REMOVE:
-                return handlePropertyRemove(operation, context, segments);
-
-            default:
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                        "Unsupported operation: " + operation.getOp());
-        }
-    }
-
-    /**
-     * Handle ADD operation on properties. Auto-creates parent Maps for nested paths.
-     */
-    @SuppressWarnings("unchecked")
-    private OperationExecutionResult handlePropertyAdd(PerformableOperation operation,
-            FlowExecutionContext context, String[] segments,
-            Map<String, String> pathTypeAnnotations) {
-
-        if (operation.getValue() == null) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Value is required for ADD operation.");
-        }
-
-        // Coerce value based on path type annotation.
-        Object coercedValue = coerceValue(operation.getPath(), operation.getValue(), pathTypeAnnotations);
-
-        if (segments.length == 1) {
-            // Flat property: /properties/riskScore -> setProperty("riskScore", value)
-            context.setProperty(segments[0], coercedValue);
-        } else {
-            // Nested property: /properties/risk_margin/lower_margin
-            // Auto-create parent Map(s) and set the leaf value.
-            setNestedProperty(context, segments, coercedValue);
-        }
-
-        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                "Property add applied.");
-    }
-
-    /**
-     * Handle REPLACE operation on properties. Validates that the target path exists.
-     */
-    @SuppressWarnings("unchecked")
-    private OperationExecutionResult handlePropertyReplace(PerformableOperation operation,
-            FlowExecutionContext context, String[] segments,
-            Map<String, String> pathTypeAnnotations) {
 
         if (operation.getValue() == null) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Value is required for REPLACE operation.");
         }
 
-        // Validate that the target path exists before replacing.
-        if (segments.length == 1) {
-            if (!context.getProperties().containsKey(segments[0])) {
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                        "Cannot REPLACE: property '" + segments[0] + "' does not exist in context.");
-            }
-        } else {
-            // For nested paths, validate the full path exists.
-            Object existing = resolveNestedProperty(context, segments);
-            if (existing == null) {
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                        "Cannot REPLACE: nested property path '" + String.join("/", segments) +
-                                "' does not exist in context.");
-            }
+        // Validate complex object structure against annotation schema before coercion.
+        if (!PathTypeAnnotationUtil.validateValueAgainstAnnotation(
+                operation.getPath(), operation.getValue(), pathTypeAnnotations)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Value does not match annotation schema for path: " + operation.getPath());
         }
 
         // Coerce value based on path type annotation.
-        Object coercedValue = coerceValue(operation.getPath(), operation.getValue(), pathTypeAnnotations);
+        Object coercedValue = PathTypeAnnotationUtil.coerceValue(
+                operation.getPath(), operation.getValue(), pathTypeAnnotations);
 
-        if (segments.length == 1) {
-            context.setProperty(segments[0], coercedValue);
-        } else {
-            setNestedProperty(context, segments, coercedValue);
+        // Enforce array item limits after coercion.
+        if (!PathTypeAnnotationUtil.enforceArrayItemLimit(
+                operation.getPath(), coercedValue, pathTypeAnnotations)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Array value exceeds maximum item limit for path: " + operation.getPath());
         }
+
+        context.setProperty(propertyName, coercedValue);
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "Property replace applied.");
     }
 
     /**
-     * Handle REMOVE operation on properties.
-     */
-    @SuppressWarnings("unchecked")
-    private OperationExecutionResult handlePropertyRemove(PerformableOperation operation,
-            FlowExecutionContext context, String[] segments) {
-
-        if (segments.length == 1) {
-            context.getProperties().remove(segments[0]);
-        } else {
-            // For nested paths, remove the leaf key from the parent Map.
-            removeNestedProperty(context, segments);
-        }
-
-        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                "Property removed.");
-    }
-
-    /**
-     * Set a value at a nested path in the properties map, auto-creating parent Maps.
-     * e.g., segments=["risk_margin", "lower_margin"], value="20"
-     * Creates: properties.risk_margin = { lower_margin: "20" }
-     */
-    @SuppressWarnings("unchecked")
-    private void setNestedProperty(FlowExecutionContext context, String[] segments, Object value) {
-
-        Map<String, Object> current = context.getProperties();
-
-        // Navigate/create parent maps for all segments except the last.
-        for (int i = 0; i < segments.length - 1; i++) {
-            Object child = current.get(segments[i]);
-            if (child instanceof Map) {
-                current = (Map<String, Object>) child;
-            } else {
-                // Auto-create parent Map.
-                Map<String, Object> newMap = new HashMap<>();
-                current.put(segments[i], newMap);
-                current = newMap;
-            }
-        }
-
-        // Set the leaf value.
-        current.put(segments[segments.length - 1], value);
-    }
-
-    /**
-     * Resolve a nested property path, returning the leaf value or null if any segment is missing.
-     */
-    @SuppressWarnings("unchecked")
-    private Object resolveNestedProperty(FlowExecutionContext context, String[] segments) {
-
-        Map<String, Object> current = context.getProperties();
-
-        for (int i = 0; i < segments.length - 1; i++) {
-            Object child = current.get(segments[i]);
-            if (child instanceof Map) {
-                current = (Map<String, Object>) child;
-            } else {
-                return null;
-            }
-        }
-
-        return current.get(segments[segments.length - 1]);
-    }
-
-    /**
-     * Remove a leaf key from a nested property path.
-     */
-    @SuppressWarnings("unchecked")
-    private void removeNestedProperty(FlowExecutionContext context, String[] segments) {
-
-        Map<String, Object> current = context.getProperties();
-
-        for (int i = 0; i < segments.length - 1; i++) {
-            Object child = current.get(segments[i]);
-            if (child instanceof Map) {
-                current = (Map<String, Object>) child;
-            } else {
-                return; // Parent doesn't exist, nothing to remove.
-            }
-        }
-
-        current.remove(segments[segments.length - 1]);
-    }
-
-    /**
-     * Coerce a value based on path type annotations.
+     * Handle REPLACE operation on user claims — validate and apply directly to {@link FlowUser}.
      *
+     * <p>Validates that the claim URI:</p>
      * <ul>
-     *   <li>No annotation: value is coerced to String via String.valueOf().</li>
-     *   <li>"" annotation (from []): value is expected to be a List; each element is coerced to String.</li>
-     *   <li>Non-empty annotation (from [schema]): value is expected to be a List of objects;
-     *       passed through as-is (schema validation can be added later).</li>
+     *   <li>Exists in the local claim dialect (via {@link ClaimMetadataManagementService}).</li>
+     *   <li>Is not an identity claim ({@code http://wso2.org/claims/identity/}).</li>
      * </ul>
-     *
-     * @param path                The operation path.
-     * @param value               The raw value from the operation.
-     * @param pathTypeAnnotations Path type annotations map.
-     * @return The coerced value.
-     */
-    @SuppressWarnings("unchecked")
-    private Object coerceValue(String path, Object value,
-                               Map<String, String> pathTypeAnnotations) {
-
-        String annotation = pathTypeAnnotations.get(path);
-
-        if (annotation == null) {
-            // No annotation: coerce to String.
-            return String.valueOf(value);
-        }
-
-        if (annotation.isEmpty()) {
-            // [] annotation: expect a List of strings.
-            if (value instanceof List) {
-                List<Object> rawList = (List<Object>) value;
-                List<String> stringList = new ArrayList<>();
-                for (Object item : rawList) {
-                    stringList.add(String.valueOf(item));
-                }
-                return stringList;
-            }
-            // Single value — wrap in a list.
-            List<String> singleList = new ArrayList<>();
-            singleList.add(String.valueOf(value));
-            return singleList;
-        }
-
-        // [schema] annotation: pass through as-is for now.
-        // TODO: Add schema validation for complex object arrays.
-        return value;
-    }
-
-    // ========================= User claim operations =========================
-
-    /**
-     * Handle operations on user claims — validate and apply directly to {@link FlowUser}.
+     * <p>The value is always stringified via {@code String.valueOf()}.</p>
      */
     private OperationExecutionResult handleUserClaimOperation(PerformableOperation operation,
             FlowExecutionContext context, String tenantDomain) {
@@ -472,12 +260,16 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     "Invalid claim path. Claim URI is required.");
         }
 
-        // For ADD operations, validate that the claim URI exists in system configuration.
-        if (operation.getOp() == Operation.ADD) {
-            if (!isValidClaimUri(claimUri, tenantDomain)) {
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                        "Invalid claim URI. Claim must be configured in the system: " + claimUri);
-            }
+        // Reject identity claims — these are system-managed and not user-modifiable.
+        if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Identity claims cannot be modified via extensions: " + claimUri);
+        }
+
+        // Validate claim exists in local claim dialect.
+        if (!isValidClaimUri(claimUri, tenantDomain)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Invalid claim URI. Claim must be configured in the local claim dialect: " + claimUri);
         }
 
         FlowUser user = context.getFlowUser();
@@ -486,32 +278,19 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     "No FlowUser in FlowExecutionContext. Cannot apply user claim operation.");
         }
 
-        switch (operation.getOp()) {
-            case ADD:
-            case REPLACE:
-                if (operation.getValue() == null) {
-                    return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                            "Value is required for " + operation.getOp() + " operation.");
-                }
-                user.addClaim(claimUri, String.valueOf(operation.getValue()));
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                        "User claim " + operation.getOp().name().toLowerCase(Locale.ENGLISH) + " applied.");
-
-            case REMOVE:
-                if (user.getClaims() != null) {
-                    user.getClaims().remove(claimUri);
-                }
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                        "User claim removed.");
-
-            default:
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                        "Unsupported operation: " + operation.getOp());
+        if (operation.getValue() == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Value is required for REPLACE operation.");
         }
+
+        user.addClaim(claimUri, String.valueOf(operation.getValue()));
+        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
+                "User claim replace applied.");
     }
 
     /**
-     * Handle operations on user inputs — apply directly to {@link FlowExecutionContext}.
+     * Handle REPLACE operation on user inputs — apply directly to {@link FlowExecutionContext}.
+     * The value is always stringified via {@code String.valueOf()}.
      */
     private OperationExecutionResult handleUserInputOperation(PerformableOperation operation,
             FlowExecutionContext context) {
@@ -523,30 +302,19 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     "Invalid user input path. Input name is required.");
         }
 
-        switch (operation.getOp()) {
-            case ADD:
-            case REPLACE:
-                if (operation.getValue() == null) {
-                    return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                            "Value is required for " + operation.getOp() + " operation.");
-                }
-                context.addUserInputData(inputName, String.valueOf(operation.getValue()));
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                        "User input " + operation.getOp().name().toLowerCase(Locale.ENGLISH) + " applied.");
-
-            case REMOVE:
-                context.getUserInputData().remove(inputName);
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                        "User input removed.");
-
-            default:
-                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                        "Unsupported operation: " + operation.getOp());
+        if (operation.getValue() == null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Value is required for REPLACE operation.");
         }
+
+        context.addUserInputData(inputName, String.valueOf(operation.getValue()));
+        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
+                "User input replace applied.");
     }
 
+    //TODO: These validations can be removed once the attribute executor introduced.
     /**
-     * Validate if a claim URI exists in system configuration.
+     * Validate if a claim URI exists in the local claim dialect.
      */
     private boolean isValidClaimUri(String claimUri, String tenantDomain) {
 
@@ -610,26 +378,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             remaining = remaining.substring(0, remaining.length() - 1);
         }
 
-        // Handle array index notation (e.g., /properties/items/0).
-        int lastSlash = remaining.lastIndexOf(PATH_SEPARATOR);
-        if (lastSlash > 0) {
-            String possibleIndex = remaining.substring(lastSlash + 1);
-            if (LAST_ELEMENT_CHARACTER.equals(possibleIndex) || isNumeric(possibleIndex)) {
-                return remaining.substring(0, lastSlash);
-            }
-        }
-
         return remaining;
-    }
-
-    private boolean isNumeric(String str) {
-
-        try {
-            Integer.parseInt(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     @Override
@@ -721,7 +470,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
     /**
      * Decrypt the operation value if the operation path has encryption enabled in the AccessConfig.
-     * Uses {@link AccessConfig#isOperationPathEncrypted(String, String)} for canonical checking.
+     * Uses {@link AccessConfig#isModifyPathEncrypted(String)} for canonical checking.
      * For operations with encrypted paths, checks if the value looks like a JWE compact
      * serialization and decrypts it using the IS's private key.
      *
@@ -737,16 +486,13 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             return operation;
         }
 
-        // Check if this operation path has encryption enabled via AccessConfig.
-        if (!accessConfig.isOperationPathEncrypted(operation.getOp().name(), operation.getPath())) {
+        // Check if this operation path has encryption enabled via modify paths in AccessConfig.
+        if (!accessConfig.isModifyPathEncrypted(operation.getPath())) {
             return operation;
         }
 
         // Only decrypt string values that look like JWE compact serialization.
         Object value = operation.getValue();
-        if (!(value instanceof String)) {
-            return operation;
-        }
 
         String stringValue = (String) value;
         if (!JWEEncryptionUtil.isJWEEncrypted(stringValue)) {

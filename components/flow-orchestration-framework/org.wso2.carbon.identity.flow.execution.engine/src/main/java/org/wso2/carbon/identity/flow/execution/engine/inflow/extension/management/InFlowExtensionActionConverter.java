@@ -24,17 +24,16 @@ import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AllowedOperation;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ExposePath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_ALLOWED_OPERATIONS;
-import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
@@ -57,7 +56,7 @@ public class InFlowExtensionActionConverter implements ActionConverter {
 
     /**
      * Converts an {@link InFlowExtensionAction} to an {@link ActionDTO} for persistence.
-     * Maps the access config fields (expose, allowedOperations) and flow type overrides
+     * Maps the access config fields (expose, modify) and flow type overrides
      * into the DTO's properties map using prefixed keys.
      *
      * @param action The InFlowExtensionAction to convert.
@@ -80,9 +79,9 @@ public class InFlowExtensionActionConverter implements ActionConverter {
                 properties.put(ACCESS_CONFIG_EXPOSE,
                         new ActionProperty.BuilderForService(accessConfig.getExpose()).build());
             }
-            if (accessConfig.getAllowedOperations() != null) {
-                properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS,
-                        new ActionProperty.BuilderForService(accessConfig.getAllowedOperations()).build());
+            if (accessConfig.getModify() != null) {
+                properties.put(ACCESS_CONFIG_MODIFY,
+                        new ActionProperty.BuilderForService(accessConfig.getModify()).build());
             }
         }
 
@@ -103,9 +102,9 @@ public class InFlowExtensionActionConverter implements ActionConverter {
                     properties.put(ACCESS_CONFIG_EXPOSE_PREFIX + flowType,
                             new ActionProperty.BuilderForService(overrideConfig.getExpose()).build());
                 }
-                if (overrideConfig.getAllowedOperations() != null) {
-                    properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX + flowType,
-                            new ActionProperty.BuilderForService(overrideConfig.getAllowedOperations()).build());
+                if (overrideConfig.getModify() != null) {
+                    properties.put(ACCESS_CONFIG_MODIFY_PREFIX + flowType,
+                            new ActionProperty.BuilderForService(overrideConfig.getModify()).build());
                 }
             }
         }
@@ -127,13 +126,13 @@ public class InFlowExtensionActionConverter implements ActionConverter {
     public Action buildAction(ActionDTO actionDTO) {
 
         // Default access config.
-        List<ExposePath> expose = (List<ExposePath>) actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
-        List<AllowedOperation> allowedOperations =
-                (List<AllowedOperation>) actionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS);
+        List<ContextPath> expose = (List<ContextPath>) actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
+        List<ContextPath> modify =
+                (List<ContextPath>) actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
 
         AccessConfig accessConfig = null;
-        if (expose != null || allowedOperations != null) {
-            accessConfig = new AccessConfig(expose, allowedOperations);
+        if (expose != null || modify != null) {
+            accessConfig = new AccessConfig(expose, modify);
         }
 
         // Encryption certificate (separate from access config).
@@ -152,15 +151,15 @@ public class InFlowExtensionActionConverter implements ActionConverter {
                     AccessConfig existing = flowTypeOverrides.getOrDefault(flowType,
                             new AccessConfig(null, null));
                     flowTypeOverrides.put(flowType, new AccessConfig(
-                            (List<ExposePath>) actionDTO.getPropertyValue(propertyKey),
-                            existing.getAllowedOperations()));
-                } else if (propertyKey.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)) {
-                    String flowType = propertyKey.substring(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX.length());
+                            (List<ContextPath>) actionDTO.getPropertyValue(propertyKey),
+                            existing.getModify()));
+                } else if (propertyKey.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                    String flowType = propertyKey.substring(ACCESS_CONFIG_MODIFY_PREFIX.length());
                     AccessConfig existing = flowTypeOverrides.getOrDefault(flowType,
                             new AccessConfig(null, null));
                     flowTypeOverrides.put(flowType, new AccessConfig(
                             existing.getExpose(),
-                            (List<AllowedOperation>) actionDTO.getPropertyValue(propertyKey)));
+                            (List<ContextPath>) actionDTO.getPropertyValue(propertyKey)));
                 }
             }
         }

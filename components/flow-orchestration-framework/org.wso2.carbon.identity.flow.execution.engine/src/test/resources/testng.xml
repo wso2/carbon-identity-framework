@@ -33,9 +33,17 @@
     <test name="in-flow-extension-executor-tests">
         <classes>
             <class name="org.wso2.carbon.identity.flow.execution.engine.executor.HierarchicalPrefixMatcherTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.executor.PathTypeAnnotationUtilTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionRequestBuilderTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionResponseProcessorTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionExecutorTest"/>
+        </classes>
+    </test>
+    <test name="in-flow-extension-model-tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.AccessConfigTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.OperationExecutionResultTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.InFlowExtensionEventTest"/>
         </classes>
     </test>
 </suite>

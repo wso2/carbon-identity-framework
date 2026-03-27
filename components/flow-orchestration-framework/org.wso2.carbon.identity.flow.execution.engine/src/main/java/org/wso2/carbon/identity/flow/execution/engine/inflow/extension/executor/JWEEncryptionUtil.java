@@ -29,9 +29,10 @@ import com.nimbusds.jose.crypto.RSAEncrypter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
-import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
-import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utility class for JWE encryption and decryption operations used by In-Flow Extension actions.
@@ -50,9 +53,8 @@ import java.text.ParseException;
  * pattern as {@code PasswordUpdatingUser.encryptCredential()}.</p>
  *
  * <p><b>Inbound decryption</b> (external service → IS): uses the IS server's RSA private key
- * retrieved via {@link IdentityKeyStoreResolver} with
- * {@link IdentityKeyStoreResolverConstants.InboundProtocol#ACTIONS}. This follows the same
- * pattern as {@code OIDCSessionManagementUtil.decryptWithRSA()}.</p>
+ * retrieved via {@link KeyStoreManager} for the tenant. This follows the same
+ * pattern as {@code UserAssertionUtils.getPrivateKey()}.</p>
  */
 public final class JWEEncryptionUtil {
 
@@ -63,6 +65,9 @@ public final class JWEEncryptionUtil {
 
     /** Standard PEM line length per RFC 7468. */
     private static final int PEM_LINE_LENGTH = 64;
+
+    /** Cache of resolved private keys, keyed by tenant ID. */
+    private static final Map<String, Key> PRIVATE_KEYS = new ConcurrentHashMap<>();
 
     private JWEEncryptionUtil() {
 
@@ -99,8 +104,7 @@ public final class JWEEncryptionUtil {
 
     /**
      * Decrypt a JWE compact string using the IS server's RSA private key.
-     * The private key is resolved via {@link IdentityKeyStoreResolver} using
-     * {@link IdentityKeyStoreResolverConstants.InboundProtocol#ACTIONS}.
+     * The private key is resolved via {@link KeyStoreManager} for the tenant.
      *
      * @param jweString    The JWE compact serialization string.
      * @param tenantDomain The tenant domain to resolve the private key.
@@ -112,9 +116,7 @@ public final class JWEEncryptionUtil {
         try {
             JWEObject jweObject = JWEObject.parse(jweString);
 
-            Key privateKey = IdentityKeyStoreResolver.getInstance()
-                    .getPrivateKey(tenantDomain,
-                            IdentityKeyStoreResolverConstants.InboundProtocol.ACTIONS);
+            Key privateKey = getPrivateKey(tenantDomain);
 
             RSADecrypter decrypter = new RSADecrypter((RSAPrivateKey) privateKey);
             jweObject.decrypt(decrypter);
@@ -126,9 +128,49 @@ public final class JWEEncryptionUtil {
         } catch (JOSEException e) {
             throw new ActionExecutionException(
                     "Failed to decrypt JWE value from In-Flow Extension response.", e);
+        } catch (ActionExecutionException e) {
+            throw e;
         } catch (Exception e) {
             throw new ActionExecutionException(
                     "Error resolving IS private key for In-Flow Extension JWE decryption.", e);
+        }
+    }
+
+    /**
+     * Retrieve the IS server's RSA private key for the given tenant.
+     * Uses {@link KeyStoreManager} directly, bypassing IdentityKeyStoreResolver,
+     * to avoid requiring a protocol-specific keystore mapping.
+     *
+     * @param tenantDomain The tenant domain.
+     * @return The RSA private key.
+     * @throws ActionExecutionException If retrieval fails.
+     */
+    private static Key getPrivateKey(String tenantDomain) throws ActionExecutionException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String cacheKey = String.valueOf(tenantId);
+        Key cachedKey = PRIVATE_KEYS.get(cacheKey);
+        if (cachedKey != null) {
+            return cachedKey;
+        }
+
+        try {
+            IdentityTenantUtil.initializeRegistry(tenantId);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+            Key privateKey;
+
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                privateKey = keyStoreManager.getDefaultPrivateKey();
+            } else {
+                String tenantKeyStoreName = tenantDomain.trim().replace(".", "-") + ".jks";
+                privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+            }
+
+            PRIVATE_KEYS.put(cacheKey, privateKey);
+            return privateKey;
+        } catch (Exception e) {
+            throw new ActionExecutionException(
+                    "Error retrieving private key for tenant: " + tenantDomain, e);
         }
     }
 
@@ -158,77 +200,31 @@ public final class JWEEncryptionUtil {
     }
 
     /**
-     * Parse a PEM-encoded X.509 certificate string into an {@link X509Certificate} object.
-     * <p>
-     * Handles PEM strings that may have lost their newlines during database storage/retrieval
-     * (e.g., via {@code CertificateManagementDAOImpl.getStringValueFromBlob()} which strips
-     * line breaks). The method normalizes the PEM format before parsing to ensure the
-     * header/footer are on separate lines and Base64 content is properly structured.
-     * </p>
+     * Parse a Base64-encoded PEM X.509 certificate string into an {@link X509Certificate} object.
+     * Expects the input to be a fully Base64-encoded string of a standard PEM file.
      *
-     * @param pem The PEM string (with or without proper line breaks).
+     * @param base64EncodedPem The Base64 encoded PEM string.
      * @return The parsed X509Certificate.
-     * @throws ActionExecutionException If parsing fails.
+     * @throws ActionExecutionException If parsing or decoding fails.
      */
-    public static X509Certificate parsePEMCertificate(String pem) throws ActionExecutionException {
+    public static X509Certificate parsePEMCertificate(String base64EncodedPem) throws ActionExecutionException {
+
+        if (base64EncodedPem == null || base64EncodedPem.trim().isEmpty()) {
+            throw new ActionExecutionException("Certificate string is null or empty.");
+        }
 
         try {
-            String normalizedPEM = normalizePEM(pem);
+            byte[] decodedPemBytes = java.util.Base64.getDecoder().decode(base64EncodedPem.trim());
+
             CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            return (X509Certificate) factory.generateCertificate(
-                    new ByteArrayInputStream(normalizedPEM.getBytes(StandardCharsets.UTF_8)));
-        } catch (ActionExecutionException e) {
-            throw e;
+            return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(decodedPemBytes));
+
+        } catch (IllegalArgumentException e) {
+            throw new ActionExecutionException(
+                    "Failed to decode certificate: Input is not valid Base64.", e);
         } catch (Exception e) {
             throw new ActionExecutionException(
-                    "Failed to parse PEM certificate for In-Flow Extension action.", e);
+                    "Failed to parse the decoded PEM certificate for In-Flow Extension action.", e);
         }
-    }
-
-    /**
-     * Normalize a PEM string to ensure it has proper line structure.
-     * <p>
-     * The CertificateManagementService's DAO layer reads BLOB data using
-     * {@code BufferedReader.readLine()} + {@code StringBuilder.append(line)}, which strips
-     * all newline characters. This produces a single-line string like:
-     * {@code -----BEGIN CERTIFICATE-----MIICxjCC...-----END CERTIFICATE-----}
-     * which Java's X509 parser cannot handle.
-     * </p>
-     * <p>
-     * This method extracts the Base64 body, strips all whitespace, and re-wraps it at
-     * 64-character lines between proper PEM header/footer markers.
-     * </p>
-     *
-     * @param pem The PEM string (possibly with stripped newlines).
-     * @return A properly formatted PEM string.
-     * @throws ActionExecutionException If the PEM structure is invalid.
-     */
-    private static String normalizePEM(String pem) throws ActionExecutionException {
-
-        if (pem == null || pem.isEmpty()) {
-            throw new ActionExecutionException("Certificate PEM string is null or empty.");
-        }
-
-        String trimmed = pem.trim();
-
-        // Extract the Base64 body by stripping header/footer markers.
-        String base64Body = trimmed
-                .replace("-----BEGIN CERTIFICATE-----", "")
-                .replace("-----END CERTIFICATE-----", "")
-                .replaceAll("\\s+", "");
-
-        if (base64Body.isEmpty()) {
-            throw new ActionExecutionException("Certificate PEM contains no Base64 data.");
-        }
-
-        // Reconstruct proper PEM with 64-char line wrapping (RFC 7468).
-        StringBuilder sb = new StringBuilder();
-        sb.append("-----BEGIN CERTIFICATE-----\n");
-        for (int i = 0; i < base64Body.length(); i += PEM_LINE_LENGTH) {
-            sb.append(base64Body, i, Math.min(i + PEM_LINE_LENGTH, base64Body.length()));
-            sb.append('\n');
-        }
-        sb.append("-----END CERTIFICATE-----\n");
-        return sb.toString();
     }
 }

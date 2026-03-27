@@ -48,7 +48,6 @@ public class IdentityKeyStoreResolverConstants {
     public static final String INBOUND_PROTOCOL_SAML = "saml";
     public static final String INBOUND_PROTOCOL_WS_TRUST = "ws-trust";
     public static final String INBOUND_PROTOCOL_WS_FEDERATION = "ws-federation";
-    public static final String INBOUND_PROTOCOL_ACTIONS = "actions";
 
     /**
      * Enums for inbound protocols.
@@ -59,8 +58,7 @@ public class IdentityKeyStoreResolverConstants {
         OAUTH(INBOUND_PROTOCOL_OAUTH),
         SAML(INBOUND_PROTOCOL_SAML),
         WS_TRUST(INBOUND_PROTOCOL_WS_TRUST),
-        WS_FEDERATION(INBOUND_PROTOCOL_WS_FEDERATION),
-        ACTIONS(INBOUND_PROTOCOL_ACTIONS);
+        WS_FEDERATION(INBOUND_PROTOCOL_WS_FEDERATION);
 
         private final String protocolName;
 
@@ -83,8 +81,6 @@ public class IdentityKeyStoreResolverConstants {
                     return WS_TRUST;
                 case INBOUND_PROTOCOL_WS_FEDERATION:
                     return WS_FEDERATION;
-                case INBOUND_PROTOCOL_ACTIONS:
-                    return ACTIONS;
                 default:
                     return null;
             }

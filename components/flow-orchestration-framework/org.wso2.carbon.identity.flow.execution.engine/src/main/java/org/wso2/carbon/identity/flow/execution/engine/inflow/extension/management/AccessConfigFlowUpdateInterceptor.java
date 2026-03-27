@@ -28,10 +28,8 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AllowedOperation;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ExposePath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.OperationPath;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.mgt.FlowUpdateInterceptor;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
@@ -56,7 +54,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.ma
  *   <li>Iterates graph nodes looking for In-Flow Extension executors with an
  *       {@code accessConfig} metadata entry.</li>
  *   <li>Parses the unified {@code accessConfig} JSON object
- *       ({@code {"expose": [...], "allowedOperations": [...]}}).</li>
+ *       ({@code {"expose": [...], "modify": [...]}}).</li>
  *   <li>Saves the parsed data as per-flow-type override properties on the corresponding action
  *       via {@code ActionManagementService.updateAction()}.</li>
  *   <li><b>Strips</b> the {@code accessConfig} key from executor metadata so it is NOT persisted
@@ -68,12 +66,13 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
 
     private static final Log LOG = LogFactory.getLog(AccessConfigFlowUpdateInterceptor.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String IN_FLOW_EXTENSION_EXECUTOR_NAME = "ExtensionExecutor";
     private static final TypeReference<Map<String, Object>> MAP_TYPE_REF =
             new TypeReference<Map<String, Object>>() { };
 
     private static final String ACTION_ID_METADATA_KEY = "actionId";
     private static final String EXPOSE_FIELD = "expose";
-    private static final String ALLOWED_OPERATIONS_FIELD = "allowedOperations";
+    private static final String MODIFY_FIELD = "modify";
 
     @Override
     public void onFlowUpdate(String flowType, GraphConfig graphConfig, int tenantId)
@@ -106,7 +105,8 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
                              ActionManagementService actionMgtService) throws FlowMgtFrameworkException {
 
         ExecutorDTO executorConfig = node.getExecutorConfig();
-        if (executorConfig == null || executorConfig.getMetadata() == null) {
+        if (executorConfig == null || !executorConfig.getName().equals(IN_FLOW_EXTENSION_EXECUTOR_NAME)
+                ||executorConfig.getMetadata() == null) {
             return;
         }
 
@@ -126,14 +126,13 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
         metadata.remove(ACCESS_CONFIG_METADATA_KEY);
 
         try {
-            // Parse the unified accessConfig JSON: {"expose": [...], "allowedOperations": [...]}
+            // Parse the unified accessConfig JSON: {"expose": [...], "modify": [...]}
             Map<String, Object> accessConfigMap = OBJECT_MAPPER.readValue(accessConfigJson, MAP_TYPE_REF);
 
-            List<ExposePath> expose = parseExposePaths(accessConfigMap.get(EXPOSE_FIELD));
-            List<AllowedOperation> allowedOps = parseAllowedOperations(
-                    accessConfigMap.get(ALLOWED_OPERATIONS_FIELD));
+            List<ContextPath> expose = parseContextPaths(accessConfigMap.get(EXPOSE_FIELD));
+            List<ContextPath> modify = parseContextPaths(accessConfigMap.get(MODIFY_FIELD));
             // Certificate is action-level only — not overridable per flow type.
-            AccessConfig overrideConfig = new AccessConfig(expose, allowedOps);
+            AccessConfig overrideConfig = new AccessConfig(expose, modify);
 
             // Retrieve the existing action to merge overrides (preserving other flow types).
             Action currentAction = actionMgtService.getActionByActionId(
@@ -181,7 +180,7 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
      * Accepts both simple strings (no encryption) and objects ({path, encrypted}).
      */
     @SuppressWarnings("unchecked")
-    private List<ExposePath> parseExposePaths(Object value) {
+    private List<ContextPath> parseContextPaths(Object value) {
 
         if (value == null) {
             return null;
@@ -192,64 +191,18 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
         }
 
         List<?> rawList = (List<?>) value;
-        List<ExposePath> result = new ArrayList<>();
+        List<ContextPath> result = new ArrayList<>();
         for (Object item : rawList) {
-            if (item instanceof String) {
-                result.add(new ExposePath((String) item, false));
-            } else if (item instanceof Map) {
+            if (item instanceof Map) {
                 Map<?, ?> map = (Map<?, ?>) item;
                 String path = (String) map.get("path");
                 boolean encrypted = toBooleanSafe(map.get("encrypted"));
                 if (path != null) {
-                    result.add(new ExposePath(path, encrypted));
+                    result.add(new ContextPath(path, encrypted));
                 }
             }
-        }
-        return result.isEmpty() ? null : result;
-    }
+            else {
 
-    /**
-     * Parse allowed operations from the raw JSON value.
-     * Accepts the nested format: [{op, paths: [{path, encrypted}]}].
-     */
-    @SuppressWarnings("unchecked")
-    private List<AllowedOperation> parseAllowedOperations(Object value) {
-
-        if (value == null) {
-            return null;
-        }
-        if (!(value instanceof List)) {
-            LOG.warn("Invalid allowedOperations value in flow override accessConfig. Expected list.");
-            return null;
-        }
-
-        List<?> rawList = (List<?>) value;
-        List<AllowedOperation> result = new ArrayList<>();
-        for (Object item : rawList) {
-            if (item instanceof Map) {
-                Map<?, ?> map = (Map<?, ?>) item;
-                String op = (String) map.get("op");
-                Object pathsObj = map.get("paths");
-                if (op == null || !(pathsObj instanceof List)) {
-                    continue;
-                }
-                List<?> pathsList = (List<?>) pathsObj;
-                List<OperationPath> operationPaths = new ArrayList<>();
-                for (Object pathItem : pathsList) {
-                    if (pathItem instanceof Map) {
-                        Map<?, ?> pathMap = (Map<?, ?>) pathItem;
-                        String path = (String) pathMap.get("path");
-                        boolean encrypted = toBooleanSafe(pathMap.get("encrypted"));
-                        if (path != null) {
-                            operationPaths.add(new OperationPath(path, encrypted));
-                        }
-                    } else if (pathItem instanceof String) {
-                        operationPaths.add(new OperationPath((String) pathItem, false));
-                    }
-                }
-                if (!operationPaths.isEmpty()) {
-                    result.add(new AllowedOperation(op, operationPaths));
-                }
             }
         }
         return result.isEmpty() ? null : result;

@@ -56,7 +56,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -107,120 +106,6 @@ public class InFlowExtensionResponseProcessorTest {
         assertEquals(responseProcessor.getSupportedActionType(), ActionType.IN_FLOW_EXTENSION);
     }
 
-    // ========================= processSuccessResponse — Property ADD =========================
-
-    @Test
-    public void testPropertyAddFlat() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/riskScore", "75");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, addOp, Collections.emptyMap());
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertEquals(execCtx.getProperties().get("riskScore"), "75");
-    }
-
-    @Test
-    public void testPropertyAddNested() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/risk/level", "HIGH");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, addOp, Collections.emptyMap());
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        Object riskMap = execCtx.getProperties().get("risk");
-        assertNotNull(riskMap);
-        assertTrue(riskMap instanceof Map);
-        assertEquals(((Map<?, ?>) riskMap).get("level"), "HIGH");
-    }
-
-    @Test
-    public void testPropertyAddWithArrayAnnotation() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        Map<String, String> annotations = new HashMap<>();
-        annotations.put("/properties/riskFactors", "");
-
-        List<String> factors = Arrays.asList("ip_mismatch", "new_device");
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/riskFactors", factors);
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, addOp, annotations);
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        Object stored = execCtx.getProperties().get("riskFactors");
-        assertTrue(stored instanceof List);
-        assertEquals(((List<?>) stored).size(), 2);
-    }
-
-    @Test
-    public void testPropertyAddWithSchemaAnnotation() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        Map<String, String> annotations = new HashMap<>();
-        annotations.put("/properties/items", "name,count");
-
-        List<Map<String, Object>> items = new ArrayList<>();
-        Map<String, Object> item = new HashMap<>();
-        item.put("name", "item1");
-        item.put("count", 5);
-        items.add(item);
-
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/items", items);
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, addOp, annotations);
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        // Schema annotation → value passed through as-is.
-        Object stored = execCtx.getProperties().get("items");
-        assertTrue(stored instanceof List);
-    }
-
-    @Test
-    public void testPropertyAddWithoutAnnotationCoercesToString()
-            throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        // Integer value with no annotation → coerced to String.
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/riskScore", 75);
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, addOp, Collections.emptyMap());
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertEquals(execCtx.getProperties().get("riskScore"), "75");
-    }
-
-    @Test
-    public void testPropertyAddNullValue() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/riskScore", null);
-        // Should still succeed (status is SUCCESS overall) but the individual operation should fail.
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, addOp, Collections.emptyMap());
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        // Property should NOT be set since value is null.
-        assertFalse(execCtx.getProperties().containsKey("riskScore"));
-    }
-
-    @Test
-    public void testPropertyAddArrayAnnotationSingleValueWrapped()
-            throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        Map<String, String> annotations = new HashMap<>();
-        annotations.put("/properties/tags", "");
-
-        // Single value with [] annotation → wrapped in a list.
-        PerformableOperation addOp = createOperation(Operation.ADD, "/properties/tags", "singleTag");
-        executeSuccessResponse(execCtx, addOp, annotations);
-
-        Object stored = execCtx.getProperties().get("tags");
-        assertTrue(stored instanceof List);
-        assertEquals(((List<?>) stored).size(), 1);
-        assertEquals(((List<?>) stored).get(0), "singleTag");
-    }
-
     // ========================= processSuccessResponse — Property REPLACE =========================
 
     @Test
@@ -237,106 +122,200 @@ public class InFlowExtensionResponseProcessorTest {
     }
 
     @Test
-    public void testPropertyReplaceFlatDoesNotExist() throws ActionExecutionResponseProcessorException {
+    public void testPropertyReplaceCreatesIfMissing() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
-        // riskScore not set — REPLACE should fail.
+        // riskScore not set — REPLACE should auto-create it.
 
         PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/riskScore", "80");
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, Collections.emptyMap());
 
-        // Overall status is SUCCESS but the property should not be set.
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertFalse(execCtx.getProperties().containsKey("riskScore"));
+        assertEquals(execCtx.getProperties().get("riskScore"), "80");
     }
 
     @Test
-    public void testPropertyReplaceNestedExists() throws ActionExecutionResponseProcessorException {
+    public void testPropertyReplaceCoercesToStringByDefault()
+            throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
-        Map<String, Object> riskMap = new HashMap<>();
-        riskMap.put("score", "50");
-        execCtx.setProperty("risk", riskMap);
 
-        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/risk/score", "80");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, Collections.emptyMap());
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> updatedRisk = (Map<String, Object>) execCtx.getProperties().get("risk");
-        assertEquals(updatedRisk.get("score"), "80");
-    }
-
-    @Test
-    public void testPropertyReplaceNestedParentMissing() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        // No "risk" property set.
-
-        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/risk/score", "80");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, Collections.emptyMap());
-
-        // Should fail — nested path doesn't exist.
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertFalse(execCtx.getProperties().containsKey("risk"));
-    }
-
-    // ========================= processSuccessResponse — Property REMOVE =========================
-
-    @Test
-    public void testPropertyRemoveFlat() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        execCtx.setProperty("riskScore", "50");
-
-        PerformableOperation removeOp = createOperation(Operation.REMOVE, "/properties/riskScore", null);
-        executeSuccessResponse(execCtx, removeOp, Collections.emptyMap());
-
-        assertFalse(execCtx.getProperties().containsKey("riskScore"));
-    }
-
-    @Test
-    public void testPropertyRemoveNested() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        Map<String, Object> riskMap = new HashMap<>();
-        riskMap.put("score", "50");
-        riskMap.put("level", "MEDIUM");
-        execCtx.setProperty("risk", riskMap);
-
-        PerformableOperation removeOp = createOperation(Operation.REMOVE, "/properties/risk/score", null);
-        executeSuccessResponse(execCtx, removeOp, Collections.emptyMap());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> updatedRisk = (Map<String, Object>) execCtx.getProperties().get("risk");
-        assertFalse(updatedRisk.containsKey("score"));
-        assertTrue(updatedRisk.containsKey("level"));
-    }
-
-    @Test
-    public void testPropertyRemoveNestedParentMissing() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        // No "risk" property — remove on nested path should be graceful (no error).
-        PerformableOperation removeOp = createOperation(Operation.REMOVE, "/properties/risk/score", null);
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, removeOp, Collections.emptyMap());
+        // Integer value with no annotation → coerced to String.
+        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/riskScore", 75);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, replaceOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertEquals(execCtx.getProperties().get("riskScore"), "75");
     }
 
-    // ========================= processSuccessResponse — User claim operations =========================
+    @Test
+    public void testPropertyReplaceWithMultivaluedAnnotation()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/riskFactors", "[String]");
+
+        List<String> factors = Arrays.asList("ip_mismatch", "new_device");
+        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/riskFactors", factors);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, annotations);
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        Object stored = execCtx.getProperties().get("riskFactors");
+        assertTrue(stored instanceof List);
+        assertEquals(((List<?>) stored).size(), 2);
+    }
 
     @Test
-    public void testUserClaimAdd() throws ActionExecutionResponseProcessorException {
+    public void testPropertyReplaceMultivaluedSingleValueWrapped()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/tags", "[String]");
+
+        // Single value with [String] annotation → wrapped in a list.
+        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/tags", "singleTag");
+        executeSuccessResponse(execCtx, replaceOp, annotations);
+
+        Object stored = execCtx.getProperties().get("tags");
+        assertTrue(stored instanceof List);
+        assertEquals(((List<?>) stored).size(), 1);
+        assertEquals(((List<?>) stored).get(0), "singleTag");
+    }
+
+    @Test
+    public void testPropertyReplaceWithComplexAnnotation()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/item", "name: String, count: Integer");
+
+        Map<String, Object> item = new HashMap<>();
+        item.put("name", "item1");
+        item.put("count", 5);
+
+        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/item", item);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, annotations);
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Complex annotation → value passed through as-is.
+        Object stored = execCtx.getProperties().get("item");
+        assertTrue(stored instanceof Map);
+    }
+
+    @Test
+    public void testPropertyReplaceWithPrimaryTypeAnnotation()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/score", "Integer");
+
+        // Integer annotation → coerced to String.
+        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/score", 95);
+        executeSuccessResponse(execCtx, replaceOp, annotations);
+
+        assertEquals(execCtx.getProperties().get("score"), "95");
+    }
+
+    @Test
+    public void testPropertyReplaceNullValue() throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        execCtx.setProperty("score", "50");
+
+        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/score", null);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, replaceOp, Collections.emptyMap());
+
+        // Null value should fail for REPLACE.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Original value should remain.
+        assertEquals(execCtx.getProperties().get("score"), "50");
+    }
+
+    @Test
+    public void testPropertyReplaceEmptyPropertyName() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        PerformableOperation claimOp = createOperation(
-                Operation.ADD, "/user/claims/http://wso2.org/claims/country", "US");
-        executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
+        PerformableOperation op = createOperation(Operation.REPLACE, "/properties/", "value");
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
 
-        assertEquals(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/country"), "US");
+        // Empty property name should fail.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
     }
+
+    @Test
+    public void testPropertyReplaceComplexObjectInvalidSchema()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/data", "risk: Float, factor: String");
+
+        // Value has an unknown attribute not in the schema.
+        Map<String, Object> value = new HashMap<>();
+        value.put("risk", 0.85);
+        value.put("unknown", "bad");
+
+        PerformableOperation op = createOperation(Operation.REPLACE, "/properties/data", value);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, annotations);
+
+        // Should succeed overall (logged as failure for this operation) but property not set.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(execCtx.getProperties().get("data"));
+    }
+
+    @Test
+    public void testPropertyReplaceArrayExceedsItemLimit()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/tags", "[String]");
+
+        // Create a list with 11 items (exceeds max 10).
+        List<String> bigList = new ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            bigList.add("item" + i);
+        }
+
+        PerformableOperation op = createOperation(Operation.REPLACE, "/properties/tags", bigList);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, annotations);
+
+        // Should succeed overall but property not set due to array limit.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(execCtx.getProperties().get("tags"));
+    }
+
+    @Test
+    public void testPropertyReplaceComplexArrayExceedsItemLimit()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/risks", "[risk: Float]");
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("risk", (float) i);
+            items.add(item);
+        }
+
+        PerformableOperation op = createOperation(Operation.REPLACE, "/properties/risks", items);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, annotations);
+
+        // Should succeed overall but property not set due to item limit on complex array.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(execCtx.getProperties().get("risks"));
+    }
+
+    // ========================= processSuccessResponse — User claim REPLACE =========================
 
     @Test
     public void testUserClaimReplace() throws ActionExecutionResponseProcessorException {
@@ -352,26 +331,91 @@ public class InFlowExtensionResponseProcessorTest {
     }
 
     @Test
-    public void testUserClaimRemove() throws ActionExecutionResponseProcessorException {
+    public void testUserClaimReplaceCreatesNewClaim() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
-        execCtx.getFlowUser().addClaim("http://wso2.org/claims/email", "test@example.com");
 
         PerformableOperation claimOp = createOperation(
-                Operation.REMOVE, "/user/claims/http://wso2.org/claims/email", null);
+                Operation.REPLACE, "/user/claims/http://wso2.org/claims/country", "US");
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
-        assertFalse(execCtx.getFlowUser().getClaims().containsKey("http://wso2.org/claims/email"));
+        assertEquals(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/country"), "US");
     }
 
     @Test
-    public void testUserClaimAddNullValue() throws ActionExecutionResponseProcessorException {
+    public void testUserClaimReplaceStringifiesValue() throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        // Numeric value should be stringified.
+        PerformableOperation claimOp = createOperation(
+                Operation.REPLACE, "/user/claims/http://wso2.org/claims/country", 42);
+        executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
+
+        assertEquals(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/country"), "42");
+    }
+
+    @Test
+    public void testUserClaimReplaceIdentityClaimRejected()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        // Identity claim should be rejected.
+        PerformableOperation claimOp = createOperation(
+                Operation.REPLACE, "/user/claims/http://wso2.org/claims/identity/accountLocked", "true");
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, claimOp, Collections.emptyMap());
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Claim should NOT be set.
+        assertNull(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/identity/accountLocked"));
+    }
+
+    @Test
+    public void testUserClaimReplaceNonExistentClaimRejected()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        // Claim not in the mocked local claim list should be rejected.
+        PerformableOperation claimOp = createOperation(
+                Operation.REPLACE,
+                "/user/claims/http://wso2.org/claims/nonexistent", "value");
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, claimOp, Collections.emptyMap());
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/nonexistent"));
+    }
+
+    @Test
+    public void testUserClaimReplaceNonLocalDialectRejected()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        // Non-local dialect claim should be rejected.
+        PerformableOperation claimOp = createOperation(
+                Operation.REPLACE,
+                "/user/claims/urn:ietf:params:scim:schemas:core:2.0:User:name.givenName", "John");
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, claimOp, Collections.emptyMap());
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(execCtx.getFlowUser().getClaims().get(
+                "urn:ietf:params:scim:schemas:core:2.0:User:name.givenName"));
+    }
+
+    @Test
+    public void testUserClaimReplaceNullValue() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
         PerformableOperation claimOp = createOperation(
-                Operation.ADD, "/user/claims/http://wso2.org/claims/email", null);
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
+                Operation.REPLACE, "/user/claims/http://wso2.org/claims/email", null);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, claimOp, Collections.emptyMap());
 
         // Operation should fail — null value.
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
@@ -379,43 +423,34 @@ public class InFlowExtensionResponseProcessorTest {
     }
 
     @Test
-    public void testUserClaimAddEmptyClaimUri() throws ActionExecutionResponseProcessorException {
+    public void testUserClaimReplaceEmptyClaimUri() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        PerformableOperation claimOp = createOperation(Operation.ADD, "/user/claims/", "value");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
+        PerformableOperation claimOp = createOperation(Operation.REPLACE, "/user/claims/", "value");
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, claimOp, Collections.emptyMap());
 
         // Should fail — empty claim URI.
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
     }
 
     @Test
-    public void testUserClaimAddNoFlowUser() throws ActionExecutionResponseProcessorException {
+    public void testUserClaimReplaceNoFlowUser() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
         execCtx.setFlowUser(null);
 
         PerformableOperation claimOp = createOperation(
-                Operation.ADD, "/user/claims/http://wso2.org/claims/email", "test@email.com");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
+                Operation.REPLACE, "/user/claims/http://wso2.org/claims/email", "test@email.com");
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, claimOp, Collections.emptyMap());
 
         // Should fail — no FlowUser.
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
     }
 
-    // ========================= processSuccessResponse — User input operations =========================
-
-    @Test
-    public void testUserInputAdd() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        PerformableOperation inputOp = createOperation(Operation.ADD, "/input/consent", "true");
-        executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
-
-        assertEquals(execCtx.getUserInputData().get("consent"), "true");
-    }
+    // ========================= processSuccessResponse — User input REPLACE =========================
 
     @Test
     public void testUserInputReplace() throws ActionExecutionResponseProcessorException {
@@ -430,15 +465,30 @@ public class InFlowExtensionResponseProcessorTest {
     }
 
     @Test
-    public void testUserInputRemove() throws ActionExecutionResponseProcessorException {
+    public void testUserInputReplaceCreatesNew() throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        PerformableOperation inputOp = createOperation(Operation.REPLACE, "/input/consent", "true");
+        executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
+
+        assertEquals(execCtx.getUserInputData().get("consent"), "true");
+    }
+
+    @Test
+    public void testUserInputReplaceNullValue() throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
         execCtx.addUserInputData("consent", "true");
 
-        PerformableOperation inputOp = createOperation(Operation.REMOVE, "/input/consent", null);
-        executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
+        PerformableOperation inputOp = createOperation(Operation.REPLACE, "/input/consent", null);
+        ActionExecutionStatus<Success> status = executeSuccessResponse(
+                execCtx, inputOp, Collections.emptyMap());
 
-        assertFalse(execCtx.getUserInputData().containsKey("consent"));
+        // Null value should fail.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Original value should remain.
+        assertEquals(execCtx.getUserInputData().get("consent"), "true");
     }
 
     // ========================= processSuccessResponse — Read-only paths =========================
@@ -448,7 +498,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        PerformableOperation op = createOperation(Operation.ADD, "/flow/tenantDomain", "newValue");
+        PerformableOperation op = createOperation(Operation.REPLACE, "/flow/tenantDomain", "newValue");
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
 
         // Operation should fail but overall status is SUCCESS.
@@ -460,7 +510,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        PerformableOperation op = createOperation(Operation.ADD, "/graph/currentNode/id", "newId");
+        PerformableOperation op = createOperation(Operation.REPLACE, "/graph/currentNode/id", "newId");
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
@@ -473,7 +523,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        PerformableOperation op = createOperation(Operation.ADD, "/unknown/path", "value");
+        PerformableOperation op = createOperation(Operation.REPLACE, "/unknown/path", "value");
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
 
         // Unknown path → operation fails, but overall status is SUCCESS.
@@ -488,7 +538,7 @@ public class InFlowExtensionResponseProcessorTest {
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
         // Legacy /userInputs/ path should be normalized to /input/.
-        PerformableOperation op = createOperation(Operation.ADD, "/userInputs/legacyField", "value");
+        PerformableOperation op = createOperation(Operation.REPLACE, "/userInputs/legacyField", "value");
         executeSuccessResponse(execCtx, op, Collections.emptyMap());
 
         assertEquals(execCtx.getUserInputData().get("legacyField"), "value");
@@ -503,9 +553,9 @@ public class InFlowExtensionResponseProcessorTest {
         execCtx.setProperty("existingProp", "old");
 
         List<PerformableOperation> operations = new ArrayList<>();
-        operations.add(createOperation(Operation.ADD, "/properties/newProp", "newValue"));
+        operations.add(createOperation(Operation.REPLACE, "/properties/newProp", "newValue"));
         operations.add(createOperation(Operation.REPLACE, "/properties/existingProp", "updated"));
-        operations.add(createOperation(Operation.ADD, "/flow/readonly", "fail"));  // This should fail.
+        operations.add(createOperation(Operation.REPLACE, "/flow/readonly", "fail"));  // This should fail.
 
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, operations, Collections.emptyMap());
 
@@ -573,55 +623,6 @@ public class InFlowExtensionResponseProcessorTest {
         assertNotNull(status.getResponse());
         assertEquals(status.getResponse().getErrorMessage(), "internal_error");
         assertEquals(status.getResponse().getErrorDescription(), "Database connection failed");
-    }
-
-    // ========================= processSuccessResponse — Invalid property path =========================
-
-    @Test
-    public void testPropertyAddEmptyPropertyName() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        PerformableOperation op = createOperation(Operation.ADD, "/properties/", "value");
-        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-    }
-
-    // ========================= processSuccessResponse — Three-level nesting =========================
-
-    @Test
-    public void testPropertyAddThreeLevelNesting() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        PerformableOperation addOp = createOperation(
-                Operation.ADD, "/properties/deep/nested/value", "deepValue");
-        executeSuccessResponse(execCtx, addOp, Collections.emptyMap());
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> deep = (Map<String, Object>) execCtx.getProperties().get("deep");
-        assertNotNull(deep);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> nested = (Map<String, Object>) deep.get("nested");
-        assertNotNull(nested);
-        assertEquals(nested.get("value"), "deepValue");
-    }
-
-    @Test
-    public void testPropertyReplaceNullValue() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-        execCtx.setProperty("score", "50");
-
-        PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/score", null);
-        ActionExecutionStatus<Success> status = executeSuccessResponse(
-                execCtx, replaceOp, Collections.emptyMap());
-
-        // Null value should fail for REPLACE.
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        // Original value should remain.
-        assertEquals(execCtx.getProperties().get("score"), "50");
     }
 
     // ========================= Helper methods =========================

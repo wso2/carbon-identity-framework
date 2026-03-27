@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
@@ -59,9 +57,9 @@ import java.util.Map;
  *   <li>Extract executor metadata: {@code actionId}.</li>
  *   <li>Resolve access config from the action (with per-flow-type override support via
  *       {@link ActionManagementService}). Falls back to system defaults if unavailable.</li>
- *   <li>Build a minimal {@link FlowContext} containing only three entries:
- *       the full {@link FlowExecutionContext}, the expose list, and the allowed operations
- *       JSON. The request builder will use these to construct the filtered request.</li>
+ *   <li>Build a minimal {@link FlowContext} containing the full {@link FlowExecutionContext},
+ *       the expose list, the access config, and the encryption config.
+ *       The request builder will use these to construct the filtered request.</li>
  *   <li>Invoke the external service via {@link ActionExecutorService}.</li>
  *   <li>Map the {@link ActionExecutionStatus} to an {@link ExecutorResponse}.
  *       Context updates are already applied directly to the {@link FlowExecutionContext}
@@ -72,11 +70,9 @@ public class InFlowExtensionExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionExecutor.class);
     private static final String EXECUTOR_NAME = "ExtensionExecutor";
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
     public static final String EXPOSE_KEY = "expose";
-    public static final String ALLOWED_OPERATIONS_KEY = "allowedOperations";
     public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
     public static final String ACCESS_CONFIG_KEY = "accessConfig";
     public static final String ENCRYPTION_KEY = "encryption";
@@ -109,7 +105,6 @@ public class InFlowExtensionExecutor implements Executor {
             Encryption encryption = resolveEncryptionFromAction(actionId, context);
 
             List<String> expose;
-            String allowedOpsJson = null;
 
             if (resolvedConfig != null && resolvedConfig.getExpose() != null) {
                 expose = resolvedConfig.getExposePaths();
@@ -118,24 +113,12 @@ public class InFlowExtensionExecutor implements Executor {
                 expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
             }
 
-            if (resolvedConfig != null && resolvedConfig.getAllowedOperations() != null) {
-                try {
-                    allowedOpsJson = OBJECT_MAPPER.writeValueAsString(resolvedConfig.getAllowedOperations());
-                } catch (JsonProcessingException e) {
-                    LOG.error("Failed to serialize resolved allowed operations.", e);
-                }
-            }
-
             FlowContext flowContext = FlowContext.create()
                     .add(FLOW_EXECUTION_CONTEXT_KEY, context)
                     .add(EXPOSE_KEY, expose);
 
-            if (allowedOpsJson != null) {
-                flowContext.add(ALLOWED_OPERATIONS_KEY, allowedOpsJson);
-            }
-
-            // Pass the full AccessConfig so request builder and response processor can access
-            // per-path encryption flags for JWE encryption/decryption.
+            // Pass the full AccessConfig so request builder can derive allowed operations
+            // from modify paths, and response processor can check encryption flags.
             if (resolvedConfig != null) {
                 flowContext.add(ACCESS_CONFIG_KEY, resolvedConfig);
             }
