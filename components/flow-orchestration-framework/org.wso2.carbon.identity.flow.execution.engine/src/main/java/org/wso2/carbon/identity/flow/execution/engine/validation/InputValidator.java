@@ -26,9 +26,10 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.util.Set;
+
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
-import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.END;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
 
 /**
@@ -58,23 +59,37 @@ public class InputValidator {
 
     /**
      * Validates user input and returns a prompt step if validation fails.
-     * If validation passes or no input is present, returns null.
+     * Returns null if the current step does not expect user input or if validation passes.
      *
      * @param context The flow execution context containing user input and current node state.
      * @return NodeResponse for re-rendering if validation fails, otherwise null.
      */
     public NodeResponse executeInputValidation(FlowExecutionContext context) {
 
-        if (!hasPageMapping(context, context.getCurrentNode().getId())) {
+        if (MapUtils.isEmpty(context.getCurrentStepInputs())) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Current node " + context.getCurrentNode().getId() +
-                        " has no page mapping. Skipping input validation for flow: " +
+                        " does not expect user input. Skipping input validation for flow: " +
                         context.getContextIdentifier());
             }
             return null;
         }
 
-        if (MapUtils.isEmpty(context.getUserInputData()) && !END.equals(context.getCurrentNode().getId())) {
+        String currentActionId = context.getCurrentActionId();
+        if (currentActionId != null) {
+            Set<String> actionInputs = context.getCurrentStepInputs().get(currentActionId);
+            if (actionInputs == null || actionInputs.isEmpty()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Triggered action " + currentActionId + " does not require inputs. " +
+                            "Skipping input validation for flow: " + context.getContextIdentifier());
+                }
+                context.getCurrentStepInputs().clear();
+                context.getCurrentRequiredInputs().clear();
+                return null;
+            }
+        }
+
+        if (MapUtils.isEmpty(context.getUserInputData())) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("User input is required but missing for node: " + context.getCurrentNode().getId() +
                         " in flow: " + context.getContextIdentifier());

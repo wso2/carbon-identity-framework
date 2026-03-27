@@ -170,7 +170,7 @@ public class WorkflowRuleFieldRegistryTest {
 
         FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("user.groups");
         assertNotNull(field);
-        assertEquals(field.getOperators().size(), 1);
+        assertEquals(field.getOperators().size(), 2);
         assertEquals(field.getOperators().get(0).getName(), "contains");
     }
 
@@ -221,7 +221,7 @@ public class WorkflowRuleFieldRegistryTest {
                 "role.permissions value should be InputValue.");
         assertEquals(field.getValue().getValueType(), Value.ValueType.STRING);
         assertEquals(field.getValue().getInputType(), Value.InputType.INPUT);
-        assertEquals(field.getOperators().size(), 1);
+        assertEquals(field.getOperators().size(), 2);
         assertEquals(field.getOperators().get(0).getName(), "contains");
     }
 

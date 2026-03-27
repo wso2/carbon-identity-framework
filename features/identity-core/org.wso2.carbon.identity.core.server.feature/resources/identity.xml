@@ -820,6 +820,12 @@
         <AllowIssuerSelectionForSubOrgApplications>true</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
+    <PushAuthenticator>
+        <DeviceRegistrationContext>
+            <ValidityPeriod>180</ValidityPeriod>
+        </DeviceRegistrationContext>
+    </PushAuthenticator>
+
     <RestApiAuthentication>
         <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
         <AddRealmUserToError>false</AddRealmUserToError>
@@ -2595,6 +2601,14 @@
         </TenantQualifiedUrls>
     </TenantContext>
 
+    <!--
+        SaaS application configurations.
+    -->
+    <SaaS>
+        <EnableAppCreation>false</EnableAppCreation>
+        <EnableCrossTenantOperations>false</EnableCrossTenantOperations>
+    </SaaS>
+
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v1.0/</Context>
@@ -3003,4 +3017,8 @@
     <WorkflowEngine>
         <MaxApproverNotifications>15</MaxApproverNotifications>
     </WorkflowEngine>
+
+    <AppNativeAuthentication>
+        <HandleFailCompletedAuthenticatorStatus>true</HandleFailCompletedAuthenticatorStatus>
+    </AppNativeAuthentication>
 </Server>

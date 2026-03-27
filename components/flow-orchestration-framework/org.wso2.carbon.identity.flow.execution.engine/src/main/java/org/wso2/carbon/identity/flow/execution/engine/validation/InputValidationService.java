@@ -60,7 +60,6 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_PROCESSING_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_UNIQUENESS_VALIDATION_FAILED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_CLAIM_META_DATA_FAILURE;
@@ -111,8 +110,21 @@ public class InputValidationService {
      *
      * @param context Flow context.
      * @throws FlowEngineException Flow engine exception.
+     * @deprecated Use {@link #resolveInputValidationResponse(FlowExecutionContext)} instead.
      */
+    @Deprecated
     public void validateInputs(FlowExecutionContext context) throws FlowEngineException {
+
+        validateRequiredInputs(context);
+    }
+
+    /**
+     * Validate the required inputs and extra inputs.
+     * 
+     * @param context Flow context.
+     * @throws FlowEngineClientException If a client error occurs during validation.
+     */
+    private void validateRequiredInputs(FlowExecutionContext context) throws FlowEngineException {
 
         // Check if the actionId is empty and set it to default action.
         String actionId = context.getCurrentActionId();
@@ -144,28 +156,6 @@ public class InputValidationService {
         for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
             if (!context.getCurrentStepInputs().get(actionId).contains(userInput.getKey())) {
                 throw FlowExecutionEngineUtils.handleClientException(flowType, ERROR_CODE_INVALID_USER_INPUT, flowType);
-            }
-        }
-    }
-
-    /**
-     * Validate user inputs against claim uniqueness constraints.
-     *
-     * @param context Flow context.
-     * @throws FlowEngineClientException If claim uniqueness validation fails.
-     */
-    public void validateUserInputs(FlowExecutionContext context) throws FlowEngineClientException,
-            FlowEngineServerException {
-
-        for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
-            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
-                try {
-                    validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue());
-                } catch (FlowEngineServerException e) {
-                    throw handleServerException(ERROR_CODE_CLAIM_PROCESSING_FAILURE, e);
-                }
-            } else if (userInput.getKey().equals(PASSWORD_KEY)) {
-                validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
             }
         }
     }
@@ -232,13 +222,19 @@ public class InputValidationService {
         ExecutorResponse executorResponse = new ExecutorResponse();
         if (MapUtils.isNotEmpty(context.getUserInputData())) {
             try {
+                validateRequiredInputs(context);
                 validateUserInputs(context);
                 handleUserInputs(context);
+                // Clear the current step inputs after successfully consuming user inputs so that
+                // subsequent nodes triggered in the same execution cycle do not re-trigger validation
+                // against stale step input expectations.
+                context.getCurrentStepInputs().clear();
+                context.getCurrentRequiredInputs().clear();
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Input validation passed for flow: " + context.getFlowType());
                 }
                 executorResponse.setResult(STATUS_COMPLETE);
-            } catch (FlowEngineClientException | FlowEngineServerException e) {
+            } catch (FlowEngineException e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Input validation failed for flow: " + context.getFlowType() +
                             ", error: " + e.getMessage());
@@ -258,15 +254,43 @@ public class InputValidationService {
     }
 
     /**
+     * Validate user inputs against claim uniqueness constraints.
+     *
+     * @param context Flow context.
+     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     */
+    private void validateUserInputs(FlowExecutionContext context) throws FlowEngineException {
+
+        // TODO: This is a temporary workaround to skip claim uniqueness validation when the current executor is a
+        // UserResolveExecutor (e.g., in password recovery flows). This makes the engine aware of specific executor
+        // types, which is not ideal and will be removed as an immediate fix in the future.
+        // Refer: https://github.com/wso2/product-is/issues/27206
+        // The proper fix is to introduce an attribute collector executor for the flow, which would allow this
+        // to be handled in the graph building phase itself.
+        boolean skipUniquenessValidation = isUserResolveExecutor(context);
+        for (Map.Entry<String, String> userInput : context.getUserInputData().entrySet()) {
+            if (userInput.getKey().startsWith(CLAIM_URI_PREFIX)) {
+                validateUserClaims(context.getTenantDomain(), userInput.getKey(), userInput.getValue(),
+                        skipUniquenessValidation);
+            } else if (userInput.getKey().equals(PASSWORD_KEY)) {
+                validatePasswordFormat(context.getTenantDomain(), userInput.getValue());
+            }
+        }
+    }
+
+    /**
      * Retrieve validation rules from claim metadata for the given claim URI.
      * Validates claim uniqueness if configured and throws exception on failure.
      *
-     * @param tenantDomain Tenant domain.
-     * @param claimUri     Claim URI.
-     * @throws FlowEngineClientException If claim uniqueness validation fails.
+     * @param tenantDomain             Tenant domain.
+     * @param claimUri                 Claim URI.
+     * @param claimValue               Claim value to validate.
+     * @param skipUniquenessValidation Whether to skip claim uniqueness validation.
+     * @throws FlowEngineException If claim uniqueness validation fails.
      */
-    public void validateUserClaims(String tenantDomain, String claimUri, String claimValue)
-            throws FlowEngineClientException, FlowEngineServerException {
+    private void validateUserClaims(String tenantDomain, String claimUri, String claimValue,
+                                   boolean skipUniquenessValidation)
+            throws FlowEngineException {
 
         try {
             if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
@@ -309,15 +333,18 @@ public class InputValidationService {
                 }
             }
 
-            ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
-                    .getClaimUniquenessScope(claimProperties);
-            if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) || claimUri.equals(USERNAME_CLAIM_URI)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Uniqueness validation found for claim " + claimUri + " with scope: " +
-                            uniquenessScope);
-                }
-                if (StringUtils.isNotBlank(claimValue)) {
-                    validateClaimUniqueness(claimUri, claimValue);
+            if (!skipUniquenessValidation) {
+                ClaimConstants.ClaimUniquenessScope uniquenessScope = ClaimValidationUtil
+                        .getClaimUniquenessScope(claimProperties);
+                if (ClaimValidationUtil.shouldValidateUniqueness(uniquenessScope) ||
+                        claimUri.equals(USERNAME_CLAIM_URI)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Uniqueness validation found for claim " + claimUri + " with scope: " +
+                                uniquenessScope);
+                    }
+                    if (StringUtils.isNotBlank(claimValue)) {
+                        validateClaimUniqueness(claimUri, claimValue);
+                    }
                 }
             }
         } catch (ClaimMetadataException e) {
@@ -332,10 +359,10 @@ public class InputValidationService {
      *
      * @param claimUri        Claim URI.
      * @param claimValue      Claim value to validate.
-     * @throws FlowEngineClientException If the claim value is not unique.
+     * @throws FlowEngineException If the claim value is not unique.
      */
     private static void validateClaimUniqueness(String claimUri, String claimValue)
-            throws FlowEngineClientException, UserStoreException {
+            throws FlowEngineException, UserStoreException {
 
         boolean isDuplicated = ClaimValidationUtil.isClaimDuplicated(claimUri, claimValue);
         if (isDuplicated) {
@@ -352,11 +379,10 @@ public class InputValidationService {
      *
      * @param tenantDomain Tenant domain.
      * @param username     Username value to validate.
-     * @throws FlowEngineClientException If the username does not satisfy the configured format rules.
-     * @throws FlowEngineServerException If an error occurs while retrieving the validation configuration.
+     * @throws FlowEngineException If the username does not satisfy the configured format rules or
+     *                             an error occurs while retrieving the validation configuration.
      */
-    private void validateUsernameFormat(String tenantDomain, String username)
-            throws FlowEngineClientException, FlowEngineServerException {
+    private void validateUsernameFormat(String tenantDomain, String username) throws FlowEngineException {
 
         boolean isUsernameValidationEnabled = Boolean.parseBoolean(
                 IdentityUtil.getProperty(IS_USERNAME_VALIDATION_ENABLED));
@@ -368,12 +394,11 @@ public class InputValidationService {
         }
         try {
             validateFieldWithConfiguredRules(tenantDomain, USERNAME, username);
-        } catch (InputValidationMgtClientException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Username format validation failed for username: " + username);
-            }
-            throw handleClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED, username);
         } catch (InputValidationMgtException e) {
+            if (e instanceof InputValidationMgtClientException) {
+                LOG.debug("Username format validation failed for the given username.");
+                throw handleClientException(ERROR_CODE_USERNAME_FORMAT_VALIDATION_FAILED, username);
+            }
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
     }
@@ -384,22 +409,35 @@ public class InputValidationService {
      *
      * @param tenantDomain Tenant domain.
      * @param password     Password value to validate.
-     * @throws FlowEngineClientException If the password does not satisfy the configured format rules.
-     * @throws FlowEngineServerException If an error occurs while retrieving the validation configuration.
+     * @throws FlowEngineException If the password does not satisfy the configured format rules or
+     *                             an error occurs while retrieving the validation configuration.
      */
-    private void validatePasswordFormat(String tenantDomain, String password)
-            throws FlowEngineClientException, FlowEngineServerException {
+    private void validatePasswordFormat(String tenantDomain, String password) throws FlowEngineException {
 
         try {
             validateFieldWithConfiguredRules(tenantDomain, PASSWORD_KEY, password);
-        } catch (InputValidationMgtClientException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Password format validation failed.");
-            }
-            throw handleClientException(ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED);
         } catch (InputValidationMgtException e) {
+            if (e instanceof InputValidationMgtClientException) {
+                LOG.debug("Password format validation failed.");
+                throw handleClientException(ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED);
+            }
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
+    }
+
+    /**
+     * Check whether the current executor in the flow context is a User Resolver executor.
+     *
+     * @param context Flow execution context.
+     * @return True if the current executor is a User Resolver executor, false otherwise.
+     */
+    private boolean isUserResolveExecutor(FlowExecutionContext context) {
+
+        if (context.getCurrentNode() == null || context.getCurrentNode().getExecutorConfig() == null) {
+            return false;
+        }
+        return Constants.ExecutorTypes.USER_RESOLVER.equals(
+                context.getCurrentNode().getExecutorConfig().getName());
     }
 
     /**
@@ -410,11 +448,10 @@ public class InputValidationService {
      * @param tenantDomain Tenant domain.
      * @param field        Field name as used in InputValidationManagementService (e.g., "username", "password").
      * @param value        Value to validate.
-     * @throws InputValidationMgtClientException If the value fails a validation rule.
-     * @throws InputValidationMgtException       If an error occurs while loading configurations or validators.
+     * @throws InputValidationMgtException If an error occurs during validation or if any validation rule fails.
      */
     private void validateFieldWithConfiguredRules(String tenantDomain, String field, String value)
-            throws InputValidationMgtClientException, InputValidationMgtException {
+            throws InputValidationMgtException {
 
         if (FlowExecutionEngineDataHolder.getInstance().getInputValidationManagementService() == null) {
             if (LOG.isDebugEnabled()) {

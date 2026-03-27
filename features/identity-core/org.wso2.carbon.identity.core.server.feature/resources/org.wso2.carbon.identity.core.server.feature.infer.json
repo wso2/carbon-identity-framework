@@ -304,9 +304,6 @@
         "POST_ADD_ORGANIZATION"
       ],
       "flow_execution.enable_legacy_flows": true,
-      "flow_execution.enable_legacy_self_registration_flow": true,
-      "flow_execution.enable_legacy_password_recovery_flow": true,
-      "flow_execution.enable_legacy_invited_user_registration_flow": true,
       "organization_discovery.default_param": "orgName",
       "console.ui.organizations.organization_display_name.enable": false,
       "console.ui.organizations.organization_handle.enable": false,
@@ -341,7 +338,11 @@
       "tenant_level_application_authentication_config.enabled_for_auth_sequence": false,
       "api.filters.single_character_wildcard": "_",
       "transport.https.client.provider_name": "",
-      "identity_secret_manager.secret_value_clob_column_exists": false
+      "identity_secret_manager.secret_value_clob_column_exists": false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -405,7 +406,11 @@
       "transport.https.client.provider_name": "",
       "identity_secret_manager.secret_value_clob_column_exists": false,
       "authentication.include_auth_failure_reason_in_api_based_response": false,
-      "authentication.include_multi_options_in_api_based_auth_response": false
+      "authentication.include_multi_options_in_api_based_auth_response": false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -430,7 +435,11 @@
       "transport.https.client.provider_name": "",
       "identity_secret_manager.secret_value_clob_column_exists": false,
       "authentication.include_auth_failure_reason_in_api_based_response": false,
-      "authentication.include_multi_options_in_api_based_auth_response": false
+      "authentication.include_multi_options_in_api_based_auth_response": false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     }
   }
 }
