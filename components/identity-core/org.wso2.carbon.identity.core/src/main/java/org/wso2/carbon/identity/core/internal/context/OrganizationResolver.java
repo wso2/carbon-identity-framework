@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -34,6 +35,9 @@ import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -49,6 +53,10 @@ public class OrganizationResolver {
             Pattern.compile("^/o/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/?");
     private static final Pattern PATTERN_TENANT_AND_ORG_QUALIFIED =
             Pattern.compile("^/t/[^/]+/o/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/?");
+    private static final String ORG_CONTEXTS_TENANT_QUALIFIED_PATHS_CONFIG =
+            "OrgContextsToRewriteInTenantQualifiedPaths.WebApp.Context.SubPaths.Path";
+    private static final Pattern PATTERN_TENANT_ORG_PREFIX =
+            Pattern.compile("^/t/[^/]+/o/[^/]+");
 
     private OrganizationResolver() {
         // Private constructor to prevent instantiation.
@@ -68,6 +76,13 @@ public class OrganizationResolver {
 
         String requestURI = request.getRequestURI();
         if (StringUtils.isBlank(requestURI)) {
+            return;
+        }
+
+        // Paths configured under OrgContextsToRewriteInTenantQualifiedPaths require tenant-org validation
+        // performed by TenantContextRewriteValve. Skip eager resolution here to prevent early rejection on
+        // invalid tenant or org values before the rewrite valve has a chance to return a proper 400.
+        if (isTenantQualifiedOrgPath(requestURI)) {
             return;
         }
 
@@ -227,6 +242,31 @@ public class OrganizationResolver {
 
         return IdentityCoreServiceDataHolder.getInstance().getOrganizationManager()
                 .resolveTenantDomain(organizationId);
+    }
+
+    private boolean isTenantQualifiedOrgPath(String requestURI) {
+
+        if (!PATTERN_TENANT_ORG_PREFIX.matcher(requestURI).find()) {
+            return false;
+        }
+        Map<String, Object> configuration = IdentityConfigParser.getInstance().getConfiguration();
+        Object configuredPaths = configuration.get(ORG_CONTEXTS_TENANT_QUALIFIED_PATHS_CONFIG);
+        if (configuredPaths == null) {
+            return false;
+        }
+        List<String> subPaths = new ArrayList<>();
+        if (configuredPaths instanceof List) {
+            subPaths.addAll((List<String>) configuredPaths);
+        } else {
+            subPaths.add(configuredPaths.toString());
+        }
+        for (String subPath : subPaths) {
+            if (Pattern.compile("^/t/[^/]+/o/[^/]+" + Pattern.quote(subPath))
+                    .matcher(requestURI).find()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String extractResourceFromURI(String requestURI, String resourceIdentifier) {
