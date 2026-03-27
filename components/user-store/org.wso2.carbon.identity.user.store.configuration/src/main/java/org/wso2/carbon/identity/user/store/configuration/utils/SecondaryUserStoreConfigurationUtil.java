@@ -860,7 +860,8 @@ public class SecondaryUserStoreConfigurationUtil {
      * @param connectionUrl The connection URL to validate.
      * @throws IdentityUserStoreMgtException If the connection URL contains forbidden INIT expressions.
      */
-    public static void validateConnectionUrlForInitExpressions(String connectionUrl) throws IdentityUserStoreMgtException {
+    public static void validateConnectionUrlForInitExpressions(String connectionUrl)
+            throws IdentityUserStoreMgtException {
 
         if (StringUtils.isNotEmpty(connectionUrl)) {
             String validationConnectionString = connectionUrl.toLowerCase().replace("\\", "");
