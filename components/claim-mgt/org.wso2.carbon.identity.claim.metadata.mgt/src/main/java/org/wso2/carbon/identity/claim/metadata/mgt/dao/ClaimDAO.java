@@ -239,7 +239,7 @@ public class ClaimDAO {
 
         if (claimId > 0 && claimProperties != null) {
             String query = SQLConstants.ADD_CLAIM_PROPERTY;
-            try (PreparedStatement prepStmt = connection.prepareStatement(query);) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
                 boolean isOracle = StringUtils.containsIgnoreCase(
                         connection.getMetaData().getDatabaseProductName(), IdentityCoreConstants.ORACLE);
                 prepStmt.setInt(1, claimId);
@@ -248,7 +248,7 @@ public class ClaimDAO {
                     // Skip properties with empty values on Oracle, as it treats empty strings as NULL
                     if (isOracle && StringUtils.isEmpty(property.getValue())) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Skipping empty property value for key: " + property.getKey() + 
+                            log.debug("Skipping empty property value for key: " + property.getKey() +
                                       " due to Oracle NULL constraint");
                         }
                         continue;
