@@ -33,9 +33,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelReso
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AllowedOperation;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ExposePath;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.OperationPath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,8 +44,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_ALLOWED_OPERATIONS;
-import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
@@ -58,11 +56,11 @@ import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.ma
  * ActionDTOModelResolver implementation for In-Flow Extension actions.
  * <p>
  * Responsible for validating and transforming access config properties (expose paths and
- * allowed operations) between the service layer representation and the DAO layer BLOB format.
+ * modify paths) between the service layer representation and the DAO layer BLOB format.
  * </p>
  *
  * <ul>
- *   <li><b>Add operation</b>: Validates expose paths and allowed operations, then serializes
+ *   <li><b>Add operation</b>: Validates expose paths and modify paths, then serializes
  *       them to JSON {@link BinaryObject}s for BLOB storage in IDN_ACTION_PROPERTIES.</li>
  *   <li><b>Get operation</b>: Deserializes BLOBs back to service-layer list objects.</li>
  *   <li><b>Update operation</b>: Validates updated values or preserves existing ones (PUT semantics).</li>
@@ -73,6 +71,8 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionActionDTOModelResolver.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<List<ContextPath>> CONTEXT_PATH_LIST_TYPE_REF =
+            new TypeReference<List<ContextPath>>() { };
 
     private final CertificateManagementService certificateManagementService;
 
@@ -96,15 +96,15 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         Object exposeValue = actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         // Expose is an optional field.
         if (exposeValue != null) {
-            List<ExposePath> validatedExpose = validateExpose(exposeValue);
+            List<ContextPath> validatedExpose = validateExpose(exposeValue);
             properties.put(ACCESS_CONFIG_EXPOSE, createBlobProperty(validatedExpose));
         }
 
-        Object allowedOpsValue = actionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS);
-        // Allowed operations is an optional field.
-        if (allowedOpsValue != null) {
-            List<AllowedOperation> validatedOps = validateAllowedOperations(allowedOpsValue);
-            properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS, createBlobProperty(validatedOps));
+        Object modifyValue = actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
+        // Modify is an optional field.
+        if (modifyValue != null) {
+            List<ContextPath> validatedModify = validateExpose(modifyValue);
+            properties.put(ACCESS_CONFIG_MODIFY, createBlobProperty(validatedModify));
         }
 
         // Handle certificate: store via CertificateManagementService and replace with ID.
@@ -117,14 +117,14 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
                     Object overrideExpose = actionDTO.getPropertyValue(key);
                     if (overrideExpose != null) {
-                        List<ExposePath> validatedOverrideExpose = validateExpose(overrideExpose);
+                        List<ContextPath> validatedOverrideExpose = validateExpose(overrideExpose);
                         properties.put(key, createBlobProperty(validatedOverrideExpose));
                     }
-                } else if (key.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)) {
-                    Object overrideOps = actionDTO.getPropertyValue(key);
-                    if (overrideOps != null) {
-                        List<AllowedOperation> validatedOverrideOps = validateAllowedOperations(overrideOps);
-                        properties.put(key, createBlobProperty(validatedOverrideOps));
+                } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                    Object overrideModify = actionDTO.getPropertyValue(key);
+                    if (overrideModify != null) {
+                        List<ContextPath> validatedOverrideModify = validateExpose(overrideModify);
+                        properties.put(key, createBlobProperty(validatedOverrideModify));
                     }
                 }
             }
@@ -147,9 +147,9 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                     ((BinaryObject) actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE)).getJSONString()));
         }
 
-        if (actionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS) != null) {
-            properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS, deserializeAllowedOpsProperty(
-                    ((BinaryObject) actionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS)).getJSONString()));
+        if (actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
+            properties.put(ACCESS_CONFIG_MODIFY, deserializeExposeProperty(
+                    ((BinaryObject) actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY)).getJSONString()));
         }
 
         // Retrieve certificate by stored ID.
@@ -163,9 +163,9 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                         && actionDTO.getPropertyValue(key) != null) {
                     properties.put(key, deserializeExposeProperty(
                             ((BinaryObject) actionDTO.getPropertyValue(key)).getJSONString()));
-                } else if (key.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)
+                } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)
                         && actionDTO.getPropertyValue(key) != null) {
-                    properties.put(key, deserializeAllowedOpsProperty(
+                    properties.put(key, deserializeExposeProperty(
                             ((BinaryObject) actionDTO.getPropertyValue(key)).getJSONString()));
                 }
             }
@@ -208,15 +208,14 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         // updated the existing properties should be sent to the DAO layer.
 
         // Handle default access config properties.
-        List<ExposePath> expose = getResolvedUpdatingExpose(updatingActionDTO, existingActionDTO);
+        List<ContextPath> expose = getResolvedUpdatingExpose(updatingActionDTO, existingActionDTO);
         if (!expose.isEmpty()) {
             properties.put(ACCESS_CONFIG_EXPOSE, createBlobProperty(expose));
         }
 
-        List<AllowedOperation> allowedOps =
-                getResolvedUpdatingAllowedOps(updatingActionDTO, existingActionDTO);
-        if (!allowedOps.isEmpty()) {
-            properties.put(ACCESS_CONFIG_ALLOWED_OPERATIONS, createBlobProperty(allowedOps));
+        List<ContextPath> modify = getResolvedUpdatingModify(updatingActionDTO, existingActionDTO);
+        if (!modify.isEmpty()) {
+            properties.put(ACCESS_CONFIG_MODIFY, createBlobProperty(modify));
         }
 
         // Handle certificate update.
@@ -229,7 +228,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
             for (Map.Entry<String, ActionProperty> entry : existingActionDTO.getProperties().entrySet()) {
                 String key = entry.getKey();
                 if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)
-                        || key.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)) {
+                        || key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
                     properties.put(key, createBlobProperty(existingActionDTO.getPropertyValue(key)));
                 }
             }
@@ -241,14 +240,14 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
                     Object overrideExpose = updatingActionDTO.getPropertyValue(key);
                     if (overrideExpose != null) {
-                        List<ExposePath> validatedOverrideExpose = validateExpose(overrideExpose);
+                        List<ContextPath> validatedOverrideExpose = validateExpose(overrideExpose);
                         properties.put(key, createBlobProperty(validatedOverrideExpose));
                     }
-                } else if (key.startsWith(ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX)) {
-                    Object overrideOps = updatingActionDTO.getPropertyValue(key);
-                    if (overrideOps != null) {
-                        List<AllowedOperation> validatedOverrideOps = validateAllowedOperations(overrideOps);
-                        properties.put(key, createBlobProperty(validatedOverrideOps));
+                } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                    Object overrideModify = updatingActionDTO.getPropertyValue(key);
+                    if (overrideModify != null) {
+                        List<ContextPath> validatedOverrideModify = validateExpose(overrideModify);
+                        properties.put(key, createBlobProperty(validatedOverrideModify));
                     }
                 }
             }
@@ -270,26 +269,26 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     // ---- Update helpers ----
 
     @SuppressWarnings("unchecked")
-    private List<ExposePath> getResolvedUpdatingExpose(ActionDTO updatingActionDTO, ActionDTO existingActionDTO)
+    private List<ContextPath> getResolvedUpdatingExpose(ActionDTO updatingActionDTO, ActionDTO existingActionDTO)
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
             return validateExpose(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
-            return (List<ExposePath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
+            return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         }
         return emptyList();
     }
 
     @SuppressWarnings("unchecked")
-    private List<AllowedOperation> getResolvedUpdatingAllowedOps(ActionDTO updatingActionDTO,
-                                                                 ActionDTO existingActionDTO)
+    private List<ContextPath> getResolvedUpdatingModify(ActionDTO updatingActionDTO,
+                                                       ActionDTO existingActionDTO)
             throws ActionDTOModelResolverException {
 
-        if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS) != null) {
-            return validateAllowedOperations(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS));
-        } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS) != null) {
-            return (List<AllowedOperation>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_ALLOWED_OPERATIONS);
+        if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
+            return validateExpose(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
+        } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
+            return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         }
         return emptyList();
     }
@@ -297,7 +296,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     // ---- Validation ----
 
     @SuppressWarnings("unchecked")
-    private List<ExposePath> validateExpose(Object exposeValue) throws ActionDTOModelResolverException {
+    private List<ContextPath> validateExpose(Object exposeValue) throws ActionDTOModelResolverException {
 
         if (!(exposeValue instanceof List<?>)) {
             throw new ActionDTOModelResolverClientException("Invalid expose format.",
@@ -305,12 +304,12 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         }
 
         List<?> exposeList = (List<?>) exposeValue;
-        List<ExposePath> result = new ArrayList<>();
+        List<ContextPath> result = new ArrayList<>();
 
         for (Object item : exposeList) {
             if (item instanceof String) {
                 // Simple string path — no encryption.
-                result.add(new ExposePath((String) item, false));
+                result.add(new ContextPath((String) item, false));
             } else if (item instanceof Map) {
                 Map<?, ?> map = (Map<?, ?>) item;
                 if (!map.containsKey("path") || !(map.get("path") instanceof String)) {
@@ -319,9 +318,9 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 }
                 String path = (String) map.get("path");
                 boolean encrypted = map.containsKey("encrypted") && toBooleanSafe(map.get("encrypted"));
-                result.add(new ExposePath(path, encrypted));
-            } else if (item instanceof ExposePath) {
-                result.add((ExposePath) item);
+                result.add(new ContextPath(path, encrypted));
+            } else if (item instanceof ContextPath) {
+                result.add((ContextPath) item);
             } else {
                 throw new ActionDTOModelResolverClientException("Invalid expose format.",
                         "Each expose entry must be a string or an object with 'path' and optional 'encrypted' fields.");
@@ -329,11 +328,11 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         }
 
         validateExposeCount(result);
-        validateExposePathFormat(result);
+        validateContextPathFormat(result);
         return result;
     }
 
-    private void validateExposeCount(List<ExposePath> expose) throws ActionDTOModelResolverClientException {
+    private void validateExposeCount(List<ContextPath> expose) throws ActionDTOModelResolverClientException {
 
         if (expose.size() > MAX_EXPOSE_PATHS) {
             throw new ActionDTOModelResolverClientException("Maximum expose paths limit exceeded.",
@@ -342,10 +341,10 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         }
     }
 
-    private void validateExposePathFormat(List<ExposePath> expose) throws ActionDTOModelResolverClientException {
+    private void validateContextPathFormat(List<ContextPath> expose) throws ActionDTOModelResolverClientException {
 
         Set<String> seen = new HashSet<>();
-        for (ExposePath exposePath : expose) {
+        for (ContextPath exposePath : expose) {
             String path = exposePath.getPath();
             if (path == null || path.trim().isEmpty()) {
                 throw new ActionDTOModelResolverClientException("Invalid expose path.",
@@ -360,68 +359,6 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                         String.format("The expose path '%s' is duplicated.", path));
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<AllowedOperation> validateAllowedOperations(Object allowedOpsValue)
-            throws ActionDTOModelResolverClientException {
-
-        if (!(allowedOpsValue instanceof List<?>)) {
-            throw new ActionDTOModelResolverClientException("Invalid allowed operations format.",
-                    "Allowed operations should be provided as a list.");
-        }
-
-        List<?> opsList = (List<?>) allowedOpsValue;
-        List<AllowedOperation> result = new ArrayList<>();
-
-        for (Object item : opsList) {
-            if (item instanceof AllowedOperation) {
-                result.add((AllowedOperation) item);
-            } else if (item instanceof Map) {
-                Map<?, ?> opMap = (Map<?, ?>) item;
-                if (!opMap.containsKey("op") || !(opMap.get("op") instanceof String)) {
-                    throw new ActionDTOModelResolverClientException("Invalid allowed operation.",
-                            "Each allowed operation must contain an 'op' field with a string value.");
-                }
-                String op = (String) opMap.get("op");
-
-                if (!opMap.containsKey("paths") || !(opMap.get("paths") instanceof List)) {
-                    throw new ActionDTOModelResolverClientException("Invalid allowed operation.",
-                            "Each allowed operation must contain a 'paths' list.");
-                }
-
-                List<?> pathsList = (List<?>) opMap.get("paths");
-                List<OperationPath> operationPaths = new ArrayList<>();
-                for (Object pathItem : pathsList) {
-                    if (pathItem instanceof OperationPath) {
-                        operationPaths.add((OperationPath) pathItem);
-                    } else if (pathItem instanceof Map) {
-                        Map<?, ?> pathMap = (Map<?, ?>) pathItem;
-                        if (!pathMap.containsKey("path") || !(pathMap.get("path") instanceof String)) {
-                            throw new ActionDTOModelResolverClientException("Invalid operation path.",
-                                    "Each path entry must contain a 'path' field with a string value.");
-                        }
-                        String path = (String) pathMap.get("path");
-                        boolean encrypted = pathMap.containsKey("encrypted")
-                                && toBooleanSafe(pathMap.get("encrypted"));
-                        operationPaths.add(new OperationPath(path, encrypted));
-                    } else if (pathItem instanceof String) {
-                        // Simple string path — no encryption.
-                        operationPaths.add(new OperationPath((String) pathItem, false));
-                    } else {
-                        throw new ActionDTOModelResolverClientException("Invalid operation path format.",
-                                "Each path entry must be a string or an object with 'path' and "
-                                        + "optional 'encrypted' fields.");
-                    }
-                }
-                result.add(new AllowedOperation(op, operationPaths));
-            } else {
-                throw new ActionDTOModelResolverClientException("Invalid allowed operations format.",
-                        "Each allowed operation must be an object with 'op' and 'paths' fields.");
-            }
-        }
-
-        return result;
     }
 
     // ---- Certificate lifecycle helpers ----
@@ -592,23 +529,10 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
     private ActionProperty deserializeExposeProperty(String jsonString) throws ActionDTOModelResolverException {
 
         try {
-            List<ExposePath> expose = OBJECT_MAPPER.readValue(jsonString,
-                    new TypeReference<List<ExposePath>>() { });
+            List<ContextPath> expose = OBJECT_MAPPER.readValue(jsonString, CONTEXT_PATH_LIST_TYPE_REF);
             return new ActionProperty.BuilderForService(expose).build();
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error reading expose values from storage.", e);
-        }
-    }
-
-    private ActionProperty deserializeAllowedOpsProperty(String jsonString)
-            throws ActionDTOModelResolverException {
-
-        try {
-            List<AllowedOperation> allowedOps = OBJECT_MAPPER.readValue(jsonString,
-                    new TypeReference<List<AllowedOperation>>() { });
-            return new ActionProperty.BuilderForService(allowedOps).build();
-        } catch (IOException e) {
-            throw new ActionDTOModelResolverException("Error reading allowed operations from storage.", e);
         }
     }
 

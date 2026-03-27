@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
@@ -39,6 +36,7 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequ
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -47,10 +45,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This class is responsible for building the {@link ActionExecutionRequest} for In-Flow Extension
@@ -58,24 +53,13 @@ import java.util.regex.Pattern;
  *
  * <p><b>Responsibility</b>: expose-based filtering and request construction.
  * It receives a {@link FlowContext} containing the full {@link FlowExecutionContext}, the expose
- * list, and the allowed-operations JSON. It filters the {@link FlowExecutionContext} data according
- * to the expose configuration and maps the result into the {@link InFlowExtensionEvent} model.</p>
+ * list, and the access config. It filters the {@link FlowExecutionContext} data according
+ * to the expose configuration and maps the result into the {@link InFlowExtensionEvent} model.
+ * Modify paths from the access config are converted to a single REPLACE {@link AllowedOperation}.</p>
  */
 public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuilder {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final TypeReference<List<Map<String, Object>>> OPERATION_LIST_TYPE_REF =
-            new TypeReference<List<Map<String, Object>>>() { };
-
-    /**
-     * Regex pattern to match path type annotations.
-     * Matches a trailing bracket expression at the end of a path:
-     * - "[]" — denotes a string array value.
-     * - "[field1, field2, field3[]]" — denotes a complex object array with a schema.
-     * Group 1 captures the content inside the brackets (empty for simple arrays).
-     */
-    private static final Pattern PATH_ANNOTATION_PATTERN = Pattern.compile("\\[([^\\]]*)]$");
 
     @Override
     public ActionType getSupportedActionType() {
@@ -109,19 +93,13 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         Encryption encryption = flowContext.getValue(
                 InFlowExtensionExecutor.ENCRYPTION_KEY, Encryption.class);
 
-        // Build allowed operations first so REPLACE paths can augment the expose list.
-        List<AllowedOperation> allowedOperations = buildAllowedOperations(
-                flowContext.getValue(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, String.class),
-                flowContext, accessConfig);
+        // Build allowed operations from modify paths.
+        List<AllowedOperation> allowedOperations = buildAllowedOperationsFromModify(
+                accessConfig, flowContext);
 
-        // Augment expose with REPLACE and REMOVE paths so the external service can see
-        // the current values it may replace or remove.
-        expose = augmentExposeWithOperationPaths(expose, allowedOperations);
-
-        // Determine certificate PEM for outbound encryption (if any paths are encrypted).
+        // Determine certificate PEM for outbound encryption.
         String certificatePEM = null;
-        if (accessConfig != null && accessConfig.hasAnyEncryptedPath()
-                && encryption != null && encryption.getCertificate() != null) {
+        if (accessConfig != null && encryption != null && encryption.getCertificate() != null) {
             certificatePEM = encryption.getCertificate().getCertificateContent();
         }
 
@@ -136,115 +114,63 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     }
 
     /**
-     * Parse the allowed-operations JSON into typed {@link AllowedOperation} objects.
-     * Handles the nested format where each entry is {@code {op, paths: [{path, encrypted}]}}.
-     * Groups entries by operation type and strips path type annotations.
-     * The original annotations are stored in the FlowContext under
-     * {@link InFlowExtensionExecutor#PATH_TYPE_ANNOTATIONS_KEY} for the response processor.
-     * <p>
-     * Encryption metadata is NOT extracted from the JSON. Instead, the {@link AccessConfig}
-     * (already in FlowContext) is the single source of truth for per-path encryption flags.
-     * The response processor uses {@code AccessConfig.isOperationPathEncrypted()} directly.
+     * Build allowed operations from the modify paths in {@link AccessConfig}.
+     * All modify paths are mapped to a single REPLACE {@link AllowedOperation}.
+     * Path type annotations (e.g. {@code []} or {@code [schema]}) are stripped and stored
+     * in the {@link FlowContext} under {@link InFlowExtensionExecutor#PATH_TYPE_ANNOTATIONS_KEY}
+     * for the response processor.
      *
-     * @param allowedOperationsJson The JSON string (maybe null).
-     * @param flowContext           The FlowContext to store path annotations.
-     * @param accessConfig          The access config (may be null). Reserved for future use.
-     * @return List of AllowedOperation objects with clean (annotation-free) paths.
+     * @param accessConfig The access config containing modify paths (may be null).
+     * @param flowContext  The FlowContext to store path annotations.
+     * @return A singleton list containing one REPLACE operation, or empty list if no modify paths.
      */
-    private List<AllowedOperation> buildAllowedOperations(String allowedOperationsJson,
-                                                          FlowContext flowContext,
-                                                          AccessConfig accessConfig) {
+    private List<AllowedOperation> buildAllowedOperationsFromModify(AccessConfig accessConfig,
+                                                                    FlowContext flowContext) {
 
-        if (allowedOperationsJson == null || allowedOperationsJson.isEmpty()) {
-            LOG.debug("No allowed operations configured. Using empty list.");
+        if (accessConfig == null || accessConfig.getModify() == null || accessConfig.getModify().isEmpty()) {
             return Collections.emptyList();
         }
 
-        try {
-            List<Map<String, Object>> operationConfigs = objectMapper.readValue(
-                    allowedOperationsJson, OPERATION_LIST_TYPE_REF);
+        List<String> cleanPaths = new ArrayList<>();
+        Map<String, String> pathTypeAnnotations = new HashMap<>();
 
-            // Map to store path type annotations: cleanPath -> annotation content.
-            Map<String, String> pathTypeAnnotations = new HashMap<>();
+        for (ContextPath modifyPath : accessConfig.getModify()) {
+            String rawPath = modifyPath.getPath();
+            if (rawPath == null) {
+                continue;
+            }
 
-            // Group entries by operation type, handling nested paths [{path, encrypted}].
-            Map<String, List<String>> groupedByOp = new HashMap<>();
-            for (Map<String, Object> config : operationConfigs) {
-                String opString = (String) config.get("op");
-                Object pathsObj = config.get("paths");
-
-                if (opString == null) {
-                    LOG.warn("Invalid allowed operation config: missing 'op'.");
+            String[] stripped = PathTypeAnnotationUtil.stripAnnotation(rawPath);
+            String cleanPath = stripped[0];
+            String annotation = stripped[1];
+            if (annotation != null) {
+                if (!PathTypeAnnotationUtil.validateAnnotationLimits(annotation)) {
+                    LOG.warn("Annotation for path " + cleanPath
+                            + " exceeds maximum attribute limit. Skipping path.");
                     continue;
                 }
-                if (!(pathsObj instanceof List)) {
-                    LOG.warn("Invalid allowed operation config: missing or invalid 'paths'.");
-                    continue;
-                }
-
-                List<?> pathsList = (List<?>) pathsObj;
-                for (Object pathEntry : pathsList) {
-                    String rawPath;
-
-                    if (pathEntry instanceof Map) {
-                        // Nested format: {path, encrypted} — only extract path here.
-                        // Encryption metadata is resolved from AccessConfig at runtime.
-                        Map<?, ?> pathMap = (Map<?, ?>) pathEntry;
-                        rawPath = (String) pathMap.get("path");
-                    } else if (pathEntry instanceof String) {
-                        rawPath = (String) pathEntry;
-                    } else {
-                        LOG.warn("Invalid path entry in allowed operation.");
-                        continue;
-                    }
-
-                    if (rawPath == null) {
-                        continue;
-                    }
-
-                    // Strip annotations and accumulate paths into groups.
-                    Matcher matcher = PATH_ANNOTATION_PATTERN.matcher(rawPath);
-                    String cleanPath;
-                    if (matcher.find()) {
-                        cleanPath = rawPath.substring(0, matcher.start());
-                        pathTypeAnnotations.put(cleanPath, matcher.group(1));
-                    } else {
-                        cleanPath = rawPath;
-                    }
-
-                    groupedByOp.computeIfAbsent(opString.toUpperCase(Locale.ENGLISH),
-                            k -> new ArrayList<>()).add(cleanPath);
-                }
+                pathTypeAnnotations.put(cleanPath, annotation);
             }
+            cleanPaths.add(cleanPath);
+        }
 
-            // Build AllowedOperation objects from grouped entries.
-            List<AllowedOperation> allowedOperations = new ArrayList<>();
-            for (Map.Entry<String, List<String>> entry : groupedByOp.entrySet()) {
-                try {
-                    Operation operation = Operation.valueOf(entry.getKey());
-                    AllowedOperation allowedOperation = new AllowedOperation();
-                    allowedOperation.setOp(operation);
-                    allowedOperation.setPaths(entry.getValue());
-                    allowedOperations.add(allowedOperation);
-                } catch (IllegalArgumentException e) {
-                    LOG.warn("Unknown operation type: " + entry.getKey());
-                }
-            }
-
-            // Store annotations in FlowContext for the response processor.
-            if (!pathTypeAnnotations.isEmpty()) {
-                flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
-            }
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Built " + allowedOperations.size() + " allowed operations. " +
-                        "Path annotations: " + pathTypeAnnotations.size());
-            }
-            return allowedOperations;
-        } catch (JsonProcessingException e) {
-            LOG.error("Failed to parse allowed operations: " + e.getMessage(), e);
+        if (cleanPaths.isEmpty()) {
             return Collections.emptyList();
         }
+
+        AllowedOperation replaceOp = new AllowedOperation();
+        replaceOp.setOp(Operation.REPLACE);
+        replaceOp.setPaths(cleanPaths);
+
+        if (!pathTypeAnnotations.isEmpty()) {
+            flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Built REPLACE allowed operation with " + cleanPaths.size()
+                    + " modify paths. Path annotations: " + pathTypeAnnotations.size());
+        }
+        return Collections.singletonList(replaceOp);
     }
 
     /**
@@ -448,56 +374,11 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         return false;
     }
 
-    /**
-     * Augment the expose list with paths from REPLACE and REMOVE operations.
-     * REPLACE operations require the current values to be visible to the external service
-     * so it can decide what replacement to send. REMOVE operations require current values
-     * to be visible so the external service knows what data would be removed.
-     *
-     * @param expose            The current expose list.
-     * @param allowedOperations The parsed allowed operations.
-     * @return The augmented expose list (new list if modified, original if unchanged).
-     */
-    private List<String> augmentExposeWithOperationPaths(List<String> expose,
-                                                        List<AllowedOperation> allowedOperations) {
-
-        if (allowedOperations == null || allowedOperations.isEmpty()) {
-            return expose;
-        }
-
-        List<String> additionalPaths = new ArrayList<>();
-        for (AllowedOperation op : allowedOperations) {
-            if ((op.getOp() == Operation.REPLACE || op.getOp() == Operation.REMOVE)
-                    && op.getPaths() != null) {
-                for (String path : op.getPaths()) {
-                    if (!isExposed(path, expose)) {
-                        additionalPaths.add(path);
-                    }
-                }
-            }
-        }
-
-        if (additionalPaths.isEmpty()) {
-            return expose;
-        }
-
-        List<String> augmented = new ArrayList<>(expose);
-        augmented.addAll(additionalPaths);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Augmented expose list with REPLACE/REMOVE paths: " + additionalPaths);
-        }
-        return augmented;
-    }
-
     // ---- Encryption helpers ----
 
     /**
-     * Determine if a value at the given path should be JWE-encrypted before sending to the external service.
-     * <p>
-     * Checks both the explicit expose config and the operation paths (REPLACE / REMOVE) that may
-     * have been dynamically augmented into the expose list. REPLACE and REMOVE operation paths
-     * carry their own encryption flags in the allowedOperations config — when such a path is
-     * augmented into expose for visibility, its encryption flag must be honoured.
+     * Determine if a value at the given path should be JWE-encrypted before sending to the
+     * external service. Only expose paths with {@code encrypted: true} trigger outbound encryption.
      *
      * @param path           The expose path.
      * @param accessConfig   The access config with encryption flags.
@@ -509,14 +390,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         if (certificatePEM == null || accessConfig == null) {
             return false;
         }
-        // Check explicit expose paths first.
-        if (accessConfig.isExposePathEncrypted(path)) {
-            return true;
-        }
-        // Also check REPLACE and REMOVE operation paths that were augmented into expose.
-        // These paths may have their own encryption flags in the allowedOperations config.
-        return accessConfig.isOperationPathEncrypted("REPLACE", path)
-                || accessConfig.isOperationPathEncrypted("REMOVE", path);
+        return accessConfig.isExposePathEncrypted(path);
     }
 
     /**

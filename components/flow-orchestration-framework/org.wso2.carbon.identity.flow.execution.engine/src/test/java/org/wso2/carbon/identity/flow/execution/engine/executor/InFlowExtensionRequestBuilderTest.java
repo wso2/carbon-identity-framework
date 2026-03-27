@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionEvent;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -125,18 +127,19 @@ public class InFlowExtensionRequestBuilderTest {
         assertNotNull(event.getUserInputs());
     }
 
-    // ========================= buildAllowedOperations =========================
+    // ========================= buildAllowedOperations (from modify) =========================
 
     @Test
-    public void testBuildRequestWithValidAllowedOperations()
+    public void testBuildRequestWithValidModifyPaths()
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        String allowedOpsJson = "[{\"op\":\"ADD\",\"paths\":[\"/properties/riskScore\"]}]";
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, allowedOpsJson)
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY,
                         Arrays.asList("/user/", "/properties/", "/input/", "/flow/", "/graph/"));
 
@@ -146,12 +149,12 @@ public class InFlowExtensionRequestBuilderTest {
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
         assertEquals(ops.size(), 1);
-        assertEquals(ops.get(0).getOp(), Operation.ADD);
+        assertEquals(ops.get(0).getOp(), Operation.REPLACE);
         assertTrue(ops.get(0).getPaths().contains("/properties/riskScore"));
     }
 
     @Test
-    public void testBuildRequestWithNullAllowedOperationsJson()
+    public void testBuildRequestWithNoAccessConfig()
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
@@ -168,13 +171,15 @@ public class InFlowExtensionRequestBuilderTest {
     }
 
     @Test
-    public void testBuildRequestWithMalformedAllowedOperationsJson()
+    public void testBuildRequestWithEmptyModifyPaths()
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList());
+
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, "not-valid-json")
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
@@ -183,45 +188,6 @@ public class InFlowExtensionRequestBuilderTest {
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
         assertTrue(ops.isEmpty());
-    }
-
-    @Test
-    public void testBuildRequestSkipsInvalidOperationConfig()
-            throws ActionExecutionRequestBuilderException {
-
-        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        // Missing "op" key — should be skipped.
-        String json = "[{\"paths\":[\"/properties/score\"]},{\"op\":\"ADD\",\"paths\":[\"/properties/level\"]}]";
-
-        FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
-
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
-
-        List<AllowedOperation> ops = request.getAllowedOperations();
-        assertEquals(ops.size(), 1);
-        assertEquals(ops.get(0).getOp(), Operation.ADD);
-    }
-
-    @Test
-    public void testBuildRequestSkipsUnknownOperationType()
-            throws ActionExecutionRequestBuilderException {
-
-        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        String json = "[{\"op\":\"PATCH\",\"paths\":[\"/properties/score\"]}]";
-
-        FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
-
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
-
-        assertTrue(request.getAllowedOperations().isEmpty());
     }
 
     // ========================= Path annotation stripping =========================
@@ -232,26 +198,27 @@ public class InFlowExtensionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        String json = "[{\"op\":\"ADD\",\"paths\":[\"/properties/riskFactors[]\"]}]";
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/riskFactors{[String]}", false)));
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
-        // AllowedOperation should have clean path (without []).
+        // AllowedOperation should have clean path (without {[String]}).
         AllowedOperation op = request.getAllowedOperations().get(0);
         assertTrue(op.getPaths().contains("/properties/riskFactors"));
-        assertFalse(op.getPaths().contains("/properties/riskFactors[]"));
+        assertFalse(op.getPaths().contains("/properties/riskFactors{[String]}"));
 
         // Annotations should be stored in FlowContext.
         Map<String, String> annotations = flowContext.getValue(
                 InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         assertNotNull(annotations);
-        assertEquals(annotations.get("/properties/riskFactors"), "");
+        assertEquals(annotations.get("/properties/riskFactors"), "[String]");
     }
 
     @Test
@@ -260,11 +227,12 @@ public class InFlowExtensionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        String json = "[{\"op\":\"ADD\",\"paths\":[\"/properties/items[name,count]\"]}]";
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/items{name: String, count: Integer}", false)));
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
@@ -272,11 +240,11 @@ public class InFlowExtensionRequestBuilderTest {
 
         AllowedOperation op = request.getAllowedOperations().get(0);
         assertTrue(op.getPaths().contains("/properties/items"));
-        assertFalse(op.getPaths().contains("/properties/items[name,count]"));
+        assertFalse(op.getPaths().contains("/properties/items{name: String, count: Integer}"));
 
         Map<String, String> annotations = flowContext.getValue(
                 InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
-        assertEquals(annotations.get("/properties/items"), "name,count");
+        assertEquals(annotations.get("/properties/items"), "name: String, count: Integer");
     }
 
     @Test
@@ -285,11 +253,12 @@ public class InFlowExtensionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        String json = "[{\"op\":\"ADD\",\"paths\":[\"/properties/riskScore\"]}]";
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
@@ -307,12 +276,14 @@ public class InFlowExtensionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
-        String json = "[{\"op\":\"ADD\",\"paths\":" +
-                "[\"/properties/riskScore\",\"/properties/riskFactors[]\",\"/properties/items[name,count]\"]}]";
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
+                new ContextPath("/properties/riskScore", false),
+                new ContextPath("/properties/riskFactors{[String]}", false),
+                new ContextPath("/properties/items{name: String, count: Integer}", false)));
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
@@ -327,91 +298,66 @@ public class InFlowExtensionRequestBuilderTest {
         Map<String, String> annotations = flowContext.getValue(
                 InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         assertEquals(annotations.size(), 2);
-        assertEquals(annotations.get("/properties/riskFactors"), "");
-        assertEquals(annotations.get("/properties/items"), "name,count");
+        assertEquals(annotations.get("/properties/riskFactors"), "[String]");
+        assertEquals(annotations.get("/properties/items"), "name: String, count: Integer");
     }
 
-    // ========================= REPLACE paths auto-expose =========================
+    // ========================= Expose and modify independence =========================
 
     @Test
-    public void testReplacePathsAreAutoExposed()
+    public void testModifyPathsDoNotAffectExpose()
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
-        // Expose only /input/ — /properties/ not exposed.
-        // But REPLACE on /properties/riskScore should auto-expose it.
+        // Expose only /input/ and /flow/ — /properties/ is NOT exposed.
         List<String> expose = Arrays.asList("/input/", "/flow/");
-        String json = "[{\"op\":\"REPLACE\",\"paths\":[\"/properties/riskScore\"]}]";
+        // Modify path targets /properties/riskScore — but this should NOT auto-expose it.
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
-        // Pre-set the property so it appears in the event if exposed.
         execCtx.setProperty("riskScore", "50");
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY, expose);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
-        // The event should contain properties because REPLACE path auto-exposed it.
+        // Modify paths should produce REPLACE allowed operation.
+        List<AllowedOperation> ops = request.getAllowedOperations();
+        assertEquals(ops.size(), 1);
+        assertEquals(ops.get(0).getOp(), Operation.REPLACE);
+
+        // Properties should NOT be in event — expose and modify are independent.
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getFlowProperties());
-        assertTrue(event.getFlowProperties().containsKey("riskScore"));
-        assertEquals(event.getFlowProperties().get("riskScore"), "50");
+        assertTrue(event.getFlowProperties() == null || event.getFlowProperties().isEmpty());
     }
 
     @Test
-    public void testReplacePathAlreadyExposedNoAugmentation()
+    public void testMultipleModifyPathsProduceSingleReplaceOperation()
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
-        // /properties/ already exposed.
-        List<String> expose = Arrays.asList("/properties/", "/input/", "/flow/");
-        String json = "[{\"op\":\"REPLACE\",\"paths\":[\"/properties/riskScore\"]}]";
-
-        execCtx.setProperty("riskScore", "50");
+        AccessConfig accessConfig = new AccessConfig(null, Arrays.asList(
+                new ContextPath("/properties/riskScore", false),
+                new ContextPath("/properties/riskLevel", false),
+                new ContextPath("/user/claims/http://wso2.org/claims/email", false)));
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, expose);
+                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
-        // Should still work — no errors, properties exposed.
-        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getFlowProperties());
-        assertTrue(event.getFlowProperties().containsKey("riskScore"));
-    }
-
-    @Test
-    public void testOnlyReplacePathsAreAutoExposedNotAddPaths()
-            throws ActionExecutionRequestBuilderException {
-
-        FlowExecutionContext execCtx = createFullFlowExecutionContext();
-        List<String> expose = Arrays.asList("/input/", "/flow/");
-        // ADD on /properties/riskLevel should NOT be auto-exposed.
-        // REPLACE on /properties/riskScore SHOULD be auto-exposed.
-        String json = "[{\"op\":\"ADD\",\"paths\":[\"/properties/riskLevel\"]}," +
-                "{\"op\":\"REPLACE\",\"paths\":[\"/properties/riskScore\"]}]";
-
-        execCtx.setProperty("riskScore", "50");
-
-        FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ALLOWED_OPERATIONS_KEY, json)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, expose);
-
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
-
-        // Properties should be in event due to REPLACE auto-expose.
-        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getFlowProperties());
-        // riskScore exposed via REPLACE, riskLevel only configured for ADD (not auto-exposed).
-        assertTrue(event.getFlowProperties().containsKey("riskScore"));
+        // All modify paths should be grouped into a single REPLACE operation.
+        List<AllowedOperation> ops = request.getAllowedOperations();
+        assertEquals(ops.size(), 1);
+        assertEquals(ops.get(0).getOp(), Operation.REPLACE);
+        assertEquals(ops.get(0).getPaths().size(), 3);
     }
 
     // ========================= Expose filtering =========================

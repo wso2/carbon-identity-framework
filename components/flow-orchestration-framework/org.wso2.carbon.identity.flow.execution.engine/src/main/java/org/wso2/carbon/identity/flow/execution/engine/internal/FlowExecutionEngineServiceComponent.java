@@ -93,14 +93,12 @@ public class FlowExecutionEngineServiceComponent {
             bundleContext.registerService(FlowExecutionListener.class.getName(), new InputProcessingListener(),
                     null);
 
-            // Register In-Flow Extension executor and its action execution services
             bundleContext.registerService(Executor.class.getName(), new InFlowExtensionExecutor(), null);
             bundleContext.registerService(ActionExecutionRequestBuilder.class.getName(),
                     new InFlowExtensionRequestBuilder(), null);
             bundleContext.registerService(ActionExecutionResponseProcessor.class.getName(),
                     new InFlowExtensionResponseProcessor(), null);
 
-            // Register In-Flow Extension action management services
             bundleContext.registerService(ActionConverter.class.getName(),
                     new InFlowExtensionActionConverter(), null);
             bundleContext.registerService(ActionDTOModelResolver.class.getName(),
@@ -108,7 +106,6 @@ public class FlowExecutionEngineServiceComponent {
                             FlowExecutionEngineDataHolder.getInstance().getCertificateManagementService()),
                     null);
 
-            // Register flow update interceptor for access config overrides
             bundleContext.registerService(FlowUpdateInterceptor.class.getName(),
                     new AccessConfigFlowUpdateInterceptor(), null);
 

@@ -33,7 +33,7 @@ public class InFlowExtensionActionConstants {
      * Property key for the allowed operations stored in IDN_ACTION_PROPERTIES.
      * Stored as a BLOB (JSON-serialized list of operation descriptors).
      */
-    public static final String ACCESS_CONFIG_ALLOWED_OPERATIONS = "ACCESS_CONFIG_ALLOWED_OPERATIONS";
+    public static final String ACCESS_CONFIG_MODIFY = "ACCESS_CONFIG_MODIFY";
 
     /**
      * Separator used between property key and flow type in override keys.
@@ -51,8 +51,8 @@ public class InFlowExtensionActionConstants {
      * Prefix for flow-type-specific allowed operations override properties.
      * Full key format: "ACCESS_CONFIG_ALLOWED_OPERATIONS:&lt;FLOW_TYPE&gt;"
      */
-    public static final String ACCESS_CONFIG_ALLOWED_OPERATIONS_PREFIX =
-            ACCESS_CONFIG_ALLOWED_OPERATIONS + OVERRIDE_KEY_SEPARATOR;
+    public static final String ACCESS_CONFIG_MODIFY_PREFIX =
+            ACCESS_CONFIG_MODIFY + OVERRIDE_KEY_SEPARATOR;
 
     /**
      * Metadata key used in executor metadata (flow configuration) to pass a unified access config

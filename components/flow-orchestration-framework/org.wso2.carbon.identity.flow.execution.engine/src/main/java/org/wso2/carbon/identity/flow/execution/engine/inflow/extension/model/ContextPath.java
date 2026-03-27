@@ -22,20 +22,22 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Domain model for an expose path with an optional encryption flag.
+ * Domain model for a context path with an optional encryption flag.
+ * Used for both expose and modify path entries in {@link AccessConfig}.
  * <p>
- * When {@code encrypted} is {@code true}, the value at this path prefix is JWE-encrypted
- * in the outbound request using the external service's public certificate before sending.
+ * When {@code encrypted} is {@code true}, the value at this path prefix is JWE-encrypted:
+ * for expose paths, outbound values are encrypted with the external service's certificate;
+ * for modify paths, inbound values from the external service are encrypted with IS's key.
  * </p>
  */
-public class ExposePath {
+public class ContextPath {
 
     private final String path;
     private final boolean encrypted;
 
     @JsonCreator
-    public ExposePath(@JsonProperty("path") String path,
-                      @JsonProperty("encrypted") boolean encrypted) {
+    public ContextPath(@JsonProperty("path") String path,
+                       @JsonProperty("encrypted") boolean encrypted) {
 
         this.path = path;
         this.encrypted = encrypted;
