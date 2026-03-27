@@ -345,9 +345,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
         }
 
-        if (StringUtils.isNotEmpty(connectionURL)) {
-            validateConnectionUrlForInitExpressions(connectionURL);
-        }
+        validateConnectionUrlForInitExpressions(connectionURL);
 
         WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
 
@@ -516,9 +514,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         for (PropertyDTO propertyDTOValue : propertyDTO) {
             if (propertyDTOValue != null && "url".equals(propertyDTOValue.getName())) {
                 String connectionURL = propertyDTOValue.getValue();
-                if (StringUtils.isNotEmpty(connectionURL)) {
-                    validateConnectionUrlForInitExpressions(connectionURL);
-                }
+                validateConnectionUrlForInitExpressions(connectionURL);
             }
         }
     }

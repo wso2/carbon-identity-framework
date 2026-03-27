@@ -420,9 +420,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                                        String connectionPassword, String messageID) throws
             IdentityUserStoreMgtException {
 
-        if (StringUtils.isNotEmpty(connectionPassword)) {
-            validateConnectionUrlForInitExpressions(connectionURL);
-        }
+        validateConnectionUrlForInitExpressions(connectionURL);
+
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().testRDBMSConnection(domainName,
                 driverName, connectionURL, username, connectionPassword, messageID);
     }
