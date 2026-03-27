@@ -33,6 +33,11 @@ public class WorkflowRuleFieldRegistry {
 
     public static final Map<String, FieldDefinition> FIELDS;
 
+    private static final String OPERATOR_EQUALS = "equals";
+    private static final String OPERATOR_NOT_EQUALS = "notEquals";
+    private static final String OPERATOR_CONTAINS = "contains";
+    private static final String OPERATOR_NOT_CONTAINS = "notContains";
+
     private static final String ROLES_VALUES_LINK = "/scim2/v2/Roles?offset=0&count=10";
     private static final String ROLES_FILTER_LINK = "/scim2/v2/Roles?filter=&count=10";
     private static final String GROUPS_VALUES_LINK = "/scim2/Groups?offset=0&count=10";
@@ -48,8 +53,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("user.domain", new FieldDefinitionBuilder()
                 .name("user.domain")
-                .displayName("user domain")
-                .operators("equals", "notEquals")
+                .displayName("user's user store domain")
+                .operators(OPERATOR_EQUALS, OPERATOR_NOT_EQUALS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("name")
@@ -59,8 +64,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("user.groups", new FieldDefinitionBuilder()
                 .name("user.groups")
-                .displayName("user groups")
-                .operators("contains")
+                .displayName("user's assigned groups")
+                .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -71,8 +76,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("user.roles", new FieldDefinitionBuilder()
                 .name("user.roles")
-                .displayName("user roles")
-                .operators("contains")
+                .displayName("user's assigned roles")
+                .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -83,8 +88,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("initiator.domain", new FieldDefinitionBuilder()
                 .name("initiator.domain")
-                .displayName("initiator domain")
-                .operators("equals", "notEquals")
+                .displayName("initiator's user store domain")
+                .operators(OPERATOR_EQUALS, OPERATOR_NOT_EQUALS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("name")
@@ -94,8 +99,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("initiator.groups", new FieldDefinitionBuilder()
                 .name("initiator.groups")
-                .displayName("initiator groups")
-                .operators("contains")
+                .displayName("initiator’s assigned groups")
+                .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -106,8 +111,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("initiator.roles", new FieldDefinitionBuilder()
                 .name("initiator.roles")
-                .displayName("initiator roles")
-                .operators("contains")
+                .displayName("initiator's assigned roles")
+                .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -118,7 +123,7 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.id", new FieldDefinitionBuilder()
                 .name("role.id")
-                .displayName("target role")
+                .displayName("role identifier")
                 .operators("equals", "notEquals")
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
@@ -130,8 +135,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.audience", new FieldDefinitionBuilder()
                 .name("role.audience")
-                .displayName("role audience")
-                .operators("equals", "notEquals")
+                .displayName("audience of the role")
+                .operators(OPERATOR_EQUALS, OPERATOR_NOT_EQUALS)
                 .options()
                     .valueType(Value.ValueType.REFERENCE)
                     .referenceAttr("id")
@@ -142,16 +147,16 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.permissions", new FieldDefinitionBuilder()
                 .name("role.permissions")
-                .displayName("role permissions")
-                .operators("contains")
+                .displayName("permissions of the role")
+                .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
                 .input()
                     .valueType(Value.ValueType.STRING)
                 .build());
         
         fields.put("role.hasAssignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasAssignedUsers")
-                .displayName("role has users to be assigned")
-                .operators("equals")
+                .displayName("new users added to the role")
+                .operators(OPERATOR_EQUALS)
                 .options()
                     .valueType(Value.ValueType.STRING)
                     .addFixedValue("true", "true")
@@ -160,8 +165,8 @@ public class WorkflowRuleFieldRegistry {
 
         fields.put("role.hasUnassignedUsers", new FieldDefinitionBuilder()
                 .name("role.hasUnassignedUsers")
-                .displayName("role has users to be unassigned")
-                .operators("equals")
+                .displayName("users removed from the role")
+                .operators(OPERATOR_EQUALS)
                 .options()
                     .valueType(Value.ValueType.STRING)
                     .addFixedValue("true", "true")

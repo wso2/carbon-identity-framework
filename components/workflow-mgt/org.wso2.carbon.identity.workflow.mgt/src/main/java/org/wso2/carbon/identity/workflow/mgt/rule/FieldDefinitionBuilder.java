@@ -42,7 +42,12 @@ public class FieldDefinitionBuilder {
     private static final List<Operator> OPERATORS = Arrays.asList(
             new Operator("equals", "equals"),
             new Operator("notEquals", "not equals"),
-            new Operator("contains", "contains")
+            new Operator("contains", "contains"),
+            new Operator("notContains", "not contains"),
+            new Operator("startsWith", "starts with"),
+            new Operator("endsWith", "ends with"),
+            new Operator("greaterThan", "greater than"),
+            new Operator("lessThan", "less than")
     );
 
     private String name;

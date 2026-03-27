@@ -10,5 +10,25 @@
   "contains": {
     "name": "contains",
     "displayName": "contains"
+  },
+  "notContains": {
+    "name": "notContains",
+    "displayName": "not contains"
+  },
+  "startsWith": {
+    "name": "startsWith",
+    "displayName": "starts with"
+  },
+  "endsWith": {
+    "name": "endsWith",
+    "displayName": "ends with"
+  },
+  "greaterThan": {
+    "name": "greaterThan",
+    "displayName": "greater than"
+  },
+  "lessThan": {
+    "name": "lessThan",
+    "displayName": "less than"
   }
 }

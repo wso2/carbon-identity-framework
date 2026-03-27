@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -66,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -697,6 +699,64 @@ public class DefaultStepHandlerTest {
                 Assert.assertFalse(redirectUrl.contains("user.account.locked"),
                         "Expected URL not to contain user.account.locked but got: " + redirectUrl);
             }
+        }
+    }
+
+    @Test
+    public void testOrgDiscoveryParamsRouteToOrgIdentifierHandler() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ConfigurationFacade> configFacadeMock = mockStatic(ConfigurationFacade.class)) {
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            ConfigurationFacade configFacade = mock(ConfigurationFacade.class);
+            configFacadeMock.when(ConfigurationFacade::getInstance).thenReturn(configFacade);
+            when(configFacade.getAuthenticationEndpointURL()).thenReturn("/authenticationendpoint/login.do");
+
+            HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+            HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+            when(mockRequest.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID))
+                    .thenReturn("org123");
+
+            ApplicationAuthenticator orgAuthenticator = mock(ApplicationAuthenticator.class);
+            when(orgAuthenticator.getName()).thenReturn(FrameworkConstants.ORGANIZATION_IDENTIFIER_HANDLER);
+            when(orgAuthenticator.isAuthenticationRequired(any(), any(), any())).thenReturn(true);
+            when(orgAuthenticator.process(any(), any(), any()))
+                    .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+
+            AuthenticatorConfig authConfig = mock(AuthenticatorConfig.class);
+            when(authConfig.getApplicationAuthenticator()).thenReturn(orgAuthenticator);
+
+            StepConfig stepConfig = mock(StepConfig.class);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(stepConfig.getAuthenticatorList()).thenReturn(Collections.singletonList(authConfig));
+
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getStepMap()).thenReturn(Collections.singletonMap(1, stepConfig));
+
+            AuthenticationContext authContext = mock(AuthenticationContext.class);
+            when(authContext.getCurrentStep()).thenReturn(1);
+            when(authContext.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(authContext.getCurrentAuthenticatedIdPs()).thenReturn(new HashMap<>());
+            when(authContext.isPassiveAuthenticate()).thenReturn(false);
+            when(authContext.isSharedAppLogin()).thenReturn(false);
+
+            frameworkUtils.when(() -> FrameworkUtils.getApplicationName(authContext))
+                    .thenReturn(Optional.empty());
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
+                    .thenReturn("");
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(
+                    any(StepConfig.class), any(Map.class))).thenReturn(new HashMap<>());
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(mockRequest))
+                    .thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorPropertyMapFromIdP(any(), any()))
+                    .thenReturn(new HashMap<>());
+
+            defaultStepHandler.handle(mockRequest, mockResponse, authContext);
+
+            verify(orgAuthenticator).process(mockRequest, mockResponse, authContext);
         }
     }
 }

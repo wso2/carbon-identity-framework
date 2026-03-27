@@ -874,6 +874,12 @@
             <UserName>{{oauth.token_generation.include_username_in_access_token}}</UserName>
         </EnableAssertions>
 
+        <!-- Revoke grant cache upon login. If this is set to true, the authorization grant caches will be cleared upon each login, since the inactive account suspension handler updates the login time on every login.
+                Default value : false
+                Supported versions: IS 7.3.0 onwards
+            -->
+        <RevokeCacheAtLogin>{{identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login}}</RevokeCacheAtLogin>
+
         <!-- This should be true if subject identifier in the token validation response needs to adhere to the
         following SP configuration.
 

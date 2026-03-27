@@ -344,7 +344,8 @@
       "identity_secret_manager.secret_value_clob_column_exists": false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
-      "app_native_authentication.handle_fail_completed_authenticator_status": false
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -411,7 +412,8 @@
       "authentication.include_multi_options_in_api_based_auth_response": false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
-      "app_native_authentication.handle_fail_completed_authenticator_status": false
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -439,7 +441,8 @@
       "authentication.include_multi_options_in_api_based_auth_response": false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
-      "app_native_authentication.handle_fail_completed_authenticator_status": false
+      "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     }
   }
 }
