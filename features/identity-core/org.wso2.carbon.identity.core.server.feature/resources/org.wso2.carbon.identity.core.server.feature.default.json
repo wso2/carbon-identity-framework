@@ -2309,6 +2309,10 @@
   "enhanced_organization_authentication_feature.enabled": true,
 
   "workflow_engine.max_approver_notifications": 15,
+  
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
-  "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false
+  "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
+  
+  "saas.enable_app_creation": false,
+  "saas.enable_cross_tenant_operations": false
 }

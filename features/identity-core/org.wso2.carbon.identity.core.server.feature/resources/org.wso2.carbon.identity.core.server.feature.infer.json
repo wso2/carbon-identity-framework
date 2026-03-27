@@ -339,6 +339,8 @@
       "api.filters.single_character_wildcard": "_",
       "transport.https.client.provider_name": "",
       "identity_secret_manager.secret_value_clob_column_exists": false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
@@ -405,6 +407,8 @@
       "identity_secret_manager.secret_value_clob_column_exists": false,
       "authentication.include_auth_failure_reason_in_api_based_response": false,
       "authentication.include_multi_options_in_api_based_auth_response": false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
@@ -432,6 +436,8 @@
       "identity_secret_manager.secret_value_clob_column_exists": false,
       "authentication.include_auth_failure_reason_in_api_based_response": false,
       "authentication.include_multi_options_in_api_based_auth_response": false,
+      "saas.enable_app_creation": true,
+      "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     }
