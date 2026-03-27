@@ -2463,7 +2463,7 @@ public class FrameworkUtils {
         } catch (UserSessionException e) {
             activeSessionCount = -1;
             log.error("An error occurred while retrieving the active session count. Therefore the active session " +
-                    "count is set to -1 in the analytics event.");
+                    "count is set to -1 in the analytics event.", e);
         }
         return activeSessionCount;
     }
