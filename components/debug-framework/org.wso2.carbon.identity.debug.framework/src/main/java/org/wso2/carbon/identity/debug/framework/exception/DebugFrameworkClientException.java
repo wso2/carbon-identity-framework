@@ -33,7 +33,7 @@ public class DebugFrameworkClientException extends DebugFrameworkException {
      */
     public DebugFrameworkClientException(String message) {
 
-        super(message);
+        this(null, message, null, null);
     }
 
     /**
@@ -45,7 +45,7 @@ public class DebugFrameworkClientException extends DebugFrameworkException {
      */
     public DebugFrameworkClientException(String errorCode, String message, String description) {
 
-        super(errorCode, message, description);
+        this(errorCode, message, description, null);
     }
 
     /**

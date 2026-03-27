@@ -25,11 +25,9 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.idp.core.handler.IdpDebugResourceHandler;
-import org.wso2.carbon.identity.debug.idp.core.handler.OidcDebugCallbackHandler;
 import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
 
 /**
@@ -45,7 +43,6 @@ public class IdpDebugServiceComponent {
     private static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
     private static final String IDP_HANDLER_TYPE = "idp";
     private ServiceRegistration<DebugProtocolResolver> resolverServiceRegistration;
-    private ServiceRegistration<DebugCallbackHandler> callbackHandlerServiceRegistration;
 
     /**
      * Activates the IDP debug handler component.
@@ -73,12 +70,6 @@ public class IdpDebugServiceComponent {
 
             LOG.debug("Registered IdpDebugProtocolResolver service.");
 
-            // Register the OIDC debug callback handler as an OSGi service.
-            OidcDebugCallbackHandler callbackHandler = new OidcDebugCallbackHandler();
-            callbackHandlerServiceRegistration = context.getBundleContext().registerService(
-                    DebugCallbackHandler.class, callbackHandler, null);
-
-            LOG.debug("Registered OidcDebugCallbackHandler service.");
         } catch (Exception e) {
             LOG.error("Error while activating IDP Debug Handler Component.", e);
         }
@@ -98,19 +89,21 @@ public class IdpDebugServiceComponent {
             // Clear the IDP handler registration.
             DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
 
-            if (resolverServiceRegistration != null) {
-                resolverServiceRegistration.unregister();
-                resolverServiceRegistration = null;
-            }
-
-            if (callbackHandlerServiceRegistration != null) {
-                callbackHandlerServiceRegistration.unregister();
-                callbackHandlerServiceRegistration = null;
-            }
+            resolverServiceRegistration = unregisterService(resolverServiceRegistration);
 
             LOG.debug("IDP Debug Handler Component deactivated.");
         } catch (Exception e) {
             LOG.error("Error while deactivating IDP Debug Handler Component.", e);
         }
+    }
+
+    private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration) {
+
+        if (registration == null) {
+            return null;
+        }
+
+        registration.unregister();
+        return null;
     }
 }

@@ -63,6 +63,18 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_STATUS_FAILURE = "FAILURE";
     public static final String DEBUG_STATUS_SUCCESS = "SUCCESS";
 
+    // Canonical protocol type keys.
+    public static final String PROTOCOL_TYPE_OIDC = "OIDC";
+    public static final String PROTOCOL_TYPE_GOOGLE = "Google";
+    public static final String PROTOCOL_TYPE_GITHUB = "GitHub";
+    public static final String PROTOCOL_TYPE_SAML = "SAML";
+
+    // Known implementation names used for protocol detection.
+    public static final String IMPLEMENTATION_OPENID_CONNECT = "OpenIDConnectAuthenticator";
+    public static final String IMPLEMENTATION_GOOGLE_OIDC = "GoogleOIDCAuthenticator";
+    public static final String IMPLEMENTATION_GITHUB = "GitHubAuthenticator";
+    public static final String IMPLEMENTATION_SAML_SSO = "SAMLSSOAuthenticator";
+
     // Debug Flow Type Constants.
     public static final String DEBUG_FLOW_TYPE = "DEBUG_FLOW_TYPE";
     public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
@@ -103,6 +115,9 @@ public final class DebugFrameworkConstants {
         ERROR_CODE_EXECUTOR_NOT_FOUND("60005",
                 "Executor not found.",
                 "No debug executor found for the given resource: %s"),
+        ERROR_CODE_PROCESSOR_NOT_FOUND("60010",
+                "Processor not found.",
+                "No debug processor found for the given resource: %s"),
         ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND("60006",
                 "Context provider not found.",
                 "Context provider not available for resource: %s"),

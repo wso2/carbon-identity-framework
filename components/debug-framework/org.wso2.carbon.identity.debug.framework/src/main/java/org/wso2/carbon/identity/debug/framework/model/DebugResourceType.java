@@ -18,12 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
-
-import java.util.Locale;
 
 /**
  * Enum for debug resource types.
@@ -35,8 +31,6 @@ public enum DebugResourceType {
     IDP,
     FRAUD_DETECTION,
     CUSTOM;
-
-    private static final Log LOG = LogFactory.getLog(DebugResourceType.class);
 
     /**
      * Converts a string to the corresponding DebugResourceType.
@@ -51,7 +45,7 @@ public enum DebugResourceType {
             return CUSTOM;
         }
 
-        switch (resourceType.toLowerCase(Locale.ENGLISH).trim()) {
+        switch (resourceType.trim().toLowerCase(java.util.Locale.ENGLISH)) {
             case "idp":
                 return IDP;
 
@@ -59,9 +53,6 @@ public enum DebugResourceType {
                 return FRAUD_DETECTION;
 
             default:
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Unknown resource type: " + resourceType + ". Defaulting to CUSTOM.");
-                }
                 return CUSTOM;
         }
     }
@@ -75,37 +66,6 @@ public enum DebugResourceType {
      */
     public DebugResourceHandler getHandler() {
 
-        switch (this) {
-            case IDP:
-                // IDP handler is provided and registered via OSGi.
-                DebugResourceHandler idpHandler = DebugHandlerRegistry.getInstance().getHandler("idp");
-                if (idpHandler == null && LOG.isDebugEnabled()) {
-                    LOG.debug("IDP DebugResourceHandler not registered. " +
-                            "Ensure org.wso2.carbon.identity.debug.idp bundle is deployed. " +
-                            "Available handlers: " +
-                            DebugHandlerRegistry.getInstance().getAllHandlers().keySet());
-                }
-                return idpHandler;
-
-            case FRAUD_DETECTION:
-                // Fraud detection handler is looked up from registry (provided by external module).
-                DebugResourceHandler fraudHandler = DebugHandlerRegistry.getInstance()
-                        .getHandler("fraud_detection");
-                if (fraudHandler == null && LOG.isDebugEnabled()) {
-                    LOG.debug("Fraud detection DebugResourceHandler not registered. " +
-                            "Ensure the fraud detection debug bundle is deployed.");
-                }
-                return fraudHandler;
-
-            case CUSTOM:
-                // Custom handlers would be looked up from registry if needed.
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("CUSTOM resource type handler lookup would use registry");
-                }
-
-                return null;
-        }
-
-        return null;
+        return DebugHandlerRegistry.getInstance().getHandler(name().toLowerCase(java.util.Locale.ENGLISH));
     }
 }

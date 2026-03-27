@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
@@ -53,6 +53,8 @@ import javax.servlet.http.HttpServletResponse;
 public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
     /**
      * Constructs a DebugRequestCoordinator instance.
@@ -229,8 +231,8 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
 
             Map<String, Object> resultData;
             try {
-                resultData = new JSONObject(resultJson).toMap();
-            } catch (JSONException e) {
+                resultData = OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
+            } catch (Exception e) {
                 LOG.error("Invalid debug result JSON for session: " + debugId, e);
                 throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
             }
@@ -272,12 +274,6 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
             if (handler == null) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("No debug callback handler matched the request. Skipping debug handling.");
-                }
-                return false;
-            }
-            if (!handler.canHandle(request)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Request is not a debug flow callback. Skipping debug handling.");
                 }
                 return false;
             }

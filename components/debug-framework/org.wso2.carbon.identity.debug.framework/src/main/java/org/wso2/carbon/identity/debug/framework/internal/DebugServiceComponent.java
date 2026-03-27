@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -29,7 +30,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
@@ -56,10 +56,11 @@ public class DebugServiceComponent {
 
         try {
             LOG.debug("Debug Framework OSGi component activating");
+            BundleContext bundleContext = context.getBundleContext();
 
             // Register DebugRequestCoordinator as an OSGi interceptor service.
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
-            context.getBundleContext().registerService(
+            bundleContext.registerService(
                     new String[] {
                             DebugAuthenticationInterceptor.class.getName(),
                             DebugRequestCoordinator.class.getName()
@@ -68,7 +69,7 @@ public class DebugServiceComponent {
                     null);
 
             // Register the cleanup listener as an OSGi service.
-            cleanupListenerServiceRegistration = context.getBundleContext().registerService(
+            cleanupListenerServiceRegistration = bundleContext.registerService(
                     DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
 
             // Start the periodic cleanup service for expired sessions.
@@ -87,11 +88,8 @@ public class DebugServiceComponent {
 
         try {
             // Unregister cleanup listener service.
-            if (cleanupListenerServiceRegistration != null) {
-                cleanupListenerServiceRegistration.unregister();
-                cleanupListenerServiceRegistration = null;
-                LOG.debug("DebugSessionCleanupExecutionListener service unregistered");
-            }
+            cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
+                    "DebugSessionCleanupExecutionListener service unregistered");
 
             // Shutdown the cleanup service.
             if (cleanupService != null) {
@@ -120,14 +118,7 @@ public class DebugServiceComponent {
 
     protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
 
-        if (provider != null) {
-            String protocolType = provider.getProtocolType();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugProtocolProvider registered for protocol: " + protocolType);
-            }
-            DebugProtocolRegistry.getInstance().addDebugProtocolProvider(provider);
-            LOG.info("Successfully registered DebugProtocolProvider for protocol: " + protocolType);
-        }
+        bindProtocolProvider(provider, true);
     }
 
     /**
@@ -139,14 +130,7 @@ public class DebugServiceComponent {
      */
     protected void unsetDebugProtocolProvider(DebugProtocolProvider provider) {
 
-        if (provider != null) {
-            String protocolType = provider.getProtocolType();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugProtocolProvider unregistered for protocol: " + protocolType);
-            }
-            DebugProtocolRegistry.getInstance().removeDebugProtocolProvider(provider);
-            LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
-        }
+        bindProtocolProvider(provider, false);
     }
 
     /**
@@ -159,12 +143,7 @@ public class DebugServiceComponent {
             unbind = "unsetDebugProtocolResolver")
     protected void setDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        if (resolver != null) {
-            DebugProtocolRegistry.getInstance().addDebugProtocolResolver(resolver);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugProtocolResolver registered: " + resolver.getClass().getName());
-            }
-        }
+        bindProtocolResolver(resolver, true);
     }
 
     /**
@@ -174,12 +153,7 @@ public class DebugServiceComponent {
      */
     protected void unsetDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        if (resolver != null) {
-            DebugProtocolRegistry.getInstance().removeDebugProtocolResolver(resolver);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugProtocolResolver unregistered: " + resolver.getClass().getName());
-            }
-        }
+        bindProtocolResolver(resolver, false);
     }
 
     @Reference(name = "debug.execution.listener", service = DebugExecutionListener.class,
@@ -187,22 +161,12 @@ public class DebugServiceComponent {
             unbind = "unsetDebugExecutionListener")
     protected void setDebugExecutionListener(DebugExecutionListener listener) {
 
-        if (listener != null) {
-            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(listener);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugExecutionListener registered: " + listener.getClass().getName());
-            }
-        }
+        bindExecutionListener(listener, true);
     }
 
     protected void unsetDebugExecutionListener(DebugExecutionListener listener) {
 
-        if (listener != null) {
-            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugExecutionListener unregistered: " + listener.getClass().getName());
-            }
-        }
+        bindExecutionListener(listener, false);
     }
 
     @Reference(name = "debug.callback.handler", service = DebugCallbackHandler.class,
@@ -210,49 +174,99 @@ public class DebugServiceComponent {
             unbind = "unsetDebugCallbackHandler")
     protected void setDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (handler != null) {
-            DebugProtocolRegistry.getInstance().addDebugCallbackHandler(handler);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugCallbackHandler registered: " + handler.getClass().getName());
-            }
-        }
+        bindCallbackHandler(handler, true);
     }
 
     protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (handler != null) {
-            DebugProtocolRegistry.getInstance().removeDebugCallbackHandler(handler);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("DebugCallbackHandler unregistered: " + handler.getClass().getName());
-            }
+        bindCallbackHandler(handler, false);
+    }
+
+    private void bindProtocolProvider(DebugProtocolProvider provider, boolean isBind) {
+
+        if (provider == null) {
+            return;
+        }
+
+        String protocolType = provider.getProtocolType();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugProtocolProvider " + getLifecycleAction(isBind) + " for protocol: " + protocolType);
+        }
+
+        if (isBind) {
+            DebugProtocolRegistry.getInstance().addDebugProtocolProvider(provider);
+            LOG.info("Successfully registered DebugProtocolProvider for protocol: " + protocolType);
+            return;
+        }
+
+        DebugProtocolRegistry.getInstance().removeDebugProtocolProvider(provider);
+        LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
+    }
+
+    private void bindProtocolResolver(DebugProtocolResolver resolver, boolean isBind) {
+
+        if (resolver == null) {
+            return;
+        }
+
+        if (isBind) {
+            DebugProtocolRegistry.getInstance().addDebugProtocolResolver(resolver);
+        } else {
+            DebugProtocolRegistry.getInstance().removeDebugProtocolResolver(resolver);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugProtocolResolver " + getLifecycleAction(isBind) + ": " + resolver.getClass().getName());
         }
     }
 
-    /**
-     * Sets the ClaimMetadataManagementService.
-     *
-     * @param service the ClaimMetadataManagementService instance.
-     */
-    @Reference(name = "claimMetadataManagementService", 
-        service = ClaimMetadataManagementService.class,    
-        cardinality = ReferenceCardinality.OPTIONAL, 
-        policy = ReferencePolicy.DYNAMIC, unbind = "unsetClaimMetadataManagementService")
+    private void bindExecutionListener(DebugExecutionListener listener, boolean isBind) {
 
-    protected void setClaimMetadataManagementService(ClaimMetadataManagementService service) {
+        if (listener == null) {
+            return;
+        }
 
-        LOG.debug("ClaimMetadataManagementService set in DebugServiceComponent");
-        DebugFrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(service);
+        if (isBind) {
+            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(listener);
+        } else {
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugExecutionListener " + getLifecycleAction(isBind) + ": " + listener.getClass().getName());
+        }
     }
 
-    /**
-     * Unsets the ClaimMetadataManagementService.
-     *
-     * @param claimMetadataManagementService the ClaimMetadataManagementService
-     *                                       instance.
-     */
-    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+    private void bindCallbackHandler(DebugCallbackHandler handler, boolean isBind) {
 
-        LOG.debug("ClaimMetadataManagementService unset in DebugServiceComponent");
-        DebugFrameworkServiceDataHolder.getInstance().setClaimMetadataManagementService(null);
+        if (handler == null) {
+            return;
+        }
+
+        if (isBind) {
+            DebugProtocolRegistry.getInstance().addDebugCallbackHandler(handler);
+        } else {
+            DebugProtocolRegistry.getInstance().removeDebugCallbackHandler(handler);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugCallbackHandler " + getLifecycleAction(isBind) + ": " + handler.getClass().getName());
+        }
+    }
+
+    private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration, String debugMessage) {
+
+        if (registration == null) {
+            return null;
+        }
+
+        registration.unregister();
+        LOG.debug(debugMessage);
+        return null;
+    }
+
+    private String getLifecycleAction(boolean isBind) {
+
+        return isBind ? "registered" : "unregistered";
     }
 }

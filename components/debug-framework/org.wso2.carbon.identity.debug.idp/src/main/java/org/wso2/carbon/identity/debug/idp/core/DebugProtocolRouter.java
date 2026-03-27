@@ -39,87 +39,11 @@ import java.util.Locale;
 public class DebugProtocolRouter {
 
     private static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
+    private static final String DEFAULT_PROTOCOL_TYPE = "OIDC";
 
     private DebugProtocolRouter() {
 
         // Utility class.
-    }
-
-    /**
-     * Enum representing different debug protocol types.
-     * New protocols can be added here or use CUSTOM for dynamic protocol types.
-     */
-    public enum DebugProtocolType {
-
-        OIDC("OIDC", "openidconnect"),
-        GOOGLE("Google", "google"),
-        GITHUB("GitHub", "github"),
-        SAML("SAML", "saml"),
-        CUSTOM("Custom", "custom");
-
-        private final String displayName;
-        private final String protocolKey;
-
-        DebugProtocolType(String displayName, String protocolKey) {
-
-            this.displayName = displayName;
-            this.protocolKey = protocolKey;
-        }
-
-        public String getDisplayName() {
-
-            return displayName;
-        }
-
-        public String getProtocolKey() {
-
-            return protocolKey;
-        }
-
-        public static DebugProtocolType fromValue(String value) {
-
-            if (StringUtils.isBlank(value)) {
-                return null;
-            }
-            for (DebugProtocolType type : values()) {
-                if (type.getDisplayName().equalsIgnoreCase(value)
-                        || type.getProtocolKey().equalsIgnoreCase(value)) {
-                    return type;
-                }
-            }
-            return null;
-        }
-    }
-
-    public static DebugProtocolType detectProtocol(String connectionId) {
-
-        if (StringUtils.isEmpty(connectionId)) {
-            LOG.debug("Connection ID is empty, defaulting to OIDC");
-            return DebugProtocolType.OIDC;
-        }
-
-        List<DebugProtocolResolver> resolvers =
-                DebugProtocolRegistry.getInstance().getDebugProtocolResolvers();
-        for (DebugProtocolResolver resolver : resolvers) {
-            String resolvedProtocol = resolver.resolveProtocol(connectionId);
-            if (resolvedProtocol != null) {
-                DebugProtocolType type = DebugProtocolType.fromValue(resolvedProtocol);
-                if (type != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Protocol resolved by " + resolver.getClass().getSimpleName()
-                                + ": " + type.getDisplayName());
-                    }
-                    return type;
-                }
-                LOG.warn("Resolved protocol string '" + resolvedProtocol
-                        + "' doesn't match any DebugProtocolType.");
-            }
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("No protocol resolved for resource: " + connectionId + ", defaulting to OIDC");
-        }
-        return DebugProtocolType.OIDC;
     }
 
     public static DebugContextProvider getContextProviderForResource(String connectionId) {
@@ -164,23 +88,6 @@ public class DebugProtocolRouter {
     public static List<DebugCallbackHandler> getAllCallbackHandlers() {
 
         return DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
-    }
-
-    public static DebugProtocolType resolveProtocolFromAuthenticator(String authenticatorName) {
-
-        if (StringUtils.isBlank(authenticatorName)) {
-            return null;
-        }
-        if ("OpenIDConnectAuthenticator".equalsIgnoreCase(authenticatorName)) {
-            return DebugProtocolType.OIDC;
-        }
-        if ("GoogleOAuth2Authenticator".equalsIgnoreCase(authenticatorName)) {
-            return DebugProtocolType.GOOGLE;
-        }
-        if ("GitHubAuthenticator".equalsIgnoreCase(authenticatorName)) {
-            return DebugProtocolType.GITHUB;
-        }
-        return null;
     }
 
     @FunctionalInterface
@@ -229,29 +136,43 @@ public class DebugProtocolRouter {
 
     private static DebugProtocolProvider resolveProtocolProvider(String connectionId) {
 
-        DebugProtocolType type = detectProtocol(connectionId);
-        if (type != null) {
-            DebugProtocolProvider provider = getDebugProtocolProvider(type.getProtocolKey());
-            if (provider != null) {
-                return provider;
-            }
-            provider = getDebugProtocolProvider(type.getDisplayName());
+        String protocolType = resolveProtocolType(connectionId);
+        if (StringUtils.isNotBlank(protocolType)) {
+            DebugProtocolProvider provider = getDebugProtocolProvider(protocolType);
             if (provider != null) {
                 return provider;
             }
         }
 
-        for (DebugProtocolResolver resolver : DebugProtocolRegistry.getInstance()
-                .getDebugProtocolResolvers()) {
+        return null;
+    }
+
+    private static String resolveProtocolType(String connectionId) {
+
+        if (StringUtils.isBlank(connectionId)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Connection ID is empty, defaulting to protocol: " + DEFAULT_PROTOCOL_TYPE);
+            }
+            return DEFAULT_PROTOCOL_TYPE;
+        }
+
+        List<DebugProtocolResolver> resolvers = DebugProtocolRegistry.getInstance().getDebugProtocolResolvers();
+        for (DebugProtocolResolver resolver : resolvers) {
             String resolvedProtocol = resolver.resolveProtocol(connectionId);
             if (StringUtils.isNotBlank(resolvedProtocol)) {
-                DebugProtocolProvider provider = getDebugProtocolProvider(resolvedProtocol);
-                if (provider != null) {
-                    return provider;
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Protocol resolved by " + resolver.getClass().getSimpleName()
+                            + ": " + resolvedProtocol);
                 }
+                return resolvedProtocol;
             }
         }
-        return null;
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("No protocol resolved for resource: " + connectionId
+                    + ", defaulting to protocol: " + DEFAULT_PROTOCOL_TYPE);
+        }
+        return DEFAULT_PROTOCOL_TYPE;
     }
 
     private static String normalizeProtocolType(String protocolType) {

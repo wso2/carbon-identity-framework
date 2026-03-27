@@ -33,7 +33,7 @@ public class DebugFrameworkServerException extends DebugFrameworkException {
      */
     public DebugFrameworkServerException(String message) {
 
-        super(message);
+        this(message, null);
     }
 
     /**
@@ -44,7 +44,7 @@ public class DebugFrameworkServerException extends DebugFrameworkException {
      */
     public DebugFrameworkServerException(String message, Throwable cause) {
 
-        super(message, cause);
+        this(null, message, null, cause);
     }
 
     /**
@@ -56,7 +56,7 @@ public class DebugFrameworkServerException extends DebugFrameworkException {
      */
     public DebugFrameworkServerException(String errorCode, String message, String description) {
 
-        super(errorCode, message, description);
+        this(errorCode, message, description, null);
     }
 
     /**

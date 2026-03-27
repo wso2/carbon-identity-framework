@@ -51,44 +51,22 @@ public class DebugProtocolRegistry {
 
     public void addDebugProtocolProvider(DebugProtocolProvider provider) {
 
-        if (provider != null) {
-            String protocolType = normalizeProtocolType(provider.getProtocolType());
-            if (protocolType != null) {
-                debugProtocolProviders.put(protocolType, provider);
-                DebugCallbackHandler callbackHandler = provider.getCallbackHandler();
-                if (callbackHandler != null) {
-                    debugCallbackHandlers.add(callbackHandler);
-                }
-            }
-        }
+        updateProtocolProvider(provider, true);
     }
 
     public void removeDebugProtocolProvider(DebugProtocolProvider provider) {
 
-        if (provider != null) {
-            String protocolType = normalizeProtocolType(provider.getProtocolType());
-            if (protocolType != null) {
-                debugProtocolProviders.remove(protocolType);
-                DebugCallbackHandler callbackHandler = provider.getCallbackHandler();
-                if (callbackHandler != null) {
-                    debugCallbackHandlers.remove(callbackHandler);
-                }
-            }
-        }
+        updateProtocolProvider(provider, false);
     }
 
     public void addDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (handler != null) {
-            debugCallbackHandlers.add(handler);
-        }
+        updateListEntry(debugCallbackHandlers, handler, true);
     }
 
     public void removeDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (handler != null) {
-            debugCallbackHandlers.remove(handler);
-        }
+        updateListEntry(debugCallbackHandlers, handler, false);
     }
 
     public List<DebugCallbackHandler> getDebugCallbackHandlers() {
@@ -112,17 +90,13 @@ public class DebugProtocolRegistry {
 
     public void addDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        if (resolver != null) {
-            debugProtocolResolvers.add(resolver);
-            debugProtocolResolvers.sort(Comparator.comparingInt(DebugProtocolResolver::getOrder));
-        }
+        updateSortedListEntry(debugProtocolResolvers, resolver, true,
+                Comparator.comparingInt(DebugProtocolResolver::getOrder));
     }
 
     public void removeDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        if (resolver != null) {
-            debugProtocolResolvers.remove(resolver);
-        }
+        updateListEntry(debugProtocolResolvers, resolver, false);
     }
 
     public List<DebugProtocolResolver> getDebugProtocolResolvers() {
@@ -136,5 +110,49 @@ public class DebugProtocolRegistry {
             return null;
         }
         return protocolType.trim().toLowerCase(Locale.ENGLISH);
+    }
+
+    private void updateProtocolProvider(DebugProtocolProvider provider, boolean isAdd) {
+
+        if (provider == null) {
+            return;
+        }
+
+        String protocolType = normalizeProtocolType(provider.getProtocolType());
+        if (protocolType == null) {
+            return;
+        }
+
+        if (isAdd) {
+            debugProtocolProviders.put(protocolType, provider);
+        } else {
+            debugProtocolProviders.remove(protocolType);
+        }
+
+        updateListEntry(debugCallbackHandlers, provider.getCallbackHandler(), isAdd);
+    }
+
+    private <T> void updateListEntry(List<T> entries, T entry, boolean isAdd) {
+
+        if (entry == null) {
+            return;
+        }
+
+        if (isAdd) {
+            if (!entries.contains(entry)) {
+                entries.add(entry);
+            }
+            return;
+        }
+
+        entries.remove(entry);
+    }
+
+    private <T> void updateSortedListEntry(List<T> entries, T entry, boolean isAdd, Comparator<T> comparator) {
+
+        updateListEntry(entries, entry, isAdd);
+        if (isAdd) {
+            entries.sort(comparator);
+        }
     }
 }

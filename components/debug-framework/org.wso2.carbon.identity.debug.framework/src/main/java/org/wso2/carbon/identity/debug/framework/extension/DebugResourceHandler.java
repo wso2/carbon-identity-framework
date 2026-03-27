@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
-import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
+import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
@@ -58,7 +58,7 @@ public interface DebugResourceHandler {
      * @return DebugProcessor instance, or null if not applicable.
      */
     default DebugProcessor getProcessor(String connectionId) {
-        
+
         return null; // Default implementation returns null
     }
 

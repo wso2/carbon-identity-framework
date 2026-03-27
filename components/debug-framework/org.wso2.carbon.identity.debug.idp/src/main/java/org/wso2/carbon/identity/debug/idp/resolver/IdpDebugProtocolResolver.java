@@ -23,10 +23,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
-import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
-import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter.DebugProtocolType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -37,6 +37,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
+    private static final String GOOGLE_HOST = "google";
     // Order should be relatively high to allow specific resolvers (e.g. for App) to run first if needed.
     private static final int RESOLVER_ORDER = 10;
 
@@ -100,7 +101,7 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             return null;
         }
 
-        return findProtocolFromAuthenticators(configs);
+        return findProtocolFromEnabledConfigs(resource, configs);
     }
 
     private boolean hasValidAuthenticators(FederatedAuthenticatorConfig[] configs) {
@@ -108,17 +109,34 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return configs != null && configs.length > 0;
     }
 
-    private String findProtocolFromAuthenticators(FederatedAuthenticatorConfig[] configs) {
+    private String findProtocolFromEnabledConfigs(IdentityProvider resource,
+            FederatedAuthenticatorConfig[] configs) {
 
         for (FederatedAuthenticatorConfig config : configs) {
             if (isValidAuthenticatorConfig(config)) {
-                String authName = config.getName();
-                String type = detectProtocolFromAuthenticator(authName);
-                if (type != null) {
+                String implementationName = config.getName();
+                String protocolType = resolveProtocolTypeFromImplementation(implementationName);
+                if (DebugFrameworkConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
+                        && isGoogleBackedOidcAuthenticator(resource, config)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Detected protocol: " + type + " for authenticator: " + authName);
+                        LOG.debug("Detected Google-backed OIDC configuration from implementation: "
+                                + implementationName);
                     }
-                    return type;
+                    return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
+                }
+                if (protocolType != null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Detected protocol type: " + protocolType
+                                + " for implementation: " + implementationName);
+                    }
+                    return protocolType;
+                }
+                if (isGoogleBackedOidcAuthenticator(resource, config)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Detected Google-backed OIDC configuration from properties: "
+                                + implementationName);
+                    }
+                    return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
                 }
             }
         }
@@ -130,12 +148,56 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return config != null && config.isEnabled() && !StringUtils.isEmpty(config.getName());
     }
 
-    private String detectProtocolFromAuthenticator(String authenticatorName) {
+    private String resolveProtocolTypeFromImplementation(String implementationName) {
 
-        if (StringUtils.isEmpty(authenticatorName)) {
+        if (StringUtils.isBlank(implementationName)) {
             return null;
         }
-        DebugProtocolType protocolType = DebugProtocolRouter.resolveProtocolFromAuthenticator(authenticatorName);
-        return protocolType != null ? protocolType.getDisplayName() : null;
+
+        if (matchesOidcImplementation(implementationName)) {
+            return DebugFrameworkConstants.PROTOCOL_TYPE_OIDC;
+        }
+        if (DebugFrameworkConstants.IMPLEMENTATION_GITHUB.equalsIgnoreCase(implementationName)) {
+            return DebugFrameworkConstants.PROTOCOL_TYPE_GITHUB;
+        }
+        if (DebugFrameworkConstants.IMPLEMENTATION_SAML_SSO.equalsIgnoreCase(implementationName)) {
+            return DebugFrameworkConstants.PROTOCOL_TYPE_SAML;
+        }
+        return null;
+    }
+
+    private boolean matchesOidcImplementation(String implementationName) {
+
+        return DebugFrameworkConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)
+                || DebugFrameworkConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName);
+    }
+
+    private boolean isGoogleBackedOidcAuthenticator(IdentityProvider resource,
+            FederatedAuthenticatorConfig config) {
+
+        if (resource != null && containsGoogleIndicator(resource.getIdentityProviderName())) {
+            return true;
+        }
+
+        Property[] properties = config.getProperties();
+        if (properties == null || properties.length == 0) {
+            return false;
+        }
+
+        for (Property property : properties) {
+            if (property == null || StringUtils.isBlank(property.getValue())) {
+                continue;
+            }
+            if (containsGoogleIndicator(property.getValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsGoogleIndicator(String value) {
+
+        String normalizedValue = StringUtils.lowerCase(value);
+        return normalizedValue.contains(GOOGLE_HOST);
     }
 }

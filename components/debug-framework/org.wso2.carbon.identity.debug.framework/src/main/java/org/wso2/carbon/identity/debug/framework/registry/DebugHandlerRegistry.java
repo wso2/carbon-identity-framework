@@ -65,12 +65,13 @@ public class DebugHandlerRegistry {
      */
     public void register(String resourceType, DebugResourceHandler handler) {
 
-        if (resourceType == null || handler == null) {
+        String normalizedResourceType = normalizeResourceType(resourceType);
+        if (normalizedResourceType == null || handler == null) {
             LOG.warn("Cannot register null resource type or handler");
             return;
         }
 
-        handlers.put(resourceType.toLowerCase(Locale.ENGLISH), handler);
+        handlers.put(normalizedResourceType, handler);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registered debug resource handler for type: " + resourceType);
         }
@@ -84,11 +85,14 @@ public class DebugHandlerRegistry {
      */
     public void unregister(String resourceType) {
 
-        if (resourceType != null) {
-            handlers.remove(resourceType.toLowerCase(Locale.ENGLISH));
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Unregistered debug resource handler for type: " + resourceType);
-            }
+        String normalizedResourceType = normalizeResourceType(resourceType);
+        if (normalizedResourceType == null) {
+            return;
+        }
+
+        handlers.remove(normalizedResourceType);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unregistered debug resource handler for type: " + resourceType);
         }
     }
 
@@ -100,10 +104,11 @@ public class DebugHandlerRegistry {
      */
     public DebugResourceHandler getHandler(String resourceType) {
 
-        if (resourceType == null) {
+        String normalizedResourceType = normalizeResourceType(resourceType);
+        if (normalizedResourceType == null) {
             return null;
         }
-        return handlers.get(resourceType.toLowerCase(Locale.ENGLISH));
+        return handlers.get(normalizedResourceType);
     }
 
     /**
@@ -114,6 +119,14 @@ public class DebugHandlerRegistry {
     public Map<String, DebugResourceHandler> getAllHandlers() {
 
         return new ConcurrentHashMap<>(handlers);
+    }
+
+    private String normalizeResourceType(String resourceType) {
+
+        if (resourceType == null || resourceType.trim().isEmpty()) {
+            return null;
+        }
+        return resourceType.trim().toLowerCase(Locale.ENGLISH);
     }
 
 }

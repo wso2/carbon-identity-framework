@@ -18,17 +18,10 @@
 
 package org.wso2.carbon.identity.debug.framework.internal;
 
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -37,22 +30,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class DebugFrameworkServiceDataHolder {
 
-    private ClaimMetadataManagementService claimMetadataManagementService;
-
     /**
      * List of registered debug execution listeners.
      */
     private final List<DebugExecutionListener> debugExecutionListeners = new CopyOnWriteArrayList<>();
-
-    /**
-     * Thread-safe map storing protocol providers indexed by protocol type.
-     */
-    private final Map<String, DebugProtocolProvider> debugProtocolProviders = new ConcurrentHashMap<>();
-
-    /**
-     * List of registered debug callback handlers.
-     */
-    private final List<DebugCallbackHandler> debugCallbackHandlers = new CopyOnWriteArrayList<>();
 
     /**
      * Private constructor to prevent instantiation.
@@ -75,168 +56,6 @@ public class DebugFrameworkServiceDataHolder {
 
         private static final DebugFrameworkServiceDataHolder INSTANCE =
                 new DebugFrameworkServiceDataHolder();
-    }
-
-    /**
-     * Gets the ClaimMetadataManagementService.
-     *
-     * @return the ClaimMetadataManagementService instance.
-     */
-    public ClaimMetadataManagementService getClaimMetadataManagementService() {
-
-        return claimMetadataManagementService;
-    }
-
-    /**
-     * Sets the ClaimMetadataManagementService.
-     *
-     * @param claimMetadataManagementService the ClaimMetadataManagementService instance.
-     */
-    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        this.claimMetadataManagementService = claimMetadataManagementService;
-    }
-
-    /**
-     * Adds a debug protocol provider to the registry.
-     * Called during OSGi service binding when a plugin registers a DebugProtocolProvider.
-     *
-     * @param provider The DebugProtocolProvider to register.
-     */
-    public void addDebugProtocolProvider(DebugProtocolProvider provider) {
-
-        if (provider != null) {
-            String protocolType = normalizeProtocolType(provider.getProtocolType());
-            if (protocolType != null) {
-                debugProtocolProviders.put(protocolType, provider);
-                DebugCallbackHandler callbackHandler = provider.getCallbackHandler();
-                if (callbackHandler != null) {
-                    debugCallbackHandlers.add(callbackHandler);
-                }
-            }
-        }
-    }
-
-    /**
-     * Removes a debug protocol provider from the registry.
-     * Called during OSGi service unbinding when a plugin deactivates.
-     *
-     * @param provider The DebugProtocolProvider to unregister.
-     */
-    public void removeDebugProtocolProvider(DebugProtocolProvider provider) {
-
-        if (provider != null) {
-            String protocolType = normalizeProtocolType(provider.getProtocolType());
-            if (protocolType != null) {
-                debugProtocolProviders.remove(protocolType);
-                DebugCallbackHandler callbackHandler = provider.getCallbackHandler();
-                if (callbackHandler != null) {
-                    debugCallbackHandlers.remove(callbackHandler);
-                }
-            }
-        }
-    }
-
-    /**
-     * Adds a debug callback handler.
-     *
-     * @param handler DebugCallbackHandler instance.
-     */
-    public void addDebugCallbackHandler(DebugCallbackHandler handler) {
-
-        if (handler != null) {
-            debugCallbackHandlers.add(handler);
-        }
-    }
-
-    /**
-     * Removes a debug callback handler.
-     *
-     * @param handler DebugCallbackHandler instance.
-     */
-    public void removeDebugCallbackHandler(DebugCallbackHandler handler) {
-
-        if (handler != null) {
-            debugCallbackHandlers.remove(handler);
-        }
-    }
-
-    /**
-     * Returns a snapshot of registered callback handlers.
-     *
-     * @return List of DebugCallbackHandler.
-     */
-    public List<DebugCallbackHandler> getDebugCallbackHandlers() {
-
-        return new CopyOnWriteArrayList<>(debugCallbackHandlers);
-    }
-
-    /**
-     * Gets a debug protocol provider by protocol type.
-     *
-     * @param protocolType The protocol type.
-     * @return The DebugProtocolProvider for the type, or null if not registered.
-     */
-    public DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
-
-        String normalizedType = normalizeProtocolType(protocolType);
-        if (normalizedType == null) {
-            return null;
-        }
-        return debugProtocolProviders.get(normalizedType);
-    }
-
-    /**
-     * Gets all registered debug protocol providers.
-     *
-     * @return Map of protocol type to DebugProtocolProvider.
-     */
-    public Map<String, DebugProtocolProvider> getAllDebugProtocolProviders() {
-
-        return new ConcurrentHashMap<>(debugProtocolProviders);
-    }
-
-    /**
-     * List of registered debug protocol resolvers.
-     */
-    private final List<DebugProtocolResolver> debugProtocolResolvers = 
-            new CopyOnWriteArrayList<>();
-
-    /**
-     * Adds a debug protocol resolver to the registry.
-     * Called during OSGi service binding.
-     *
-     * @param resolver The DebugProtocolResolver to register.
-     */
-    public void addDebugProtocolResolver(DebugProtocolResolver resolver) {
-
-        if (resolver != null) {
-            debugProtocolResolvers.add(resolver);
-            debugProtocolResolvers.sort(Comparator.comparingInt(DebugProtocolResolver::getOrder));
-        }
-    }
-
-    /**
-     * Removes a debug protocol resolver from the registry.
-     * Called during OSGi service unbinding.
-     *
-     * @param resolver The DebugProtocolResolver to unregister.
-     */
-    public void removeDebugProtocolResolver(DebugProtocolResolver resolver) {
-
-        if (resolver != null) {
-            debugProtocolResolvers.remove(resolver);
-        }
-    }
-
-    /**
-     * Gets all registered debug protocol resolvers.
-     *
-     * @return List of DebugProtocolResolver.
-     */
-    public List<DebugProtocolResolver> getDebugProtocolResolvers() {
-
-        return debugProtocolResolvers;
     }
 
     /**
@@ -272,14 +91,6 @@ public class DebugFrameworkServiceDataHolder {
         if (listener != null) {
             this.debugExecutionListeners.remove(listener);
         }
-    }
-
-    private String normalizeProtocolType(String protocolType) {
-
-        if (protocolType == null || protocolType.trim().isEmpty()) {
-            return null;
-        }
-        return protocolType.trim().toLowerCase(Locale.ENGLISH);
     }
 
 }

@@ -240,6 +240,9 @@ public class DebugResponse {
     public void setData(Map<String, Object> data) {
 
         this.data = data != null ? data : new HashMap<>();
+        if (status != null) {
+            this.data.put(STATUS_KEY, status);
+        }
     }
 
     /**

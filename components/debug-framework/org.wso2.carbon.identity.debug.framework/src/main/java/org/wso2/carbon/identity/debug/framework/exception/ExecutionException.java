@@ -25,6 +25,7 @@ package org.wso2.carbon.identity.debug.framework.exception;
 public class ExecutionException extends DebugFrameworkException {
 
     private static final long serialVersionUID = 1L;
+    private static final String EMPTY_DESCRIPTION = "";
 
     /**
      * Constructs an ExecutionException with error code and message.
@@ -34,7 +35,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String errorCode, String message) {
 
-        super(errorCode, message, "");
+        this(errorCode, message, null);
     }
 
     /**
@@ -46,7 +47,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String errorCode, String message, Throwable cause) {
 
-        super(errorCode, message, "", cause);
+        super(errorCode, message, EMPTY_DESCRIPTION, cause);
     }
 
     /**
@@ -56,7 +57,7 @@ public class ExecutionException extends DebugFrameworkException {
      */
     public ExecutionException(String message) {
 
-        super(message);
+        super(message, null);
     }
 
     /**

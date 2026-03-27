@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.cache;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
@@ -26,10 +28,9 @@ import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
-import org.wso2.carbon.identity.debug.framework.util.DebugSessionUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +45,8 @@ public final class DebugSessionCache {
     private static final Log LOG = LogFactory.getLog(DebugSessionCache.class);
     private static final DebugSessionCache INSTANCE = new DebugSessionCache();
     private static final long SESSION_TTL_MS = DebugFrameworkConstants.CACHE_EXPIRY_MINUTES * 60 * 1000L;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
     private final DebugSessionDAO debugSessionDAO = new DebugSessionDAOImpl();
 
@@ -75,10 +78,8 @@ public final class DebugSessionCache {
             sessionData.setCreatedTime(System.currentTimeMillis());
             sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
 
-            Serializable serializableValue = (value instanceof Serializable)
-                    ? (Serializable) value
-                    : new HashMap<>(value);
-            sessionData.setSessionData(DebugSessionUtil.serializeObject(serializableValue));
+            byte[] serializedValue = OBJECT_MAPPER.writeValueAsBytes(value);
+            sessionData.setSessionData(new ByteArrayInputStream(serializedValue));
 
             debugSessionDAO.createDebugSession(sessionData);
 
@@ -133,26 +134,13 @@ public final class DebugSessionCache {
         try {
             DebugSessionData data = debugSessionDAO.getDebugSession(key);
             if (data != null && data.getSessionData() != null) {
-                Object deserializedObject = DebugSessionUtil.deserializeObject(data.getSessionData());
-                if (deserializedObject instanceof Map<?, ?>) {
-                    Map<String, Object> contextData = new HashMap<>();
-                    for (Map.Entry<?, ?> entry : ((Map<?, ?>) deserializedObject).entrySet()) {
-                        if (entry.getKey() instanceof String) {
-                            contextData.put((String) entry.getKey(), entry.getValue());
-                        }
-                    }
-                    return contextData;
-                }
-                LOG.warn("Unexpected debug session payload type for key: " + key);
+                return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
         } catch (DebugFrameworkServerException e) {
             throw e;
         } catch (IOException e) {
             LOG.error("Error retrieving debug session from DB: " + e.getMessage(), e);
             throw new DebugFrameworkServerException("Error retrieving debug session from DB", e);
-        } catch (ClassNotFoundException e) {
-            LOG.error("Error deserializing debug session: " + e.getMessage(), e);
-            throw new DebugFrameworkServerException("Error deserializing debug session", e);
         }
         return new HashMap<>();
     }

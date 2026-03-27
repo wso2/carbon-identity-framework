@@ -33,7 +33,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      */
     public ContextResolutionException(String message) {
 
-        super(message);
+        this(null, message, null, null);
     }
 
     /**
@@ -45,7 +45,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      */
     public ContextResolutionException(String errorCode, String message, String description) {
 
-        super(errorCode, message, description);
+        this(errorCode, message, description, null);
     }
 
     /**
