@@ -53,6 +53,12 @@ public class RequestFilter {
     public static List<Header> getFilteredHeaders(List<Header> requestHeaders, List<String> allowedHeadersInAction,
                                                   ActionType actionType) {
 
+        return getFilteredHeaders(requestHeaders, allowedHeadersInAction, actionType, null);
+    }
+
+    public static List<Header> getFilteredHeaders(List<Header> requestHeaders, List<String> allowedHeadersInAction,
+                                                  ActionType actionType, String actionVersion) {
+
         Set<String> allowedHeadersInServer = Optional.ofNullable(ActionExecutorConfig.getInstance()
                 .getAllowedHeadersForActionType(actionType)).orElse(Collections.emptySet());
         Set<String> excludedHeadersInServer = Optional.ofNullable(ActionExecutorConfig.getInstance()
@@ -67,8 +73,8 @@ public class RequestFilter {
             allowedHeaders.addAll(allowedHeadersInAction);
         } else if (hasServerAllowedHeaders) {
             allowedHeaders.addAll(allowedHeadersInServer);
-        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType)) {
-            // This is to preserve backward compatibility.
+        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType) && !isV2OrLater(actionVersion)) {
+            // To preserve backward compatibility for v1 actions.
             allowedHeaders.addAll(requestHeaders.stream()
                     .map(Header::getName)
                     .collect(Collectors.toSet()));
@@ -92,7 +98,7 @@ public class RequestFilter {
 
     /**
      * Filters request parameters based on the allowedParameters and excludedParameters configured.
-
+     *
      * List of allowed parameters can be configured per action or globally at server level.
      * If allowed parameters per action have been configured, then the server config will be ignored.
      * List of excluded parameters can be configured only at server level. These will be filtered out from the
@@ -104,6 +110,12 @@ public class RequestFilter {
      */
     public static List<Param> getFilteredParams(List<Param> requestParameters, List<String> allowedParamsInAction,
                                                 ActionType actionType) {
+
+        return getFilteredParams(requestParameters, allowedParamsInAction, actionType, null);
+    }
+
+    public static List<Param> getFilteredParams(List<Param> requestParameters, List<String> allowedParamsInAction,
+                                                ActionType actionType, String actionVersion) {
 
         Set<String> allowedParamsInServer = ActionExecutorConfig.getInstance()
                 .getAllowedParamsForActionType(actionType);
@@ -118,8 +130,8 @@ public class RequestFilter {
             allAllowedParamsSet.addAll(allowedParamsInAction);
         } else if (hasServerAllowedParams) {
             allAllowedParamsSet.addAll(allowedParamsInServer);
-        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType)) {
-            // This is to preserve backward compatibility.
+        } else if (ActionType.PRE_ISSUE_ACCESS_TOKEN.equals(actionType) && !isV2OrLater(actionVersion)) {
+            // To preserve backward compatibility for v1 actions.
             allAllowedParamsSet.addAll(requestParameters.stream()
                     .map(Param::getName)
                     .collect(Collectors.toSet()));
@@ -130,5 +142,18 @@ public class RequestFilter {
         return requestParameters.stream()
                 .filter(param -> allAllowedParamsSet.contains(param.getName()))
                 .collect(Collectors.toList());
+    }
+
+    private static boolean isV2OrLater(String actionVersion) {
+
+        if (actionVersion == null) {
+            return false;
+        }
+        try {
+            int version = Integer.parseInt(actionVersion.replace("v", ""));
+            return version >= 2;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }
