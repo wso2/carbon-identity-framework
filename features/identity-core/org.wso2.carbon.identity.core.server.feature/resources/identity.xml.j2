@@ -4321,6 +4321,19 @@
         </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
 
+    <OrgContextsToRewriteInTenantQualifiedPaths>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/offline-invite-link</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewriteInTenantQualifiedPaths>
+
     <OrgContextsToRewrite>
         <WebApp>
         {% for organization_context in organization_context.rewrite %}
