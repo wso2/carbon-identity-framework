@@ -39,6 +39,9 @@ public class ActionMgtConstants {
     public static final String ALLOWED_HEADERS_PROPERTY = "allowedHeaders";
     public static final String ALLOWED_PARAMETERS_PROPERTY = "allowedParameters";
     public static final String RULE_PROPERTY = "rule";
+    public static final String ATTRIBUTES_PROPERTY = "attributes";
+    public static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
+    public static final int MAX_ATTRIBUTES = 10;
 
     private ActionMgtConstants() {
     }
