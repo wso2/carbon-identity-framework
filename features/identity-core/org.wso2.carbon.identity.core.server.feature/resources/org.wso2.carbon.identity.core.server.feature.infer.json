@@ -439,7 +439,8 @@
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
-      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false
     }
   }
 }
