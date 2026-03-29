@@ -874,6 +874,12 @@
             <UserName>{{oauth.token_generation.include_username_in_access_token}}</UserName>
         </EnableAssertions>
 
+        <!-- Revoke grant cache upon login. If this is set to true, the authorization grant caches will be cleared upon each login, since the inactive account suspension handler updates the login time on every login.
+                Default value : false
+                Supported versions: IS 7.3.0 onwards
+            -->
+        <RevokeCacheAtLogin>{{identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login}}</RevokeCacheAtLogin>
+
         <!-- This should be true if subject identifier in the token validation response needs to adhere to the
         following SP configuration.
 
@@ -4216,6 +4222,28 @@
         authenticated against the application tenant domain.
     -->
     <EnableLegacySaaSAuthentication>{{authentication.enable_legacy_saas_mode | default(false)}}</EnableLegacySaaSAuthentication>
+
+    <!--
+        SaaS application configurations.
+        Note: SaaS applications are deprecated as of WSO2 Identity Server 7.0.0.
+        These configurations are provided solely for backward compatibility.
+    -->
+    <SaaS>
+        <!--
+            Controls whether administrators can create new SaaS applications.
+            When set to 'false', creation of new SaaS applications will be rejected.
+            Existing SaaS applications will continue to be available.
+            Default: false.
+        -->
+        <EnableAppCreation>{{saas.enable_app_creation}}</EnableAppCreation>
+        <!--
+            Controls whether cross-tenant operations are permitted within adaptive authentication scripts for SaaS applications.
+            When set to 'false', cross-tenant user operations will be blocked.
+            WARNING: Enabling this introduces a known security risk by allowing adaptive scripts to operate on users from other tenants.
+            Default: false.
+        -->
+        <EnableCrossTenantOperations>{{saas.enable_cross_tenant_operations}}</EnableCrossTenantOperations>
+    </SaaS>
 
     <EnablePerUserFunctionalityLocking>{{user.enable_per_user_functionality_locking}}</EnablePerUserFunctionalityLocking>
 

@@ -24,6 +24,7 @@
             <class name="org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluationDataManagerTest"/>
             <class name="org.wso2.carbon.identity.rule.evaluation.core.FieldExtractorTest"/>
             <class name="org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluatorTest"/>
+            <class name="org.wso2.carbon.identity.rule.evaluation.core.OperatorRegistryTest"/>
         </classes>
     </test>
     <test name="rule-evaluation-service-test">
