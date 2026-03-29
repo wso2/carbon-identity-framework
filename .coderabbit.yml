@@ -20,4 +20,4 @@ reviews:
 knowledge_base:
   code_guidelines:
     enabled: true
-    filePatterns: [".github/LOG_ENHANCEMENT_GUIDELINES.md"]  
+    filePatterns: [".github/LOG_ENHANCEMENT_GUIDELINES.md"]
