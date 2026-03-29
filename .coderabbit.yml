@@ -10,6 +10,13 @@ reviews:
   estimate_code_review_effort: false
   auto_assign_reviewers: true
   poem: false
+  path_instructions:
+    - path: "**/*.java"
+      instructions: |
+        - Check for missing logging statements in all changed code. Refer to .github/LOG_ENHANCEMENT_GUIDELINES.md document to learn the logging guidelines.
+        - Flag functions or methods that perform significant operations (DB calls, API calls, auth, payments) but lack log statements, and suggest appropriate logs if possible.
+        - Suggest log statements at error handling boundaries (catch blocks, error returns).
+        - Flag entry/exit points of critical services that don't log their invocation and suggest appropriate logs for those points if possible.
 knowledge_base:
   code_guidelines:
     enabled: true
