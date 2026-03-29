@@ -11,7 +11,7 @@ reviews:
   auto_assign_reviewers: true
   poem: false
   path_instructions:
-    - path: "**/*"
+    - path: "**/*.java"
       instructions: |
         - Check for missing logging statements in all changed code. Refer to .github/LOG_ENHANCEMENT_GUIDELINES.md document to learn the logging guidelines.
         - Flag functions or methods that perform significant operations (DB calls, API calls, auth, payments) but lack log statements, and suggest appropriate logs if possible.
