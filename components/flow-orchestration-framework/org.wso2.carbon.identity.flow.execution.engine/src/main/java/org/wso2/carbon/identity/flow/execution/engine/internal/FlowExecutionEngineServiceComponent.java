@@ -262,15 +262,13 @@ public class FlowExecutionEngineServiceComponent {
     )
     protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
-        LOG.debug("Setting the ClaimMetadataManagementService in the Flow Engine component.");
-        FlowExecutionEngineDataHolder.getInstance()
-                .setClaimMetadataManagementService(claimMetadataManagementService);
+        LOG.debug("Setting the Claim Metadata Management Service in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
     }
 
-    protected void unsetClaimMetadataManagementService(
-            ClaimMetadataManagementService claimMetadataManagementService) {
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
-        LOG.debug("Unsetting the ClaimMetadataManagementService in the Flow Engine component.");
+        LOG.debug("Unsetting the Claim Metadata Management Service in the Flow Engine component.");
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 
@@ -291,6 +289,25 @@ public class FlowExecutionEngineServiceComponent {
 
         LOG.debug("Unsetting the ActionManagementService in the Flow Engine component.");
         FlowExecutionEngineDataHolder.getInstance().setActionManagementService(null);
+    }
+
+    @Reference(
+            name = "ActionExecutorService",
+            service = ActionExecutorService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionExecutorService"
+    )
+    protected void setActionExecutorService(ActionExecutorService actionExecutorService) {
+
+        LOG.debug("Setting the ActionExecutorService in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setActionExecutorService(actionExecutorService);
+    }
+
+    protected void unsetActionExecutorService(ActionExecutorService actionExecutorService) {
+
+        LOG.debug("Unsetting the ActionExecutorService in the Flow Engine component.");
+        FlowExecutionEngineDataHolder.getInstance().setActionExecutorService(null);
     }
 
     @Reference(

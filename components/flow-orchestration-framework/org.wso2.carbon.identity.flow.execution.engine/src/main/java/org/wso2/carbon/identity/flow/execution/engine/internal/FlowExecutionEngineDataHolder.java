@@ -50,7 +50,6 @@ public class FlowExecutionEngineDataHolder {
     private FederatedAssociationManager federatedAssociationManager;
     private ActionExecutorService actionExecutorService;
     private ActionManagementService actionManagementService;
-    private ClaimMetadataManagementService claimMetadataManagementService;
     private CertificateManagementService certificateManagementService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
@@ -252,26 +251,6 @@ public class FlowExecutionEngineDataHolder {
     public void setActionManagementService(ActionManagementService actionManagementService) {
 
         this.actionManagementService = actionManagementService;
-    }
-
-    /**
-     * Get the ClaimMetadataManagementService instance.
-     *
-     * @return ClaimMetadataManagementService instance.
-     */
-    public ClaimMetadataManagementService getClaimMetadataManagementService() {
-
-        return claimMetadataManagementService;
-    }
-
-    /**
-     * Set the ClaimMetadataManagementService instance.
-     *
-     * @param claimMetadataManagementService ClaimMetadataManagementService instance.
-     */
-    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
-
-        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
     /**
