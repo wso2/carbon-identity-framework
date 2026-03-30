@@ -86,7 +86,7 @@ public class SecondaryUserStoreConfigurationUtil {
 
     private static final Log LOG = LogFactory.getLog(SecondaryUserStoreConfigurationUtil.class);
 
-    private static final Pattern InitPattern = Pattern.compile(INIT_REGEX, Pattern.CASE_INSENSITIVE);
+    private static final Pattern initPattern = Pattern.compile(INIT_REGEX, Pattern.CASE_INSENSITIVE);
 
     private SecondaryUserStoreConfigurationUtil() {
 
@@ -865,7 +865,7 @@ public class SecondaryUserStoreConfigurationUtil {
 
         if (StringUtils.isNotEmpty(connectionUrl)) {
             String validationConnectionString = connectionUrl.toLowerCase().replace("\\", "");
-            Matcher matcher = InitPattern.matcher(validationConnectionString);
+            Matcher matcher = initPattern.matcher(validationConnectionString);
             if (matcher.find()) {
                 String errorMessage = "INIT expressions are not allowed in the connection URL due to security reasons.";
                 throw new IdentityUserStoreMgtException(errorMessage);
