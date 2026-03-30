@@ -92,7 +92,7 @@ public class OrganizationResolverTest {
                 { "/api/server/v1/validation-rules", false },
                 { "/o/abc123/api/server/v1/validation-rules", false },
 
-                // Blank / null URI.
+                // Blank URI (null is guarded upstream in resolveOrganizationInContext).
                 { "", false },
                 { "   ", false },
 
