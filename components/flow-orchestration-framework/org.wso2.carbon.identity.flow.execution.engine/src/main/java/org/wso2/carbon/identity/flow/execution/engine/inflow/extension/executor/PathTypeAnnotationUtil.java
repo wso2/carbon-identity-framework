@@ -63,7 +63,6 @@ public final class PathTypeAnnotationUtil {
 
     private PathTypeAnnotationUtil() {
 
-        // Utility class, no instantiation.
     }
 
     /**

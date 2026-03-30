@@ -79,12 +79,9 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionResponseProcessor.class);
 
-    // Path prefixes for In-Flow Extension context (unified hierarchy)
     private static final String PROPERTIES_PATH_PREFIX = "/properties/";
     private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
     private static final String USER_INPUTS_PATH_PREFIX = "/input/";
-    // Legacy prefix for backward compatibility
-    private static final String LEGACY_USER_INPUTS_PATH_PREFIX = "/userInputs/";
 
     // Cache for valid claim URIs (per tenant)
     private Map<String, Set<String>> validClaimUrisCache = new HashMap<>();
@@ -125,18 +122,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (operations != null && !operations.isEmpty()) {
             for (PerformableOperation operation : operations) {
-                // Normalize legacy paths.
-                // TODO: Remove this normalization logic in future once external services are updated
-                // to use unified paths.
-                String normalizedPath = HierarchicalPrefixMatcher.normalizePath(operation.getPath());
-                if (!normalizedPath.equals(operation.getPath())) {
-                    PerformableOperation normalizedOp = new PerformableOperation();
-                    normalizedOp.setOp(operation.getOp());
-                    normalizedOp.setPath(normalizedPath);
-                    normalizedOp.setValue(operation.getValue());
-                    operation = normalizedOp;
-                }
-
                 // Decrypt inbound value if this operation path is marked as encrypted in AccessConfig.
                 operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
 
@@ -180,7 +165,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             return handlePropertyOperation(operation, context, pathTypeAnnotations);
         } else if (path.startsWith(USER_CLAIMS_PATH_PREFIX)) {
             return handleUserClaimOperation(operation, context, tenantDomain);
-        } else if (path.startsWith(USER_INPUTS_PATH_PREFIX) || path.startsWith(LEGACY_USER_INPUTS_PATH_PREFIX)) {
+        } else if (path.startsWith(USER_INPUTS_PATH_PREFIX)) {
             return handleUserInputOperation(operation, context);
         }
 
@@ -312,7 +297,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                 "User input replace applied.");
     }
 
-    //TODO: These validations can be removed once the attribute executor introduced.
+    //TODO: These validations can be removed once the attribute executor is introduced.
     /**
      * Validate if a claim URI exists in the local claim dialect.
      */

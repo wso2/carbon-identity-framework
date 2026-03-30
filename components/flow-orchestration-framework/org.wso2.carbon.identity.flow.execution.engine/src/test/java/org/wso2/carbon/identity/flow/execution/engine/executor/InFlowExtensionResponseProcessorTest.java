@@ -530,20 +530,6 @@ public class InFlowExtensionResponseProcessorTest {
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
     }
 
-    // ========================= processSuccessResponse — Legacy path normalization =========================
-
-    @Test
-    public void testLegacyUserInputsPathNormalized() throws ActionExecutionResponseProcessorException {
-
-        FlowExecutionContext execCtx = createFlowExecutionContext();
-
-        // Legacy /userInputs/ path should be normalized to /input/.
-        PerformableOperation op = createOperation(Operation.REPLACE, "/userInputs/legacyField", "value");
-        executeSuccessResponse(execCtx, op, Collections.emptyMap());
-
-        assertEquals(execCtx.getUserInputData().get("legacyField"), "value");
-    }
-
     // ========================= processSuccessResponse — Multiple operations =========================
 
     @Test

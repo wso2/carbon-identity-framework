@@ -207,22 +207,6 @@ public class PathTypeAnnotationUtilTest {
         assertEquals(result, "test");
     }
 
-    // ========================= Constants =========================
-
-    @Test
-    public void testLocalClaimDialectPrefix() {
-
-        // Verify the identity claim URI is a sub-prefix of the local claim dialect.
-        assertTrue("http://wso2.org/claims/identity/".startsWith("http://wso2.org/claims/"));
-    }
-
-    @Test
-    public void testIdentityClaimUriPrefix() {
-
-        // Verify identity claim prefix is distinct from the general local claim prefix.
-        assertTrue("http://wso2.org/claims/identity/".length() > "http://wso2.org/claims/".length());
-    }
-
     // ========================= validateAnnotationLimits =========================
 
     @Test

@@ -66,14 +66,4 @@ public class OperationExecutionResultTest {
         assertNotNull(result.getOperation());
     }
 
-    @Test
-    public void testStatusEnumValues() {
-
-        OperationExecutionResult.Status[] values = OperationExecutionResult.Status.values();
-        assertEquals(values.length, 2);
-        assertEquals(OperationExecutionResult.Status.valueOf("SUCCESS"),
-                OperationExecutionResult.Status.SUCCESS);
-        assertEquals(OperationExecutionResult.Status.valueOf("FAILURE"),
-                OperationExecutionResult.Status.FAILURE);
-    }
 }

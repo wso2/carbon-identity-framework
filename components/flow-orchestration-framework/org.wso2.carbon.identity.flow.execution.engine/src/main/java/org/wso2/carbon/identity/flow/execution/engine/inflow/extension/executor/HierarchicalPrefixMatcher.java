@@ -20,9 +20,7 @@ package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Utility class for hierarchical prefix-based path matching and context area identification.
@@ -35,7 +33,6 @@ import java.util.Map;
  * /user/                           - User context
  *   /user/claims/{claimURI}        - User claims (keys are system-configured claim URIs)
  *   /user/userId                   - User's unique identifier
- *   /user/username                 - Resolved username
  *   /user/userStoreDomain          - User store domain
  *   /user/credentials/             - User credentials (system-configured types)
  *   /user/federatedAssociations/   - Federated IDP associations
@@ -49,11 +46,6 @@ import java.util.Map;
  *   /flow/applicationId            - Application ID
  *   /flow/flowType                 - Flow type (REGISTRATION, etc.)
  *   /flow/contextIdentifier        - Flow context identifier
- * 
- * /graph/                          - Graph state (READ-ONLY)
- *   /graph/currentNode/            - Current node info
- *     /graph/currentNode/id        - Current node ID
- *     /graph/currentNode/type      - Current node type
  * </pre>
  */
 public final class HierarchicalPrefixMatcher {
@@ -64,7 +56,6 @@ public final class HierarchicalPrefixMatcher {
     public static final String USER_CREDENTIALS_PREFIX = "/user/credentials/";
     public static final String USER_FEDERATED_PREFIX = "/user/federatedAssociations/";
     public static final String USER_ID_PATH = "/user/userId";
-    public static final String USER_NAME_PATH = "/user/username";
     public static final String USER_STORE_DOMAIN_PATH = "/user/userStoreDomain";
 
     public static final String PROPERTIES_PREFIX = "/properties/";
@@ -75,15 +66,12 @@ public final class HierarchicalPrefixMatcher {
     public static final String FLOW_APP_ID_PATH = "/flow/applicationId";
     public static final String FLOW_TYPE_PATH = "/flow/flowType";
 
-    public static final String GRAPH_PREFIX = "/graph/";
-    public static final String GRAPH_CURRENT_NODE_PREFIX = "/graph/currentNode/";
-
     /**
      * Default expose configuration — all context areas are exposed.
      * Used when no explicit expose configuration is provided by the executor metadata.
      */
     public static final List<String> DEFAULT_EXPOSE = Collections.unmodifiableList(
-            Arrays.asList(USER_PREFIX, PROPERTIES_PREFIX, INPUT_PREFIX, FLOW_PREFIX, GRAPH_PREFIX));
+            Arrays.asList(USER_PREFIX, PROPERTIES_PREFIX, INPUT_PREFIX, FLOW_PREFIX));
 
     /**
      * Context area enum for categorization.
@@ -95,8 +83,7 @@ public final class HierarchicalPrefixMatcher {
         USER_SCALAR(USER_PREFIX, false),            // Scalar user fields (userId, username, etc.)
         PROPERTIES(PROPERTIES_PREFIX, false),       // Fully extensible
         INPUT(INPUT_PREFIX, false),                 // Runtime extensible
-        FLOW(FLOW_PREFIX, false),                   // Read-only scalar values
-        GRAPH(GRAPH_PREFIX, false);                 // Read-only graph state
+        FLOW(FLOW_PREFIX, false);                   // Read-only scalar values
 
         private final String prefix;
         private final boolean hasSystemConfiguredKeys;
@@ -126,7 +113,6 @@ public final class HierarchicalPrefixMatcher {
 
     private HierarchicalPrefixMatcher() {
 
-        // Utility class, no instantiation
     }
 
     /**
@@ -162,9 +148,6 @@ public final class HierarchicalPrefixMatcher {
         }
         if (path.startsWith(FLOW_PREFIX)) {
             return ContextArea.FLOW;
-        }
-        if (path.startsWith(GRAPH_PREFIX)) {
-            return ContextArea.GRAPH;
         }
 
         return null;
@@ -255,7 +238,7 @@ public final class HierarchicalPrefixMatcher {
         if (path == null) {
             return false;
         }
-        return path.startsWith(FLOW_PREFIX) || path.startsWith(GRAPH_PREFIX);
+        return path.startsWith(FLOW_PREFIX);
     }
 
     /**
@@ -298,46 +281,4 @@ public final class HierarchicalPrefixMatcher {
         return false;
     }
 
-    /**
-     * Map legacy path prefixes to unified hierarchy prefixes.
-     * This provides backward compatibility with existing configurations.
-     * 
-     * Legacy mapping:
-     * - /userInputs/ -> /input/
-     * - /user/claims/ -> /user/claims/ (unchanged)
-     * - /properties/ -> /properties/ (unchanged)
-     */
-
-    // TODO: This is a simple mapping for demonstration. In a real implementation,
-    // this could be loaded from configuration OR use all context names unchanged.
-    private static final Map<String, String> LEGACY_PREFIX_MAPPING = createLegacyMapping();
-
-    private static Map<String, String> createLegacyMapping() {
-
-        Map<String, String> mapping = new HashMap<>();
-        mapping.put("/userInputs/", INPUT_PREFIX);
-        // Add more legacy mappings as needed
-        return mapping;
-    }
-
-    /**
-     * Normalize a path by converting legacy prefixes to unified prefixes.
-     *
-     * @param path The path to normalize
-     * @return The normalized path using unified prefixes
-     */
-    public static String normalizePath(String path) {
-
-        if (path == null) {
-            return null;
-        }
-
-        for (Map.Entry<String, String> entry : LEGACY_PREFIX_MAPPING.entrySet()) {
-            if (path.startsWith(entry.getKey())) {
-                return entry.getValue() + path.substring(entry.getKey().length());
-            }
-        }
-
-        return path;
-    }
 }

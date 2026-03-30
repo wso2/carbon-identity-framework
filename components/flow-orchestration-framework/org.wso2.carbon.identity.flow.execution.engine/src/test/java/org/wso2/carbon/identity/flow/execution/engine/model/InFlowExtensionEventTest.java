@@ -45,13 +45,11 @@ public class InFlowExtensionEventTest {
 
         InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
                 .flowType("REGISTRATION")
-                .currentNodeId("node-1")
                 .userInputs(userInputs)
                 .flowProperties(flowProperties)
                 .build();
 
         assertEquals(event.getFlowType(), "REGISTRATION");
-        assertEquals(event.getCurrentNodeId(), "node-1");
         assertEquals(event.getUserInputs().get("email"), "test@example.com");
         assertEquals(event.getFlowProperties().get("riskScore"), 85);
     }
@@ -61,7 +59,6 @@ public class InFlowExtensionEventTest {
 
         InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
                 .flowType("LOGIN")
-                .currentNodeId("node-2")
                 .userInputs(null)
                 .flowProperties(null)
                 .build();

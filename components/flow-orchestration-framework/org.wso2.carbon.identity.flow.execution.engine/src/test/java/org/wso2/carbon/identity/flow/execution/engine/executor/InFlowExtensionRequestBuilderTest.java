@@ -34,8 +34,11 @@ import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionEvent;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.JWEEncryptionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
+import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -141,7 +144,7 @@ public class InFlowExtensionRequestBuilderTest {
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                 .add(InFlowExtensionExecutor.EXPOSE_KEY,
-                        Arrays.asList("/user/", "/properties/", "/input/", "/flow/", "/graph/"));
+                        Arrays.asList("/user/", "/properties/", "/input/", "/flow/"));
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -408,6 +411,89 @@ public class InFlowExtensionRequestBuilderTest {
         // Only the email claim should be present, not the country claim.
         List<?> claims = event.getUser().getClaims();
         assertEquals(claims.size(), 1);
+    }
+
+    // ========================= Outbound encryption of properties and inputs =========================
+
+    @Test
+    public void testPropertiesEncryptedWhenExposePathMarkedEncrypted()
+            throws ActionExecutionRequestBuilderException {
+
+        try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
+            jweUtilMock.when(() -> JWEEncryptionUtil.encrypt(anyString(), anyString()))
+                    .thenAnswer(inv -> "encrypted." + inv.getArgument(0) + ".jwe.part.four");
+
+            FlowExecutionContext execCtx = createFullFlowExecutionContext();
+            execCtx.setProperty("riskScore", "85");
+
+            // Mark /properties/riskScore as expose-encrypted.
+            AccessConfig accessConfig = new AccessConfig(
+                    Arrays.asList(new ContextPath("/properties/riskScore", true)),
+                    null);
+
+            Encryption encryption = new Encryption(
+                    new Certificate.Builder().id("cert-1").name("test")
+                            .certificateContent("test-cert-pem").build());
+
+            FlowContext flowContext = FlowContext.create()
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
+                    .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE)
+                    .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
+                    .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
+
+            ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
+            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+
+            InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+            assertNotNull(event.getFlowProperties());
+            // riskScore should be encrypted.
+            Object riskScoreValue = event.getFlowProperties().get("riskScore");
+            assertNotNull(riskScoreValue);
+            assertTrue(riskScoreValue.toString().startsWith("encrypted."),
+                    "Property value should be encrypted when expose path is marked encrypted");
+            // existingProp is NOT marked encrypted — should remain plaintext.
+            assertEquals(event.getFlowProperties().get("existingProp"), "existingValue");
+        }
+    }
+
+    @Test
+    public void testUserInputsEncryptedWhenExposePathMarkedEncrypted()
+            throws ActionExecutionRequestBuilderException {
+
+        try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
+            jweUtilMock.when(() -> JWEEncryptionUtil.encrypt(anyString(), anyString()))
+                    .thenAnswer(inv -> "encrypted." + inv.getArgument(0) + ".jwe.part.four");
+
+            FlowExecutionContext execCtx = createFullFlowExecutionContext();
+
+            // Mark /input/consent as expose-encrypted.
+            AccessConfig accessConfig = new AccessConfig(
+                    Arrays.asList(new ContextPath("/input/consent", true)),
+                    null);
+
+            Encryption encryption = new Encryption(
+                    new Certificate.Builder().id("cert-1").name("test")
+                            .certificateContent("test-cert-pem").build());
+
+            FlowContext flowContext = FlowContext.create()
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
+                    .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE)
+                    .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
+                    .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
+
+            ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
+            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+
+            InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+            assertNotNull(event.getUserInputs());
+            // consent should be encrypted.
+            String consentValue = event.getUserInputs().get("consent");
+            assertNotNull(consentValue);
+            assertTrue(consentValue.startsWith("encrypted."),
+                    "Input value should be encrypted when expose path is marked encrypted");
+            // username input is NOT marked encrypted — should remain plaintext.
+            assertEquals(event.getUserInputs().get("username"), "testuser");
+        }
     }
 
     // ========================= Helper methods =========================
