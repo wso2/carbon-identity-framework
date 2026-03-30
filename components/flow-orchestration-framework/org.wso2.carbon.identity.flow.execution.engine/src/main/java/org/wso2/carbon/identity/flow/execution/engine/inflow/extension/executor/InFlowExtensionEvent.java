@@ -37,7 +37,6 @@ import java.util.Map;
 public class InFlowExtensionEvent extends Event {
 
     private final String flowType;
-    private final String currentNodeId;
     private final Map<String, String> userInputs;
     private final Map<String, Object> flowProperties;
 
@@ -50,7 +49,6 @@ public class InFlowExtensionEvent extends Event {
         this.userStore = builder.userStore;
         this.application = builder.application;
         this.flowType = builder.flowType;
-        this.currentNodeId = builder.currentNodeId;
         this.userInputs = builder.userInputs != null ? 
                 Collections.unmodifiableMap(new HashMap<>(builder.userInputs)) : Collections.emptyMap();
         this.flowProperties = builder.flowProperties != null ? 
@@ -65,16 +63,6 @@ public class InFlowExtensionEvent extends Event {
     public String getFlowType() {
 
         return flowType;
-    }
-
-    /**
-     * Get the current node ID in the flow.
-     *
-     * @return The current node ID.
-     */
-    public String getCurrentNodeId() {
-
-        return currentNodeId;
     }
 
     /**
@@ -109,7 +97,6 @@ public class InFlowExtensionEvent extends Event {
         private UserStore userStore;
         private Application application;
         private String flowType;
-        private String currentNodeId;
         private Map<String, String> userInputs;
         private Map<String, Object> flowProperties;
 
@@ -152,12 +139,6 @@ public class InFlowExtensionEvent extends Event {
         public Builder flowType(String flowType) {
 
             this.flowType = flowType;
-            return this;
-        }
-
-        public Builder currentNodeId(String currentNodeId) {
-
-            this.currentNodeId = currentNodeId;
             return this;
         }
 

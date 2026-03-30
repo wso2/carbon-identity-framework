@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Enc
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
-import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -190,8 +189,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
 
-        // TODO: Consider moving to a dynamic approach if the number of fields grows, to avoid hardcoding each field.
-
         // Tenant
         if (isExposed(HierarchicalPrefixMatcher.FLOW_TENANT_PATH, expose)) {
             String tenantDomain = context.getTenantDomain();
@@ -229,19 +226,12 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             eventBuilder.flowType(context.getFlowType());
         }
 
-        // Current node
-        if (isExposed(HierarchicalPrefixMatcher.GRAPH_CURRENT_NODE_PREFIX, expose)) {
-            NodeConfig currentNode = context.getCurrentNode();
-            if (currentNode != null) {
-                eventBuilder.currentNodeId(currentNode.getId());
-            }
-        }
-
         // User inputs
         if (isExposed(HierarchicalPrefixMatcher.INPUT_PREFIX, expose)) {
             Map<String, String> userInputs = context.getUserInputData();
             if (userInputs != null && !userInputs.isEmpty()) {
-                eventBuilder.userInputs(filterMap(userInputs, HierarchicalPrefixMatcher.INPUT_PREFIX, expose));
+                eventBuilder.userInputs(filterMap(userInputs, HierarchicalPrefixMatcher.INPUT_PREFIX,
+                        expose, accessConfig, certificatePEM));
             }
         }
 
@@ -250,7 +240,8 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             Map<String, Object> properties = context.getProperties();
             if (properties != null && !properties.isEmpty()) {
                 eventBuilder.flowProperties(
-                        filterMap(properties, HierarchicalPrefixMatcher.PROPERTIES_PREFIX, expose));
+                        filterMap(properties, HierarchicalPrefixMatcher.PROPERTIES_PREFIX,
+                                expose, accessConfig, certificatePEM));
             }
         }
 
@@ -324,29 +315,35 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
     /**
      * Filter a map to only include entries whose paths are exposed.
+     * Values for expose paths marked as encrypted are JWE-encrypted.
      *
-     * @param map        The source map.
-     * @param areaPrefix The area prefix (e.g. "/properties/").
-     * @param expose     The expose prefix list.
-     * @param <T>        The value type.
-     * @return A new map containing only exposed entries.
+     * @param map            The source map.
+     * @param areaPrefix     The area prefix (e.g. "/properties/").
+     * @param expose         The expose prefix list.
+     * @param accessConfig   The access config with encryption flags (may be null).
+     * @param certificatePEM The certificate PEM for JWE encryption (may be null).
+     * @param <T>            The value type.
+     * @return A new map containing only exposed entries, with encrypted values where configured.
      */
-    private <T> Map<String, T> filterMap(Map<String, T> map, String areaPrefix, List<String> expose) {
+    @SuppressWarnings("unchecked")
+    private <T> Map<String, T> filterMap(Map<String, T> map, String areaPrefix, List<String> expose,
+                                         AccessConfig accessConfig, String certificatePEM) {
 
         if (map == null) {
             return null;
         }
 
         boolean hasSpecificFilter = hasSpecificSubPathFilter(expose, areaPrefix);
-        if (!hasSpecificFilter) {
-            // The entire area is exposed — return a copy.
-            return new HashMap<>(map);
-        }
 
         Map<String, T> filtered = new HashMap<>();
         for (Map.Entry<String, T> entry : map.entrySet()) {
-            if (isExposed(areaPrefix + entry.getKey(), expose)) {
-                filtered.put(entry.getKey(), entry.getValue());
+            String fullPath = areaPrefix + entry.getKey();
+            if (!hasSpecificFilter || isExposed(fullPath, expose)) {
+                T value = entry.getValue();
+                if (shouldEncrypt(fullPath, accessConfig, certificatePEM)) {
+                    value = (T) encryptValue(String.valueOf(value), certificatePEM);
+                }
+                filtered.put(entry.getKey(), value);
             }
         }
         return filtered;

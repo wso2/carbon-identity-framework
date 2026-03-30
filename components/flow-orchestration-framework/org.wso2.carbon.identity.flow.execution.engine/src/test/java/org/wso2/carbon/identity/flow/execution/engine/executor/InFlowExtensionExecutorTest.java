@@ -531,20 +531,6 @@ public class InFlowExtensionExecutorTest {
         assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
     }
 
-    // ========================= ExecutorResult enum =========================
-
-    @Test
-    public void testExecutorResultValues() {
-
-        assertEquals(ExecutorResult.values().length, 6);
-        assertNotNull(ExecutorResult.valueOf("COMPLETE"));
-        assertNotNull(ExecutorResult.valueOf("ERROR"));
-        assertNotNull(ExecutorResult.valueOf("USER_ERROR"));
-        assertNotNull(ExecutorResult.valueOf("USER_INPUT_REQUIRED"));
-        assertNotNull(ExecutorResult.valueOf("EXTERNAL_REDIRECTION"));
-        assertNotNull(ExecutorResult.valueOf("RETRY"));
-    }
-
     // ========================= Helper methods =========================
 
     private FlowExecutionContext createContextWithMetadata(Map<String, String> metadata) {

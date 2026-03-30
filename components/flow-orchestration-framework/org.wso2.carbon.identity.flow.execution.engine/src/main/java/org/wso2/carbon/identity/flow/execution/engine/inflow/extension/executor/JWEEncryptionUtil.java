@@ -60,12 +60,6 @@ public final class JWEEncryptionUtil {
 
     private static final Log LOG = LogFactory.getLog(JWEEncryptionUtil.class);
 
-    /** Number of dot-separated parts in a JWE compact serialization. */
-    private static final int JWE_PART_COUNT = 5;
-
-    /** Standard PEM line length per RFC 7468. */
-    private static final int PEM_LINE_LENGTH = 64;
-
     /** Cache of resolved private keys, keyed by tenant ID. */
     private static final Map<String, Key> PRIVATE_KEYS = new ConcurrentHashMap<>();
 

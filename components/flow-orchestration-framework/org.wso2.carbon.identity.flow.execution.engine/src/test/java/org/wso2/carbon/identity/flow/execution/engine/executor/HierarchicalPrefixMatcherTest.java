@@ -60,8 +60,6 @@ public class HierarchicalPrefixMatcherTest {
                 { "/flow/tenantDomain", ContextArea.FLOW },
                 { "/flow/applicationId", ContextArea.FLOW },
                 { "/flow/", ContextArea.FLOW },
-                { "/graph/currentNode/id", ContextArea.GRAPH },
-                { "/graph/", ContextArea.GRAPH },
         };
     }
 
@@ -186,8 +184,6 @@ public class HierarchicalPrefixMatcherTest {
                 { "/flow/tenantDomain", true },
                 { "/flow/applicationId", true },
                 { "/flow/", true },
-                { "/graph/currentNode/id", true },
-                { "/graph/", true },
                 { "/properties/riskScore", false },
                 { "/user/claims/email", false },
                 { "/input/field", false },
@@ -245,7 +241,7 @@ public class HierarchicalPrefixMatcherTest {
     @Test
     public void testMatchesAnyExposeNoMatch() {
 
-        List<String> expose = Arrays.asList("/flow/", "/graph/");
+        List<String> expose = Arrays.asList("/flow/");
         assertFalse(HierarchicalPrefixMatcher.matchesAnyExpose("/properties/score", expose));
         assertFalse(HierarchicalPrefixMatcher.matchesAnyExpose("/user/claims/email", expose));
     }
@@ -271,29 +267,8 @@ public class HierarchicalPrefixMatcherTest {
     @Test
     public void testMatchesAnyExposeMultiplePrefixesOneMatches() {
 
-        List<String> expose = Arrays.asList("/flow/", "/graph/", "/properties/");
+        List<String> expose = Arrays.asList("/flow/", "/properties/");
         assertTrue(HierarchicalPrefixMatcher.matchesAnyExpose("/properties/score", expose));
-    }
-
-    // ========================= normalizePath =========================
-
-    @Test
-    public void testNormalizePathLegacyUserInputs() {
-
-        assertEquals(HierarchicalPrefixMatcher.normalizePath("/userInputs/field"), "/input/field");
-    }
-
-    @Test
-    public void testNormalizePathUnchanged() {
-
-        assertEquals(HierarchicalPrefixMatcher.normalizePath("/properties/score"), "/properties/score");
-        assertEquals(HierarchicalPrefixMatcher.normalizePath("/user/claims/email"), "/user/claims/email");
-    }
-
-    @Test
-    public void testNormalizePathNull() {
-
-        assertNull(HierarchicalPrefixMatcher.normalizePath(null));
     }
 
     // ========================= DEFAULT_EXPOSE =========================
@@ -303,12 +278,11 @@ public class HierarchicalPrefixMatcherTest {
 
         List<String> defaultExpose = HierarchicalPrefixMatcher.DEFAULT_EXPOSE;
         assertNotNull(defaultExpose);
-        assertEquals(defaultExpose.size(), 5);
+        assertEquals(defaultExpose.size(), 4);
         assertTrue(defaultExpose.contains("/user/"));
         assertTrue(defaultExpose.contains("/properties/"));
         assertTrue(defaultExpose.contains("/input/"));
         assertTrue(defaultExpose.contains("/flow/"));
-        assertTrue(defaultExpose.contains("/graph/"));
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -326,7 +300,6 @@ public class HierarchicalPrefixMatcherTest {
         assertEquals(ContextArea.PROPERTIES.getPrefix(), "/properties/");
         assertEquals(ContextArea.INPUT.getPrefix(), "/input/");
         assertEquals(ContextArea.FLOW.getPrefix(), "/flow/");
-        assertEquals(ContextArea.GRAPH.getPrefix(), "/graph/");
     }
 
     @Test
@@ -339,6 +312,5 @@ public class HierarchicalPrefixMatcherTest {
         assertFalse(ContextArea.PROPERTIES.hasSystemConfiguredKeys());
         assertFalse(ContextArea.INPUT.hasSystemConfiguredKeys());
         assertFalse(ContextArea.FLOW.hasSystemConfiguredKeys());
-        assertFalse(ContextArea.GRAPH.hasSystemConfiguredKeys());
     }
 }
