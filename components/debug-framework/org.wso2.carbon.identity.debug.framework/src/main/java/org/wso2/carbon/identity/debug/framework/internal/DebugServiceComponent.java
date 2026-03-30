@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
+import org.wso2.carbon.identity.debug.framework.core.DebugCommonAuthInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
@@ -58,15 +59,13 @@ public class DebugServiceComponent {
             LOG.debug("Debug Framework OSGi component activating");
             BundleContext bundleContext = context.getBundleContext();
 
-            // Register DebugRequestCoordinator as an OSGi interceptor service.
+            // Register DebugRequestCoordinator as the API-facing debug service.
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
-            bundleContext.registerService(
-                    new String[] {
-                            DebugAuthenticationInterceptor.class.getName(),
-                            DebugRequestCoordinator.class.getName()
-                    },
-                    requestCoordinator,
-                    null);
+            bundleContext.registerService(DebugRequestCoordinator.class, requestCoordinator, null);
+
+            // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
+            bundleContext.registerService(DebugAuthenticationInterceptor.class,
+                    new DebugCommonAuthInterceptor(requestCoordinator), null);
 
             // Register the cleanup listener as an OSGi service.
             cleanupListenerServiceRegistration = bundleContext.registerService(
@@ -77,7 +76,7 @@ public class DebugServiceComponent {
             cleanupService.activate();
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
-            LOG.debug("DebugRequestCoordinator registered as DebugAuthenticationInterceptor service");
+            LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
         } catch (Exception e) {
             LOG.error("Error while activating debug framework component.", e);
         }

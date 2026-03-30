@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.cache.DebugSessionCache;
@@ -50,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
  * Handles protocol-specific callback requests (/commonauth) via registered
  * DebugCallbackHandler implementations.
  */
-public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
+public class DebugRequestCoordinator {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -65,24 +64,6 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
     }
 
     /**
-     * Handles the initial debug request.
-     * Routes to the appropriate protocol executor based on the resource ID.
-     *
-     * @param debugRequest The debug request with resource details.
-     * @return DebugResponse containing the execution result.
-     * @throws DebugFrameworkServerException If a server-side error occurs.
-     */
-    public DebugResponse handleInitialDebugRequest(DebugRequest debugRequest)
-            throws DebugFrameworkClientException, DebugFrameworkServerException {
-
-        if (debugRequest == null) {
-            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
-        }
-
-        return handleResourceDebugRequest(debugRequest);
-    }
-
-    /**
      * Handles debug requests for any resource type using typed classes.
      * This is the preferred method with type safety.
      * The connectionId is optional and may be null for connection types that don't
@@ -93,7 +74,7 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
      * @throws DebugFrameworkClientException If the request has validation errors.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public DebugResponse handleResourceDebugRequest(DebugRequest debugRequest)
+    public DebugResponse handleDebugRequest(DebugRequest debugRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
         validateDebugRequest(debugRequest);
@@ -258,16 +239,7 @@ public class DebugRequestCoordinator implements DebugAuthenticationInterceptor {
         }
     }
 
-    /**
-     * Handles /commonauth requests with proper debug flow routing.
-     * Returns false by default to allow normal authentication flow to proceed.
-     * Only returns true if debug handling explicitly completes the request.
-     *
-     * @param request  HttpServletRequest.
-     * @param response HttpServletResponse.
-     * @return true if handled as debug flow and normal authentication should be skipped.
-     */
-    public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
+    public boolean handleCallbackRequest(HttpServletRequest request, HttpServletResponse response) {
 
         try {
             DebugCallbackHandler handler = resolveCallbackHandler(request);
