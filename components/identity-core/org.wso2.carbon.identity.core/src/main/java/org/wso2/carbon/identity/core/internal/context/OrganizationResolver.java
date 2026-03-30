@@ -261,7 +261,7 @@ public class OrganizationResolver {
             subPaths.add(configuredPaths.toString());
         }
         for (String subPath : subPaths) {
-            if (Pattern.compile("^/t/[^/]+/o/[^/]+" + Pattern.quote(subPath))
+            if (Pattern.compile("^/t/[^/]+/o/[^/]+" + Pattern.quote(subPath) + "($|/)")
                     .matcher(requestURI).find()) {
                 return true;
             }
