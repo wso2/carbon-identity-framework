@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.compatibility.settings.core.service;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants;
 import org.wso2.carbon.identity.compatibility.settings.core.exception.CompatibilitySettingException;
@@ -30,6 +31,13 @@ import org.wso2.carbon.identity.compatibility.settings.core.util.IdentityCompati
  * Service for managing identity compatibility settings.
  * Provides functionality to get and update compatibility settings for tenants.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.identity.compatibility.settings.core.service.CompatibilitySettingsService",
+                "service.scope=singleton"
+        }
+)
 public class CompatibilitySettingsService {
 
     /**
