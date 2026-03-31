@@ -185,6 +185,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             if (StringUtils.isNotEmpty(sqlFilters.get(SessionMgtConstants.FilterType.APPLICATION))) {
                 appDetails = getApplicationsForFilter(String.format("%s AND (TENANT_ID = %s OR IS_SAAS_APP = '1')",
                         sqlFilters.get(SessionMgtConstants.FilterType.APPLICATION), tenantId));
+                if (appDetails.isEmpty()) {
+                    return userSessionsList;
+                }
                 appIdFilter = String.format("WHERE APP_ID IN (%s)", StringUtils.join(appDetails.keySet(), ","));
             }
         } catch (DataAccessException e) {
