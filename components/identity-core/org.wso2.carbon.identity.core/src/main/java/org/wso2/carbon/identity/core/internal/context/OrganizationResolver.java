@@ -22,6 +22,7 @@ import org.apache.catalina.connector.Request;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
@@ -89,13 +90,25 @@ public class OrganizationResolver {
         try {
             if (PATTERN_TENANT_AND_ORG_QUALIFIED.matcher(requestURI).find()) {
                 // Handle the requests starts with /t/<tenant>/o/<org_id>/
-                // Request URI has tenant domain -> Resolve Root organization info.
-                String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
-                resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
+                try {
+                    // Request URI has tenant domain -> Resolve Root organization info.
+                    String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
+                    resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
 
-                // Request URI has an organization ID -> Resolve sub-organization info.
-                String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
-                resolveOrganization(organizationId);
+                    // Request URI has an organization ID -> Resolve sub-organization info.
+                    String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
+                    resolveOrganization(organizationId);
+                } catch (IdentityRuntimeException e) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Invalid tenant domain in request URI: " + requestURI, e);
+                    }
+                    return;
+                } catch (RuntimeException e) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Error resolving organization context for request URI: " + requestURI, e);
+                    }
+                    return;
+                }
             } else if (PATTERN_ORG_QUALIFIED_ONLY.matcher(requestURI).find()) {
                 // Handle the requests starts with /o/<org_id>/
                 // Request URI has an organization ID -> Resolve both root and sub-organization info.

@@ -45,9 +45,11 @@ public class OrganizationResolverTest {
             "OrgContextsToRewriteInTenantQualifiedPaths.WebApp.Context.SubPaths.Path";
 
     private static final List<String> CONFIGURED_SUB_PATHS = Arrays.asList(
-            "/api/server/v1/validation-rules",
             "/api/server/v1/branding-preference",
-            "/api/server/v1/offline-invite-link"
+            "/api/server/v1/branding-preference/resolve",
+            "/api/server/v1/branding-preference/text",
+            "/api/server/v1/branding-preference/text/resolve",
+            "/api/server/v1/validation-rules"
     );
 
     private MockedStatic<IdentityConfigParser> identityConfigParser;
