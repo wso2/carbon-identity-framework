@@ -4106,6 +4106,41 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering authentication context.
+     * produces identical results to
+     * preprocessUsernameWithContextTenantDomain(String username, AuthenticationContext context) method for non-shared
+     * users. For shared users, this method appends the user resident tenant domain to the username.
+     *
+     * @param username Username of the user.
+     * @param context  Authentication context.
+     * @return preprocessed username with context tenant domain.
+     */
+    public static String preprocessUsernameWithUserResidentTenantDomain(
+            String username, AuthenticationContext context) {
+
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + context.getUserTenantDomain();
+            }
+        } else if (!username.endsWith(context.getUserTenantDomain())) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + context.getUserResidentTenantDomain();
+        }
+        return username;
+    }
+
+    /**
      * Pre-process user's username considering the service provider.
      *
      * @param username Username of the user.
@@ -5096,5 +5131,11 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(
                 IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
+    }
+
+    public static boolean useResidentUserIdForAuthenticatedSharedUsers() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.Config.USE_RESIDENT_USER_ID_FOR_AUTHENTICATED_SHARED_USERS));
     }
 }

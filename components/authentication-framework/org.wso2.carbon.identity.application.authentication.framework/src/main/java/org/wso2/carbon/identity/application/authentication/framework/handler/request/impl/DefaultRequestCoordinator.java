@@ -817,6 +817,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
         context.setTenantDomain(tenantDomain);
+        // This value will be updated later in the sequence if the logging-in user is a shared user.
+        context.setUserResidentTenantDomain(tenantDomain);
         context.setLoginTenantDomain(loginDomain);
         context.setUserTenantDomainHint(userDomain);
         context.setExpiryTime(FrameworkUtils.getCurrentStandardNano() + TimeUnit.MINUTES.toNanos(
@@ -1871,6 +1873,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String primaryTenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         context.getOrganizationLoginData().setRootOrganizationTenantDomain(primaryTenantDomain);
         context.setTenantDomain(accessingOrgTenantDomain);
+        // This value will be updated later in the sequence if the logging-in user is a shared user.
+        context.setUserResidentTenantDomain(accessingOrgTenantDomain);
 
         // Setting the sequence config of the shared application to the context.
         SequenceConfig sequenceConfig = getSharedAppSequenceConfig(context, request.getParameterMap(),

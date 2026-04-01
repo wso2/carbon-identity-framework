@@ -62,6 +62,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private String externalIdPResourceId;
     private boolean rememberMe;
     private String tenantDomain;
+    private String userResidentTenantDomain;
     private int retryCount;
     private int currentPostAuthHandlerIndex = 0;
     private Map<String, String> authenticatorProperties = new HashMap<>();
@@ -849,7 +850,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
         return this.externalIdPResourceId;
     }
-    
+
     public long getExpiryTime() {
 
         return expiryTimeNano;
@@ -962,6 +963,27 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setPasswordResetComplete(boolean passwordResetComplete) {
 
         this.passwordResetComplete = passwordResetComplete;
+    }
+
+    /**
+     * Returns the tenant domain of the user who is going to log in. This value is equal to the value returned with
+     * getTenantDomain method if the logging-in user is not a shared user.
+     *
+     * @return The tenant domain of the user who will be logging in.
+     */
+    public String getUserResidentTenantDomain() {
+
+        return userResidentTenantDomain;
+    }
+
+    /**
+     * Set the tenant domain of the user who is going to log in.
+     *
+     * @param userResidentTenantDomain The tenant domain of the user who is going to log in.
+     */
+    public void setUserResidentTenantDomain(String userResidentTenantDomain) {
+
+        this.userResidentTenantDomain = userResidentTenantDomain;
     }
 
     /**

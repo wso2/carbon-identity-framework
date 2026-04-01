@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SharedUserAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -806,6 +807,10 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         try {
+            if (isAuthenticatingUserShared(context) && !(context instanceof SharedUserAuthenticationContext)) {
+                context = new SharedUserAuthenticationContext(context);
+            }
+
             context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status;
             if (isAuthenticationRequired) {
@@ -822,6 +827,11 @@ public class DefaultStepHandler implements StepHandler {
                 // If the authenticator does not require authentication based on the assertion, we can skip the process.
                 status = AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
+
+            if (context instanceof SharedUserAuthenticationContext) {
+                context = ((SharedUserAuthenticationContext) context).getWrappedContext();
+            }
+
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/
@@ -865,9 +875,13 @@ public class DefaultStepHandler implements StepHandler {
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
+                String userAccessingOrganization = resolveUserAccessingOrganization(context.getSubject());
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
-                // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
-                context.getSubject().setAccessingOrganization(userResidentOrganization);
+                if (StringUtils.isNotBlank(userAccessingOrganization)) {
+                    context.getSubject().setAccessingOrganization(userAccessingOrganization);
+                } else {
+                    context.getSubject().setAccessingOrganization(userResidentOrganization);
+                }
             }
 
             if (context.getSubject() != null && context.isSharedAppLogin()) {
@@ -1163,6 +1177,27 @@ public class DefaultStepHandler implements StepHandler {
         stepConfig.setAuthenticatedUser(authenticatedIdPData.getUser());
         stepConfig.setAuthenticatedIdP(authenticatedIdPData.getIdpName());
         stepConfig.setAuthenticatedAutenticator(authenticatedStepIdp);
+    }
+
+    /**
+     * Checks whether the authenticating user is identified as a shared user to the accessing organization via the
+     * SharedUserIdentifierExecutor in any of the previous steps of the authentication flow.
+     *
+     * @param context the authentication context
+     * @return true if the authenticating user is identified as a shared user, false otherwise
+     */
+    private boolean isAuthenticatingUserShared(AuthenticationContext context) {
+
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        for (StepConfig stepConfig : stepMap.values()) {
+            if (stepConfig.getAuthenticatedUser() != null && stepConfig.getAuthenticatedUser().isSharedUser() &&
+                    FrameworkConstants.SHARED_USER_IDENTIFIER_HANDLER.equals(
+                            stepConfig.getAuthenticatedAutenticator().getName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -1603,22 +1638,53 @@ public class DefaultStepHandler implements StepHandler {
 
     /**
      * Resolve user resident organization for the users authenticated via the B2B organization login authenticator.
+     * The resolution is done in the following priority order:
+     * 1. {@link FrameworkConstants#USER_ORG_CLAIM} claim.
+     * 2. {@link FrameworkConstants#ORG_ID_CLAIM} claim.
+     * 3. {@link FrameworkConstants#USER_ORGANIZATION_CLAIM} claim.
      *
-     * @param authenticatedUser   The authenticated user.
+     * @param authenticatedUser The authenticated user.
      * @return The organization where the user's identity is managed.
+     * @throws FrameworkException If the user resident organization could not be resolved.
      */
     private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser) throws FrameworkException {
 
-        // Check for user organization claim for the authenticated user via the organization login authenticator.
+        // First, check for the user_org attribute. For shared user logins this claim is available.
+        for (Map.Entry<ClaimMapping, String> userAttribute : authenticatedUser.getUserAttributes().entrySet()) {
+            if (FrameworkConstants.USER_ORG_CLAIM.equals(userAttribute.getKey().getLocalClaim().getClaimUri())) {
+                return userAttribute.getValue();
+            }
+        }
+
+        // If user_org is not available, check for the org_id attribute.
+        for (Map.Entry<ClaimMapping, String> userAttribute : authenticatedUser.getUserAttributes().entrySet()) {
+            if (FrameworkConstants.ORG_ID_CLAIM.equals(userAttribute.getKey().getLocalClaim().getClaimUri())) {
+                return userAttribute.getValue();
+            }
+        }
+
+        // If neither user_org nor org_id is available, check for the USER_ORGANIZATION_CLAIM.
+        for (Map.Entry<ClaimMapping, String> userAttribute : authenticatedUser.getUserAttributes().entrySet()) {
+            if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
+                    userAttribute.getKey().getLocalClaim().getClaimUri())) {
+                return userAttribute.getValue();
+            }
+        }
+
+        throw new FrameworkException("User resident organization could not be found.");
+    }
+
+    private String resolveUserAccessingOrganization(AuthenticatedUser authenticatedUser) {
+
         if (authenticatedUser.getUserAttributes() != null) {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
-                if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
-                        userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                if (FrameworkConstants.ORG_ID_CLAIM.equals(userAttributes.getKey().getLocalClaim().getClaimUri())) {
                     return userAttributes.getValue();
                 }
             }
         }
-        throw new FrameworkException("User resident organization could not found");
+
+        return null;
     }
 
     private void handleAPIBasedAuthenticationData(HttpServletRequest request, ApplicationAuthenticator authenticator,

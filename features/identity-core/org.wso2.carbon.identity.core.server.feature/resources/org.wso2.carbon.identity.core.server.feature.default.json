@@ -2288,5 +2288,6 @@
 
   "enhanced_organization_authentication_feature.enabled": true,
 
-  "workflow_engine.max_approver_notifications": 15
+  "workflow_engine.max_approver_notifications": 15,
+  "use_resident_user_id_for_authenticated_shared_users.enabled": true
 }

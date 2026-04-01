@@ -401,12 +401,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (!sequenceConfig.getApplicationConfig().isSaaSApp()) {
                 String spTenantDomain = context.getTenantDomain();
                 String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
-                if (StringUtils.isNotEmpty(userTenantDomain)) {
-                    if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
-                            (userTenantDomain)) {
-                        throw new FrameworkException(ERROR_MISMATCHING_TENANT_DOMAIN.getCode(),
-                                ERROR_MISMATCHING_TENANT_DOMAIN.getMessage());
-                    }
+                if (StringUtils.isNotEmpty(userTenantDomain) &&
+                        StringUtils.isNotEmpty(spTenantDomain) &&
+                        !spTenantDomain.equals(userTenantDomain) &&
+                        !sequenceConfig.getAuthenticatedUser().isSharedUser()) {
+                    throw new FrameworkException(ERROR_MISMATCHING_TENANT_DOMAIN.getCode(),
+                            ERROR_MISMATCHING_TENANT_DOMAIN.getMessage());
                 }
             }
 
