@@ -89,26 +89,7 @@ public class OrganizationResolver {
 
         try {
             if (PATTERN_TENANT_AND_ORG_QUALIFIED.matcher(requestURI).find()) {
-                // Handle the requests starts with /t/<tenant>/o/<org_id>/
-                try {
-                    // Request URI has tenant domain -> Resolve Root organization info.
-                    String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
-                    resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
-
-                    // Request URI has an organization ID -> Resolve sub-organization info.
-                    String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
-                    resolveOrganization(organizationId);
-                } catch (IdentityRuntimeException e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Invalid tenant domain in request URI: " + requestURI, e);
-                    }
-                    return;
-                } catch (RuntimeException e) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Error resolving organization context for request URI: " + requestURI, e);
-                    }
-                    return;
-                }
+                resolveTenantAndOrgQualifiedContext(requestURI);
             } else if (PATTERN_ORG_QUALIFIED_ONLY.matcher(requestURI).find()) {
                 // Handle the requests starts with /o/<org_id>/
                 // Request URI has an organization ID -> Resolve both root and sub-organization info.
@@ -125,6 +106,29 @@ public class OrganizationResolver {
                 resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
                 // Resolve root organization information to the Organization object in tenanted paths.
                 resolveRootOrganizationToOrganization();
+            }
+        } catch (OrganizationManagementException | UserStoreException e) {
+            LOG.error("Error while initializing organization information.", e);
+        }
+    }
+
+    private void resolveTenantAndOrgQualifiedContext(String requestURI) {
+
+        try {
+            // Request URI has tenant domain -> Resolve Root organization info.
+            String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
+            resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
+
+            // Request URI has an organization ID -> Resolve sub-organization info.
+            String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
+            resolveOrganization(organizationId);
+        } catch (IdentityRuntimeException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Invalid tenant domain in request URI: " + requestURI, e);
+            }
+        } catch (RuntimeException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error resolving organization context for request URI: " + requestURI, e);
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
