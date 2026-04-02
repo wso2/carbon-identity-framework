@@ -1372,6 +1372,9 @@
 
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
+        <Registration>
+            <SkipSignupConfirmationIfAccountLockDisabled>true</SkipSignupConfirmationIfAccountLockDisabled>
+        </Registration>
     </Webhooks>
 
     <LocalAuthenticators>
@@ -2600,6 +2603,14 @@
             <EnableTenantedSessions>false</EnableTenantedSessions>
         </TenantQualifiedUrls>
     </TenantContext>
+
+    <!--
+        SaaS application configurations.
+    -->
+    <SaaS>
+        <EnableAppCreation>false</EnableAppCreation>
+        <EnableCrossTenantOperations>false</EnableCrossTenantOperations>
+    </SaaS>
 
     <TenantContextsToRewrite>
         <WebApp>

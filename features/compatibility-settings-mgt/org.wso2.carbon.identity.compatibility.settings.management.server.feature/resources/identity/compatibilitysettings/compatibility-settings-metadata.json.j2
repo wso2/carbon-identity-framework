@@ -57,14 +57,21 @@
   },
   "scim2": {
     "disableBasicAuthForMeEndpoint" : {
-        "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-01T00:00:00Z')}}",
+        "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-21T00:00:00Z')}}",
         "targetValue" : {{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.default_value | default("true")}}
     },
     "disablePasswordUpdateInMeEndpoint" : {
-        "timestampReference" : "{{compatibility_setting.scim2.disable_password_update_in_me_endpoint.timestamp_reference | default('2026-04-01T00:00:00Z')}}",
+        "timestampReference" : "{{compatibility_setting.scim2.disable_password_update_in_me_endpoint.timestamp_reference | default('2026-04-21T00:00:00Z')}}",
         "targetValue" : {{compatibility_setting.scim2.disable_password_update_in_me_endpoint.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.scim2.disable_password_update_in_me_endpoint.default_value | default("true")}}
+    }
+  },
+  "webhook": {
+    "registration.skipSignupConfirmationIfAccountLockDisabled" : {
+        "timestampReference" : "{{compatibility_setting.webhook.registration.skip_signup_confirmation_if_account_lock_disabled.timestamp_reference | default('2026-05-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.webhook.registration.skip_signup_confirmation_if_account_lock_disabled.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.webhook.registration.skip_signup_confirmation_if_account_lock_disabled.default_value | default("true")}}
     }
   }
 }

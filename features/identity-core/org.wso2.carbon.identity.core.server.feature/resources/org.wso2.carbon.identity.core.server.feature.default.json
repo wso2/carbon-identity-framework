@@ -2249,6 +2249,7 @@
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
+  "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": true,
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,
@@ -2309,7 +2310,12 @@
   "enhanced_organization_authentication_feature.enabled": true,
 
   "workflow_engine.max_approver_notifications": 15,
+  
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
+  "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
+  
+  "saas.enable_app_creation": false,
+  "saas.enable_cross_tenant_operations": false,
 
   "enhanced_organization_authentication.enabled_by_default_for_new_apps": true
 }
