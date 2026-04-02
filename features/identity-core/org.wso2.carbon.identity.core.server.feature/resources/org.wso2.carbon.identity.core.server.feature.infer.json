@@ -341,7 +341,8 @@
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
-      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -408,7 +409,8 @@
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
-      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -437,7 +439,8 @@
       "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
-      "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false
+      "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false,
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false
     }
   }
 }

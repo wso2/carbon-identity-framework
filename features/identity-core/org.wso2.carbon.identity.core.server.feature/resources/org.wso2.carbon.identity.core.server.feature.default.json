@@ -2315,5 +2315,7 @@
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
   
   "saas.enable_app_creation": false,
-  "saas.enable_cross_tenant_operations": false
+  "saas.enable_cross_tenant_operations": false,
+
+  "enhanced_organization_authentication.enabled_by_default_for_new_apps": true
 }
