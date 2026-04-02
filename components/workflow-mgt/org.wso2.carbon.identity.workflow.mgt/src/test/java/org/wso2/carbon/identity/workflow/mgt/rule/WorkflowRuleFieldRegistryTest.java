@@ -52,13 +52,12 @@ public class WorkflowRuleFieldRegistryTest {
         RuleMetadataConfigFactory.load();
     }
 
+    // TODO: Add "initiator.domain", "initiator.groups", and "initiator.roles" back to this list once
+    //  WorkflowRuleEvaluationDataProvider supports providing data for initiator fields.
     private static final List<String> EXPECTED_KEYS = Arrays.asList(
             "user.domain",
             "user.groups",
             "user.roles",
-            "initiator.domain",
-            "initiator.groups",
-            "initiator.roles",
             "role.id",
             "role.audience",
             "role.permissions",
@@ -82,10 +81,12 @@ public class WorkflowRuleFieldRegistryTest {
     }
 
     @Test
-    public void testFieldsMapHasExactlyElevenEntries() {
+    public void testFieldsMapHasExactlyEightEntries() {
 
-        assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 11,
-                "FIELDS map should have exactly 11 entries.");
+        // TODO: Update this count from 8 to 11 once initiator.domain, initiator.groups, and initiator.roles
+        //  are re-added to WorkflowRuleFieldRegistry when initiator field data provider support is added.
+        assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 8,
+                "FIELDS map should have exactly 8 entries.");
     }
 
     @Test
@@ -197,19 +198,15 @@ public class WorkflowRuleFieldRegistryTest {
     }
 
     @Test
-    public void testInitiatorFieldsMirrorUserFields() {
+    public void testInitiatorFieldsAreNotPresent() {
 
-        // Initiator fields should mirror the user fields structure.
-        FieldDefinition userDomain = WorkflowRuleFieldRegistry.FIELDS.get("user.domain");
-        FieldDefinition initiatorDomain = WorkflowRuleFieldRegistry.FIELDS.get("initiator.domain");
-        assertNotNull(initiatorDomain);
-        assertEquals(initiatorDomain.getOperators().size(), userDomain.getOperators().size());
-        assertEquals(initiatorDomain.getValue().getValueType(), userDomain.getValue().getValueType());
-
-        FieldDefinition userGroups = WorkflowRuleFieldRegistry.FIELDS.get("user.groups");
-        FieldDefinition initiatorGroups = WorkflowRuleFieldRegistry.FIELDS.get("initiator.groups");
-        assertNotNull(initiatorGroups);
-        assertEquals(initiatorGroups.getOperators().size(), userGroups.getOperators().size());
+        // Initiator fields are not yet supported (pending data provider implementation).
+        assertFalse(WorkflowRuleFieldRegistry.FIELDS.containsKey("initiator.domain"),
+                "initiator.domain should not be present until data provider support is added.");
+        assertFalse(WorkflowRuleFieldRegistry.FIELDS.containsKey("initiator.groups"),
+                "initiator.groups should not be present until data provider support is added.");
+        assertFalse(WorkflowRuleFieldRegistry.FIELDS.containsKey("initiator.roles"),
+                "initiator.roles should not be present until data provider support is added.");
     }
 
     @Test
