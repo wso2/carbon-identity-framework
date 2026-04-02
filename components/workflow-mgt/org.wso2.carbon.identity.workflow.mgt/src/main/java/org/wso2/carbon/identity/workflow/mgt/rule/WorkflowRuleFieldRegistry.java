@@ -86,43 +86,6 @@ public class WorkflowRuleFieldRegistry {
                     .addLink(ROLES_FILTER_LINK, "GET", "filter")
                 .build());
 
-        // Uncomment the following block when the initiator fields are supported by WorkflowRuleEvaluationDataProvider.
-
-        // fields.put("initiator.domain", new FieldDefinitionBuilder()
-        //         .name("initiator.domain")
-        //         .displayName("initiator's user store domain")
-        //         .operators(OPERATOR_EQUALS, OPERATOR_NOT_EQUALS)
-        //         .options()
-        //             .valueType(Value.ValueType.REFERENCE)
-        //             .referenceAttr("name")
-        //             .displayAttr("name")
-        //             .addLink(USERSTORES_VALUES_LINK, "GET", "values")
-        //         .build());
-
-        // fields.put("initiator.groups", new FieldDefinitionBuilder()
-        //         .name("initiator.groups")
-        //         .displayName("initiator’s assigned groups")
-        //         .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
-        //         .options()
-        //             .valueType(Value.ValueType.REFERENCE)
-        //             .referenceAttr("id")
-        //             .displayAttr("displayName")
-        //             .addLink(GROUPS_VALUES_LINK, "GET", "values")
-        //             .addLink(GROUPS_FILTER_LINK, "GET", "filter")
-        //         .build());
-
-        // fields.put("initiator.roles", new FieldDefinitionBuilder()
-        //         .name("initiator.roles")
-        //         .displayName("initiator's assigned roles")
-        //         .operators(OPERATOR_CONTAINS, OPERATOR_NOT_CONTAINS)
-        //         .options()
-        //             .valueType(Value.ValueType.REFERENCE)
-        //             .referenceAttr("id")
-        //             .displayAttr("displayName")
-        //             .addLink(ROLES_VALUES_LINK, "GET", "values")
-        //             .addLink(ROLES_FILTER_LINK, "GET", "filter")
-        //         .build());
-
         fields.put("role.id", new FieldDefinitionBuilder()
                 .name("role.id")
                 .displayName("role identifier")
