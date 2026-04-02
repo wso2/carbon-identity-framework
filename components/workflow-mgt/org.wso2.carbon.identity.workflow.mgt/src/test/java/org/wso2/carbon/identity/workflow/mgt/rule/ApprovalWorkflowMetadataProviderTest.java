@@ -124,7 +124,7 @@ public class ApprovalWorkflowMetadataProviderTest {
     }
 
     @Test
-    public void testGetExpressionMeta_withTwoClaims_returnsStaticFieldsPlusFourDynamicFields()
+    public void testGetExpressionMeta_withTwoClaims_returnsStaticFieldsPlusTwoDynamicFields()
             throws RuleMetadataException, ClaimMetadataException {
 
         LocalClaim claim1 = new LocalClaim("http://wso2.org/claims/givenname");
@@ -133,13 +133,15 @@ public class ApprovalWorkflowMetadataProviderTest {
 
         List<FieldDefinition> result = provider.getExpressionMeta(FlowType.APPROVAL_WORKFLOW, TENANT_DOMAIN);
 
-        // 11 static fields + 2 claims * 2 prefixes (user. and initiator.) = 15.
-        int expectedSize = WorkflowRuleFieldRegistry.FIELDS.size() + (2 * 2);
+        // TODO: Update the multiplier from 1 to 2 (user. and initiator.) and the comment below once
+        //  WorkflowRuleEvaluationDataProvider supports providing data for initiator fields.
+        // 8 static fields + 2 claims * 1 prefix (user.) = 10.
+        int expectedSize = WorkflowRuleFieldRegistry.FIELDS.size() + (2 * 1);
         assertEquals(result.size(), expectedSize);
     }
 
     @Test
-    public void testGetExpressionMeta_claimFieldsContainUserAndInitiatorPrefixes()
+    public void testGetExpressionMeta_claimFieldsContainOnlyUserPrefix()
             throws RuleMetadataException, ClaimMetadataException {
 
         LocalClaim claim = new LocalClaim("http://wso2.org/claims/emailaddress");
@@ -155,8 +157,11 @@ public class ApprovalWorkflowMetadataProviderTest {
                 .filter(fd -> fd.getField().getName().startsWith("initiator.http://wso2.org/claims/"))
                 .count();
 
+        // TODO: Update initiatorClaimFields assertion from 0 to 1 once WorkflowRuleEvaluationDataProvider
+        //  supports providing data for initiator fields and the initiator prefix is re-enabled.
+        // Initiator prefix is not yet supported (pending data provider implementation).
         assertEquals(userClaimFields, 1);
-        assertEquals(initiatorClaimFields, 1);
+        assertEquals(initiatorClaimFields, 0);
     }
 
     @Test
