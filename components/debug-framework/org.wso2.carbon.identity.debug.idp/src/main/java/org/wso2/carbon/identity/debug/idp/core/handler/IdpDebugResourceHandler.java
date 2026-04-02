@@ -155,7 +155,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the debug executor for the specified IdP resource.
+     *
+     * @param connectionId The connection ID identifying the IdP resource.
+     * @return DebugExecutor instance, or null if not available.
      */
     @Override
     public DebugExecutor getExecutor(String connectionId) {
@@ -164,7 +167,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the debug processor for the specified IdP resource.
+     *
+     * @param connectionId The connection ID identifying the IdP resource.
+     * @return DebugProcessor instance, or null if not available.
      */
     @Override
     public DebugProcessor getProcessor(String connectionId) {

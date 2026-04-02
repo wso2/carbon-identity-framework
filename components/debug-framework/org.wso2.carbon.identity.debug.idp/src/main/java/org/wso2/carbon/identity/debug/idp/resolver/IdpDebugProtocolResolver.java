@@ -38,6 +38,7 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
     private static final String GOOGLE_HOST = "google";
+    private static final String FACEBOOK_HOST = "facebook";
     // Order should be relatively high to allow specific resolvers (e.g. for App) to run first if needed.
     private static final int RESOLVER_ORDER = 10;
 
@@ -124,6 +125,14 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
                     }
                     return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
                 }
+                if (DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK.equalsIgnoreCase(protocolType)
+                        || isFacebookBackedAuthenticator(resource, config)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Detected Facebook-backed configuration from implementation: "
+                                + implementationName);
+                    }
+                    return DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK;
+                }
                 if (protocolType != null) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Detected protocol type: " + protocolType
@@ -160,6 +169,9 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         if (DebugFrameworkConstants.IMPLEMENTATION_GITHUB.equalsIgnoreCase(implementationName)) {
             return DebugFrameworkConstants.PROTOCOL_TYPE_GITHUB;
         }
+        if (DebugFrameworkConstants.IMPLEMENTATION_FACEBOOK.equalsIgnoreCase(implementationName)) {
+            return DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK;
+        }
         if (DebugFrameworkConstants.IMPLEMENTATION_SAML_SSO.equalsIgnoreCase(implementationName)) {
             return DebugFrameworkConstants.PROTOCOL_TYPE_SAML;
         }
@@ -195,9 +207,38 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return false;
     }
 
+    private boolean isFacebookBackedAuthenticator(IdentityProvider resource,
+            FederatedAuthenticatorConfig config) {
+
+        if (resource != null && containsFacebookIndicator(resource.getIdentityProviderName())) {
+            return true;
+        }
+
+        Property[] properties = config.getProperties();
+        if (properties == null || properties.length == 0) {
+            return false;
+        }
+
+        for (Property property : properties) {
+            if (property == null || StringUtils.isBlank(property.getValue())) {
+                continue;
+            }
+            if (containsFacebookIndicator(property.getValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean containsGoogleIndicator(String value) {
 
         String normalizedValue = StringUtils.lowerCase(value);
         return normalizedValue.contains(GOOGLE_HOST);
+    }
+
+    private boolean containsFacebookIndicator(String value) {
+
+        String normalizedValue = StringUtils.lowerCase(value);
+        return normalizedValue.contains(FACEBOOK_HOST);
     }
 }

@@ -46,28 +46,58 @@ public class DebugProtocolRouter {
         // Utility class.
     }
 
+    /**
+     * Retrieves the context provider for the specified connection.
+     *
+     * @param connectionId The connection ID.
+     * @return DebugContextProvider instance, or null if not available.
+     */
     public static DebugContextProvider getContextProviderForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getContextProvider,
                 "Context Provider");
     }
 
+    /**
+     * Retrieves the executor for the specified connection.
+     *
+     * @param connectionId The connection ID.
+     * @return DebugExecutor instance, or null if not available.
+     */
     public static DebugExecutor getExecutorForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getExecutor, "Executor");
     }
 
+    /**
+     * Retrieves the processor for the specified connection.
+     *
+     * @param connectionId The connection ID.
+     * @return DebugProcessor instance, or null if not available.
+     */
     public static DebugProcessor getProcessorForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getProcessor, "Processor");
     }
 
+    /**
+     * Retrieves the callback handler for the specified connection.
+     *
+     * @param connectionId The connection ID.
+     * @return DebugCallbackHandler instance, or null if not available.
+     */
     public static DebugCallbackHandler getCallbackHandlerForResource(String connectionId) {
 
         return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getCallbackHandler,
                 "Callback Handler");
     }
 
+    /**
+     * Retrieves the debug resource handler for the specified resource type.
+     *
+     * @param resourceType The resource type.
+     * @return DebugResourceHandler instance, or null if not available.
+     */
     public static DebugResourceHandler getDebugResourceHandler(String resourceType) {
 
         if (StringUtils.isEmpty(resourceType)) {
@@ -85,6 +115,11 @@ public class DebugProtocolRouter {
         return resourceHandler;
     }
 
+    /**
+     * Retrieves all registered callback handlers.
+     *
+     * @return List of all DebugCallbackHandler instances.
+     */
     public static List<DebugCallbackHandler> getAllCallbackHandlers() {
 
         return DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();

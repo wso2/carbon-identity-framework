@@ -85,6 +85,7 @@ public abstract class DebugProcessor {
 
             // Step 4: Validate extracted data (protocol/resource-specific).
             if (!validateDebugData(debugData, context, response, state, connectionId)) {
+                sendDebugResponse(response, state, connectionId);
                 return;
             }
 
