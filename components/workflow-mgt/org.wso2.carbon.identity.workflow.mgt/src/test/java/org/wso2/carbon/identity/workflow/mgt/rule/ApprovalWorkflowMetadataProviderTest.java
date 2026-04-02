@@ -133,9 +133,6 @@ public class ApprovalWorkflowMetadataProviderTest {
 
         List<FieldDefinition> result = provider.getExpressionMeta(FlowType.APPROVAL_WORKFLOW, TENANT_DOMAIN);
 
-        // TODO: Update the multiplier from 1 to 2 (user. and initiator.) and the comment below once
-        //  WorkflowRuleEvaluationDataProvider supports providing data for initiator fields.
-        // 8 static fields + 2 claims * 1 prefix (user.) = 10.
         int expectedSize = WorkflowRuleFieldRegistry.FIELDS.size() + (2 * 1);
         assertEquals(result.size(), expectedSize);
     }
@@ -157,9 +154,6 @@ public class ApprovalWorkflowMetadataProviderTest {
                 .filter(fd -> fd.getField().getName().startsWith("initiator.http://wso2.org/claims/"))
                 .count();
 
-        // TODO: Update initiatorClaimFields assertion from 0 to 1 once WorkflowRuleEvaluationDataProvider
-        //  supports providing data for initiator fields and the initiator prefix is re-enabled.
-        // Initiator prefix is not yet supported (pending data provider implementation).
         assertEquals(userClaimFields, 1);
         assertEquals(initiatorClaimFields, 0);
     }

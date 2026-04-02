@@ -52,8 +52,6 @@ public class WorkflowRuleFieldRegistryTest {
         RuleMetadataConfigFactory.load();
     }
 
-    // TODO: Add "initiator.domain", "initiator.groups", and "initiator.roles" back to this list once
-    //  WorkflowRuleEvaluationDataProvider supports providing data for initiator fields.
     private static final List<String> EXPECTED_KEYS = Arrays.asList(
             "user.domain",
             "user.groups",
@@ -83,8 +81,6 @@ public class WorkflowRuleFieldRegistryTest {
     @Test
     public void testFieldsMapHasExactlyEightEntries() {
 
-        // TODO: Update this count from 8 to 11 once initiator.domain, initiator.groups, and initiator.roles
-        //  are re-added to WorkflowRuleFieldRegistry when initiator field data provider support is added.
         assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 8,
                 "FIELDS map should have exactly 8 entries.");
     }
@@ -195,18 +191,6 @@ public class WorkflowRuleFieldRegistryTest {
         assertTrue(field.getValue() instanceof OptionsReferenceValue);
         OptionsReferenceValue refValue = (OptionsReferenceValue) field.getValue();
         assertEquals(refValue.getLinks().size(), 2);
-    }
-
-    @Test
-    public void testInitiatorFieldsAreNotPresent() {
-
-        // Initiator fields are not yet supported (pending data provider implementation).
-        assertFalse(WorkflowRuleFieldRegistry.FIELDS.containsKey("initiator.domain"),
-                "initiator.domain should not be present until data provider support is added.");
-        assertFalse(WorkflowRuleFieldRegistry.FIELDS.containsKey("initiator.groups"),
-                "initiator.groups should not be present until data provider support is added.");
-        assertFalse(WorkflowRuleFieldRegistry.FIELDS.containsKey("initiator.roles"),
-                "initiator.roles should not be present until data provider support is added.");
     }
 
     @Test
