@@ -182,8 +182,10 @@ public class ActionExecutorConfig {
         String configValue = (String) IdentityConfigParser.getInstance().getConfiguration()
                 .get(HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY);
         if (StringUtils.isBlank(configValue)) {
-            LOG.warn("Invalid value '" + configValue + "' for " + HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY +
-                    ". Expected a boolean. Using default: false.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Configuration " + HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY +
+                        " is not set. Using default: false.");
+            }
             return false;
         }
         return Boolean.parseBoolean(configValue);
