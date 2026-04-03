@@ -1,0 +1,271 @@
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.debug.framework.internal;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
+import org.wso2.carbon.identity.debug.framework.core.DebugCommonAuthInterceptor;
+import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
+import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
+import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
+import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
+import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
+import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
+
+/**
+ * OSGi service component for Debug Framework.
+ * This component provides the framework infrastructure for debug operations.
+*/
+@Component(name = "identity.debug.service.component", immediate = true)
+public class DebugServiceComponent {
+
+    private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
+
+    private ServiceRegistration<DebugExecutionListener> cleanupListenerServiceRegistration;
+    private DebugSessionCleanupService cleanupService;
+
+    @Activate
+    protected void activate(ComponentContext context) {
+
+        try {
+            LOG.debug("Debug Framework OSGi component activating");
+            BundleContext bundleContext = context.getBundleContext();
+
+            // Register DebugRequestCoordinator as the API-facing debug service.
+            DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
+            bundleContext.registerService(DebugRequestCoordinator.class, requestCoordinator, null);
+
+            // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
+            bundleContext.registerService(DebugAuthenticationInterceptor.class,
+                    new DebugCommonAuthInterceptor(requestCoordinator), null);
+
+            // Register the cleanup listener as an OSGi service.
+            cleanupListenerServiceRegistration = bundleContext.registerService(
+                    DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
+
+            // Start the periodic cleanup service for expired sessions.
+            cleanupService = new DebugSessionCleanupService();
+            cleanupService.activate();
+
+            LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
+            LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
+        } catch (Exception e) {
+            LOG.error("Error while activating debug framework component.", e);
+        }
+    }
+
+    @Deactivate
+    protected void deactivate(ComponentContext context) {
+
+        try {
+            // Unregister cleanup listener service.
+            cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
+                    "DebugSessionCleanupExecutionListener service unregistered");
+
+            // Shutdown the cleanup service.
+            if (cleanupService != null) {
+                cleanupService.deactivate();
+            }
+
+            LOG.info("Debug Framework OSGi component deactivated");
+        } catch (Exception e) {
+            LOG.error("Error while deactivating debug framework component.", e);
+        }
+    }
+
+    /**
+     * Sets the DebugProtocolProvider.
+     * Called by OSGi when a protocol module registers a DebugProtocolProvider.
+     * Multiple providers can be registered.
+     *
+     * Uses 0..* cardinality (MULTIPLE is optional by default) so the framework
+     * can activate even if no providers are registered initially. Providers are
+     * discovered dynamically at runtime via OSGi service lookups.
+     *
+     * @param provider the DebugProtocolProvider instance.
+     */
+    @Reference(name = "debug.protocol.provider", service = DebugProtocolProvider.class, cardinality 
+        = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unsetDebugProtocolProvider")
+
+    protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
+
+        bindProtocolProvider(provider, true);
+    }
+
+    /**
+     * Unsets the DebugProtocolProvider.
+     * Called by OSGi when a protocol module deactivates or unregisters its
+     * provider.
+     *
+     * @param provider the DebugProtocolProvider instance.
+     */
+    protected void unsetDebugProtocolProvider(DebugProtocolProvider provider) {
+
+        bindProtocolProvider(provider, false);
+    }
+
+    /**
+     * Sets a debug protocol resolver.
+     *
+     * @param resolver Debug protocol resolver implementation.
+     */
+    @Reference(name = "debug.protocol.resolver", service = DebugProtocolResolver.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugProtocolResolver")
+    protected void setDebugProtocolResolver(DebugProtocolResolver resolver) {
+
+        bindProtocolResolver(resolver, true);
+    }
+
+    /**
+     * Unsets a debug protocol resolver.
+     *
+     * @param resolver Debug protocol resolver implementation.
+     */
+    protected void unsetDebugProtocolResolver(DebugProtocolResolver resolver) {
+
+        bindProtocolResolver(resolver, false);
+    }
+
+    @Reference(name = "debug.execution.listener", service = DebugExecutionListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugExecutionListener")
+    protected void setDebugExecutionListener(DebugExecutionListener listener) {
+
+        bindExecutionListener(listener, true);
+    }
+
+    protected void unsetDebugExecutionListener(DebugExecutionListener listener) {
+
+        bindExecutionListener(listener, false);
+    }
+
+    @Reference(name = "debug.callback.handler", service = DebugCallbackHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugCallbackHandler")
+    protected void setDebugCallbackHandler(DebugCallbackHandler handler) {
+
+        bindCallbackHandler(handler, true);
+    }
+
+    protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
+
+        bindCallbackHandler(handler, false);
+    }
+
+    private void bindProtocolProvider(DebugProtocolProvider provider, boolean isBind) {
+
+        if (provider == null) {
+            return;
+        }
+
+        String protocolType = provider.getProtocolType();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugProtocolProvider " + getLifecycleAction(isBind) + " for protocol: " + protocolType);
+        }
+
+        if (isBind) {
+            DebugProtocolRegistry.getInstance().addDebugProtocolProvider(provider);
+            LOG.info("Successfully registered DebugProtocolProvider for protocol: " + protocolType);
+            return;
+        }
+
+        DebugProtocolRegistry.getInstance().removeDebugProtocolProvider(provider);
+        LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
+    }
+
+    private void bindProtocolResolver(DebugProtocolResolver resolver, boolean isBind) {
+
+        if (resolver == null) {
+            return;
+        }
+
+        if (isBind) {
+            DebugProtocolRegistry.getInstance().addDebugProtocolResolver(resolver);
+        } else {
+            DebugProtocolRegistry.getInstance().removeDebugProtocolResolver(resolver);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugProtocolResolver " + getLifecycleAction(isBind) + ": " + resolver.getClass().getName());
+        }
+    }
+
+    private void bindExecutionListener(DebugExecutionListener listener, boolean isBind) {
+
+        if (listener == null) {
+            return;
+        }
+
+        if (isBind) {
+            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(listener);
+        } else {
+            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugExecutionListener " + getLifecycleAction(isBind) + ": " + listener.getClass().getName());
+        }
+    }
+
+    private void bindCallbackHandler(DebugCallbackHandler handler, boolean isBind) {
+
+        if (handler == null) {
+            return;
+        }
+
+        if (isBind) {
+            DebugProtocolRegistry.getInstance().addDebugCallbackHandler(handler);
+        } else {
+            DebugProtocolRegistry.getInstance().removeDebugCallbackHandler(handler);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugCallbackHandler " + getLifecycleAction(isBind) + ": " + handler.getClass().getName());
+        }
+    }
+
+    private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration, String debugMessage) {
+
+        if (registration == null) {
+            return null;
+        }
+
+        registration.unregister();
+        LOG.debug(debugMessage);
+        return null;
+    }
+
+    private String getLifecycleAction(boolean isBind) {
+
+        return isBind ? "registered" : "unregistered";
+    }
+}

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -677,6 +678,25 @@ public class FrameworkServiceComponent {
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
+    }
+
+    @Reference(
+            name = "debug.authentication.interceptor",
+            service = DebugAuthenticationInterceptor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugAuthenticationInterceptor"
+    )
+    protected void setDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+
+        FrameworkServiceDataHolder.getInstance().addDebugAuthenticationInterceptor(interceptor);
+        log.info("DebugAuthenticationInterceptor registered: " + interceptor.getClass().getName());
+    }
+
+    protected void unsetDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+
+        FrameworkServiceDataHolder.getInstance().removeDebugAuthenticationInterceptor(interceptor);
+        log.info("DebugAuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
     }
 
     @Reference(

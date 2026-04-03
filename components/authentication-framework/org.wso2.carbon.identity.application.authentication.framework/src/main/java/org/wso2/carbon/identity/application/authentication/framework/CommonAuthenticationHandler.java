@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserAssertionFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -43,6 +44,26 @@ public class CommonAuthenticationHandler {
         ConfigurationFacade.getInstance();
     }
 
+    private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {
+
+        for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
+                .getDebugAuthenticationInterceptors()) {
+            try {
+                if (interceptor.handleCommonAuthRequest(request, response)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Common auth request handled by debug interceptor: "
+                                + interceptor.getClass().getName());
+                    }
+                    return true;
+                }
+            } catch (Exception e) {
+                log.warn("Error while executing debug authentication interceptor: "
+                        + interceptor.getClass().getName() + ". Continuing with normal flow.", e);
+            }
+        }
+        return false;
+    }
+
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doPost(request, response);
@@ -56,6 +77,15 @@ public class CommonAuthenticationHandler {
         }
 
         try {
+            boolean debugHandled = handleDebugFlow(request, response);
+            
+            if (debugHandled) {
+                // Debug flow handled, return without proceeding to regular authentication.
+                log.info("Debug flow handled by DebugService.");
+                return;
+            }
+
+            // If not a debug flow, proceed with regular WSO2 authentication.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
 
@@ -67,6 +97,11 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (UserAssertionFailedException e) {
 
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (Exception e) {
+            // Handle any exceptions from debug coordinator.
+            log.error("Exception in CommonAuthenticationHandler: " + e.getMessage(), e);
+            // Fallback to regular authentication if debug processing fails.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
     }
