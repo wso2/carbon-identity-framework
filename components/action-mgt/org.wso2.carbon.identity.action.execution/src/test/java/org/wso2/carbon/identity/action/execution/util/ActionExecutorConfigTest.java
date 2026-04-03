@@ -487,38 +487,38 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
-    public void testUseCarbonTruststoreWhenTrue() {
+    public void testIsHttpClientSystemPropertiesEnabledWhenTrue() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "true");
+        configMap.put("Actions.HTTPClient.UseSystemProperties", "true");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
-        assertTrue(actionExecutorConfig.useCarbonTruststore());
+        assertTrue(actionExecutorConfig.isHttpClientSystemPropertiesEnabled());
     }
 
     @Test
-    public void testUseCarbonTruststoreWhenFalse() {
+    public void testIsHttpClientSystemPropertiesEnabledWhenFalse() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "false");
+        configMap.put("Actions.HTTPClient.UseSystemProperties", "false");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
-        assertFalse(actionExecutorConfig.useCarbonTruststore());
+        assertFalse(actionExecutorConfig.isHttpClientSystemPropertiesEnabled());
     }
 
     @Test
-    public void testUseCarbonTruststoreForMissingConfig() {
+    public void testIsHttpClientSystemPropertiesEnabledForMissingConfig() {
 
-        // If the config is absent, the default false should be returned.
+        // If the config is absent, the default true should be returned.
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(new HashMap<>());
-        assertFalse(actionExecutorConfig.useCarbonTruststore());
+        assertTrue(actionExecutorConfig.isHttpClientSystemPropertiesEnabled());
     }
 
     @Test
-    public void testUseCarbonTruststoreForInvalidConfig() {
+    public void testIsHttpClientSystemPropertiesEnabledForInvalidConfig() {
 
-        // If an unrecognised value is configured, the default false should be returned.
+        // Boolean.parseBoolean returns false for any non-"true" value, so "invalid" -> false.
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "invalid");
+        configMap.put("Actions.HTTPClient.UseSystemProperties", "invalid");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
-        assertFalse(actionExecutorConfig.useCarbonTruststore());
+        assertFalse(actionExecutorConfig.isHttpClientSystemPropertiesEnabled());
     }
 }
