@@ -30,30 +30,22 @@ import java.util.List;
 public class PreUpdatePasswordAction extends Action {
 
     private final PasswordSharing passwordSharing;
-    private final List<String> attributes;
 
     public PreUpdatePasswordAction(ResponseBuilder responseBuilder) {
 
         super(responseBuilder);
         this.passwordSharing = responseBuilder.passwordSharing;
-        this.attributes = responseBuilder.attributes;
     }
 
     public PreUpdatePasswordAction(RequestBuilder requestBuilder) {
 
         super(requestBuilder);
         this.passwordSharing = requestBuilder.passwordSharing;
-        this.attributes = requestBuilder.attributes;
     }
 
     public PasswordSharing getPasswordSharing() {
 
         return passwordSharing;
-    }
-
-    public List<String> getAttributes() {
-
-        return attributes;
     }
 
     /**
@@ -62,7 +54,6 @@ public class PreUpdatePasswordAction extends Action {
     public static class ResponseBuilder extends ActionResponseBuilder {
 
         private PasswordSharing passwordSharing;
-        private List<String> attributes;
 
         @Override
         public ResponseBuilder id(String id) {
@@ -133,9 +124,10 @@ public class PreUpdatePasswordAction extends Action {
             return this;
         }
 
+        @Override
         public ResponseBuilder attributes(List<String> attributes) {
 
-            this.attributes = attributes;
+            super.attributes(attributes);
             return this;
         }
 
@@ -152,7 +144,6 @@ public class PreUpdatePasswordAction extends Action {
     public static class RequestBuilder extends ActionRequestBuilder {
 
         private PasswordSharing passwordSharing;
-        private List<String> attributes;
 
         public RequestBuilder(Action action) {
 
@@ -161,6 +152,7 @@ public class PreUpdatePasswordAction extends Action {
             actionVersion(action.getActionVersion());
             endpoint(action.getEndpoint());
             rule(action.getActionRule());
+            attributes(action.getAttributes());
         }
 
         @Override
@@ -190,9 +182,10 @@ public class PreUpdatePasswordAction extends Action {
             return this;
         }
 
+        @Override
         public RequestBuilder attributes(List<String> attributes) {
 
-            this.attributes = attributes;
+            super.attributes(attributes);
             return this;
         }
 

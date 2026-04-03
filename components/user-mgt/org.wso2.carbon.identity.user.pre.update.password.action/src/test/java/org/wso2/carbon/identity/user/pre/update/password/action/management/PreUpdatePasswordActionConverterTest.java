@@ -38,7 +38,6 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ACTION;
@@ -114,12 +113,14 @@ public class PreUpdatePasswordActionConverterTest {
         assertEquals(dto.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD),
                 action.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD));
 
-        // Verify properties map
+        // Verify properties map.
         Map<String, ActionProperty> properties = dto.getProperties();
         assertNotNull(properties);
         assertEquals(properties.get(PASSWORD_SHARING_FORMAT).getValue(), action.getPasswordSharing().getFormat());
         assertEquals(properties.get(CERTIFICATE).getValue(), mockCertificate);
-        assertEquals(properties.get(ATTRIBUTES).getValue(), action.getAttributes());
+
+        // Verify attributes (now a first-class field on ActionDTO, not in properties).
+        assertEquals(dto.getAttributes(), action.getAttributes());
     }
 
     @Test
@@ -129,8 +130,8 @@ public class PreUpdatePasswordActionConverterTest {
         properties.put(PASSWORD_SHARING_FORMAT,
                 new ActionProperty.BuilderForService(PasswordSharing.Format.SHA256_HASHED).build());
         properties.put(CERTIFICATE, new ActionProperty.BuilderForService(mockCertificate).build());
-        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(TEST_ATTRIBUTES).build());
         ActionDTO dto = new ActionDTO.Builder(action)
+                .attributes(TEST_ATTRIBUTES)
                 .properties(properties)
                 .build();
 
@@ -179,8 +180,10 @@ public class PreUpdatePasswordActionConverterTest {
         properties.put(CERTIFICATE, new ActionProperty.BuilderForService(mockCertificate).build());
         properties.put(PASSWORD_SHARING_FORMAT,
                 new ActionProperty.BuilderForService(PasswordSharing.Format.SHA256_HASHED).build());
-        properties.put(ATTRIBUTES, new ActionProperty.BuilderForService(TEST_ATTRIBUTES).build());
-        dto = new ActionDTO.Builder(dummyAction).properties(properties).build();
+        dto = new ActionDTO.Builder(dummyAction)
+                .attributes(TEST_ATTRIBUTES)
+                .properties(properties)
+                .build();
         convertedAction = (PreUpdatePasswordAction) converter.buildAction(dto);
         assertNotNull(convertedAction.getPasswordSharing());
         assertEquals(convertedAction.getPasswordSharing().getFormat(), PasswordSharing.Format.SHA256_HASHED);
@@ -224,7 +227,7 @@ public class PreUpdatePasswordActionConverterTest {
                 .build();
         dto = converter.buildActionDTO(passwordAction);
         assertNotNull(dto.getProperties());
-        assertEquals(dto.getProperties().size(), 1);
-        assertEquals(dto.getProperties().get(ATTRIBUTES).getValue(), TEST_ATTRIBUTES);
+        assertEquals(dto.getProperties().size(), 0);
+        assertEquals(dto.getAttributes(), TEST_ATTRIBUTES);
     }
 }
