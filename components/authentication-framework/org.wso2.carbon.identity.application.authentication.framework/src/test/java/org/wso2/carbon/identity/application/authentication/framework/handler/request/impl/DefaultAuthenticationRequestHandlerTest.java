@@ -535,5 +535,103 @@ public class DefaultAuthenticationRequestHandlerTest {
         PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
         FrameworkServiceDataHolder.getInstance().setPostAuthenticationMgtService(postAuthenticationMgtService);
     }
+
+    @Test(description = "Test concludeFlow throws FrameworkException when tenant domains mismatch for non-shared user")
+    public void testConcludeFlowThrowsOnTenantMismatchForNonSharedUser() throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            AuthenticationContext context = new AuthenticationContext();
+            context.setContextIdentifier("test-context-id");
+            context.setRequestAuthenticated(true);
+            context.setTenantDomain("sp-tenant.com");
+
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            ApplicationConfig applicationConfig =
+                    new ApplicationConfig(new ServiceProvider(), SUPER_TENANT_DOMAIN_NAME);
+            applicationConfig.getServiceProvider().setSaasApp(false);
+            sequenceConfig.setApplicationConfig(applicationConfig);
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setAuthenticatedSubjectIdentifier("admin");
+            authenticatedUser.setUserId("user-id-1");
+            authenticatedUser.setTenantDomain("user-tenant.com");
+            authenticatedUser.setSharedUser(false);
+            sequenceConfig.setAuthenticatedUser(authenticatedUser);
+
+            context.setSequenceConfig(sequenceConfig);
+            context.initializeAnalyticsData();
+
+            frameworkUtils.when(
+                    FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
+
+            HttpServletRequest req = spy(HttpServletRequest.class);
+            mockHttpRequestAttributes(req);
+
+            boolean exceptionThrown = false;
+            try {
+                authenticationRequestHandler.concludeFlow(req, response, context);
+            } catch (FrameworkException e) {
+                exceptionThrown = true;
+            }
+            assertTrue(exceptionThrown, "FrameworkException should be thrown for tenant domain mismatch " +
+                    "with non-shared user");
+        }
+    }
+
+    @Test(description = "Test concludeFlow does NOT throw for tenant mismatch when user is a shared user")
+    public void testConcludeFlowAllowsTenantMismatchForSharedUser() throws Exception {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            AuthenticationContext context = new AuthenticationContext();
+            context.setContextIdentifier("test-context-id");
+            context.setRequestAuthenticated(true);
+            context.setTenantDomain("sp-tenant.com");
+            context.setCallerSessionKey("test-session-key");
+            context.setCallerPath("/commonauth");
+            context.setRequestType("oauth2");
+
+            SequenceConfig sequenceConfig = new SequenceConfig();
+            ServiceProvider sp = new ServiceProvider();
+            sp.setLocalAndOutBoundAuthenticationConfig(new LocalAndOutboundAuthenticationConfig());
+            ApplicationConfig applicationConfig = new ApplicationConfig(sp, SUPER_TENANT_DOMAIN_NAME);
+            applicationConfig.getServiceProvider().setSaasApp(false);
+            sequenceConfig.setApplicationConfig(applicationConfig);
+
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            authenticatedUser.setAuthenticatedSubjectIdentifier("admin");
+            authenticatedUser.setUserId("user-id-1");
+            authenticatedUser.setTenantDomain("user-tenant.com");
+            authenticatedUser.setSharedUser(true);
+            sequenceConfig.setAuthenticatedUser(authenticatedUser);
+
+            context.setSequenceConfig(sequenceConfig);
+            context.initializeAnalyticsData();
+
+            setPostAuthnMgtService();
+            addPostAuthnHandler();
+            frameworkUtils.when(
+                    FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
+            frameworkUtils.when(FrameworkUtils::getCacheDisabledAuthenticators)
+                    .thenReturn(new ArrayList<>());
+
+            HttpServletRequest req = spy(HttpServletRequest.class);
+            mockHttpRequestAttributes(req);
+
+            boolean exceptionThrown = false;
+            try {
+                authenticationRequestHandler.concludeFlow(req, response, context);
+            } catch (FrameworkException e) {
+                exceptionThrown = true;
+            }
+            assertFalse(exceptionThrown, "FrameworkException should NOT be thrown for tenant domain mismatch "
+                    + "when user is a shared user");
+        }
+    }
 }
 

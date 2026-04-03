@@ -1949,4 +1949,49 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                     "Timeout should be the original idle timeout when max lifetime is not configured");
         }
     }
+
+    @DataProvider(name = "preprocessUsernameWithUserResidentTenantDomainDataProvider")
+    public Object[][] preprocessUsernameWithUserResidentTenantDomainData() {
+
+        return new Object[][]{
+                // {username, userTenantDomain, userResidentTenantDomain, isSaaSApp, emailUsernameEnabled,
+                //  expectedResult}
+                // Non-shared user: username doesn't end with userTenantDomain, so append userResidentTenantDomain.
+                {"admin", "sp-tenant.com", "resident-tenant.com", false, false, "admin@resident-tenant.com"},
+                // Username already ends with userTenantDomain: no modification.
+                {"admin@sp-tenant.com", "sp-tenant.com", "resident-tenant.com", false, false,
+                        "admin@sp-tenant.com"},
+                // SaaS app with email-like username: returned as-is.
+                {"user@external.com", "sp-tenant.com", "resident-tenant.com", true, false,
+                        "user@external.com"},
+        };
+    }
+
+    @Test(dataProvider = "preprocessUsernameWithUserResidentTenantDomainDataProvider",
+            description = "Test preprocessUsernameWithUserResidentTenantDomain appends resident tenant domain " +
+                    "for shared users")
+    public void testPreprocessUsernameWithUserResidentTenantDomain(String username, String userTenantDomain,
+                                                                   String userResidentTenantDomain,
+                                                                   boolean isSaaSApp, boolean emailUsernameEnabled,
+                                                                   String expectedResult) {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityUtil.when(IdentityUtil::isEmailUsernameEnabled).thenReturn(emailUsernameEnabled);
+            identityTenantUtil.when(IdentityTenantUtil::isLegacySaaSAuthenticationEnabled).thenReturn(false);
+
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+            when(applicationConfig.isSaaSApp()).thenReturn(isSaaSApp);
+            when(context.getUserTenantDomain()).thenReturn(userTenantDomain);
+            lenient().when(context.getUserResidentTenantDomain()).thenReturn(userResidentTenantDomain);
+
+            String result = FrameworkUtils.preprocessUsernameWithUserResidentTenantDomain(username, context);
+            assertEquals(result, expectedResult);
+        }
+    }
 }
