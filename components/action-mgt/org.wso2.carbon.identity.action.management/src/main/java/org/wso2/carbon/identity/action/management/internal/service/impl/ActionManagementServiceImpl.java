@@ -31,12 +31,16 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOFacade;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementAuditLogger;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -76,6 +80,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreAddActionValidations(
                 castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
+        validateActionAttributes(action.getAttributes(), tenantDomain);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
@@ -161,6 +166,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
                 castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
+        validateActionAttributes(action.getAttributes(), tenantDomain);
         ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
@@ -304,8 +310,56 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .filter(type -> type.getPathParam().equals(actionType))
                 .map(Action.ActionTypes::getActionType)
                 .findFirst()
-                .orElseThrow(() ->
-                        ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_TYPE));
+                .orElseThrow(() -> ActionManagementExceptionHandler
+                        .handleClientException(ErrorMessage.ERROR_INVALID_ACTION_TYPE));
+    }
+
+    /**
+     * Validate the action attributes.
+     * Validates that attributes are in correct format and within max count limit.
+     * System attribute validation happens in the converter layer.
+     *
+     * @param attributes List of attributes to validate.
+     * @throws ActionMgtClientException If attributes are invalid or exceed max
+     *                                  count.
+     */
+    private void validateActionAttributes(List<String> attributes, String tenantDomain)
+            throws ActionMgtException {
+
+        if (attributes == null || attributes.isEmpty()) {
+            return;
+        }
+
+        // Validate count
+        if (attributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
+                    String.valueOf(attributes.size()),
+                    String.valueOf(ActionMgtConstants.MAX_ATTRIBUTES));
+        }
+
+        ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()
+                .getClaimMetadataManagementService();
+
+        // Validate individual attribute format and existence in system claims
+        for (String attribute : attributes) {
+            if (StringUtils.isBlank(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
+                        "Each attribute must be a non-empty string");
+            }
+
+            try {
+                if (claimMetadataManagementService == null ||
+                        claimMetadataManagementService.getLocalClaim(attribute, tenantDomain).isEmpty()) {
+                    throw ActionManagementExceptionHandler.handleClientException(
+                            ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
+                }
+            } catch (ClaimMetadataException e) {
+                throw ActionManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
+            }
+        }
     }
 
     /**
@@ -466,6 +520,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
                 .rule(actionDTO.getActionRule())
+                .attributes(actionDTO.getAttributes())
                 .build();
     }
 }
