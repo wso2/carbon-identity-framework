@@ -50,6 +50,8 @@ public class ActionExecutorConfig {
     private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPConnectionTimeout";
     private static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClient.HTTPConnectionPoolSize";
     private static final String HTTP_REQUEST_RETRY_COUNT_PROPERTY = "Actions.HTTPClient.HTTPRequestRetryCount";
+    private static final String HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY =
+            "Actions.HTTPClient.UseCarbonTruststore";
     private static final int DEFAULT_HTTP_REQUEST_RETRY_COUNT = 2;
     private static final int DEFAULT_HTTP_CONNECTION_POOL_SIZE = 20;
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
@@ -166,6 +168,25 @@ public class ActionExecutorConfig {
     public int getHttpConnectionTimeoutInMillis() {
 
         return parseTimeoutConfig(HTTP_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS);
+    }
+
+    /**
+     * Returns whether the Carbon truststore should be used for outbound HTTPS calls made by action executors.
+     * If {@code true}, the WSO2 client-truststore is used; otherwise the JVM default cacerts is used.
+     * Defaults to {@code false} if the property is absent or has an invalid value.
+     *
+     * @return {@code true} if the Carbon truststore should be used, {@code false} otherwise.
+     */
+    public boolean useCarbonTruststore() {
+
+        String configValue = (String) IdentityConfigParser.getInstance().getConfiguration()
+                .get(HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY);
+        if (StringUtils.isBlank(configValue)) {
+            LOG.warn("Invalid value '" + configValue + "' for " + HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY +
+                    ". Expected a boolean. Using default: false.");
+            return false;
+        }
+        return Boolean.parseBoolean(configValue);
     }
 
     private int parseTimeoutConfig(String timeoutTypeName, int defaultTimeout) {

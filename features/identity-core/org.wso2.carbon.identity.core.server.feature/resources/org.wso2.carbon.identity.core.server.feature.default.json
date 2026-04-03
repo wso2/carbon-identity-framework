@@ -2214,6 +2214,7 @@
   "actions.http_client.request_timeout": "2000",
   "actions.http_client.connection_pool_size": "20",
   "actions.http_client.retry_count": "2",
+  "actions.http_client.use_carbon_truststore": false,
   "actions.maximum_actions_per_action_type": "1",
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.pre_issue_access_token.version.latest": "v1",

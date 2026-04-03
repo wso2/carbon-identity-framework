@@ -40,6 +40,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationIncompleteResponse;
@@ -53,14 +54,19 @@ import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutorCon
 import org.wso2.carbon.identity.action.execution.internal.util.AuthMethods;
 import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -78,6 +84,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+@WithCarbonHome
 public class APIClientTest {
 
     @Mock
@@ -566,6 +573,38 @@ public class APIClientTest {
         assertTrue(apiResponse.isError());
         assertEquals(apiResponse.getErrorLog(),
                 "Failed to execute the action request or maximum retry attempts reached.");
+    }
+
+    @Test
+    public void testGetConnectionManagerWithCarbonTruststore() throws Exception {
+
+        KeyStore emptyKeyStore = KeyStore.getInstance("JKS");
+        emptyKeyStore.load(null, "password".toCharArray());
+        File tempTruststore = File.createTempFile("test-truststore", ".jks");
+        tempTruststore.deleteOnExit();
+        try (FileOutputStream fos = new FileOutputStream(tempTruststore)) {
+            emptyKeyStore.store(fos, "password".toCharArray());
+        }
+
+        ActionExecutorConfig config = mock(ActionExecutorConfig.class);
+        actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(config);
+        when(config.getHttpConnectionPoolSize()).thenReturn(20);
+        when(config.useCarbonTruststore()).thenReturn(true);
+
+        try (MockedStatic<ServerConfiguration> serverConfigStatic = mockStatic(ServerConfiguration.class)) {
+            ServerConfiguration serverConfig = mock(ServerConfiguration.class);
+            serverConfigStatic.when(ServerConfiguration::getInstance).thenReturn(serverConfig);
+            when(serverConfig.getFirstProperty("Security.TrustStore.Location"))
+                    .thenReturn(tempTruststore.getAbsolutePath());
+            when(serverConfig.getFirstProperty("Security.TrustStore.Password")).thenReturn("password");
+            when(serverConfig.getFirstProperty("Security.TrustStore.Type")).thenReturn("JKS");
+
+            try (MockedStatic<KeystoreUtils> keystoreUtilsStatic = mockStatic(KeystoreUtils.class)) {
+                keystoreUtilsStatic.when(() -> KeystoreUtils.getKeystoreInstance("JKS"))
+                        .thenReturn(KeyStore.getInstance("JKS"));
+                new APIClient();
+            }
+        }
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {

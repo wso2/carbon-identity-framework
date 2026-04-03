@@ -2404,6 +2404,11 @@
             <HTTPConnectionRequestTimeout>{{actions.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
             <HTTPConnectionPoolSize>{{actions.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
             <HTTPRequestRetryCount>{{actions.http_client.retry_count}}</HTTPRequestRetryCount>
+            <!-- Whether to use the WSO2 client-truststore for outbound HTTPS calls made by action executors.
+                 If true, the Carbon truststore configured in the server is used.
+                 If false, the JVM default cacerts truststore is used. (default)
+            -->
+            <UseCarbonTruststore>{{actions.http_client.use_carbon_truststore}}</UseCarbonTruststore>
         </HTTPClient>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
         <ActionRequest>
