@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -466,7 +467,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     private void enrichSequenceConfig(AuthenticationContext context) {
 
-        if (context.getSequenceConfig().getAuthenticatedUser().isSharedUser()) {
+        if (context.getSequenceConfig().getAuthenticatedUser() == null ||
+                context.getSequenceConfig().getAuthenticatedUser().isSharedUser()) {
             return;
         }
 
@@ -487,8 +489,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     private void enrichAuthenticatedLocalIdp(AuthenticationContext context) {
 
-        if (context.getCurrentAuthenticatedIdPs().get(FrameworkConstants.LOCAL_IDP_NAME) == null ||
-                context.getCurrentAuthenticatedIdPs().get(FrameworkConstants.LOCAL_IDP_NAME).getUser().isSharedUser()) {
+        AuthenticatedIdPData localIdPData = context.getCurrentAuthenticatedIdPs()
+                .get(FrameworkConstants.LOCAL_IDP_NAME);
+        if (localIdPData == null || localIdPData.getUser() == null || localIdPData.getUser().isSharedUser()) {
             return;
         }
 

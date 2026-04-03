@@ -173,7 +173,6 @@ public abstract class FrameworkConstants {
     public static final String USER_ORGANIZATION_CLAIM = "user_organization";
     public static final String USER_ORG_CLAIM = "user_org";
     public static final String ORG_ID_CLAIM = "org_id";
-    public static final String ACCESSING_ORGANIZATION = "accessing_organization";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
