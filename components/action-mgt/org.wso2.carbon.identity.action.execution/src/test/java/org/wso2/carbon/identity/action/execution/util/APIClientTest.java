@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -35,11 +35,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationIncompleteResponse;
@@ -61,6 +64,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -566,6 +570,35 @@ public class APIClientTest {
         assertTrue(apiResponse.isError());
         assertEquals(apiResponse.getErrorLog(),
                 "Failed to execute the action request or maximum retry attempts reached.");
+    }
+
+    @Test
+    public void testAPIClientInitializationWhenUsingCarbonTruststore() throws Exception {
+
+        ActionExecutorConfig mockConfig = mock(ActionExecutorConfig.class);
+        actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(mockConfig);
+        when(mockConfig.useCarbonTruststore()).thenReturn(true);
+        when(mockConfig.getHttpReadTimeoutInMillis()).thenReturn(5000);
+        when(mockConfig.getHttpConnectionRequestTimeoutInMillis()).thenReturn(2000);
+        when(mockConfig.getHttpConnectionTimeoutInMillis()).thenReturn(2000);
+        when(mockConfig.getHttpConnectionPoolSize()).thenReturn(20);
+
+        KeyStore testKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        testKeyStore.load(null, null); // Initialize empty keystore
+
+        MockedStatic<KeyStoreManager> keyStoreManagerStatic = mockStatic(KeyStoreManager.class);
+        KeyStoreManager mockKeystoreManager = mock(KeyStoreManager.class);
+        keyStoreManagerStatic.when(() -> KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID))
+                .thenReturn(mockKeystoreManager);
+        when(mockKeystoreManager.getTrustStore()).thenReturn(testKeyStore);
+
+        try {
+            new APIClient();
+        } catch (Exception e) {
+            Assert.fail("APIClient initialization failed with exception: " + e.getMessage());
+        } finally {
+            keyStoreManagerStatic.close();
+        }
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {

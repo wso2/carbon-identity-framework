@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -171,7 +171,7 @@ public class ActionExecutorConfig {
 
     /**
      * Returns whether the Carbon truststore should be used for outbound HTTPS calls made by action executors.
-     * If {@code true}, the WSO2 client-truststore is used; otherwise the JVM default cacerts is used.
+     * If {@code true}, the WSO2 client-truststore is used; otherwise the JVM default truststore is used.
      *
      * @return {@code true} if the Carbon truststore should be used, {@code false} otherwise.
      */
