@@ -50,7 +50,8 @@ public class ActionExecutorConfig {
     private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPConnectionTimeout";
     private static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClient.HTTPConnectionPoolSize";
     private static final String HTTP_REQUEST_RETRY_COUNT_PROPERTY = "Actions.HTTPClient.HTTPRequestRetryCount";
-    private static final String HTTP_CLIENT_USE_SYSTEM_PROPERTIES_PROPERTY = "Actions.HTTPClient.UseSystemProperties";
+    private static final String HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY =
+            "Actions.HTTPClient.UseCarbonTruststore";
     private static final int DEFAULT_HTTP_REQUEST_RETRY_COUNT = 2;
     private static final int DEFAULT_HTTP_CONNECTION_POOL_SIZE = 20;
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
@@ -170,23 +171,22 @@ public class ActionExecutorConfig {
     }
 
     /**
-     * Returns whether the HTTP client should apply JVM system properties (e.g. {@code javax.net.ssl.trustStore})
-     * for SSL configuration. When {@code true}, the client picks up the truststore and other SSL settings from
-     * system properties, which allows the WSO2 truststore to be used without explicit configuration.
-     * Defaults to {@code true} if the property is absent or has an invalid value.
+     * Returns whether the Carbon truststore should be used for outbound HTTPS calls made by action executors.
+     * If {@code true}, the WSO2 client-truststore is used; otherwise the JVM default cacerts is used.
+     * Defaults to {@code false} if the property is absent or has an invalid value.
      *
-     * @return {@code true} if system properties should be applied, {@code false} otherwise.
+     * @return {@code true} if the Carbon truststore should be used, {@code false} otherwise.
      */
-    public boolean isHttpClientSystemPropertiesEnabled() {
+    public boolean useCarbonTruststore() {
 
         String configValue = (String) IdentityConfigParser.getInstance().getConfiguration()
-                .get(HTTP_CLIENT_USE_SYSTEM_PROPERTIES_PROPERTY);
+                .get(HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY);
         if (StringUtils.isBlank(configValue)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Configuration " + HTTP_CLIENT_USE_SYSTEM_PROPERTIES_PROPERTY +
-                        " is not set. Using default: true.");
+                LOG.debug("Configuration " + HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY +
+                        " is not set. Using default: false.");
             }
-            return true;
+            return false;
         }
         return Boolean.parseBoolean(configValue);
     }
