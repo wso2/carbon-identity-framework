@@ -31,7 +31,6 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.junit.Assert;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -595,9 +594,7 @@ public class APIClientTest {
                 keystoreUtilsStatic.when(() -> KeystoreUtils.getKeystoreInstance("JKS"))
                         .thenReturn(KeyStore.getInstance("JKS"));
                 new APIClient();
-            } catch (Exception e) {
-                Assert.fail("Exception should not be thrown when initializing APIClient with carbon truststore: "
-                        + e.getMessage());
+                keystoreUtilsStatic.verify(() -> KeystoreUtils.getKeystoreInstance("JKS"), times(1));
             }
         }
     }
