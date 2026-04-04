@@ -485,4 +485,30 @@ public class ActionExecutorConfigTest {
         Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.PRE_UPDATE_PASSWORD), "v2");
         Assert.assertNull(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION));
     }
+
+    @Test
+    public void testUseCarbonTruststoreWhenTrue() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "true");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertTrue(actionExecutorConfig.useCarbonTruststore());
+    }
+
+    @Test
+    public void testUseCarbonTruststoreWhenFalse() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "false");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertFalse(actionExecutorConfig.useCarbonTruststore());
+    }
+
+    @Test
+    public void testUseCarbonTruststoreForMissingConfig() {
+
+        // If the config is absent, the default false should be returned.
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(new HashMap<>());
+        assertTrue(actionExecutorConfig.useCarbonTruststore());
+    }
 }

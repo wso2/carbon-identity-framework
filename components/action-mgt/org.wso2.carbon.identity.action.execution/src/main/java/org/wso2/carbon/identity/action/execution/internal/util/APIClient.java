@@ -31,12 +31,21 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
+import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionInvocationException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
@@ -53,12 +62,18 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * This class is responsible for making API calls to the external services.
  */
-public class APIClient {
+public final class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
     private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
@@ -79,10 +94,41 @@ public class APIClient {
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
                 .build();
-        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        PoolingHttpClientConnectionManager connectionManager = getConnectionManager();
         connectionManager.setMaxTotal(ActionExecutorConfig.getInstance().getHttpConnectionPoolSize());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
+    }
+
+    private PoolingHttpClientConnectionManager getConnectionManager() {
+
+        if (!ActionExecutorConfig.getInstance().useCarbonTruststore()) {
+            LOG.debug("Using JVM default truststore for Action HTTP client.");
+            return new PoolingHttpClientConnectionManager();
+        }
+
+        try {
+            LOG.debug("Using Carbon truststore for Action HTTP client.");
+            KeyStore trustStore = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID).getTrustStore();
+
+            SSLContext sslContext = SSLContexts.custom()
+                    .loadTrustMaterial(trustStore, null)
+                    .build();
+
+            SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(
+                    sslContext, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                    .register("https", sslConnectionSocketFactory)
+                    .build();
+
+            return new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        } catch (CarbonException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException |
+                SecurityException e) {
+            LOG.warn("Failed to load Carbon truststore. Falling back to JVM default truststore.", e);
+            return new PoolingHttpClientConnectionManager();
+        }
     }
 
     /**
