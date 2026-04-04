@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -484,5 +484,31 @@ public class ActionExecutorConfigTest {
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.PRE_UPDATE_PASSWORD), "v2");
         Assert.assertNull(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION));
+    }
+
+    @Test
+    public void testUseCarbonTruststoreWhenTrue() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "true");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertTrue(actionExecutorConfig.useCarbonTruststore());
+    }
+
+    @Test
+    public void testUseCarbonTruststoreWhenFalse() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.UseCarbonTruststore", "false");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertFalse(actionExecutorConfig.useCarbonTruststore());
+    }
+
+    @Test
+    public void testUseCarbonTruststoreForMissingConfig() {
+
+        // If the config is absent, the default true should be returned.
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(new HashMap<>());
+        assertTrue(actionExecutorConfig.useCarbonTruststore());
     }
 }

@@ -410,7 +410,8 @@
       "saas.enable_cross_tenant_operations": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
-      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
+      "actions.http_client.use_carbon_truststore": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -440,7 +441,8 @@
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
       "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false,
-      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false
+      "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
+      "actions.http_client.use_carbon_truststore": false
     }
   }
 }
