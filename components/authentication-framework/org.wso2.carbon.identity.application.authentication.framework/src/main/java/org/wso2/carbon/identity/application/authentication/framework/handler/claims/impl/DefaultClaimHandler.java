@@ -94,14 +94,6 @@ public class DefaultClaimHandler implements ClaimHandler {
             FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE;
     private static final Log log = LogFactory.getLog(DefaultClaimHandler.class);
     private static volatile DefaultClaimHandler instance;
-    private static boolean returnOnlyMappedLocalRoles = false;
-
-    static {
-        if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
-            returnOnlyMappedLocalRoles = Boolean
-                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
-        }
-    }
 
     public static DefaultClaimHandler getInstance() {
         if (instance == null) {
@@ -208,6 +200,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         boolean excludeSuperTenantForLegacyRolesClaim =
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getTenantDomain()) &&
                 Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR));
+        boolean returnOnlyMappedLocalRoles = isReturnOnlyMappedLocalRoles();
         if (useAppAssociatedRoles && !excludeSuperTenantForLegacyRolesClaim) {
             // This handles the idp group to local role assignments in the new authz flow.
             String idpGroupClaimUri = FrameworkUtils.getEffectiveIdpGroupClaimUri(stepConfig, context);
@@ -1433,5 +1426,15 @@ public class DefaultClaimHandler implements ClaimHandler {
         ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityApplicationRolesResolver();
         return (appRolesResolver != null);
+    }
+
+    /**
+     * Checks whether only locally mapped roles should be returned for the IDP.
+     *
+     * @return true if only locally mapped roles should be returned, false otherwise.
+     */
+    private boolean isReturnOnlyMappedLocalRoles() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
     }
 }
