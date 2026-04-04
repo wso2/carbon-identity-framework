@@ -32,6 +32,8 @@ import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
@@ -204,6 +206,80 @@ public class ConfigurationDAOImplTest {
         })) {
             assertThrows(ConfigurationManagementServerException.class,
                     () -> configurationDAO.deleteResourceByName(TENANT_ID, RESOURCE_TYPE_ID, RESOURCE_NAME));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(description = "Test replaceResourceWithFiles throws client exception on MSSQL unique constraint " +
+            "violation (error number 2627)", dependsOnMethods = "testAddResource")
+    public void testReplaceResourceWithFilesMssqlUniqueConstraintViolation() throws Exception {
+
+        Resource resource = new Resource(RESOURCE_NAME, RESOURCE_TYPE_NAME);
+        resource.setResourceId(RESOURCE_ID);
+        resource.setTenantDomain(TENANT_DOMAIN);
+
+        SQLException sqlEx = new SQLException("Violation of UNIQUE KEY constraint", "23000", 2627);
+        DataAccessException dae = new DataAccessException("DataAccessException", sqlEx);
+
+        JdbcTemplate realJdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+        Template<Object> mockTemplate = mock(Template.class);
+        doThrow(dae).when(mockTemplate).executeUpdate(anyString(), any(QueryFilter.class));
+
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = mockStatic(JdbcUtils.class, CALLS_REAL_METHODS)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewTemplate)
+                    .thenReturn(realJdbcTemplate)
+                    .thenReturn(mockJdbcTemplate);
+
+            when(mockJdbcTemplate.withTransaction(any(ExecuteCallable.class))).thenAnswer(invocation -> {
+                ExecuteCallable<Object> callable = invocation.getArgument(0);
+                try {
+                    callable.get(mockTemplate);
+                } catch (Exception e) {
+                    throw new TransactionException("Transaction failed", e);
+                }
+                return null;
+            });
+
+            assertThrows(ConfigurationManagementClientException.class,
+                    () -> configurationDAO.replaceResourceWithFiles(resource));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(description = "Test replaceResourceWithFiles throws client exception on MSSQL unique index " +
+            "violation (error number 2601)", dependsOnMethods = "testAddResource")
+    public void testReplaceResourceWithFilesMssqlUniqueIndexViolation() throws Exception {
+
+        Resource resource = new Resource(RESOURCE_NAME, RESOURCE_TYPE_NAME);
+        resource.setResourceId(RESOURCE_ID);
+        resource.setTenantDomain(TENANT_DOMAIN);
+
+        SQLException sqlEx = new SQLException("Cannot insert duplicate key row", "23000", 2601);
+        DataAccessException dae = new DataAccessException("DataAccessException", sqlEx);
+
+        JdbcTemplate realJdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+        Template<Object> mockTemplate = mock(Template.class);
+        doThrow(dae).when(mockTemplate).executeUpdate(anyString(), any(QueryFilter.class));
+
+        try (MockedStatic<JdbcUtils> mockedJdbcUtils = mockStatic(JdbcUtils.class, CALLS_REAL_METHODS)) {
+            mockedJdbcUtils.when(JdbcUtils::getNewTemplate)
+                    .thenReturn(realJdbcTemplate)
+                    .thenReturn(mockJdbcTemplate);
+
+            when(mockJdbcTemplate.withTransaction(any(ExecuteCallable.class))).thenAnswer(invocation -> {
+                ExecuteCallable<Object> callable = invocation.getArgument(0);
+                try {
+                    callable.get(mockTemplate);
+                } catch (Exception e) {
+                    throw new TransactionException("Transaction failed", e);
+                }
+                return null;
+            });
+
+            assertThrows(ConfigurationManagementClientException.class,
+                    () -> configurationDAO.replaceResourceWithFiles(resource));
         }
     }
 }
