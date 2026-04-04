@@ -374,6 +374,15 @@
     }
 
     boolean multipleSecretsAllowed = ApplicationMgtUIUtil.isMultipleClientSecretsEnabled();
+    boolean shouldOpenCredentialsDialog = false;
+    if (StringUtils.isNotBlank(oauthConsumerSecret) && StringUtils.isNotBlank(oauthapp)) {
+        boolean isAddOperation = "add".equals(operation);
+        boolean isRegenerateAction = "regenerate".equals(action);
+        if ((multipleSecretsAllowed && isAddOperation) ||
+                ("false".equals(isHashDisabled) && (isAddOperation || isRegenerateAction))) {
+            shouldOpenCredentialsDialog = true;
+        }
+    }
 
 %>
 
@@ -972,8 +981,7 @@
 
     window.onload = function (e) {
         showManual();
-        <% if(isHashDisabled != null && "false".equals(isHashDisabled) && appBean.getOIDCClientId() != null &&
-           appBean.getOauthConsumerSecret() != null && ((operation != null && "add".equals(operation)) || "regenerate".equals(action))) { %>
+        <% if (shouldOpenCredentialsDialog) { %>
         $("#showDialog").dialog("open");
         <% } %>
         <% if (createTemplateError.length > 0) { %>
