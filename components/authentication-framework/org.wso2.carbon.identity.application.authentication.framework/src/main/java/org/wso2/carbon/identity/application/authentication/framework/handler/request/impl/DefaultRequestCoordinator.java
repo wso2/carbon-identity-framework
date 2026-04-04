@@ -454,6 +454,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Updating the authentication context with the organization login data.");
                         updateContextForOrganizationLogin(request, context);
                         findPreviousOrganizationSession(request, context);
+                        updateServiceProviderUuidInOutboundQueryParams(context);
                         FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                     }
 
@@ -1876,6 +1877,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         SequenceConfig sequenceConfig = getSharedAppSequenceConfig(context, request.getParameterMap(),
                 sharedApplicationId);
         context.setSequenceConfig(sequenceConfig);
+        context.setServiceProviderResourceId(sharedApplicationId);
 
         // Resetting the context parameters.
         context.setCurrentStep(0);
@@ -1894,6 +1896,42 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // Set the accessing organization id in the carbon context.
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setAccessingOrganizationId(accessingOrgId);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setApplicationResidentOrganizationId(accessingOrgId);
+    }
+
+    private void updateServiceProviderUuidInOutboundQueryParams(AuthenticationContext context) {
+
+        String spResourceId = context.getServiceProviderResourceId();
+        if (StringUtils.isBlank(spResourceId)) {
+            return;
+        }
+        String encodedSpResourceId = URLEncoder.encode(spResourceId, StandardCharsets.UTF_8);
+        String spUuidParam = FrameworkConstants.REQUEST_PARAM_SP_UUID + "=" + encodedSpResourceId;
+
+        String spUuidPattern = "(^|&)" + FrameworkConstants.REQUEST_PARAM_SP_UUID + "=[^&]*";
+        String spUuidReplacement = "$1" + spUuidParam;
+        String spUuidPrefix = FrameworkConstants.REQUEST_PARAM_SP_UUID + "=";
+
+        String contextQueryParams = context.getContextIdIncludedQueryParams();
+        if (StringUtils.isNotBlank(contextQueryParams)) {
+            if (contextQueryParams.startsWith(spUuidPrefix) ||
+                    contextQueryParams.contains("&" + spUuidPrefix)) {
+                contextQueryParams = contextQueryParams.replaceAll(spUuidPattern, spUuidReplacement);
+            } else {
+                contextQueryParams = contextQueryParams + "&" + spUuidParam;
+            }
+            context.setContextIdIncludedQueryParams(contextQueryParams);
+        }
+
+        String originalQueryParams = context.getQueryParams();
+        if (StringUtils.isNotBlank(originalQueryParams)) {
+            if (originalQueryParams.startsWith(spUuidPrefix) ||
+                    originalQueryParams.contains("&" + spUuidPrefix)) {
+                originalQueryParams = originalQueryParams.replaceAll(spUuidPattern, spUuidReplacement);
+            } else {
+                originalQueryParams = originalQueryParams + "&" + spUuidParam;
+            }
+            context.setQueryParams(originalQueryParams);
+        }
     }
 
     private boolean isInitialOrganizationLoginRequest(AuthenticationContext context)
