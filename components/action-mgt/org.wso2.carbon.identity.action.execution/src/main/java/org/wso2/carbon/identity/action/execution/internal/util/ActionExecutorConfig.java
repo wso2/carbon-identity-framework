@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,8 +50,7 @@ public class ActionExecutorConfig {
     private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPConnectionTimeout";
     private static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClient.HTTPConnectionPoolSize";
     private static final String HTTP_REQUEST_RETRY_COUNT_PROPERTY = "Actions.HTTPClient.HTTPRequestRetryCount";
-    private static final String HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY =
-            "Actions.HTTPClient.UseCarbonTruststore";
+    private static final String HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY = "Actions.HTTPClient.UseCarbonTruststore";
     private static final int DEFAULT_HTTP_REQUEST_RETRY_COUNT = 2;
     private static final int DEFAULT_HTTP_CONNECTION_POOL_SIZE = 20;
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
@@ -172,8 +171,7 @@ public class ActionExecutorConfig {
 
     /**
      * Returns whether the Carbon truststore should be used for outbound HTTPS calls made by action executors.
-     * If {@code true}, the WSO2 client-truststore is used; otherwise the JVM default cacerts is used.
-     * Defaults to {@code false} if the property is absent or has an invalid value.
+     * If {@code true}, the WSO2 client-truststore is used; otherwise the JVM default truststore is used.
      *
      * @return {@code true} if the Carbon truststore should be used, {@code false} otherwise.
      */
@@ -182,11 +180,8 @@ public class ActionExecutorConfig {
         String configValue = (String) IdentityConfigParser.getInstance().getConfiguration()
                 .get(HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY);
         if (StringUtils.isBlank(configValue)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Configuration " + HTTP_CLIENT_USE_CARBON_TRUSTSTORE_PROPERTY +
-                        " is not set. Using default: false.");
-            }
-            return false;
+            LOG.debug("Configuration: Actions.HTTPClient.UseCarbonTruststore is not set. Using default: true.");
+            return true;
         }
         return Boolean.parseBoolean(configValue);
     }
