@@ -47,7 +47,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.PATH_CONSTANT;
 
@@ -72,11 +74,11 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
      * and independent of the number of active operations.
      */
     private static final int PERMISSION_LOCKS_COUNT = 1024;
-    private static final ReentrantLock[] permissionLocks = new ReentrantLock[PERMISSION_LOCKS_COUNT];
+    private static final ReadWriteLock[] permissionLocks = new ReadWriteLock[PERMISSION_LOCKS_COUNT];
 
     static {
         for (int i = 0; i < PERMISSION_LOCKS_COUNT; i++) {
-            permissionLocks[i] = new ReentrantLock();
+            permissionLocks[i] = new ReentrantReadWriteLock();
         }
     }
 
@@ -93,8 +95,8 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         initializeTenantRegistry(tenantId);
 
-        ReentrantLock lock = getPermissionLock(tenantId, oldName);
-        lock.lock();
+        Lock writeLock = getPermissionLock(tenantId, oldName).writeLock();
+        writeLock.lock();
 
         try {
             Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
@@ -105,7 +107,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
                 return;
             }
 
-            List<ApplicationPermission> loadPermissions = loadPermissions(oldName);
+            List<ApplicationPermission> loadPermissions = loadPermissionsInternal(oldName);
             String newApplicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + PATH_CONSTANT + oldName;
 
             // Creating new application node.
@@ -124,7 +126,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
             throw new IdentityApplicationManagementException(
                     "Error while renaming permission node " + oldName + " to " + newName, e);
         } finally {
-            lock.unlock();
+            writeLock.unlock();
         }
     }
 
@@ -200,8 +202,8 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         initializeTenantRegistry(tenantId);
 
-        ReentrantLock lock = getPermissionLock(tenantId, applicationName);
-        lock.lock();
+        Lock writeLock = getPermissionLock(tenantId, applicationName).writeLock();
+        writeLock.lock();
 
         try {
             String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
@@ -229,7 +231,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
             if (children == null || appNodeCollec.getChildCount() < 1) { // No permissions exist for the application.
                 addPermission(applicationNode, permissions, tenantGovReg);
             } else { // There are existing permissions for the application.
-                List<ApplicationPermission> loadPermissions = loadPermissions(applicationName);
+                List<ApplicationPermission> loadPermissions = loadPermissionsInternal(applicationName);
                 for (ApplicationPermission applicationPermission : loadPermissions) {
                     safeDelete(tenantGovReg,
                             applicationNode + PATH_CONSTANT + applicationPermission.getValue());
@@ -239,7 +241,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         } catch (RegistryException e) {
             throw new IdentityApplicationManagementException("Error while updating permissions", e);
         } finally {
-            lock.unlock();
+            writeLock.unlock();
         }
     }
 
@@ -250,23 +252,36 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         initializeTenantRegistry(tenantId);
 
-        ReentrantLock lock = getPermissionLock(tenantId, applicationName);
-        lock.lock();
+        Lock readLock = getPermissionLock(tenantId, applicationName).readLock();
+        readLock.lock();
+        try {
+            return loadPermissionsInternal(applicationName);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    /**
+     * Reads the application permissions from the registry without acquiring a lock.
+     * Callers must hold an appropriate lock (read or write) before invoking this method.
+     * initializeTenantRegistry must also have been called by the caller prior to this.
+     */
+    private List<ApplicationPermission> loadPermissionsInternal(String applicationName)
+            throws IdentityApplicationManagementException {
+
+        boolean loggedInUserChanged = false;
+        String loggedInUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
         try {
             String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
-            Registry tenantGovReg = 
+            Registry tenantGovReg =
                 CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.USER_GOVERNANCE);
-            List<String> paths = new ArrayList<>();
 
             boolean exist = tenantGovReg.resourceExists(applicationNode);
 
             if (!exist) {
                 return Collections.emptyList();
             }
-
-            boolean loggedInUserChanged = false;
-            String loggedInUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
             UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
             if (loggedInUser == null || !realm.getAuthorizationManager()
@@ -279,7 +294,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
                 loggedInUserChanged = true;
             }
 
-            paths.clear();             // Clear current paths.
+            List<String> paths = new ArrayList<>();
             List<ApplicationPermission> permissions = new ArrayList<>();
 
             permissionPath(tenantGovReg, applicationNode, paths, applicationNode);      // Get permission paths.
@@ -291,17 +306,14 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
                 permission.setValue(permissionPath);
                 permissions.add(permission);
             }
-
-            if (loggedInUserChanged) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(loggedInUser);
-            }
-
             return permissions;
 
         } catch (RegistryException | org.wso2.carbon.user.core.UserStoreException e) {
             throw new IdentityApplicationManagementException("Error while reading permissions", e);
         } finally {
-            lock.unlock();
+            if (loggedInUserChanged) {
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(loggedInUser);
+            }
         }
     }
 
@@ -311,8 +323,8 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         initializeTenantRegistry(tenantId);
 
-        ReentrantLock lock = getPermissionLock(tenantId, applicationName);
-        lock.lock();
+        Lock writeLock = getPermissionLock(tenantId, applicationName).writeLock();
+        writeLock.lock();
 
         try {
             String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
@@ -328,7 +340,7 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
             throw new IdentityApplicationManagementException(
                     "Error while deleting permissions for application: " + applicationName, e);
         } finally {
-            lock.unlock();
+            writeLock.unlock();
         }
     }
 
@@ -400,9 +412,9 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
      *
      * @param tenantId        The tenant ID.
      * @param applicationName The name of the application.
-     * @return The ReentrantLock instance for the specific tenant and application.
+     * @return The ReadWriteLock instance for the specific tenant and application.
      */
-    private static ReentrantLock getPermissionLock(int tenantId, String applicationName) {
+    private static ReadWriteLock getPermissionLock(int tenantId, String applicationName) {
 
         String lockKey = tenantId + ":" + applicationName;
         int index = (lockKey.hashCode() & Integer.MAX_VALUE) % PERMISSION_LOCKS_COUNT;
