@@ -41,6 +41,8 @@ public enum ErrorMessage {
             "Only allowed to update to the latest Action version: %s. Ensure that only the major version is provided."),
     ERROR_INVALID_RULE_FOR_ACTION_VERSION("600010", "Invalid action rule for the action version.",
             "An unsupported rule has been provided for action version %s."),
+    ERROR_ACTION_NAME_ALREADY_EXISTS("60011", "Action name already exists.",
+            "An action with the name '%s' already exists for the given action type."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",

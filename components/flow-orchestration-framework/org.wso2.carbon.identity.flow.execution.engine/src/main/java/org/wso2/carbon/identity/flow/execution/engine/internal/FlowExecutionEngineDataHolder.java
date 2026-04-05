@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.internal;
 
+import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
@@ -45,6 +48,9 @@ public class FlowExecutionEngineDataHolder {
     private ClaimMetadataManagementService claimMetadataManagementService;
     private ApplicationManagementService applicationManagementService;
     private FederatedAssociationManager federatedAssociationManager;
+    private ActionExecutorService actionExecutorService;
+    private ActionManagementService actionManagementService;
+    private CertificateManagementService certificateManagementService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -205,5 +211,65 @@ public class FlowExecutionEngineDataHolder {
     public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
 
         this.federatedAssociationManager = federatedAssociationManager;
+    }
+
+    /**
+     * Get the ActionExecutorService instance.
+     *
+     * @return ActionExecutorService instance.
+     */
+    public ActionExecutorService getActionExecutorService() {
+
+        return actionExecutorService;
+    }
+
+    /**
+     * Set the ActionExecutorService instance.
+     *
+     * @param actionExecutorService ActionExecutorService instance.
+     */
+    public void setActionExecutorService(ActionExecutorService actionExecutorService) {
+
+        this.actionExecutorService = actionExecutorService;
+    }
+
+    /**
+     * Get the ActionManagementService instance.
+     *
+     * @return ActionManagementService instance.
+     */
+    public ActionManagementService getActionManagementService() {
+
+        return actionManagementService;
+    }
+
+    /**
+     * Set the ActionManagementService instance.
+     *
+     * @param actionManagementService ActionManagementService instance.
+     */
+    public void setActionManagementService(ActionManagementService actionManagementService) {
+
+        this.actionManagementService = actionManagementService;
+    }
+
+    /**
+     * Get the CertificateManagementService instance.
+     *
+     * @return CertificateManagementService instance.
+     */
+    public CertificateManagementService getCertificateManagementService() {
+
+        return certificateManagementService;
+    }
+
+    /**
+     * Set the CertificateManagementService instance.
+     *
+     * @param certificateManagementService CertificateManagementService instance.
+     */
+    public void setCertificateManagementService(CertificateManagementService certificateManagementService) {
+
+        this.certificateManagementService = certificateManagementService;
     }
 }

@@ -27,7 +27,23 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNodeTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtilsTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.dao.FlowContextStoreDAOImplTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListenerTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
+        </classes>
+    </test>
+    <test name="in-flow-extension-executor-tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.executor.HierarchicalPrefixMatcherTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.executor.PathTypeAnnotationUtilTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionRequestBuilderTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionResponseProcessorTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.executor.InFlowExtensionExecutorTest"/>
+        </classes>
+    </test>
+    <test name="in-flow-extension-model-tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.AccessConfigTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.OperationExecutionResultTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.model.InFlowExtensionEventTest"/>
         </classes>
     </test>
 </suite>

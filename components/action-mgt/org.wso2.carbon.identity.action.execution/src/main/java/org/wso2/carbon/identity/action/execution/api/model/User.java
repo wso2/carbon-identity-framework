@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.action.execution.api.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class models the User.
@@ -30,6 +32,7 @@ public class User {
 
     private final String id;
     private final List<UserClaim> claims =  new ArrayList<>();
+    private final Map<String, char[]> userCredentials = new HashMap<>();
     private final List<String> groups = new ArrayList<>();
     private final List<String> roles = new ArrayList<>();
     private Organization organization;
@@ -65,6 +68,7 @@ public class User {
 
         this.id = builder.id;
         this.claims.addAll(builder.claims);
+        this.userCredentials.putAll(builder.userCredentials);
         this.groups.addAll(builder.groups);
         this.roles.addAll(builder.roles);
         this.organization = builder.organization;
@@ -82,6 +86,11 @@ public class User {
     public List<UserClaim> getClaims() {
 
         return Collections.unmodifiableList(claims);
+    }
+
+    public Map<String, char[]> getUserCredentials() {
+
+        return Collections.unmodifiableMap(userCredentials);
     }
 
     public List<String> getGroups() {
@@ -126,6 +135,7 @@ public class User {
 
         private final String id;
         private final List<UserClaim> claims = new ArrayList<>();
+        private final Map<String, char[]> userCredentials = new HashMap<>();
         private final List<String> groups = new ArrayList<>();
         private final List<String> roles = new ArrayList<>();
         private Organization organization;
@@ -184,6 +194,12 @@ public class User {
         public Builder accessingOrganization(Organization accessingOrganization) {
 
             this.accessingOrganization = accessingOrganization;
+            return this;
+        }
+
+        public Builder userCredentials(Map<String, char[]> userCredentials) {
+
+            this.userCredentials.putAll(userCredentials);
             return this;
         }
 
