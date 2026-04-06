@@ -546,6 +546,7 @@
         {% if oauth.jarm.enable is sameas true %}
         <!-- Validity period for jarm response jwt in seconds -->
         <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
+        <EnableJARMAndFormPostErrorResponse>{{oauth.jarm.enable_jarm_and_form_post_error_response}}</EnableJARMAndFormPostErrorResponse>
         {% endif %}
 
         <!-- Supported Response Types -->
