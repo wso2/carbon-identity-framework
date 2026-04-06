@@ -189,6 +189,13 @@ public class CacheBackedActionManagementService implements ActionManagementServi
         return ACTION_MGT_SERVICE.isActionNameAvailable(actionType, name, tenantDomain);
     }
 
+    @Override
+    public boolean isActionNameAvailable(String actionType, String name, String excludeActionId,
+                                         String tenantDomain) throws ActionMgtException {
+
+        return ACTION_MGT_SERVICE.isActionNameAvailable(actionType, name, excludeActionId, tenantDomain);
+    }
+
     private void updateCache(Action action, ActionCacheEntry entry, ActionTypeCacheKey cacheKey, String tenantDomain) {
 
         if (LOG.isDebugEnabled()) {

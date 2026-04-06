@@ -55,7 +55,7 @@ public class ActionTypesTest {
                         Action.ActionTypes.Category.PRE_POST},
                 {Action.ActionTypes.IN_FLOW_EXTENSION, "inFlowExtension", "IN_FLOW_EXTENSION",
                         "In-Flow Extension",
-                        "Configure an extension point within an any flow via a custom service.",
+                        "Configure an extension point within any flow via a custom service.",
                         Action.ActionTypes.Category.EXTENSION}
         };
     }

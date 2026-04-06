@@ -37,13 +37,16 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility class for JWE encryption and decryption operations used by In-Flow Extension actions.
@@ -60,8 +63,9 @@ public final class JWEEncryptionUtil {
 
     private static final Log LOG = LogFactory.getLog(JWEEncryptionUtil.class);
 
-    /** Cache of resolved private keys, keyed by tenant ID. */
-    private static final Map<String, Key> PRIVATE_KEYS = new ConcurrentHashMap<>();
+    /** Cache of resolved private keys with TTL, keyed by tenant ID. */
+    private static final Map<String, CachedKey> PRIVATE_KEYS = new ConcurrentHashMap<>();
+    private static final long PRIVATE_KEY_CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(30);
 
     private JWEEncryptionUtil() {
 
@@ -143,9 +147,9 @@ public final class JWEEncryptionUtil {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String cacheKey = String.valueOf(tenantId);
-        Key cachedKey = PRIVATE_KEYS.get(cacheKey);
-        if (cachedKey != null) {
-            return cachedKey;
+        CachedKey cached = PRIVATE_KEYS.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            return cached.getKey();
         }
 
         try {
@@ -160,7 +164,7 @@ public final class JWEEncryptionUtil {
                 privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             }
 
-            PRIVATE_KEYS.put(cacheKey, privateKey);
+            PRIVATE_KEYS.put(cacheKey, new CachedKey(privateKey));
             return privateKey;
         } catch (Exception e) {
             throw new ActionExecutionException(
@@ -211,14 +215,48 @@ public final class JWEEncryptionUtil {
             byte[] decodedPemBytes = java.util.Base64.getDecoder().decode(base64EncodedPem.trim());
 
             CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(decodedPemBytes));
+            X509Certificate certificate =
+                    (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(decodedPemBytes));
+            certificate.checkValidity();
+            return certificate;
 
+        } catch (CertificateExpiredException e) {
+            throw new ActionExecutionException(
+                    "Certificate has expired for In-Flow Extension action.", e);
+        } catch (CertificateNotYetValidException e) {
+            throw new ActionExecutionException(
+                    "Certificate is not yet valid for In-Flow Extension action.", e);
         } catch (IllegalArgumentException e) {
             throw new ActionExecutionException(
                     "Failed to decode certificate: Input is not valid Base64.", e);
         } catch (Exception e) {
             throw new ActionExecutionException(
                     "Failed to parse the decoded PEM certificate for In-Flow Extension action.", e);
+        }
+    }
+
+    /**
+     * Cache wrapper for private keys with TTL support.
+     */
+    private static class CachedKey {
+
+        private final Key key;
+        private final long createdAt;
+
+        CachedKey(Key key) {
+
+            this.key = key;
+            this.createdAt = System.currentTimeMillis();
+        }
+
+        Key getKey() {
+
+            return key;
+        }
+
+        boolean isExpired() {
+
+            return (System.currentTimeMillis() - createdAt) > PRIVATE_KEY_CACHE_TTL_MS;
         }
     }
 }

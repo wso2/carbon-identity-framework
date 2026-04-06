@@ -47,6 +47,7 @@ import static java.util.Collections.emptyList;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ICON_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE_NAME_PREFIX;
@@ -110,6 +111,12 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         // Handle certificate: store via CertificateManagementService and replace with ID.
         handleCertificateAdd(actionDTO, properties, tenantDomain);
 
+        // Handle icon URL: pass through as a PRIMITIVE string.
+        Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
+        if (iconUrlValue instanceof String && !((String) iconUrlValue).isEmpty()) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForDAO((String) iconUrlValue).build());
+        }
+
         // Handle per-flow-type override properties (prefixed keys).
         if (actionDTO.getProperties() != null) {
             for (Map.Entry<String, ActionProperty> entry : actionDTO.getProperties().entrySet()) {
@@ -154,6 +161,12 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
 
         // Retrieve certificate by stored ID.
         handleCertificateGet(actionDTO, properties, tenantDomain);
+
+        // Icon URL: pass through as-is (already a PRIMITIVE string).
+        Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
+        if (iconUrlValue != null) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForService(iconUrlValue.toString()).build());
+        }
 
         // Deserialize per-flow-type override properties (prefixed keys).
         if (actionDTO.getProperties() != null) {
@@ -220,6 +233,15 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
 
         // Handle certificate update.
         handleCertificateUpdate(updatingActionDTO, existingActionDTO, properties, tenantDomain);
+
+        // Handle icon URL update (PUT semantics: carry forward existing if not provided).
+        Object updatingIconUrl = updatingActionDTO.getPropertyValue(ICON_URL);
+        if (updatingIconUrl instanceof String && !((String) updatingIconUrl).isEmpty()) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForDAO((String) updatingIconUrl).build());
+        } else if (existingActionDTO.getPropertyValue(ICON_URL) != null) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForDAO(
+                    existingActionDTO.getPropertyValue(ICON_URL).toString()).build());
+        }
 
         // Handle per-flow-type override properties. Since DAO treats update as PUT (full replace),
         // we must carry forward all existing overrides that are not explicitly being updated.

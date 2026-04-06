@@ -35,6 +35,7 @@ import java.util.Map;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.CERTIFICATE;
+import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ICON_URL;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
 import static org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
 
@@ -92,6 +93,12 @@ public class InFlowExtensionActionConverter implements ActionConverter {
                     new ActionProperty.BuilderForService(encryption.getCertificate()).build());
         }
 
+        // Icon URL.
+        if (inFlowExtensionAction.getIconUrl() != null) {
+            properties.put(ICON_URL,
+                    new ActionProperty.BuilderForService(inFlowExtensionAction.getIconUrl()).build());
+        }
+
         // Per-flow-type overrides using prefixed keys.
         Map<String, AccessConfig> overrides = inFlowExtensionAction.getFlowTypeOverrides();
         if (overrides != null) {
@@ -142,6 +149,13 @@ public class InFlowExtensionActionConverter implements ActionConverter {
             encryption = new Encryption((Certificate) certValue);
         }
 
+        // Icon URL.
+        String iconUrl = null;
+        Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
+        if (iconUrlValue instanceof String) {
+            iconUrl = (String) iconUrlValue;
+        }
+
         // Reconstruct per-flow-type overrides from prefixed keys.
         Map<String, AccessConfig> flowTypeOverrides = new HashMap<>();
         if (actionDTO.getProperties() != null) {
@@ -176,6 +190,7 @@ public class InFlowExtensionActionConverter implements ActionConverter {
                 .endpoint(actionDTO.getEndpoint())
                 .accessConfig(accessConfig)
                 .encryption(encryption)
+                .iconUrl(iconUrl)
                 .flowTypeOverrides(flowTypeOverrides)
                 .rule(actionDTO.getActionRule())
                 .build();

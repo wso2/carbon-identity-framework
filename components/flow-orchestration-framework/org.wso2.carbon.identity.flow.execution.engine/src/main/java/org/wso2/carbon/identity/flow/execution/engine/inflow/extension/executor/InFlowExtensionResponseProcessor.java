@@ -57,6 +57,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is responsible for processing the response from In-Flow Extension actions.
@@ -83,8 +85,9 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
     private static final String USER_INPUTS_PATH_PREFIX = "/input/";
 
-    // Cache for valid claim URIs (per tenant)
-    private Map<String, Set<String>> validClaimUrisCache = new HashMap<>();
+    // Cache for valid claim URIs (per tenant) with TTL.
+    private static final long CLAIM_CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(30);
+    private final Map<String, CachedClaimUris> validClaimUrisCache = new ConcurrentHashMap<>();
 
     @Override
     public ActionType getSupportedActionType() {
@@ -122,7 +125,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (operations != null && !operations.isEmpty()) {
             for (PerformableOperation operation : operations) {
-                // Decrypt inbound value if this operation path is marked as encrypted in AccessConfig.
                 operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
 
                 results.add(processOperation(operation, execCtx, tenantDomain, pathTypeAnnotations));
@@ -310,14 +312,15 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     }
 
     /**
-     * Get valid claim URIs for a tenant, loading from ClaimMetadataManagementService if not cached.
+     * Get valid claim URIs for a tenant, loading from ClaimMetadataManagementService if not cached or expired.
      */
     private Set<String> getValidClaimUris(String tenantDomain) {
 
         String cacheKey = tenantDomain != null ? tenantDomain : "carbon.super";
 
-        if (validClaimUrisCache.containsKey(cacheKey)) {
-            return validClaimUrisCache.get(cacheKey);
+        CachedClaimUris cached = validClaimUrisCache.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            return cached.getClaimUris();
         }
 
         Set<String> validUris = new HashSet<>();
@@ -335,7 +338,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             LOG.error("Failed to load claim URIs for tenant: " + tenantDomain, e);
         }
 
-        validClaimUrisCache.put(cacheKey, validUris);
+        validClaimUrisCache.put(cacheKey, new CachedClaimUris(validUris));
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Loaded " + validUris.size() + " valid claim URIs for tenant: " + cacheKey);
@@ -465,7 +468,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
      * @return The operation with decrypted value, or the original operation if no decryption needed.
      */
     private PerformableOperation decryptOperationValueIfNeeded(PerformableOperation operation,
-            AccessConfig accessConfig, String tenantDomain) {
+            AccessConfig accessConfig, String tenantDomain)
+            throws ActionExecutionResponseProcessorException {
 
         if (accessConfig == null || operation.getValue() == null) {
             return operation;
@@ -478,6 +482,14 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         // Only decrypt string values that look like JWE compact serialization.
         Object value = operation.getValue();
+
+        if (!(value instanceof String)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Value for encrypted path " + operation.getPath() +
+                        " is not a String. Using as-is.");
+            }
+            return operation;
+        }
 
         String stringValue = (String) value;
         if (!JWEEncryptionUtil.isJWEEncrypted(stringValue)) {
@@ -499,9 +511,33 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             }
             return decryptedOp;
         } catch (Exception e) {
-            LOG.warn("Failed to decrypt inbound JWE value for path: " + operation.getPath() +
-                    ". Using raw value.", e);
-            return operation;
+            throw new ActionExecutionResponseProcessorException(
+                    "Failed to decrypt inbound JWE value for path: " + operation.getPath(), e);
+        }
+    }
+
+    /**
+     * Cache wrapper for claim URIs with TTL support.
+     */
+    private static class CachedClaimUris {
+
+        private final Set<String> claimUris;
+        private final long createdAt;
+
+        CachedClaimUris(Set<String> claimUris) {
+
+            this.claimUris = claimUris;
+            this.createdAt = System.currentTimeMillis();
+        }
+
+        Set<String> getClaimUris() {
+
+            return claimUris;
+        }
+
+        boolean isExpired() {
+
+            return (System.currentTimeMillis() - createdAt) > CLAIM_CACHE_TTL_MS;
         }
     }
 }
