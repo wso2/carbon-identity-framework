@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
+import org.wso2.carbon.identity.flow.mgt.utils.SystemDefaultFlowProvider;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
@@ -107,7 +108,7 @@ public class FlowMgtService {
 
         Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
         if (tenantIdWithResource == null) {
-            return null;
+            return SystemDefaultFlowProvider.getInstance().getSystemDefaultFlow(flowType);
         }
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
     }
@@ -153,7 +154,7 @@ public class FlowMgtService {
         // Since graph config is built from the flow, we can reuse the logic to get the first tenant with the flow.
         Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
         if (tenantIdWithResource == null) {
-            return null;
+            return SystemDefaultFlowProvider.getInstance().getSystemDefaultGraphConfig(flowType);
         }
         return FLOW_DAO.getGraphConfig(flowType, tenantIdWithResource);
     }

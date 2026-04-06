@@ -73,6 +73,8 @@ public class Constants {
                 "Unexpected server error while invoking the AI service for tenant, %s"),
         ERROR_CODE_DELETE_FLOW("65013", "Error while deleting the flow.",
                 "Unexpected server error while deleting the flow for tenant, %s"),
+        ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW("65014", "Error while loading system default flow.",
+                "Unexpected error while loading system default flow for flow type, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -249,6 +251,9 @@ public class Constants {
         public static final String FLOW_TYPE = "flowType";
         public static final String IS_ENABLED = "isEnabled";
         public static final String IS_AUTO_LOGIN_ENABLED = "isAutoLoginEnabled";
+        public static final String FLOW_EXECUTION_CONFIG = "FlowExecution";
+        public static final String DEFAULT_ENABLED_FLOWS_CONFIG = "DefaultEnabledFlows";
+        public static final String FLOW_TYPE_ELEMENT = "FlowType";
 
         private FlowConfigConstants() {
 
