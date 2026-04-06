@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
@@ -54,15 +55,10 @@ public class SystemDefaultFlowProvider {
     private static final String FLOW_DEFAULTS_DIR = "flow-defaults";
 
     /**
-     * Cache for loaded FlowDTOs per flow type. Optional.empty() is stored when no default exists,
-     * preventing repeated file system lookups for unsupported flow types.
+     * Cache for loaded FlowDTOs per flow type.
+     * Optional.empty() is stored when no default exists, preventing repeated file system lookups.
      */
     private final Map<String, Optional<FlowDTO>> flowDTOCache = new ConcurrentHashMap<>();
-
-    /**
-     * Cache for built GraphConfigs per flow type. Optional.empty() is stored when no default exists.
-     */
-    private final Map<String, Optional<GraphConfig>> graphConfigCache = new ConcurrentHashMap<>();
 
     private SystemDefaultFlowProvider() {
 
@@ -76,43 +72,48 @@ public class SystemDefaultFlowProvider {
     /**
      * Get the system default FlowDTO for the given flow type.
      * Returns {@code null} if no system default is configured for this flow type.
+     * Each call returns a deep copy of the cached instance so callers cannot mutate shared state.
      *
      * @param flowType The flow type identifier (e.g. "INVITED_USER_REGISTRATION").
-     * @return The system default FlowDTO, or {@code null} if not found.
-     * @throws FlowMgtServerException If an error occurs while loading or parsing the default flow.
+     * @return A deep copy of the cached FlowDTO, or {@code null} if not found.
+     * @throws FlowMgtServerException If an error occurs while loading or copying the default flow.
      */
     public FlowDTO getSystemDefaultFlow(String flowType) throws FlowMgtServerException {
 
-        if (flowDTOCache.containsKey(flowType)) {
-            return flowDTOCache.get(flowType).orElse(null);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Retrieving system default flow for flow type: " + flowType);
         }
-        FlowDTO flowDTO = loadFlowFromResource(flowType);
-        flowDTOCache.put(flowType, Optional.ofNullable(flowDTO));
-        return flowDTO;
+        if (!flowDTOCache.containsKey(flowType)) {
+            flowDTOCache.put(flowType, Optional.ofNullable(loadFlowFromResource(flowType)));
+        }
+        FlowDTO cached = flowDTOCache.get(flowType).orElse(null);
+        if (cached == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsBytes(cached), FlowDTO.class);
+        } catch (IOException e) {
+            throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
+        }
     }
 
     /**
      * Get the system default GraphConfig for the given flow type.
      * Returns {@code null} if no system default is configured for this flow type.
+     * The GraphConfig is built fresh on each call from a newly deserialized FlowDTO.
      *
      * @param flowType The flow type identifier (e.g. "INVITED_USER_REGISTRATION").
-     * @return The system default GraphConfig, or {@code null} if not found.
+     * @return A new GraphConfig instance, or {@code null} if not found.
      * @throws FlowMgtServerException If an error occurs while loading or building the default flow graph.
      */
     public GraphConfig getSystemDefaultGraphConfig(String flowType) throws FlowMgtServerException {
 
-        if (graphConfigCache.containsKey(flowType)) {
-            return graphConfigCache.get(flowType).orElse(null);
-        }
         FlowDTO flowDTO = getSystemDefaultFlow(flowType);
         if (flowDTO == null) {
-            graphConfigCache.put(flowType, Optional.empty());
             return null;
         }
         try {
-            GraphConfig graphConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
-            graphConfigCache.put(flowType, Optional.of(graphConfig));
-            return graphConfig;
+            return new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         } catch (FlowMgtFrameworkException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);
         }
@@ -120,6 +121,17 @@ public class SystemDefaultFlowProvider {
 
     private FlowDTO loadFlowFromResource(String flowType) throws FlowMgtServerException {
 
+        boolean isKnownFlowType = false;
+        for (Constants.FlowTypes knownType : Constants.FlowTypes.values()) {
+            if (knownType.getType().equals(flowType)) {
+                isKnownFlowType = true;
+                break;
+            }
+        }
+        if (!isKnownFlowType) {
+            LOG.warn("Rejected unknown flow type for system default flow lookup: " + flowType);
+            return null;
+        }
         File configFile = new File(CarbonUtils.getCarbonConfigDirPath(), FLOW_DEFAULTS_DIR + File.separator
                 + flowType + ".json");
         if (!configFile.exists()) {
@@ -132,6 +144,7 @@ public class SystemDefaultFlowProvider {
         try (InputStream inputStream = new FileInputStream(configFile)) {
             FlowDTO flowDTO = OBJECT_MAPPER.readValue(inputStream, FlowDTO.class);
             flowDTO.setFlowType(flowType);
+            LOG.info("Successfully loaded system default flow for flow type: " + flowType);
             return flowDTO;
         } catch (IOException e) {
             throw handleServerException(ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW, e, flowType);

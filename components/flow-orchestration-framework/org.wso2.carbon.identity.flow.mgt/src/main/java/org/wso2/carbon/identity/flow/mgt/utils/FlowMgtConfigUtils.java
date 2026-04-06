@@ -75,6 +75,7 @@ public class FlowMgtConfigUtils {
         OMElement flowExecutionElement = IdentityConfigParser.getInstance()
                 .getConfigElement(Constants.FlowConfigConstants.FLOW_EXECUTION_CONFIG);
         if (flowExecutionElement == null) {
+            LOG.debug("No flow execution configuration found in identity.xml");
             return defaultEnabledFlows;
         }
         Iterator<OMElement> defaultEnabledFlowsIt = flowExecutionElement
@@ -90,6 +91,9 @@ public class FlowMgtConfigUtils {
             if (StringUtils.isNotBlank(flowType)) {
                 defaultEnabledFlows.add(flowType.trim());
             }
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loaded server default enabled flows: " + defaultEnabledFlows);
         }
         return Collections.unmodifiableSet(defaultEnabledFlows);
     }

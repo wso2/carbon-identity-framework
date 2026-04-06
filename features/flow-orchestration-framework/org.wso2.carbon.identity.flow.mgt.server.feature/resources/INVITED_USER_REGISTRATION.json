@@ -46,7 +46,7 @@
                   "type": "password",
                   "hint": "",
                   "label": "Password",
-                  "required": false,
+                  "required": true,
                   "placeholder": "Enter your password"
                 }
               },
