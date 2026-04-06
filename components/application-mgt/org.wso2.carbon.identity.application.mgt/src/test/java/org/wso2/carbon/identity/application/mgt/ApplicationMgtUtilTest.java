@@ -508,10 +508,7 @@ public class ApplicationMgtUtilTest {
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
              MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
              MockedStatic<ApplicationManagementServiceComponentHolder> applicationManagementServiceComponentHolder =
-                     mockStatic(ApplicationManagementServiceComponentHolder.class);
-             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
-            identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
-                    .thenAnswer((Answer<Void>) invocation -> null);
+                     mockStatic(ApplicationManagementServiceComponentHolder.class)) {
             mockTenantRegistry(privilegedCarbonContext, carbonContext);
             applicationManagementServiceComponentHolder.when(
                     ApplicationManagementServiceComponentHolder::getInstance).thenReturn(
@@ -531,10 +528,7 @@ public class ApplicationMgtUtilTest {
              MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
              MockedStatic<ApplicationManagementServiceComponentHolder>
                      applicationManagementServiceComponentHolder =
-                     mockStatic(ApplicationManagementServiceComponentHolder.class);
-             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
-            identityTenantUtil.when(() -> IdentityTenantUtil.initializeRegistry(anyInt()))
-                    .thenAnswer((Answer<Void>) invocation -> null);
+                     mockStatic(ApplicationManagementServiceComponentHolder.class);) {
             applicationManagementServiceComponentHolder.when(
                     ApplicationManagementServiceComponentHolder::getInstance).thenReturn(
                     mockApplicationManagementServiceComponentHolder);
