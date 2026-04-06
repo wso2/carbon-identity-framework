@@ -38,6 +38,7 @@ public class InFlowExtensionAction extends Action {
     private final AccessConfig accessConfig;
     private final Encryption encryption;
     private final Map<String, AccessConfig> flowTypeOverrides;
+    private final String iconUrl;
 
     public InFlowExtensionAction(ResponseBuilder responseBuilder) {
 
@@ -47,6 +48,7 @@ public class InFlowExtensionAction extends Action {
         this.flowTypeOverrides = responseBuilder.flowTypeOverrides != null
                 ? Collections.unmodifiableMap(new HashMap<>(responseBuilder.flowTypeOverrides))
                 : Collections.emptyMap();
+        this.iconUrl = responseBuilder.iconUrl;
     }
 
     public InFlowExtensionAction(RequestBuilder requestBuilder) {
@@ -57,6 +59,7 @@ public class InFlowExtensionAction extends Action {
         this.flowTypeOverrides = requestBuilder.flowTypeOverrides != null
                 ? Collections.unmodifiableMap(new HashMap<>(requestBuilder.flowTypeOverrides))
                 : Collections.emptyMap();
+        this.iconUrl = requestBuilder.iconUrl;
     }
 
     /**
@@ -77,6 +80,16 @@ public class InFlowExtensionAction extends Action {
     public Encryption getEncryption() {
 
         return encryption;
+    }
+
+    /**
+     * Returns the icon URL for this In-Flow Extension action.
+     *
+     * @return The icon URL, or {@code null} if not configured.
+     */
+    public String getIconUrl() {
+
+        return iconUrl;
     }
 
     /**
@@ -114,6 +127,7 @@ public class InFlowExtensionAction extends Action {
         private AccessConfig accessConfig;
         private Encryption encryption;
         private Map<String, AccessConfig> flowTypeOverrides;
+        private String iconUrl;
 
         @Override
         public ResponseBuilder id(String id) {
@@ -203,6 +217,12 @@ public class InFlowExtensionAction extends Action {
             return this;
         }
 
+        public ResponseBuilder iconUrl(String iconUrl) {
+
+            this.iconUrl = iconUrl;
+            return this;
+        }
+
         @Override
         public InFlowExtensionAction build() {
 
@@ -219,6 +239,7 @@ public class InFlowExtensionAction extends Action {
         private AccessConfig accessConfig;
         private Encryption encryption;
         private Map<String, AccessConfig> flowTypeOverrides;
+        private String iconUrl;
 
         public RequestBuilder(Action action) {
 
@@ -265,6 +286,12 @@ public class InFlowExtensionAction extends Action {
         public RequestBuilder flowTypeOverrides(Map<String, AccessConfig> flowTypeOverrides) {
 
             this.flowTypeOverrides = flowTypeOverrides;
+            return this;
+        }
+
+        public RequestBuilder iconUrl(String iconUrl) {
+
+            this.iconUrl = iconUrl;
             return this;
         }
 

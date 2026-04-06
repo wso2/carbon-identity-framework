@@ -38,6 +38,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.JWEEncryptionUtil;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -667,5 +670,76 @@ public class InFlowExtensionResponseProcessorTest {
         when(responseContext.getActionInvocationResponse()).thenReturn(successResponse);
 
         return responseProcessor.processSuccessResponse(flowContext, responseContext);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ActionExecutionStatus<Success> executeSuccessResponseWithAccessConfig(
+            FlowExecutionContext execCtx, List<PerformableOperation> operations,
+            Map<String, String> pathTypeAnnotations, AccessConfig accessConfig)
+            throws ActionExecutionResponseProcessorException {
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        if (pathTypeAnnotations != null && !pathTypeAnnotations.isEmpty()) {
+            flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+        }
+        if (accessConfig != null) {
+            flowContext.add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig);
+        }
+
+        ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
+        when(successResponse.getOperations()).thenReturn(operations);
+
+        ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext =
+                mock(ActionExecutionResponseContext.class);
+        when(responseContext.getActionInvocationResponse()).thenReturn(successResponse);
+
+        return responseProcessor.processSuccessResponse(flowContext, responseContext);
+    }
+
+    // ========================= Inbound decryption failure =========================
+
+    @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
+    public void testDecryptionFailureThrowsException()
+            throws ActionExecutionResponseProcessorException {
+
+        try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
+            jweUtilMock.when(() -> JWEEncryptionUtil.isJWEEncrypted(anyString())).thenReturn(true);
+            jweUtilMock.when(() -> JWEEncryptionUtil.decrypt(anyString(), anyString()))
+                    .thenThrow(new RuntimeException("Decryption failed"));
+
+            FlowExecutionContext execCtx = createFlowExecutionContext();
+            // Create AccessConfig with an encrypted modify path.
+            AccessConfig accessConfig = new AccessConfig(null,
+                    Arrays.asList(new ContextPath("/properties/secret", true)));
+
+            // Value looks like JWE (5 dot-separated parts).
+            PerformableOperation op = createOperation(
+                    Operation.REPLACE, "/properties/secret", "a.b.c.d.e");
+
+            executeSuccessResponseWithAccessConfig(execCtx, Collections.singletonList(op),
+                    Collections.emptyMap(), accessConfig);
+        }
+    }
+
+    @Test
+    public void testNonStringValueForEncryptedPathHandledGracefully()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        // Create AccessConfig with an encrypted modify path.
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/data", true)));
+
+        // Non-string value (Integer) for an encrypted path — should pass through without decryption.
+        PerformableOperation op = createOperation(Operation.REPLACE, "/properties/data", 42);
+
+        ActionExecutionStatus<Success> status = executeSuccessResponseWithAccessConfig(
+                execCtx, Collections.singletonList(op), Collections.emptyMap(), accessConfig);
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Value should be coerced to String (default behavior for properties).
+        assertEquals(execCtx.getProperties().get("data"), "42");
     }
 }

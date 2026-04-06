@@ -185,7 +185,8 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      * @return The InFlowExtensionEvent.
      */
     private InFlowExtensionEvent buildEvent(FlowExecutionContext context, List<String> expose,
-                                            AccessConfig accessConfig, String certificatePEM) {
+                                            AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
 
         InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
 
@@ -259,7 +260,8 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      * @return The filtered User model with encrypted values where configured.
      */
     private User buildUser(FlowUser flowUser, List<String> expose,
-                           AccessConfig accessConfig, String certificatePEM) {
+                           AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
 
         String userId = isExposed(HierarchicalPrefixMatcher.USER_ID_PATH, expose)
                 ? flowUser.getUserId() : null;
@@ -300,6 +302,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     Map<String, char[]> encryptedCredentials = new HashMap<>();
                     for (Map.Entry<String, char[]> entry : credentials.entrySet()) {
                         String plaintext = new String(entry.getValue());
+                        java.util.Arrays.fill(entry.getValue(), '\0');
                         String encrypted = encryptValue(plaintext, certificatePEM);
                         encryptedCredentials.put(entry.getKey(), encrypted.toCharArray());
                     }
@@ -327,7 +330,8 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      */
     @SuppressWarnings("unchecked")
     private <T> Map<String, T> filterMap(Map<String, T> map, String areaPrefix, List<String> expose,
-                                         AccessConfig accessConfig, String certificatePEM) {
+                                         AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
 
         if (map == null) {
             return null;
@@ -371,8 +375,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         return false;
     }
 
-    // ---- Encryption helpers ----
-
     /**
      * Determine if a value at the given path should be JWE-encrypted before sending to the
      * external service. Only expose paths with {@code encrypted: true} trigger outbound encryption.
@@ -392,19 +394,20 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
     /**
      * JWE-encrypt a plaintext value using the external service's certificate.
-     * If encryption fails, the original value is returned and a warning is logged.
      *
      * @param plaintext      The value to encrypt.
      * @param certificatePEM The external service's certificate PEM.
-     * @return The JWE compact serialization string, or the original value on failure.
+     * @return The JWE compact serialization string.
+     * @throws ActionExecutionRequestBuilderException If encryption fails.
      */
-    private String encryptValue(String plaintext, String certificatePEM) {
+    private String encryptValue(String plaintext, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
 
         try {
             return JWEEncryptionUtil.encrypt(plaintext, certificatePEM);
         } catch (Exception e) {
-            LOG.warn("Failed to JWE-encrypt outbound value. Sending plaintext.", e);
-            return plaintext;
+            throw new ActionExecutionRequestBuilderException(
+                    "Failed to JWE-encrypt outbound value for In-Flow Extension action.", e);
         }
     }
 }
