@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementClientException;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
 import org.wso2.carbon.user.api.Tenant;
@@ -91,6 +92,10 @@ public class OrganizationResolver {
                 resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
                 // Resolve root organization information to the Organization object in tenanted paths.
                 resolveRootOrganizationToOrganization();
+            }
+        } catch (OrganizationManagementClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Client error while initializing organization information: " + e.getMessage(), e);
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
