@@ -175,14 +175,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     @Override
     public void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
-                  String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
-        handleWithV2Roles(roleIdList, subject, attributes, provisioningUserStoreId, tenantDomain, null);
+                  String provisioningUserStoreId, String tenantDomain, AuthenticationContext context) throws FrameworkException {
+
+        handleWithV2Roles(roleIdList, subject, attributes, provisioningUserStoreId, tenantDomain);
     }
 
     @Override
     public void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
-                       String provisioningUserStoreId, String tenantDomain, 
-                       AuthenticationContext context) throws FrameworkException {
+                       String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
 
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
 
