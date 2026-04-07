@@ -339,11 +339,10 @@ public class ActionExecutorConfig {
     }
 
     /**
-     * Returns a boolean value based on the system configuration
-     * 'actions.action_request.case_insensitive_header_filtering'that enables or disables
-     * case-insensitive header filtering in action request.
+     * Returns whether case-insensitive header filtering is enabled.
+     * If the configuration is missing or invalid, the default value is true.
      *
-     * @return 'true' if configuration is 'true' or not set, return 'false' if configuration is set to 'false'.
+     * @return true if case-insensitive header filtering is enabled, false otherwise.
      */
     public boolean isCaseInsensitiveHeaderFilteringEnabled() {
 
