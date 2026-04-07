@@ -216,6 +216,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         log.debug("Context update is required for the organization login. " +
                                 "Hence, returning to Request Coordinator.");
                     }
+                    if (addOrUpdateNonceCookie) {
+                        addNonceCookie(request, response, context);
+                    }
                     return;
                 }
             }
