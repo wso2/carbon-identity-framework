@@ -415,6 +415,7 @@
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "oauth.jarm.enable_jarm_and_form_post_error_response": false,
+      "actions.action_request.case_insensitive_header_filtering": false,
       "authentication.authenticator.sms_otp.parameters.EnableUserBasedResendBlocking": false,
       "authentication.authenticator.sms_otp_local.parameters.EnableUserBasedResendBlocking": false
     },
@@ -448,6 +449,7 @@
       "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "oauth.jarm.enable_jarm_and_form_post_error_response": false,
+      "actions.action_request.case_insensitive_header_filtering": false,
       "authentication.authenticator.sms_otp.parameters.EnableUserBasedResendBlocking": false,
       "authentication.authenticator.sms_otp_local.parameters.EnableUserBasedResendBlocking": false
     }
