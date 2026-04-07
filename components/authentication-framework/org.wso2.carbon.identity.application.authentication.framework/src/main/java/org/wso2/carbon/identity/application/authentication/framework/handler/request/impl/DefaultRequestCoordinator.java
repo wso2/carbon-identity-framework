@@ -1318,31 +1318,29 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
-        // Check previous shared app login sessions are applicable in shared app direct access scenario.
+        // Check previous shared app login sessions are applicable in shared app access scenario.
         if (sharedAppLoginSession) {
-            if (StringUtils.isBlank(accessingOrgId)) {
-                // Not a direct accessing scenario.
-                return Optional.empty();
-            }
             if (!applicationConfig.getServiceProvider().isEnhancedOrganizationAuthenticationEnabled()) {
-                // Direct access is only allowed for applications with enhanced organization authentication enabled.
+                // Shared app login session handling is only applicable for apps with enhanced org auth enabled.
                 return Optional.empty();
             }
-            // Need to check the authenticated shared app org in previous session equals accessing organization.
-            if (StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedSharedAppOrgId())) {
-                try {
-                    // Validate the access to the accessing organization.
-                    boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
-                            loadedSessionContext.getAuthenticatedSharedAppOrgId());
-                    if (hasOrganizationAccess) {
-                        // Update the context for organization login before session data loading.
-                        updateContextForOrganizationLogin(request, context);
-                        // Return the org ID for session data lookup.
-                        return Optional.of(loadedSessionContext.getAuthenticatedSharedAppOrgId());
-                    }
-                } catch (AuthenticationFailedException e) {
-                    throw  new FrameworkException(e.getMessage(), e);
+            if (StringUtils.isNotBlank(accessingOrgId) &&
+                    !StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedSharedAppOrgId())) {
+                // For direct access paths, check whether the accessing org and the session org are equal.
+                return Optional.empty();
+            }
+            try {
+                // Validate the access to the organization.
+                boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
+                        loadedSessionContext.getAuthenticatedSharedAppOrgId());
+                if (hasOrganizationAccess) {
+                    // Update the context for organization login before session data loading.
+                    updateContextForOrganizationLogin(request, context);
+                    // Return the org ID for session data lookup.
+                    return Optional.of(loadedSessionContext.getAuthenticatedSharedAppOrgId());
                 }
+            } catch (AuthenticationFailedException e) {
+                throw  new FrameworkException(e.getMessage(), e);
             }
         }
         return Optional.empty();

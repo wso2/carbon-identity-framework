@@ -222,6 +222,11 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // without waiting till a logout response is received from federated IDP.
         // remove the SessionContext from the cache
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
+        if (context.getOrganizationLoginData() != null &&
+                context.getOrganizationLoginData().getRootOrganizationTenantDomain() !=null) {
+            FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(),
+                    context.getOrganizationLoginData().getRootOrganizationTenantDomain());
+        }
         // remove the cookie
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
