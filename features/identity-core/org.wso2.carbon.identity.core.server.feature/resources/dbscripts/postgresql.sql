@@ -1335,6 +1335,7 @@ INSERT INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('b411dafd-e2c4-4d2f-afba-3900d802725a', 'PUSH_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to push provider properties'),
 ('ce234fd5-3fb4-4a40-9911-818be9b4ee10', 'REMOTE_LOGGING_SECRETS', 'Secret type to uniquely identify secrets relevant to remote logging properties'),
 ('a1b2c3d4-5e6f-7a89-b012-3456789ab8de', 'EMAIL_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to email provider properties'),
+('f47bce92-3d81-4a06-b7e5-29c1d830f5a2', 'SMS_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to SMS provider properties'),
 ('e2bc9d81-91a0-4efc-9091-c37afc46663b', 'WEBHOOK_SECRETS', 'Secret type to uniquely identify secrets relevant to webhook configurations');
 
 CREATE TABLE IF NOT EXISTS IDN_SECRET (
