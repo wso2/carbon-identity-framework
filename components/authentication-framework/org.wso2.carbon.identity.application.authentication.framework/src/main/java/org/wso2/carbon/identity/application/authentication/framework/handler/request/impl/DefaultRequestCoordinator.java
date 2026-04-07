@@ -453,7 +453,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                     if (context.isSharedAppLoginContextUpdateRequired()) {
                         log.debug("Updating the authentication context with the organization login data.");
-                        updateContextForOrganizationLogin(request, context);
+                        updateContextForOrganizationLogin(request, context,
+                                context.getSequenceConfig().getApplicationConfig());
                         findPreviousOrganizationSession(request, context);
                         FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
                     }
@@ -1321,6 +1322,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         // Check previous shared app login sessions are applicable in shared app access scenario.
         if (sharedAppLoginSession) {
+            if (log.isDebugEnabled()) {
+                log.debug("A shared app login session found. Evaluating the applicability of the session for " +
+                        "the current context.");
+            }
             if (!applicationConfig.getServiceProvider().isEnhancedOrganizationAuthenticationEnabled()) {
                 // Shared app login session handling is only applicable for apps with enhanced org auth enabled.
                 return Optional.empty();
@@ -1335,13 +1340,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
                         loadedSessionContext.getAuthenticatedSharedAppOrgId());
                 if (hasOrganizationAccess) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Shared app login session is applicable for the current context. " +
+                                "Switching the context to organization login.");
+                    }
                     // Update the context for organization login before session data loading.
-                    updateContextForOrganizationLogin(request, context);
+                    updateContextForOrganizationLogin(request, context, applicationConfig);
                     // Return the org ID for session data lookup.
                     return Optional.of(loadedSessionContext.getAuthenticatedSharedAppOrgId());
                 }
             } catch (AuthenticationFailedException e) {
-                throw  new FrameworkException(e.getMessage(), e);
+                throw new FrameworkException(e.getMessage(), e);
             }
         }
         return Optional.empty();
@@ -1858,7 +1867,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void updateContextForOrganizationLogin(HttpServletRequest request, AuthenticationContext context)
+    private void updateContextForOrganizationLogin(HttpServletRequest request, AuthenticationContext context,
+                                                   ApplicationConfig applicationConfig)
             throws FrameworkException {
 
         OrganizationData organization = context.getOrganizationLoginData().getAccessingOrganization();
@@ -1872,7 +1882,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setTenantDomain(accessingOrgTenantDomain);
 
         // Capture the primary application ID before switching to the sub-org sequence config.
-        int primaryAppId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
+        int primaryAppId = applicationConfig.getApplicationID();
         PrimaryAppData primaryAppData = new PrimaryAppData();
         primaryAppData.setId(primaryAppId);
         context.getOrganizationLoginData().setPrimaryAppData(primaryAppData);

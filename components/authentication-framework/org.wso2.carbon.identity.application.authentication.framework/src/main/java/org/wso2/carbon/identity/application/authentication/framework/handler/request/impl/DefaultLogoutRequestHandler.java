@@ -223,7 +223,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // remove the SessionContext from the cache
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
         if (context.getOrganizationLoginData() != null &&
-                context.getOrganizationLoginData().getRootOrganizationTenantDomain() !=null) {
+                context.getOrganizationLoginData().getRootOrganizationTenantDomain() != null) {
             FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(),
                     context.getOrganizationLoginData().getRootOrganizationTenantDomain());
         }
