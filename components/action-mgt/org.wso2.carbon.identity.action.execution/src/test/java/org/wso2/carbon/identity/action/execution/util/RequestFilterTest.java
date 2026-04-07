@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.util;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -236,6 +237,8 @@ public class RequestFilterTest {
                 assertEquals(filteredHeader.getValue(), new String[]{"X-header-1-value"});
             } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-3")) {
                 assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
+            } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-2")) {
+                Assert.fail();
             }
         });
     }
