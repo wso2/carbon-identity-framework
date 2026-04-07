@@ -36,6 +36,7 @@
             <class name="org.wso2.carbon.identity.core.model.FilterTreeBuilderTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityTenantUtilTest"/>
             <class name="org.wso2.carbon.identity.core.util.JWTDepthValidationTest"/>
+            <class name="org.wso2.carbon.identity.core.util.IdentityDatabaseUtilTest"/>
         </classes>
     </test>
 </suite>
