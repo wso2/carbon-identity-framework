@@ -338,14 +338,21 @@ public class ActionExecutorConfig {
         }
     }
 
+    /**
+     * Returns a boolean value based on the system configuration 'actions.action_request.case_insensitive_header_filtering'
+     * that enables or disables case-insensitive header filtering in action request.
+     *
+     * @return 'true' if configuration is 'true' or not set, return 'false' if configuration is set to 'false'.
+     */
     public boolean isCaseInsensitiveHeaderFilteringEnabled() {
 
         Object propertyValue = IdentityConfigParser.getInstance().getConfiguration()
                 .get(CASE_INSENSITIVE_HEADER_FILTERING);
-        if (propertyValue != null && StringUtils.isNotBlank(propertyValue.toString())) {
-            return Boolean.parseBoolean(propertyValue.toString());
+        if (propertyValue == null || StringUtils.isBlank(propertyValue.toString())) {
+            LOG.debug("CaseInsensitiveHeaderFiltering property is not set or is blank. Using default: true.");
+            return true;
         }
-        return true;
+        return Boolean.parseBoolean(propertyValue.toString());
     }
 
     private Set<String> getExcludedParamsInActionRequestForAllTypes() {
