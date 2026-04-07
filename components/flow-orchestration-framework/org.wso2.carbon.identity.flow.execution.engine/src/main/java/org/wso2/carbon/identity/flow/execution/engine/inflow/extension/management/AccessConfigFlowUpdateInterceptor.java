@@ -200,9 +200,8 @@ public class AccessConfigFlowUpdateInterceptor implements FlowUpdateInterceptor 
                 if (path != null) {
                     result.add(new ContextPath(path, encrypted));
                 }
-            }
-            else {
-
+            } else if (item instanceof String) {
+                result.add(new ContextPath((String) item, false));
             }
         }
         return result.isEmpty() ? null : result;

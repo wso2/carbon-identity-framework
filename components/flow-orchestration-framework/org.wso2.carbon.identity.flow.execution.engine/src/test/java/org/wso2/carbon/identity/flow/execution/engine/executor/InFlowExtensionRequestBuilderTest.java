@@ -55,6 +55,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * Unit tests for {@link InFlowExtensionRequestBuilder}.
@@ -493,6 +494,38 @@ public class InFlowExtensionRequestBuilderTest {
                     "Input value should be encrypted when expose path is marked encrypted");
             // username input is NOT marked encrypted — should remain plaintext.
             assertEquals(event.getUserInputs().get("username"), "testuser");
+        }
+    }
+
+    // ========================= Outbound encryption failure =========================
+
+    @Test(expectedExceptions = ActionExecutionRequestBuilderException.class)
+    public void testEncryptionFailureThrowsException()
+            throws ActionExecutionRequestBuilderException {
+
+        try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
+            jweUtilMock.when(() -> JWEEncryptionUtil.encrypt(anyString(), anyString()))
+                    .thenThrow(new RuntimeException("Encryption failed"));
+
+            FlowExecutionContext execCtx = createFullFlowExecutionContext();
+            execCtx.setProperty("riskScore", "85");
+
+            AccessConfig accessConfig = new AccessConfig(
+                    Arrays.asList(new ContextPath("/properties/riskScore", true)),
+                    null);
+
+            Encryption encryption = new Encryption(
+                    new Certificate.Builder().id("cert-1").name("test")
+                            .certificateContent("test-cert-pem").build());
+
+            FlowContext flowContext = FlowContext.create()
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
+                    .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE)
+                    .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
+                    .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
+
+            ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
+            requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
         }
     }
 

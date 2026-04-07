@@ -187,6 +187,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .noneMatch(dto -> name.equalsIgnoreCase(dto.getName()));
     }
 
+    @Override
+    public boolean isActionNameAvailable(String actionType, String name, String excludeActionId,
+                                         String tenantDomain) throws ActionMgtException {
+
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<ActionDTO> actionDTOS = DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId);
+        return actionDTOS.stream()
+                .noneMatch(dto -> name.equalsIgnoreCase(dto.getName()) && !dto.getId().equals(excludeActionId));
+    }
+
     private String resolveActionVersionAtUpdating(Action updatingAction, ActionDTO existingActionDTO) {
 
         String updatingActionVersion = updatingAction.getActionVersion();

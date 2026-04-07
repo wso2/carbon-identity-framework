@@ -74,6 +74,12 @@ public class InFlowExtensionActionConstants {
     public static final int MAX_EXPOSE_PATHS = 50;
 
     /**
+     * Property key for the action's icon URL stored in IDN_ACTION_PROPERTIES.
+     * Stored as a PRIMITIVE string.
+     */
+    public static final String ICON_URL = "ICON_URL";
+
+    /**
      * Property key for the external service's certificate stored in IDN_ACTION_PROPERTIES.
      * During persistence the certificate object is replaced with its UUID (PRIMITIVE string);
      * during retrieval the UUID is resolved back to the full Certificate object.
