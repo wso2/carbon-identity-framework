@@ -337,6 +337,7 @@
   "oauth.jarm.fragment_jwt.enable": true,
   "oauth.jarm.form_post_jwt.enable": true,
   "oauth.jarm.jarm_response_jwt_validity": "600",
+  "oauth.jarm.enable_jarm_and_form_post_error_response": true,
   "oauth.jarm.response_mode.jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider",
   "oauth.jarm.response_mode.query_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider",
   "oauth.jarm.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
@@ -2215,6 +2216,7 @@
   "actions.http_client.connection_pool_size": "20",
   "actions.http_client.retry_count": "2",
   "actions.maximum_actions_per_action_type": "1",
+  "actions.action_request.case_insensitive_header_filtering": true,
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.pre_issue_access_token.version.latest": "v1",
   "actions.types.pre_issue_id_token.enable": true,
@@ -2249,6 +2251,7 @@
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
+  "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": true,
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,
@@ -2309,5 +2312,12 @@
   "enhanced_organization_authentication_feature.enabled": true,
 
   "workflow_engine.max_approver_notifications": 15,
-  "app_native_authentication.handle_fail_completed_authenticator_status": true
+  
+  "app_native_authentication.handle_fail_completed_authenticator_status": true,
+  "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
+  
+  "saas.enable_app_creation": false,
+  "saas.enable_cross_tenant_operations": false,
+
+  "enhanced_organization_authentication.enabled_by_default_for_new_apps": true
 }

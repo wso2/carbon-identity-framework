@@ -6905,11 +6905,8 @@ public class IdPManagementDAO {
                     idpNameMap.put(Integer.toString(idpId), idpName);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-
             return idpNameMap;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
                     "Providers for IDP IDs for tenantId: " + tenantId, e);
         } finally {

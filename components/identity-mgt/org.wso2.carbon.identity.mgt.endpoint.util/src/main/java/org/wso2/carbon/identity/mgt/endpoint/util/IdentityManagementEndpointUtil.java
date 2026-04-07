@@ -836,6 +836,27 @@ public class IdentityManagementEndpointUtil {
     public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware)
             throws ApiException {
 
+        return getBasePath(tenantDomain, context, isEndpointTenantAware, true);
+    }
+
+    /**
+     * Get base path URL for API clients with optional organization handle support.
+     *
+     * <p>This method has identical logic to
+     * {@link #getBasePath(String, String, boolean)} except that the {@code basePath.replace}
+     * operations for organization/sub-organization context rewriting are only performed
+     * when {@code useOrgHandle} is {@code true}.</p>
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param context               URL context.
+     * @param isEndpointTenantAware Whether the endpoint is tenant aware.
+     * @param useOrgHandle          Whether to perform organization handle based path replacements.
+     * @return Base path.
+     * @throws ApiException ApiException.
+     */
+    public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware,
+                                     boolean useOrgHandle) throws ApiException {
+
         String basePath;
         String serverUrl = IdentityManagementServiceUtil.getInstance().getContextURLFromFile();
         try {
@@ -843,39 +864,44 @@ public class IdentityManagementEndpointUtil {
                 if (IdentityTenantUtil.shouldUseTenantQualifiedURLs()) {
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
-                    String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                            .getApplicationResidentOrganizationId();
-                    if (StringUtils.isNotBlank(basePath) && StringUtils.isNotBlank(appResidentOrgId)) {
-                        String subOrgAccessContext = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
-                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + appResidentOrgId;
-                        String appResidentTenantDomain = FrameworkUtils.
-                                resolveTenantDomainFromOrganizationId(appResidentOrgId);
-                        if (basePath.contains(subOrgAccessContext)) {
-                            basePath = basePath.replace(subOrgAccessContext,
-                                    FrameworkConstants.TENANT_CONTEXT_PREFIX + appResidentTenantDomain);
-                        }
-                    } else if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
-                        String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                .getOrganizationId();
-                        if (StringUtils.isNotBlank(organizationId)) {
-                            basePath = basePath.replace(
-                                    FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
-                                    FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                    if (useOrgHandle) {
+                        String appResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                .getApplicationResidentOrganizationId();
+                        if (StringUtils.isNotBlank(basePath) && StringUtils.isNotBlank(appResidentOrgId)) {
+                            String subOrgAccessContext = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain +
+                                    FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + appResidentOrgId;
+                            String appResidentTenantDomain = FrameworkUtils.
+                                    resolveTenantDomainFromOrganizationId(appResidentOrgId);
+                            if (basePath.contains(subOrgAccessContext)) {
+                                basePath = basePath.replace(subOrgAccessContext,
+                                        FrameworkConstants.TENANT_CONTEXT_PREFIX + appResidentTenantDomain);
+                            }
+                        } else if (basePath != null && basePath.contains(
+                                FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                            String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                    .getOrganizationId();
+                            if (StringUtils.isNotBlank(organizationId)) {
+                                basePath = basePath.replace(
+                                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + organizationId,
+                                        FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain);
+                            }
                         }
                     }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
                     if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
-                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware && !isServerURLAlreadyTenanted(tenantDomain)) {
-                        basePath = serverUrl + "/t/" + tenantDomain + context;
+                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware
+                            && !isServerURLAlreadyTenanted(tenantDomain)) {
+                        basePath = serverUrl + FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + context;
                     } else {
                         basePath = serverUrl + context;
                     }
                 }
             } else {
                 if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
-                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware && !isServerURLAlreadyTenanted(tenantDomain)) {
-                    basePath = serverUrl + "/t/" + tenantDomain + context;
+                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware
+                        && !isServerURLAlreadyTenanted(tenantDomain)) {
+                    basePath = serverUrl + FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + context;
                 } else {
                     basePath = serverUrl + context;
                 }

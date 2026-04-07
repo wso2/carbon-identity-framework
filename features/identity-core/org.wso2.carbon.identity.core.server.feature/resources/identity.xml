@@ -1372,6 +1372,9 @@
 
     <Webhooks>
         <MaximumWebhooksPerTenant>10</MaximumWebhooksPerTenant>
+        <Registration>
+            <SkipSignupConfirmationIfAccountLockDisabled>true</SkipSignupConfirmationIfAccountLockDisabled>
+        </Registration>
     </Webhooks>
 
     <LocalAuthenticators>
@@ -2601,6 +2604,14 @@
         </TenantQualifiedUrls>
     </TenantContext>
 
+    <!--
+        SaaS application configurations.
+    -->
+    <SaaS>
+        <EnableAppCreation>false</EnableAppCreation>
+        <EnableCrossTenantOperations>false</EnableCrossTenantOperations>
+    </SaaS>
+
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v1.0/</Context>
@@ -2678,6 +2689,21 @@
             <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
+
+    <OrgResourceContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                    <Path>/api/server/v1/branding-preference/text</Path>
+                    <Path>/api/server/v1/branding-preference/text/resolve</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgResourceContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>
@@ -3013,4 +3039,6 @@
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>true</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>
+    <!-- Config to allow legacy SCIM enterprise user behaviors -->
+    <EnableSCIMLegacyEnterpriseUser>false</EnableSCIMLegacyEnterpriseUser>
 </Server>

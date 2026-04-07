@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClient
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.SQLConstants;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.utils.DBUtils;
 
@@ -238,10 +239,20 @@ public class ClaimDAO {
 
         if (claimId > 0 && claimProperties != null) {
             String query = SQLConstants.ADD_CLAIM_PROPERTY;
-            try (PreparedStatement prepStmt = connection.prepareStatement(query);) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
+                boolean isOracle = StringUtils.containsIgnoreCase(
+                        connection.getMetaData().getDatabaseProductName(), IdentityCoreConstants.ORACLE);
                 prepStmt.setInt(1, claimId);
                 prepStmt.setInt(4, tenantId);
                 for (Map.Entry<String, String> property : claimProperties.entrySet()) {
+                    // Skip properties with empty values on Oracle, as it treats empty strings as NULL
+                    if (isOracle && StringUtils.isEmpty(property.getValue())) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Skipping empty property value for key: " + property.getKey() +
+                                      " due to Oracle NULL constraint");
+                        }
+                        continue;
+                    }
                     if (StringUtils.equals(property.getKey(), SUB_ATTRIBUTES_PROPERTY)) {
                         String[] subAttributes = property.getValue().split(" ");
                         int subAttributeIndex = 0;

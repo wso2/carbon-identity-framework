@@ -56,9 +56,6 @@ public class WorkflowRuleFieldRegistryTest {
             "user.domain",
             "user.groups",
             "user.roles",
-            "initiator.domain",
-            "initiator.groups",
-            "initiator.roles",
             "role.id",
             "role.audience",
             "role.permissions",
@@ -82,10 +79,10 @@ public class WorkflowRuleFieldRegistryTest {
     }
 
     @Test
-    public void testFieldsMapHasExactlyElevenEntries() {
+    public void testFieldsMapHasExactlyEightEntries() {
 
-        assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 11,
-                "FIELDS map should have exactly 11 entries.");
+        assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 8,
+                "FIELDS map should have exactly 8 entries.");
     }
 
     @Test
@@ -194,22 +191,6 @@ public class WorkflowRuleFieldRegistryTest {
         assertTrue(field.getValue() instanceof OptionsReferenceValue);
         OptionsReferenceValue refValue = (OptionsReferenceValue) field.getValue();
         assertEquals(refValue.getLinks().size(), 2);
-    }
-
-    @Test
-    public void testInitiatorFieldsMirrorUserFields() {
-
-        // Initiator fields should mirror the user fields structure.
-        FieldDefinition userDomain = WorkflowRuleFieldRegistry.FIELDS.get("user.domain");
-        FieldDefinition initiatorDomain = WorkflowRuleFieldRegistry.FIELDS.get("initiator.domain");
-        assertNotNull(initiatorDomain);
-        assertEquals(initiatorDomain.getOperators().size(), userDomain.getOperators().size());
-        assertEquals(initiatorDomain.getValue().getValueType(), userDomain.getValue().getValueType());
-
-        FieldDefinition userGroups = WorkflowRuleFieldRegistry.FIELDS.get("user.groups");
-        FieldDefinition initiatorGroups = WorkflowRuleFieldRegistry.FIELDS.get("initiator.groups");
-        assertNotNull(initiatorGroups);
-        assertEquals(initiatorGroups.getOperators().size(), userGroups.getOperators().size());
     }
 
     @Test

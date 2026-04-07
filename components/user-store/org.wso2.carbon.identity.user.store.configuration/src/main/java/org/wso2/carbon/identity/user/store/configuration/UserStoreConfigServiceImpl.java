@@ -1,18 +1,21 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
 package org.wso2.carbon.identity.user.store.configuration;
 
 import org.apache.commons.lang.StringUtils;
@@ -47,8 +50,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -60,7 +61,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreStateChange;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateConnectionUrlForInitExpressions;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -79,8 +80,6 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
     private static final String DB_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
-    private static Pattern h2InitPattern = Pattern.compile(H2_INIT_REGEX, Pattern.CASE_INSENSITIVE);
-
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
@@ -346,6 +345,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
         }
 
+        validateConnectionUrlForInitExpressions(connectionURL);
+
         WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
 
         RDBMSConfiguration rdbmsConfiguration = new RDBMSConfiguration();
@@ -513,14 +514,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         for (PropertyDTO propertyDTOValue : propertyDTO) {
             if (propertyDTOValue != null && "url".equals(propertyDTOValue.getName())) {
                 String connectionURL = propertyDTOValue.getValue();
-                if (StringUtils.isNotEmpty(connectionURL)) {
-                    String validationConnectionString = connectionURL.toLowerCase().replace("\\", "");
-                    Matcher matcher = h2InitPattern.matcher(validationConnectionString);
-                    if (matcher.find()) {
-                        throw new IdentityUserStoreMgtException("INIT expressions are not allowed in the connection " +
-                                "URL due to security reasons.");
-                    }
-                }
+                validateConnectionUrlForInitExpressions(connectionURL);
             }
         }
     }

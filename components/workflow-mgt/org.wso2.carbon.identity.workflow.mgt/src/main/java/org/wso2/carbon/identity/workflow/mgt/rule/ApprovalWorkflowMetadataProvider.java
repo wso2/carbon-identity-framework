@@ -50,7 +50,6 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
     private static final Log LOG = LogFactory.getLog(ApprovalWorkflowMetadataProvider.class);
 
     private static final String USER_CLAIM_PREFIX = "user.";
-    private static final String INITIATOR_CLAIM_PREFIX = "initiator.";
 
     private static final List<Operator> CLAIM_OPERATORS = Collections.unmodifiableList(Arrays.asList(
             new Operator("equals", "equals"),
@@ -157,9 +156,6 @@ public class ApprovalWorkflowMetadataProvider implements RuleMetadataProvider {
         List<FieldDefinition> fieldDefinitions = new ArrayList<>();
         fieldDefinitions.add(new FieldDefinition(
                 new Field(USER_CLAIM_PREFIX + claimUri, USER_CLAIM_PREFIX + displayName),
-                operators, valueMeta));
-        fieldDefinitions.add(new FieldDefinition(
-                new Field(INITIATOR_CLAIM_PREFIX + claimUri, INITIATOR_CLAIM_PREFIX + displayName),
                 operators, valueMeta));
         return fieldDefinitions;
     }

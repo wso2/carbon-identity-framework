@@ -61,7 +61,8 @@ public class FlowDataRetrievalClient {
 
         return HTTPClientManager.executeWithHttpClient(httpClient -> {
             try {
-                String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH);
+                String path = IdentityManagementEndpointUtil.getBasePath(tenantDomain, FLOW_EXECUTE_API_PATH,
+                        true, false);
                 HttpPost postRequest = new HttpPost(path);
                 postRequest.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.toString());
                 postRequest.setEntity(new StringEntity(jsonBody,

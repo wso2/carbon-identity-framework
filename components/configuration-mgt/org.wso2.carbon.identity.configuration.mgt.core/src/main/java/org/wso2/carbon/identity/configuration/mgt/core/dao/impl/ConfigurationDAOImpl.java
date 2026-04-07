@@ -1143,6 +1143,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 if (SQLConstants.POSTGRESQL_UNIQUE_CONSTRAINT_VIOLATION_ERROR_CODE.equals(sqlEx.getSQLState())) {
                     throw handleClientException(ERROR_CODE_RESOURCE_ALREADY_EXISTS, resource.getResourceName(), e);
                 }
+                // MSSQL unique constraint violation: SQLState 23000, error number 2627 or 2601.
+                if (SQLConstants.MSSQL_UNIQUE_CONSTRAINT_VIOLATION_ERROR_CODE.equals(sqlEx.getSQLState()) &&
+                        (sqlEx.getErrorCode() == SQLConstants.MSSQL_UNIQUE_CONSTRAINT_VIOLATION_ERROR_NUMBER ||
+                                sqlEx.getErrorCode() == SQLConstants.MSSQL_UNIQUE_INDEX_VIOLATION_ERROR_NUMBER)) {
+                    throw handleClientException(ERROR_CODE_RESOURCE_ALREADY_EXISTS, resource.getResourceName(), e);
+                }
             }
 
             throw e;
