@@ -116,10 +116,6 @@ public class OrganizationResolver {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Invalid tenant domain in request URI: " + requestURI, e);
             }
-        } catch (RuntimeException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error resolving organization context for request URI: " + requestURI, e);
-            }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);
         }
