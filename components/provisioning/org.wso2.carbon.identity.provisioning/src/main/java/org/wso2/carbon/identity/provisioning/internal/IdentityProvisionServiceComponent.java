@@ -29,7 +29,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
@@ -233,6 +236,23 @@ public class IdentityProvisionServiceComponent {
 
         ProvisioningServiceDataHolder.getInstance().setRoleManagementService(null);
         log.debug("RoleManagementService unset in ProvisioningServiceDataHolder bundle.");
+    }
+
+    @Reference(name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        ProvisioningServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in ProvisioningServiceDataHolder bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        ProvisioningServiceDataHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in ProvisioningServiceDataHolder bundle.");
     }
 }
 
