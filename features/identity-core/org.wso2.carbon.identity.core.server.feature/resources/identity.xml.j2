@@ -2401,6 +2401,7 @@
         </HTTPClient>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
         <ActionRequest>
+            <CaseInsensitiveHeaderFiltering>{{actions.action_request.case_insensitive_header_filtering}}</CaseInsensitiveHeaderFiltering>
             <ExcludedHeaders>
                  {% for header in actions.action_request.excluded_headers %}
                     <Header>{{header}}</Header>
