@@ -64,6 +64,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Organ
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
+import org.wso2.carbon.identity.application.authentication.framework.model.PrimaryAppData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -1869,6 +1870,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String primaryTenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         context.getOrganizationLoginData().setRootOrganizationTenantDomain(primaryTenantDomain);
         context.setTenantDomain(accessingOrgTenantDomain);
+
+        // Capture the primary application ID before switching to the sub-org sequence config.
+        int primaryAppId = context.getSequenceConfig().getApplicationConfig().getApplicationID();
+        PrimaryAppData primaryAppData = new PrimaryAppData();
+        primaryAppData.setId(primaryAppId);
+        context.getOrganizationLoginData().setPrimaryAppData(primaryAppData);
 
         // Setting the sequence config of the shared application to the context.
         SequenceConfig sequenceConfig = getSharedAppSequenceConfig(context, request.getParameterMap(),
