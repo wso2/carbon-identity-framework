@@ -40,6 +40,15 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
     private static final String AUDIT_SUCCESS = "Success";
 
+    @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !LoggerUtils.isEnableV2AuditLogs();
+        }
+        return false;
+    }
+
     /**
      * Trigger after executing a workflow request.
      *
@@ -50,6 +59,9 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     public void doPostExecuteWorkflow(WorkflowRequest workFlowRequest, WorkflowExecutorResult result) throws
             WorkflowException {
 
+        if (!isEnable()) {
+            return;
+        }
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -77,6 +89,9 @@ public class WorkflowExecutorAuditLogger extends AbstractWorkflowExecutorManager
     public void doPostHandleCallback(String uuid, String status, Map<String, Object> additionalParams)
             throws WorkflowException {
 
+        if (!isEnable()) {
+            return;
+        }
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
