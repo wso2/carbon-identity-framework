@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.StepDTO;
 
 import java.util.Map;
 
@@ -220,7 +221,20 @@ public class FlowExecutionEngine {
     private FlowExecutionStep resolveStepForPrompt(GraphConfig graph, NodeConfig currentNode,
                                                    FlowExecutionContext context, NodeResponse nodeResponse) throws FlowEngineServerException {
 
-        DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
+        StepDTO stepDTO = graph.getNodePageMappings().get(currentNode.getId());
+
+        // If the current node has no page mapping (e.g., a background EXECUTION node),
+        // fall back to the previous node's page mapping so the previous form re-renders
+        // with any error message displayed inline.
+        if (stepDTO == null && currentNode.getPreviousNodeId() != null) {
+            stepDTO = graph.getNodePageMappings().get(currentNode.getPreviousNodeId());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Node " + currentNode.getId() + " has no page mapping. "
+                        + "Falling back to previous node: " + currentNode.getPreviousNodeId());
+            }
+        }
+
+        DataDTO dataDTO = stepDTO != null ? stepDTO.getData() : null;
 
         DataDTO finalDataDTO = null;
         if (dataDTO != null) {

@@ -118,6 +118,7 @@ public interface ActionManagementService {
 
     /**
      * Update the authentication of the action endpoint.
+
      *
      * @param actionType     Action Type.
      * @param actionId       Action ID.
@@ -128,4 +129,29 @@ public interface ActionManagementService {
      */
     Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
                                               String tenantDomain) throws ActionMgtException;
+
+    /**
+     * Check whether the given action name is available (unique) within the specified action type.
+     *
+     * @param actionType   Action Type path parameter.
+     * @param name         Action name to check.
+     * @param tenantDomain Tenant domain.
+     * @return {@code true} if the name is available, {@code false} otherwise.
+     * @throws ActionMgtException If an error occurs while checking name availability.
+     */
+    boolean isActionNameAvailable(String actionType, String name, String tenantDomain) throws ActionMgtException;
+
+    /**
+     * Check whether the given action name is available (unique) within the specified action type,
+     * excluding the action with the given ID (useful for update scenarios).
+     *
+     * @param actionType      Action Type path parameter.
+     * @param name            Action name to check.
+     * @param excludeActionId Action ID to exclude from the uniqueness check.
+     * @param tenantDomain    Tenant domain.
+     * @return {@code true} if the name is available, {@code false} otherwise.
+     * @throws ActionMgtException If an error occurs while checking name availability.
+     */
+    boolean isActionNameAvailable(String actionType, String name, String excludeActionId, String tenantDomain)
+            throws ActionMgtException;
 }

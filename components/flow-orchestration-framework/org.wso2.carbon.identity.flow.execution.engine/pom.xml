@@ -53,10 +53,6 @@
             <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
@@ -69,6 +65,22 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.flow.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -101,7 +113,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+            <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
         </dependency>
     </dependencies>
 
@@ -164,7 +176,25 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.action.api.exception;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.action.execution.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.certificate.management.exception;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.certificate.management.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.certificate.management.service;
+                            version="${carbon.identity.package.import.version.range}",
+                            com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.databind.*;
+                            version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.annotation.*;
+                            version="${com.fasterxml.jackson.annotation.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.execution.internal,
@@ -178,10 +208,23 @@
                             org.wso2.carbon.identity.flow.execution.engine.listener,
                             org.wso2.carbon.identity.flow.execution.engine.validation,
                             org.wso2.carbon.identity.flow.execution.engine.exception,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management,
                             org.wso2.carbon.identity.flow.execution.engine.graph;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                     </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
                 </configuration>
             </plugin>
             <plugin>
