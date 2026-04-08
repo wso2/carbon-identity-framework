@@ -2309,8 +2309,6 @@
   "branding_configuration.use_intermediate_loader_page": false,
   "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
 
-  "enhanced_organization_authentication_feature.enabled": true,
-
   "workflow_engine.max_approver_notifications": 15,
   
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
