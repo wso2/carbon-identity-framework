@@ -338,14 +338,21 @@ public class ActionExecutorConfig {
         }
     }
 
+    /**
+     * Returns whether case-insensitive header filtering is enabled.
+     * If the configuration is missing or invalid, the default value is true.
+     *
+     * @return true if case-insensitive header filtering is enabled, false otherwise.
+     */
     public boolean isCaseInsensitiveHeaderFilteringEnabled() {
 
         Object propertyValue = IdentityConfigParser.getInstance().getConfiguration()
                 .get(CASE_INSENSITIVE_HEADER_FILTERING);
-        if (propertyValue != null && StringUtils.isNotBlank(propertyValue.toString())) {
-            return Boolean.parseBoolean(propertyValue.toString());
+        if (propertyValue == null || StringUtils.isBlank(propertyValue.toString())) {
+            LOG.debug("CaseInsensitiveHeaderFiltering property is not set or is blank. Using default: true.");
+            return true;
         }
-        return true;
+        return Boolean.parseBoolean(propertyValue.toString());
     }
 
     private Set<String> getExcludedParamsInActionRequestForAllTypes() {
