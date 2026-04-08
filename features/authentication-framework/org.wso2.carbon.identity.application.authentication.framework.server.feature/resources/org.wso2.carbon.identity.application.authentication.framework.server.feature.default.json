@@ -267,6 +267,9 @@
   "authentication.authenticator.org_identifier_handler.name": "OrganizationIdentifierHandler",
   "authentication.authenticator.org_identifier_handler.enable": true,
 
+  "authentication.authenticator.shared_user_identifier.name": "SharedUserIdentifierExecutor",
+  "authentication.authenticator.shared_user_identifier.enable": true,
+
   "authentication.local_authenticators.hide_user_existence": true,
 
   "account_recovery.endpoint.auth.name":"dashboard",
