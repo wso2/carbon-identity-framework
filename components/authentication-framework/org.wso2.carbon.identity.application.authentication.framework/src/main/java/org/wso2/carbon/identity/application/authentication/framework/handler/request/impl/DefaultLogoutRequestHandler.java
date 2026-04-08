@@ -224,6 +224,10 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
         if (context.getOrganizationLoginData() != null &&
                 context.getOrganizationLoginData().getRootOrganizationTenantDomain() != null) {
+            /*
+            During session retrievals, sub org user sessions can be cached against the root org tenant domain, hence
+            removing the session context from the cache using the root org tenant domain as well.
+             */
             FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(),
                     context.getOrganizationLoginData().getRootOrganizationTenantDomain());
         }
