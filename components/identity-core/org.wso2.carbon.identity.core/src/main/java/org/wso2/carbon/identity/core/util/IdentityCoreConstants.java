@@ -38,6 +38,8 @@ public class IdentityCoreConstants {
     public static final String ENABLE_TENANT_QUALIFIED_URLS = "TenantContext.TenantQualifiedUrls.Enable";
     public static final String REQUIRED_SUPER_TENANT_IN_URLS =
             "TenantContext.TenantQualifiedUrls.RequireSuperTenantInUrls";
+    public static final String SKIP_TENANT_VALIDATION_FOR_OAUTH_ENDPOINTS =
+            "TenantContext.TenantQualifiedUrls.SkipTenantValidationForOAuthEndpoints";
     public static final String ENABLE_TENANTED_SESSIONS = "TenantContext.TenantQualifiedUrls.EnableTenantedSessions";
     public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
     public static final int DEFAULT_HTTPS_PORT = 443;
