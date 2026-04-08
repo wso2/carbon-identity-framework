@@ -73,8 +73,17 @@ public class RequestFilter {
                     .map(Header::getName)
                     .collect(Collectors.toSet()));
         }
-        // Filter out excluded headers configured at server level.
-        allowedHeaders.removeAll(excludedHeadersInServer);
+
+        if (ActionExecutorConfig.getInstance().isCaseInsensitiveHeaderFilteringEnabled()) {
+            // Filter out excluded headers configured at server level case-insensitively.
+            Set<String> normalizedExcludedHeaders = excludedHeadersInServer.stream()
+                    .map(header -> header.toLowerCase(Locale.ROOT))
+                    .collect(Collectors.toSet());
+            allowedHeaders.removeIf(header -> normalizedExcludedHeaders.contains(header.toLowerCase(Locale.ROOT)));
+        } else {
+            // Filter out excluded headers configured at server level case-sensitively.
+            allowedHeaders.removeAll(excludedHeadersInServer);
+        }
 
         // Normalize final headers to lower case
         // Header Fields should be case-insensitive - RFC 7230

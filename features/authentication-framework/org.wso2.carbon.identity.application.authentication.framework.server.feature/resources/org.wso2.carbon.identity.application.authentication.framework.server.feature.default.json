@@ -196,6 +196,7 @@
   "authentication.authenticator.sms_otp.parameters.enableRetryFromAuthenticator": true,
   "authentication.authenticator.sms_otp.parameters.Tags": "MFA",
   "authentication.authenticator.sms_otp.parameters.enable_payload_encoding_for_sms_otp": true,
+  "authentication.authenticator.sms_otp.parameters.EnableUserBasedResendBlocking": true,
 
   "authentication.authenticator.totp.name": "totp",
   "authentication.authenticator.totp.enable": true,
@@ -257,6 +258,7 @@
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
   "authentication.authenticator.sms_otp_local.parameters.sendMaskedMobileInAppNativeMFA": true,
+  "authentication.authenticator.sms_otp_local.parameters.EnableUserBasedResendBlocking": true,
 
   "authentication.authenticator.push_local.name": "push-notification-authenticator",
   "authentication.authenticator.push_local.enable": true,
