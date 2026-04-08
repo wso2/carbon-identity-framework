@@ -28,10 +28,12 @@ public class FlowResolveCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 1L;
     private final String tenantId;
+    private final String flowType;
 
-    public FlowResolveCacheKey(String tenantId) {
+    public FlowResolveCacheKey(String tenantId, String flowType) {
 
         this.tenantId = tenantId;
+        this.flowType = flowType;
     }
 
     @Override
@@ -40,12 +42,12 @@ public class FlowResolveCacheKey extends CacheKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FlowResolveCacheKey that = (FlowResolveCacheKey) o;
-        return tenantId.equals(that.tenantId);
+        return tenantId.equals(that.tenantId) && flowType.equals(that.flowType);
     }
 
     @Override
     public int hashCode() {
 
-        return tenantId.hashCode();
+        return 31 * tenantId.hashCode() + flowType.hashCode();
     }
 }

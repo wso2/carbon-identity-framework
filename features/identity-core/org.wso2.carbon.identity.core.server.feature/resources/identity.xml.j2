@@ -5157,6 +5157,13 @@
         <EnableLegacySelfRegistrationFlow>{{flow_execution.enable_legacy_self_registration_flow}}</EnableLegacySelfRegistrationFlow>
         <EnableLegacyPasswordRecoveryFlow>{{flow_execution.enable_legacy_password_recovery_flow}}</EnableLegacyPasswordRecoveryFlow>
         <EnableLegacyInvitedUserRegistrationFlow>{{flow_execution.enable_legacy_invited_user_registration_flow}}</EnableLegacyInvitedUserRegistrationFlow>
+        {% if flow_execution.default_enabled_flows is defined %}
+        <DefaultEnabledFlows>
+            {% for flow_type in flow_execution.default_enabled_flows %}
+            <FlowType>{{flow_type}}</FlowType>
+            {% endfor %}
+        </DefaultEnabledFlows>
+        {% endif %}
         <Registration>
             <DisplayClaimAvailability>{{flow_execution.registration.display_claim_availability}}</DisplayClaimAvailability>
             <DefaultUserStore>{{flow_execution.registration.default_user_store}}</DefaultUserStore>

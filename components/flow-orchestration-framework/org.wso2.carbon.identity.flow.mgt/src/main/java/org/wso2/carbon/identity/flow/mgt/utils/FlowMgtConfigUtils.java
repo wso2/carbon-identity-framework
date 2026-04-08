@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.flow.mgt.utils;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
@@ -35,8 +38,12 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
@@ -51,6 +58,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.RE
 public class FlowMgtConfigUtils {
 
     private static final Log LOG = LogFactory.getLog(FlowMgtConfigUtils.class);
+    private static final Set<String> SERVER_DEFAULT_ENABLED_FLOWS = loadServerDefaultEnabledFlows();
 
     private FlowMgtConfigUtils() {
 
@@ -59,6 +67,35 @@ public class FlowMgtConfigUtils {
     private static ConfigurationManager getConfigurationManager() {
 
         return FlowMgtServiceDataHolder.getInstance().getConfigurationManager();
+    }
+
+    private static Set<String> loadServerDefaultEnabledFlows() {
+
+        Set<String> defaultEnabledFlows = new HashSet<>();
+        OMElement flowExecutionElement = IdentityConfigParser.getInstance()
+                .getConfigElement(Constants.FlowConfigConstants.FLOW_EXECUTION_CONFIG);
+        if (flowExecutionElement == null) {
+            LOG.debug("No flow execution configuration found in identity.xml");
+            return defaultEnabledFlows;
+        }
+        Iterator<OMElement> defaultEnabledFlowsIt = flowExecutionElement
+                .getChildrenWithLocalName(Constants.FlowConfigConstants.DEFAULT_ENABLED_FLOWS_CONFIG);
+        if (!defaultEnabledFlowsIt.hasNext()) {
+            return defaultEnabledFlows;
+        }
+        OMElement defaultEnabledFlowsElement = defaultEnabledFlowsIt.next();
+        Iterator<OMElement> flowTypeElements = defaultEnabledFlowsElement
+                .getChildrenWithLocalName(Constants.FlowConfigConstants.FLOW_TYPE_ELEMENT);
+        while (flowTypeElements.hasNext()) {
+            String flowType = flowTypeElements.next().getText();
+            if (StringUtils.isNotBlank(flowType)) {
+                defaultEnabledFlows.add(flowType.trim());
+            }
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Loaded server default enabled flows: " + defaultEnabledFlows);
+        }
+        return Collections.unmodifiableSet(defaultEnabledFlows);
     }
 
     /**
@@ -183,7 +220,7 @@ public class FlowMgtConfigUtils {
         Constants.FlowTypes requestedFlowType = Constants.FlowTypes.valueOf(flowType);
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
         flowConfigDTO.setFlowType(flowType);
-        flowConfigDTO.setIsEnabled(false);
+        flowConfigDTO.setIsEnabled(SERVER_DEFAULT_ENABLED_FLOWS.contains(flowType));
         flowConfigDTO.addAllFlowCompletionConfigs(requestedFlowType.getSupportedFlowCompletionConfigs());
         return flowConfigDTO;
     }

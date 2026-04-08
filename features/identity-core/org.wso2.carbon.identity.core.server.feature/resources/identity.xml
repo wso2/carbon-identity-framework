@@ -2991,6 +2991,9 @@
         <EnableLegacySelfRegistrationFlow>false</EnableLegacySelfRegistrationFlow>
         <EnableLegacyPasswordRecoveryFlow>false</EnableLegacyPasswordRecoveryFlow>
         <EnableLegacyInvitedUserRegistrationFlow>false</EnableLegacyInvitedUserRegistrationFlow>
+        <DefaultEnabledFlows>
+            <FlowType>INVITED_USER_REGISTRATION</FlowType>
+        </DefaultEnabledFlows>
         <Registration>
             <DisplayClaimAvailability>false</DisplayClaimAvailability>
         </Registration>
