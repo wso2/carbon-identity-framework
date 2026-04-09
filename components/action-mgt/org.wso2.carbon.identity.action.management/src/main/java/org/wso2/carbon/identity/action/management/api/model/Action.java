@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.management.api.model;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Action.
@@ -145,6 +146,7 @@ public class Action {
     private Timestamp updatedAt;
     private EndpointConfig endpointConfig;
     private ActionRule rule;
+    private List<String> attributes;
 
     public Action(ActionResponseBuilder actionResponseBuilder) {
 
@@ -158,6 +160,7 @@ public class Action {
         this.updatedAt = actionResponseBuilder.updatedAt;
         this.endpointConfig = actionResponseBuilder.endpointConfig;
         this.rule = actionResponseBuilder.rule;
+        this.attributes = actionResponseBuilder.attributes;
     }
 
     public Action(ActionRequestBuilder actionRequestBuilder) {
@@ -167,6 +170,7 @@ public class Action {
         this.description = actionRequestBuilder.description;
         this.endpointConfig = actionRequestBuilder.endpointConfig;
         this.rule = actionRequestBuilder.rule;
+        this.attributes = actionRequestBuilder.attributes;
     }
 
     public String getId() {
@@ -219,6 +223,11 @@ public class Action {
         return rule;
     }
 
+    public List<String> getAttributes() {
+
+        return attributes;
+    }
+
     /**
      * ActionResponseBuilder.
      */
@@ -234,6 +243,7 @@ public class Action {
         private Timestamp updatedAt;
         private EndpointConfig endpointConfig;
         private ActionRule rule;
+        private List<String> attributes;
 
         public ActionResponseBuilder id(String id) {
 
@@ -295,6 +305,12 @@ public class Action {
             return this;
         }
 
+        public ActionResponseBuilder attributes(List<String> attributes) {
+
+            this.attributes = attributes;
+            return this;
+        }
+
         public Action build() {
 
             return new Action(this);
@@ -311,6 +327,7 @@ public class Action {
         private String actionVersion;
         private EndpointConfig endpointConfig;
         private ActionRule rule;
+        private List<String> attributes;
 
         public ActionRequestBuilder name(String name) {
 
@@ -339,6 +356,12 @@ public class Action {
         public ActionRequestBuilder rule(ActionRule rule) {
 
             this.rule = rule;
+            return this;
+        }
+
+        public ActionRequestBuilder attributes(List<String> attributes) {
+
+            this.attributes = attributes;
             return this;
         }
 
