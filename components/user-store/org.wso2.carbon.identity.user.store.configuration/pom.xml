@@ -89,7 +89,7 @@
                         <Import-Package>
                             javax.cache,
                             javax.crypto,
-                            javax.xml.bind,
+                            javax.xml.bind; version="${javax.xml.range}",
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             javax.xml.transform,
                             javax.xml.transform.dom,
