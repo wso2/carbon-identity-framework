@@ -394,6 +394,11 @@ public class IdentityTenantUtil {
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
     }
 
+    public static boolean skipTenantValidationForOAuthEndpoints() {
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.
+                SKIP_TENANT_VALIDATION_FOR_OAUTH_ENDPOINTS));
+    }
+
 
     /**
      * Checks if the tenanted session support is enabled.
