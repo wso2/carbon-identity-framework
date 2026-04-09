@@ -1670,6 +1670,7 @@ public class DefaultStepHandler implements StepHandler {
                 }
                 authInitiationDataList.add(authInitiationData);
             });
+            context.removeProperty(FrameworkConstants.AUTHENTICATOR_MESSAGE);
         }
     }
 
