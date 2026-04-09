@@ -130,6 +130,10 @@ public class RuleEvaluatorTest {
                         createEvaluationDataForRoleList(Arrays.asList("role1", "role2", "role3")), true},
                 {createRuleWithListValueTypeAndContainsOperator(),
                         createEvaluationDataForRoleList(Arrays.asList("role4", "role5")), false},
+                {createRuleWithListValueTypeAndNotContainsOperator(),
+                        createEvaluationDataForRoleList(Arrays.asList("role4", "role5")), true},
+                {createRuleWithListValueTypeAndNotContainsOperator(),
+                        createEvaluationDataForRoleList(Arrays.asList("role1", "role2")), false},
                 {createRuleWithANDExpressionUsingStringValueTypesAndNotContainsOperator(),
                         createEvaluationData("user@example.com"), true},
                 {createRuleWithANDExpressionUsingStringValueTypesAndNotContainsOperator(),
@@ -320,6 +324,17 @@ public class RuleEvaluatorTest {
         return ruleBuilder.build();
     }
 
+    private Rule createRuleWithListValueTypeAndNotContainsOperator() throws Exception {
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("roles").operator("notContains")
+                .value(new Value(Value.Type.REFERENCE, "role1")).build();
+        ruleBuilder.addAndExpression(expression);
+
+        return ruleBuilder.build();
+    }
+
     private Rule createRuleWithTwoANDExpressionsUsingListValueTypes() throws Exception {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -451,7 +466,8 @@ public class RuleEvaluatorTest {
         fieldDefinitionList.add(new FieldDefinition(claimField, operatorsForClaim, claimValue));
 
         Field rolesField = new Field("roles", "user.roles");
-        List<Operator> operatorsForRoles = Collections.singletonList(new Operator("contains", "contains"));
+        List<Operator> operatorsForRoles = Arrays.asList(new Operator("contains", "contains"),
+                new Operator("notContains", "not contains"));
         List<Link> linksForRoles = Collections.singletonList(
                 new Link("/roles?offset=0&limit=10", "GET", "values"));
         org.wso2.carbon.identity.rule.metadata.api.model.Value

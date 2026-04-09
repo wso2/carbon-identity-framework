@@ -525,6 +525,72 @@ public class WorkFlowRuleEvaluationDataProviderTest {
         assertNull(result.get(0).getValue());
     }
 
+    // ---- role.permissions ----
+
+    @Test
+    public void testGetEvaluationData_rolePermissions_withPermissionsInContext_returnsPermissionList()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Permissions", Arrays.asList("internal_bulk_user_create", "internal_bulk_user_delete",
+                "internal_bulk_user_update"));
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("role.permissions", ValueType.LIST);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-permissions-1",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getName(), "role.permissions");
+        assertEquals(result.get(0).getValueType(), ValueType.LIST);
+        List<String> permissions = (List<String>) result.get(0).getValue();
+        assertEquals(permissions.size(), 3);
+        assertEquals(permissions.get(0), "internal_bulk_user_create");
+        assertEquals(permissions.get(1), "internal_bulk_user_delete");
+        assertEquals(permissions.get(2), "internal_bulk_user_update");
+    }
+
+    @Test
+    public void testGetEvaluationData_rolePermissions_withEmptyPermissionsInContext_returnsEmptyList()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Permissions", Collections.emptyList());
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("role.permissions", ValueType.LIST);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-permissions-2",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getValueType(), ValueType.LIST);
+        List<String> permissions = (List<String>) result.get(0).getValue();
+        assertEquals(permissions.size(), 0);
+    }
+
+    @Test
+    public void testGetEvaluationData_rolePermissions_withNoPermissionsInContext_returnsEmptyList()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("role.permissions", ValueType.LIST);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-permissions-3",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getValueType(), ValueType.LIST);
+        List<String> permissions = (List<String>) result.get(0).getValue();
+        assertEquals(permissions.size(), 0);
+    }
+
     // ---- Unsupported field ----
 
     @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
