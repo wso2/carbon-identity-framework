@@ -218,8 +218,12 @@ public class DefaultClaimHandler implements ClaimHandler {
                     federatedUserRolesUnmappedInclusive = new ArrayList<>(federatedUserRolesUnmappedInclusiveSet);
                 }
             } else {
-                federatedUserRolesUnmappedInclusive = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
-                        remoteClaims, idpGroupClaimUri);
+                if (returnOnlyMappedLocalRoles) {
+                    federatedUserRolesUnmappedInclusive = new ArrayList<>();
+                } else {
+                    federatedUserRolesUnmappedInclusive = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
+                            remoteClaims, idpGroupClaimUri);
+                }
             }
             serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
                     federatedUserRolesUnmappedInclusive);
