@@ -74,7 +74,7 @@
                             javax.sql,
                             javax.xml.namespace,
                             javax.xml.stream,
-                            javax.xml.bind.annotation,
+                            javax.xml.bind.annotation; version="${javax.xml.range}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
