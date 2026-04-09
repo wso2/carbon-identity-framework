@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +44,7 @@ public class ActionDTOBuilder {
     private Timestamp updatedAt;
     private EndpointConfig endpoint;
     private ActionRule rule;
+    private List<String> attributes;
     private Map<String, ActionProperty> properties;
 
     public ActionDTOBuilder() {
@@ -61,6 +63,7 @@ public class ActionDTOBuilder {
         this.updatedAt = actionDTO.getUpdatedAt();
         this.endpoint = actionDTO.getEndpoint();
         this.rule = actionDTO.getActionRule();
+        this.attributes = actionDTO.getAttributes();
         this.properties = actionDTO.getProperties();
     }
 
@@ -76,6 +79,7 @@ public class ActionDTOBuilder {
         this.updatedAt = action.getUpdatedAt();
         this.endpoint = action.getEndpoint();
         this.rule = action.getActionRule();
+        this.attributes = action.getAttributes();
     }
 
     public ActionDTOBuilder id(String id) {
@@ -184,6 +188,17 @@ public class ActionDTOBuilder {
         return this.properties;
     }
 
+    public ActionDTOBuilder attributes(List<String> attributes) {
+
+        this.attributes = attributes;
+        return this;
+    }
+
+    public List<String> getAttributes() {
+
+        return this.attributes;
+    }
+
     public ActionDTOBuilder property(String propertyName, ActionProperty propertyValue) {
 
         if (this.properties == null) {
@@ -208,6 +223,9 @@ public class ActionDTOBuilder {
                 .rule(this.rule)
                 .build();
 
-        return new ActionDTO.Builder(action).properties(this.properties).build();
+        return new ActionDTO.Builder(action)
+                .attributes(this.attributes)
+                .properties(this.properties)
+                .build();
     }
 }
