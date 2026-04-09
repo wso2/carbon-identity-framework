@@ -64,6 +64,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Organ
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryInput;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationDiscoveryResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
+import org.wso2.carbon.identity.application.authentication.framework.model.PrimaryAppData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -479,7 +480,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                     if (context.isSharedAppLoginContextUpdateRequired()) {
                         log.debug("Updating the authentication context with the organization login data.");
-                        updateContextForOrganizationLogin(request, context);
+                        updateContextForOrganizationLogin(request, context,
+                                context.getSequenceConfig().getApplicationConfig());
                         findPreviousOrganizationSession(request, context);
                         updateServiceProviderUuidInOutboundQueryParams(context);
                         FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
@@ -1438,31 +1440,37 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
-        // Check previous shared app login sessions are applicable in shared app direct access scenario.
+        // Check previous shared app login sessions are applicable in shared app access scenario.
         if (sharedAppLoginSession) {
-            if (StringUtils.isBlank(accessingOrgId)) {
-                // Not a direct accessing scenario.
-                return Optional.empty();
+            if (log.isDebugEnabled()) {
+                log.debug("A shared app login session found. Evaluating the applicability of the session for " +
+                        "the current context.");
             }
             if (!applicationConfig.getServiceProvider().isEnhancedOrganizationAuthenticationEnabled()) {
-                // Direct access is only allowed for applications with enhanced organization authentication enabled.
+                // Shared app login session handling is only applicable for apps with enhanced org auth enabled.
                 return Optional.empty();
             }
-            // Need to check the authenticated shared app org in previous session equals accessing organization.
-            if (StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedSharedAppOrgId())) {
-                try {
-                    // Validate the access to the accessing organization.
-                    boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
-                            loadedSessionContext.getAuthenticatedSharedAppOrgId());
-                    if (hasOrganizationAccess) {
-                        // Update the context for organization login before session data loading.
-                        updateContextForOrganizationLogin(request, context);
-                        // Return the org ID for session data lookup.
-                        return Optional.of(loadedSessionContext.getAuthenticatedSharedAppOrgId());
+            if (StringUtils.isNotBlank(accessingOrgId) &&
+                    !StringUtils.equals(accessingOrgId, loadedSessionContext.getAuthenticatedSharedAppOrgId())) {
+                // For direct access paths, check whether the accessing org and the session org are equal.
+                return Optional.empty();
+            }
+            try {
+                // Validate the access to the organization.
+                boolean hasOrganizationAccess = validateAndPrepareForOrganizationLogin(context,
+                        loadedSessionContext.getAuthenticatedSharedAppOrgId());
+                if (hasOrganizationAccess) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Shared app login session is applicable for the current context. " +
+                                "Switching the context to organization login.");
                     }
-                } catch (AuthenticationFailedException e) {
-                    throw  new FrameworkException(e.getMessage(), e);
+                    // Update the context for organization login before session data loading.
+                    updateContextForOrganizationLogin(request, context, applicationConfig);
+                    // Return the org ID for session data lookup.
+                    return Optional.of(loadedSessionContext.getAuthenticatedSharedAppOrgId());
                 }
+            } catch (AuthenticationFailedException e) {
+                throw new FrameworkException(e.getMessage(), e);
             }
         }
         return Optional.empty();
@@ -1979,7 +1987,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void updateContextForOrganizationLogin(HttpServletRequest request, AuthenticationContext context)
+    private void updateContextForOrganizationLogin(HttpServletRequest request, AuthenticationContext context,
+                                                   ApplicationConfig applicationConfig)
             throws FrameworkException {
 
         OrganizationData organization = context.getOrganizationLoginData().getAccessingOrganization();
@@ -1991,6 +2000,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String primaryTenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         context.getOrganizationLoginData().setRootOrganizationTenantDomain(primaryTenantDomain);
         context.setTenantDomain(accessingOrgTenantDomain);
+
+        // Capture the primary application ID before switching to the sub-org sequence config.
+        int primaryAppId = applicationConfig.getApplicationID();
+        PrimaryAppData primaryAppData = new PrimaryAppData();
+        primaryAppData.setId(primaryAppId);
+        context.getOrganizationLoginData().setPrimaryAppData(primaryAppData);
 
         // Setting the sequence config of the shared application to the context.
         SequenceConfig sequenceConfig = getSharedAppSequenceConfig(context, request.getParameterMap(),

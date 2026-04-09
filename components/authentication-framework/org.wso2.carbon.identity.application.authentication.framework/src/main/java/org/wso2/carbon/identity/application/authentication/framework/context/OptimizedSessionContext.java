@@ -59,9 +59,8 @@ public class OptimizedSessionContext implements Serializable {
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
-    // Commenting out session related improvements until a proper fix for session deserialization compatibility.
-//    private final String authenticatedSharedAppOrgId;
-//    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
+    private final String authenticatedSharedAppOrgId;
+    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
     private final String impersonatedUser;
 
     private static final Log LOG = LogFactory.getLog(OptimizedSessionContext.class);
@@ -77,9 +76,9 @@ public class OptimizedSessionContext implements Serializable {
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
         this.impersonatedUser = sessionContext.getImpersonatedUser();
-//        this.authenticatedSharedAppOrgId = sessionContext.getAuthenticatedSharedAppOrgId();
-//        this.optimizedAuthenticatedOrgData =
-//                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
+        this.authenticatedSharedAppOrgId = sessionContext.getAuthenticatedSharedAppOrgId();
+        this.optimizedAuthenticatedOrgData =
+                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
         if (LOG.isDebugEnabled()) {
             LOG.debug("Optimization process for the session context is completed.");
         }
@@ -177,10 +176,10 @@ public class OptimizedSessionContext implements Serializable {
         }
         sessionContext.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
         sessionContext.setImpersonatedUser(this.impersonatedUser);
-//        sessionContext.setAuthenticatedSharedAppOrgId(this.authenticatedSharedAppOrgId);
-//        if (optimizedAuthenticatedOrgData != null) {
-//            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
-//        }
+        sessionContext.setAuthenticatedSharedAppOrgId(this.authenticatedSharedAppOrgId);
+        if (optimizedAuthenticatedOrgData != null) {
+            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
+        }
         return sessionContext;
     }
 

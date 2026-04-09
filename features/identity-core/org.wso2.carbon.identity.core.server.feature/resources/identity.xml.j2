@@ -4318,8 +4318,6 @@
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
-            <Context>/identity/metadata/saml2</Context>
-            <Context>/identity/oidc/slo</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
             <Context>/push-auth/(.*)</Context>
@@ -4339,6 +4337,10 @@
                 </SubPaths>
             </Context>
         </WebApp>
+        <Servlet>
+            <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
+        </Servlet>
     </OrgResourceContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
