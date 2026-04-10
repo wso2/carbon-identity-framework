@@ -177,8 +177,10 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_USERS_BY_TENANT_AND_ROLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_USERS_BY_TENANT_AND_ROLE_DB2;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_USERS_BY_TENANT_AND_ROLE_ORACLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_USERS_BY_TENANT_USER_STORE_AND_ROLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_USERS_BY_TENANT_USER_STORE_AND_ROLE_DB2;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_USERS_BY_TENANT_USER_STORE_AND_ROLE_ORACLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_BASIC_INFO_BY_ROLE_UUID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
@@ -2642,6 +2644,10 @@ public class RoleDAOImpl implements RoleDAO {
                 || RoleConstants.H2.equals(databaseProductName)) {
             return query + filterQuery + GET_USER_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_MYSQL;
         } else if (RoleConstants.ORACLE.equals(databaseProductName)) {
+            query = GET_ROLES_USERS_BY_TENANT_AND_ROLE_ORACLE;
+            if (userStoreDomain != null) {
+                query = GET_ROLES_USERS_BY_TENANT_USER_STORE_AND_ROLE_ORACLE;
+            }
             return query + filterQuery +
                     GET_USERS_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_ORACLE;
         } else if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
