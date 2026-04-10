@@ -485,4 +485,39 @@ public class ActionExecutorConfigTest {
         Assert.assertEquals(actionExecutorConfig.getRetiredUpToVersion(ActionType.PRE_UPDATE_PASSWORD), "v2");
         Assert.assertNull(actionExecutorConfig.getRetiredUpToVersion(ActionType.AUTHENTICATION));
     }
+
+    @Test
+    public void testIsCaseInsensitiveHeaderFilteringEnabledWithTrueValue() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.ActionRequest.CaseInsensitiveHeaderFiltering", "true");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertTrue(actionExecutorConfig.isCaseInsensitiveHeaderFilteringEnabled());
+    }
+
+    @Test
+    public void testIsCaseInsensitiveHeaderFilteringEnabledWithFalseValue() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.ActionRequest.CaseInsensitiveHeaderFiltering", "false");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertFalse(actionExecutorConfig.isCaseInsensitiveHeaderFilteringEnabled());
+    }
+
+    @Test
+    public void testIsCaseInsensitiveHeaderFilteringEnabledWhenNotConfigured() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertTrue(actionExecutorConfig.isCaseInsensitiveHeaderFilteringEnabled());
+    }
+
+    @Test
+    public void testIsCaseInsensitiveHeaderFilteringEnabledWhenEmpty() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.ActionRequest.CaseInsensitiveHeaderFiltering", " ");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        assertTrue(actionExecutorConfig.isCaseInsensitiveHeaderFilteringEnabled());
+    }
 }

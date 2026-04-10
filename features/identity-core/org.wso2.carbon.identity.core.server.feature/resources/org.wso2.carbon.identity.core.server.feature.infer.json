@@ -323,7 +323,6 @@
       "identifier_first.preserve_case_sensitivity.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
-      "oauth.drop_unrequested_oidc_scopes": false,
       "oauth.jwt_x5t_s256_enabled": false,
       "oauth.jwt_x5t_enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
@@ -390,7 +389,6 @@
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
-      "oauth.drop_unrequested_oidc_scopes": false,
       "oauth.jwt_x5t_s256_enabled": false,
       "oauth.jwt_x5t_enabled": true,
       "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
@@ -415,6 +413,7 @@
       "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "oauth.jarm.enable_jarm_and_form_post_error_response": false,
+      "actions.action_request.case_insensitive_header_filtering": false,
       "authentication.authenticator.sms_otp.parameters.EnableUserBasedResendBlocking": false,
       "authentication.authenticator.sms_otp_local.parameters.EnableUserBasedResendBlocking": false
     },
@@ -422,7 +421,6 @@
       "authenticationendpoint.authenticator_validation.enabled": false,
       "application_mgt.enable_cross_tenant_authorized_api_validation": false,
       "oauth.callback.restrict_fragment_components": false,
-      "oauth.drop_unrequested_oidc_scopes": false,
       "oauth.jwt_x5t_s256_enabled": false,
       "oauth.jwt_x5t_enabled": true,
       "authentication.authenticator.x509_certificate.parameters.UseInternalHostnameForRedirect": true,
@@ -448,6 +446,7 @@
       "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "oauth.jarm.enable_jarm_and_form_post_error_response": false,
+      "actions.action_request.case_insensitive_header_filtering": false,
       "authentication.authenticator.sms_otp.parameters.EnableUserBasedResendBlocking": false,
       "authentication.authenticator.sms_otp_local.parameters.EnableUserBasedResendBlocking": false
     }

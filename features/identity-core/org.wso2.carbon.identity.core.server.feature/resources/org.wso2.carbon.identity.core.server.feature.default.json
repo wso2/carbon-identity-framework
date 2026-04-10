@@ -344,7 +344,7 @@
   "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
   "oauth.drop_unregistered_scopes": true,
-  "oauth.drop_unrequested_oidc_scopes": true,
+  "oauth.drop_unrequested_oidc_scopes": false,
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
@@ -2216,6 +2216,7 @@
   "actions.http_client.connection_pool_size": "20",
   "actions.http_client.retry_count": "2",
   "actions.maximum_actions_per_action_type": "1",
+  "actions.action_request.case_insensitive_header_filtering": true,
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.pre_issue_access_token.version.latest": "v1",
   "actions.types.pre_issue_id_token.enable": true,
@@ -2308,10 +2309,8 @@
   "branding_configuration.use_intermediate_loader_page": false,
   "branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal": false,
 
-  "enhanced_organization_authentication_feature.enabled": true,
+  "workflow_engine.max_approver_notifications": "15",
 
-  "workflow_engine.max_approver_notifications": 15,
-  
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
   
