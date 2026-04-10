@@ -216,7 +216,7 @@ public class APIResourceManagementUtil {
      *
      * @param type The API Resource Type to check.
      * @return {@code true} if the API Resource Type is allowed for sub-organizations
-     *         ("ORGANIZATION", "BUSINESS", "CONSOLE_ORG_LEVEL", or "CONSOLE_ORG_FEATURE").
+     *         ("ORGANIZATION", "BUSINESS", "CONSOLE_ORG_LEVEL", "CONSOLE_ORG_FEATURE", or "MCP").
      *         {@code false} if it is a restricted type ("TENANT", "SYSTEM", or "CONSOLE_FEATURE").
      */
     public static boolean isAllowedAPIResourceTypeForOrganizations(String type) {
@@ -224,7 +224,8 @@ public class APIResourceManagementUtil {
         return APIResourceManagementConstants.APIResourceTypes.ORGANIZATION.equalsIgnoreCase(type)
                 || APIResourceManagementConstants.APIResourceTypes.BUSINESS.equalsIgnoreCase(type)
                 || APIResourceManagementConstants.APIResourceTypes.CONSOLE_ORG_LEVEL.equalsIgnoreCase(type)
-                || APIResourceManagementConstants.APIResourceTypes.CONSOLE_ORG_FEATURE.equalsIgnoreCase(type);
+                || APIResourceManagementConstants.APIResourceTypes.CONSOLE_ORG_FEATURE.equalsIgnoreCase(type)
+                || APIResourceManagementConstants.APIResourceTypes.MCP.equalsIgnoreCase(type);
     }
 
     public static boolean isSystemAPIByAPIId(String apiId) throws APIResourceMgtException {
