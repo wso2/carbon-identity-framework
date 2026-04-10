@@ -20,9 +20,6 @@ package org.wso2.carbon.identity.debug.idp.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
-import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
@@ -47,49 +44,24 @@ public class DebugProtocolRouter {
     }
 
     /**
-     * Retrieves the context provider for the specified connection.
+     * Resolves the protocol provider for the specified connection.
+     * This is the main router entry point used by the IdP handler.
      *
      * @param connectionId The connection ID.
-     * @return DebugContextProvider instance, or null if not available.
+     * @return DebugProtocolProvider instance, or null if not available.
      */
-    public static DebugContextProvider getContextProviderForResource(String connectionId) {
+    public static DebugProtocolProvider resolveProvider(String connectionId) {
 
-        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getContextProvider,
-                "Context Provider");
-    }
+        String protocolType = resolveProtocolType(connectionId);
+        if (StringUtils.isBlank(protocolType)) {
+            return null;
+        }
 
-    /**
-     * Retrieves the executor for the specified connection.
-     *
-     * @param connectionId The connection ID.
-     * @return DebugExecutor instance, or null if not available.
-     */
-    public static DebugExecutor getExecutorForResource(String connectionId) {
-
-        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getExecutor, "Executor");
-    }
-
-    /**
-     * Retrieves the processor for the specified connection.
-     *
-     * @param connectionId The connection ID.
-     * @return DebugProcessor instance, or null if not available.
-     */
-    public static DebugProcessor getProcessorForResource(String connectionId) {
-
-        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getProcessor, "Processor");
-    }
-
-    /**
-     * Retrieves the callback handler for the specified connection.
-     *
-     * @param connectionId The connection ID.
-     * @return DebugCallbackHandler instance, or null if not available.
-     */
-    public static DebugCallbackHandler getCallbackHandlerForResource(String connectionId) {
-
-        return getProtocolProviderComponent(connectionId, DebugProtocolProvider::getCallbackHandler,
-                "Callback Handler");
+        DebugProtocolProvider provider = getDebugProtocolProvider(protocolType);
+        if (provider != null && LOG.isDebugEnabled()) {
+            LOG.debug("Resolved protocol provider for resource: " + connectionId);
+        }
+        return provider;
     }
 
     /**
@@ -125,30 +97,6 @@ public class DebugProtocolRouter {
         return DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
     }
 
-    @FunctionalInterface
-    private interface ProviderComponentExtractor<T> {
-
-        T extract(DebugProtocolProvider provider);
-    }
-
-    private static <T> T getProtocolProviderComponent(String connectionId, ProviderComponentExtractor<T> extractor,
-                                                      String componentName) {
-
-        DebugProtocolProvider provider = resolveProtocolProvider(connectionId);
-
-        if (provider != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Getting " + componentName + " for resource.");
-            }
-            return extractor.extract(provider);
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(componentName + " not available for resource.");
-        }
-        return null;
-    }
-
     private static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
 
         if (StringUtils.isEmpty(protocolType)) {
@@ -167,19 +115,6 @@ public class DebugProtocolRouter {
             LOG.debug("Protocol provider not found for type: " + normalizedType);
         }
         return provider;
-    }
-
-    private static DebugProtocolProvider resolveProtocolProvider(String connectionId) {
-
-        String protocolType = resolveProtocolType(connectionId);
-        if (StringUtils.isNotBlank(protocolType)) {
-            DebugProtocolProvider provider = getDebugProtocolProvider(protocolType);
-            if (provider != null) {
-                return provider;
-            }
-        }
-
-        return null;
     }
 
     private static String resolveProtocolType(String connectionId) {
