@@ -51,6 +51,7 @@ public class RuleEvaluator {
     private static final String EQUALS = "equals";
     private static final String NOT_EQUALS = "notEquals";
     private static final String CONTAINS = "contains";
+    private static final String NOT_CONTAINS = "notContains";
 
     public RuleEvaluator(OperatorRegistry operatorRegistry) {
 
@@ -130,6 +131,8 @@ public class RuleEvaluator {
             return !list.contains(expressionValue);
         } else if (operator.getName().equals(CONTAINS)) {
             return list.contains(expressionValue);
+        } else if (operator.getName().equals(NOT_CONTAINS)) {
+            return !list.contains(expressionValue);
         }
 
         throw new IllegalStateException("Unsupported operator: " + operator.getName() + " for LIST value type");

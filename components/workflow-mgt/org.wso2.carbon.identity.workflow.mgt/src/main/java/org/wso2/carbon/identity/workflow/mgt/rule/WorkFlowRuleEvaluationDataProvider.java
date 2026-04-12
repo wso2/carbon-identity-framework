@@ -66,6 +66,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     private static final String ROLE_AUDIENCE_ID = "Audience ID";
     private static final String EVENT_TYPE = "eventType";
     private static final String CLAIMS = "Claims";
+    private static final String PERMISSIONS = "Permissions";
 
     private static final String ADD_USER_EVENT = "ADD_USER";
     private static final String SELF_REGISTER_USER_EVENT = "SELF_REGISTER_USER";
@@ -239,6 +240,9 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                 break;
             case ROLE_ID:
                 resolveRoleIdField(fieldValues, field, contextData);
+                break;
+            case ROLE_PERMISSIONS:
+                resolveRolePermissionsField(fieldValues, field, contextData);
                 break;
             case ROLE_HAS_ASSIGNED_USERS:
                 resolveRoleHasAssignedUsersField(fieldValues, field, contextData);
@@ -447,6 +451,30 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         String audienceId = (roleBasicInfo != null && StringUtils.isNotBlank(roleBasicInfo.getAudienceId()))
                 ? roleBasicInfo.getAudienceId() : null;
         fieldValues.add(new FieldValue(field.getName(), audienceId, ValueType.REFERENCE));
+    }
+
+    /**
+     * Resolve role permissions field value from context data.
+     * Retrieves the list of permissions assigned to the role from the context data.
+     *
+     * @param fieldValues List of field values to add to.
+     * @param field       Field being processed.
+     * @param contextData Context data from the flow context.
+     */
+    private void resolveRolePermissionsField(List<FieldValue> fieldValues, Field field,
+                                              Map<String, Object> contextData) {
+
+        List<?> permissions = (List<?>) contextData.get(PERMISSIONS);
+        List<String> permissionList = CollectionUtils.isNotEmpty(permissions)
+                ? permissions.stream()
+                        .map(Object::toString)
+                        .toList()
+                : Collections.emptyList();
+        fieldValues.add(new FieldValue(field.getName(), permissionList));
+
+        if (log.isDebugEnabled()) {
+            log.debug("Role permissions resolved. Count: " + permissionList.size());
+        }
     }
 
     /**
