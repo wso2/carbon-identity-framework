@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
+import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
@@ -34,9 +35,11 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.util.PreUpdatePasswordRequestBuilderUtil;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v2.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -188,9 +191,11 @@ public class PreUpdatePasswordRequestBuilderV2 implements ActionExecutionRequest
                 }
             }
         } else {
-            claimValues = PreUpdatePasswordRequestBuilderUtil.getClaimValues(
+            String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
+            RealmService realmService = PreUpdatePasswordActionServiceComponentHolder.getInstance().getRealmService();
+            claimValues = RequestBuilderUtil.getClaimValues(
                     userActionContext.getUserActionRequestDTO().getUserId(),
-                    userClaimsToSetInEvent);
+                    userClaimsToSetInEvent, tenantDomain, realmService);
         }
 
         setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
