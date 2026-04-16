@@ -1849,6 +1849,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('82ab7001-fb0e-44da-9169-1f63e4964d9b', 'REMOTE_LOGGING_CONFIG', 'A resource type to store remote server logger configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('08fbc096-56c5-4ae6-9edc-54198a07e0dc', 'ISSUER_USAGE_SCOPE', 'A resource type to store issuer usage scope for organizations.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('12c78d11-65cd-4b6e-b482-98538ecd7a5c', 'FAPI_CONFIGURATION', 'A resource type to keep the FAPI configurations.')
 SELECT 1 FROM dual
 /
 
