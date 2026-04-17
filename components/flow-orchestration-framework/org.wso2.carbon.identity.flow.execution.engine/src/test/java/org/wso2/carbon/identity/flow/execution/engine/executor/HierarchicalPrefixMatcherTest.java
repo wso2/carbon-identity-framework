@@ -271,26 +271,6 @@ public class HierarchicalPrefixMatcherTest {
         assertTrue(HierarchicalPrefixMatcher.matchesAnyExpose("/properties/score", expose));
     }
 
-    // ========================= DEFAULT_EXPOSE =========================
-
-    @Test
-    public void testDefaultExposeContainsAllAreas() {
-
-        List<String> defaultExpose = HierarchicalPrefixMatcher.DEFAULT_EXPOSE;
-        assertNotNull(defaultExpose);
-        assertEquals(defaultExpose.size(), 4);
-        assertTrue(defaultExpose.contains("/user/"));
-        assertTrue(defaultExpose.contains("/properties/"));
-        assertTrue(defaultExpose.contains("/input/"));
-        assertTrue(defaultExpose.contains("/flow/"));
-    }
-
-    @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void testDefaultExposeIsUnmodifiable() {
-
-        HierarchicalPrefixMatcher.DEFAULT_EXPOSE.add("/new/");
-    }
-
     // ========================= ContextArea enum =========================
 
     @Test

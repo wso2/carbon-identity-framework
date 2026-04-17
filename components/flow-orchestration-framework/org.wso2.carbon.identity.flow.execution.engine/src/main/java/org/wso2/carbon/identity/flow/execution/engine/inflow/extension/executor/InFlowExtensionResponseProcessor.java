@@ -299,7 +299,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                 "User input replace applied.");
     }
 
-    //TODO: These validations can be removed once the attribute executor is introduced.
     /**
      * Validate if a claim URI exists in the local claim dialect.
      */

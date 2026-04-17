@@ -55,20 +55,6 @@ public class InFlowExtensionActionConstants {
             ACCESS_CONFIG_MODIFY + OVERRIDE_KEY_SEPARATOR;
 
     /**
-     * Metadata key used in executor metadata (flow configuration) to pass a unified access config
-     * object containing both {@code expose} and {@code allowedOperations}.
-     * <p>
-     * The value is a JSON object: {@code {"expose": [...], "allowedOperations": [...]}}
-     * </p>
-     * <p>
-     * This key is extracted by the {@code AccessConfigFlowUpdateInterceptor} during flow updates,
-     * stored as per-flow-type action properties, and <b>stripped</b> from executor metadata before
-     * the flow graph is persisted (to avoid VARCHAR(255) column size limitations).
-     * </p>
-     */
-    public static final String ACCESS_CONFIG_METADATA_KEY = "accessConfig";
-
-    /**
      * Maximum number of expose path prefixes allowed per action.
      */
     public static final int MAX_EXPOSE_PATHS = 50;

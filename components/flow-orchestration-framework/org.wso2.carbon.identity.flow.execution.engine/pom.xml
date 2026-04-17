@@ -196,6 +196,7 @@
                             com.fasterxml.jackson.annotation.*;
                             version="${com.fasterxml.jackson.annotation.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.slf4j; version="${org.slf4j.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.execution.internal,

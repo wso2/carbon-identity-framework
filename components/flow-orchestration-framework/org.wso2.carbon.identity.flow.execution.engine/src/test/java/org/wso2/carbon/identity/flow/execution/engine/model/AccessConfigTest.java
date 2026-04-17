@@ -95,8 +95,8 @@ public class AccessConfigTest {
     public void testIsExposePathEncryptedMatchesLongestPrefix() {
 
         List<ContextPath> exposePaths = Arrays.asList(
-                new ContextPath("/user/", false),
-                new ContextPath("/user/claims/", true)
+                new ContextPath("/user/claims/email", true),
+                new ContextPath("/user/username", false)
         );
         AccessConfig config = new AccessConfig(exposePaths, null);
 
@@ -108,7 +108,7 @@ public class AccessConfigTest {
     public void testIsExposePathEncryptedNoMatch() {
 
         List<ContextPath> exposePaths = Collections.singletonList(
-                new ContextPath("/user/claims/", true)
+                new ContextPath("/user/claims/email", true)
         );
         AccessConfig config = new AccessConfig(exposePaths, null);
 

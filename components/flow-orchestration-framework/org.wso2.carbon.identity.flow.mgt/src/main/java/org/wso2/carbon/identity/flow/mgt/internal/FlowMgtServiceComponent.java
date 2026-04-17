@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySetting
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.flow.mgt.FlowAIService;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
-import org.wso2.carbon.identity.flow.mgt.FlowUpdateInterceptor;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
@@ -130,21 +129,5 @@ public class FlowMgtServiceComponent {
     protected void unsetCompatibilitySettingsManager(CompatibilitySettingsManager compatibilitySettingsManager) {
 
         FlowMgtServiceDataHolder.getInstance().setCompatibilitySettingsManager(null);
-    }
-
-    @Reference(
-            name = "flow.update.interceptor",
-            service = FlowUpdateInterceptor.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetFlowUpdateInterceptor")
-    protected void setFlowUpdateInterceptor(FlowUpdateInterceptor interceptor) {
-
-        FlowMgtServiceDataHolder.getInstance().addFlowUpdateInterceptor(interceptor);
-    }
-
-    protected void unsetFlowUpdateInterceptor(FlowUpdateInterceptor interceptor) {
-
-        FlowMgtServiceDataHolder.getInstance().removeFlowUpdateInterceptor(interceptor);
     }
 }

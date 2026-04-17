@@ -92,14 +92,6 @@ public class FlowMgtService {
         clearFlowResolveCache(flowDTO.getFlowType(), tenantID);
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
 
-        // Notify interceptors BEFORE persistence. Interceptors may extract and strip
-        // metadata from the graph (e.g., access config overrides) so that the stripped
-        // data is NOT persisted to executor metadata but is stored elsewhere.
-        for (FlowUpdateInterceptor interceptor :
-                FlowMgtServiceDataHolder.getInstance().getFlowUpdateInterceptors()) {
-            interceptor.onFlowUpdate(flowDTO.getFlowType(), flowConfig, tenantID);
-        }
-
         FLOW_DAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
 
         AuditLog.AuditLogBuilder auditLogBuilder =

@@ -113,20 +113,20 @@ public class AccessConfig {
     }
 
     /**
-     * Check if a given path prefix has outbound encryption enabled.
-     * Matches the most specific (longest) expose path that is a prefix of the given path.
+     * Check if a given expose path has outbound encryption enabled.
+     * With leaf-only expose paths, this performs an exact match lookup.
      *
-     * @param pathPrefix The path to check.
+     * @param path The expose path to check.
      * @return {@code true} if the matching expose entry has {@code encrypted = true}.
      */
-    public boolean isExposePathEncrypted(String pathPrefix) {
+    public boolean isExposePathEncrypted(String path) {
 
         if (expose == null) {
             return false;
         }
         return expose.stream()
-                .filter(ep -> pathPrefix.startsWith(ep.getPath()))
-                .reduce((a, b) -> a.getPath().length() >= b.getPath().length() ? a : b)
+                .filter(ep -> ep.getPath().equals(path))
+                .findFirst()
                 .map(ContextPath::isEncrypted)
                 .orElse(false);
     }

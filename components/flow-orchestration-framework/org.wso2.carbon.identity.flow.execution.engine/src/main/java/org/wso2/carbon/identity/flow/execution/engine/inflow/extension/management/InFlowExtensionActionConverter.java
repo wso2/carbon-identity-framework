@@ -91,6 +91,10 @@ public class InFlowExtensionActionConverter implements ActionConverter {
         if (encryption != null && encryption.getCertificate() != null) {
             properties.put(CERTIFICATE,
                     new ActionProperty.BuilderForService(encryption.getCertificate()).build());
+        } else if (encryption != null) {
+            // Encryption object present but no certificate — signals explicit removal.
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForService("").build());
         }
 
         // Icon URL.

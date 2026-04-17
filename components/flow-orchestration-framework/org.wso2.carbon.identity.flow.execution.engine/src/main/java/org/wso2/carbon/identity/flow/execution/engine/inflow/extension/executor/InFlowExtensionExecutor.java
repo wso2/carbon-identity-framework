@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,7 @@ import java.util.Map;
 public class InFlowExtensionExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionExecutor.class);
-    private static final String EXECUTOR_NAME = "ExtensionExecutor";
+    private static final String EXECUTOR_NAME = "InFlowExtensionExecutor";
 
     public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
     public static final String EXPOSE_KEY = "expose";
@@ -109,8 +108,8 @@ public class InFlowExtensionExecutor implements Executor {
             if (resolvedConfig != null && resolvedConfig.getExpose() != null) {
                 expose = resolvedConfig.getExposePaths();
             } else {
-                // No access config on action — use system defaults.
-                expose = new ArrayList<>(HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                // No access config on action — expose nothing by default.
+                expose = Collections.emptyList();
             }
 
             FlowContext flowContext = FlowContext.create()

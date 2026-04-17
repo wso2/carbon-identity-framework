@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -65,13 +63,6 @@ public final class HierarchicalPrefixMatcher {
     public static final String FLOW_TENANT_PATH = "/flow/tenantDomain";
     public static final String FLOW_APP_ID_PATH = "/flow/applicationId";
     public static final String FLOW_TYPE_PATH = "/flow/flowType";
-
-    /**
-     * Default expose configuration — all context areas are exposed.
-     * Used when no explicit expose configuration is provided by the executor metadata.
-     */
-    public static final List<String> DEFAULT_EXPOSE = Collections.unmodifiableList(
-            Arrays.asList(USER_PREFIX, PROPERTIES_PREFIX, INPUT_PREFIX, FLOW_PREFIX));
 
     /**
      * Context area enum for categorization.
@@ -254,19 +245,23 @@ public final class HierarchicalPrefixMatcher {
     }
 
     /**
-     * Check if a path matches any of the given expose prefixes using bidirectional prefix matching.
-     * A match occurs if the path starts with a prefix (prefix covers path) OR the prefix starts
-     * with the path (path is a parent of prefix).
+     * Check if a path matches any of the given expose paths using bidirectional prefix matching.
      *
-     * <p>Examples:</p>
+     * <p>Expose paths are always leaf-level (e.g. {@code /user/claims/http://wso2.org/claims/email}).
+     * Bidirectional matching is required because this method serves two distinct purposes:</p>
      * <ul>
-     *   <li>{@code /user/claims/email} matches prefix {@code /user/} → prefix covers path</li>
-     *   <li>{@code /user/} matches prefix {@code /user/claims/email} → path is parent of prefix</li>
+     *   <li><b>Area-level gate checks</b>: {@code path} is an area prefix (e.g. {@code /user/}).
+     *       Direction 2 ({@code prefix.startsWith(path)}) detects that a leaf expose path
+     *       falls under this area — e.g. {@code /user/claims/email} starts with {@code /user/}.</li>
+     *   <li><b>Leaf-level filtering</b>: {@code path} is a specific runtime path
+     *       (e.g. {@code /user/claims/http://wso2.org/claims/email}).
+     *       Direction 1 ({@code path.startsWith(prefix)}) performs exact match against
+     *       leaf expose paths.</li>
      * </ul>
      *
-     * @param path           The path to check.
-     * @param exposePrefixes The list of expose prefixes.
-     * @return {@code true} if the path matches any expose prefix.
+     * @param path           The path to check (can be an area prefix or a specific leaf path).
+     * @param exposePrefixes The list of leaf-level expose paths.
+     * @return {@code true} if the path matches any expose path.
      */
     public static boolean matchesAnyExpose(String path, List<String> exposePrefixes) {
 

@@ -81,7 +81,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         List<String> expose = flowContext.getValue(InFlowExtensionExecutor.EXPOSE_KEY, List.class);
         if (expose == null) {
-            expose = HierarchicalPrefixMatcher.DEFAULT_EXPOSE;
+            expose = Collections.emptyList();
         }
 
         // Read access config for encryption metadata.
@@ -271,11 +271,9 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             Map<String, String> claims = flowUser.getClaims();
             if (claims != null && !claims.isEmpty()) {
                 List<UserClaim> userClaims = new ArrayList<>();
-                boolean hasSpecificFilter = hasSpecificSubPathFilter(
-                        expose, HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX);
 
                 for (Map.Entry<String, String> claim : claims.entrySet()) {
-                    if (!hasSpecificFilter || isExposed(
+                    if (isExposed(
                             HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX + claim.getKey(), expose)) {
                         String claimValue = claim.getValue();
                         // Encrypt claim value if the expose path is marked as encrypted.
@@ -337,12 +335,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             return null;
         }
 
-        boolean hasSpecificFilter = hasSpecificSubPathFilter(expose, areaPrefix);
-
         Map<String, T> filtered = new HashMap<>();
         for (Map.Entry<String, T> entry : map.entrySet()) {
             String fullPath = areaPrefix + entry.getKey();
-            if (!hasSpecificFilter || isExposed(fullPath, expose)) {
+            if (isExposed(fullPath, expose)) {
                 T value = entry.getValue();
                 if (shouldEncrypt(fullPath, accessConfig, certificatePEM)) {
                     value = (T) encryptValue(String.valueOf(value), certificatePEM);
@@ -359,20 +355,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     private boolean isExposed(String path, List<String> expose) {
 
         return HierarchicalPrefixMatcher.matchesAnyExpose(path, expose);
-    }
-
-    /**
-     * Check whether the expose list contains specific sub-paths under a given area prefix,
-     * indicating that per-key filtering is required rather than exposing the entire area.
-     */
-    private boolean hasSpecificSubPathFilter(List<String> expose, String areaPrefix) {
-
-        for (String prefix : expose) {
-            if (prefix.startsWith(areaPrefix) && !prefix.equals(areaPrefix)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

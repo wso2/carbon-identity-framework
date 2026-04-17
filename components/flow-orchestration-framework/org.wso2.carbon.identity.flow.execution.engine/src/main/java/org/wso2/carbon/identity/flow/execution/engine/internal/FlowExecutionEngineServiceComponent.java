@@ -43,13 +43,11 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.AccessConfigFlowUpdateInterceptor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionConverter;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management.InFlowExtensionActionDTOModelResolver;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
-import org.wso2.carbon.identity.flow.mgt.FlowUpdateInterceptor;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -106,9 +104,6 @@ public class FlowExecutionEngineServiceComponent {
                     new InFlowExtensionActionDTOModelResolver(
                             FlowExecutionEngineDataHolder.getInstance().getCertificateManagementService()),
                     null);
-
-            bundleContext.registerService(FlowUpdateInterceptor.class.getName(),
-                    new AccessConfigFlowUpdateInterceptor(), null);
 
             LOG.debug("Flow Engine service successfully activated.");
         } catch (Throwable e) {

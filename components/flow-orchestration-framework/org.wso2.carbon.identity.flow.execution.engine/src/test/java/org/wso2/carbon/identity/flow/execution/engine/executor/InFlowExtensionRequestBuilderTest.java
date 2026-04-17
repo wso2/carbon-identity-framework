@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.HierarchicalPrefixMatcher;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionEvent;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
@@ -61,6 +60,8 @@ import static org.testng.Assert.fail;
  * Unit tests for {@link InFlowExtensionRequestBuilder}.
  */
 public class InFlowExtensionRequestBuilderTest {
+
+    private static final List<String> ALL_EXPOSE = Arrays.asList("/user/", "/properties/", "/input/", "/flow/");
 
     private InFlowExtensionRequestBuilder requestBuilder;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
@@ -114,7 +115,7 @@ public class InFlowExtensionRequestBuilderTest {
     }
 
     @Test
-    public void testBuildRequestUsesDefaultExposeWhenExposeIsNull()
+    public void testBuildRequestUsesEmptyExposeWhenExposeIsNull()
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
@@ -124,11 +125,12 @@ public class InFlowExtensionRequestBuilderTest {
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
-        // With DEFAULT_EXPOSE, all areas are exposed — event should have user, properties, inputs, etc.
+        // With empty expose, no context areas should be included in the event.
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         assertNotNull(event);
-        assertNotNull(event.getFlowType());
-        assertNotNull(event.getUserInputs());
+        assertNull(event.getFlowType());
+        // userInputs defaults to emptyMap() in the builder — verify it is empty.
+        assertTrue(event.getUserInputs().isEmpty());
     }
 
     // ========================= buildAllowedOperations (from modify) =========================
@@ -164,7 +166,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -184,7 +186,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -208,7 +210,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -237,7 +239,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -263,7 +265,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -288,7 +290,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -352,7 +354,7 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
                 .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE);
+                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -438,7 +440,7 @@ public class InFlowExtensionRequestBuilderTest {
 
             FlowContext flowContext = FlowContext.create()
                     .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                    .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE)
+                    .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE)
                     .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                     .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
 
@@ -478,7 +480,7 @@ public class InFlowExtensionRequestBuilderTest {
 
             FlowContext flowContext = FlowContext.create()
                     .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                    .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE)
+                    .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE)
                     .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                     .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
 
@@ -520,7 +522,7 @@ public class InFlowExtensionRequestBuilderTest {
 
             FlowContext flowContext = FlowContext.create()
                     .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                    .add(InFlowExtensionExecutor.EXPOSE_KEY, HierarchicalPrefixMatcher.DEFAULT_EXPOSE)
+                    .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE)
                     .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
                     .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
 

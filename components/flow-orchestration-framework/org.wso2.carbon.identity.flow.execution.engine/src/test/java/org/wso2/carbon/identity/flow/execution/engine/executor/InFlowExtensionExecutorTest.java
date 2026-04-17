@@ -95,7 +95,7 @@ public class InFlowExtensionExecutorTest {
     @Test
     public void testGetName() {
 
-        assertEquals(executor.getName(), "ExtensionExecutor");
+        assertEquals(executor.getName(), "InFlowExtensionExecutor");
     }
 
     // ========================= getInitiationData =========================
@@ -538,7 +538,7 @@ public class InFlowExtensionExecutorTest {
         FlowExecutionContext context = new FlowExecutionContext();
         context.setTenantDomain("carbon.super");
 
-        ExecutorDTO executorDTO = new ExecutorDTO("extensionExecutor", metadata);
+        ExecutorDTO executorDTO = new ExecutorDTO("InFlowExtensionExecutor", metadata);
         NodeConfig nodeConfig = new NodeConfig.Builder()
                 .executorConfig(executorDTO)
                 .build();

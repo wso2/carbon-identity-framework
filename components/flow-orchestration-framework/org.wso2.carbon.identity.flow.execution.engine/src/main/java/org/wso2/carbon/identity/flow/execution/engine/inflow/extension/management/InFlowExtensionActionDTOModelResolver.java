@@ -451,7 +451,19 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         Object newCertValue = updatingActionDTO.getPropertyValue(CERTIFICATE);
         Object existingCertValue = existingActionDTO.getPropertyValue(CERTIFICATE);
 
-        if (newCertValue != null && existingCertValue != null) {
+        // Empty string signals explicit certificate removal.
+        boolean isExplicitRemoval = newCertValue instanceof String && ((String) newCertValue).isEmpty();
+
+        if (isExplicitRemoval && existingCertValue != null) {
+            // Explicitly clearing the certificate — delete the existing one.
+            try {
+                String existingCertId = extractCertificateId(existingCertValue);
+                certificateManagementService.deleteCertificate(existingCertId, tenantDomain);
+            } catch (CertificateMgtException e) {
+                throw new ActionDTOModelResolverException("Error deleting certificate for action: "
+                        + updatingActionDTO.getId(), e);
+            }
+        } else if (newCertValue != null && !isExplicitRemoval && existingCertValue != null) {
             // Update existing certificate.
             String certificatePEM = extractCertificatePEM(newCertValue);
             try {
@@ -465,7 +477,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 throw new ActionDTOModelResolverException("Error updating certificate for action: "
                         + updatingActionDTO.getId(), e);
             }
-        } else if (newCertValue != null) {
+        } else if (newCertValue != null && !isExplicitRemoval) {
             // Add new certificate (previously had none).
             handleCertificateAdd(updatingActionDTO, properties, tenantDomain);
         } else if (existingCertValue != null) {
