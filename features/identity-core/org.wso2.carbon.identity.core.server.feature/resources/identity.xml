@@ -1117,40 +1117,40 @@
         <EnableSpecCompliantEmailHandling>true</EnableSpecCompliantEmailHandling>
 
         <!--
-            Configuration to specify which identity claims should be blocked from performing updates.
+            Configuration to specify which claims should be blocked from performing updates.
         -->
         <Me>
             <!--
-                List of identity claims that are blocked from being updated via SCIM2/Me endpoint.
-                Each claim should be specified as a separate <BlockedIdentityClaim> element within this section.
+                List of claims that are blocked from being updated via SCIM2/Me endpoint.
+                Each claim should be specified as a separate <BlockedClaim> element within this section.
             -->
-            <BlockedIdentityClaims>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginAttempts</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginLockoutCount</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedSMSOTPAttempts</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedTOTPAttempts</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedEmailOTPAttempts</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedBackupCodeAttempts</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/accountLocked</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/unlockTime</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/accountDisabled</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/emailVerified</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/phoneVerified</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/isLiteUser</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/totpEnabled</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/backupCodeEnabled</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/enabledAuthenticators</BlockedIdentityClaim>
-            </BlockedIdentityClaims>
+            <BlockedClaims>
+                <BlockedClaim>http://wso2.org/claims/identity/failedLoginAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedLoginLockoutCount</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedSMSOTPAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedTOTPAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedEmailOTPAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/failedBackupCodeAttempts</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/accountLocked</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/unlockTime</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/accountDisabled</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/emailVerified</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/phoneVerified</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/isLiteUser</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/totpEnabled</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/backupCodeEnabled</BlockedClaim>
+                <BlockedClaim>http://wso2.org/claims/identity/enabledAuthenticators</BlockedClaim>
+            </BlockedClaims>
 
 
             <!--
-                Extended list of identity claims that are blocked from being updated via SCIM2/Me endpoint.
+                Extended list of claims that are blocked from being updated via SCIM2/Me endpoint.
                 This provides additional blocking configuration for more granular control.
-                Each claim should be specified as a separate <ExtendedBlockedIdentityClaim> element within this section.
+                Each claim should be specified as a separate <ExtendedBlockedClaim> element within this section.
             -->
-            <ExtendedBlockedIdentityClaims></ExtendedBlockedIdentityClaims>
+            <ExtendedBlockedClaims></ExtendedBlockedClaims>
         </Me>
     </SCIM2>
 

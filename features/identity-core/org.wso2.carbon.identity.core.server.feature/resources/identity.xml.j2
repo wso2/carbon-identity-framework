@@ -1857,37 +1857,37 @@
         <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
 
         <!--
-            Configuration to specify which identity claims should be blocked from being updating in the
+            Configuration to specify which claims should be blocked from being updating in the
             SCIM2 /Me endpoint for better security and privacy.
         -->
-        {% if scim2.me.blocked_identity_claims is defined or scim2.me.extended_blocked_identity_claims is defined %}
+        {% if scim2.me.blocked_claims is defined or scim2.me.extended_blocked_claims is defined %}
         <Me>
             <!--
-                List of identity claims that are blocked from being updating via SCIM2/Me endpoint.
+                List of claims that are blocked from being updating via SCIM2/Me endpoint.
             -->
-            {% if scim2.me.blocked_identity_claims is defined and scim2.me.blocked_identity_claims|length %}
-            <BlockedIdentityClaims>
-                {% for claim in scim2.me.blocked_identity_claims %}
-                <BlockedIdentityClaim>{{claim}}</BlockedIdentityClaim>
+            {% if scim2.me.blocked_claims is defined and scim2.me.blocked_claims|length %}
+            <BlockedClaims>
+                {% for claim in scim2.me.blocked_claims %}
+                <BlockedClaim>{{claim}}</BlockedClaim>
                 {% endfor %}
-            </BlockedIdentityClaims>
+            </BlockedClaims>
             {% else %}
-            <BlockedIdentityClaims></BlockedIdentityClaims>
+            <BlockedClaims></BlockedClaims>
             {% endif %}
 
             <!--
-                Extended list of identity claims that are blocked from being updating via SCIM2/Me endpoint.
+                Extended list of claims that are blocked from being updating via SCIM2/Me endpoint.
                 This provides additional blocking configuration for more granular control.
                 Default: Empty (no claims are blocked)
             -->
-            {% if scim2.me.extended_blocked_identity_claims is defined and scim2.me.extended_blocked_identity_claims|length %}
-            <ExtendedBlockedIdentityClaims>
-                {% for claim in scim2.me.extended_blocked_identity_claims %}
-                <ExtendedBlockedIdentityClaim>{{claim}}</ExtendedBlockedIdentityClaim>
+            {% if scim2.me.extended_blocked_claims is defined and scim2.me.extended_blocked_claims|length %}
+            <ExtendedBlockedClaims>
+                {% for claim in scim2.me.extended_blocked_claims %}
+                <ExtendedBlockedClaim>{{claim}}</ExtendedBlockedClaim>
                 {% endfor %}
-            </ExtendedBlockedIdentityClaims>
+            </ExtendedBlockedClaims>
             {% else %}
-            <ExtendedBlockedIdentityClaims></ExtendedBlockedIdentityClaims>
+            <ExtendedBlockedClaims></ExtendedBlockedClaims>
             {% endif %}
         </Me>
         {% endif %}
