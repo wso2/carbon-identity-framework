@@ -1857,7 +1857,7 @@
         <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
 
         <!--
-            Configuration to specify which identity claims should be blocked from being returned in the
+            Configuration to specify which identity claims should be blocked from being updating in the
             SCIM2 /Me endpoint for better security and privacy.
         -->
         {% if scim2.me.blocked_identity_claims is defined or scim2.me.extended_blocked_identity_claims is defined %}
