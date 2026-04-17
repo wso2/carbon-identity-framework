@@ -1863,8 +1863,7 @@
         {% if scim2.me.blocked_identity_claims is defined or scim2.me.extended_blocked_identity_claims is defined %}
         <Me>
             <!--
-                List of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
-                Default: Empty (no claims are blocked)
+                List of identity claims that are blocked from being updating via SCIM2/Me endpoint.
             -->
             {% if scim2.me.blocked_identity_claims is defined and scim2.me.blocked_identity_claims|length %}
             <BlockedIdentityClaims>
@@ -1877,7 +1876,7 @@
             {% endif %}
 
             <!--
-                Extended list of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
+                Extended list of identity claims that are blocked from being updating via SCIM2/Me endpoint.
                 This provides additional blocking configuration for more granular control.
                 Default: Empty (no claims are blocked)
             -->

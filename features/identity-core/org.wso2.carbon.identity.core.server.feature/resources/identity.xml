@@ -1117,34 +1117,40 @@
         <EnableSpecCompliantEmailHandling>true</EnableSpecCompliantEmailHandling>
 
         <!--
-            Configuration to specify which identity claims should be blocked from being returned in the
-            SCIM2 /Me endpoint for better security and privacy.
+            Configuration to specify which identity claims should be blocked from performing updates.
         -->
         <Me>
             <!--
-                List of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
-                Default: Empty (no claims are blocked)
+                List of identity claims that are blocked from being updated via SCIM2/Me endpoint.
                 Each claim should be specified as a separate <BlockedIdentityClaim> element within this section.
             -->
             <BlockedIdentityClaims>
-                <!-- Example:
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginAttempts</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginLockoutCount</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedSMSOTPAttempts</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedTOTPAttempts</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedEmailOTPAttempts</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/failedBackupCodeAttempts</BlockedIdentityClaim>
                 <BlockedIdentityClaim>http://wso2.org/claims/identity/accountLocked</BlockedIdentityClaim>
-                <BlockedIdentityClaim>http://wso2.org/claims/identity/passwordTimestamp</BlockedIdentityClaim>
-                -->
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/unlockTime</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/accountDisabled</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/emailVerified</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/phoneVerified</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/isLiteUser</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/totpEnabled</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/backupCodeEnabled</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/enabledAuthenticators</BlockedIdentityClaim>
             </BlockedIdentityClaims>
 
+
             <!--
-                Extended list of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
+                Extended list of identity claims that are blocked from being updated via SCIM2/Me endpoint.
                 This provides additional blocking configuration for more granular control.
-                Default: Empty (no claims are blocked)
                 Each claim should be specified as a separate <ExtendedBlockedIdentityClaim> element within this section.
             -->
-            <ExtendedBlockedIdentityClaims>
-                <!-- Example:
-                <ExtendedBlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginAttempts</ExtendedBlockedIdentityClaim>
-                <ExtendedBlockedIdentityClaim>http://wso2.org/claims/identity/unlockTime</ExtendedBlockedIdentityClaim>
-                -->
-            </ExtendedBlockedIdentityClaims>
+            <ExtendedBlockedIdentityClaims></ExtendedBlockedIdentityClaims>
         </Me>
     </SCIM2>
 
