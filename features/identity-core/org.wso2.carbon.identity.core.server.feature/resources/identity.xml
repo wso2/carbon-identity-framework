@@ -1115,6 +1115,37 @@
             Supported versions : IS 7.0.0 onwards
         -->
         <EnableSpecCompliantEmailHandling>true</EnableSpecCompliantEmailHandling>
+
+        <!--
+            Configuration to specify which identity claims should be blocked from being returned in the
+            SCIM2 /Me endpoint for better security and privacy.
+        -->
+        <Me>
+            <!--
+                List of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
+                Default: Empty (no claims are blocked)
+                Each claim should be specified as a separate <BlockedIdentityClaim> element within this section.
+            -->
+            <BlockedIdentityClaims>
+                <!-- Example:
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/accountLocked</BlockedIdentityClaim>
+                <BlockedIdentityClaim>http://wso2.org/claims/identity/passwordTimestamp</BlockedIdentityClaim>
+                -->
+            </BlockedIdentityClaims>
+
+            <!--
+                Extended list of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
+                This provides additional blocking configuration for more granular control.
+                Default: Empty (no claims are blocked)
+                Each claim should be specified as a separate <ExtendedBlockedIdentityClaim> element within this section.
+            -->
+            <ExtendedBlockedIdentityClaims>
+                <!-- Example:
+                <ExtendedBlockedIdentityClaim>http://wso2.org/claims/identity/failedLoginAttempts</ExtendedBlockedIdentityClaim>
+                <ExtendedBlockedIdentityClaim>http://wso2.org/claims/identity/unlockTime</ExtendedBlockedIdentityClaim>
+                -->
+            </ExtendedBlockedIdentityClaims>
+        </Me>
     </SCIM2>
 
     <PasswordPolicy>

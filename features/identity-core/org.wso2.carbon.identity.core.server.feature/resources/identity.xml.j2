@@ -1855,6 +1855,43 @@
             Supported versions : IS 7.0.0 onwards
         -->
         <EnableSpecCompliantEmailHandling>{{scim2.enable_spec_compliant_email_handling}}</EnableSpecCompliantEmailHandling>
+
+        <!--
+            Configuration to specify which identity claims should be blocked from being returned in the
+            SCIM2 /Me endpoint for better security and privacy.
+        -->
+        {% if scim2.me.blocked_identity_claims is defined or scim2.me.extended_blocked_identity_claims is defined %}
+        <Me>
+            <!--
+                List of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
+                Default: Empty (no claims are blocked)
+            -->
+            {% if scim2.me.blocked_identity_claims is defined and scim2.me.blocked_identity_claims|length %}
+            <BlockedIdentityClaims>
+                {% for claim in scim2.me.blocked_identity_claims %}
+                <BlockedIdentityClaim>{{claim}}</BlockedIdentityClaim>
+                {% endfor %}
+            </BlockedIdentityClaims>
+            {% else %}
+            <BlockedIdentityClaims></BlockedIdentityClaims>
+            {% endif %}
+
+            <!--
+                Extended list of identity claims that are blocked from being returned via SCIM2 /Me endpoint.
+                This provides additional blocking configuration for more granular control.
+                Default: Empty (no claims are blocked)
+            -->
+            {% if scim2.me.extended_blocked_identity_claims is defined and scim2.me.extended_blocked_identity_claims|length %}
+            <ExtendedBlockedIdentityClaims>
+                {% for claim in scim2.me.extended_blocked_identity_claims %}
+                <ExtendedBlockedIdentityClaim>{{claim}}</ExtendedBlockedIdentityClaim>
+                {% endfor %}
+            </ExtendedBlockedIdentityClaims>
+            {% else %}
+            <ExtendedBlockedIdentityClaims></ExtendedBlockedIdentityClaims>
+            {% endif %}
+        </Me>
+        {% endif %}
     </SCIM2>
 
     <Captcha>
