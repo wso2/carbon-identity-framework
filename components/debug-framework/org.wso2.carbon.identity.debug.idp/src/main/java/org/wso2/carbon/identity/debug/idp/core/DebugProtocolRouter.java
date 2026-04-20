@@ -52,11 +52,13 @@ public class DebugProtocolRouter {
      */
     public static DebugProtocolProvider resolveProvider(String connectionId) {
 
+        //find the protocol type
         String protocolType = resolveProtocolType(connectionId);
         if (StringUtils.isBlank(protocolType)) {
             return null;
         }
-
+        
+        //get the provider for the protocol
         DebugProtocolProvider provider = getDebugProtocolProvider(protocolType);
         if (provider != null && LOG.isDebugEnabled()) {
             LOG.debug("Resolved protocol provider for resource: " + connectionId);

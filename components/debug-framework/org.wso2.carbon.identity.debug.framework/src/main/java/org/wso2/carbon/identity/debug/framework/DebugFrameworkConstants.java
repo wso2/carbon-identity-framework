@@ -44,6 +44,14 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
     public static final String DEBUG_CALLBACK_TIMESTAMP = "DEBUG_CALLBACK_TIMESTAMP";
     public static final String DEBUG_CALLBACK_PROCESSED = "DEBUG_CALLBACK_PROCESSED";
+    public static final String DEBUG_DIAGNOSTICS = "diagnostics";
+
+    // Diagnostic event property keys.
+    public static final String DIAGNOSTIC_STAGE = "stage";
+    public static final String DIAGNOSTIC_STATUS = "status";
+    public static final String DIAGNOSTIC_MESSAGE = "message";
+    public static final String DIAGNOSTIC_DETAILS = "details";
+    public static final String DIAGNOSTIC_TIMESTAMP = "timestamp";
 
     // Common Parameter Values.
     public static final String DEBUG_PREFIX = "debug-";
