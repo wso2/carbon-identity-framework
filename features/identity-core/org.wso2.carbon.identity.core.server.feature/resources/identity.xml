@@ -58,6 +58,7 @@
             <UserSessionMapping>
                 <Enable>true</Enable>
             </UserSessionMapping>
+            <BatchInsertChunkSize>1000</BatchInsertChunkSize>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>true</Enable>
