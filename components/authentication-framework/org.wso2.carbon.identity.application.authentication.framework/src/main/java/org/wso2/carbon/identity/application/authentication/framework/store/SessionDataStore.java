@@ -179,7 +179,10 @@ public class SessionDataStore {
     private static final String INFORMIX_DATABASE = "Informix";
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
-    private static final int BATCH_INSERT_CHUNK_SIZE = 10000;
+    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 1000;
+    private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
+            "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
+    private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
     public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
@@ -354,6 +357,16 @@ public class SessionDataStore {
         if (StringUtils.isNotBlank(checkExistingEntryForDeleteOperationInsertProperty)) {
             checkExistingEntryForDeleteOperationInsert = Boolean.parseBoolean(
                     checkExistingEntryForDeleteOperationInsertProperty);
+        }
+
+        String batchInsertChunkSizeValue = IdentityUtil.getProperty(BATCH_INSERT_CHUNK_SIZE_PROPERTY);
+        if (StringUtils.isNotBlank(batchInsertChunkSizeValue)) {
+            try {
+                batchInsertChunkSize = Integer.parseInt(batchInsertChunkSizeValue);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
+                        + batchInsertChunkSizeValue + ". Using default: " + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
+            }
         }
     }
 
@@ -640,8 +653,7 @@ public class SessionDataStore {
 
     /**
      * Removes session data for a batch of keys using JDBC batch operations. Each key gets a DELETE marker row
-     * inserted into the session store. To avoid issues with very large batches, keys are processed in chunks of
-     * {@link #BATCH_INSERT_CHUNK_SIZE}. Physical removal is deferred to the cleanup stored procedure.
+     * inserted into the session store.
      *
      * @param keys     List of session data keys to remove.
      * @param type     The session data type.
@@ -691,12 +703,12 @@ public class SessionDataStore {
                     preparedStatement.setLong(5, timeoutNano);
                     preparedStatement.addBatch();
                     count++;
-                    if (count % BATCH_INSERT_CHUNK_SIZE == 0) {
+                    if (count % batchInsertChunkSize == 0) {
                         preparedStatement.executeBatch();
                     }
                 }
             }
-            if (count % BATCH_INSERT_CHUNK_SIZE != 0) {
+            if (count % batchInsertChunkSize != 0) {
                 preparedStatement.executeBatch();
             }
             IdentityDatabaseUtil.commitTransaction(connection);

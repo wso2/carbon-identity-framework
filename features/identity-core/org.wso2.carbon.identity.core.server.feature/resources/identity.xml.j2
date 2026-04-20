@@ -67,6 +67,7 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
             <CheckExistingEntryForDeleteOperationInsert>{{session_data.session_data_persist.check_existing_entry_for_delete_operation_insert}}</CheckExistingEntryForDeleteOperationInsert>
+            <BatchInsertChunkSize>{{session_data.session_data_persist.batch_insert_chunk_size}}</BatchInsertChunkSize>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
