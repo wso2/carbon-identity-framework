@@ -167,6 +167,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             boolean success = false;
             try {
+                // Attempt atomic MERGE first (works on H2 and databases supporting MERGE).
                 try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION)) {
                     prepStmt.setString(1, storageDebugId);
                     prepStmt.setString(2, sessionData.getStatus());
@@ -185,24 +186,20 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                         DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
                     LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
                             "Falling back to legacy upsert without resource info.");
-                    try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_LEGACY)) {
-                        prepStmt.setString(1, storageDebugId);
-                        prepStmt.setString(2, sessionData.getStatus());
-                        setSessionData(prepStmt, 3, sessionData);
-                        prepStmt.setString(4, sessionData.getResultJson());
-                        prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-                        prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-
-                        prepStmt.executeUpdate();
-                        success = true;
+                    success = executeUpsertLegacyFallback(connection, storageDebugId, sessionData);
+                } else if (isMergeNotSupportedError(e)) {
+                    // Fallback for databases that don't support MERGE syntax:
+                    // try INSERT, on duplicate key conflict do UPDATE.
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("MERGE not supported, falling back to try-insert/catch-update pattern.");
                     }
+                    success = executeInsertOrUpdateFallback(connection, storageDebugId, sessionData);
                 } else {
                     throw e;
                 }
             }
 
             if (success) {
-                // Ensure commit happens
                 if (!connection.getAutoCommit()) {
                     connection.commit();
                 }
@@ -215,6 +212,90 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
+    }
+
+    /**
+     * Fallback upsert using try-INSERT/catch-UPDATE pattern for databases that don't support MERGE.
+     * This avoids the TOCTOU race condition of SELECT-then-INSERT by letting the DB enforce uniqueness.
+     */
+    private boolean executeInsertOrUpdateFallback(Connection connection, String storageDebugId,
+            DebugSessionData sessionData) throws SQLException {
+
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
+            prepStmt.setString(1, storageDebugId);
+            prepStmt.setString(2, sessionData.getStatus());
+            setSessionData(prepStmt, 3, sessionData);
+            prepStmt.setString(4, sessionData.getResultJson());
+            prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+            prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
+            prepStmt.setString(7, sessionData.getResourceType());
+            prepStmt.setString(8, sessionData.getConnectionId());
+            prepStmt.executeUpdate();
+            return true;
+        } catch (SQLException insertEx) {
+            // Duplicate key — row already exists, do UPDATE instead.
+            if (isDuplicateKeyError(insertEx)) {
+                return executeUpdateSession(connection, storageDebugId, sessionData);
+            }
+            throw insertEx;
+        }
+    }
+
+    /**
+     * Updates an existing debug session row.
+     */
+    private boolean executeUpdateSession(Connection connection, String storageDebugId,
+            DebugSessionData sessionData) throws SQLException {
+
+        String updateSql = "UPDATE IDN_DEBUG_SESSION SET STATUS = ?, SESSION_DATA = ?, RESULT_JSON = ?, " +
+                "CREATED_TIME = ?, EXPIRY_TIME = ?, RESOURCE_TYPE = ?, CONNECTION_ID = ? WHERE DEBUG_ID = ?";
+        try (PreparedStatement prepStmt = connection.prepareStatement(updateSql)) {
+            prepStmt.setString(1, sessionData.getStatus());
+            setSessionData(prepStmt, 2, sessionData);
+            prepStmt.setString(3, sessionData.getResultJson());
+            prepStmt.setTimestamp(4, new Timestamp(sessionData.getCreatedTime()));
+            prepStmt.setTimestamp(5, new Timestamp(sessionData.getExpiryTime()));
+            prepStmt.setString(6, sessionData.getResourceType());
+            prepStmt.setString(7, sessionData.getConnectionId());
+            prepStmt.setString(8, storageDebugId);
+            prepStmt.executeUpdate();
+            return true;
+        }
+    }
+
+    /**
+     * Fallback for legacy schema without RESOURCE_TYPE/CONNECTION_ID columns.
+     */
+    private boolean executeUpsertLegacyFallback(Connection connection, String storageDebugId,
+            DebugSessionData sessionData) throws SQLException {
+
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_LEGACY)) {
+            prepStmt.setString(1, storageDebugId);
+            prepStmt.setString(2, sessionData.getStatus());
+            setSessionData(prepStmt, 3, sessionData);
+            prepStmt.setString(4, sessionData.getResultJson());
+            prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+            prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
+            prepStmt.executeUpdate();
+            return true;
+        }
+    }
+
+    private boolean isMergeNotSupportedError(SQLException e) {
+
+        String message = e.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String normalized = message.toLowerCase(Locale.ENGLISH);
+        return normalized.contains("syntax error") || normalized.contains("merge");
+    }
+
+    private boolean isDuplicateKeyError(SQLException e) {
+
+        String sqlState = e.getSQLState();
+        // SQL state 23000/23505 = integrity constraint violation (duplicate key).
+        return "23000".equals(sqlState) || "23505".equals(sqlState);
     }
 
     @Override
@@ -308,7 +389,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         sessionData.setDebugId(debugId);
         sessionData.setStatus(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_STATUS));
         try {
-            sessionData.setSessionData(resultSet.getBinaryStream(DebugFrameworkConstants.DB_COLUMN_SESSION_DATA));
+            sessionData.setSessionData(resultSet.getBytes(DebugFrameworkConstants.DB_COLUMN_SESSION_DATA));
         } catch (SQLException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Error reading session data stream for debug ID: " + debugId, e);
@@ -362,7 +443,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             preparedStatement.setNull(parameterIndex, Types.BLOB);
             return;
         }
-        preparedStatement.setBinaryStream(parameterIndex, sessionData.getSessionData());
+        preparedStatement.setBytes(parameterIndex, sessionData.getSessionData());
     }
 
     private long getTimeInMillis(ResultSet resultSet, String columnName) throws SQLException {

@@ -75,16 +75,14 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
     private IdentityProvider loadResourceConfiguration(IdentityProviderManager idpManager,
             String resourceId, String tenantDomain) throws IdentityProviderManagementException {
 
-        IdentityProvider resource = null;
+        // Try to get by resource ID first (null return means not found).
+        IdentityProvider resource = idpManager.getIdPByResourceId(resourceId, tenantDomain, true);
 
-        // Try to get by resource ID first.
-        try {
-            resource = idpManager.getIdPByResourceId(resourceId, tenantDomain, true);
-        } catch (IdentityProviderManagementException e) {
+        // Fall back to lookup by name if resource ID lookup returned null.
+        if (resource == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resource not found by ID, trying by name: " + resourceId);
             }
-            // Try by name.
             resource = idpManager.getIdPByName(resourceId, tenantDomain);
         }
 

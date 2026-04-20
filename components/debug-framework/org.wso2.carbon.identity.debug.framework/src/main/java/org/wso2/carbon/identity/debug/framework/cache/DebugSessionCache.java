@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerEx
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,7 +78,7 @@ public final class DebugSessionCache {
             sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
 
             byte[] serializedValue = OBJECT_MAPPER.writeValueAsBytes(value);
-            sessionData.setSessionData(new ByteArrayInputStream(serializedValue));
+            sessionData.setSessionData(serializedValue);
 
             debugSessionDAO.createDebugSession(sessionData);
 

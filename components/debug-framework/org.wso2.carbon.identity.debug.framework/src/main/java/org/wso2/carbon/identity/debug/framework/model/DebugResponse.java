@@ -30,8 +30,6 @@ import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.D
  */
 public class DebugResponse {
 
-    private static final String STATUS_KEY = "status";
-
     private String status;
     private String message;
     private String errorCode;
@@ -54,7 +52,6 @@ public class DebugResponse {
 
         this.status = DEBUG_STATUS_SUCCESS;
         this.data = data != null ? data : new HashMap<>();
-        this.data.put(STATUS_KEY, this.status);
     }
 
     /**
@@ -68,7 +65,6 @@ public class DebugResponse {
         this.status = status;
         this.message = message;
         this.data = new HashMap<>();
-        this.data.put(STATUS_KEY, this.status);
     }
 
     /**
@@ -153,19 +149,18 @@ public class DebugResponse {
 
         Map<String, Object> data = new HashMap<>();
 
-        // Add basic fields for backward compatibility.
+        // Flatten resultData into the map first (user data).
+        if (result.getResultData() != null && !result.getResultData().isEmpty()) {
+            data.putAll(result.getResultData());
+        }
+
+        // Add framework fields AFTER resultData to prevent user data from overwriting them.
         data.put("successful", result.isSuccessful());
-        data.put(STATUS_KEY, response.getStatus());
         data.put("resultId", result.getResultId());
         data.put("timestamp", result.getTimestamp());
 
         if (result.getErrorCode() != null) {
             data.put("errorCode", result.getErrorCode());
-        }
-
-        // Flatten resultData into the top-level map.
-        if (result.getResultData() != null && !result.getResultData().isEmpty()) {
-            data.putAll(result.getResultData());
         }
 
         // Flatten metadata into the top-level map (avoid overwriting existing keys).
@@ -187,9 +182,6 @@ public class DebugResponse {
     public void setStatus(String status) {
 
         this.status = status;
-        if (data != null) {
-            data.put(STATUS_KEY, status);
-        }
     }
 
     /**
@@ -240,9 +232,6 @@ public class DebugResponse {
     public void setData(Map<String, Object> data) {
 
         this.data = data != null ? data : new HashMap<>();
-        if (status != null) {
-            this.data.put(STATUS_KEY, status);
-        }
     }
 
     /**

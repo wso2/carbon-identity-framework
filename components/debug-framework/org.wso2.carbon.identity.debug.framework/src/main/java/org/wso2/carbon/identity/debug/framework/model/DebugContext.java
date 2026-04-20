@@ -29,7 +29,7 @@ import java.util.Map;
 public class DebugContext {
 
     private String resourceType;
-    private Map<String, Object> properties = new HashMap<>();
+    private final Map<String, Object> properties = new HashMap<>();
 
     /**
      * Constructs an empty DebugContext.
@@ -47,7 +47,7 @@ public class DebugContext {
     public static DebugContext buildFromMap(Map<String, Object> contextMap) {
 
         if (contextMap == null) {
-            return null;
+            return new DebugContext();
         }
 
         DebugContext context = new DebugContext();
@@ -146,6 +146,9 @@ public class DebugContext {
      */
     public void setProperty(String key, Object value) {
 
+        if (key == null) {
+            return;
+        }
         this.properties.put(key, value);
     }
 

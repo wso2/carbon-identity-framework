@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
-import java.io.InputStream;
 import java.io.Serializable;
 
 /**
@@ -30,7 +29,7 @@ public class DebugSessionData implements Serializable {
 
     private String debugId;
     private String status;
-    private transient InputStream sessionData; // Serialized context map (transient as InputStream is not serializable).
+    private byte[] sessionData;
     private String resultJson;
     private long createdTime;
     private long expiryTime;
@@ -57,12 +56,22 @@ public class DebugSessionData implements Serializable {
         this.status = status;
     }
 
-    public InputStream getSessionData() {
+    /**
+     * Returns serialized session data bytes.
+     *
+     * @return Serialized session data.
+     */
+    public byte[] getSessionData() {
 
         return sessionData;
     }
 
-    public void setSessionData(InputStream sessionData) {
+    /**
+     * Sets serialized session data bytes.
+     *
+     * @param sessionData Serialized session data.
+     */
+    public void setSessionData(byte[] sessionData) {
 
         this.sessionData = sessionData;
     }

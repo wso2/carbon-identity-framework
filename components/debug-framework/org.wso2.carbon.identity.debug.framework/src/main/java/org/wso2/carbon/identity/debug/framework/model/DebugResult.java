@@ -195,9 +195,6 @@ public class DebugResult {
      */
     public void addResultData(String key, Object value) {
 
-        if (this.resultData == null) {
-            this.resultData = new HashMap<>();
-        }
         this.resultData.put(key, value);
     }
 

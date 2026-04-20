@@ -20,9 +20,9 @@ package org.wso2.carbon.identity.debug.framework.internal;
 
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Data holder for Debug Framework Service Component.
@@ -33,7 +33,7 @@ public class DebugFrameworkServiceDataHolder {
     /**
      * List of registered debug execution listeners.
      */
-    private final List<DebugExecutionListener> debugExecutionListeners = new CopyOnWriteArrayList<>();
+    private final List<DebugExecutionListener> debugExecutionListeners = new ArrayList<>();
 
     /**
      * Private constructor to prevent instantiation.
@@ -65,7 +65,9 @@ public class DebugFrameworkServiceDataHolder {
      */
     public List<DebugExecutionListener> getDebugExecutionListeners() {
 
-        return debugExecutionListeners;
+        synchronized (this.debugExecutionListeners) {
+            return new ArrayList<>(debugExecutionListeners);
+        }
     }
 
     /**
@@ -76,8 +78,13 @@ public class DebugFrameworkServiceDataHolder {
     public void addDebugExecutionListener(DebugExecutionListener listener) {
 
         if (listener != null) {
-            this.debugExecutionListeners.add(listener);
-            this.debugExecutionListeners.sort(Comparator.comparingInt(DebugExecutionListener::getExecutionOrderId));
+            synchronized (this.debugExecutionListeners) {
+                if (!this.debugExecutionListeners.contains(listener)) {
+                    this.debugExecutionListeners.add(listener);
+                }
+                this.debugExecutionListeners.sort(
+                        Comparator.comparingInt(DebugExecutionListener::getExecutionOrderId));
+            }
         }
     }
 
@@ -89,7 +96,9 @@ public class DebugFrameworkServiceDataHolder {
     public void removeDebugExecutionListener(DebugExecutionListener listener) {
 
         if (listener != null) {
-            this.debugExecutionListeners.remove(listener);
+            synchronized (this.debugExecutionListeners) {
+                this.debugExecutionListeners.remove(listener);
+            }
         }
     }
 

@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +39,7 @@ public class DebugProtocolRegistry {
 
     private final Map<String, DebugProtocolProvider> debugProtocolProviders = new ConcurrentHashMap<>();
     private final List<DebugCallbackHandler> debugCallbackHandlers = new CopyOnWriteArrayList<>();
-    private final List<DebugProtocolResolver> debugProtocolResolvers = new CopyOnWriteArrayList<>();
+    private final List<DebugProtocolResolver> debugProtocolResolvers = new ArrayList<>();
 
     private DebugProtocolRegistry() {
 
@@ -71,7 +72,7 @@ public class DebugProtocolRegistry {
 
     public List<DebugCallbackHandler> getDebugCallbackHandlers() {
 
-        return new CopyOnWriteArrayList<>(debugCallbackHandlers);
+        return new ArrayList<>(debugCallbackHandlers);
     }
 
     public DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
@@ -96,12 +97,16 @@ public class DebugProtocolRegistry {
 
     public void removeDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        updateListEntry(debugProtocolResolvers, resolver, false);
+        synchronized (debugProtocolResolvers) {
+            updateListEntry(debugProtocolResolvers, resolver, false);
+        }
     }
 
     public List<DebugProtocolResolver> getDebugProtocolResolvers() {
 
-        return new CopyOnWriteArrayList<>(debugProtocolResolvers);
+        synchronized (debugProtocolResolvers) {
+            return new ArrayList<>(debugProtocolResolvers);
+        }
     }
 
     private String normalizeProtocolType(String protocolType) {
@@ -150,9 +155,11 @@ public class DebugProtocolRegistry {
 
     private <T> void updateSortedListEntry(List<T> entries, T entry, boolean isAdd, Comparator<T> comparator) {
 
-        updateListEntry(entries, entry, isAdd);
-        if (isAdd) {
-            entries.sort(comparator);
+        synchronized (entries) {
+            updateListEntry(entries, entry, isAdd);
+            if (isAdd) {
+                entries.sort(comparator);
+            }
         }
     }
 }

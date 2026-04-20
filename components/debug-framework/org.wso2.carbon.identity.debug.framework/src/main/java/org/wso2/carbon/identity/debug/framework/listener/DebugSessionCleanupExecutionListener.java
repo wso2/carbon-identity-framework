@@ -68,7 +68,7 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
     @Override
     public int getDefaultOrderId() {
 
-        return 0;
+        return DEFAULT_ORDER;
     }
 
     @Override

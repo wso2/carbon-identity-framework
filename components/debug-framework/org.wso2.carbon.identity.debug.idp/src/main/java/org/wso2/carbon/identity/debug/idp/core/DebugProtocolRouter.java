@@ -122,10 +122,9 @@ public class DebugProtocolRouter {
     private static String resolveProtocolType(String connectionId) {
 
         if (StringUtils.isBlank(connectionId)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Connection ID is empty, defaulting to protocol: " + DEFAULT_PROTOCOL_TYPE);
-            }
-            return DEFAULT_PROTOCOL_TYPE;
+            LOG.warn("Connection ID is blank — cannot resolve protocol. " +
+                    "Ensure a valid connection ID is provided.");
+            return null;
         }
 
         List<DebugProtocolResolver> resolvers = DebugProtocolRegistry.getInstance().getDebugProtocolResolvers();
