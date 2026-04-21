@@ -179,7 +179,7 @@ public class SessionDataStore {
     private static final String INFORMIX_DATABASE = "Informix";
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
-    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 1000;
+    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 500;
     private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
             "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
     private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
@@ -630,25 +630,15 @@ public class SessionDataStore {
             return;
         }
         long nanoTime = FrameworkUtils.getCurrentStandardNano();
-        // Route temp-cache deletions through the dedicated cleanup queue, consistent with
-        // the single-key clearSessionData path.
-        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0 && isTempCache(type)) {
-            for (String key : keys) {
-                if (StringUtils.isNotBlank(key)) {
-                    tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
-                }
-            }
-            return;
-        }
-        if (maxSessionDataPoolSize > 0) {
+        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
             for (String key : keys) {
                 if (StringUtils.isNotBlank(key)) {
                     sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
                 }
             }
-            return;
+        } else {
+            removeSessionDataBatch(keys, type, nanoTime);
         }
-        removeSessionDataBatch(keys, type, nanoTime);
     }
 
     /**
@@ -662,6 +652,15 @@ public class SessionDataStore {
     public void removeSessionDataBatch(List<String> keys, String type, long nanoTime) {
 
         if (!enablePersist || keys == null || keys.isEmpty()) {
+            return;
+        }
+
+        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0 && isTempCache(type)) {
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
+                }
+            }
             return;
         }
 
