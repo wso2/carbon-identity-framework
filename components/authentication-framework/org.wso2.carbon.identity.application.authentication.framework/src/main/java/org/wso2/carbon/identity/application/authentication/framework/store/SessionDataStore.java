@@ -704,17 +704,20 @@ public class SessionDataStore {
                     count++;
                     if (count % batchInsertChunkSize == 0) {
                         preparedStatement.executeBatch();
+                        IdentityDatabaseUtil.commitTransaction(connection);
                     }
                 }
             }
             if (count % batchInsertChunkSize != 0) {
                 preparedStatement.executeBatch();
+                IdentityDatabaseUtil.commitTransaction(connection);
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
             if (log.isDebugEnabled()) {
                 log.debug("Batch removed " + count + " SessionContextData entries from DB. type: " + type);
             }
         } catch (Exception e) {
+            // Only the current uncommitted chunk is rolled back. Previously committed chunks
+            // remain, matching the original per-entry commit semantics of removeSessionData.
             IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while storing batch DELETE operation session data.", e);
         } finally {
