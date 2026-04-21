@@ -957,6 +957,12 @@
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.allow_updating_authenticated_subject": false,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "authentication.adaptive.graaljs.engine_mode": "REMOTE",
+  "authentication.adaptive.graaljs.grpc_target": "localhost:50051",
+  "authentication.adaptive.graaljs.grpc_request_timeout": "600",
+  "authentication.adaptive.graaljs.grpc_channel_pool_size": "4",
+  "authentication.adaptive.graaljs.grpc_channel_idle_timeout": "180",
+  "authentication.adaptive.graaljs.remote_engine_tracing": "false",
   "authentication.adaptive.shared_applications.enable": false,
   "AdaptiveAuth.ScriptEngine": "graaljs",
 
@@ -2313,7 +2319,7 @@
 
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
-  
+
   "saas.enable_app_creation": false,
   "saas.enable_cross_tenant_operations": false,
 

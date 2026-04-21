@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericSerializer;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.RemoteJsGraalGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
@@ -62,10 +63,26 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
     private int javascriptResourceLimit = 0;
+    private JsGraalGraphEngineModeRouter jsEngineRouter;
 
     public void init() {
 
         setJavascriptResourceLimit();
+        initializeEngineRouter();
+    }
+
+    /**
+     * Initialize the JS engine factory and callback server.
+     * This sets up the infrastructure for remote JS execution if enabled.
+     */
+    private void initializeEngineRouter() {
+        // Initialize the JsGraalGraphEngineModeRouter with our statement limit
+        jsEngineRouter = JsGraalGraphEngineModeRouter.getInstance();
+        jsEngineRouter.setStatementLimit(javascriptResourceLimit);
+
+        // Log startup mode. Note: in HYBRID mode, actual routing is per-request via OSGi resolver.
+        LOG.info("GraalJS engine abstraction initialized. Engine mode: " +
+                jsEngineRouter.getEngineMode());
     }
 
     @SuppressWarnings("unchecked")
@@ -89,6 +106,10 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
         Value engineBindings = context.getBindings(POLYGLOT_LANGUAGE);
         Map<String, Object> persistableMap = new HashMap<>();
+        LOG.info("[persistCurrentContext] Starting to persist bindings for SP: " +
+                (authContext != null ? authContext.getServiceProviderName() : "null") +
+                ", contextId: " + (authContext != null ? authContext.getContextIdentifier() : "null"));
+
         engineBindings.getMemberKeys().forEach((key) -> {
             Value binding = engineBindings.getMember(key);
             /*
@@ -98,9 +119,17 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
              * The functions will be host objects and can be executed. The Logger object needs to be identified by name.
              */
             if (!((binding.isHostObject() && binding.canExecute()) || key.equals("Log"))) {
-                persistableMap.put(key, GraalSerializer.getInstance().toJsSerializable(binding));
+                Object serialized = GraalSerializer.getInstance().toJsSerializable(binding);
+                persistableMap.put(key, serialized);
+                LOG.info("[persistCurrentContext] Persisted binding: " + key + " = " +
+                        (serialized != null ? serialized.getClass().getSimpleName() + ": " + serialized : "null"));
+            } else {
+                LOG.debug("[persistCurrentContext] Skipping binding: " + key + " (host function or Log)");
             }
         });
+
+        LOG.info("[persistCurrentContext] Total bindings persisted: " + persistableMap.size() +
+                ", keys: " + persistableMap.keySet());
         authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
@@ -163,17 +192,36 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
         return JsGraalGraphBuilder.getCurrentBuilder();
     }
 
-    public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-                                             Map<Integer, StepConfig> stepConfigMap) {
+    public JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap) {
 
-        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
+        if (isLocalContext(authenticationContext)) {
+            return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
+        }
+        return new RemoteJsGraalGraphBuilder(authenticationContext, stepConfigMap);
     }
 
-    public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-                                             Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+    public JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
 
-        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext),
-                currentNode);
+        if (isLocalContext(authenticationContext)) {
+            return new JsGraalGraphBuilder(authenticationContext, stepConfigMap,
+                    createEngine(authenticationContext), currentNode);
+        }
+        return new RemoteJsGraalGraphBuilder(authenticationContext, stepConfigMap, currentNode);
+    }
+
+    /**
+     * Check whether a local GraalVM Polyglot Context is needed for this request.
+     * In REMOTE mode, scripts run on the External so no local Context is needed.
+     * In LOCAL or HYBRID modes, a local Context is required.
+     *
+     * @param authenticationContext The authentication context.
+     * @return true if a local Polyglot Context should be created.
+     */
+    private boolean isLocalContext(AuthenticationContext authenticationContext) {
+
+        return (jsEngineRouter.resolveMode(authenticationContext) != JsGraalGraphEngineModeRouter.ExecutionMode.REMOTE);
     }
 
     private void setJavascriptResourceLimit() {

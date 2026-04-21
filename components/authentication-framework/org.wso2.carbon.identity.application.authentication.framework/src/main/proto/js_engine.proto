@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package org.wso2.carbon.identity.graaljs.engine.proto;
+
+option java_package = "org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto";
+option java_multiple_files = true;
+option java_outer_classname = "JsEngineProtos";
+
+// ============ Evaluate Messages ============
+
+message EvaluateRequest {
+    string session_id = 1;
+    string script = 2;
+    string source_identifier = 3;
+    int32 statement_limit = 4;
+    map<string, SerializedValue> bindings = 5;
+    repeated HostFunctionDefinition host_functions = 6;
+}
+
+message EvaluateResponse {
+    bool success = 1;
+    int64 elapsed_ms = 2;
+    SerializedValue result = 3;
+    map<string, SerializedValue> updated_bindings = 4;
+    string error_message = 5;
+    string error_type = 6;
+}
+
+// ============ Callback Execution Messages ============
+
+message ExecuteCallbackRequest {
+    string session_id = 1;
+    string function_source = 2;
+    repeated SerializedValue arguments = 3;
+    map<string, SerializedValue> bindings = 4;
+    repeated HostFunctionDefinition host_functions = 7;
+}
+
+message ExecuteCallbackResponse {
+    bool success = 1;
+    int64 elapsed_ms = 2;
+    SerializedValue result = 3;
+    map<string, SerializedValue> updated_bindings = 4;
+    string error_message = 5;
+}
+
+// ============ Host Function Callback ============
+
+message HostFunctionRequest {
+    string session_id = 1;
+    string function_name = 2;
+    repeated SerializedValue arguments = 3;
+}
+
+message HostFunctionResponse {
+    bool success = 1;
+    SerializedValue result = 2;
+    string error_message = 3;
+}
+
+message HostFunctionDefinition {
+    string name = 1;
+}
+
+// ============ Context Property Access ============
+// For dynamic context proxy - calls back to IS for property access
+
+message ContextPropertyRequest {
+    string session_id = 1;
+    string property_path = 2;  // "request", "request.params", "steps.1"
+    string proxy_type = 3;     // Type of proxy: "context", "request", "steps", etc.
+}
+
+message ContextPropertyResponse {
+    bool success = 1;
+    SerializedValue value = 2;
+    string error_message = 3;
+    bool is_proxy = 4;         // If true, value represents a proxy needing further access
+    string proxy_type = 5;     // Type for creating nested proxy
+    repeated string member_keys = 6;  // Available member keys for this object
+}
+
+message ContextPropertySetRequest {
+    string session_id = 1;
+    string property_path = 2;
+    SerializedValue value = 3;
+}
+
+message ContextPropertySetResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+// ============ Serialized Value Types ============
+
+message SerializedValue {
+    oneof value {
+        string string_value = 1;
+        int64 int_value = 2;
+        double double_value = 3;
+        bool bool_value = 4;
+        bytes null_value = 5;
+        SerializedMap map_value = 6;
+        SerializedArray array_value = 7;
+        SerializedFunction function_value = 8;
+        SerializedProxyObject proxy_object = 9;
+    }
+}
+
+message SerializedMap {
+    map<string, SerializedValue> entries = 1;
+}
+
+message SerializedArray {
+    repeated SerializedValue elements = 1;
+}
+
+message SerializedFunction {
+    string source = 1;
+}
+
+// For proxy objects that need to call back to IS
+message SerializedProxyObject {
+    string type = 1;
+    string reference_id = 2;
+}
+
+// ============ Bidirectional Streaming ============
+// Unified message for bidirectional streaming between IS and External.
+// Eliminates the need for a separate callback connection.
+
+message StreamMessage {
+    string session_id = 1;
+
+    oneof payload {
+        // IS → External
+        EvaluateRequest evaluate_request = 2;
+        ExecuteCallbackRequest execute_callback_request = 3;
+        HostFunctionResponse host_function_response = 4;
+        ContextPropertyResponse context_property_response = 5;
+        ContextPropertySetResponse context_property_set_response = 6;
+
+        // External → IS
+        EvaluateResponse evaluate_response = 10;
+        ExecuteCallbackResponse execute_callback_response = 11;
+        HostFunctionRequest host_function_request = 12;
+        ContextPropertyRequest context_property_request = 13;
+        ContextPropertySetRequest context_property_set_request = 14;
+    }
+}

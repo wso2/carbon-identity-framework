@@ -242,10 +242,106 @@
             <groupId>net.minidev</groupId>
             <artifactId>json-smart</artifactId>
         </dependency>
+        <!-- junixsocket for UDS communication with GraalJS External (compile only, exported by wrapper) -->
+        <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-core</artifactId>
+            <version>2.9.1</version>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-common</artifactId>
+            <version>2.9.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Protocol Buffers for External communication (compile only, exported by wrapper) -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.21.12</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- gRPC Dependencies - embedded in bundle for standalone transport -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-services</artifactId>
+            <version>1.51.1</version>
+        </dependency>
     </dependencies>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+            </extension>
+        </extensions>
         <plugins>
+            <!--
+                Protobuf / gRPC code generation.
+
+                Generated sources are committed directly under src/main/java in the
+                `...graaljs.remote.proto` and `...graaljs.remote.proto.grpc` packages
+                (driven by the `java_package` option in the .proto files), so that a
+                clean `mvn clean install` compiles them as part of the standard source
+                root — no lifecycle execution is needed, which also avoids the v0.6.1
+                lifecycle-mode bug where `compile` and `compile-custom` clobber each
+                other's output when they share a parent directory.
+
+                Regenerate manually only when the .proto files change:
+
+                    mvn protobuf:compile protobuf:compile-custom
+
+                Both goals write into src/main/java (resolving the package path from
+                the .proto `java_package`, i.e. into the `remote/proto` and
+                `remote/proto/grpc` directories). `clearOutputDirectory` is kept false
+                so running one goal never wipes the other's output, and so neighbouring
+                hand-written sources under src/main/java are preserved. If a message is
+                REMOVED from a .proto file, delete its stale .java by hand under the
+                `remote/proto` (or `remote/proto/grpc`) directory and commit the diff.
+            -->
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.6.1</version>
+                <configuration>
+                    <protocArtifact>com.google.protobuf:protoc:3.21.12:exe:${os.detected.classifier}</protocArtifact>
+                    <protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.51.1:exe:${os.detected.classifier}</pluginArtifact>
+                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+                    <clearOutputDirectory>false</clearOutputDirectory>
+                </configuration>
+                <executions/>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <inherited>true</inherited>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -254,7 +350,13 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Private-Package>org.wso2.carbon.identity.application.authentication.framework.internal,
+                        <Private-Package>
+                            org.wso2.carbon.identity.application.authentication.framework.internal,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.server,
+                            io.grpc.*,
+                            com.google.protobuf.*,
+                            com.google.common.util.concurrent.*,
+                            io.perfmark.*
                         </Private-Package>
                         <Import-Package>
                             javax.xml.namespace,
@@ -304,10 +406,15 @@
                             org.wso2.carbon.identity.configuration.mgt.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.role.v2.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.role.v2.mgt.core; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
+                            !org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.server,
                             org.wso2.carbon.identity.application.authentication.framework.*;
+                            version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto;
+                            version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.grpc;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>

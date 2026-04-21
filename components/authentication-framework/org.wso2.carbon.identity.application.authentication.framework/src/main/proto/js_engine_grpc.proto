@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package org.wso2.carbon.identity.graaljs.engine.proto;
+
+option java_package = "org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.grpc";
+option java_multiple_files = true;
+option java_outer_classname = "JsEngineGrpcProtos";
+
+import "js_engine.proto";
+
+
+
+/**
+ * JsEngineStreamingService - Bidirectional streaming service
+ * Replaces both JsEngineService and HostCallbackService with a single stream.
+ * IS opens a stream, sends requests, receives callbacks, sends callback responses,
+ * and finally receives the evaluation result - all on one connection.
+ */
+service JsEngineStreamingService {
+    // Single bidirectional stream for entire script execution lifecycle
+    rpc ExecuteScript(stream StreamMessage) returns (stream StreamMessage) {}
+}

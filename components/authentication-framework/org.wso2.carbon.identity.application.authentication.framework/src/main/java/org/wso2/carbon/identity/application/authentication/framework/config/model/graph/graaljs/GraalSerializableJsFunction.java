@@ -125,6 +125,7 @@ public class GraalSerializableJsFunction implements GenericSerializableJsFunctio
         this.name = name;
     }
 
+
     private static GraalSerializableJsFunction serializePolyglot(String source) {
 
         return new GraalSerializableJsFunction(source);
