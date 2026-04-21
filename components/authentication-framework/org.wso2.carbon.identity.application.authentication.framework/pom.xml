@@ -329,7 +329,7 @@
                             org.wso2.carbon.identity.organization.management.organization.user.sharing.models;
                             version="${org.wso2.carbon.identity.organization.management.version.range}",
                         </Import-Package>
-                        <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
+                        <Export-Package>
                             org.wso2.carbon.identity.application.authentication.framework.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>

@@ -40,12 +40,15 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_ENGINE_MODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_SCRIPT_STATEMENTS_LIMIT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_LOG;
@@ -61,11 +64,44 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
+
+    /**
+     * Configured GraalJS engine mode for adaptive authentication script execution.
+     * <p>
+     * type for this feature beyond the {@link RemoteJsGraphBuilderProvider} SPI.
+     */
+    private enum EngineMode { LOCAL, REMOTE, HYBRID }
+
     private int javascriptResourceLimit = 0;
+    private EngineMode engineMode = EngineMode.LOCAL;
 
     public void init() {
 
         setJavascriptResourceLimit();
+        readEngineMode();
+    }
+
+    /**
+     * Read the configured engine mode (LOCAL / REMOTE / HYBRID) from {@code IdentityUtil}.
+     * <p>
+     * This is the only piece of remote-engine config the framework reads — everything else
+     * (gRPC target, tracing toggle, hybrid resolver lookup) lives in the
+     * {@code script.remote.engine} bundle behind the {@link RemoteJsGraphBuilderProvider}
+     * SPI. The framework only needs the mode value to decide, per request, whether to
+     * build the local builder directly or delegate to the provider.
+     */
+    private void readEngineMode() {
+
+        String mode = IdentityUtil.getProperty(GRAALJS_ENGINE_MODE);
+        if (mode != null && !mode.trim().isEmpty()) {
+            try {
+                engineMode = EngineMode.valueOf(mode.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                LOG.warn("Unknown GraalJS engine mode '" + mode + "'. Defaulting to LOCAL.");
+                engineMode = EngineMode.LOCAL;
+            }
+        }
+        LOG.info("GraalJS engine mode: " + engineMode);
     }
 
     @SuppressWarnings("unchecked")
@@ -163,17 +199,65 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
         return JsGraalGraphBuilder.getCurrentBuilder();
     }
 
-    public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-                                             Map<Integer, StepConfig> stepConfigMap) {
+    public JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap) {
 
+        if (isRemoteProviderRequired(authenticationContext)) {
+            return remoteProvider().create(authenticationContext, stepConfigMap);
+        }
         return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
     }
 
-    public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-                                             Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+    public JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
 
-        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext),
-                currentNode);
+        if (isRemoteProviderRequired(authenticationContext)) {
+            return remoteProvider().create(authenticationContext, stepConfigMap, currentNode);
+        }
+        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap,
+                createEngine(authenticationContext), currentNode);
+    }
+
+    /**
+     * Decide whether this request should run on the remote engine.
+     * <ul>
+     *   <li>{@code LOCAL}  → never remote.</li>
+     *   <li>{@code REMOTE} → always remote (provider is required; throws if absent).</li>
+     *   <li>{@code HYBRID} → defers the per-request decision to the provider, which typically
+     *       consults a {@code ScriptEngineModeResolver} OSGi service. Provider is required.</li>
+     * </ul>
+     * For {@code REMOTE} and {@code HYBRID}, the missing-provider failure is surfaced loudly
+     * at the integration boundary rather than as an NPE deeper in the call stack.
+     */
+    private boolean isRemoteProviderRequired(AuthenticationContext authenticationContext) {
+
+        switch (engineMode) {
+            case REMOTE:
+                return true;
+            case HYBRID:
+                return remoteProvider().route(authenticationContext);
+            case LOCAL:
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Resolve the {@link RemoteJsGraphBuilderProvider} OSGi service from the data holder.
+     * <p>
+     * Throws an {@link IllegalStateException} when remote execution is requested but the
+     * {@code script.remote.engine} bundle is not deployed.
+     */
+    private RemoteJsGraphBuilderProvider remoteProvider() {
+
+        RemoteJsGraphBuilderProvider provider =
+                FrameworkServiceDataHolder.getInstance().getRemoteJsGraphBuilderProvider();
+        if (provider == null) {
+            throw new IllegalStateException("Remote JavaScript execution requested but no " +
+                    "RemoteJsGraphBuilderProvider OSGi service is registered. Ensure the " +
+                    "script.remote.engine bundle is deployed.");
+        }
+        return provider;
     }
 
     private void setJavascriptResourceLimit() {

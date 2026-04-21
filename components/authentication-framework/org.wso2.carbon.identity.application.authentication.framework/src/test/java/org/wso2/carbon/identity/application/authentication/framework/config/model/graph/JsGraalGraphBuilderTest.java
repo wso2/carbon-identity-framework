@@ -54,6 +54,18 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+/**
+ * This suite verifies the local GraalJS builder ({@link JsGraalGraphBuilder}) specifically.
+ * <p>
+ * {@code JsGraalGraphBuilderFactory#createBuilder} returns the wider {@link JsBaseGraphBuilder}
+ * because it now routes between {@code JsGraalGraphBuilder} (LOCAL mode) and
+ * {@code RemoteJsGraalGraphBuilder} (REMOTE mode). Every assertion in this file targets
+ * the local builder's behaviour (executeStep, filterOptions, authenticatorParamsOptions —
+ * none of which exist on the common supertype), so each factory call is downcast to
+ * {@code JsGraalGraphBuilder}. The cast is safe because the router defaults to LOCAL and
+ * no test here flips it to REMOTE. If the default mode changes, or the factory is
+ * rearranged to surface the concrete builder directly, revisit these casts.
+ */
 @Test
 public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
 
@@ -72,6 +84,12 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
 
         initMocks(this);
         jsGraphBuilderFactory = new JsGraalGraphBuilderFactory();
+        // init() wires the JsGraalGraphEngineModeRouter into the factory. In production
+        // it is invoked by the OSGi activator; in tests we must call it explicitly,
+        // otherwise createBuilder()'s isLocalContext() check dereferences a null router.
+        // If the factory lifecycle changes (e.g. init becomes constructor-driven or moves
+        // behind a different entry point) — update this call to match.
+        jsGraphBuilderFactory.init();
         JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
     }
@@ -89,7 +107,8 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
         AuthenticationContext context = getAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
-        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = (JsGraalGraphBuilder)
+                jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.executeStep(2);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
@@ -104,7 +123,8 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
-        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = (JsGraalGraphBuilder)
+                jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.executeStep(1);
         jsGraphBuilder.executeStep(2);
 
@@ -130,7 +150,8 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
 
-        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = (JsGraalGraphBuilder)
+                jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.createWith(script);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
@@ -152,7 +173,8 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, stepConfig);
 
-        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = (JsGraalGraphBuilder)
+                jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.filterOptions(options, stepConfig);
         assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter,
                 "Authentication options after filtering mismatches expected. " + options);
@@ -292,7 +314,8 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, stepConfig);
 
-        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = (JsGraalGraphBuilder)
+                jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.authenticatorParamsOptions(options, stepConfig);
         assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value, "Params are not set expected");
     }

@@ -753,6 +753,22 @@ public abstract class FrameworkConstants {
         public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
                 = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
         public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;
+
+        // Engine mode: "LOCAL", "REMOTE", or "HYBRID"
+        public static final String GRAALJS_ENGINE_MODE
+                = "AdaptiveAuth.GraalJS.EngineMode";
+        // gRPC target for remote engine (host:port)
+        public static final String GRAALJS_GRPC_TARGET
+                = "AdaptiveAuth.GraalJS.GrpcTarget";
+
+        // Defaults
+        public static final String DEFAULT_ENGINE_MODE = "LOCAL";
+        public static final String DEFAULT_GRPC_TARGET = "localhost:50051";
+
+        // Remote engine tracing toggle (guards debug/perf logs in remote package)
+        public static final String GRAALJS_REMOTE_ENGINE_TRACING
+                = "AdaptiveAuth.GraalJS.RemoteEngineTracing";
+        public static final boolean DEFAULT_REMOTE_ENGINE_TRACING = false;
     }
 
     /**

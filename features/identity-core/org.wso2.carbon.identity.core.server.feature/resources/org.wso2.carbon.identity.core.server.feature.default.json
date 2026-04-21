@@ -956,6 +956,12 @@
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.allow_updating_authenticated_subject": false,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "authentication.adaptive.graaljs.engine_mode": "LOCAL",
+  "authentication.adaptive.graaljs.grpc_target": "localhost:50051",
+  "authentication.adaptive.graaljs.grpc_request_timeout": "600",
+  "authentication.adaptive.graaljs.grpc_channel_pool_size": "4",
+  "authentication.adaptive.graaljs.grpc_channel_idle_timeout": "180",
+  "authentication.adaptive.graaljs.remote_engine_tracing": "false",
   "authentication.adaptive.shared_applications.enable": false,
   "AdaptiveAuth.ScriptEngine": "graaljs",
 

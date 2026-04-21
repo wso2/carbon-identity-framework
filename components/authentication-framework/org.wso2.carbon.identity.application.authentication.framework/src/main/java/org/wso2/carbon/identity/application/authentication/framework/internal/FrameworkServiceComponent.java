@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.RemoteJsGraphBuilderProvider;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -1118,5 +1119,24 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
         log.debug("OrganizationUserSharingService unset in FrameworkServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "remote.js.graph.builder.provider",
+            service = RemoteJsGraphBuilderProvider.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRemoteJsGraphBuilderProvider"
+    )
+    protected void setRemoteJsGraphBuilderProvider(RemoteJsGraphBuilderProvider provider) {
+
+        FrameworkServiceDataHolder.getInstance().setRemoteJsGraphBuilderProvider(provider);
+        log.info("RemoteJsGraphBuilderProvider set: " + provider.getClass().getName());
+    }
+
+    protected void unsetRemoteJsGraphBuilderProvider(RemoteJsGraphBuilderProvider provider) {
+
+        FrameworkServiceDataHolder.getInstance().setRemoteJsGraphBuilderProvider(null);
+        log.info("RemoteJsGraphBuilderProvider unset.");
     }
 }
