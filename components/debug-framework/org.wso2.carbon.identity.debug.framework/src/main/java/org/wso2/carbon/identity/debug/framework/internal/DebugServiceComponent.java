@@ -194,7 +194,6 @@ public class DebugServiceComponent {
 
         if (isBind) {
             DebugProtocolRegistry.getInstance().addDebugProtocolProvider(provider);
-            LOG.info("Successfully registered DebugProtocolProvider for protocol: " + protocolType);
             return;
         }
 

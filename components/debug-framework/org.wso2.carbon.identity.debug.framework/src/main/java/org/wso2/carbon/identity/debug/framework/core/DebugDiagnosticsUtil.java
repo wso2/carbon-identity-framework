@@ -22,7 +22,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +63,8 @@ public final class DebugDiagnosticsUtil {
     public static void recordEvent(DebugContext context, String stage, String status, String message,
             Map<String, Object> details) {
 
-        List<Map<String, Object>> diagnostics = getOrCreateDiagnostics(context);
-        diagnostics.add(buildEvent(stage, status, message, details));
+        Deque<Map<String, Object>> diagnostics = getOrCreateDiagnostics(context);
+        diagnostics.addFirst(buildEvent(stage, status, message, details));
     }
 
     /**
@@ -90,8 +92,8 @@ public final class DebugDiagnosticsUtil {
     public static void recordEvent(AuthenticationContext context, String stage, String status, String message,
             Map<String, Object> details) {
 
-        List<Map<String, Object>> diagnostics = getOrCreateDiagnostics(context);
-        diagnostics.add(buildEvent(stage, status, message, details));
+        Deque<Map<String, Object>> diagnostics = getOrCreateDiagnostics(context);
+        diagnostics.addFirst(buildEvent(stage, status, message, details));
     }
 
     /**
@@ -117,28 +119,51 @@ public final class DebugDiagnosticsUtil {
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Map<String, Object>> getOrCreateDiagnostics(DebugContext context) {
+    private static Deque<Map<String, Object>> getOrCreateDiagnostics(DebugContext context) {
 
         Object diagnostics = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
+        if (diagnostics instanceof Deque) {
+            return (Deque<Map<String, Object>>) diagnostics;
+        }
         if (diagnostics instanceof List) {
-            return (List<Map<String, Object>>) diagnostics;
+            Deque<Map<String, Object>> timeline = convertListToDeque((List<Map<String, Object>>) diagnostics);
+            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
+            return timeline;
         }
 
-        List<Map<String, Object>> timeline = new ArrayList<>();
+        Deque<Map<String, Object>> timeline = new ArrayDeque<>();
         context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
         return timeline;
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Map<String, Object>> getOrCreateDiagnostics(AuthenticationContext context) {
+    private static Deque<Map<String, Object>> getOrCreateDiagnostics(AuthenticationContext context) {
 
         Object diagnostics = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
+        if (diagnostics instanceof Deque) {
+            return (Deque<Map<String, Object>>) diagnostics;
+        }
         if (diagnostics instanceof List) {
-            return (List<Map<String, Object>>) diagnostics;
+            Deque<Map<String, Object>> timeline = convertListToDeque((List<Map<String, Object>>) diagnostics);
+            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
+            return timeline;
         }
 
-        List<Map<String, Object>> timeline = new ArrayList<>();
+        Deque<Map<String, Object>> timeline = new ArrayDeque<>();
         context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
+        return timeline;
+    }
+
+    private static Deque<Map<String, Object>> convertListToDeque(List<Map<String, Object>> diagnostics) {
+
+        Deque<Map<String, Object>> timeline = new ArrayDeque<>();
+        if (diagnostics == null || diagnostics.isEmpty()) {
+            return timeline;
+        }
+
+        for (Map<String, Object> event : diagnostics) {
+            timeline.addFirst(event);
+        }
         return timeline;
     }
 
