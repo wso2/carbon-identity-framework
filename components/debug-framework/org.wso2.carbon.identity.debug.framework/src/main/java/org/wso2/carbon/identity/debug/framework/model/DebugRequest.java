@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
-import org.apache.commons.lang.StringUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,23 +107,4 @@ public class DebugRequest {
         return map;
     }
 
-    /**
-     * Gets the effective connection ID.
-     * Checks in order: top-level connectionId, additionalContext connectionId, idpId.
-     *
-     * @return The effective connection identifier, or null if not set anywhere.
-     */
-    public String getEffectiveConnectionId() {
-
-        if (StringUtils.isNotEmpty(connectionId)) {
-            return connectionId;
-        }
-
-        Object value = additionalContext.get("connectionId");
-        if (value instanceof String && StringUtils.isNotEmpty((String) value)) {
-            return (String) value;
-        }
-
-        return null;
-    }
 }

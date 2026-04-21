@@ -112,7 +112,7 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             return true;
         }
 
-        String debugId = debugRequest.getEffectiveConnectionId();
+        String debugId = debugRequest.getConnectionId();
         if (debugId == null || debugId.isEmpty()) {
             return true;
         }

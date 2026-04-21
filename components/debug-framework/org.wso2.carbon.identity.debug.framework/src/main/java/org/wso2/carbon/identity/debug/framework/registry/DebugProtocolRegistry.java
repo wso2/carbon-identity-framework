@@ -40,6 +40,7 @@ public class DebugProtocolRegistry {
     private final Map<String, DebugProtocolProvider> debugProtocolProviders = new ConcurrentHashMap<>();
     private final List<DebugCallbackHandler> debugCallbackHandlers = new CopyOnWriteArrayList<>();
     private final List<DebugProtocolResolver> debugProtocolResolvers = new ArrayList<>();
+    private final Object debugProtocolResolversLock = new Object();
 
     private DebugProtocolRegistry() {
 
@@ -91,20 +92,22 @@ public class DebugProtocolRegistry {
 
     public void addDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        updateSortedListEntry(debugProtocolResolvers, resolver, true,
-                Comparator.comparingInt(DebugProtocolResolver::getOrder));
+        synchronized (debugProtocolResolversLock) {
+            updateSortedListEntry(debugProtocolResolvers, resolver, true,
+                    Comparator.comparingInt(DebugProtocolResolver::getOrder));
+        }
     }
 
     public void removeDebugProtocolResolver(DebugProtocolResolver resolver) {
 
-        synchronized (debugProtocolResolvers) {
+        synchronized (debugProtocolResolversLock) {
             updateListEntry(debugProtocolResolvers, resolver, false);
         }
     }
 
     public List<DebugProtocolResolver> getDebugProtocolResolvers() {
 
-        synchronized (debugProtocolResolvers) {
+        synchronized (debugProtocolResolversLock) {
             return new ArrayList<>(debugProtocolResolvers);
         }
     }
@@ -155,11 +158,9 @@ public class DebugProtocolRegistry {
 
     private <T> void updateSortedListEntry(List<T> entries, T entry, boolean isAdd, Comparator<T> comparator) {
 
-        synchronized (entries) {
-            updateListEntry(entries, entry, isAdd);
-            if (isAdd) {
-                entries.sort(comparator);
-            }
+        updateListEntry(entries, entry, isAdd);
+        if (isAdd) {
+            entries.sort(comparator);
         }
     }
 }

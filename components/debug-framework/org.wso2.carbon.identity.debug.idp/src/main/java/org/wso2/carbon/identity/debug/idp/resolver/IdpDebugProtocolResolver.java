@@ -112,42 +112,66 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             FederatedAuthenticatorConfig[] configs) {
 
         for (FederatedAuthenticatorConfig config : configs) {
-            if (isValidAuthenticatorConfig(config)) {
-                String implementationName = config.getName();
-                String protocolType = resolveProtocolTypeFromImplementation(implementationName);
-                if (DebugFrameworkConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
-                        && isGoogleBackedOidcAuthenticator(resource, config)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Detected Google-backed OIDC configuration from implementation: "
-                                + implementationName);
-                    }
-                    return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
-                }
-                if (DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK.equalsIgnoreCase(protocolType)
-                        || isFacebookBackedAuthenticator(resource, config)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Detected Facebook-backed configuration from implementation: "
-                                + implementationName);
-                    }
-                    return DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK;
-                }
-                if (protocolType != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Detected protocol type: " + protocolType
-                                + " for implementation: " + implementationName);
-                    }
-                    return protocolType;
-                }
-                if (isGoogleBackedOidcAuthenticator(resource, config)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Detected Google-backed OIDC configuration from properties: "
-                                + implementationName);
-                    }
-                    return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
-                }
+            if (!isValidAuthenticatorConfig(config)) {
+                continue;
+            }
+
+            String protocol = resolveProtocolForConfig(resource, config);
+            if (protocol != null) {
+                return protocol;
             }
         }
         return null;
+    }
+
+    private String resolveProtocolForConfig(IdentityProvider resource, FederatedAuthenticatorConfig config) {
+
+        String implementationName = config.getName();
+        String protocolType = resolveProtocolTypeFromImplementation(implementationName);
+
+        if (isGoogleBackedOidcProtocol(resource, config, protocolType)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Detected Google-backed OIDC configuration from implementation: " + implementationName);
+            }
+            return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
+        }
+
+        if (isFacebookProtocol(resource, config, protocolType)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Detected Facebook-backed configuration from implementation: " + implementationName);
+            }
+            return DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK;
+        }
+
+        if (protocolType != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Detected protocol type: " + protocolType + " for implementation: " + implementationName);
+            }
+            return protocolType;
+        }
+
+        if (isGoogleBackedOidcAuthenticator(resource, config)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Detected Google-backed OIDC configuration from properties: " + implementationName);
+            }
+            return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
+        }
+
+        return null;
+    }
+
+    private boolean isGoogleBackedOidcProtocol(IdentityProvider resource, FederatedAuthenticatorConfig config,
+            String protocolType) {
+
+        return DebugFrameworkConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
+                && isGoogleBackedOidcAuthenticator(resource, config);
+    }
+
+    private boolean isFacebookProtocol(IdentityProvider resource, FederatedAuthenticatorConfig config,
+            String protocolType) {
+
+        return DebugFrameworkConstants.PROTOCOL_TYPE_FACEBOOK.equalsIgnoreCase(protocolType)
+                || isFacebookBackedAuthenticator(resource, config);
     }
 
     private boolean isValidAuthenticatorConfig(FederatedAuthenticatorConfig config) {

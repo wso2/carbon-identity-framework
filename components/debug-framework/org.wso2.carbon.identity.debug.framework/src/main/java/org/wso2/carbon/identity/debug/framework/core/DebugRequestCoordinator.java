@@ -82,7 +82,7 @@ public class DebugRequestCoordinator {
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Orchestrating debug request for resource type: " + debugRequest.getResourceType()
-                        + ", resource ID: " + debugRequest.getEffectiveConnectionId());
+                        + ", connection ID: " + debugRequest.getConnectionId());
             }
 
             // Pre-execute listeners.

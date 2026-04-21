@@ -63,7 +63,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
     public DebugResponse handleDebugRequest(DebugRequest debugRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        String connectionId = debugRequest.getEffectiveConnectionId();
+        String connectionId = debugRequest.getConnectionId();
         String resourceType = debugRequest.getResourceType();
 
         // Validate that connectionId is provided for IDP debugging.
