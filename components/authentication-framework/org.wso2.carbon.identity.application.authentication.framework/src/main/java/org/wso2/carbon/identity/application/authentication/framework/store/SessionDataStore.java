@@ -362,7 +362,14 @@ public class SessionDataStore {
         String batchInsertChunkSizeValue = IdentityUtil.getProperty(BATCH_INSERT_CHUNK_SIZE_PROPERTY);
         if (StringUtils.isNotBlank(batchInsertChunkSizeValue)) {
             try {
-                batchInsertChunkSize = Integer.parseInt(batchInsertChunkSizeValue);
+                int parsedChunkSize = Integer.parseInt(batchInsertChunkSizeValue);
+                if (parsedChunkSize > 0) {
+                    batchInsertChunkSize = parsedChunkSize;
+                } else {
+                    log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
+                            + batchInsertChunkSizeValue + ". Value must be positive. Using default: "
+                            + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
+                }
             } catch (NumberFormatException e) {
                 log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
                         + batchInsertChunkSizeValue + ". Using default: " + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
