@@ -125,12 +125,6 @@ public final class DebugDiagnosticsUtil {
         if (diagnostics instanceof Deque) {
             return (Deque<Map<String, Object>>) diagnostics;
         }
-        if (diagnostics instanceof List) {
-            Deque<Map<String, Object>> timeline = convertListToDeque((List<Map<String, Object>>) diagnostics);
-            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-            return timeline;
-        }
-
         Deque<Map<String, Object>> timeline = new ArrayDeque<>();
         context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
         return timeline;
@@ -143,27 +137,8 @@ public final class DebugDiagnosticsUtil {
         if (diagnostics instanceof Deque) {
             return (Deque<Map<String, Object>>) diagnostics;
         }
-        if (diagnostics instanceof List) {
-            Deque<Map<String, Object>> timeline = convertListToDeque((List<Map<String, Object>>) diagnostics);
-            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-            return timeline;
-        }
-
         Deque<Map<String, Object>> timeline = new ArrayDeque<>();
         context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-        return timeline;
-    }
-
-    private static Deque<Map<String, Object>> convertListToDeque(List<Map<String, Object>> diagnostics) {
-
-        Deque<Map<String, Object>> timeline = new ArrayDeque<>();
-        if (diagnostics == null || diagnostics.isEmpty()) {
-            return timeline;
-        }
-
-        for (Map<String, Object> event : diagnostics) {
-            timeline.addFirst(event);
-        }
         return timeline;
     }
 
