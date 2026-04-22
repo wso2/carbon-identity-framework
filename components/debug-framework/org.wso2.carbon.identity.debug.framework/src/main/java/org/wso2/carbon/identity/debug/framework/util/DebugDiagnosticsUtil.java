@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core;
+package org.wso2.carbon.identity.debug.framework.util;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;

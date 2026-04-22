@@ -46,33 +46,6 @@ public class DebugFrameworkUtils {
     }
 
     /**
-     * Handle the debug framework client exceptions with cause.
-     *
-     * @param error Error message enum.
-     * @param e     Throwable cause.
-     * @param data  The error message data for formatting description.
-     * @return DebugFrameworkClientException.
-     */
-    public static DebugFrameworkClientException handleClientException(ErrorMessages error, Throwable e,
-                                                                      Object... data) {
-
-        return new DebugFrameworkClientException(error.getCode(), error.getMessage(),
-                formatDescription(error, data), e);
-    }
-
-    /**
-     * Handle the debug framework server exceptions.
-     *
-     * @param error Error message enum.
-     * @param data  The error message data for formatting description.
-     * @return DebugFrameworkServerException.
-     */
-    public static DebugFrameworkServerException handleServerException(ErrorMessages error, Object... data) {
-
-        return new DebugFrameworkServerException(error.getCode(), error.getMessage(), formatDescription(error, data));
-    }
-
-    /**
      * Handle the debug framework server exceptions with cause.
      *
      * @param error Error message enum.

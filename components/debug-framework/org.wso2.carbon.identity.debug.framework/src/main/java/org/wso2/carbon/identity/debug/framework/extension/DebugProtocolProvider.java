@@ -70,13 +70,4 @@ public interface DebugProtocolProvider {
 
         return null;
     }
-
-    /**
-     * Determines if this provider can handle the given protocol type.
-     * Used for dynamic provider selection.
-     *
-     * @param protocolType The protocol type to check.
-     * @return true if this provider supports the protocol type, false otherwise.
-     */
-    boolean supports(String protocolType);
 }

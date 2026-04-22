@@ -111,16 +111,6 @@ public class DebugHandlerRegistry {
         return handlers.get(normalizedResourceType);
     }
 
-    /**
-     * Gets all registered resource handler types.
-     *
-     * @return A map of all registered resource types and their handlers.
-     */
-    public Map<String, DebugResourceHandler> getAllHandlers() {
-
-        return new ConcurrentHashMap<>(handlers);
-    }
-
     private String normalizeResourceType(String resourceType) {
 
         if (resourceType == null || resourceType.trim().isEmpty()) {

@@ -156,7 +156,7 @@ public class DebugResponse {
 
         // Add framework fields AFTER resultData to prevent user data from overwriting them.
         data.put("successful", result.isSuccessful());
-        data.put("resultId", result.getResultId());
+        data.put("debugId", result.getDebugId());
         data.put("timestamp", result.getTimestamp());
 
         if (result.getErrorCode() != null) {

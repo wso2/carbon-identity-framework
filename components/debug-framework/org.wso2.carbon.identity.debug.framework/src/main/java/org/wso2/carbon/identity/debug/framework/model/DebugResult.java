@@ -29,7 +29,7 @@ import java.util.Map;
 public class DebugResult {
 
     private boolean successful;
-    private String resultId;
+    private String debugId;
     private long timestamp;
     private String status;
     private String errorCode;
@@ -68,23 +68,23 @@ public class DebugResult {
     }
 
     /**
-     * Gets the result ID.
+     * Gets the debug session ID.
      *
-     * @return Result ID string.
+     * @return Debug session ID string.
      */
-    public String getResultId() {
+    public String getDebugId() {
 
-        return resultId;
+        return debugId;
     }
 
     /**
-     * Sets the result ID.
+     * Sets the debug session ID.
      *
-     * @param resultId Result ID string.
+     * @param debugId Debug session ID string.
      */
-    public void setResultId(String resultId) {
+    public void setDebugId(String debugId) {
 
-        this.resultId = resultId;
+        this.debugId = debugId;
     }
 
     /**
@@ -237,7 +237,7 @@ public class DebugResult {
         
         return "DebugResult{" +
                 "successful=" + successful +
-                ", resultId='" + resultId + '\'' +
+                ", debugId='" + debugId + '\'' +
                 ", timestamp=" + timestamp +
                 ", status='" + status + '\'' +
                 ", errorCode='" + errorCode + '\'' +

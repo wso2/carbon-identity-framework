@@ -90,21 +90,4 @@ public class DebugRequest {
         this.additionalContext.put(key, value);
     }
 
-    /**
-     * Converts this request to a Map context for backward compatibility.
-     *
-     * @return Map representation of the request.
-     */
-    public Map<String, Object> toMap() {
-
-        Map<String, Object> map = new HashMap<>(additionalContext);
-        if (connectionId != null) {
-            map.put("connectionId", connectionId);
-        }
-        if (resourceType != null) {
-            map.put("resourceType", resourceType);
-        }
-        return map;
-    }
-
 }

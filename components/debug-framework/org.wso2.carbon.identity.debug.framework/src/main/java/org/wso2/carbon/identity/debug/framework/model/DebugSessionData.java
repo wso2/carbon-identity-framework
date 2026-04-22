@@ -36,21 +36,41 @@ public class DebugSessionData implements Serializable {
     private String resourceType;
     private String connectionId;
 
+    /**
+     * Returns the debug session identifier.
+     *
+     * @return Debug session identifier.
+     */
     public String getDebugId() {
 
         return debugId;
     }
 
+    /**
+     * Sets the debug session identifier.
+     *
+     * @param debugId Debug session identifier.
+     */
     public void setDebugId(String debugId) {
 
         this.debugId = debugId;
     }
 
+    /**
+     * Returns the current debug session status.
+     *
+     * @return Current debug session status.
+     */
     public String getStatus() {
 
         return status;
     }
 
+    /**
+     * Sets the current debug session status.
+     *
+     * @param status Current debug session status.
+     */
     public void setStatus(String status) {
 
         this.status = status;
@@ -76,51 +96,101 @@ public class DebugSessionData implements Serializable {
         this.sessionData = sessionData;
     }
 
+    /**
+     * Returns the debug result JSON payload.
+     *
+     * @return Debug result JSON payload.
+     */
     public String getResultJson() {
 
         return resultJson;
     }
 
+    /**
+     * Sets the debug result JSON payload.
+     *
+     * @param resultJson Debug result JSON payload.
+     */
     public void setResultJson(String resultJson) {
 
         this.resultJson = resultJson;
     }
 
+    /**
+     * Returns the creation timestamp of the debug session.
+     *
+     * @return Creation timestamp of the debug session.
+     */
     public long getCreatedTime() {
 
         return createdTime;
     }
 
+    /**
+     * Sets the creation timestamp of the debug session.
+     *
+     * @param createdTime Creation timestamp of the debug session.
+     */
     public void setCreatedTime(long createdTime) {
 
         this.createdTime = createdTime;
     }
 
+    /**
+     * Returns the expiry timestamp of the debug session.
+     *
+     * @return Expiry timestamp of the debug session.
+     */
     public long getExpiryTime() {
 
         return expiryTime;
     }
 
+    /**
+     * Sets the expiry timestamp of the debug session.
+     *
+     * @param expiryTime Expiry timestamp of the debug session.
+     */
     public void setExpiryTime(long expiryTime) {
 
         this.expiryTime = expiryTime;
     }
 
+    /**
+     * Returns the resource type associated with this debug session.
+     *
+     * @return Resource type associated with this debug session.
+     */
     public String getResourceType() {
 
         return resourceType;
     }
 
+    /**
+     * Sets the resource type associated with this debug session.
+     *
+     * @param resourceType Resource type associated with this debug session.
+     */
     public void setResourceType(String resourceType) {
 
         this.resourceType = resourceType;
     }
 
+    /**
+     * Returns the connection identifier associated with this debug session.
+     *
+     * @return Connection identifier associated with this debug session.
+     */
     public String getConnectionId() {
 
         return connectionId;
     }
 
+    /**
+     * Sets the connection identifier associated with this debug session.
+     *
+     * @param connectionId Connection identifier associated with this debug session.
+     */
     public void setConnectionId(String connectionId) {
         
         this.connectionId = connectionId;

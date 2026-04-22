@@ -144,7 +144,7 @@ public class DebugRequestCoordinator {
      *
      * @param debugRequest The debug request.
      * @throws DebugFrameworkClientException If a listener aborts the request.
-     * @throws DebugFrameworkException       If a listener throws an exception.
+     * @throws DebugFrameworkException If a listener throws an exception.
      */
     private void executePreListeners(DebugRequest debugRequest) throws DebugFrameworkException {
 
@@ -161,9 +161,9 @@ public class DebugRequestCoordinator {
      * Executes post-execute listeners.
      *
      * @param debugResponse The debug response.
-     * @param debugRequest  The debug request.
+     * @param debugRequest The debug request.
      * @throws DebugFrameworkClientException If a listener aborts the request.
-     * @throws DebugFrameworkException       If a listener throws an exception.
+     * @throws DebugFrameworkException  If a listener throws an exception.
      */
     private void executePostListeners(DebugResponse debugResponse, DebugRequest debugRequest)
             throws DebugFrameworkException {
