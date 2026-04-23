@@ -656,7 +656,7 @@ public class SessionDataStore {
      * @param type     The session data type.
      * @param nanoTime The operation timestamp in nanoseconds.
      */
-    public void removeSessionDataBatch(List<String> keys, String type, long nanoTime) {
+    private void removeSessionDataBatch(List<String> keys, String type, long nanoTime) {
 
         if (!enablePersist || keys == null || keys.isEmpty()) {
             return;
