@@ -37,9 +37,9 @@ import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.JWEEncryptionUtil;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -589,6 +589,105 @@ public class InFlowExtensionResponseProcessorTest {
         assertEquals(status.getResponse().getFailureDescription(), "Risk score exceeds threshold");
     }
 
+    // ========================= processFailureResponse — i18n key prefixing =========================
+
+    @Test
+    public void testProcessFailureResponseWithI18nKey()
+            throws ActionExecutionResponseProcessorException {
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getFailureReason()).thenReturn("high_risk");
+        when(failureResponse.getFailureDescription()).thenReturn("{{denied}}");
+
+        @SuppressWarnings("unchecked")
+        ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
+                mock(ActionExecutionResponseContext.class);
+        when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, "Risk Assessment Extension");
+
+        ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
+                flowContext, responseContext);
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.FAILED);
+        assertEquals(status.getResponse().getFailureDescription(),
+                "{{inflow.extension.risk.assessment.extension.denied}}");
+        // Plain reason string — not an i18n key, passes through unchanged.
+        assertEquals(status.getResponse().getFailureReason(), "high_risk");
+    }
+
+    @Test
+    public void testProcessFailureResponseWithPlainText()
+            throws ActionExecutionResponseProcessorException {
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getFailureReason()).thenReturn("high_risk_detected");
+        when(failureResponse.getFailureDescription()).thenReturn("Risk score exceeds threshold");
+
+        @SuppressWarnings("unchecked")
+        ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
+                mock(ActionExecutionResponseContext.class);
+        when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, "Risk Assessment Extension");
+
+        ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
+                flowContext, responseContext);
+
+        // Plain text passes through unchanged — no {{}} wrapper present.
+        assertEquals(status.getResponse().getFailureDescription(), "Risk score exceeds threshold");
+        assertEquals(status.getResponse().getFailureReason(), "high_risk_detected");
+    }
+
+    @Test
+    public void testProcessFailureResponseWithFullyQualifiedKey()
+            throws ActionExecutionResponseProcessorException {
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getFailureReason()).thenReturn("high_risk");
+        when(failureResponse.getFailureDescription())
+                .thenReturn("{{inflow.extension.risk.assessment.extension.denied}}");
+
+        @SuppressWarnings("unchecked")
+        ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
+                mock(ActionExecutionResponseContext.class);
+        when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, "Risk Assessment Extension");
+
+        ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
+                flowContext, responseContext);
+
+        // Already-qualified key must not be double-prefixed.
+        assertEquals(status.getResponse().getFailureDescription(),
+                "{{inflow.extension.risk.assessment.extension.denied}}");
+    }
+
+    @Test
+    public void testProcessFailureResponseWithoutActionName()
+            throws ActionExecutionResponseProcessorException {
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getFailureReason()).thenReturn("high_risk");
+        when(failureResponse.getFailureDescription()).thenReturn("{{denied}}");
+
+        @SuppressWarnings("unchecked")
+        ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
+                mock(ActionExecutionResponseContext.class);
+        when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
+
+        // No ACTION_NAME_KEY in FlowContext — no prefix should be applied.
+        FlowContext flowContext = FlowContext.create();
+
+        ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
+                flowContext, responseContext);
+
+        assertEquals(status.getResponse().getFailureDescription(), "{{denied}}");
+    }
+
     // ========================= processErrorResponse =========================
 
     @Test
@@ -673,9 +772,9 @@ public class InFlowExtensionResponseProcessorTest {
     }
 
     @SuppressWarnings("unchecked")
-    private ActionExecutionStatus<Success> executeSuccessResponseWithAccessConfig(
+    private ActionExecutionStatus<Success> executeSuccessResponseWithModifyPaths(
             FlowExecutionContext execCtx, List<PerformableOperation> operations,
-            Map<String, String> pathTypeAnnotations, AccessConfig accessConfig)
+            Map<String, String> pathTypeAnnotations, List<ContextPath> modifyPaths)
             throws ActionExecutionResponseProcessorException {
 
         FlowContext flowContext = FlowContext.create()
@@ -684,8 +783,8 @@ public class InFlowExtensionResponseProcessorTest {
         if (pathTypeAnnotations != null && !pathTypeAnnotations.isEmpty()) {
             flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
         }
-        if (accessConfig != null) {
-            flowContext.add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig);
+        if (modifyPaths != null) {
+            flowContext.add(InFlowExtensionRequestBuilder.MODIFY_PATHS_KEY, modifyPaths);
         }
 
         ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
@@ -710,16 +809,14 @@ public class InFlowExtensionResponseProcessorTest {
                     .thenThrow(new RuntimeException("Decryption failed"));
 
             FlowExecutionContext execCtx = createFlowExecutionContext();
-            // Create AccessConfig with an encrypted modify path.
-            AccessConfig accessConfig = new AccessConfig(null,
-                    Arrays.asList(new ContextPath("/properties/secret", true)));
+            List<ContextPath> modifyPaths = Arrays.asList(new ContextPath("/properties/secret", true));
 
             // Value looks like JWE (5 dot-separated parts).
             PerformableOperation op = createOperation(
                     Operation.REPLACE, "/properties/secret", "a.b.c.d.e");
 
-            executeSuccessResponseWithAccessConfig(execCtx, Collections.singletonList(op),
-                    Collections.emptyMap(), accessConfig);
+            executeSuccessResponseWithModifyPaths(execCtx, Collections.singletonList(op),
+                    Collections.emptyMap(), modifyPaths);
         }
     }
 
@@ -728,15 +825,13 @@ public class InFlowExtensionResponseProcessorTest {
             throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
-        // Create AccessConfig with an encrypted modify path.
-        AccessConfig accessConfig = new AccessConfig(null,
-                Arrays.asList(new ContextPath("/properties/data", true)));
+        List<ContextPath> modifyPaths = Arrays.asList(new ContextPath("/properties/data", true));
 
         // Non-string value (Integer) for an encrypted path — should pass through without decryption.
         PerformableOperation op = createOperation(Operation.REPLACE, "/properties/data", 42);
 
-        ActionExecutionStatus<Success> status = executeSuccessResponseWithAccessConfig(
-                execCtx, Collections.singletonList(op), Collections.emptyMap(), accessConfig);
+        ActionExecutionStatus<Success> status = executeSuccessResponseWithModifyPaths(
+                execCtx, Collections.singletonList(op), Collections.emptyMap(), modifyPaths);
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         // Value should be coerced to String (default behavior for properties).

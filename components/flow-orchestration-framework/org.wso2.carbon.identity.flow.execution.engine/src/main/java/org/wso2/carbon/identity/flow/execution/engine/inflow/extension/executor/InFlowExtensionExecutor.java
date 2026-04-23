@@ -27,21 +27,17 @@ import org.wso2.carbon.identity.action.execution.api.model.Error;
 import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
-import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.api.model.Action;
-import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,15 +46,12 @@ import java.util.Map;
  * It integrates with the {@link ActionExecutorService} to call external services and process
  * their responses.
  *
- *
  * <p>Execution lifecycle:</p>
  * <ol>
  *   <li>Extract executor metadata: {@code actionId}.</li>
- *   <li>Resolve access config from the action (with per-flow-type override support via
- *       {@link ActionManagementService}). Falls back to system defaults if unavailable.</li>
- *   <li>Build a minimal {@link FlowContext} containing the full {@link FlowExecutionContext},
- *       the expose list, the access config, and the encryption config.
- *       The request builder will use these to construct the filtered request.</li>
+ *   <li>Build a minimal {@link FlowContext} containing only the {@link FlowExecutionContext}.
+ *       The request builder resolves access config / encryption from the action and populates
+ *       additional FlowContext keys for the response processor.</li>
  *   <li>Invoke the external service via {@link ActionExecutorService}.</li>
  *   <li>Map the {@link ActionExecutionStatus} to an {@link ExecutorResponse}.
  *       Context updates are already applied directly to the {@link FlowExecutionContext}
@@ -71,11 +64,10 @@ public class InFlowExtensionExecutor implements Executor {
     private static final String EXECUTOR_NAME = "InFlowExtensionExecutor";
 
     public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
-    public static final String EXPOSE_KEY = "expose";
     public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
-    public static final String ACCESS_CONFIG_KEY = "accessConfig";
-    public static final String ENCRYPTION_KEY = "encryption";
     private static final String ACTION_ID_METADATA_KEY = "actionId";
+    private static final String ERROR_TYPE_KEY = "errorType";
+    private static final String EXTENSION_ERROR_TYPE = "EXTENSION_ERROR";
 
     @Override
     public String getName() {
@@ -89,10 +81,12 @@ public class InFlowExtensionExecutor implements Executor {
         ExecutorResponse response = new ExecutorResponse();
 
         try {
+
+            // TODO: STATUS_ERROR should be returned, should be a diagnostic log
             String actionId = getMetadataValue(context, ACTION_ID_METADATA_KEY);
             if (actionId == null || actionId.isEmpty()) {
                 LOG.warn("No action ID configured for In-Flow Extension executor. Skipping execution.");
-                response.setResult(ExecutorResult.COMPLETE.name());
+                response.setResult(ExecutorStatus.STATUS_COMPLETE);
                 return response;
             }
 
@@ -100,51 +94,43 @@ public class InFlowExtensionExecutor implements Executor {
                 LOG.debug("Executing In-Flow Extension action with ID: " + actionId);
             }
 
-            AccessConfig resolvedConfig = resolveAccessConfigFromAction(actionId, context);
-            Encryption encryption = resolveEncryptionFromAction(actionId, context);
-
-            List<String> expose;
-
-            if (resolvedConfig != null && resolvedConfig.getExpose() != null) {
-                expose = resolvedConfig.getExposePaths();
-            } else {
-                // No access config on action — expose nothing by default.
-                expose = Collections.emptyList();
-            }
-
-            FlowContext flowContext = FlowContext.create()
-                    .add(FLOW_EXECUTION_CONTEXT_KEY, context)
-                    .add(EXPOSE_KEY, expose);
-
-            // Pass the full AccessConfig so request builder can derive allowed operations
-            // from modify paths, and response processor can check encryption flags.
-            if (resolvedConfig != null) {
-                flowContext.add(ACCESS_CONFIG_KEY, resolvedConfig);
-            }
-
-            // Pass the Encryption config (certificate) separately.
-            if (encryption != null) {
-                flowContext.add(ENCRYPTION_KEY, encryption);
-            }
-
             ActionExecutorService actionExecutorService = getActionExecutorService();
             if (actionExecutorService == null) {
                 throw new FlowEngineException("ActionExecutorService is not available.");
             }
+
             if (!actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)) {
-                LOG.debug("In-Flow Extension action execution is disabled. Skipping.");
-                response.setResult(ExecutorResult.COMPLETE.name());
+                LOG.debug("In-Flow Extension action execution is disabled.");
+                response.setResult(ExecutorStatus.STATUS_ERROR);
                 return response;
             }
 
+            FlowContext flowContext = FlowContext.create()
+                    .add(FLOW_EXECUTION_CONTEXT_KEY, context);
+
+            // TODO: Have <T> and switch-case
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
                     ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
 
-            return mapExecutionStatus(executionStatus);
+            // TODO: Handle the redirection as well, currently we are treating it as an error since the flow execution engine doesn't support it yet
 
-        } catch (ActionExecutionException e) {
+            ExecutorResponse executionResponse = mapExecutionStatus(executionStatus);
+
+            // Tag RETRY responses with errorType so the frontend can identify extension errors.
+            if (ExecutorStatus.STATUS_RETRY.equals(executionResponse.getResult())) {
+                Map<String, String> additionalInfo = executionResponse.getAdditionalInfo();
+                if (additionalInfo == null) {
+                    additionalInfo = new HashMap<>();
+                }
+                additionalInfo.put(ERROR_TYPE_KEY, EXTENSION_ERROR_TYPE);
+                executionResponse.setAdditionalInfo(additionalInfo);
+            }
+
+            return executionResponse;
+
+        } catch (ActionExecutionException e) { // TODO: replace with a action execution server exception
             LOG.error("Error executing In-Flow Extension action.", e);
-            response.setResult(ExecutorResult.RETRY.name());
+            response.setResult(ExecutorStatus.STATUS_ERROR);
             response.setErrorMessage("An error occurred while processing the extension. Please try again.");
             return response;
         }
@@ -174,17 +160,17 @@ public class InFlowExtensionExecutor implements Executor {
         ExecutorResponse response = new ExecutorResponse();
 
         if (executionStatus == null) {
-            response.setResult(ExecutorResult.USER_INPUT_REQUIRED.name());
+            response.setResult(ExecutorStatus.STATUS_ERROR);
             return response;
         }
 
         switch (executionStatus.getStatus()) {
             case SUCCESS:
-                response.setResult(ExecutorResult.COMPLETE.name());
+                response.setResult(ExecutorStatus.STATUS_COMPLETE);
                 break;
 
             case FAILED:
-                response.setResult(ExecutorResult.RETRY.name());
+                response.setResult(ExecutorStatus.STATUS_RETRY);
                 Failure failure = (Failure) executionStatus.getResponse();
                 if (failure != null) {
                     response.setErrorMessage(buildUserFacingErrorMessage(failure));
@@ -192,7 +178,7 @@ public class InFlowExtensionExecutor implements Executor {
                 break;
 
             case ERROR:
-                response.setResult(ExecutorResult.RETRY.name());
+                response.setResult(ExecutorStatus.STATUS_ERROR);
                 Error error = (Error) executionStatus.getResponse();
                 if (error != null) {
                     response.setErrorMessage(buildUserFacingErrorMessage(error));
@@ -200,12 +186,12 @@ public class InFlowExtensionExecutor implements Executor {
                 break;
 
             case INCOMPLETE:
-                response.setResult(ExecutorResult.USER_INPUT_REQUIRED.name());
+                response.setResult(ExecutorStatus.STATUS_ERROR);
                 break;
 
             default:
                 LOG.warn("Unknown execution status: " + executionStatus.getStatus());
-                response.setResult(ExecutorResult.COMPLETE.name());
+                response.setResult(ExecutorStatus.STATUS_ERROR);
         }
 
         return response;
@@ -258,73 +244,6 @@ public class InFlowExtensionExecutor implements Executor {
         return FlowExecutionEngineDataHolder.getInstance().getActionExecutorService();
     }
 
-    private ActionManagementService getActionManagementService() {
-
-        return FlowExecutionEngineDataHolder.getInstance().getActionManagementService();
-    }
-
-    /**
-     * Resolve the effective access config for the given action ID and flow context.
-     * Uses the action's flow-type-specific overrides if available, otherwise falls back to
-     * the action's default access config.
-     *
-     * @param actionId The action ID.
-     * @param context  The flow execution context (contains flow type and tenant info).
-     * @return The resolved AccessConfig, or {@code null} if the action cannot be resolved.
-     */
-    private AccessConfig resolveAccessConfigFromAction(String actionId, FlowExecutionContext context) {
-
-        ActionManagementService actionMgtService = getActionManagementService();
-        if (actionMgtService == null) {
-            LOG.warn("ActionManagementService is not available. Using system defaults for access config.");
-            return null;
-        }
-
-        try {
-            Action action = actionMgtService.getActionByActionId(
-                    Action.ActionTypes.IN_FLOW_EXTENSION.getPathParam(),
-                    actionId, context.getTenantDomain());
-
-            if (action instanceof InFlowExtensionAction) {
-                InFlowExtensionAction extensionAction = (InFlowExtensionAction) action;
-                String flowType = context.getFlowType();
-                return extensionAction.resolveAccessConfig(flowType);
-            }
-        } catch (ActionMgtException e) {
-            LOG.error("Error retrieving action " + actionId + " for access config resolution. "
-                    + "Using system defaults.", e);
-        }
-        return null;
-    }
-
-    /**
-     * Resolve the encryption configuration (certificate) from the action.
-     *
-     * @param actionId The action ID.
-     * @param context  The flow execution context.
-     * @return The Encryption config, or {@code null} if none configured.
-     */
-    private Encryption resolveEncryptionFromAction(String actionId, FlowExecutionContext context) {
-
-        ActionManagementService actionMgtService = getActionManagementService();
-        if (actionMgtService == null) {
-            return null;
-        }
-
-        try {
-            Action action = actionMgtService.getActionByActionId(
-                    Action.ActionTypes.IN_FLOW_EXTENSION.getPathParam(),
-                    actionId, context.getTenantDomain());
-
-            if (action instanceof InFlowExtensionAction) {
-                return ((InFlowExtensionAction) action).getEncryption();
-            }
-        } catch (ActionMgtException e) {
-            LOG.error("Error retrieving encryption config for action " + actionId, e);
-        }
-        return null;
-    }
-
     /**
      * Read a single metadata value from the current node's executor configuration.
      *
@@ -347,20 +266,5 @@ public class InFlowExtensionExecutor implements Executor {
             return null;
         }
         return metadata.get(key);
-    }
-
-    /**
-     * Enum representing the possible results of executor execution.
-     * These values must match the expected status values in the flow execution engine.
-     *
-     * @see org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus
-     */
-    public enum ExecutorResult {
-        COMPLETE,
-        ERROR,
-        USER_ERROR,
-        USER_INPUT_REQUIRED,
-        EXTERNAL_REDIRECTION,
-        RETRY
     }
 }

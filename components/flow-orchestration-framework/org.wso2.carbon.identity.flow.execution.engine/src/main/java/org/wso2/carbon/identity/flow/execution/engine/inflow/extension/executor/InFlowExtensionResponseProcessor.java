@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
@@ -59,6 +60,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class is responsible for processing the response from In-Flow Extension actions.
@@ -84,6 +87,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private static final String PROPERTIES_PATH_PREFIX = "/properties/";
     private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
     private static final String USER_INPUTS_PATH_PREFIX = "/input/";
+    private static final String I18N_KEY_PREFIX = "inflow.extension.";
+    private static final Pattern I18N_KEY_PATTERN = Pattern.compile("^\\{\\{(.+)\\}\\}$");
 
     // Cache for valid claim URIs (per tenant) with TTL.
     private static final long CLAIM_CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(30);
@@ -113,10 +118,12 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             pathTypeAnnotations = Collections.emptyMap();
         }
 
-        // Read access config for encryption metadata.
-        // Uses AccessConfig.isModifyPathEncrypted() for canonical encryption checking.
-        AccessConfig accessConfig = flowContext.getValue(
-                InFlowExtensionExecutor.ACCESS_CONFIG_KEY, AccessConfig.class);
+        // Reconstruct AccessConfig from the resolved modify paths stored by the request builder.
+        // This reuses AccessConfig.isModifyPathEncrypted() for canonical prefix-based encryption checking.
+        @SuppressWarnings("unchecked")
+        List<ContextPath> modifyPaths = flowContext.getValue(
+                InFlowExtensionRequestBuilder.MODIFY_PATHS_KEY, List.class);
+        AccessConfig accessConfig = modifyPaths != null ? new AccessConfig(null, modifyPaths) : null;
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -395,7 +402,57 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             LOG.debug("Processing failure response from In-Flow Extension. Reason: " + failureReason +
                     ", Description: " + failureDescription);
         }
+
+        // Apply i18n key prefixing so the frontend can locate extension-specific error messages.
+        String actionName = flowContext.getValue(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, String.class);
+        failureDescription = applyI18nKeyPrefix(failureDescription, actionName);
+        failureReason = applyI18nKeyPrefix(failureReason, actionName);
+
         return new FailedStatus(new Failure(failureReason, failureDescription));
+    }
+
+    /**
+     * Transform a short i18n key (e.g., {@code {{denied}}}) into a fully qualified key
+     * (e.g., {@code {{inflow.extension.risk.assessment.extension.denied}}}) using the
+     * sanitized action name as the prefix. Already-qualified keys are left unchanged.
+     *
+     * @param message    The error message or reason string. May be null.
+     * @param actionName The action display name. May be null.
+     * @return The transformed message, or the original if no transformation applies.
+     */
+    private String applyI18nKeyPrefix(String message, String actionName) {
+
+        if (message == null || actionName == null) {
+            return message;
+        }
+        Matcher matcher = I18N_KEY_PATTERN.matcher(message);
+        if (matcher.matches()) {
+            String shortKey = matcher.group(1);
+            if (!shortKey.startsWith(I18N_KEY_PREFIX)) {
+                String sanitizedName = sanitizeConnectionName(actionName);
+                return "{{" + I18N_KEY_PREFIX + sanitizedName + "." + shortKey + "}}";
+            }
+        }
+        return message;
+    }
+
+    /**
+     * Sanitize a connection name into a dot-separated lowercase key segment.
+     * Non-alphanumeric characters are replaced with dots, consecutive dots are collapsed,
+     * and leading/trailing dots are trimmed.
+     *
+     * @param name The connection display name.
+     * @return The sanitized key segment (e.g., "Risk Assessment Extension" → "risk.assessment.extension").
+     */
+    public static String sanitizeConnectionName(String name) {
+
+        if (name == null || name.isEmpty()) {
+            return "";
+        }
+        String sanitized = name.toLowerCase().replaceAll("[^a-z0-9]", ".");
+        sanitized = sanitized.replaceAll("\\.{2,}", ".");
+        sanitized = sanitized.replaceAll("^\\.+|\\.+$", "");
+        return sanitized;
     }
 
     /**

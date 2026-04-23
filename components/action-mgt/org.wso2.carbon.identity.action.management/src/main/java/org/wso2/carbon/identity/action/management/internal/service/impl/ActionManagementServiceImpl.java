@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientE
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
@@ -78,8 +79,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
-        // Check whether the action name is unique within the action type.
-        validateActionNameUniqueness(resolvedActionType, action.getName(), null, tenantId);
+        // Check whether the action name is unique within the action type for in-flow extensions.
+        if (resolvedActionType.equals(ActionTypes.IN_FLOW_EXTENSION.getActionType())) {
+            validateActionNameUniqueness(resolvedActionType, action.getName(), null, tenantId);
+        }
         String generatedActionId = UUID.randomUUID().toString();
         ActionDTO creatingActionDTO = buildActionDTOForCreation(resolvedActionType, generatedActionId, action);
 

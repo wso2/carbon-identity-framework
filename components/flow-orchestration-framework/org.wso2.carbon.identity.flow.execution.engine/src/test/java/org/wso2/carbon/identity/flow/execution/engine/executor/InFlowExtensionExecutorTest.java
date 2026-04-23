@@ -32,9 +32,10 @@ import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor.ExecutorResult;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
@@ -124,7 +125,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
         verify(actionExecutorService, never())
                 .execute(any(ActionType.class), anyString(), any(FlowContext.class), anyString());
     }
@@ -138,7 +139,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
     }
 
     // ========================= execute — execution disabled =========================
@@ -154,7 +155,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
         verify(actionExecutorService, never())
                 .execute(any(ActionType.class), anyString(), any(FlowContext.class), anyString());
     }
@@ -180,7 +181,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
     }
 
     // ========================= execute — FAILED =========================
@@ -206,8 +207,11 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_RETRY);
         assertEquals(response.getErrorMessage(), "Risk score exceeds threshold");
+        // Verify errorType metadata is set for RETRY.
+        assertNotNull(response.getAdditionalInfo());
+        assertEquals(response.getAdditionalInfo().get("errorType"), "EXTENSION_ERROR");
     }
 
     @Test
@@ -231,7 +235,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_RETRY);
         // Falls back to reason when description is null.
         assertEquals(response.getErrorMessage(), "risk_detected");
     }
@@ -257,7 +261,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_RETRY);
         assertEquals(response.getErrorMessage(),
                 "The operation could not be completed due to an external service failure.");
     }
@@ -285,7 +289,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
         assertEquals(response.getErrorMessage(), "DB connection failed");
     }
 
@@ -310,7 +314,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
         assertEquals(response.getErrorMessage(), "internal_error");
     }
 
@@ -335,7 +339,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
         assertEquals(response.getErrorMessage(),
                 "An unexpected error occurred in the external service.");
     }
@@ -361,7 +365,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.USER_INPUT_REQUIRED.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
     }
 
     // ========================= execute — null status =========================
@@ -381,7 +385,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.USER_INPUT_REQUIRED.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
     }
 
     // ========================= execute — exception =========================
@@ -401,7 +405,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.RETRY.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
         assertEquals(response.getErrorMessage(),
                 "An error occurred while processing the extension. Please try again.");
     }
@@ -429,79 +433,6 @@ public class InFlowExtensionExecutorTest {
         executor.execute(context);
     }
 
-    // ========================= execute — expose JSON parsing =========================
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testExecuteWithValidExposeJson() throws Exception {
-
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("actionId", "test-action-001");
-        metadata.put("expose", "[\"/properties\",\"/user/claims\"]");
-        FlowExecutionContext context = createContextWithMetadata(metadata);
-
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
-
-        ActionExecutionStatus<Success> successStatus = mock(ActionExecutionStatus.class);
-        when(successStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.SUCCESS);
-        when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
-                any(FlowContext.class), eq("carbon.super")))
-                .thenReturn(successStatus);
-
-        ExecutorResponse response = executor.execute(context);
-
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testExecuteWithMalformedExposeJson() throws Exception {
-
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("actionId", "test-action-001");
-        metadata.put("expose", "not_valid_json");
-        FlowExecutionContext context = createContextWithMetadata(metadata);
-
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
-
-        ActionExecutionStatus<Success> successStatus = mock(ActionExecutionStatus.class);
-        when(successStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.SUCCESS);
-        when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
-                any(FlowContext.class), eq("carbon.super")))
-                .thenReturn(successStatus);
-
-        // Should fall back to default expose but not crash.
-        ExecutorResponse response = executor.execute(context);
-
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testExecuteWithAllowedOperationsJson() throws Exception {
-
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("actionId", "test-action-001");
-        metadata.put("allowedOperations",
-                "[{\"op\":\"add\",\"paths\":[\"/properties/riskScore\"]}]");
-        FlowExecutionContext context = createContextWithMetadata(metadata);
-
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
-
-        ActionExecutionStatus<Success> successStatus = mock(ActionExecutionStatus.class);
-        when(successStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.SUCCESS);
-        when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
-                any(FlowContext.class), eq("carbon.super")))
-                .thenReturn(successStatus);
-
-        ExecutorResponse response = executor.execute(context);
-
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
-    }
-
     // ========================= execute — no node config =========================
 
     @Test
@@ -514,7 +445,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         // actionId is null → COMPLETE.
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
     }
 
     @Test
@@ -528,7 +459,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorResult.COMPLETE.name());
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
     }
 
     // ========================= Helper methods =========================
@@ -545,5 +476,40 @@ public class InFlowExtensionExecutorTest {
         context.setCurrentNode(nodeConfig);
 
         return context;
+    }
+
+    // ========================= sanitizeConnectionName =========================
+
+    @Test
+    public void testSanitizeConnectionNameBasic() {
+
+        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName("Risk Assessment Extension"),
+                "risk.assessment.extension");
+    }
+
+    @Test
+    public void testSanitizeConnectionNameSpecialChars() {
+
+        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName("My-Extension_v2 (test)"),
+                "my.extension.v2.test");
+    }
+
+    @Test
+    public void testSanitizeConnectionNameAlreadyClean() {
+
+        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName("simpleext"),
+                "simpleext");
+    }
+
+    @Test
+    public void testSanitizeConnectionNameEmpty() {
+
+        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName(""), "");
+    }
+
+    @Test
+    public void testSanitizeConnectionNameNull() {
+
+        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName(null), "");
     }
 }

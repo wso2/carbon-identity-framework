@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
@@ -46,9 +47,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -60,8 +63,6 @@ import static org.testng.Assert.fail;
  * Unit tests for {@link InFlowExtensionRequestBuilder}.
  */
 public class InFlowExtensionRequestBuilderTest {
-
-    private static final List<String> ALL_EXPOSE = Arrays.asList("/user/", "/properties/", "/input/", "/flow/");
 
     private InFlowExtensionRequestBuilder requestBuilder;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
@@ -144,13 +145,10 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY,
-                        Arrays.asList("/user/", "/properties/", "/input/", "/flow/"));
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
@@ -165,9 +163,9 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
+        // No action → no access config → no modify paths → empty allowed ops.
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
@@ -184,12 +182,10 @@ public class InFlowExtensionRequestBuilderTest {
         AccessConfig accessConfig = new AccessConfig(null, Arrays.asList());
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
@@ -208,12 +204,10 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskFactors{[String]}", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         // AllowedOperation should have clean path (without {[String]}).
         AllowedOperation op = request.getAllowedOperations().get(0);
@@ -237,12 +231,10 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/items{name: String, count: Integer}", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         AllowedOperation op = request.getAllowedOperations().get(0);
         assertTrue(op.getPaths().contains("/properties/items"));
@@ -263,12 +255,9 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        requestBuilder.buildActionExecutionRequest(flowContext, mockReqCtx(accessConfig, null));
 
         // No annotations should be stored when paths have no annotations.
         Map<String, String> annotations = flowContext.getValue(
@@ -288,12 +277,10 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/properties/items{name: String, count: Integer}", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         AllowedOperation op = request.getAllowedOperations().get(0);
         assertEquals(op.getPaths().size(), 3);
@@ -316,20 +303,20 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
         // Expose only /input/ and /flow/ — /properties/ is NOT exposed.
-        List<String> expose = Arrays.asList("/input/", "/flow/");
         // Modify path targets /properties/riskScore — but this should NOT auto-expose it.
-        AccessConfig accessConfig = new AccessConfig(null,
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(
+                        new ContextPath("/input/", false),
+                        new ContextPath("/flow/", false)),
                 Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         execCtx.setProperty("riskScore", "50");
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, expose);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         // Modify paths should produce REPLACE allowed operation.
         List<AllowedOperation> ops = request.getAllowedOperations();
@@ -352,12 +339,10 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/user/claims/http://wso2.org/claims/email", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         // All modify paths should be grouped into a single REPLACE operation.
         List<AllowedOperation> ops = request.getAllowedOperations();
@@ -374,14 +359,15 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
         // Only expose /flow/ — no user, no properties, no input.
-        List<String> expose = Arrays.asList("/flow/tenantDomain", "/flow/flowType");
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/tenantDomain", false),
+                new ContextPath("/flow/flowType", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, expose);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         // User should NOT be in the event since /user/ is not exposed.
@@ -398,16 +384,15 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
         // Only expose a specific claim.
-        List<String> expose = Arrays.asList(
-                "/user/claims/http://wso2.org/claims/email",
-                "/user/userId");
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/user/claims/http://wso2.org/claims/email", false),
+                new ContextPath("/user/userId", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                .add(InFlowExtensionExecutor.EXPOSE_KEY, expose);
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         assertNotNull(event.getUser());
@@ -429,9 +414,11 @@ public class InFlowExtensionRequestBuilderTest {
             FlowExecutionContext execCtx = createFullFlowExecutionContext();
             execCtx.setProperty("riskScore", "85");
 
-            // Mark /properties/riskScore as expose-encrypted.
+            // riskScore is expose-encrypted; existingProp is exposed plaintext.
             AccessConfig accessConfig = new AccessConfig(
-                    Arrays.asList(new ContextPath("/properties/riskScore", true)),
+                    Arrays.asList(
+                            new ContextPath("/properties/riskScore", true),
+                            new ContextPath("/properties/existingProp", false)),
                     null);
 
             Encryption encryption = new Encryption(
@@ -439,13 +426,10 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                    .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE)
-                    .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                    .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-            ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                    flowContext, mockReqCtx(accessConfig, encryption));
 
             InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
             assertNotNull(event.getFlowProperties());
@@ -469,9 +453,11 @@ public class InFlowExtensionRequestBuilderTest {
 
             FlowExecutionContext execCtx = createFullFlowExecutionContext();
 
-            // Mark /input/consent as expose-encrypted.
+            // consent is expose-encrypted; username is exposed plaintext.
             AccessConfig accessConfig = new AccessConfig(
-                    Arrays.asList(new ContextPath("/input/consent", true)),
+                    Arrays.asList(
+                            new ContextPath("/input/consent", true),
+                            new ContextPath("/input/username", false)),
                     null);
 
             Encryption encryption = new Encryption(
@@ -479,13 +465,10 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                    .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE)
-                    .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                    .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-            ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                    flowContext, mockReqCtx(accessConfig, encryption));
 
             InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
             assertNotNull(event.getUserInputs());
@@ -521,17 +504,28 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx)
-                    .add(InFlowExtensionExecutor.EXPOSE_KEY, ALL_EXPOSE)
-                    .add(InFlowExtensionExecutor.ACCESS_CONFIG_KEY, accessConfig)
-                    .add(InFlowExtensionExecutor.ENCRYPTION_KEY, encryption);
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-            ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
-            requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+            requestBuilder.buildActionExecutionRequest(flowContext, mockReqCtx(accessConfig, encryption));
         }
     }
 
     // ========================= Helper methods =========================
+
+    /**
+     * Create a mock ActionExecutionRequestContext whose getAction() returns an InFlowExtensionAction
+     * configured with the given access config and encryption.
+     */
+    private ActionExecutionRequestContext mockReqCtx(AccessConfig accessConfig, Encryption encryption) {
+
+        InFlowExtensionAction action = mock(InFlowExtensionAction.class);
+        when(action.resolveAccessConfig(any())).thenReturn(accessConfig);
+        when(action.getEncryption()).thenReturn(encryption);
+        when(action.getName()).thenReturn("Test Action");
+        ActionExecutionRequestContext ctx = mock(ActionExecutionRequestContext.class);
+        when(ctx.getAction()).thenReturn(action);
+        return ctx;
+    }
 
     private FlowExecutionContext createMinimalFlowExecutionContext() {
 

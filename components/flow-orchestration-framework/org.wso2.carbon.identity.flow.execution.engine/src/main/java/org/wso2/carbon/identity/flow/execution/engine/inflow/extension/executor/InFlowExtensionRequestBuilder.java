@@ -33,10 +33,12 @@ import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 
@@ -60,6 +62,9 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
 
+    public static final String MODIFY_PATHS_KEY = "modifyPaths";
+    public static final String ACTION_NAME_KEY = "actionName";
+
     @Override
     public ActionType getSupportedActionType() {
 
@@ -67,7 +72,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
                                                               ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
@@ -79,18 +83,34 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     "FlowExecutionContext not found in FlowContext.");
         }
 
-        List<String> expose = flowContext.getValue(InFlowExtensionExecutor.EXPOSE_KEY, List.class);
-        if (expose == null) {
+        // Resolve action-specific config. The action is already resolved by ActionExecutorServiceImpl.
+        Action rawAction = actionExecutionContext.getAction();
+        AccessConfig accessConfig = null;
+        Encryption encryption = null;
+        String actionName = null;
+        if (rawAction instanceof InFlowExtensionAction) {
+            InFlowExtensionAction ext = (InFlowExtensionAction) rawAction;
+            accessConfig = ext.resolveAccessConfig(execCtx.getFlowType());
+            encryption = ext.getEncryption();
+            actionName = ext.getName();
+        }
+
+        List<String> expose;
+        if (accessConfig != null && accessConfig.getExpose() != null) {
+            expose = accessConfig.getExposePaths();
+        } else {
             expose = Collections.emptyList();
         }
 
-        // Read access config for encryption metadata.
-        AccessConfig accessConfig = flowContext.getValue(
-                InFlowExtensionExecutor.ACCESS_CONFIG_KEY, AccessConfig.class);
+        // Store resolved modify paths (with encryption flags) for the response processor.
+        List<ContextPath> modifyPaths = (accessConfig != null && accessConfig.getModify() != null)
+                ? accessConfig.getModify() : Collections.emptyList();
+        flowContext.add(MODIFY_PATHS_KEY, modifyPaths);
 
-        // Read encryption configuration (certificate) separately.
-        Encryption encryption = flowContext.getValue(
-                InFlowExtensionExecutor.ENCRYPTION_KEY, Encryption.class);
+        // Store action name for i18n error key prefixing in the response processor.
+        if (actionName != null) {
+            flowContext.add(ACTION_NAME_KEY, actionName);
+        }
 
         // Build allowed operations from modify paths.
         List<AllowedOperation> allowedOperations = buildAllowedOperationsFromModify(
