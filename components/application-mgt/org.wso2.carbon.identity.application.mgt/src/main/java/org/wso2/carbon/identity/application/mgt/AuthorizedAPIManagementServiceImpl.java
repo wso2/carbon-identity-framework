@@ -242,13 +242,13 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
                 } else {
                     List<AuthorizedScopes> tenantScopes = getScopesExcludingInternalScopes(authorizedScopesMap);
-                    List<AuthorizedScopes> appAuthorisedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
+                    List<AuthorizedScopes> appAuthorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                             IdentityTenantUtil.getTenantId(tenantDomain));
-                    // Merge the app's explicitly authorised scopes into the tenant-wide scopes, grouped by
+                    // Merge the app's explicitly authorized scopes into the tenant-wide scopes, grouped by
                     // policyId. Downstream scope validators key results by policyId + handler name, so
                     // emitting two entries with the same policyId causes the second to clobber the first.
                     log.debug("Merging tenant-wide scopes with app-specific authorized scopes for appId: " + appId);
-                    authorizedScopes = mergeAuthorizedScopesByPolicyId(tenantScopes, appAuthorisedScopes);
+                    authorizedScopes = mergeAuthorizedScopesByPolicyId(tenantScopes, appAuthorizedScopes);
                 }
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
