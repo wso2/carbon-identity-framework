@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.registry.core.Collection;
@@ -71,6 +72,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -84,6 +86,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -280,6 +283,57 @@ public class AuthorizedAPIManagementServiceImplTest {
                 authorizedAPIManagementService.getAuthorizedAuthorizationDetailsTypes(appId, tenantDomain);
         Assert.assertNotNull(fetchedTypes);
         Assert.assertTrue(fetchedTypes.isEmpty());
+    }
+
+    @Test(priority = 5)
+    public void testGetAuthorizedScopesMergesDuplicatePolicyIdsWhenAuthorizeAllScopesEnabled() throws Exception {
+
+        // A tenant-wide API resource whose scopes are NOT subscribed to the application.
+        APIResource tenantOnlyApi = addTestAPIResource("merge-tenant-only");
+        // A separate API resource whose scopes ARE subscribed to the application under the RBAC policy.
+        APIResource appAuthorizedApi = addTestAPIResource("merge-app-authorized");
+        String appId = addApplication();
+
+        AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(appAuthorizedApi.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .scopes(appAuthorizedApi.getScopes())
+                .build();
+
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        authorizedAPIManagementService.addAuthorizedAPI(appId, authorizedAPI, tenantDomain);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(AUTHORIZE_ALL_SCOPES)).thenReturn("true");
+            // AUTHORIZE_INTERNAL_SCOPES intentionally left unstubbed so the merge branch is exercised.
+
+            List<AuthorizedScopes> result =
+                    authorizedAPIManagementService.getAuthorizedScopes(appId, tenantDomain);
+
+            // Tenant-wide and app-subscribed scopes both arrive under policyId=RBAC. They must collapse
+            // into a single entry; otherwise downstream scope validators key results by policyId and lose
+            // one set of scopes (see product-is#27644).
+            long rbacEntryCount = result.stream().filter(e -> "RBAC".equals(e.getPolicyId())).count();
+            Assert.assertEquals(rbacEntryCount, 1L,
+                    "Tenant-wide and app-authorized scopes sharing the RBAC policyId must be merged "
+                            + "into a single entry.");
+
+            AuthorizedScopes rbacEntry = result.stream()
+                    .filter(e -> "RBAC".equals(e.getPolicyId()))
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("Expected an RBAC-policy entry in the result."));
+            Set<String> mergedScopes = new HashSet<>(rbacEntry.getScopes());
+
+            for (Scope scope : tenantOnlyApi.getScopes()) {
+                Assert.assertTrue(mergedScopes.contains(scope.getName()),
+                        "Tenant-wide scope " + scope.getName() + " should survive the merge.");
+            }
+            for (Scope scope : appAuthorizedApi.getScopes()) {
+                Assert.assertTrue(mergedScopes.contains(scope.getName()),
+                        "App-authorized scope " + scope.getName() + " should be present in the merged entry.");
+            }
+        }
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {

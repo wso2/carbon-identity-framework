@@ -49,8 +49,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
@@ -235,11 +238,13 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 if (authoriseInternalScopes) {
                     authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
                 } else {
-                    authorizedScopes = new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                    List<AuthorizedScopes> tenantScopes = getScopesExcludingInternalScopes(authorizedScopesMap);
                     List<AuthorizedScopes> appAuthorisedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                             IdentityTenantUtil.getTenantId(tenantDomain));
-                    // Get the scopes authorised in the application and add them too.
-                    authorizedScopes.addAll(appAuthorisedScopes);
+                    // Merge the app's explicitly authorised scopes into the tenant-wide scopes, grouped by
+                    // policyId. Downstream scope validators key results by policyId + handler name, so
+                    // emitting two entries with the same policyId causes the second to clobber the first.
+                    authorizedScopes = mergeAuthorizedScopesByPolicyId(tenantScopes, appAuthorisedScopes);
                 }
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
@@ -268,6 +273,27 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     return new AuthorizedScopes(authorizedScopes.getPolicyId(), filteredScopes);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private List<AuthorizedScopes> mergeAuthorizedScopesByPolicyId(List<AuthorizedScopes> base,
+                                                                   List<AuthorizedScopes> additions) {
+
+        Map<String, AuthorizedScopes> merged = new LinkedHashMap<>();
+        for (AuthorizedScopes entry : base) {
+            merged.put(entry.getPolicyId(), entry);
+        }
+        for (AuthorizedScopes entry : additions) {
+            AuthorizedScopes existing = merged.get(entry.getPolicyId());
+            if (existing == null) {
+                merged.put(entry.getPolicyId(), entry);
+                continue;
+            }
+            Set<String> combined = new LinkedHashSet<>(existing.getScopes());
+            combined.addAll(entry.getScopes());
+            merged.put(entry.getPolicyId(),
+                    new AuthorizedScopes(entry.getPolicyId(), new ArrayList<>(combined)));
+        }
+        return new ArrayList<>(merged.values());
     }
 
     @Override
