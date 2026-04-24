@@ -41,43 +41,35 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
-import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * This class is responsible for processing the response from In-Flow Extension actions.
  *
- * <p><b>Responsibility</b>: operation processing and applying context updates directly to
- * the {@link FlowExecutionContext}. It processes REPLACE operations on flow
- * properties, user claims, and user inputs.</p>
+ * <p><b>Responsibility</b>: operation processing and collecting context updates into pending maps
+ * that are stored in {@link FlowContext} for the executor to forward to {@code TaskExecutionNode}
+ * via {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse} fields.
+ * It processes {@code REPLACE} operations on flow properties, user claims, and user credentials.</p>
  *
  * <p>Only {@code REPLACE} operations are supported. The {@code allowedOperations} list
  * (derived from modify paths and sent to the external service in the request, enforced
  * upstream by {@code ActionExecutorServiceImpl}) is the sole mechanism for gating which
  * operations are permitted. This processor performs additional validations:</p>
  * <ul>
- *   <li><b>Read-only areas</b>: No modifications allowed to {@code /flow/} or {@code /graph/}.</li>
- *   <li><b>Claim URI validation</b>: For {@code /user/claims/} operations, validates that
- *       the claim URI exists in the local claim dialect and is not an identity claim.</li>
+ *   <li><b>Read-only areas</b>: No modifications allowed to {@code /flow/} paths.</li>
  * </ul>
  */
 public class InFlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
@@ -86,13 +78,9 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
     private static final String PROPERTIES_PATH_PREFIX = "/properties/";
     private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
-    private static final String USER_INPUTS_PATH_PREFIX = "/input/";
+    private static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
     private static final String I18N_KEY_PREFIX = "inflow.extension.";
     private static final Pattern I18N_KEY_PATTERN = Pattern.compile("^\\{\\{(.+)\\}\\}$");
-
-    // Cache for valid claim URIs (per tenant) with TTL.
-    private static final long CLAIM_CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(30);
-    private final Map<String, CachedClaimUris> validClaimUrisCache = new ConcurrentHashMap<>();
 
     @Override
     public ActionType getSupportedActionType() {
@@ -111,7 +99,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         String tenantDomain = execCtx != null ? execCtx.getTenantDomain() : null;
 
         // Read path type annotations set by the request builder.
-        // Maps clean paths to annotation content
+        // Maps clean paths to annotation content.
         Map<String, String> pathTypeAnnotations = flowContext.getValue(
                 InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         if (pathTypeAnnotations == null) {
@@ -120,10 +108,14 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         // Reconstruct AccessConfig from the resolved modify paths stored by the request builder.
         // This reuses AccessConfig.isModifyPathEncrypted() for canonical prefix-based encryption checking.
-        @SuppressWarnings("unchecked")
         List<ContextPath> modifyPaths = flowContext.getValue(
                 InFlowExtensionRequestBuilder.MODIFY_PATHS_KEY, List.class);
         AccessConfig accessConfig = modifyPaths != null ? new AccessConfig(null, modifyPaths) : null;
+
+        // Accumulate pending updates — applied by TaskExecutionNode via ExecutorResponse fields.
+        Map<String, Object> pendingClaims = new HashMap<>();
+        Map<String, char[]> pendingCredentials = new HashMap<>();
+        Map<String, Object> pendingProperties = new HashMap<>();
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -133,9 +125,20 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         if (operations != null && !operations.isEmpty()) {
             for (PerformableOperation operation : operations) {
                 operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
-
-                results.add(processOperation(operation, execCtx, tenantDomain, pathTypeAnnotations));
+                results.add(processOperation(
+                        operation, pathTypeAnnotations, pendingClaims, pendingCredentials, pendingProperties));
             }
+        }
+
+        // Store non-empty pending maps in FlowContext for the executor to forward to TaskExecutionNode.
+        if (!pendingClaims.isEmpty()) {
+            flowContext.add(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, pendingClaims);
+        }
+        if (!pendingCredentials.isEmpty()) {
+            flowContext.add(InFlowExtensionExecutor.PENDING_CREDENTIALS_KEY, pendingCredentials);
+        }
+        if (!pendingProperties.isEmpty()) {
+            flowContext.add(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, pendingProperties);
         }
 
         logOperationExecutionResults(results);
@@ -148,18 +151,22 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
 
     /**
-     * Process a single operation by validating and applying it directly to the
-     * {@link FlowExecutionContext}.
+     * Process a single operation by validating and collecting it into the appropriate pending map.
+     * Updates are not applied directly — they are stored in the pending maps and forwarded to
+     * {@code TaskExecutionNode} via {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse}.
      *
      * @param operation           The operation to process.
-     * @param context             The FlowExecutionContext to apply updates to.
-     * @param tenantDomain        The tenant domain for claim validation.
      * @param pathTypeAnnotations Map of clean paths to their type annotations from allowed operations.
+     * @param pendingClaims       Accumulator map for user claim updates.
+     * @param pendingCredentials  Accumulator map for user credential updates.
+     * @param pendingProperties   Accumulator map for flow property updates.
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
-            FlowExecutionContext context, String tenantDomain,
-            Map<String, String> pathTypeAnnotations) {
+            Map<String, String> pathTypeAnnotations,
+            Map<String, Object> pendingClaims,
+            Map<String, char[]> pendingCredentials,
+            Map<String, Object> pendingProperties) {
 
         String path = operation.getPath();
 
@@ -171,32 +178,31 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         // Route to appropriate handler based on path prefix.
         if (path.startsWith(PROPERTIES_PATH_PREFIX)) {
-            return handlePropertyOperation(operation, context, pathTypeAnnotations);
+            return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
         } else if (path.startsWith(USER_CLAIMS_PATH_PREFIX)) {
-            return handleUserClaimOperation(operation, context, tenantDomain);
-        } else if (path.startsWith(USER_INPUTS_PATH_PREFIX)) {
-            return handleUserInputOperation(operation, context);
+            return handleUserClaimOperation(operation, pendingClaims);
+        } else if (path.startsWith(USER_CREDENTIALS_PATH_PREFIX)) {
+            return handleUserCredentialOperation(operation, pendingCredentials);
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                 "Unknown path prefix. Supported: " + PROPERTIES_PATH_PREFIX +
-                        ", " + USER_CLAIMS_PATH_PREFIX + ", " + USER_INPUTS_PATH_PREFIX);
+                        ", " + USER_CLAIMS_PATH_PREFIX + ", " + USER_CREDENTIALS_PATH_PREFIX);
     }
 
     /**
-     * Handle operation on flow properties — apply directly to {@link FlowExecutionContext}.
+     * Handle operation on flow properties — collect into pending properties map.
      *
      * <p>Only flat property paths are supported (e.g., {@code /properties/riskScore}).
-     * The property is created if it does not already exist. Value coercion is applied
-     * based on path type annotations from the request builder via
+     * Value coercion is applied based on path type annotations from the request builder via
      * {@link PathTypeAnnotationUtil#coerceValue}.</p>
      *
      * @param operation           The performable operation.
-     * @param context             The FlowExecutionContext.
      * @param pathTypeAnnotations Path type annotations map from request builder.
+     * @param pendingProperties   Accumulator map for property updates.
      */
     private OperationExecutionResult handlePropertyOperation(PerformableOperation operation,
-            FlowExecutionContext context, Map<String, String> pathTypeAnnotations) {
+            Map<String, String> pathTypeAnnotations, Map<String, Object> pendingProperties) {
 
         String propertyName = extractNameFromPath(operation.getPath(), PROPERTIES_PATH_PREFIX);
 
@@ -228,24 +234,23 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     "Array value exceeds maximum item limit for path: " + operation.getPath());
         }
 
-        context.setProperty(propertyName, coercedValue);
+        pendingProperties.put(propertyName, coercedValue);
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "Property replace applied.");
     }
 
     /**
-     * Handle REPLACE operation on user claims — validate and apply directly to {@link FlowUser}.
+     * Handle REPLACE operation on user claims — collect into pending claims map.
+     * The value is always stringified via {@code String.valueOf()}.
+     * Claim URI validation is intentionally omitted — validation is the responsibility
+     * of flow validators, not the response processor.
      *
-     * <p>Validates that the claim URI:</p>
-     * <ul>
-     *   <li>Exists in the local claim dialect (via {@link ClaimMetadataManagementService}).</li>
-     *   <li>Is not an identity claim ({@code http://wso2.org/claims/identity/}).</li>
-     * </ul>
-     * <p>The value is always stringified via {@code String.valueOf()}.</p>
+     * @param operation     The performable operation.
+     * @param pendingClaims Accumulator map for user claim updates.
      */
     private OperationExecutionResult handleUserClaimOperation(PerformableOperation operation,
-            FlowExecutionContext context, String tenantDomain) {
+            Map<String, Object> pendingClaims) {
 
         String claimUri = extractNameFromPath(operation.getPath(), USER_CLAIMS_PATH_PREFIX);
 
@@ -254,46 +259,33 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     "Invalid claim path. Claim URI is required.");
         }
 
-        // Reject identity claims — these are system-managed and not user-modifiable.
-        if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Identity claims cannot be modified via extensions: " + claimUri);
-        }
-
-        // Validate claim exists in local claim dialect.
-        if (!isValidClaimUri(claimUri, tenantDomain)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Invalid claim URI. Claim must be configured in the local claim dialect: " + claimUri);
-        }
-
-        FlowUser user = context.getFlowUser();
-        if (user == null) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "No FlowUser in FlowExecutionContext. Cannot apply user claim operation.");
-        }
-
         if (operation.getValue() == null) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Value is required for REPLACE operation.");
         }
 
-        user.addClaim(claimUri, String.valueOf(operation.getValue()));
+        pendingClaims.put(claimUri, String.valueOf(operation.getValue()));
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "User claim replace applied.");
     }
 
     /**
-     * Handle REPLACE operation on user inputs — apply directly to {@link FlowExecutionContext}.
-     * The value is always stringified via {@code String.valueOf()}.
+     * Handle REPLACE operation on user credentials — collect into pending credentials map.
+     * No key validation is applied; any credential key is accepted. The value is converted
+     * to {@code char[]} immediately to avoid holding the secret as a plain {@code String}
+     * any longer than necessary.
+     *
+     * @param operation          The performable operation.
+     * @param pendingCredentials Accumulator map for user credential updates.
      */
-    private OperationExecutionResult handleUserInputOperation(PerformableOperation operation,
-            FlowExecutionContext context) {
+    private OperationExecutionResult handleUserCredentialOperation(PerformableOperation operation,
+            Map<String, char[]> pendingCredentials) {
 
-        String inputName = extractNameFromPath(operation.getPath(), USER_INPUTS_PATH_PREFIX);
+        String credentialKey = extractNameFromPath(operation.getPath(), USER_CREDENTIALS_PATH_PREFIX);
 
-        if (inputName == null || inputName.isEmpty()) {
+        if (credentialKey == null || credentialKey.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Invalid user input path. Input name is required.");
+                    "Invalid credential path. Credential key is required.");
         }
 
         if (operation.getValue() == null) {
@@ -301,60 +293,9 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     "Value is required for REPLACE operation.");
         }
 
-        context.addUserInputData(inputName, String.valueOf(operation.getValue()));
+        pendingCredentials.put(credentialKey, String.valueOf(operation.getValue()).toCharArray());
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                "User input replace applied.");
-    }
-
-    /**
-     * Validate if a claim URI exists in the local claim dialect.
-     */
-    private boolean isValidClaimUri(String claimUri, String tenantDomain) {
-
-        if (claimUri == null || claimUri.isEmpty()) {
-            return false;
-        }
-        return getValidClaimUris(tenantDomain).contains(claimUri);
-    }
-
-    /**
-     * Get valid claim URIs for a tenant, loading from ClaimMetadataManagementService if not cached or expired.
-     */
-    private Set<String> getValidClaimUris(String tenantDomain) {
-
-        String cacheKey = tenantDomain != null ? tenantDomain : "carbon.super";
-
-        CachedClaimUris cached = validClaimUrisCache.get(cacheKey);
-        if (cached != null && !cached.isExpired()) {
-            return cached.getClaimUris();
-        }
-
-        Set<String> validUris = new HashSet<>();
-        try {
-            ClaimMetadataManagementService claimService = getClaimMetadataManagementService();
-            if (claimService != null) {
-                List<LocalClaim> localClaims = claimService.getLocalClaims(tenantDomain);
-                if (localClaims != null) {
-                    for (LocalClaim claim : localClaims) {
-                        validUris.add(claim.getClaimURI());
-                    }
-                }
-            }
-        } catch (ClaimMetadataException e) {
-            LOG.error("Failed to load claim URIs for tenant: " + tenantDomain, e);
-        }
-
-        validClaimUrisCache.put(cacheKey, new CachedClaimUris(validUris));
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Loaded " + validUris.size() + " valid claim URIs for tenant: " + cacheKey);
-        }
-        return validUris;
-    }
-
-    private ClaimMetadataManagementService getClaimMetadataManagementService() {
-
-        return FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService();
+                "User credential replace applied.");
     }
 
     /**
@@ -449,7 +390,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         if (name == null || name.isEmpty()) {
             return "";
         }
-        String sanitized = name.toLowerCase().replaceAll("[^a-z0-9]", ".");
+        String sanitized = name.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]", ".");
         sanitized = sanitized.replaceAll("\\.{2,}", ".");
         sanitized = sanitized.replaceAll("^\\.+|\\.+$", "");
         return sanitized;
@@ -572,28 +513,4 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
     }
 
-    /**
-     * Cache wrapper for claim URIs with TTL support.
-     */
-    private static class CachedClaimUris {
-
-        private final Set<String> claimUris;
-        private final long createdAt;
-
-        CachedClaimUris(Set<String> claimUris) {
-
-            this.claimUris = claimUris;
-            this.createdAt = System.currentTimeMillis();
-        }
-
-        Set<String> getClaimUris() {
-
-            return claimUris;
-        }
-
-        boolean isExpired() {
-
-            return (System.currentTimeMillis() - createdAt) > CLAIM_CACHE_TTL_MS;
-        }
-    }
 }

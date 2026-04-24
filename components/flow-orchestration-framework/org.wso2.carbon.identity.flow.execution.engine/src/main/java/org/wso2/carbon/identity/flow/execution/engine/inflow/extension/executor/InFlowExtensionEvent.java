@@ -37,7 +37,9 @@ import java.util.Map;
 public class InFlowExtensionEvent extends Event {
 
     private final String flowType;
-    private final Map<String, String> userInputs;
+    private final String flowId;
+    private final String callbackUrl;
+    private final String portalUrl;
     private final Map<String, Object> flowProperties;
 
     private InFlowExtensionEvent(Builder builder) {
@@ -49,8 +51,9 @@ public class InFlowExtensionEvent extends Event {
         this.userStore = builder.userStore;
         this.application = builder.application;
         this.flowType = builder.flowType;
-        this.userInputs = builder.userInputs != null ? 
-                Collections.unmodifiableMap(new HashMap<>(builder.userInputs)) : Collections.emptyMap();
+        this.flowId = builder.flowId;
+        this.callbackUrl = builder.callbackUrl;
+        this.portalUrl = builder.portalUrl;
         this.flowProperties = builder.flowProperties != null ? 
                 Collections.unmodifiableMap(new HashMap<>(builder.flowProperties)) : Collections.emptyMap();
     }
@@ -66,13 +69,33 @@ public class InFlowExtensionEvent extends Event {
     }
 
     /**
-     * Get the user inputs collected during the flow.
+     * Get the flow identifier (context identifier of the executing flow).
      *
-     * @return Unmodifiable map of user inputs.
+     * @return The flow identifier.
      */
-    public Map<String, String> getUserInputs() {
+    public String getFlowId() {
 
-        return userInputs;
+        return flowId;
+    }
+
+    /**
+     * Get the callback URL for the flow, if exposed.
+     *
+     * @return The callback URL, or null if not exposed.
+     */
+    public String getCallbackUrl() {
+
+        return callbackUrl;
+    }
+
+    /**
+     * Get the portal URL for the flow, if exposed.
+     *
+     * @return The portal URL, or null if not exposed.
+     */
+    public String getPortalUrl() {
+
+        return portalUrl;
     }
 
     /**
@@ -97,7 +120,9 @@ public class InFlowExtensionEvent extends Event {
         private UserStore userStore;
         private Application application;
         private String flowType;
-        private Map<String, String> userInputs;
+        private String flowId;
+        private String callbackUrl;
+        private String portalUrl;
         private Map<String, Object> flowProperties;
 
         public Builder request(Request request) {
@@ -142,9 +167,21 @@ public class InFlowExtensionEvent extends Event {
             return this;
         }
 
-        public Builder userInputs(Map<String, String> userInputs) {
+        public Builder flowId(String flowId) {
 
-            this.userInputs = userInputs != null ? new HashMap<>(userInputs) : null;
+            this.flowId = flowId;
+            return this;
+        }
+
+        public Builder callbackUrl(String callbackUrl) {
+
+            this.callbackUrl = callbackUrl;
+            return this;
+        }
+
+        public Builder portalUrl(String portalUrl) {
+
+            this.portalUrl = portalUrl;
             return this;
         }
 

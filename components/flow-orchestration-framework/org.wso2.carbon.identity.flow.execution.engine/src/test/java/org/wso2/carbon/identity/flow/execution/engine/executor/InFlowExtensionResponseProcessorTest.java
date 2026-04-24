@@ -72,6 +72,7 @@ public class InFlowExtensionResponseProcessorTest {
     private MockedStatic<LoggerUtils> loggerUtilsMock;
     private MockedStatic<FlowExecutionEngineDataHolder> holderMock;
     private ClaimMetadataManagementService claimService;
+    private FlowContext capturedFlowContext;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -99,6 +100,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         holderMock.close();
         loggerUtilsMock.close();
+        capturedFlowContext = null;
     }
 
     // ========================= getSupportedActionType =========================
@@ -121,7 +123,10 @@ public class InFlowExtensionResponseProcessorTest {
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertEquals(execCtx.getProperties().get("riskScore"), "80");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        assertEquals(pendingProps.get("riskScore"), "80");
     }
 
     @Test
@@ -134,7 +139,10 @@ public class InFlowExtensionResponseProcessorTest {
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertEquals(execCtx.getProperties().get("riskScore"), "80");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        assertEquals(pendingProps.get("riskScore"), "80");
     }
 
     @Test
@@ -149,7 +157,10 @@ public class InFlowExtensionResponseProcessorTest {
                 execCtx, replaceOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertEquals(execCtx.getProperties().get("riskScore"), "75");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        assertEquals(pendingProps.get("riskScore"), "75");
     }
 
     @Test
@@ -165,7 +176,10 @@ public class InFlowExtensionResponseProcessorTest {
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, annotations);
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        Object stored = execCtx.getProperties().get("riskFactors");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        Object stored = pendingProps.get("riskFactors");
         assertTrue(stored instanceof List);
         assertEquals(((List<?>) stored).size(), 2);
     }
@@ -182,7 +196,10 @@ public class InFlowExtensionResponseProcessorTest {
         PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/tags", "singleTag");
         executeSuccessResponse(execCtx, replaceOp, annotations);
 
-        Object stored = execCtx.getProperties().get("tags");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        Object stored = pendingProps.get("tags");
         assertTrue(stored instanceof List);
         assertEquals(((List<?>) stored).size(), 1);
         assertEquals(((List<?>) stored).get(0), "singleTag");
@@ -204,8 +221,11 @@ public class InFlowExtensionResponseProcessorTest {
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, replaceOp, annotations);
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
         // Complex annotation → value passed through as-is.
-        Object stored = execCtx.getProperties().get("item");
+        Object stored = pendingProps.get("item");
         assertTrue(stored instanceof Map);
     }
 
@@ -221,7 +241,10 @@ public class InFlowExtensionResponseProcessorTest {
         PerformableOperation replaceOp = createOperation(Operation.REPLACE, "/properties/score", 95);
         executeSuccessResponse(execCtx, replaceOp, annotations);
 
-        assertEquals(execCtx.getProperties().get("score"), "95");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        assertEquals(pendingProps.get("score"), "95");
     }
 
     @Test
@@ -330,7 +353,10 @@ public class InFlowExtensionResponseProcessorTest {
                 Operation.REPLACE, "/user/claims/http://wso2.org/claims/email", "new@example.com");
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
-        assertEquals(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/email"), "new@example.com");
+        Map<String, Object> pendingClaims =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class);
+        assertNotNull(pendingClaims);
+        assertEquals(pendingClaims.get("http://wso2.org/claims/email"), "new@example.com");
     }
 
     @Test
@@ -342,7 +368,10 @@ public class InFlowExtensionResponseProcessorTest {
                 Operation.REPLACE, "/user/claims/http://wso2.org/claims/country", "US");
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
-        assertEquals(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/country"), "US");
+        Map<String, Object> pendingClaims =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class);
+        assertNotNull(pendingClaims);
+        assertEquals(pendingClaims.get("http://wso2.org/claims/country"), "US");
     }
 
     @Test
@@ -355,7 +384,10 @@ public class InFlowExtensionResponseProcessorTest {
                 Operation.REPLACE, "/user/claims/http://wso2.org/claims/country", 42);
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
-        assertEquals(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/country"), "42");
+        Map<String, Object> pendingClaims =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class);
+        assertNotNull(pendingClaims);
+        assertEquals(pendingClaims.get("http://wso2.org/claims/country"), "42");
     }
 
     @Test
@@ -458,24 +490,30 @@ public class InFlowExtensionResponseProcessorTest {
     @Test
     public void testUserInputReplace() throws ActionExecutionResponseProcessorException {
 
+        // /input/ paths are no longer a modify target; operations on them are silently ignored.
         FlowExecutionContext execCtx = createFlowExecutionContext();
         execCtx.addUserInputData("consent", "false");
 
         PerformableOperation inputOp = createOperation(Operation.REPLACE, "/input/consent", "true");
-        executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
 
-        assertEquals(execCtx.getUserInputData().get("consent"), "true");
+        // Operation succeeds overall but /input/ is not a modify target — input data unchanged.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertEquals(execCtx.getUserInputData().get("consent"), "false");
     }
 
     @Test
     public void testUserInputReplaceCreatesNew() throws ActionExecutionResponseProcessorException {
 
+        // /input/ paths are no longer a modify target; operations on them are silently ignored.
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
         PerformableOperation inputOp = createOperation(Operation.REPLACE, "/input/consent", "true");
-        executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, inputOp, Collections.emptyMap());
 
-        assertEquals(execCtx.getUserInputData().get("consent"), "true");
+        // Operation succeeds overall but /input/ is not a modify target — value is not created.
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        assertNull(execCtx.getUserInputData().get("consent"));
     }
 
     @Test
@@ -549,8 +587,11 @@ public class InFlowExtensionResponseProcessorTest {
         ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, operations, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertEquals(execCtx.getProperties().get("newProp"), "newValue");
-        assertEquals(execCtx.getProperties().get("existingProp"), "updated");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        assertEquals(pendingProps.get("newProp"), "newValue");
+        assertEquals(pendingProps.get("existingProp"), "updated");
     }
 
     @Test
@@ -761,6 +802,8 @@ public class InFlowExtensionResponseProcessorTest {
             flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
         }
 
+        capturedFlowContext = flowContext;
+
         ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
         when(successResponse.getOperations()).thenReturn(operations);
 
@@ -786,6 +829,8 @@ public class InFlowExtensionResponseProcessorTest {
         if (modifyPaths != null) {
             flowContext.add(InFlowExtensionRequestBuilder.MODIFY_PATHS_KEY, modifyPaths);
         }
+
+        capturedFlowContext = flowContext;
 
         ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
         when(successResponse.getOperations()).thenReturn(operations);
@@ -835,6 +880,9 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         // Value should be coerced to String (default behavior for properties).
-        assertEquals(execCtx.getProperties().get("data"), "42");
+        Map<String, Object> pendingProps =
+                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+        assertNotNull(pendingProps);
+        assertEquals(pendingProps.get("data"), "42");
     }
 }

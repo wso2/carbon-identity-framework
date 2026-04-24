@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
@@ -69,6 +70,7 @@ public class InFlowExtensionExecutorTest {
 
     private AutoCloseable mocks;
     private MockedStatic<FlowExecutionEngineDataHolder> holderMock;
+    private MockedStatic<LoggerUtils> loggerUtilsMock;
 
     @BeforeMethod
     public void setUp() {
@@ -82,11 +84,15 @@ public class InFlowExtensionExecutorTest {
 
         holderMock = mockStatic(FlowExecutionEngineDataHolder.class);
         holderMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(holderInstance);
+
+        loggerUtilsMock = mockStatic(LoggerUtils.class);
+        loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        loggerUtilsMock.close();
         holderMock.close();
         mocks.close();
     }
@@ -125,7 +131,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
         verify(actionExecutorService, never())
                 .execute(any(ActionType.class), anyString(), any(FlowContext.class), anyString());
     }
@@ -139,7 +145,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
     }
 
     // ========================= execute — execution disabled =========================
@@ -444,8 +450,8 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        // actionId is null → COMPLETE.
-        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
+        // actionId is null → missing configuration → ERROR.
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
     }
 
     @Test
@@ -459,7 +465,7 @@ public class InFlowExtensionExecutorTest {
 
         ExecutorResponse response = executor.execute(context);
 
-        assertEquals(response.getResult(), ExecutorStatus.STATUS_COMPLETE);
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
     }
 
     // ========================= Helper methods =========================

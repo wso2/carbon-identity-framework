@@ -327,6 +327,19 @@ public class ActionExecutionDiagnosticLogger {
         return diagLogBuilder;
     }
 
+    public void logActionExecutionError(Action action, String errorMessage) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
+                ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION,
+                "Failed to execute " + action.getType().getDisplayName() + " action. " + errorMessage,
+                DiagnosticLog.ResultStatus.FAILED);
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
+    }
+
     private void triggerLogEvent(DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder) {
 
         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);

@@ -23,6 +23,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
@@ -66,6 +67,7 @@ public class InFlowExtensionRequestBuilderTest {
 
     private InFlowExtensionRequestBuilder requestBuilder;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
+    private MockedStatic<LoggerUtils> loggerUtilsMock;
 
     @BeforeMethod
     public void setUp() {
@@ -73,11 +75,14 @@ public class InFlowExtensionRequestBuilderTest {
         requestBuilder = new InFlowExtensionRequestBuilder();
         identityTenantUtilMock = mockStatic(IdentityTenantUtil.class);
         identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+        loggerUtilsMock = mockStatic(LoggerUtils.class);
+        loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
     }
 
     @AfterMethod
     public void tearDown() {
 
+        loggerUtilsMock.close();
         identityTenantUtilMock.close();
     }
 
@@ -130,8 +135,8 @@ public class InFlowExtensionRequestBuilderTest {
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         assertNotNull(event);
         assertNull(event.getFlowType());
-        // userInputs defaults to emptyMap() in the builder — verify it is empty.
-        assertTrue(event.getUserInputs().isEmpty());
+        // flowProperties defaults to emptyMap() in the builder — verify it is empty.
+        assertTrue(event.getFlowProperties().isEmpty());
     }
 
     // ========================= buildAllowedOperations (from modify) =========================
@@ -444,7 +449,7 @@ public class InFlowExtensionRequestBuilderTest {
     }
 
     @Test
-    public void testUserInputsEncryptedWhenExposePathMarkedEncrypted()
+    public void testClaimEncryptedWhenExposePathMarkedEncrypted()
             throws ActionExecutionRequestBuilderException {
 
         try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
@@ -453,11 +458,11 @@ public class InFlowExtensionRequestBuilderTest {
 
             FlowExecutionContext execCtx = createFullFlowExecutionContext();
 
-            // consent is expose-encrypted; username is exposed plaintext.
+            // email claim is expose-encrypted; country claim is exposed plaintext.
             AccessConfig accessConfig = new AccessConfig(
                     Arrays.asList(
-                            new ContextPath("/input/consent", true),
-                            new ContextPath("/input/username", false)),
+                            new ContextPath("/user/claims/http://wso2.org/claims/email", true),
+                            new ContextPath("/user/claims/http://wso2.org/claims/country", false)),
                     null);
 
             Encryption encryption = new Encryption(
@@ -471,14 +476,68 @@ public class InFlowExtensionRequestBuilderTest {
                     flowContext, mockReqCtx(accessConfig, encryption));
 
             InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-            assertNotNull(event.getUserInputs());
-            // consent should be encrypted.
-            String consentValue = event.getUserInputs().get("consent");
-            assertNotNull(consentValue);
-            assertTrue(consentValue.startsWith("encrypted."),
-                    "Input value should be encrypted when expose path is marked encrypted");
-            // username input is NOT marked encrypted — should remain plaintext.
-            assertEquals(event.getUserInputs().get("username"), "testuser");
+            assertNotNull(event.getUser());
+            List<?> claims = event.getUser().getClaims();
+            assertEquals(claims.size(), 2);
+
+            org.wso2.carbon.identity.action.execution.api.model.UserClaim emailClaim = null;
+            org.wso2.carbon.identity.action.execution.api.model.UserClaim countryClaim = null;
+            for (Object c : claims) {
+                org.wso2.carbon.identity.action.execution.api.model.UserClaim uc =
+                        (org.wso2.carbon.identity.action.execution.api.model.UserClaim) c;
+                if ("http://wso2.org/claims/email".equals(uc.getUri())) {
+                    emailClaim = uc;
+                } else if ("http://wso2.org/claims/country".equals(uc.getUri())) {
+                    countryClaim = uc;
+                }
+            }
+
+            assertNotNull(emailClaim, "email claim should be present");
+            assertTrue(emailClaim.getValue().toString().startsWith("encrypted."),
+                    "email claim should be encrypted when expose path is marked encrypted");
+
+            assertNotNull(countryClaim, "country claim should be present");
+            assertEquals(countryClaim.getValue().toString(), "US",
+                    "country claim should remain plaintext when expose path is not marked encrypted");
+        }
+    }
+
+    @Test
+    public void testCredentialEncryptedWhenExposePathMarkedEncrypted()
+            throws ActionExecutionRequestBuilderException {
+
+        try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
+            jweUtilMock.when(() -> JWEEncryptionUtil.encrypt(anyString(), anyString()))
+                    .thenAnswer(inv -> "encrypted." + inv.getArgument(0) + ".jwe.part.four");
+
+            FlowExecutionContext execCtx = createFullFlowExecutionContext();
+            Map<String, char[]> creds = new java.util.HashMap<>();
+            creds.put("password", "secret123".toCharArray());
+            execCtx.getFlowUser().setUserCredentials(creds);
+
+            // password credential is expose-encrypted.
+            AccessConfig accessConfig = new AccessConfig(
+                    Arrays.asList(new ContextPath("/user/credentials/password", true)),
+                    null);
+
+            Encryption encryption = new Encryption(
+                    new Certificate.Builder().id("cert-1").name("test")
+                            .certificateContent("test-cert-pem").build());
+
+            FlowContext flowContext = FlowContext.create()
+                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+            ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                    flowContext, mockReqCtx(accessConfig, encryption));
+
+            InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+            assertNotNull(event.getUser());
+            Map<String, char[]> eventCreds = event.getUser().getUserCredentials();
+            assertNotNull(eventCreds);
+            assertTrue(eventCreds.containsKey("password"));
+            String credValue = new String(eventCreds.get("password"));
+            assertTrue(credValue.startsWith("encrypted."),
+                    "credential should be encrypted when expose path is marked encrypted");
         }
     }
 

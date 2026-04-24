@@ -236,29 +236,17 @@ public class FlowExecutionEngine {
 
         StepDTO stepDTO = graph.getNodePageMappings().get(currentNode.getId());
 
-        // If the current node has no page mapping (e.g., a background EXECUTION node),
-        // fall back to the previous node's page mapping so the previous form re-renders
-        // with any error message displayed inline.
-        if (stepDTO == null && currentNode.getPreviousNodeId() != null) {
-            stepDTO = graph.getNodePageMappings().get(currentNode.getPreviousNodeId());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Node " + currentNode.getId() + " has no page mapping. "
-                        + "Falling back to previous node: " + currentNode.getPreviousNodeId());
-            }
+        DataDTO.Builder dataDTOBuilder = new DataDTO.Builder()
+                .requiredParams(nodeResponse.getRequiredData())
+                .optionalParams(nodeResponse.getOptionalData())
+                .additionalData(nodeResponse.getAdditionalInfo());
+
+        if (stepDTO != null && stepDTO.getData() != null) {
+            dataDTOBuilder.components(stepDTO.getData().getComponents());
         }
 
-        DataDTO dataDTO = stepDTO != null ? stepDTO.getData() : null;
-
-        DataDTO finalDataDTO = null;
-        if (dataDTO != null) {
-            finalDataDTO = new DataDTO.Builder()
-                    .components(dataDTO.getComponents())
-                    .requiredParams(nodeResponse.getRequiredData())
-                    .optionalParams(nodeResponse.getOptionalData())
-                    .additionalData(nodeResponse.getAdditionalInfo())
-                    .build();
-            handleError(finalDataDTO, nodeResponse);
-        }
+        DataDTO finalDataDTO = dataDTOBuilder.build();
+        handleError(finalDataDTO, nodeResponse);
 
         // When the END node is reached, mark the flow status as COMPLETE, set the step type to REDIRECTION,
         // and assign the redirect URL. Note: all END nodes are expected to be of type PROMPT_ONLY.
@@ -267,9 +255,6 @@ public class FlowExecutionEngine {
                 LOG.debug("Flow: " + context.getContextIdentifier() + " has reached the explicitly defined " +
                         "end node. Changing the flow status to COMPLETE, step type to REDIRECTION and setting " +
                         "the redirect URL.");
-            }
-            if (finalDataDTO == null ) {
-                finalDataDTO = new DataDTO();
             }
             finalDataDTO.setRedirectURL(FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context));
             return new FlowExecutionStep.Builder()

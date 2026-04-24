@@ -21,12 +21,12 @@ package org.wso2.carbon.identity.flow.execution.engine.model;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionEvent;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -37,55 +37,39 @@ public class InFlowExtensionEventTest {
     @Test
     public void testBuilderWithAllFields() {
 
-        Map<String, String> userInputs = new HashMap<>();
-        userInputs.put("email", "test@example.com");
-
         Map<String, Object> flowProperties = new HashMap<>();
         flowProperties.put("riskScore", 85);
 
         InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
                 .flowType("REGISTRATION")
-                .userInputs(userInputs)
+                .flowId("flow-id-123")
+                .callbackUrl("https://example.com/callback")
+                .portalUrl("https://example.com/portal")
                 .flowProperties(flowProperties)
                 .build();
 
         assertEquals(event.getFlowType(), "REGISTRATION");
-        assertEquals(event.getUserInputs().get("email"), "test@example.com");
+        assertEquals(event.getFlowId(), "flow-id-123");
+        assertEquals(event.getCallbackUrl(), "https://example.com/callback");
+        assertEquals(event.getPortalUrl(), "https://example.com/portal");
         assertEquals(event.getFlowProperties().get("riskScore"), 85);
     }
 
     @Test
-    public void testBuilderWithNullMaps() {
+    public void testOptionalFieldsDefaultToNull() {
 
         InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
                 .flowType("LOGIN")
-                .userInputs(null)
+                .flowId("flow-id-456")
                 .flowProperties(null)
                 .build();
 
         assertEquals(event.getFlowType(), "LOGIN");
-        assertNotNull(event.getUserInputs());
-        assertTrue(event.getUserInputs().isEmpty());
+        assertEquals(event.getFlowId(), "flow-id-456");
+        assertNull(event.getCallbackUrl());
+        assertNull(event.getPortalUrl());
         assertNotNull(event.getFlowProperties());
         assertTrue(event.getFlowProperties().isEmpty());
-    }
-
-    @Test
-    public void testUserInputsAreUnmodifiable() {
-
-        Map<String, String> userInputs = new HashMap<>();
-        userInputs.put("field", "value");
-
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
-                .userInputs(userInputs)
-                .build();
-
-        try {
-            event.getUserInputs().put("hack", "value");
-            assertTrue(false, "Expected UnsupportedOperationException");
-        } catch (UnsupportedOperationException e) {
-            // Expected — map is unmodifiable
-        }
     }
 
     @Test
@@ -109,15 +93,15 @@ public class InFlowExtensionEventTest {
     @Test
     public void testBuilderDoesNotShareMapReferences() {
 
-        Map<String, String> userInputs = new HashMap<>();
-        userInputs.put("email", "original@test.com");
+        Map<String, Object> flowProperties = new HashMap<>();
+        flowProperties.put("score", "original");
 
         InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
-                .userInputs(userInputs)
+                .flowProperties(flowProperties)
                 .build();
 
         // Mutating the original map should not affect the event
-        userInputs.put("email", "modified@test.com");
-        assertEquals(event.getUserInputs().get("email"), "original@test.com");
+        flowProperties.put("score", "modified");
+        assertEquals(event.getFlowProperties().get("score"), "original");
     }
 }

@@ -21,29 +21,33 @@ package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor
 import java.util.List;
 
 /**
- * Utility class for hierarchical prefix-based path matching and context area identification.
- * 
- * This class provides utilities for working with the unified prefix hierarchy used in
- * In-Flow Extensions for context access control.
- * 
- * Prefix Hierarchy Structure:
+ * Utility class for hierarchical prefix-based path matching for In-Flow Extension access control.
+ *
+ * <p>Expose and modify path lists always contain <b>exact leaf paths</b> (no trailing {@code /}).
+ * Two distinct matching operations are needed, served by two explicit methods:</p>
+ * <ul>
+ *   <li>{@link #anyExposedUnder(String, List)} — area-gate check: is <em>any</em> leaf path
+ *       in the list under a given area prefix (e.g. {@code /user/claims/})?</li>
+ *   <li>{@link #isExposedPath(String, List)} — exact check: is a specific leaf path
+ *       (e.g. {@code /user/claims/http://wso2.org/claims/email}) present in the list?</li>
+ * </ul>
+ *
+ * <p>Prefix hierarchy:</p>
  * <pre>
  * /user/                           - User context
- *   /user/claims/{claimURI}        - User claims (keys are system-configured claim URIs)
+ *   /user/claims/{claimURI}        - User claims
  *   /user/userId                   - User's unique identifier
  *   /user/userStoreDomain          - User store domain
- *   /user/credentials/             - User credentials (system-configured types)
- *   /user/federatedAssociations/   - Federated IDP associations
- * 
+ *   /user/credentials/{key}        - User credentials (no key validation required)
+ *
  * /properties/{key}                - Flow properties (fully extensible)
- * 
- * /input/{key}                     - User input data (runtime extensible)
- * 
+ *
  * /flow/                           - Flow metadata (READ-ONLY)
  *   /flow/tenantDomain             - Tenant domain
  *   /flow/applicationId            - Application ID
  *   /flow/flowType                 - Flow type (REGISTRATION, etc.)
- *   /flow/contextIdentifier        - Flow context identifier
+ *   /flow/callbackUrl              - Callback URL (expose-only)
+ *   /flow/portalUrl                - Portal URL (expose-only)
  * </pre>
  */
 public final class HierarchicalPrefixMatcher {
@@ -52,174 +56,24 @@ public final class HierarchicalPrefixMatcher {
     public static final String USER_PREFIX = "/user/";
     public static final String USER_CLAIMS_PREFIX = "/user/claims/";
     public static final String USER_CREDENTIALS_PREFIX = "/user/credentials/";
-    public static final String USER_FEDERATED_PREFIX = "/user/federatedAssociations/";
     public static final String USER_ID_PATH = "/user/userId";
     public static final String USER_STORE_DOMAIN_PATH = "/user/userStoreDomain";
 
     public static final String PROPERTIES_PREFIX = "/properties/";
-    public static final String INPUT_PREFIX = "/input/";
 
     public static final String FLOW_PREFIX = "/flow/";
     public static final String FLOW_TENANT_PATH = "/flow/tenantDomain";
     public static final String FLOW_APP_ID_PATH = "/flow/applicationId";
     public static final String FLOW_TYPE_PATH = "/flow/flowType";
-
-    /**
-     * Context area enum for categorization.
-     */
-    public enum ContextArea {
-        USER_CLAIMS(USER_CLAIMS_PREFIX, true),      // System-configured keys (claim URIs)
-        USER_CREDENTIALS(USER_CREDENTIALS_PREFIX, true), // System-configured keys
-        USER_FEDERATED(USER_FEDERATED_PREFIX, true),     // System-configured keys (IDP names)
-        USER_SCALAR(USER_PREFIX, false),            // Scalar user fields (userId, username, etc.)
-        PROPERTIES(PROPERTIES_PREFIX, false),       // Fully extensible
-        INPUT(INPUT_PREFIX, false),                 // Runtime extensible
-        FLOW(FLOW_PREFIX, false);                   // Read-only scalar values
-
-        private final String prefix;
-        private final boolean hasSystemConfiguredKeys;
-
-        ContextArea(String prefix, boolean hasSystemConfiguredKeys) {
-
-            this.prefix = prefix;
-            this.hasSystemConfiguredKeys = hasSystemConfiguredKeys;
-        }
-
-        public String getPrefix() {
-
-            return prefix;
-        }
-
-        /**
-         * Whether this context area has system-configured keys that must be validated.
-         * - USER_CLAIMS: Keys are claim URIs configured in claim dialect
-         * - USER_CREDENTIALS: Keys are credential types (e.g., "password")
-         * - USER_FEDERATED: Keys are IDP names
-         */
-        public boolean hasSystemConfiguredKeys() {
-
-            return hasSystemConfiguredKeys;
-        }
-    }
+    public static final String FLOW_CALLBACK_URL_PATH = "/flow/callbackUrl";
+    public static final String FLOW_PORTAL_URL_PATH = "/flow/portalUrl";
 
     private HierarchicalPrefixMatcher() {
 
     }
 
     /**
-     * Identify the context area for a given path.
-     *
-     * @param path The full path (e.g., "/user/claims/http://wso2.org/claims/email")
-     * @return The ContextArea or null if path doesn't match any known area
-     */
-    public static ContextArea identifyContextArea(String path) {
-
-        if (path == null || path.isEmpty()) {
-            return null;
-        }
-
-        // Check specific prefixes first (more specific before less specific)
-        if (path.startsWith(USER_CLAIMS_PREFIX)) {
-            return ContextArea.USER_CLAIMS;
-        }
-        if (path.startsWith(USER_CREDENTIALS_PREFIX)) {
-            return ContextArea.USER_CREDENTIALS;
-        }
-        if (path.startsWith(USER_FEDERATED_PREFIX)) {
-            return ContextArea.USER_FEDERATED;
-        }
-        if (path.startsWith(USER_PREFIX)) {
-            return ContextArea.USER_SCALAR;
-        }
-        if (path.startsWith(PROPERTIES_PREFIX)) {
-            return ContextArea.PROPERTIES;
-        }
-        if (path.startsWith(INPUT_PREFIX)) {
-            return ContextArea.INPUT;
-        }
-        if (path.startsWith(FLOW_PREFIX)) {
-            return ContextArea.FLOW;
-        }
-
-        return null;
-    }
-
-    /**
-     * Extract the key from a path within a context area.
-     * For map-based areas (claims, properties, input), this extracts the map key.
-     *
-     * @param path The full path
-     * @param prefix The prefix to remove
-     * @return The extracted key or null if invalid
-     */
-    public static String extractKey(String path, String prefix) {
-
-        if (path == null || prefix == null || !path.startsWith(prefix)) {
-            return null;
-        }
-
-        String key = path.substring(prefix.length());
-
-        // Handle trailing slash
-        if (key.endsWith("/")) {
-            key = key.substring(0, key.length() - 1);
-        }
-
-        // Handle nested paths (e.g., /properties/nested/field -> return "nested")
-        int slashIndex = key.indexOf('/');
-        if (slashIndex > 0) {
-            // For simple use, return only the first level key
-            // The full remaining path is available via getSubPath()
-            key = key.substring(0, slashIndex);
-        }
-
-        return key.isEmpty() ? null : key;
-    }
-
-    /**
-     * Extract the full remaining path after the prefix.
-     * Unlike extractKey, this returns the complete sub-path including nested paths.
-     *
-     * @param path The full path
-     * @param prefix The prefix to remove
-     * @return The full remaining path or null if invalid
-     */
-    public static String getSubPath(String path, String prefix) {
-
-        if (path == null || prefix == null || !path.startsWith(prefix)) {
-            return null;
-        }
-
-        String subPath = path.substring(prefix.length());
-
-        // Handle trailing slash
-        if (subPath.endsWith("/")) {
-            subPath = subPath.substring(0, subPath.length() - 1);
-        }
-
-        return subPath.isEmpty() ? null : subPath;
-    }
-
-    /**
-     * Build a full path from a prefix and key.
-     *
-     * @param prefix The context area prefix
-     * @param key The key within that area
-     * @return The full path
-     */
-    public static String buildPath(String prefix, String key) {
-
-        if (prefix == null || key == null) {
-            return null;
-        }
-
-        // Ensure prefix ends with /
-        String normalizedPrefix = prefix.endsWith("/") ? prefix : prefix + "/";
-        return normalizedPrefix + key;
-    }
-
-    /**
-     * Check if a path is read-only (in /flow/ or /graph/ areas).
+     * Check if a path is read-only (in /flow/ area).
      *
      * @param path The path to check
      * @return true if the path is in a read-only area
@@ -233,47 +87,48 @@ public final class HierarchicalPrefixMatcher {
     }
 
     /**
-     * Check if a path requires system-configured key validation.
+     * Check if any leaf path in the list falls under the given area prefix.
      *
-     * @param path The path to check
-     * @return true if the path's keys must be validated against system configuration
+     * <p>Used as an area-gate check before iterating over a data block — e.g., to decide
+     * whether to include any claims, credentials, or properties in the outgoing request.
+     * The {@code areaPrefix} always ends with {@code /} (e.g. {@code /user/claims/}).
+     * The {@code leafPaths} list contains only exact leaf paths with no trailing {@code /}.</p>
+     *
+     * @param areaPrefix The area prefix to check (must end with {@code /}).
+     * @param leafPaths  The list of exposed leaf paths.
+     * @return {@code true} if at least one leaf path starts with the area prefix.
      */
-    public static boolean requiresSystemKeyValidation(String path) {
+    public static boolean anyExposedUnder(String areaPrefix, List<String> leafPaths) {
 
-        ContextArea area = identifyContextArea(path);
-        return area != null && area.hasSystemConfiguredKeys();
-    }
-
-    /**
-     * Check if a path matches any of the given expose paths using bidirectional prefix matching.
-     *
-     * <p>Expose paths are always leaf-level (e.g. {@code /user/claims/http://wso2.org/claims/email}).
-     * Bidirectional matching is required because this method serves two distinct purposes:</p>
-     * <ul>
-     *   <li><b>Area-level gate checks</b>: {@code path} is an area prefix (e.g. {@code /user/}).
-     *       Direction 2 ({@code prefix.startsWith(path)}) detects that a leaf expose path
-     *       falls under this area — e.g. {@code /user/claims/email} starts with {@code /user/}.</li>
-     *   <li><b>Leaf-level filtering</b>: {@code path} is a specific runtime path
-     *       (e.g. {@code /user/claims/http://wso2.org/claims/email}).
-     *       Direction 1 ({@code path.startsWith(prefix)}) performs exact match against
-     *       leaf expose paths.</li>
-     * </ul>
-     *
-     * @param path           The path to check (can be an area prefix or a specific leaf path).
-     * @param exposePrefixes The list of leaf-level expose paths.
-     * @return {@code true} if the path matches any expose path.
-     */
-    public static boolean matchesAnyExpose(String path, List<String> exposePrefixes) {
-
-        if (path == null || exposePrefixes == null || exposePrefixes.isEmpty()) {
+        if (areaPrefix == null || leafPaths == null || leafPaths.isEmpty()) {
             return false;
         }
-        for (String prefix : exposePrefixes) {
-            if (path.startsWith(prefix) || prefix.startsWith(path)) {
+        for (String path : leafPaths) {
+            if (path != null && path.startsWith(areaPrefix)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Check if an exact leaf path is present in the expose list.
+     *
+     * <p>Used for leaf-level filtering — e.g., to decide whether a specific claim URI,
+     * credential key, or scalar field should be included in the outgoing request.
+     * The {@code leafPath} has no trailing {@code /}.
+     * The {@code leafPaths} list contains only exact leaf paths.</p>
+     *
+     * @param leafPath  The exact path to look up.
+     * @param leafPaths The list of exposed leaf paths.
+     * @return {@code true} if the path is present in the list.
+     */
+    public static boolean isExposedPath(String leafPath, List<String> leafPaths) {
+
+        if (leafPath == null || leafPaths == null || leafPaths.isEmpty()) {
+            return false;
+        }
+        return leafPaths.contains(leafPath);
     }
 
 }
