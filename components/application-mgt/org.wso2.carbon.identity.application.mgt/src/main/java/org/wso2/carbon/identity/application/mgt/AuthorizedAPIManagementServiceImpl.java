@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
@@ -78,6 +80,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_S
 )
 public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManagementService {
 
+    private static final Log log = LogFactory.getLog(AuthorizedAPIManagementServiceImpl.class);
     private final AuthorizedAPIDAO authorizedAPIDAO = new CacheBackedAuthorizedAPIDAOImpl(new AuthorizedAPIDAOImpl());
 
     @Override
@@ -244,6 +247,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     // Merge the app's explicitly authorised scopes into the tenant-wide scopes, grouped by
                     // policyId. Downstream scope validators key results by policyId + handler name, so
                     // emitting two entries with the same policyId causes the second to clobber the first.
+                    log.debug("Merging tenant-wide scopes with app-specific authorized scopes for appId: " + appId);
                     authorizedScopes = mergeAuthorizedScopesByPolicyId(tenantScopes, appAuthorisedScopes);
                 }
             } else {
@@ -278,6 +282,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     private List<AuthorizedScopes> mergeAuthorizedScopesByPolicyId(List<AuthorizedScopes> base,
                                                                    List<AuthorizedScopes> additions) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Merging authorized scopes by policyId. Base entries: " + base.size()
+                    + ", Addition entries: " + additions.size());
+        }
         Map<String, AuthorizedScopes> merged = new LinkedHashMap<>();
         for (AuthorizedScopes entry : base) {
             merged.put(entry.getPolicyId(), entry);

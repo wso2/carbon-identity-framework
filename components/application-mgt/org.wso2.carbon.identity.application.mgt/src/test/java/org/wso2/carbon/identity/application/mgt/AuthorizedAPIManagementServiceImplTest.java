@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
@@ -97,6 +99,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithH2Database(files = {"dbscripts/identity.sql"})
 public class AuthorizedAPIManagementServiceImplTest {
 
+    private static final Log log = LogFactory.getLog(AuthorizedAPIManagementServiceImplTest.class);
     private String tenantDomain;
     private APIResourceManager apiResourceManager;
     @Mock
@@ -288,6 +291,7 @@ public class AuthorizedAPIManagementServiceImplTest {
     @Test(priority = 5)
     public void testGetAuthorizedScopesMergesDuplicatePolicyIdsWhenAuthorizeAllScopesEnabled() throws Exception {
 
+        log.info("Starting test for merging duplicate policy IDs when authorize all scopes is enabled");
         // A tenant-wide API resource whose scopes are NOT subscribed to the application.
         APIResource tenantOnlyApi = addTestAPIResource("merge-tenant-only");
         // A separate API resource whose scopes ARE subscribed to the application under the RBAC policy.
@@ -311,6 +315,7 @@ public class AuthorizedAPIManagementServiceImplTest {
             List<AuthorizedScopes> result =
                     authorizedAPIManagementService.getAuthorizedScopes(appId, tenantDomain);
 
+            log.debug("Retrieved authorized scopes for appId: " + appId + ", result size: " + result.size());
             // Tenant-wide and app-subscribed scopes both arrive under policyId=RBAC. They must collapse
             // into a single entry; otherwise downstream scope validators key results by policyId and lose
             // one set of scopes (see product-is#27644).
