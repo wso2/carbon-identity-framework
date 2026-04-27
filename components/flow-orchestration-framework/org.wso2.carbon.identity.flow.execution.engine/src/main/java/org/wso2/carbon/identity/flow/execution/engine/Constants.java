@@ -162,6 +162,9 @@ public class Constants {
         ERROR_CODE_GET_CLAIM_META_DATA_FAILURE("65032",
                 "Error while loading claim metadata.",
                 "Error occurred loading the claim metadata for tenant: %s."),
+        ERROR_CODE_INFLOW_EXTENSION_ERROR("65033",
+                "InFlow extension reported an error.",
+                "%s"),
 
 
         // Client errors.

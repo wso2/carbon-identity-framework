@@ -296,7 +296,10 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorMessage(), "DB connection failed");
+        assertEquals(response.getErrorCode(), InFlowExtensionExecutor.EXTENSION_ERROR_CODE);
+        // errorMessage carries the Error reason/code field; errorDescription carries the human-readable text.
+        assertEquals(response.getErrorMessage(), "internal_error");
+        assertEquals(response.getErrorDescription(), "DB connection failed");
     }
 
     @Test
@@ -321,7 +324,9 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
+        assertEquals(response.getErrorCode(), InFlowExtensionExecutor.EXTENSION_ERROR_CODE);
         assertEquals(response.getErrorMessage(), "internal_error");
+        assertNull(response.getErrorDescription());
     }
 
     @Test
@@ -346,8 +351,10 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorMessage(),
-                "An unexpected error occurred in the external service.");
+        assertEquals(response.getErrorCode(), InFlowExtensionExecutor.EXTENSION_ERROR_CODE);
+        // Both fields null → errorMessage and errorDescription remain null; errorCode alone triggers FE-65033 routing.
+        assertNull(response.getErrorMessage());
+        assertNull(response.getErrorDescription());
     }
 
     // ========================= execute — INCOMPLETE =========================

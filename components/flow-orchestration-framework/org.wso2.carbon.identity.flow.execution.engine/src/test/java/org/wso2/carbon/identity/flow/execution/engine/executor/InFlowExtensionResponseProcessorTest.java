@@ -636,9 +636,10 @@ public class InFlowExtensionResponseProcessorTest {
     public void testProcessFailureResponseWithI18nKey()
             throws ActionExecutionResponseProcessorException {
 
+        // Extension sends a bare dot-separated short key ({{}} wrapping is rejected by JSON parsers).
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
         when(failureResponse.getFailureReason()).thenReturn("high_risk");
-        when(failureResponse.getFailureDescription()).thenReturn("{{denied}}");
+        when(failureResponse.getFailureDescription()).thenReturn("user.access.denied");
 
         @SuppressWarnings("unchecked")
         ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
@@ -652,9 +653,10 @@ public class InFlowExtensionResponseProcessorTest {
                 flowContext, responseContext);
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.FAILED);
+        // Bare short key is prefixed and wrapped for frontend i18n resolution.
         assertEquals(status.getResponse().getFailureDescription(),
-                "{{inflow.extension.risk.assessment.extension.denied}}");
-        // Plain reason string — not an i18n key, passes through unchanged.
+                "{{inflow.extension.risk.assessment.extension.user.access.denied}}");
+        // Reason contains underscore — not a dot-separated key, passes through unchanged.
         assertEquals(status.getResponse().getFailureReason(), "high_risk");
     }
 
@@ -686,10 +688,12 @@ public class InFlowExtensionResponseProcessorTest {
     public void testProcessFailureResponseWithFullyQualifiedKey()
             throws ActionExecutionResponseProcessorException {
 
+        // A string that does not match the bare short-key pattern (contains braces) must
+        // pass through untouched — the processor is not responsible for stripping artefacts.
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
         when(failureResponse.getFailureReason()).thenReturn("high_risk");
         when(failureResponse.getFailureDescription())
-                .thenReturn("{{inflow.extension.risk.assessment.extension.denied}}");
+                .thenReturn("inflow.extension.risk.assessment.extension.user.access.denied");
 
         @SuppressWarnings("unchecked")
         ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
@@ -702,9 +706,9 @@ public class InFlowExtensionResponseProcessorTest {
         ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
                 flowContext, responseContext);
 
-        // Already-qualified key must not be double-prefixed.
+        // Already starts with "inflow.extension." — must not be double-prefixed.
         assertEquals(status.getResponse().getFailureDescription(),
-                "{{inflow.extension.risk.assessment.extension.denied}}");
+                "inflow.extension.risk.assessment.extension.user.access.denied");
     }
 
     @Test
@@ -713,20 +717,20 @@ public class InFlowExtensionResponseProcessorTest {
 
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
         when(failureResponse.getFailureReason()).thenReturn("high_risk");
-        when(failureResponse.getFailureDescription()).thenReturn("{{denied}}");
+        when(failureResponse.getFailureDescription()).thenReturn("user.access.denied");
 
         @SuppressWarnings("unchecked")
         ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
                 mock(ActionExecutionResponseContext.class);
         when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
 
-        // No ACTION_NAME_KEY in FlowContext — no prefix should be applied.
+        // No ACTION_NAME_KEY in FlowContext — no prefix should be applied; value passes through.
         FlowContext flowContext = FlowContext.create();
 
         ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
                 flowContext, responseContext);
 
-        assertEquals(status.getResponse().getFailureDescription(), "{{denied}}");
+        assertEquals(status.getResponse().getFailureDescription(), "user.access.denied");
     }
 
     // ========================= processErrorResponse =========================

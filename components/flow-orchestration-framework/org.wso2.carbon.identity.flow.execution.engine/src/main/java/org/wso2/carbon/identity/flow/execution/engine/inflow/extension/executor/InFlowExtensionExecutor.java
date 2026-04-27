@@ -76,6 +76,9 @@ public class InFlowExtensionExecutor implements Executor {
     private static final String ACTION_ID_METADATA_KEY = "actionId";
     private static final String ERROR_TYPE_KEY = "errorType";
     private static final String EXTENSION_ERROR_TYPE = "EXTENSION_ERROR";
+    public static final String ERROR_MESSAGE_KEY = "errorMessage";
+    public static final String ERROR_DESCRIPTION_KEY = "errorDescription";
+    public static final String EXTENSION_ERROR_CODE = "65033";
 
     @Override
     public String getName() {
@@ -229,6 +232,14 @@ public class InFlowExtensionExecutor implements Executor {
                 response.setResult(ExecutorStatus.STATUS_RETRY);
                 Failure failure = (Failure) executionStatus.getResponse();
                 if (failure != null) {
+                    Map<String, String> failureInfo = new HashMap<>();
+                    if (failure.getFailureReason() != null) {
+                        failureInfo.put(ERROR_MESSAGE_KEY, failure.getFailureReason());
+                    }
+                    if (failure.getFailureDescription() != null) {
+                        failureInfo.put(ERROR_DESCRIPTION_KEY, failure.getFailureDescription());
+                    }
+                    response.setAdditionalInfo(failureInfo);
                     response.setErrorMessage(buildUserFacingErrorMessage(failure));
                 }
                 break;
@@ -236,8 +247,18 @@ public class InFlowExtensionExecutor implements Executor {
             case ERROR:
                 response.setResult(ExecutorStatus.STATUS_ERROR);
                 Error error = (Error) executionStatus.getResponse();
+                response.setErrorCode(EXTENSION_ERROR_CODE);
                 if (error != null) {
-                    response.setErrorMessage(buildUserFacingErrorMessage(error));
+                    Map<String, String> errorInfo = new HashMap<>();
+                    if (error.getErrorMessage() != null) {
+                        errorInfo.put(ERROR_MESSAGE_KEY, error.getErrorMessage());
+                    }
+                    if (error.getErrorDescription() != null) {
+                        errorInfo.put(ERROR_DESCRIPTION_KEY, error.getErrorDescription());
+                    }
+                    response.setAdditionalInfo(errorInfo);
+                    response.setErrorMessage(stripI18nBraces(error.getErrorMessage()));
+                    response.setErrorDescription(stripI18nBraces(error.getErrorDescription()));
                 }
                 break;
 
@@ -274,30 +295,25 @@ public class InFlowExtensionExecutor implements Executor {
         return "The operation could not be completed due to an external service failure.";
     }
 
-    /**
-     * Build a user-facing error message from the error details returned by the external service.
-     * Prefers the errorDescription (human-readable). Falls back to errorMessage if description is absent.
-     *
-     * @param error The error object from the external service.
-     * @return A display-ready error message string.
-     */
-    private String buildUserFacingErrorMessage(Error error) {
-
-        String description = error.getErrorDescription();
-        String message = error.getErrorMessage();
-
-        if (description != null && !description.isEmpty()) {
-            return description;
-        }
-        if (message != null && !message.isEmpty()) {
-            return message;
-        }
-        return "An unexpected error occurred in the external service.";
-    }
-
     private ActionExecutorService getActionExecutorService() {
 
         return FlowExecutionEngineDataHolder.getInstance().getActionExecutorService();
+    }
+
+    /**
+     * Strip the {@code {{...}}} wrapper from an i18n key so the JSP error page can resolve it
+     * via {@code AuthenticationEndpointUtil.i18n(resourceBundle, key)}. Raw text values (without
+     * the wrapper) and {@code null} are returned unchanged.
+     */
+    private static String stripI18nBraces(String value) {
+
+        if (value == null) {
+            return null;
+        }
+        if (value.startsWith("{{") && value.endsWith("}}") && value.length() > 4) {
+            return value.substring(2, value.length() - 2);
+        }
+        return value;
     }
 
     /**
