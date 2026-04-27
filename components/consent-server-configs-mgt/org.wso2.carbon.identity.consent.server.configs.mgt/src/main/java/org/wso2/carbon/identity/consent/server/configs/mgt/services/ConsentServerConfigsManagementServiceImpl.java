@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.consent.server.configs.mgt.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType.PrimitiveOperator.EQUALS;
+import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.ENFORCE_EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.EXTERNAL_CONSENT_PAGE_CONFIGURATIONS;
 import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.EXTERNAL_CONSENT_PAGE_URL;
@@ -72,8 +74,7 @@ public class ConsentServerConfigsManagementServiceImpl implements ConsentServerC
      */
     public String getExternalConsentPageUrl(String tenantDomain) throws ConsentServerConfigsMgtException {
 
-        Condition condition = getExternalConsentPageUrlSearchCondition();
-        List<Attribute> resourceAttributes = getResourceAttributesByTenant(tenantDomain, condition);
+        List<Attribute> resourceAttributes = getExternalConsentPageAttributes(tenantDomain);
 
         String externalConsentPageUrl = "";
         if (resourceAttributes != null && resourceAttributes.size() > 0) {
@@ -83,12 +84,68 @@ public class ConsentServerConfigsManagementServiceImpl implements ConsentServerC
                     .map(Attribute::getValue).findFirst().orElse(null);
         }
 
-        if (externalConsentPageUrl.isEmpty()) {
+        if (StringUtils.isBlank(externalConsentPageUrl)) {
             throw new ConsentServerConfigsMgtClientException(
                     ERROR_NO_EXTERNAL_CONSENT_PAGE_URL_FOUND.getCode(),
                     String.format(ERROR_NO_EXTERNAL_CONSENT_PAGE_URL_FOUND.getMessage(), tenantDomain));
         }
         return externalConsentPageUrl;
+    }
+
+    /**
+     * Method to check whether the external consent page is enforced at the organization level.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return True if the external consent page is enforced at the organization level and a URL is configured.
+     * @throws ConsentServerConfigsMgtException If an error occurred while checking the enforcement.
+     */
+    public boolean isExternalConsentPageEnforced(String tenantDomain) throws ConsentServerConfigsMgtException {
+
+        try {
+            List<Attribute> resourceAttributes = getExternalConsentPageAttributes(tenantDomain);
+
+            boolean isEnforced = false;
+            if (resourceAttributes != null && !resourceAttributes.isEmpty()) {
+                String enforceValue = resourceAttributes.stream()
+                        .filter(attribute -> attribute.getKey().equals(ENFORCE_EXTERNAL_CONSENT_PAGE))
+                        .map(Attribute::getValue).findFirst().orElse(null);
+                isEnforced = Boolean.parseBoolean(enforceValue);
+            }
+
+            if (isEnforced) {
+                String externalConsentPageUrl = resourceAttributes.stream()
+                        .filter(attribute -> attribute.getKey().equals(EXTERNAL_CONSENT_PAGE_URL))
+                        .map(Attribute::getValue).findFirst().orElse(null);
+
+                if (StringUtils.isBlank(externalConsentPageUrl)) {
+                    LOG.error("External consent page is enforced for tenant: " + tenantDomain +
+                            " but no external consent page URL is configured. " +
+                            "Falling back to default consent page behavior.");
+                    return false;
+                }
+            }
+
+            return isEnforced;
+        } catch (ConsentServerConfigsMgtClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("External consent page configurations not found for tenant: " + tenantDomain, e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Method to get the resource attributes for the external consent page configuration for the tenant.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Resource attributes list.
+     * @throws ConsentServerConfigsMgtException If an error occurred in getting the consent configurations.
+     */
+    private List<Attribute> getExternalConsentPageAttributes(String tenantDomain)
+            throws ConsentServerConfigsMgtException {
+
+        Condition condition = getExternalConsentPageUrlSearchCondition();
+        return getResourceAttributesByTenant(tenantDomain, condition);
     }
 
     /**
