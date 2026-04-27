@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,8 @@ public class ActionInvocationResponse {
     private APIResponse response;
 
     private boolean retry;
+
+    private boolean unauthorized;
 
     private String errorLog;
 
@@ -65,6 +67,11 @@ public class ActionInvocationResponse {
         return retry;
     }
 
+    public boolean isUnauthorized() {
+
+        return unauthorized;
+    }
+
     public String getErrorLog() {
 
         return errorLog;
@@ -97,6 +104,7 @@ public class ActionInvocationResponse {
         private Status actionStatus;
         private APIResponse response;
         private boolean retry;
+        private boolean unauthorized;
 
         private String errorLog;
 
@@ -114,6 +122,13 @@ public class ActionInvocationResponse {
             return this;
         }
 
+        public Builder unauthorized(boolean unauthorized) {
+
+            this.unauthorized = unauthorized;
+            this.actionStatus = Status.ERROR;
+            return this;
+        }
+
         public Builder errorLog(String errorLog) {
 
             this.errorLog = errorLog;
@@ -127,6 +142,7 @@ public class ActionInvocationResponse {
             response.actionStatus = this.actionStatus;
             response.response = this.response;
             response.retry = this.retry;
+            response.unauthorized = this.unauthorized;
             response.errorLog = this.errorLog;
             return response;
         }

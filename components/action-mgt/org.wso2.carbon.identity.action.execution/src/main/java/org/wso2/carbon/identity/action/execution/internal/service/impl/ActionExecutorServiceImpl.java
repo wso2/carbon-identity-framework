@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -60,6 +60,7 @@ import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutorCon
 import org.wso2.carbon.identity.action.execution.internal.util.AuthMethods;
 import org.wso2.carbon.identity.action.execution.internal.util.OperationComparator;
 import org.wso2.carbon.identity.action.execution.internal.util.RequestFilter;
+import org.wso2.carbon.identity.action.execution.internal.util.TokenManager;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
@@ -71,6 +72,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -279,13 +281,28 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         AuthMethods.AuthMethod authenticationMethod;
 
         try {
-            authenticationMethod = getAuthenticationMethod(action.getId(), endpointAuthentication);
+            authenticationMethod = getAuthenticationMethod(action, endpointAuthentication);
             String payload = serializeRequest(actionRequest);
 
             logActionRequest(action, payload);
 
             ActionInvocationResponse actionInvocationResponse =
                     executeActionAsynchronously(action, authenticationMethod, payload);
+
+            if (endpointAuthentication.getType() == Authentication.Type.CLIENT_CREDENTIAL) {
+                int maxRetries = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
+                int attempt = 0;
+                while (actionInvocationResponse.isUnauthorized() && attempt < maxRetries) {
+                    attempt++;
+                    logRetryAttemptDueToUnauthorizedResponse(action, attempt, maxRetries);
+                    authenticationMethod = buildClientCredentialAuthMethod(action, endpointAuthentication, true);
+                    logActionRequest(action, payload);
+                    actionInvocationResponse = executeActionAsynchronously(action, authenticationMethod, payload);
+                }
+                if (actionInvocationResponse.isUnauthorized() && attempt == maxRetries) {
+                    logMaxRetriesReachedForUnauthorizedResponse(action, maxRetries);
+                }
+            }
             return processActionResponse(action, actionInvocationResponse, flowContext, actionRequest,
                     actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
@@ -583,6 +600,44 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
+    private void logRetryAttemptDueToUnauthorizedResponse(Action action, int attempt, int maxRetries) {
+
+        DIAGNOSTIC_LOGGER.logRetryAttemptDueToUnauthorizedResponse(action, attempt, maxRetries);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
+                    "Received 401 Unauthorized for action: %s. Refreshing token and retrying. Attempt %d of %d.",
+                    action.getId(), attempt, maxRetries));
+        }
+    }
+
+    private void logMaxRetriesReachedForUnauthorizedResponse(Action action, int maxRetries) {
+
+        DIAGNOSTIC_LOGGER.logMaxRetriesReachedForUnauthorizedResponse(action, maxRetries);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
+                    "Maximum retry attempts (%d) reached after 401 Unauthorized for action: %s.",
+                    maxRetries, action.getId()));
+        }
+    }
+
+    private void logSuccessResponseForAccessTokenRetrieval(Action action, Authentication authentication) {
+
+        DIAGNOSTIC_LOGGER.logSuccessResponseForAccessTokenRetrieval(action, authentication);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Successfully retrieved access token for action: " + action.getId() + " for authentication: " +
+                    authentication.getType());
+        }
+    }
+
+    private void logErrorResponseForAccessTokenRetrieval(Action action, Authentication authentication, Exception e) {
+
+        DIAGNOSTIC_LOGGER.logErrorResponseForAccessTokenRetrieval(action, authentication, e);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Error occurred while retrieving access token for action: " + action.getId() +
+                    " for authentication: " + authentication.getType(), e);
+        }
+    }
+
     private String serializeRequest(ActionExecutionRequest request) throws JsonProcessingException {
 
         ObjectMapper requestObjectmapper = new ObjectMapper();
@@ -649,23 +704,83 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return allowedPerformableOperations;
     }
 
-    private AuthMethods.AuthMethod getAuthenticationMethod(String actionId, Authentication authentication)
-            throws ActionMgtException {
+    private AuthMethods.AuthMethod getAuthenticationMethod(Action action, Authentication authentication)
+            throws ActionMgtException, ActionExecutionException {
 
-        List<AuthProperty> authProperties = authentication.getPropertiesWithDecryptedValues(actionId);
-
+        List<AuthProperty> authProperties;
         switch (authentication.getType()) {
             case BASIC:
+                authProperties = authentication.getPropertiesWithDecryptedValues(action.getId());
                 return new AuthMethods.BasicAuth(authProperties);
             case BEARER:
+                authProperties = authentication.getPropertiesWithDecryptedValues(action.getId());
                 return new AuthMethods.BearerAuth(authProperties);
             case API_KEY:
+                authProperties = authentication.getPropertiesWithDecryptedValues(action.getId());
                 return new AuthMethods.APIKeyAuth(authProperties);
+            case CLIENT_CREDENTIAL:
+                return buildClientCredentialAuthMethod(action, authentication, false);
             case NONE:
                 return null;
             default:
-                throw new ActionMgtException("Unsupported authentication type: " + authentication.getType());
-
+                throw new ActionExecutionException("Unsupported authentication type: " + authentication.getType());
         }
+    }
+
+    private AuthMethods.AuthMethod buildClientCredentialAuthMethod(Action action, Authentication authentication,
+                                                                   boolean isRetry)
+            throws ActionExecutionException, ActionMgtException {
+
+        if (!isRetry) {
+            AuthProperty decryptedInternalAccessToken =
+                    authentication.getInternalPropertyWithDecryptedValue(action.getId(),
+                            Authentication.Property.INTERNAL_ACCESS_TOKEN.getName());
+            if (decryptedInternalAccessToken != null &&
+                    StringUtils.isNotBlank(decryptedInternalAccessToken.getValue())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Using existing access token for action: " + action.getId() + " for authentication");
+                }
+                return buildClientCredentialAuth(decryptedInternalAccessToken.getValue());
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No existing access token found for action: " + action.getId() +
+                        ". Fetching new access token.");
+            }
+        }
+
+        // If access token is not existing or if this is a retry attempt due to unauthorized response,
+        // fetch a new access token using the refresh token if available.
+        String refreshToken = isRetry ? resolveInternalRefreshToken(action, authentication) : null;
+        String newAccessToken;
+        try {
+            newAccessToken = TokenManager.getInstance().getNewAccessToken(action.getId(), authentication, refreshToken);
+        } catch (ActionExecutionException e) {
+            logErrorResponseForAccessTokenRetrieval(action, authentication, e);
+            throw e;
+        }
+        logSuccessResponseForAccessTokenRetrieval(action, authentication);
+        return buildClientCredentialAuth(newAccessToken);
+    }
+
+    private AuthMethods.AuthMethod buildClientCredentialAuth(String accessToken) {
+
+        AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                .value(accessToken)
+                .isConfidential(true)
+                .build();
+        return new AuthMethods.ClientCredentialAuth(Collections.singletonList(internalAccessToken));
+    }
+
+    private String resolveInternalRefreshToken(Action action, Authentication authentication) {
+
+        AuthProperty decryptedInternalRefreshToken =
+                authentication.getInternalPropertyWithDecryptedValue(action.getId(),
+                        Authentication.Property.INTERNAL_REFRESH_TOKEN.getName());
+        if (decryptedInternalRefreshToken != null &&
+                StringUtils.isNotBlank(decryptedInternalRefreshToken.getValue())) {
+            return decryptedInternalRefreshToken.getValue();
+        }
+        return null;
     }
 }

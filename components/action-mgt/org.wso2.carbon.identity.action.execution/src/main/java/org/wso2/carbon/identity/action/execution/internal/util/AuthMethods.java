@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -139,6 +139,35 @@ public final class AuthMethods {
         public String getAuthType() {
 
             return Authentication.Type.API_KEY.getName();
+        }
+    }
+
+    /**
+     * This class applies client credential authentication to the http request.
+     */
+    public static final class ClientCredentialAuth implements AuthMethod {
+
+        private String internalAccessToken;
+
+        public ClientCredentialAuth(List<AuthProperty> authPropertyList) {
+
+            authPropertyList.forEach(authProperty -> {
+                if (Authentication.Property.INTERNAL_ACCESS_TOKEN.getName().equals(authProperty.getName())) {
+                    this.internalAccessToken = authProperty.getValue();
+                }
+            });
+        }
+
+        @Override
+        public void applyAuth(HttpPost httpPost) {
+
+            httpPost.setHeader("Authorization", "Bearer " + internalAccessToken);
+        }
+
+        @Override
+        public String getAuthType() {
+
+            return Authentication.Type.CLIENT_CREDENTIAL.getName();
         }
     }
 }

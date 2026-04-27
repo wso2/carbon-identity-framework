@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -260,6 +260,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             if (updatingAuthentication.getType() != existingAuthentication.getType()) {
                 actionSecretProcessor.deleteAssociatedSecrets(existingAuthentication, existingActionDTO.getId());
             }
+            actionSecretProcessor.deleteAssociatedInternalSecrets(existingAuthentication, existingActionDTO.getId());
             List<AuthProperty> encryptedProperties = actionSecretProcessor.encryptAssociatedSecrets(
                     updatingAuthentication, updatingActionDTOBuilder.getId());
 
@@ -279,6 +280,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
         try {
             actionSecretProcessor.deleteAssociatedSecrets(deletingActionDTO.getEndpoint().getAuthentication(),
+                    deletingActionDTO.getId());
+            actionSecretProcessor.deleteAssociatedInternalSecrets(deletingActionDTO.getEndpoint().getAuthentication(),
                     deletingActionDTO.getId());
         } catch (SecretManagementException e) {
             throw new ActionMgtServerException("Error while deleting Action Endpoint Authentication Secrets.", e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -44,7 +44,8 @@ public class Authentication {
         NONE("none", "NONE"),
         BEARER("bearer", "BEARER"),
         BASIC("basic", "BASIC"),
-        API_KEY("apiKey", "API_KEY");
+        API_KEY("apiKey", "API_KEY"),
+        CLIENT_CREDENTIAL("clientCredential", "CLIENT_CREDENTIAL");
 
         private final String pathParam;
         private final String name;
@@ -89,7 +90,13 @@ public class Authentication {
         PASSWORD("password"),
         HEADER("header"),
         VALUE("value"),
-        ACCESS_TOKEN("accessToken");
+        ACCESS_TOKEN("accessToken"),
+        CLIENT_ID("clientId"),
+        CLIENT_SECRET("clientSecret"),
+        TOKEN_ENDPOINT("tokenEndpoint"),
+        SCOPES("scopes"),
+        INTERNAL_ACCESS_TOKEN("internalAccessToken"),
+        INTERNAL_REFRESH_TOKEN("internalRefreshToken");
 
         private final String name;
 
@@ -106,6 +113,7 @@ public class Authentication {
 
     private final Type type;
     private List<AuthProperty> properties = null;
+    private List<AuthProperty> internalAuthProperties = null;
     private final ActionSecretProcessor secretProcessor = new ActionSecretProcessor();
 
     public Authentication(BasicAuthBuilder basicAuthBuilder) {
@@ -132,6 +140,13 @@ public class Authentication {
         this.properties = noneAuthBuilder.properties;
     }
 
+    public Authentication(ClientCredentialAuthBuilder clientCredentialAuthBuilder) {
+
+        this.type = clientCredentialAuthBuilder.type;
+        this.properties = clientCredentialAuthBuilder.properties;
+        this.internalAuthProperties = clientCredentialAuthBuilder.internalProperties;
+    }
+
     public Type getType() {
 
         return type;
@@ -140,6 +155,11 @@ public class Authentication {
     public List<AuthProperty> getProperties() {
 
         return properties;
+    }
+
+    public List<AuthProperty> getInternalAuthProperties() {
+
+        return internalAuthProperties;
     }
 
     public AuthProperty getProperty(Property propertyName) {
@@ -159,6 +179,37 @@ public class Authentication {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);
         }
+    }
+
+    public AuthProperty getPropertyWithDecryptedValue(String actionId, String propertyName) {
+
+        for (AuthProperty authProperty : this.getProperties()) {
+            if (StringUtils.equalsIgnoreCase(propertyName, authProperty.getName())) {
+                try {
+                    return secretProcessor.decryptProperty(authProperty, this.getType().name(), actionId);
+                } catch (SecretManagementException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    public AuthProperty getInternalPropertyWithDecryptedValue(String actionId, String propertyName) {
+
+        if (this.getInternalAuthProperties() == null || this.getInternalAuthProperties().isEmpty()) {
+            return null;
+        }
+        for (AuthProperty authProperty : this.getInternalAuthProperties()) {
+            if (StringUtils.equalsIgnoreCase(propertyName, authProperty.getName())) {
+                try {
+                    return secretProcessor.decryptProperty(authProperty, this.getType().name(), actionId);
+                } catch (SecretManagementException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 
     public List<AuthProperty> getPropertiesWithSecretReferences(String actionId) throws SecretManagementException {
@@ -252,6 +303,58 @@ public class Authentication {
     }
 
     /**
+     * Client Credential Authentication builder.
+     */
+    public static class ClientCredentialAuthBuilder {
+
+        private final Type type;
+        private final List<AuthProperty> properties = new ArrayList<>();
+        private final List<AuthProperty> internalProperties = new ArrayList<>();
+
+        public ClientCredentialAuthBuilder(String clientId, String clientSecret, String tokenEndpoint, String scopes,
+                                           String internalAccessToken, String internalRefreshToken) {
+
+            this.type = Type.CLIENT_CREDENTIAL;
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_ID.getName()).value(clientId).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_SECRET.getName()).value(clientSecret).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.TOKEN_ENDPOINT.getName()).value(tokenEndpoint).isConfidential(false).build());
+            if (StringUtils.isNotBlank(scopes)) {
+                this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                        .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
+            }
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_ACCESS_TOKEN.getName()).value(internalAccessToken).isConfidential(true)
+                    .build());
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_REFRESH_TOKEN.getName()).value(internalRefreshToken).isConfidential(true)
+                    .build());
+        }
+
+        public ClientCredentialAuthBuilder(String clientId, String clientSecret, String tokenEndpoint, String scopes) {
+
+            this.type = Type.CLIENT_CREDENTIAL;
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_ID.getName()).value(clientId).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_SECRET.getName()).value(clientSecret).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.TOKEN_ENDPOINT.getName()).value(tokenEndpoint).isConfidential(false).build());
+            if (StringUtils.isNotBlank(scopes)) {
+                this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                        .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
+            }
+        }
+
+        public Authentication build() {
+
+            return new Authentication(this);
+        }
+    }
+
+    /**
      * This builder build endpoint by taking the authentication type and properties as input.
      */
     public static class AuthenticationBuilder {
@@ -285,6 +388,15 @@ public class Authentication {
                     return new Authentication.APIKeyAuthBuilder(
                             getProperty(Type.API_KEY, authPropertiesMap, Property.HEADER.getName()),
                             getProperty(Type.API_KEY, authPropertiesMap, Property.VALUE.getName())).build();
+                case CLIENT_CREDENTIAL:
+                    return new Authentication.ClientCredentialAuthBuilder(
+                            getProperty(Type.CLIENT_CREDENTIAL, authPropertiesMap, Property.CLIENT_ID.getName()),
+                            getProperty(Type.CLIENT_CREDENTIAL, authPropertiesMap, Property.CLIENT_SECRET.getName()),
+                            getProperty(Type.CLIENT_CREDENTIAL, authPropertiesMap, Property.TOKEN_ENDPOINT.getName()),
+                            getOptionalProperty(authPropertiesMap, Property.SCOPES.getName()),
+                            getOptionalProperty(authPropertiesMap, Property.INTERNAL_ACCESS_TOKEN.getName()),
+                            getOptionalProperty(authPropertiesMap, Property.INTERNAL_REFRESH_TOKEN.getName())
+                    ).build();
                 case NONE:
                     return new Authentication.NoneAuthBuilder().build();
                 default:
@@ -306,6 +418,17 @@ public class Authentication {
 
             throw new NoSuchElementException(String.format("The property %s must be provided as an authentication " +
                     "property for the %s authentication type.", propertyName, authType.name()));
+        }
+
+        private String getOptionalProperty(Map<String, String> actionEndpointProperties, String propertyName) {
+
+            if (actionEndpointProperties != null && actionEndpointProperties.containsKey(propertyName)) {
+                String propValue = actionEndpointProperties.get(propertyName);
+                if (StringUtils.isNotBlank(propValue)) {
+                    return propValue;
+                }
+            }
+            return null;
         }
     }
 }
