@@ -42,7 +42,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphEngineModeRouter;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.server.GrpcTransportProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 
 import java.io.Serializable;
@@ -62,8 +64,10 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_GET_SECRET_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_LOG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.STEP_OPTIONS;
 
@@ -133,7 +137,6 @@ public class RemoteJsGraalGraphBuilder extends JsGraphBuilder {
                 authenticationContext);
         try {
             currentBuilder.set(this);
-            contextForJs.set(authenticationContext);
 
             if (JsGraalGraphEngineModeRouter.isTracingEnabled() && log.isDebugEnabled()) {
                 log.debug("[createWithRemote] Starting for SP: " + authenticationContext.getServiceProviderName() +
@@ -147,6 +150,14 @@ public class RemoteJsGraalGraphBuilder extends JsGraphBuilder {
             hostFunctions.put(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
             hostFunctions.put(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
             hostFunctions.put(JS_FUNC_GET_SECRET_BY_NAME, new JsGraalGetSecretImpl());
+            // Mirror the local-execution factory bindings so adaptive scripts that
+            // use Log.info(...) / selectAcrFrom(...) work over the remote engine
+            // too. JsLogger has multiple @HostAccess.Export methods — the registry
+            // expands those into "Log.info" / "Log.debug" / ... entries; the
+            // External's HostFunctionStub routes member access (Log.info) back as
+            // the matching dotted host-function call.
+            hostFunctions.put(JS_LOG, new JsLogger());
+            hostFunctions.put(JS_FUNC_SELECT_ACR_FROM, new GraalSelectAcrFromFunction());
 
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
@@ -237,7 +248,6 @@ public class RemoteJsGraalGraphBuilder extends JsGraphBuilder {
             result.setErrorReason("Error in remote JavaScript execution: " + e.getMessage());
         } finally {
             currentBuilder.remove();
-            contextForJs.remove();
         }
 
         return this;
@@ -829,6 +839,10 @@ public class RemoteJsGraalGraphBuilder extends JsGraphBuilder {
                 hostFunctions.put(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
                 hostFunctions.put(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
                 hostFunctions.put(JS_FUNC_GET_SECRET_BY_NAME, new JsGraalGetSecretImpl());
+                // Mirror the local-execution factory bindings — see the matching
+                // block in createWithRemote for the rationale.
+                hostFunctions.put(JS_LOG, new JsLogger());
+                hostFunctions.put(JS_FUNC_SELECT_ACR_FROM, new GraalSelectAcrFromFunction());
 
                 JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance()
                         .getJsFunctionRegistry();

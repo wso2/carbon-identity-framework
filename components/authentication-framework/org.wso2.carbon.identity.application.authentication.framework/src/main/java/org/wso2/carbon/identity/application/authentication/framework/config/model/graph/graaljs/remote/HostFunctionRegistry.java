@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,22 +64,94 @@ class HostFunctionRegistry {
             String functionName = entry.getKey();
             Object hostFuncInstance = entry.getValue();
 
-            Method targetMethod = findCallableMethod(hostFuncInstance);
-            if (targetMethod == null) {
+            List<Method> exportedMethods = findExportedMethods(hostFuncInstance);
+            if (exportedMethods.isEmpty()) {
                 throw new IllegalStateException(
                         "No callable method found for host function: " + functionName +
                                 " (class: " + hostFuncInstance.getClass().getName() +
-                                "). Expected either @HostAccess.Export annotation or a non-default interface method.");
+                                "). Expected at least one @HostAccess.Export annotated method.");
             }
 
-            MethodInvoker invoker = new MethodInvoker(hostFuncInstance, targetMethod);
-            dispatchTable.put(functionName, invoker);
+            // Single-method instance — the typical case (executeStep,
+            // sendError, selectAcrFrom, …). Register under the bare name for
+            // O(1) dispatch
+            if (exportedMethods.size() == 1) {
+                Method targetMethod = exportedMethods.get(0);
+                MethodInvoker invoker = new MethodInvoker(hostFuncInstance, targetMethod);
+                dispatchTable.put(functionName, invoker);
 
-            if (JsGraalGraphEngineModeRouter.isTracingEnabled() && log.isDebugEnabled()) {
-                log.debug("[HostFunctionRegistry] Registered '" + functionName + "' -> " +
-                        targetMethod.getDeclaringClass().getSimpleName() + "." + targetMethod.getName() +
-                        ", params=" + targetMethod.getParameterCount() +
-                        ", varArgs=" + targetMethod.isVarArgs());
+                if (JsGraalGraphEngineModeRouter.isTracingEnabled() && log.isDebugEnabled()) {
+                    log.debug("[HostFunctionRegistry] Registered '" + functionName + "' -> " +
+                            targetMethod.getDeclaringClass().getSimpleName() + "." + targetMethod.getName() +
+                            ", params=" + targetMethod.getParameterCount() +
+                            ", varArgs=" + targetMethod.isVarArgs());
+                }
+                continue;
+            }
+
+            /* Multi-method instance: one of two shapes.
+
+             (a) Single-purpose host function whose impl class happens to
+                 carry incidental sibling @HostAccess.Export methods (e.g.
+                 JwtDecodeImpl registered as "getValueFromDecodedAssertion"
+                 where the class also exports utility methods). The "real"
+                 entry-point is the method whose name matches the registered
+                 functionName; register only that under the bare name. This
+                 matches the first-wins contract deterministically and
+                 ignores the sibling exports — they were never intended to be
+                 callable from JS.
+
+             (b) Genuine namespace (e.g. JsLogger registered as "Log",
+                 methods named log / debug / info / error). No method name
+                 matches the registered name, so each method is registered
+                 under "<functionName>.<methodName>". The External's
+                 HostFunctionStub routes member access (Log.info, Log.debug)
+                 back through the same dotted dispatch.
+
+             When overloads share a name (info(String) vs info(Object...)),
+             the varargs variant wins — its Object... parameter is general
+             enough to accept both single-string and multi-arg calls, and
+             ArgumentAdapter handles the boxing. */
+            Method primary = null;
+            for (Method m : exportedMethods) {
+                if (m.getName().equals(functionName)) {
+                    if (primary == null || (m.isVarArgs() && !primary.isVarArgs())) {
+                        primary = m;
+                    }
+                }
+            }
+            if (primary != null) {
+                MethodInvoker invoker = new MethodInvoker(hostFuncInstance, primary);
+                dispatchTable.put(functionName, invoker);
+
+                if (JsGraalGraphEngineModeRouter.isTracingEnabled() && log.isDebugEnabled()) {
+                    log.debug("[HostFunctionRegistry] Registered '" + functionName + "' -> " +
+                            primary.getDeclaringClass().getSimpleName() + "." + primary.getName() +
+                            " (primary; sibling exports ignored), params=" + primary.getParameterCount() +
+                            ", varArgs=" + primary.isVarArgs());
+                }
+                continue;
+            }
+
+            // (b) Genuine namespace — register each method under a dotted name.
+            Map<String, Method> byName = new HashMap<>();
+            for (Method m : exportedMethods) {
+                Method existing = byName.get(m.getName());
+                if (existing == null || (m.isVarArgs() && !existing.isVarArgs())) {
+                    byName.put(m.getName(), m);
+                }
+            }
+            for (Map.Entry<String, Method> e : byName.entrySet()) {
+                String dottedName = functionName + "." + e.getKey();
+                MethodInvoker invoker = new MethodInvoker(hostFuncInstance, e.getValue());
+                dispatchTable.put(dottedName, invoker);
+
+                if (JsGraalGraphEngineModeRouter.isTracingEnabled() && log.isDebugEnabled()) {
+                    log.debug("[HostFunctionRegistry] Registered '" + dottedName + "' -> " +
+                            e.getValue().getDeclaringClass().getSimpleName() + "." + e.getValue().getName() +
+                            ", params=" + e.getValue().getParameterCount() +
+                            ", varArgs=" + e.getValue().isVarArgs());
+                }
             }
         }
     }
@@ -149,20 +224,19 @@ class HostFunctionRegistry {
     }
 
     /**
-     * Find the callable method on a host function object.
-     * Same priority order as the original host function dispatch:
-     * 1. First @HostAccess.Export annotated method
-     * 2. First non-default interface method
+     * Collect all {@code @HostAccess.Export}-annotated methods on the host
+     * function instance. Multi-method instances (e.g. JsLogger) are registered
+     * under dotted names — see {@link #register(Map)}.
      */
-    private static Method findCallableMethod(Object instance) {
+    private static List<Method> findExportedMethods(Object instance) {
 
-        // Look for @HostAccess.Export annotation
+        List<Method> exported = new ArrayList<>();
         for (Method method : instance.getClass().getMethods()) {
             if (method.isAnnotationPresent(org.graalvm.polyglot.HostAccess.Export.class)) {
-                return method;
+                exported.add(method);
             }
         }
-        return null;
+        return exported;
     }
 
     /**

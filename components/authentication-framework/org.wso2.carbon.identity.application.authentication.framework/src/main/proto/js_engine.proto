@@ -12,7 +12,6 @@ message EvaluateRequest {
     string session_id = 1;
     string script = 2;
     string source_identifier = 3;
-    int32 statement_limit = 4;
     map<string, SerializedValue> bindings = 5;
     repeated HostFunctionDefinition host_functions = 6;
 }
