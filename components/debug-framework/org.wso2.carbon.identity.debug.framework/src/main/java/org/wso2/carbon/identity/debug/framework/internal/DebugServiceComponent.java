@@ -95,7 +95,6 @@ public class DebugServiceComponent {
                 cleanupService.deactivate();
             }
 
-            LOG.info("Debug Framework OSGi component deactivated");
         } catch (Exception e) {
             LOG.error("Error while deactivating debug framework component.", e);
         }
@@ -198,7 +197,6 @@ public class DebugServiceComponent {
         }
 
         DebugProtocolRegistry.getInstance().removeDebugProtocolProvider(provider);
-        LOG.info("Unregistered DebugProtocolProvider for protocol: " + protocolType);
     }
 
     private void bindProtocolResolver(DebugProtocolResolver resolver, boolean isBind) {

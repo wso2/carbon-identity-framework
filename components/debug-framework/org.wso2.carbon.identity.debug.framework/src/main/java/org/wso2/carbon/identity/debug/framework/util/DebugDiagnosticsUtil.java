@@ -19,20 +19,24 @@
 package org.wso2.carbon.identity.debug.framework.util;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.core.DiagnosticsRecorder;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
+import org.wso2.carbon.identity.debug.framework.model.DiagnosticEvent;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utility for recording and retrieving protocol-agnostic debug diagnostic events.
+ * Keeps a simple static API while diagnostics are internally modeled as
+ * first-class {@link DiagnosticEvent} instances.
+ * Map conversion is used only at integration boundaries where map payloads are required.
  */
 public final class DebugDiagnosticsUtil {
+
+    private static final DiagnosticsRecorder DIAGNOSTICS_RECORDER = new DiagnosticsRecorder();
 
     private DebugDiagnosticsUtil() {
 
@@ -63,8 +67,18 @@ public final class DebugDiagnosticsUtil {
     public static void recordEvent(DebugContext context, String stage, String status, String message,
             Map<String, Object> details) {
 
-        Deque<Map<String, Object>> diagnostics = getOrCreateDiagnostics(context);
-        diagnostics.addFirst(buildEvent(stage, status, message, details));
+        DIAGNOSTICS_RECORDER.record(context, buildEvent(stage, status, message, details));
+    }
+
+    /**
+     * Records a typed diagnostic event for a debug context.
+     *
+     * @param context The debug context.
+     * @param event Diagnostic event.
+     */
+    public static void recordEvent(DebugContext context, DiagnosticEvent event) {
+
+        DIAGNOSTICS_RECORDER.record(context, event);
     }
 
     /**
@@ -92,8 +106,18 @@ public final class DebugDiagnosticsUtil {
     public static void recordEvent(AuthenticationContext context, String stage, String status, String message,
             Map<String, Object> details) {
 
-        Deque<Map<String, Object>> diagnostics = getOrCreateDiagnostics(context);
-        diagnostics.addFirst(buildEvent(stage, status, message, details));
+        DIAGNOSTICS_RECORDER.record(context, buildEvent(stage, status, message, details));
+    }
+
+    /**
+     * Records a typed diagnostic event for an authentication context.
+     *
+     * @param context The authentication context.
+     * @param event Diagnostic event.
+     */
+    public static void recordEvent(AuthenticationContext context, DiagnosticEvent event) {
+
+        DIAGNOSTICS_RECORDER.record(context, event);
     }
 
     /**
@@ -104,7 +128,20 @@ public final class DebugDiagnosticsUtil {
      */
     public static List<Map<String, Object>> getDiagnostics(DebugContext context) {
 
-        return new ArrayList<>(getOrCreateDiagnostics(context));
+        return DIAGNOSTICS_RECORDER.getDiagnostics(context).stream()
+                .map(DiagnosticEvent::toMap)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
+     * Returns typed diagnostics recorded in the debug context.
+     *
+     * @param context The debug context.
+     * @return Diagnostic events.
+     */
+    public static List<DiagnosticEvent> getDiagnosticEvents(DebugContext context) {
+
+        return DIAGNOSTICS_RECORDER.getDiagnostics(context);
     }
 
     /**
@@ -115,43 +152,33 @@ public final class DebugDiagnosticsUtil {
      */
     public static List<Map<String, Object>> getDiagnostics(AuthenticationContext context) {
 
-        return new ArrayList<>(getOrCreateDiagnostics(context));
+        return DIAGNOSTICS_RECORDER.getDiagnostics(context).stream()
+                .map(DiagnosticEvent::toMap)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    @SuppressWarnings("unchecked")
-    private static Deque<Map<String, Object>> getOrCreateDiagnostics(DebugContext context) {
+    /**
+     * Returns typed diagnostics recorded in the authentication context.
+     *
+     * @param context The authentication context.
+     * @return Diagnostic events.
+     */
+    public static List<DiagnosticEvent> getDiagnosticEvents(AuthenticationContext context) {
 
-        Object diagnostics = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
-        if (diagnostics instanceof Deque) {
-            return (Deque<Map<String, Object>>) diagnostics;
-        }
-        Deque<Map<String, Object>> timeline = new ArrayDeque<>();
-        context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-        return timeline;
+        return DIAGNOSTICS_RECORDER.getDiagnostics(context);
     }
 
-    @SuppressWarnings("unchecked")
-    private static Deque<Map<String, Object>> getOrCreateDiagnostics(AuthenticationContext context) {
-
-        Object diagnostics = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
-        if (diagnostics instanceof Deque) {
-            return (Deque<Map<String, Object>>) diagnostics;
-        }
-        Deque<Map<String, Object>> timeline = new ArrayDeque<>();
-        context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-        return timeline;
-    }
-
-    private static Map<String, Object> buildEvent(String stage, String status, String message,
+    private static DiagnosticEvent buildEvent(String stage, String status, String message,
             Map<String, Object> details) {
 
-        Map<String, Object> event = new LinkedHashMap<>();
-        event.put(DebugFrameworkConstants.DIAGNOSTIC_STAGE, stage);
-        event.put(DebugFrameworkConstants.DIAGNOSTIC_STATUS, status);
-        event.put(DebugFrameworkConstants.DIAGNOSTIC_MESSAGE, message);
-        event.put(DebugFrameworkConstants.DIAGNOSTIC_TIMESTAMP, System.currentTimeMillis());
+        DiagnosticEvent event = DiagnosticEvent.builder()
+                .stage(stage)
+                .status(status)
+                .message(message)
+                .timestamp(System.currentTimeMillis())
+                .build();
         if (details != null && !details.isEmpty()) {
-            event.put(DebugFrameworkConstants.DIAGNOSTIC_DETAILS, details);
+            event.setDetails(details);
         }
         return event;
     }

@@ -696,7 +696,6 @@ public class FrameworkServiceComponent {
     protected void unsetDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
         FrameworkServiceDataHolder.getInstance().removeDebugAuthenticationInterceptor(interceptor);
-        log.info("DebugAuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
     }
 
     @Reference(

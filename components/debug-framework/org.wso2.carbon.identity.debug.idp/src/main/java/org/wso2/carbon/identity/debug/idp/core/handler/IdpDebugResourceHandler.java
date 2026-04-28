@@ -170,7 +170,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         DebugContextProvider contextProvider = protocolProvider.getContextProvider();
         if (contextProvider == null && LOG.isDebugEnabled()) {
             LOG.debug("No DebugContextProvider found for resource: " + connectionId +
-                    ". Ensure the protocol module (e.g., OIDC) is deployed and active.");
+                    ". Ensure the protocol module is deployed and active.");
         }
         return contextProvider;
     }
