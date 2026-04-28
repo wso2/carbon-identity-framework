@@ -54,6 +54,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -361,8 +362,11 @@ public class InFlowExtensionExecutorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testExecuteIncomplete() throws Exception {
+    public void testExecuteIncompleteWithoutRedirectUrlReturnsError() throws Exception {
 
+        // INCOMPLETE without a stashed redirect URL is a contract violation —
+        // the response processor should normally have thrown, but the executor
+        // defends against it as well by returning STATUS_ERROR with a clear message.
         Map<String, String> metadata = new HashMap<>();
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
@@ -379,6 +383,124 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
+        assertEquals(response.getErrorMessage(),
+                "Extension returned INCOMPLETE without a redirect URL.");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testExecuteIncompleteWithRedirectUrlReturnsExternalRedirection() throws Exception {
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("actionId", "test-action-001");
+        FlowExecutionContext context = createContextWithMetadata(metadata);
+        // Set a context identifier so the OTFI collision-guard has something to compare against.
+        context.setContextIdentifier("original-flow-id");
+
+        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+
+        ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
+        when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
+
+        // Simulate the response processor stashing the redirect URL into the FlowContext
+        // during the actionExecutorService.execute call.
+        when(actionExecutorService.execute(
+                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                any(FlowContext.class), eq("carbon.super")))
+                .thenAnswer(invocation -> {
+                    FlowContext fc = invocation.getArgument(2);
+                    fc.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY,
+                            "https://example.com/step-up");
+                    return incompleteStatus;
+                });
+
+        ExecutorResponse response = executor.execute(context);
+
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_EXTERNAL_REDIRECTION);
+
+        // OTFI must be set on contextProperties so FlowExecutionService can swap caches on resume.
+        Map<String, Object> ctxProps = response.getContextProperties();
+        assertNotNull(ctxProps);
+        Object otfi = ctxProps.get(org.wso2.carbon.identity.flow.execution.engine.Constants.OTFI);
+        assertNotNull(otfi);
+        assertTrue(otfi instanceof String);
+        assertFalse(((String) otfi).isEmpty());
+        // OTFI must not collide with the original context identifier.
+        assertFalse("original-flow-id".equals(otfi));
+
+        // Redirect URL must carry the OTFI as a flowId query parameter.
+        Map<String, String> additionalInfo = response.getAdditionalInfo();
+        assertNotNull(additionalInfo);
+        String redirectUrl = additionalInfo.get(
+                org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL);
+        assertNotNull(redirectUrl);
+        assertEquals(redirectUrl, "https://example.com/step-up?flowId=" + otfi);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testExecuteIncompleteRedirectAppendsFlowIdWithAmpersandWhenUrlHasQuery()
+            throws Exception {
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("actionId", "test-action-001");
+        FlowExecutionContext context = createContextWithMetadata(metadata);
+        context.setContextIdentifier("original-flow-id");
+
+        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+
+        ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
+        when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
+
+        when(actionExecutorService.execute(
+                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                any(FlowContext.class), eq("carbon.super")))
+                .thenAnswer(invocation -> {
+                    FlowContext fc = invocation.getArgument(2);
+                    // URL already has a query string — the executor must use & not ?.
+                    fc.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY,
+                            "https://example.com/step-up?ref=abc");
+                    return incompleteStatus;
+                });
+
+        ExecutorResponse response = executor.execute(context);
+
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_EXTERNAL_REDIRECTION);
+        String otfi = (String) response.getContextProperties()
+                .get(org.wso2.carbon.identity.flow.execution.engine.Constants.OTFI);
+        String redirectUrl = response.getAdditionalInfo()
+                .get(org.wso2.carbon.identity.flow.execution.engine.Constants.REDIRECT_URL);
+        assertEquals(redirectUrl, "https://example.com/step-up?ref=abc&flowId=" + otfi);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testExecuteIncompleteRedirectEmptyUrlReturnsError() throws Exception {
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("actionId", "test-action-001");
+        FlowExecutionContext context = createContextWithMetadata(metadata);
+
+        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+
+        ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
+        when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
+
+        when(actionExecutorService.execute(
+                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                any(FlowContext.class), eq("carbon.super")))
+                .thenAnswer(invocation -> {
+                    FlowContext fc = invocation.getArgument(2);
+                    fc.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, "");
+                    return incompleteStatus;
+                });
+
+        ExecutorResponse response = executor.execute(context);
+
+        // Empty URL is treated the same as missing — defensive STATUS_ERROR.
+        assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
+        assertEquals(response.getErrorMessage(),
+                "Extension returned INCOMPLETE without a redirect URL.");
     }
 
     // ========================= execute — null status =========================

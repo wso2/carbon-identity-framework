@@ -27,11 +27,13 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRespon
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Error;
 import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Incomplete;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
@@ -758,6 +760,97 @@ public class InFlowExtensionResponseProcessorTest {
         assertEquals(status.getResponse().getErrorDescription(), "Database connection failed");
     }
 
+    // ========================= processIncompleteResponse =========================
+
+    @Test
+    public void testProcessIncompleteResponseWithRedirectStashesUrlAndReturnsIncomplete()
+            throws ActionExecutionResponseProcessorException {
+
+        PerformableOperation redirect = createRedirectOperation("https://example.com/step-up");
+
+        FlowContext flowContext = FlowContext.create();
+        ActionExecutionStatus<Incomplete> status = executeIncompleteResponse(
+                flowContext, Collections.singletonList(redirect));
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.INCOMPLETE);
+        // URL must be stashed under the key the executor reads.
+        assertEquals(flowContext.getValue(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, String.class),
+                "https://example.com/step-up");
+    }
+
+    @Test
+    public void testProcessIncompleteResponseIgnoresNonRedirectOperations()
+            throws ActionExecutionResponseProcessorException {
+
+        // Contract: REPLACE ops sent alongside REDIRECT on an INCOMPLETE response are dropped
+        // — the extension is expected to resend them on the resume call.
+        PerformableOperation redirect = createRedirectOperation("https://example.com/step-up");
+        PerformableOperation replace = createOperation(
+                Operation.REPLACE, "/properties/riskScore", "42");
+
+        FlowContext flowContext = FlowContext.create();
+        ActionExecutionStatus<Incomplete> status = executeIncompleteResponse(
+                flowContext, Arrays.asList(redirect, replace));
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.INCOMPLETE);
+        // Redirect URL is captured, but the REPLACE must NOT have produced any pending props.
+        assertEquals(flowContext.getValue(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, String.class),
+                "https://example.com/step-up");
+        assertNull(flowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class));
+        assertNull(flowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class));
+        assertNull(flowContext.getValue(InFlowExtensionExecutor.PENDING_CREDENTIALS_KEY, Map.class));
+    }
+
+    @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
+    public void testProcessIncompleteResponseWithoutRedirectThrows()
+            throws ActionExecutionResponseProcessorException {
+
+        // INCOMPLETE without a REDIRECT op is a contract violation.
+        PerformableOperation replace = createOperation(
+                Operation.REPLACE, "/properties/riskScore", "42");
+
+        executeIncompleteResponse(FlowContext.create(), Collections.singletonList(replace));
+    }
+
+    @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
+    public void testProcessIncompleteResponseWithEmptyOperationsThrows()
+            throws ActionExecutionResponseProcessorException {
+
+        executeIncompleteResponse(FlowContext.create(), Collections.emptyList());
+    }
+
+    @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
+    public void testProcessIncompleteResponseWithNullOperationsThrows()
+            throws ActionExecutionResponseProcessorException {
+
+        executeIncompleteResponse(FlowContext.create(), null);
+    }
+
+    @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
+    public void testProcessIncompleteResponseWithEmptyRedirectUrlThrows()
+            throws ActionExecutionResponseProcessorException {
+
+        PerformableOperation emptyRedirect = createRedirectOperation("");
+
+        executeIncompleteResponse(FlowContext.create(), Collections.singletonList(emptyRedirect));
+    }
+
+    @SuppressWarnings("unchecked")
+    private ActionExecutionStatus<Incomplete> executeIncompleteResponse(
+            FlowContext flowContext, List<PerformableOperation> operations)
+            throws ActionExecutionResponseProcessorException {
+
+        ActionInvocationIncompleteResponse incompleteResponse =
+                mock(ActionInvocationIncompleteResponse.class);
+        when(incompleteResponse.getOperations()).thenReturn(operations);
+
+        ActionExecutionResponseContext<ActionInvocationIncompleteResponse> responseContext =
+                mock(ActionExecutionResponseContext.class);
+        when(responseContext.getActionInvocationResponse()).thenReturn(incompleteResponse);
+
+        return responseProcessor.processIncompleteResponse(flowContext, responseContext);
+    }
+
     // ========================= Helper methods =========================
 
     private FlowExecutionContext createFlowExecutionContext() {
@@ -782,6 +875,16 @@ public class InFlowExtensionResponseProcessorTest {
         if (value != null) {
             operation.setValue(value);
         }
+        return operation;
+    }
+
+    private PerformableOperation createRedirectOperation(String url) {
+
+        // PerformableOperation rejects setPath/setValue for REDIRECT and rejects setUrl for
+        // every other op — REDIRECT carries its target in the dedicated `url` field.
+        PerformableOperation operation = new PerformableOperation();
+        operation.setOp(Operation.REDIRECT);
+        operation.setUrl(url);
         return operation;
     }
 

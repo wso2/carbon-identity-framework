@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRespon
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Error;
@@ -36,6 +37,9 @@ import org.wso2.carbon.identity.action.execution.api.model.ErrorStatus;
 import org.wso2.carbon.identity.action.execution.api.model.FailedStatus;
 import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Incomplete;
+import org.wso2.carbon.identity.action.execution.api.model.IncompleteStatus;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
@@ -314,6 +318,49 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         return remaining;
+    }
+
+    @Override
+    public ActionExecutionStatus<Incomplete> processIncompleteResponse(FlowContext flowContext,
+            ActionExecutionResponseContext<ActionInvocationIncompleteResponse> responseContext)
+            throws ActionExecutionResponseProcessorException {
+
+        List<PerformableOperation> operations =
+                responseContext.getActionInvocationResponse().getOperations();
+
+        // Contract: INCOMPLETE must carry a REDIRECT op. If present, every other op is
+        // intentionally discarded — the extension is expected to resend (possibly with
+        // different values) on the resume call after the user returns from the redirect.
+        // REDIRECT operations carry their target in the dedicated `url` field
+        // (PerformableOperation rejects path/value for REDIRECT and rejects url for everything else).
+        String redirectUrl = null;
+        int ignoredOpCount = 0;
+        if (operations != null) {
+            for (PerformableOperation op : operations) {
+                if (op.getOp() == Operation.REDIRECT) {
+                    redirectUrl = op.getUrl();
+                } else {
+                    ignoredOpCount++;
+                }
+            }
+        }
+
+        if (redirectUrl == null || redirectUrl.isEmpty()) {
+            throw new ActionExecutionResponseProcessorException(
+                    "INCOMPLETE response from In-Flow Extension must contain a REDIRECT operation.");
+        }
+
+        if (ignoredOpCount > 0 && LOG.isDebugEnabled()) {
+            LOG.debug("Ignored " + ignoredOpCount + " non-REDIRECT operation(s) on INCOMPLETE response. "
+                    + "REPLACE ops on the redirect call are by-contract dropped — the extension is "
+                    + "expected to resend them on the resume call after callback.");
+        }
+
+        flowContext.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, redirectUrl);
+
+        return new IncompleteStatus.Builder()
+                .responseContext(Collections.emptyMap())
+                .build();
     }
 
     @Override

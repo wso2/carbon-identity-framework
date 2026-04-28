@@ -157,9 +157,13 @@ public class InFlowExtensionRequestBuilderTest {
 
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
-        assertEquals(ops.size(), 1);
-        assertEquals(ops.get(0).getOp(), Operation.REPLACE);
-        assertTrue(ops.get(0).getPaths().contains("/properties/riskScore"));
+        // REPLACE + REDIRECT (REDIRECT is always advertised).
+        assertEquals(ops.size(), 2);
+        AllowedOperation replaceOp = findOperation(ops, Operation.REPLACE);
+        assertNotNull(replaceOp, "REPLACE should be present when modify paths are configured");
+        assertTrue(replaceOp.getPaths().contains("/properties/riskScore"));
+        assertNotNull(findOperation(ops, Operation.REDIRECT),
+                "REDIRECT should always be present");
     }
 
     @Test
@@ -170,13 +174,14 @@ public class InFlowExtensionRequestBuilderTest {
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
-        // No action → no access config → no modify paths → empty allowed ops.
+        // No action → no access config → no modify paths → only REDIRECT (always present).
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
-        assertTrue(ops.isEmpty());
+        assertEquals(ops.size(), 1);
+        assertEquals(ops.get(0).getOp(), Operation.REDIRECT);
     }
 
     @Test
@@ -194,7 +199,49 @@ public class InFlowExtensionRequestBuilderTest {
 
         List<AllowedOperation> ops = request.getAllowedOperations();
         assertNotNull(ops);
-        assertTrue(ops.isEmpty());
+        // No modify paths → only REDIRECT.
+        assertEquals(ops.size(), 1);
+        assertEquals(ops.get(0).getOp(), Operation.REDIRECT);
+    }
+
+    // ========================= REDIRECT always advertised =========================
+
+    @Test
+    public void testRedirectIsAdvertisedAlongsideReplace()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
+        AccessConfig accessConfig = new AccessConfig(null,
+                Arrays.asList(new ContextPath("/properties/riskScore", false)));
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        AllowedOperation redirectOp = findOperation(request.getAllowedOperations(), Operation.REDIRECT);
+        assertNotNull(redirectOp);
+        // REDIRECT does not target a path — paths must be null or empty.
+        assertTrue(redirectOp.getPaths() == null || redirectOp.getPaths().isEmpty(),
+                "REDIRECT must not carry any paths");
+    }
+
+    @Test
+    public void testRedirectIsAdvertisedWhenNoAccessConfig()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+
+        // REDIRECT must be available even without any modify config so extensions can always
+        // signal mid-flow redirects.
+        AllowedOperation redirectOp = findOperation(request.getAllowedOperations(), Operation.REDIRECT);
+        assertNotNull(redirectOp);
     }
 
     // ========================= Path annotation stripping =========================
@@ -215,7 +262,8 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         // AllowedOperation should have clean path (without {[String]}).
-        AllowedOperation op = request.getAllowedOperations().get(0);
+        AllowedOperation op = findOperation(request.getAllowedOperations(), Operation.REPLACE);
+        assertNotNull(op);
         assertTrue(op.getPaths().contains("/properties/riskFactors"));
         assertFalse(op.getPaths().contains("/properties/riskFactors{[String]}"));
 
@@ -241,7 +289,8 @@ public class InFlowExtensionRequestBuilderTest {
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
 
-        AllowedOperation op = request.getAllowedOperations().get(0);
+        AllowedOperation op = findOperation(request.getAllowedOperations(), Operation.REPLACE);
+        assertNotNull(op);
         assertTrue(op.getPaths().contains("/properties/items"));
         assertFalse(op.getPaths().contains("/properties/items{name: String, count: Integer}"));
 
@@ -287,7 +336,8 @@ public class InFlowExtensionRequestBuilderTest {
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
 
-        AllowedOperation op = request.getAllowedOperations().get(0);
+        AllowedOperation op = findOperation(request.getAllowedOperations(), Operation.REPLACE);
+        assertNotNull(op);
         assertEquals(op.getPaths().size(), 3);
         assertTrue(op.getPaths().contains("/properties/riskScore"));
         assertTrue(op.getPaths().contains("/properties/riskFactors"));
@@ -323,10 +373,11 @@ public class InFlowExtensionRequestBuilderTest {
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
 
-        // Modify paths should produce REPLACE allowed operation.
+        // Modify paths should produce a REPLACE allowed op alongside the always-present REDIRECT.
         List<AllowedOperation> ops = request.getAllowedOperations();
-        assertEquals(ops.size(), 1);
-        assertEquals(ops.get(0).getOp(), Operation.REPLACE);
+        assertEquals(ops.size(), 2);
+        assertNotNull(findOperation(ops, Operation.REPLACE));
+        assertNotNull(findOperation(ops, Operation.REDIRECT));
 
         // Properties should NOT be in event — expose and modify are independent.
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
@@ -349,11 +400,13 @@ public class InFlowExtensionRequestBuilderTest {
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
 
-        // All modify paths should be grouped into a single REPLACE operation.
+        // All modify paths grouped into a single REPLACE op (REDIRECT is always added too).
         List<AllowedOperation> ops = request.getAllowedOperations();
-        assertEquals(ops.size(), 1);
-        assertEquals(ops.get(0).getOp(), Operation.REPLACE);
-        assertEquals(ops.get(0).getPaths().size(), 3);
+        assertEquals(ops.size(), 2);
+        AllowedOperation replaceOp = findOperation(ops, Operation.REPLACE);
+        assertNotNull(replaceOp);
+        assertEquals(replaceOp.getPaths().size(), 3);
+        assertNotNull(findOperation(ops, Operation.REDIRECT));
     }
 
     // ========================= Expose filtering =========================
@@ -570,6 +623,22 @@ public class InFlowExtensionRequestBuilderTest {
     }
 
     // ========================= Helper methods =========================
+
+    /**
+     * Locate the first AllowedOperation in {@code ops} matching {@code op}, or null if absent.
+     */
+    private AllowedOperation findOperation(List<AllowedOperation> ops, Operation op) {
+
+        if (ops == null) {
+            return null;
+        }
+        for (AllowedOperation candidate : ops) {
+            if (candidate.getOp() == op) {
+                return candidate;
+            }
+        }
+        return null;
+    }
 
     /**
      * Create a mock ActionExecutionRequestContext whose getAction() returns an InFlowExtensionAction

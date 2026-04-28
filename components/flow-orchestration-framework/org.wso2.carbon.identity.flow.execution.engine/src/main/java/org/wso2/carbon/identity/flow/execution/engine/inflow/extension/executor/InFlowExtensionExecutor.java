@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
@@ -43,6 +44,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This class is responsible for executing In-Flow Extension actions during flow execution.
@@ -73,6 +75,7 @@ public class InFlowExtensionExecutor implements Executor {
     public static final String PENDING_CLAIMS_KEY = "pendingClaims";
     public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
     public static final String PENDING_PROPERTIES_KEY = "pendingProperties";
+    public static final String PENDING_REDIRECT_URL_KEY = "pendingRedirectUrl";
     private static final String ACTION_ID_METADATA_KEY = "actionId";
     private static final String ERROR_TYPE_KEY = "errorType";
     private static final String EXTENSION_ERROR_TYPE = "EXTENSION_ERROR";
@@ -141,9 +144,7 @@ public class InFlowExtensionExecutor implements Executor {
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
                     ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
 
-            // TODO: Handle the redirection as well, currently we are treating it as an error since the flow execution engine doesn't support it yet
-
-            ExecutorResponse executionResponse = mapExecutionStatus(executionStatus);
+            ExecutorResponse executionResponse = mapExecutionStatus(executionStatus, flowContext, context);
 
             // On success, extract pending context updates collected by the response processor
             // and forward them to TaskExecutionNode via ExecutorResponse fields.
@@ -209,12 +210,16 @@ public class InFlowExtensionExecutor implements Executor {
 
     /**
      * Map the {@link ActionExecutionStatus} to an {@link ExecutorResponse}.
-     * Only performs status translation — context updates are handled by the response processor.
+     * Performs status translation and (for INCOMPLETE/redirect) generates the OTFI used by
+     * {@code FlowExecutionService} to swap caches on resume — same pattern as {@code MagicLinkExecutor}.
      *
      * @param executionStatus The status returned by ActionExecutorService.
+     * @param flowContext     The action {@link FlowContext} where the response processor stashed the redirect URL.
+     * @param context         The engine {@link FlowExecutionContext} (used for OTFI collision-guard).
      * @return The ExecutorResponse for the flow execution engine.
      */
-    private ExecutorResponse mapExecutionStatus(ActionExecutionStatus<?> executionStatus) {
+    private ExecutorResponse mapExecutionStatus(ActionExecutionStatus<?> executionStatus,
+                                                FlowContext flowContext, FlowExecutionContext context) {
 
         ExecutorResponse response = new ExecutorResponse();
 
@@ -262,9 +267,35 @@ public class InFlowExtensionExecutor implements Executor {
                 }
                 break;
 
-            case INCOMPLETE:
-                response.setResult(ExecutorStatus.STATUS_ERROR);
+            case INCOMPLETE: {
+                String redirectUrl = flowContext.getValue(PENDING_REDIRECT_URL_KEY, String.class);
+                if (redirectUrl == null || redirectUrl.isEmpty()) {
+                    // Defensive: response processor should have rejected this earlier.
+                    response.setResult(ExecutorStatus.STATUS_ERROR);
+                    response.setErrorMessage("Extension returned INCOMPLETE without a redirect URL.");
+                    break;
+                }
+
+                // Generate OTFI exactly like MagicLinkExecutor — keeps the cache-swap mechanism
+                // in FlowExecutionService unchanged across executors.
+                String otfi = UUID.randomUUID().toString();
+                while (otfi.equals(context.getContextIdentifier())) {
+                    otfi = UUID.randomUUID().toString();
+                }
+                Map<String, Object> redirectProps = new HashMap<>();
+                redirectProps.put(Constants.OTFI, otfi);
+                response.setContextProperty(redirectProps);
+
+                String separator = redirectUrl.contains("?") ? "&" : "?";
+                String urlWithFlowId = redirectUrl + separator + "flowId=" + otfi;
+
+                Map<String, String> redirectInfo = new HashMap<>();
+                redirectInfo.put(Constants.REDIRECT_URL, urlWithFlowId);
+                response.setAdditionalInfo(redirectInfo);
+
+                response.setResult(ExecutorStatus.STATUS_EXTERNAL_REDIRECTION);
                 break;
+            }
 
             default:
                 LOG.warn("Unknown execution status: " + executionStatus.getStatus());

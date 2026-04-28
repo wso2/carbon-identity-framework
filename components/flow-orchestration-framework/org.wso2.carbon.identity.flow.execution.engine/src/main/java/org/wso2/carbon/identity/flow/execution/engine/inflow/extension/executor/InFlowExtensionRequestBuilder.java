@@ -133,9 +133,8 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             flowContext.add(ACTION_NAME_KEY, actionName);
         }
 
-        // Build allowed operations from modify paths.
-        List<AllowedOperation> allowedOperations = buildAllowedOperationsFromModify(
-                accessConfig, flowContext);
+        // Build allowed operations: REPLACE (from modify paths, if any) + REDIRECT (always).
+        List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, flowContext);
 
         // Determine certificate PEM for outbound encryption.
         String certificatePEM = null;
@@ -154,63 +153,69 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     }
 
     /**
-     * Build allowed operations from the modify paths in {@link AccessConfig}.
-     * All modify paths are mapped to a single REPLACE {@link AllowedOperation}.
-     * Path type annotations (e.g. {@code []} or {@code [schema]}) are stripped and stored
-     * in the {@link FlowContext} under {@link InFlowExtensionExecutor#PATH_TYPE_ANNOTATIONS_KEY}
+     * Build the allowed operations advertised to the external extension service. Always
+     * includes a REDIRECT operation so the extension may signal external redirection. A
+     * REPLACE operation is added only when the access config defines modify paths. Path
+     * type annotations (e.g. {@code []} or {@code [schema]}) are stripped and stored in
+     * the {@link FlowContext} under {@link InFlowExtensionExecutor#PATH_TYPE_ANNOTATIONS_KEY}
      * for the response processor.
      *
      * @param accessConfig The access config containing modify paths (may be null).
      * @param flowContext  The FlowContext to store path annotations.
-     * @return A singleton list containing one REPLACE operation, or empty list if no modify paths.
+     * @return List of allowed operations (REPLACE if applicable, plus REDIRECT).
      */
-    private List<AllowedOperation> buildAllowedOperationsFromModify(AccessConfig accessConfig,
-                                                                    FlowContext flowContext) {
+    private List<AllowedOperation> buildAllowedOperations(AccessConfig accessConfig,
+                                                          FlowContext flowContext) {
 
-        if (accessConfig == null || accessConfig.getModify() == null || accessConfig.getModify().isEmpty()) {
-            return Collections.emptyList();
-        }
+        List<AllowedOperation> allowedOps = new ArrayList<>();
 
-        List<String> cleanPaths = new ArrayList<>();
-        Map<String, String> pathTypeAnnotations = new HashMap<>();
+        if (accessConfig != null && accessConfig.getModify() != null && !accessConfig.getModify().isEmpty()) {
+            List<String> cleanPaths = new ArrayList<>();
+            Map<String, String> pathTypeAnnotations = new HashMap<>();
 
-        for (ContextPath modifyPath : accessConfig.getModify()) {
-            String rawPath = modifyPath.getPath();
-            if (rawPath == null) {
-                continue;
-            }
-
-            String[] stripped = PathTypeAnnotationUtil.stripAnnotation(rawPath);
-            String cleanPath = stripped[0];
-            String annotation = stripped[1];
-            if (annotation != null) {
-                if (!PathTypeAnnotationUtil.validateAnnotationLimits(annotation)) {
-                    LOG.warn("Annotation for path " + cleanPath
-                            + " exceeds maximum attribute limit. Skipping path.");
+            for (ContextPath modifyPath : accessConfig.getModify()) {
+                String rawPath = modifyPath.getPath();
+                if (rawPath == null) {
                     continue;
                 }
-                pathTypeAnnotations.put(cleanPath, annotation);
+
+                String[] stripped = PathTypeAnnotationUtil.stripAnnotation(rawPath);
+                String cleanPath = stripped[0];
+                String annotation = stripped[1];
+                if (annotation != null) {
+                    if (!PathTypeAnnotationUtil.validateAnnotationLimits(annotation)) {
+                        LOG.warn("Annotation for path " + cleanPath
+                                + " exceeds maximum attribute limit. Skipping path.");
+                        continue;
+                    }
+                    pathTypeAnnotations.put(cleanPath, annotation);
+                }
+                cleanPaths.add(cleanPath);
             }
-            cleanPaths.add(cleanPath);
+
+            if (!cleanPaths.isEmpty()) {
+                AllowedOperation replaceOp = new AllowedOperation();
+                replaceOp.setOp(Operation.REPLACE);
+                replaceOp.setPaths(cleanPaths);
+                allowedOps.add(replaceOp);
+
+                if (!pathTypeAnnotations.isEmpty()) {
+                    flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+                }
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Built REPLACE allowed operation with " + cleanPaths.size()
+                            + " modify paths. Path annotations: " + pathTypeAnnotations.size());
+                }
+            }
         }
 
-        if (cleanPaths.isEmpty()) {
-            return Collections.emptyList();
-        }
+        // REDIRECT is always advertised so any extension may signal mid-flow external redirection.
+        AllowedOperation redirectOp = new AllowedOperation();
+        redirectOp.setOp(Operation.REDIRECT);
+        allowedOps.add(redirectOp);
 
-        AllowedOperation replaceOp = new AllowedOperation();
-        replaceOp.setOp(Operation.REPLACE);
-        replaceOp.setPaths(cleanPaths);
-
-        if (!pathTypeAnnotations.isEmpty()) {
-            flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Built REPLACE allowed operation with " + cleanPaths.size()
-                    + " modify paths. Path annotations: " + pathTypeAnnotations.size());
-        }
-        return Collections.singletonList(replaceOp);
+        return allowedOps;
     }
 
     /**
