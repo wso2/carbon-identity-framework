@@ -65,11 +65,6 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsGraalAuthenticationContextTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraalGraphBuilderTest"/>
 
-            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.SerializerTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.PropertyPathNavigatorTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.ArgumentAdapterTest"/>
-            <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.ProxyReferenceCacheTest"/>
-
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisorTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessorTest"/>

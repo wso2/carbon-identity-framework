@@ -40,7 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializer;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphEngineModeRouter;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.JsGraalGraphEngineModeRouter;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.server.GrpcTransportProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;

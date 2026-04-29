@@ -23,7 +23,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphEngineModeRouter;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.JsGraalGraphEngineModeRouter;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.RemoteEngineTransport;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.RemoteJsEngine;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.EvaluateRequest;

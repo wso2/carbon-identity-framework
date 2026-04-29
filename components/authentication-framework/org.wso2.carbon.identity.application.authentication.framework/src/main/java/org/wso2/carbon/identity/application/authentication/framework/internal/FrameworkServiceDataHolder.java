@@ -32,8 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.RemoteEngineTransport;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.ScriptEngineModeResolver;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.RemoteJsGraphBuilderProvider;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -129,8 +128,7 @@ public class FrameworkServiceDataHolder {
     private SecretResolveManager secretConfigManager;
     private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
     private OrganizationDiscoveryHandler organizationDiscoveryHandler;
-    private ScriptEngineModeResolver scriptEngineModeResolver;
-    private RemoteEngineTransport remoteEngineTransport;
+    private RemoteJsGraphBuilderProvider remoteJsGraphBuilderProvider;
 
     private FrameworkServiceDataHolder() {
 
@@ -859,23 +857,13 @@ public class FrameworkServiceDataHolder {
         this.organizationDiscoveryHandler = organizationDiscoveryHandler;
     }
 
-    public ScriptEngineModeResolver getScriptEngineModeResolver() {
+    public RemoteJsGraphBuilderProvider getRemoteJsGraphBuilderProvider() {
 
-        return scriptEngineModeResolver;
+        return remoteJsGraphBuilderProvider;
     }
 
-    public void setScriptEngineModeResolver(ScriptEngineModeResolver scriptEngineModeResolver) {
+    public void setRemoteJsGraphBuilderProvider(RemoteJsGraphBuilderProvider remoteJsGraphBuilderProvider) {
 
-        this.scriptEngineModeResolver = scriptEngineModeResolver;
-    }
-
-    public RemoteEngineTransport getRemoteEngineTransport() {
-
-        return remoteEngineTransport;
-    }
-
-    public void setRemoteEngineTransport(RemoteEngineTransport remoteEngineTransport) {
-
-        this.remoteEngineTransport = remoteEngineTransport;
+        this.remoteJsGraphBuilderProvider = remoteJsGraphBuilderProvider;
     }
 }

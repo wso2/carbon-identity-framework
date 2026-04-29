@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.GraalSerializer;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphEngineModeRouter;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.JsGraalGraphEngineModeRouter;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.SerializedArray;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.SerializedFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.SerializedMap;

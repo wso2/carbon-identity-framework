@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <artifactId>authentication-framework</artifactId>
+        <version>7.10.150-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.wso2.carbon.identity.framework</groupId>
+    <packaging>bundle</packaging>
+    <artifactId>org.wso2.carbon.identity.application.authentication.framework.script.remote.engine</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>WSO2 Carbon - Remote Script Engine for Authentication Framework</name>
+    <description>
+        OSGi bundle that provides the externalized GraalJS script execution runtime
+        for adaptive authentication. Hosts the gRPC transport, protobuf wire protocol,
+        and RemoteJsGraalGraphBuilder implementation, and dynamically registers a
+        RemoteJsGraphBuilderProvider OSGi service that the authentication framework
+        consumes when REMOTE / HYBRID engine modes resolve to remote execution.
+    </description>
+
+    <dependencies>
+        <!--Commons Logging-->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--OSGi service component annotations-->
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.component</artifactId>
+            <version>1.3.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.component.annotations</artifactId>
+            <version>1.3.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--OSGi core framework-->
+        <dependency>
+            <groupId>org.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+            <version>3.9.1.v20130814-1242</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--GraalVM SDK (HostAccess.Export, ProxyObject)-->
+        <dependency>
+            <groupId>org.wso2.orbit.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--Identity core (for IdentityUtil, MessageContext)-->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!--
+        Framework dependency for compile-time interfaces only.
+        Marked as provided + optional to avoid transitive resolution.
+        Runtime wiring is handled by the OSGi container.
+        -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Carbon kernel deps consumed by GrpcConnectionManager (ServerConfiguration / KeystoreUtils). -->
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- IdentityRuntimeException referenced by GrpcConnectionManager.
+             Version pinned explicitly because the parent depMgmt entry uses
+             ${project.version}, which interpolates to *this* bundle's version
+             (1.0.0-SNAPSHOT) when consumed here, not the framework version. -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.base</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- @javax.annotation.Generated emitted by the protoc gRPC stub generator. -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Protocol Buffers for External communication -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.21.12</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- gRPC Dependencies - embedded in bundle for standalone transport -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-services</artifactId>
+            <version>1.51.1</version>
+        </dependency>
+        <!-- Test dependencies for the suite owned by this bundle. -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <!--
+                Protobuf / gRPC code generation.
+
+                Generated sources are committed directly under src/main/java in the
+                `...graaljs.remote.proto` and `...graaljs.remote.proto.grpc` packages
+                (driven by the `java_package` option in the .proto files), so that a
+                clean `mvn clean install` compiles them as part of the standard source
+                root — no lifecycle execution is needed, which also avoids the v0.6.1
+                lifecycle-mode bug where `compile` and `compile-custom` clobber each
+                other's output when they share a parent directory.
+
+                Regenerate manually only when the .proto files change:
+
+                    mvn protobuf:compile protobuf:compile-custom
+
+                Both goals write into src/main/java (resolving the package path from
+                the .proto `java_package`, i.e. into the `remote/proto` and
+                `remote/proto/grpc` directories). `clearOutputDirectory` is kept false
+                so running one goal never wipes the other's output, and so neighbouring
+                hand-written sources under src/main/java are preserved. If a message is
+                REMOVED from a .proto file, delete its stale .java by hand under the
+                `remote/proto` (or `remote/proto/grpc`) directory and commit the diff.
+            -->
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.6.1</version>
+                <configuration>
+                    <protocArtifact>com.google.protobuf:protoc:3.21.12:exe:${os.detected.classifier}</protocArtifact>
+                    <protoSourceRoot>${project.basedir}/src/main/proto</protoSourceRoot>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.51.1:exe:${os.detected.classifier}</pluginArtifact>
+                    <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+                    <clearOutputDirectory>false</clearOutputDirectory>
+                </configuration>
+                <executions/>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <inherited>true</inherited>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.internal,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.server,
+                            io.grpc.*,
+                            com.google.protobuf.*,
+                            com.google.common.util.concurrent.*,
+                            io.perfmark.*
+                        </Private-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.internal,
+                            !org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.server,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote;
+                            version="${project.version}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto;
+                            version="${project.version}",
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.proto.grpc;
+                            version="${project.version}"
+                        </Export-Package>
+                        <Import-Package>
+                            org.apache.commons.collections; version="[3.2.0,4.0.0)",
+                            org.apache.commons.lang.*; version="[2.6.0,3.0.0)",
+                            org.apache.commons.logging; version="[1.2,2.0)",
+                            org.osgi.framework; version="[1.7.0,2.0.0)",
+                            org.osgi.service.component; version="[1.2.0,2.0.0)",
+                            org.osgi.service.component.annotations; version="[1.2.0,2.0.0)",
+                            org.graalvm.polyglot,
+                            org.graalvm.polyglot.proxy,
+                            org.wso2.carbon.identity.application.authentication.framework,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js,
+                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs,
+                            org.wso2.carbon.identity.application.authentication.framework.context,
+                            org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl,
+                            org.wso2.carbon.identity.application.authentication.framework.internal,
+                            org.wso2.carbon.identity.application.authentication.framework.util
+                        </Import-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

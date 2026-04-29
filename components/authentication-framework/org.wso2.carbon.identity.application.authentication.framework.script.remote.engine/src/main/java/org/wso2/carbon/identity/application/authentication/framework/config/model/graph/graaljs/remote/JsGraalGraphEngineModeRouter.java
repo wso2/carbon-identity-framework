@@ -16,27 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.ResourceLimits;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.internal.RemoteScriptEngineDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.ScriptEngineModeResolver;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.util.Arrays;
 import java.util.Locale;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_ENGINE_MODE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_GRPC_TARGET;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_REMOTE_ENGINE_TRACING;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_ENGINE_MODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_GRPC_TARGET;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_REMOTE_ENGINE_TRACING;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_SCRIPT_STATEMENTS_LIMIT;
 /**
  * Factory for creating JavaScript engines.
  * Supports LOCAL (in-JVM), REMOTE (External via gRPC), and HYBRID (per-request routing) modes.
@@ -102,7 +97,7 @@ public class JsGraalGraphEngineModeRouter {
             public ExecutionMode resolve(AuthenticationContext context) {
 
                 ScriptEngineModeResolver resolver =
-                        FrameworkServiceDataHolder.getInstance().getScriptEngineModeResolver();
+                        RemoteScriptEngineDataHolder.getInstance().getScriptEngineModeResolver();
 
                 if (resolver == null) {
                     log.warn("[JsGraalGraphEngineModeRouter] HYBRID mode configured but no ScriptEngineModeResolver " +
@@ -135,9 +130,6 @@ public class JsGraalGraphEngineModeRouter {
     // Default gRPC target for remote engine (host:port).
     private String grpcTarget = DEFAULT_GRPC_TARGET;
 
-    // Statement limit for local engine.
-    private int javascriptResourceLimit = DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
-
     // Remote engine tracing toggle — guards debug/perf logs in remote package.
     private boolean tracingEnabled = DEFAULT_REMOTE_ENGINE_TRACING;
 
@@ -169,16 +161,6 @@ public class JsGraalGraphEngineModeRouter {
 
 
     /**
-     * Get the configured engine mode.
-     *
-     * @return Current EngineMode.
-     */
-    public EngineMode getEngineMode() {
-
-        return engineMode;
-    }
-
-    /**
      * Get the gRPC target address.
      *
      * @return gRPC target string (host:port).
@@ -201,16 +183,6 @@ public class JsGraalGraphEngineModeRouter {
     }
 
     /**
-     * Set the JavaScript statement limit.
-     *
-     * @param limit The statement limit.
-     */
-    public void setStatementLimit(int limit) {
-
-        javascriptResourceLimit = limit;
-    }
-
-    /**
      * Resolve the execution mode for a given authentication context.
      * For LOCAL/REMOTE modes, returns the configured mode directly.
      * For HYBRID mode, delegates to the {@link ScriptEngineModeResolver} OSGi service.
@@ -225,34 +197,11 @@ public class JsGraalGraphEngineModeRouter {
         return engineMode.resolve(authenticationContext);
     }
 
-    /**
-     * Get the resource limits for local engine execution.
-     *
-     * @return ResourceLimits instance.
-     */
-    public ResourceLimits getResourceLimits() {
-
-        ResourceLimits.Builder resourceLimitsBuilder = ResourceLimits.newBuilder();
-        resourceLimitsBuilder.statementLimit(javascriptResourceLimit, null);
-        return resourceLimitsBuilder.build();
-    }
-
-
     private void initializeFromConfig() {
 
-        // Read statement limit from config
-        String statementLimit = IdentityUtil.getProperty(GRAALJS_SCRIPT_STATEMENTS_LIMIT);
-        if (statementLimit != null) {
-            try {
-                javascriptResourceLimit = Integer.parseInt(statementLimit);
-            } catch (NumberFormatException e) {
-                log.warn("Error parsing script statement limit. Defaulting to " +
-                        DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT, e);
-                javascriptResourceLimit = DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
-            }
-        }
-
-        // Read engine mode (LOCAL, REMOTE, or HYBRID)
+        // Read engine mode (LOCAL, REMOTE, or HYBRID).
+        // Framework's JsGraalGraphBuilderFactory also reads this independently to decide
+        // whether to delegate to the provider; here it drives HYBRID per-request resolution.
         String mode = IdentityUtil.getProperty(GRAALJS_ENGINE_MODE);
         if (mode != null && !mode.isEmpty()) {
             try {
@@ -265,13 +214,13 @@ public class JsGraalGraphEngineModeRouter {
             engineMode = EngineMode.valueOf(DEFAULT_ENGINE_MODE);
         }
 
-        // Read gRPC target
+        // Read gRPC target.
         String target = IdentityUtil.getProperty(GRAALJS_GRPC_TARGET);
         if (target != null && !target.isEmpty()) {
             grpcTarget = target.trim();
         }
 
-        // Read remote engine tracing toggle
+        // Read remote engine tracing toggle.
         String tracingStr = IdentityUtil.getProperty(GRAALJS_REMOTE_ENGINE_TRACING);
         if (tracingStr != null && !tracingStr.isEmpty()) {
             tracingEnabled = Boolean.parseBoolean(tracingStr.trim());

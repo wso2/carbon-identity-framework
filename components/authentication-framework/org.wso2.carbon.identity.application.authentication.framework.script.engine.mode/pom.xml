@@ -92,6 +92,24 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--
+        script.remote.engine bundle owns ScriptEngineModeResolver and JsGraalGraphEngineModeRouter
+        (both moved out of the framework jar). This bundle implements the resolver SPI, so it
+        needs them on the compile classpath; OSGi wires the import at runtime.
+        -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework.script.remote.engine</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>
@@ -115,7 +133,6 @@
                             org.osgi.framework; version="[1.7.0,2.0.0)",
                             org.osgi.service.component; version="[1.2.0,2.0.0)",
                             org.osgi.service.component.annotations; version="[1.2.0,2.0.0)",
-                            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs,
                             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote,
                             org.wso2.carbon.identity.application.authentication.framework.context,
                         </Import-Package>

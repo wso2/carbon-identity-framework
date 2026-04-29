@@ -1,0 +1,2 @@
+io.grpc.netty.shaded.io.grpc.netty.NettyChannelProvider
+io.grpc.netty.shaded.io.grpc.netty.UdsNettyChannelProvider

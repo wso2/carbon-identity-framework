@@ -8,7 +8,7 @@ import io.grpc.TlsChannelCredentials;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphEngineModeRouter;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.remote.JsGraalGraphEngineModeRouter;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.security.KeystoreUtils;
