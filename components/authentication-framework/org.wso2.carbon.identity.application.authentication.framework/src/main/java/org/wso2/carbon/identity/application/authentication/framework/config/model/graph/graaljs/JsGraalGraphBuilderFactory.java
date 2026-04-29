@@ -64,6 +64,15 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
+
+    /**
+     * Configured GraalJS engine mode for adaptive authentication script execution.
+     * <p>
+     * Kept as a private nested enum so the framework jar carries no separate top-level
+     * type for this feature beyond the {@link RemoteJsGraphBuilderProvider} SPI.
+     */
+    private enum EngineMode { LOCAL, REMOTE, HYBRID }
+
     private int javascriptResourceLimit = 0;
     private EngineMode engineMode = EngineMode.LOCAL;
 
