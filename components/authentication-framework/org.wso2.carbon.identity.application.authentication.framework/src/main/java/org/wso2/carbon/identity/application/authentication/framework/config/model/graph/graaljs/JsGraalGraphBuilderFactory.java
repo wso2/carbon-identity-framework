@@ -117,10 +117,6 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
         Value engineBindings = context.getBindings(POLYGLOT_LANGUAGE);
         Map<String, Object> persistableMap = new HashMap<>();
-        LOG.info("[persistCurrentContext] Starting to persist bindings for SP: " +
-                (authContext != null ? authContext.getServiceProviderName() : "null") +
-                ", contextId: " + (authContext != null ? authContext.getContextIdentifier() : "null"));
-
         engineBindings.getMemberKeys().forEach((key) -> {
             Value binding = engineBindings.getMember(key);
             /*
@@ -130,17 +126,9 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
              * The functions will be host objects and can be executed. The Logger object needs to be identified by name.
              */
             if (!((binding.isHostObject() && binding.canExecute()) || key.equals("Log"))) {
-                Object serialized = GraalSerializer.getInstance().toJsSerializable(binding);
-                persistableMap.put(key, serialized);
-                LOG.info("[persistCurrentContext] Persisted binding: " + key + " = " +
-                        (serialized != null ? serialized.getClass().getSimpleName() + ": " + serialized : "null"));
-            } else {
-                LOG.debug("[persistCurrentContext] Skipping binding: " + key + " (host function or Log)");
+                persistableMap.put(key, GraalSerializer.getInstance().toJsSerializable(binding));
             }
         });
-
-        LOG.info("[persistCurrentContext] Total bindings persisted: " + persistableMap.size() +
-                ", keys: " + persistableMap.keySet());
         authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
