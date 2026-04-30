@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicy;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
@@ -210,10 +211,16 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             }
         }
 
-        // REDIRECT is always advertised so any extension may signal mid-flow external redirection.
-        AllowedOperation redirectOp = new AllowedOperation();
-        redirectOp.setOp(Operation.REDIRECT);
-        allowedOps.add(redirectOp);
+        // REDIRECT is advertised when the per-flow-type handover policy allows it. A null
+        // policy (test fixtures or unconfigured deployments) preserves the prior behaviour of
+        // always permitting REDIRECT.
+        FlowContextHandoverPolicy policy = flowContext.getValue(
+                InFlowExtensionExecutor.HANDOVER_POLICY_KEY, FlowContextHandoverPolicy.class);
+        if (policy == null || policy.isRedirectionEnabled()) {
+            AllowedOperation redirectOp = new AllowedOperation();
+            redirectOp.setOp(Operation.REDIRECT);
+            allowedOps.add(redirectOp);
+        }
 
         return allowedOps;
     }
@@ -281,6 +288,14 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             String callbackUrl = context.getCallbackUrl();
             if (callbackUrl != null) {
                 eventBuilder.callbackUrl(callbackUrl);
+            }
+        }
+
+        // Portal URL
+        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_PORTAL_URL_PATH, expose)) {
+            String portalUrl = context.getPortalUrl();
+            if (portalUrl != null) {
+                eventBuilder.portalUrl(portalUrl);
             }
         }
 

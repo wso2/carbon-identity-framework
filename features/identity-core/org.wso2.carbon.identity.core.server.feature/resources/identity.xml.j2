@@ -2527,6 +2527,110 @@
         </Types>
     </Actions>
 
+    <!--
+        Controlled handover policy for the In-Flow Extension executor. Determines which
+        FlowExecutionContext fields are visible to the action framework (request builder /
+        response processor) and whether REDIRECT is advertised in allowedOperations.
+        Configurable per flow type via [identity.in_flow_extension.context.{flow_type}] in
+        deployment.toml; per-flow-type sections inherit from `default` for unspecified keys
+        (resolved here via chained `default(...)` Jinja filters so the loader sees fully
+        resolved values for every key).
+    -->
+    <InFlowExtensionContextHandover>
+        <Default>
+            <Redirection>
+                <Enable>{{identity.in_flow_extension.context.default.redirection.enable | default('true')}}</Enable>
+            </Redirection>
+            <User>
+                <Enable>{{identity.in_flow_extension.context.default.user.enable | default('true')}}</Enable>
+                <UserId>{{identity.in_flow_extension.context.default.user.userId | default('false')}}</UserId>
+                <UserStoreDomain>{{identity.in_flow_extension.context.default.user.userStoreDomain | default('true')}}</UserStoreDomain>
+                <Claims>{{identity.in_flow_extension.context.default.user.claims | default('true')}}</Claims>
+                <Credentials>{{identity.in_flow_extension.context.default.user.credentials | default('false')}}</Credentials>
+            </User>
+            <Flow>
+                <Enable>{{identity.in_flow_extension.context.default.flow.enable | default('true')}}</Enable>
+                <TenantDomain>{{identity.in_flow_extension.context.default.flow.tenantDomain | default('true')}}</TenantDomain>
+                <ApplicationId>{{identity.in_flow_extension.context.default.flow.applicationId | default('true')}}</ApplicationId>
+                <FlowType>{{identity.in_flow_extension.context.default.flow.flowType | default('true')}}</FlowType>
+                <CallbackUrl>{{identity.in_flow_extension.context.default.flow.callbackUrl | default('true')}}</CallbackUrl>
+                <PortalUrl>{{identity.in_flow_extension.context.default.flow.portalUrl | default('true')}}</PortalUrl>
+            </Flow>
+            <Properties>
+                <Enable>{{identity.in_flow_extension.context.default.properties.enable | default('true')}}</Enable>
+            </Properties>
+        </Default>
+        <Registration>
+            <Redirection>
+                <Enable>{{identity.in_flow_extension.context.registration.redirection.enable | default(identity.in_flow_extension.context.default.redirection.enable | default('true'))}}</Enable>
+            </Redirection>
+            <User>
+                <Enable>{{identity.in_flow_extension.context.registration.user.enable | default(identity.in_flow_extension.context.default.user.enable | default('true'))}}</Enable>
+                <UserId>{{identity.in_flow_extension.context.registration.user.userId | default(identity.in_flow_extension.context.default.user.userId | default('false'))}}</UserId>
+                <UserStoreDomain>{{identity.in_flow_extension.context.registration.user.userStoreDomain | default(identity.in_flow_extension.context.default.user.userStoreDomain | default('true'))}}</UserStoreDomain>
+                <Claims>{{identity.in_flow_extension.context.registration.user.claims | default(identity.in_flow_extension.context.default.user.claims | default('true'))}}</Claims>
+                <Credentials>{{identity.in_flow_extension.context.registration.user.credentials | default(identity.in_flow_extension.context.default.user.credentials | default('false'))}}</Credentials>
+            </User>
+            <Flow>
+                <Enable>{{identity.in_flow_extension.context.registration.flow.enable | default(identity.in_flow_extension.context.default.flow.enable | default('true'))}}</Enable>
+                <TenantDomain>{{identity.in_flow_extension.context.registration.flow.tenantDomain | default(identity.in_flow_extension.context.default.flow.tenantDomain | default('true'))}}</TenantDomain>
+                <ApplicationId>{{identity.in_flow_extension.context.registration.flow.applicationId | default(identity.in_flow_extension.context.default.flow.applicationId | default('true'))}}</ApplicationId>
+                <FlowType>{{identity.in_flow_extension.context.registration.flow.flowType | default(identity.in_flow_extension.context.default.flow.flowType | default('true'))}}</FlowType>
+                <CallbackUrl>{{identity.in_flow_extension.context.registration.flow.callbackUrl | default(identity.in_flow_extension.context.default.flow.callbackUrl | default('true'))}}</CallbackUrl>
+                <PortalUrl>{{identity.in_flow_extension.context.registration.flow.portalUrl | default(identity.in_flow_extension.context.default.flow.portalUrl | default('true'))}}</PortalUrl>
+            </Flow>
+            <Properties>
+                <Enable>{{identity.in_flow_extension.context.registration.properties.enable | default(identity.in_flow_extension.context.default.properties.enable | default('true'))}}</Enable>
+            </Properties>
+        </Registration>
+        <PasswordRecovery>
+            <Redirection>
+                <Enable>{{identity.in_flow_extension.context.password_recovery.redirection.enable | default(identity.in_flow_extension.context.default.redirection.enable | default('true'))}}</Enable>
+            </Redirection>
+            <User>
+                <Enable>{{identity.in_flow_extension.context.password_recovery.user.enable | default(identity.in_flow_extension.context.default.user.enable | default('true'))}}</Enable>
+                <UserId>{{identity.in_flow_extension.context.password_recovery.user.userId | default(identity.in_flow_extension.context.default.user.userId | default('false'))}}</UserId>
+                <UserStoreDomain>{{identity.in_flow_extension.context.password_recovery.user.userStoreDomain | default(identity.in_flow_extension.context.default.user.userStoreDomain | default('true'))}}</UserStoreDomain>
+                <Claims>{{identity.in_flow_extension.context.password_recovery.user.claims | default(identity.in_flow_extension.context.default.user.claims | default('true'))}}</Claims>
+                <Credentials>{{identity.in_flow_extension.context.password_recovery.user.credentials | default(identity.in_flow_extension.context.default.user.credentials | default('false'))}}</Credentials>
+            </User>
+            <Flow>
+                <Enable>{{identity.in_flow_extension.context.password_recovery.flow.enable | default(identity.in_flow_extension.context.default.flow.enable | default('true'))}}</Enable>
+                <TenantDomain>{{identity.in_flow_extension.context.password_recovery.flow.tenantDomain | default(identity.in_flow_extension.context.default.flow.tenantDomain | default('true'))}}</TenantDomain>
+                <ApplicationId>{{identity.in_flow_extension.context.password_recovery.flow.applicationId | default(identity.in_flow_extension.context.default.flow.applicationId | default('true'))}}</ApplicationId>
+                <FlowType>{{identity.in_flow_extension.context.password_recovery.flow.flowType | default(identity.in_flow_extension.context.default.flow.flowType | default('true'))}}</FlowType>
+                <CallbackUrl>{{identity.in_flow_extension.context.password_recovery.flow.callbackUrl | default(identity.in_flow_extension.context.default.flow.callbackUrl | default('true'))}}</CallbackUrl>
+                <PortalUrl>{{identity.in_flow_extension.context.password_recovery.flow.portalUrl | default(identity.in_flow_extension.context.default.flow.portalUrl | default('true'))}}</PortalUrl>
+            </Flow>
+            <Properties>
+                <Enable>{{identity.in_flow_extension.context.password_recovery.properties.enable | default(identity.in_flow_extension.context.default.properties.enable | default('true'))}}</Enable>
+            </Properties>
+        </PasswordRecovery>
+        <InvitedUserRegistration>
+            <Redirection>
+                <Enable>{{identity.in_flow_extension.context.invited_user_registration.redirection.enable | default(identity.in_flow_extension.context.default.redirection.enable | default('true'))}}</Enable>
+            </Redirection>
+            <User>
+                <Enable>{{identity.in_flow_extension.context.invited_user_registration.user.enable | default(identity.in_flow_extension.context.default.user.enable | default('true'))}}</Enable>
+                <UserId>{{identity.in_flow_extension.context.invited_user_registration.user.userId | default(identity.in_flow_extension.context.default.user.userId | default('false'))}}</UserId>
+                <UserStoreDomain>{{identity.in_flow_extension.context.invited_user_registration.user.userStoreDomain | default(identity.in_flow_extension.context.default.user.userStoreDomain | default('true'))}}</UserStoreDomain>
+                <Claims>{{identity.in_flow_extension.context.invited_user_registration.user.claims | default(identity.in_flow_extension.context.default.user.claims | default('true'))}}</Claims>
+                <Credentials>{{identity.in_flow_extension.context.invited_user_registration.user.credentials | default(identity.in_flow_extension.context.default.user.credentials | default('false'))}}</Credentials>
+            </User>
+            <Flow>
+                <Enable>{{identity.in_flow_extension.context.invited_user_registration.flow.enable | default(identity.in_flow_extension.context.default.flow.enable | default('true'))}}</Enable>
+                <TenantDomain>{{identity.in_flow_extension.context.invited_user_registration.flow.tenantDomain | default(identity.in_flow_extension.context.default.flow.tenantDomain | default('true'))}}</TenantDomain>
+                <ApplicationId>{{identity.in_flow_extension.context.invited_user_registration.flow.applicationId | default(identity.in_flow_extension.context.default.flow.applicationId | default('true'))}}</ApplicationId>
+                <FlowType>{{identity.in_flow_extension.context.invited_user_registration.flow.flowType | default(identity.in_flow_extension.context.default.flow.flowType | default('true'))}}</FlowType>
+                <CallbackUrl>{{identity.in_flow_extension.context.invited_user_registration.flow.callbackUrl | default(identity.in_flow_extension.context.default.flow.callbackUrl | default('true'))}}</CallbackUrl>
+                <PortalUrl>{{identity.in_flow_extension.context.invited_user_registration.flow.portalUrl | default(identity.in_flow_extension.context.default.flow.portalUrl | default('true'))}}</PortalUrl>
+            </Flow>
+            <Properties>
+                <Enable>{{identity.in_flow_extension.context.invited_user_registration.properties.enable | default(identity.in_flow_extension.context.default.properties.enable | default('true'))}}</Enable>
+            </Properties>
+        </InvitedUserRegistration>
+    </InFlowExtensionContextHandover>
+
     <ExternalAPIClient>
         <HTTPClient>
             <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>

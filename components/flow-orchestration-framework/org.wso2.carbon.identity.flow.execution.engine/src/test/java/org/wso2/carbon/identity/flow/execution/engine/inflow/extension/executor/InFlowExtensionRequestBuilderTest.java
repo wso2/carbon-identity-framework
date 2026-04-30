@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.executor;
+package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
@@ -31,10 +31,6 @@ import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionEvent;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.JWEEncryptionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
@@ -434,6 +430,68 @@ public class InFlowExtensionRequestBuilderTest {
         assertNotNull(event.getFlowType());
         // Tenant should be present.
         assertNotNull(event.getTenant());
+    }
+
+    @Test
+    public void testFlowPortalUrlExposed()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        execCtx.setPortalUrl("https://localhost:9443/accounts/recovery");
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/portalUrl", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertEquals(event.getPortalUrl(), "https://localhost:9443/accounts/recovery");
+    }
+
+    @Test
+    public void testFlowPortalUrlNotExposedYieldsNull()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        execCtx.setPortalUrl("https://localhost:9443/accounts/recovery");
+
+        // /flow/portalUrl NOT in expose list — must be omitted from the event even when
+        // the context has a value, mirroring the rest of the expose-gated paths.
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/flowType", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNull(event.getPortalUrl());
+    }
+
+    @Test
+    public void testFlowCallbackUrlExposed()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        execCtx.setCallbackUrl("https://example.com/callback");
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/callbackUrl", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertEquals(event.getCallbackUrl(), "https://example.com/callback");
     }
 
     @Test

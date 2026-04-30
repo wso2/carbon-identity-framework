@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.executor;
+package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
@@ -38,10 +38,6 @@ import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilder;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.JWEEncryptionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;

@@ -16,11 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.model;
+package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 
 import java.util.Arrays;
 import java.util.Collections;

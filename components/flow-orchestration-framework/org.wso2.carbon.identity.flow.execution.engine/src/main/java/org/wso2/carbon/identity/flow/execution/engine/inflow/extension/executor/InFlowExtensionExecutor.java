@@ -33,6 +33,9 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicy;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowExecutionContextFilter;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
@@ -71,6 +74,7 @@ public class InFlowExtensionExecutor implements Executor {
     private static final String EXECUTOR_NAME = "InFlowExtensionExecutor";
 
     public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
+    public static final String HANDOVER_POLICY_KEY = "handoverPolicy";
     public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
     public static final String PENDING_CLAIMS_KEY = "pendingClaims";
     public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
@@ -137,8 +141,18 @@ public class InFlowExtensionExecutor implements Executor {
         }
 
         try {
+            // Resolve the per-flow-type handover policy and hand the action framework only a
+            // FILTERED copy of the FlowExecutionContext (non-whitelisted fields nulled out).
+            // The original `context` is untouched and continues to drive the engine's own
+            // bookkeeping (OTFI cache swap, TaskExecutionNode pending-update propagation).
+            FlowContextHandoverConfig handoverConfig = FlowExecutionEngineDataHolder.getInstance()
+                    .getFlowContextHandoverConfig();
+            FlowContextHandoverPolicy policy = handoverConfig.resolve(context.getFlowType());
+            FlowExecutionContext filteredContext = FlowExecutionContextFilter.filter(context, policy);
+
             FlowContext flowContext = FlowContext.create()
-                    .add(FLOW_EXECUTION_CONTEXT_KEY, context);
+                    .add(FLOW_EXECUTION_CONTEXT_KEY, filteredContext)
+                    .add(HANDOVER_POLICY_KEY, policy);
 
             // TODO: Have <T> and switch-case
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(

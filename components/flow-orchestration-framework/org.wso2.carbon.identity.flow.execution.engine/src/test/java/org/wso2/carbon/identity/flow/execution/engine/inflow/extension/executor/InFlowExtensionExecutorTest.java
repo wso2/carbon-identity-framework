@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.executor;
+package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor;
 
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -34,9 +34,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicy;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutor;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
@@ -82,6 +82,12 @@ public class InFlowExtensionExecutorTest {
         FlowExecutionEngineDataHolder holderInstance =
                 mock(FlowExecutionEngineDataHolder.class);
         when(holderInstance.getActionExecutorService()).thenReturn(actionExecutorService);
+
+        // The executor consults the handover config on every run. Stub it to a permissive
+        // policy so the existing tests remain focused on status mapping rather than filtering.
+        FlowContextHandoverConfig handoverConfig = mock(FlowContextHandoverConfig.class);
+        when(handoverConfig.resolve(any())).thenReturn(FlowContextHandoverPolicy.permissive());
+        when(holderInstance.getFlowContextHandoverConfig()).thenReturn(handoverConfig);
 
         holderMock = mockStatic(FlowExecutionEngineDataHolder.class);
         holderMock.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(holderInstance);

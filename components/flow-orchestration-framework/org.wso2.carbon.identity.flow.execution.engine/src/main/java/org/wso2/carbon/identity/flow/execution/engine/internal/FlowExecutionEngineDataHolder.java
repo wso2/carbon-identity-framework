@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.certificate.management.service.CertificateManage
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverConfig;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
@@ -53,6 +54,7 @@ public class FlowExecutionEngineDataHolder {
     private ActionExecutorService actionExecutorService;
     private ActionManagementService actionManagementService;
     private CertificateManagementService certificateManagementService;
+    private FlowContextHandoverConfig flowContextHandoverConfig;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -283,5 +285,32 @@ public class FlowExecutionEngineDataHolder {
     public void setCertificateManagementService(CertificateManagementService certificateManagementService) {
 
         this.certificateManagementService = certificateManagementService;
+    }
+
+    /**
+     * Get the In-Flow Extension context handover config. Lazily initialised on first access
+     * (the constructor reads from {@code IdentityUtil} which requires the carbon configuration
+     * to be loaded — keeping this lazy avoids ordering issues with OSGi component activation).
+     *
+     * @return The handover config, never null.
+     */
+    public FlowContextHandoverConfig getFlowContextHandoverConfig() {
+
+        if (flowContextHandoverConfig == null) {
+            synchronized (this) {
+                if (flowContextHandoverConfig == null) {
+                    flowContextHandoverConfig = new FlowContextHandoverConfig();
+                }
+            }
+        }
+        return flowContextHandoverConfig;
+    }
+
+    /**
+     * Override the handover config. Intended for tests only.
+     */
+    public void setFlowContextHandoverConfig(FlowContextHandoverConfig flowContextHandoverConfig) {
+
+        this.flowContextHandoverConfig = flowContextHandoverConfig;
     }
 }
