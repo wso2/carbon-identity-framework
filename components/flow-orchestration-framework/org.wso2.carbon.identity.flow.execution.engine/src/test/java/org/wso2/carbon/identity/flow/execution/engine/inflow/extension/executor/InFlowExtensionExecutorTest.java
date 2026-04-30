@@ -618,39 +618,4 @@ public class InFlowExtensionExecutorTest {
 
         return context;
     }
-
-    // ========================= sanitizeConnectionName =========================
-
-    @Test
-    public void testSanitizeConnectionNameBasic() {
-
-        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName("Risk Assessment Extension"),
-                "risk.assessment.extension");
-    }
-
-    @Test
-    public void testSanitizeConnectionNameSpecialChars() {
-
-        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName("My-Extension_v2 (test)"),
-                "my.extension.v2.test");
-    }
-
-    @Test
-    public void testSanitizeConnectionNameAlreadyClean() {
-
-        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName("simpleext"),
-                "simpleext");
-    }
-
-    @Test
-    public void testSanitizeConnectionNameEmpty() {
-
-        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName(""), "");
-    }
-
-    @Test
-    public void testSanitizeConnectionNameNull() {
-
-        assertEquals(InFlowExtensionResponseProcessor.sanitizeConnectionName(null), "");
-    }
 }

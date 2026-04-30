@@ -67,7 +67,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
 
     public static final String MODIFY_PATHS_KEY = "modifyPaths";
-    public static final String ACTION_NAME_KEY = "actionName";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -127,11 +126,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     .configParam("outboundEncryption", encryption != null)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-        }
-
-        // Store action name for i18n error key prefixing in the response processor.
-        if (actionName != null) {
-            flowContext.add(ACTION_NAME_KEY, actionName);
         }
 
         // Build allowed operations: REPLACE (from modify paths, if any) + REDIRECT (always).

@@ -628,66 +628,13 @@ public class InFlowExtensionResponseProcessorTest {
         assertEquals(status.getResponse().getFailureDescription(), "Risk score exceeds threshold");
     }
 
-    // ========================= processFailureResponse — i18n key prefixing =========================
+    // ========================= processFailureResponse — full-key pass-through =========================
 
     @Test
-    public void testProcessFailureResponseWithI18nKey()
+    public void testProcessFailureResponseWithFullKeyPassesThrough()
             throws ActionExecutionResponseProcessorException {
 
-        // Extension sends a bare dot-separated short key ({{}} wrapping is rejected by JSON parsers).
-        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
-        when(failureResponse.getFailureReason()).thenReturn("high_risk");
-        when(failureResponse.getFailureDescription()).thenReturn("user.access.denied");
-
-        @SuppressWarnings("unchecked")
-        ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
-                mock(ActionExecutionResponseContext.class);
-        when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
-
-        FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, "Risk Assessment Extension");
-
-        ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
-                flowContext, responseContext);
-
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.FAILED);
-        // Bare short key is prefixed and wrapped for frontend i18n resolution.
-        assertEquals(status.getResponse().getFailureDescription(),
-                "{{inflow.extension.risk.assessment.extension.user.access.denied}}");
-        // Reason contains underscore — not a dot-separated key, passes through unchanged.
-        assertEquals(status.getResponse().getFailureReason(), "high_risk");
-    }
-
-    @Test
-    public void testProcessFailureResponseWithPlainText()
-            throws ActionExecutionResponseProcessorException {
-
-        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
-        when(failureResponse.getFailureReason()).thenReturn("high_risk_detected");
-        when(failureResponse.getFailureDescription()).thenReturn("Risk score exceeds threshold");
-
-        @SuppressWarnings("unchecked")
-        ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext =
-                mock(ActionExecutionResponseContext.class);
-        when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
-
-        FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, "Risk Assessment Extension");
-
-        ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
-                flowContext, responseContext);
-
-        // Plain text passes through unchanged — no {{}} wrapper present.
-        assertEquals(status.getResponse().getFailureDescription(), "Risk score exceeds threshold");
-        assertEquals(status.getResponse().getFailureReason(), "high_risk_detected");
-    }
-
-    @Test
-    public void testProcessFailureResponseWithFullyQualifiedKey()
-            throws ActionExecutionResponseProcessorException {
-
-        // A string that does not match the bare short-key pattern (contains braces) must
-        // pass through untouched — the processor is not responsible for stripping artefacts.
+        // Extension now sends the full i18n key directly — processor must pass it through unchanged.
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
         when(failureResponse.getFailureReason()).thenReturn("high_risk");
         when(failureResponse.getFailureDescription())
@@ -698,21 +645,22 @@ public class InFlowExtensionResponseProcessorTest {
                 mock(ActionExecutionResponseContext.class);
         when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
 
-        FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, "Risk Assessment Extension");
+        FlowContext flowContext = FlowContext.create();
 
         ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
                 flowContext, responseContext);
 
-        // Already starts with "inflow.extension." — must not be double-prefixed.
+        // Full key passes through unchanged — no wrapping or prefixing.
         assertEquals(status.getResponse().getFailureDescription(),
                 "inflow.extension.risk.assessment.extension.user.access.denied");
+        assertEquals(status.getResponse().getFailureReason(), "high_risk");
     }
 
     @Test
-    public void testProcessFailureResponseWithoutActionName()
+    public void testProcessFailureResponseWithShortKeyPassesThrough()
             throws ActionExecutionResponseProcessorException {
 
+        // Short dot-separated key also passes through as-is — IS no longer adds a prefix.
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
         when(failureResponse.getFailureReason()).thenReturn("high_risk");
         when(failureResponse.getFailureDescription()).thenReturn("user.access.denied");
@@ -722,13 +670,13 @@ public class InFlowExtensionResponseProcessorTest {
                 mock(ActionExecutionResponseContext.class);
         when(responseContext.getActionInvocationResponse()).thenReturn(failureResponse);
 
-        // No ACTION_NAME_KEY in FlowContext — no prefix should be applied; value passes through.
         FlowContext flowContext = FlowContext.create();
 
         ActionExecutionStatus<Failure> status = responseProcessor.processFailureResponse(
                 flowContext, responseContext);
 
         assertEquals(status.getResponse().getFailureDescription(), "user.access.denied");
+        assertEquals(status.getResponse().getFailureReason(), "high_risk");
     }
 
     // ========================= processErrorResponse =========================

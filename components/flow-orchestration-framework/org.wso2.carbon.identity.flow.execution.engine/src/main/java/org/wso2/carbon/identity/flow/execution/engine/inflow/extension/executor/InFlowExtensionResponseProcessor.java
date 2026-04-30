@@ -54,9 +54,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * This class is responsible for processing the response from In-Flow Extension actions.
@@ -81,9 +79,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private static final String PROPERTIES_PATH_PREFIX = "/properties/";
     private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
     private static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
-    private static final String I18N_KEY_PREFIX = "inflow.extension.";
-    private static final Pattern SHORT_I18N_KEY_PATTERN =
-            Pattern.compile("^[a-z][a-z0-9]*(?:\\.[a-z0-9]+)+$");
 
     @Override
     public ActionType getSupportedActionType() {
@@ -375,11 +370,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     ", Description: " + errorDescription);
         }
 
-        // Apply i18n key prefixing so the frontend can locate extension-specific error messages.
-        String actionName = flowContext.getValue(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, String.class);
-        errorMessage = applyI18nKeyPrefix(errorMessage, actionName);
-        errorDescription = applyI18nKeyPrefix(errorDescription, actionName);
-
         return new ErrorStatus(new Error(errorMessage, errorDescription));
     }
 
@@ -396,60 +386,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     ", Description: " + failureDescription);
         }
 
-        // Apply i18n key prefixing so the frontend can locate extension-specific error messages.
-        String actionName = flowContext.getValue(InFlowExtensionRequestBuilder.ACTION_NAME_KEY, String.class);
-        failureDescription = applyI18nKeyPrefix(failureDescription, actionName);
-        failureReason = applyI18nKeyPrefix(failureReason, actionName);
-
         return new FailedStatus(new Failure(failureReason, failureDescription));
-    }
-
-    /**
-     * Transform a bare dot-separated short i18n key (e.g. {@code account.restricted.message})
-     * into a fully qualified, frontend-ready wrapped key
-     * (e.g. {@code {{inflow.extension.risk.assessment.extension.account.restricted.message}}}),
-     * using the sanitized action name as the prefix.
-     *
-     * <p>Plain text (sentences, single words, anything with spaces or special characters) is
-     * returned as-is. Keys that already start with {@value #I18N_KEY_PREFIX} are also left
-     * unchanged so the processor is idempotent.</p>
-     *
-     * @param message    The error message or reason string. May be null.
-     * @param actionName The action display name. May be null.
-     * @return The transformed message, or the original if no transformation applies.
-     */
-    private String applyI18nKeyPrefix(String message, String actionName) {
-
-        if (message == null || actionName == null) {
-            return message;
-        }
-        if (message.startsWith(I18N_KEY_PREFIX)) {
-            return message;
-        }
-        if (!SHORT_I18N_KEY_PATTERN.matcher(message).matches()) {
-            return message;
-        }
-        String sanitizedName = sanitizeConnectionName(actionName);
-        return "{{" + I18N_KEY_PREFIX + sanitizedName + "." + message + "}}";
-    }
-
-    /**
-     * Sanitize a connection name into a dot-separated lowercase key segment.
-     * Non-alphanumeric characters are replaced with dots, consecutive dots are collapsed,
-     * and leading/trailing dots are trimmed.
-     *
-     * @param name The connection display name.
-     * @return The sanitized key segment (e.g., "Risk Assessment Extension" → "risk.assessment.extension").
-     */
-    public static String sanitizeConnectionName(String name) {
-
-        if (name == null || name.isEmpty()) {
-            return "";
-        }
-        String sanitized = name.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]", ".");
-        sanitized = sanitized.replaceAll("\\.{2,}", ".");
-        sanitized = sanitized.replaceAll("^\\.+|\\.+$", "");
-        return sanitized;
     }
 
     /**
