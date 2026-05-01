@@ -213,6 +213,8 @@
                             org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor,
                             org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model,
                             org.wso2.carbon.identity.flow.execution.engine.inflow.extension.management,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config,
+                            org.wso2.carbon.identity.flow.execution.engine.inflow.extension.metadata,
                             org.wso2.carbon.identity.flow.execution.engine.graph;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
