@@ -90,12 +90,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         Action rawAction = actionExecutionContext.getAction();
         AccessConfig accessConfig = null;
         Encryption encryption = null;
-        String actionName = null;
         if (rawAction instanceof InFlowExtensionAction) {
             InFlowExtensionAction ext = (InFlowExtensionAction) rawAction;
             accessConfig = ext.resolveAccessConfig(execCtx.getFlowType());
             encryption = ext.getEncryption();
-            actionName = ext.getName();
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No InFlowExtensionAction resolved. Proceeding with empty access configuration.");

@@ -294,14 +294,10 @@ public class FlowExecutionEngineDataHolder {
      *
      * @return The handover config, never null.
      */
-    public FlowContextHandoverConfig getFlowContextHandoverConfig() {
+    public synchronized FlowContextHandoverConfig getFlowContextHandoverConfig() {
 
         if (flowContextHandoverConfig == null) {
-            synchronized (this) {
-                if (flowContextHandoverConfig == null) {
-                    flowContextHandoverConfig = new FlowContextHandoverConfig();
-                }
-            }
+            flowContextHandoverConfig = new FlowContextHandoverConfig();
         }
         return flowContextHandoverConfig;
     }
@@ -309,7 +305,7 @@ public class FlowExecutionEngineDataHolder {
     /**
      * Override the handover config. Intended for tests only.
      */
-    public void setFlowContextHandoverConfig(FlowContextHandoverConfig flowContextHandoverConfig) {
+    public synchronized void setFlowContextHandoverConfig(FlowContextHandoverConfig flowContextHandoverConfig) {
 
         this.flowContextHandoverConfig = flowContextHandoverConfig;
     }
