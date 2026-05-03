@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2010-2026, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,14 +11,14 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
  */
 
 package org.wso2.carbon.identity.user.profile.mgt.listener;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,8 +26,10 @@ import org.wso2.carbon.identity.base.IdentityValidationUtil;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.util.ServiceHodler;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -35,7 +37,13 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventListener {
 
@@ -47,6 +55,11 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     private static final String XML_META_EXISTS = "XML_META_EXISTS";
     private static final String REGEX_META_EXISTS = "REGEX_META_EXISTS";
     private static final String URL = "URL";
+    private static final Set<String> IMMUTABLE_CLAIM_URIS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "http://wso2.org/claims/username",
+            "http://wso2.org/claims/userid",
+            "http://wso2.org/claims/created"
+    )));
 
     private static final Log log = LogFactory.getLog(ProfileMgtEventListener.class);
 
@@ -56,12 +69,25 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     }
 
     @Override
+    public boolean doPreSetUserClaimValue(String userName, String claimURI, String claimValue, String profileName,
+            UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+        validateImmutableLocalClaimUpdate(userName, Collections.singletonMap(claimURI, claimValue), profileName,
+                userStoreManager);
+        return true;
+    }
+
+    @Override
     public boolean doPreSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
             UserStoreManager userStoreManager) throws UserStoreException {
         if (!isEnable()) {
             return true;
         }
 
+        validateImmutableLocalClaimUpdate(userName, claims, profileName, userStoreManager);
         if (log.isDebugEnabled()) {
             String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
             if (StringUtils.isBlank(userStoreDomain)) {
@@ -81,6 +107,28 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
         if (!IdentityValidationUtil.isValid(profileName, whiteListPatternKeys, blackListPatternKeys)) {
             throw new UserStoreException("profile name contains invalid characters!");
         }
+        return true;
+    }
+
+    @Override
+    public boolean doPreDeleteUserClaimValue(String userName, String claimURI, String profileName,
+            UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+        validateImmutableLocalClaimDelete(Collections.singleton(claimURI), profileName);
+        return true;
+    }
+
+    @Override
+    public boolean doPreDeleteUserClaimValues(String userName, String[] claims, String profileName,
+            UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable() || claims == null) {
+            return true;
+        }
+        validateImmutableLocalClaimDelete(new HashSet<>(Arrays.asList(claims)), profileName);
         return true;
     }
 
@@ -115,6 +163,65 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
         return true;
     }
 
+    private void validateImmutableLocalClaimUpdate(String userName, Map<String, String> claims, String profileName,
+                                                   UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        if (!isRestrictImmutableLocalClaimsUpdateEnabled() || claims == null || claims.isEmpty() ||
+                !UserCoreConstants.DEFAULT_PROFILE.equals(profileName)) {
+            return;
+        }
+
+        Set<String> immutableClaimsInRequest = IMMUTABLE_CLAIM_URIS.stream().filter(claims::containsKey)
+                .collect(Collectors.toSet());
+        if (immutableClaimsInRequest.isEmpty()) {
+            return;
+        }
+
+        Map<String, String> existingClaimValues = userStoreManager.getUserClaimValues(userName,
+                immutableClaimsInRequest.toArray(new String[0]), profileName);
+        for (String claimURI : immutableClaimsInRequest) {
+            String existingValue = existingClaimValues != null ? existingClaimValues.get(claimURI) : null;
+            if (Objects.equals(existingValue, claims.get(claimURI))) {
+                continue;
+            }
+
+            throw new UserStoreClientException("Invalid operation. " + claimURI +
+                    " is an immutable claim and cannot be modified");
+        }
+    }
+
+    private void validateImmutableLocalClaimDelete(Set<String> claimURIs, String profileName)
+            throws UserStoreException {
+
+        if (!isRestrictImmutableLocalClaimsUpdateEnabled() || CollectionUtils.isEmpty(claimURIs) ||
+            !UserCoreConstants.DEFAULT_PROFILE.equals(profileName)) {
+            return;
+        }
+
+        for (String immutableClaim : IMMUTABLE_CLAIM_URIS) {
+            if (claimURIs.contains(immutableClaim)) {
+                throw new UserStoreClientException("Invalid operation. " + immutableClaim +
+                        " is an immutable claim and cannot be modified");
+            }
+        }
+    }
+
+    private boolean isRestrictImmutableLocalClaimsUpdateEnabled() {
+
+        String value = IdentityUtil.getProperty("UserClaimUpdate.RestrictImmutableLocalClaimUpdate");
+        if (value == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("UserClaimUpdate.RestrictImmutableLocalClaimUpdate property is not set. " +
+                        "Defaulting to true.");
+            }
+            return true;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("UserClaimUpdate.RestrictImmutableLocalClaimUpdate property is set to " + value);
+        }
+        return Boolean.parseBoolean(value);
+    }
 
     /**
      * Delete federated idp account associations from IDN_ASSOCIATED_ID table
