@@ -58,11 +58,8 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     private static final String XML_META_EXISTS = "XML_META_EXISTS";
     private static final String REGEX_META_EXISTS = "REGEX_META_EXISTS";
     private static final String URL = "URL";
-    private static final Set<String> IMMUTABLE_CLAIM_URIS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            UserCoreClaimConstants.USER_ID_CLAIM_URI,
-            UserCoreClaimConstants.USER_ID_CLAIM_URI,
-            "http://wso2.org/claims/created"
-    )));
+    private static final Set<String> IMMUTABLE_CLAIM_URIS = Set.of(UserCoreClaimConstants.USER_ID_CLAIM_URI,
+            UserCoreClaimConstants.USERNAME_CLAIM_URI, "http://wso2.org/claims/created");
 
     private static final Log log = LogFactory.getLog(ProfileMgtEventListener.class);
 
