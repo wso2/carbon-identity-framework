@@ -31,11 +31,9 @@ import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.*;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
+import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
@@ -106,7 +104,7 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -122,7 +120,7 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -146,7 +144,7 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -168,7 +166,7 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         // No action → no access config → no modify paths → only REDIRECT (always present).
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
@@ -188,7 +186,7 @@ public class InFlowExtensionRequestBuilderTest {
         AccessConfig accessConfig = new AccessConfig(null, Arrays.asList());
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -211,7 +209,7 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -229,7 +227,7 @@ public class InFlowExtensionRequestBuilderTest {
 
         FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
@@ -252,7 +250,7 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskFactors{[String]}", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -265,7 +263,7 @@ public class InFlowExtensionRequestBuilderTest {
 
         // Annotations should be stored in FlowContext.
         Map<String, String> annotations = flowContext.getValue(
-                InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
+                Constants.InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         assertNotNull(annotations);
         assertEquals(annotations.get("/properties/riskFactors"), "[String]");
     }
@@ -280,7 +278,7 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/items{name: String, count: Integer}", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -291,7 +289,7 @@ public class InFlowExtensionRequestBuilderTest {
         assertFalse(op.getPaths().contains("/properties/items{name: String, count: Integer}"));
 
         Map<String, String> annotations = flowContext.getValue(
-                InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
+                Constants.InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         assertEquals(annotations.get("/properties/items"), "name: String, count: Integer");
     }
 
@@ -305,13 +303,13 @@ public class InFlowExtensionRequestBuilderTest {
                 Arrays.asList(new ContextPath("/properties/riskScore", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         requestBuilder.buildActionExecutionRequest(flowContext, mockReqCtx(accessConfig, null));
 
         // No annotations should be stored when paths have no annotations.
         Map<String, String> annotations = flowContext.getValue(
-                InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
+                Constants.InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         assertNull(annotations);
     }
 
@@ -327,7 +325,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/properties/items{name: String, count: Integer}", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -340,7 +338,7 @@ public class InFlowExtensionRequestBuilderTest {
         assertTrue(op.getPaths().contains("/properties/items"));
 
         Map<String, String> annotations = flowContext.getValue(
-                InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
+                Constants.InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         assertEquals(annotations.size(), 2);
         assertEquals(annotations.get("/properties/riskFactors"), "[String]");
         assertEquals(annotations.get("/properties/items"), "name: String, count: Integer");
@@ -364,7 +362,7 @@ public class InFlowExtensionRequestBuilderTest {
         execCtx.setProperty("riskScore", "50");
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -391,7 +389,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/user/claims/http://wso2.org/claims/email", false)));
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -418,7 +416,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/flow/flowType", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -443,7 +441,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/flow/portalUrl", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -465,7 +463,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/flow/flowType", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -485,7 +483,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/flow/callbackUrl", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -505,7 +503,7 @@ public class InFlowExtensionRequestBuilderTest {
                 new ContextPath("/user/userId", false)), null);
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                 flowContext, mockReqCtx(accessConfig, null));
@@ -542,7 +540,7 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                    .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
             ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                     flowContext, mockReqCtx(accessConfig, encryption));
@@ -581,7 +579,7 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                    .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
             ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                     flowContext, mockReqCtx(accessConfig, encryption));
@@ -636,7 +634,7 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                    .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
             ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
                     flowContext, mockReqCtx(accessConfig, encryption));
@@ -674,7 +672,7 @@ public class InFlowExtensionRequestBuilderTest {
                             .certificateContent("test-cert-pem").build());
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                    .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
             requestBuilder.buildActionExecutionRequest(flowContext, mockReqCtx(accessConfig, encryption));
         }

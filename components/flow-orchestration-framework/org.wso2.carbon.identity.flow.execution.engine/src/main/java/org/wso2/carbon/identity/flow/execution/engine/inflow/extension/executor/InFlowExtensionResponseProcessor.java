@@ -45,8 +45,10 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.InFlowExtensionConstants;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.OperationExecutionResult;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.utils.DiagnosticLog;
 
@@ -76,10 +78,6 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionResponseProcessor.class);
 
-    private static final String PROPERTIES_PATH_PREFIX = "/properties/";
-    private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
-    private static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
-
     @Override
     public ActionType getSupportedActionType() {
 
@@ -93,13 +91,13 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = flowContext.getValue(
-                InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+                InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
         String tenantDomain = execCtx != null ? execCtx.getTenantDomain() : null;
 
         // Read path type annotations set by the request builder.
         // Maps clean paths to annotation content.
         Map<String, String> pathTypeAnnotations = flowContext.getValue(
-                InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
+                InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         if (pathTypeAnnotations == null) {
             pathTypeAnnotations = Collections.emptyMap();
         }
@@ -107,7 +105,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         // Reconstruct AccessConfig from the resolved modify paths stored by the request builder.
         // This reuses AccessConfig.isModifyPathEncrypted() for canonical prefix-based encryption checking.
         List<ContextPath> modifyPaths = flowContext.getValue(
-                InFlowExtensionRequestBuilder.MODIFY_PATHS_KEY, List.class);
+                InFlowExtensionConstants.MODIFY_PATHS_KEY, List.class);
         AccessConfig accessConfig = modifyPaths != null ? new AccessConfig(null, modifyPaths) : null;
 
         // Accumulate pending updates — applied by TaskExecutionNode via ExecutorResponse fields.
@@ -134,13 +132,13 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         // Store non-empty pending maps in FlowContext for the executor to forward to TaskExecutionNode.
         if (!pendingClaims.isEmpty()) {
-            flowContext.add(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, pendingClaims);
+            flowContext.add(InFlowExtensionConstants.PENDING_CLAIMS_KEY, pendingClaims);
         }
         if (!pendingCredentials.isEmpty()) {
-            flowContext.add(InFlowExtensionExecutor.PENDING_CREDENTIALS_KEY, pendingCredentials);
+            flowContext.add(InFlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
         }
         if (!pendingProperties.isEmpty()) {
-            flowContext.add(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, pendingProperties);
+            flowContext.add(InFlowExtensionConstants.PENDING_PROPERTIES_KEY, pendingProperties);
         }
 
         logOperationExecutionResults(results);
@@ -179,17 +177,18 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         // Route to appropriate handler based on path prefix.
-        if (path.startsWith(PROPERTIES_PATH_PREFIX)) {
+        if (path.startsWith(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX)) {
             return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
-        } else if (path.startsWith(USER_CLAIMS_PATH_PREFIX)) {
+        } else if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
             return handleUserClaimOperation(operation, pendingClaims);
-        } else if (path.startsWith(USER_CREDENTIALS_PATH_PREFIX)) {
+        } else if (path.startsWith(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                "Unknown path prefix. Supported: " + PROPERTIES_PATH_PREFIX +
-                        ", " + USER_CLAIMS_PATH_PREFIX + ", " + USER_CREDENTIALS_PATH_PREFIX);
+                "Unknown path prefix. Supported: " + InFlowExtensionConstants.PROPERTIES_PATH_PREFIX +
+                        ", " + InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX +
+                        ", " + InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX);
     }
 
     /**
@@ -206,7 +205,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private OperationExecutionResult handlePropertyOperation(PerformableOperation operation,
             Map<String, String> pathTypeAnnotations, Map<String, Object> pendingProperties) {
 
-        String propertyName = extractNameFromPath(operation.getPath(), PROPERTIES_PATH_PREFIX);
+        String propertyName = extractNameFromPath(operation.getPath(),
+                InFlowExtensionConstants.PROPERTIES_PATH_PREFIX);
 
         if (propertyName == null || propertyName.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
@@ -254,7 +254,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private OperationExecutionResult handleUserClaimOperation(PerformableOperation operation,
             Map<String, Object> pendingClaims) {
 
-        String claimUri = extractNameFromPath(operation.getPath(), USER_CLAIMS_PATH_PREFIX);
+        String claimUri = extractNameFromPath(operation.getPath(),
+                InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX);
 
         if (claimUri == null || claimUri.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
@@ -283,7 +284,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private OperationExecutionResult handleUserCredentialOperation(PerformableOperation operation,
             Map<String, char[]> pendingCredentials) {
 
-        String credentialKey = extractNameFromPath(operation.getPath(), USER_CREDENTIALS_PATH_PREFIX);
+        String credentialKey = extractNameFromPath(operation.getPath(),
+                InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX);
 
         if (credentialKey == null || credentialKey.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
@@ -364,7 +366,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     + "expected to resend them on the resume call after callback.");
         }
 
-        flowContext.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, redirectUrl);
+        flowContext.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, redirectUrl);
 
         if (LOG.isDebugEnabled()) {
             try {

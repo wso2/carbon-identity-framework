@@ -271,6 +271,45 @@ public class Constants {
         }
     }
 
+    /**
+     * Constants for the In-Flow Extension executor pipeline.
+     *
+     * <p>Keys are shared across the executor, request builder, and response processor
+     * via the {@link org.wso2.carbon.identity.action.execution.api.model.FlowContext}
+     * handoff mechanism. Path prefixes drive operation routing in the response processor.</p>
+     */
+    public static class InFlowExtensionConstants {
+
+        private InFlowExtensionConstants() {
+
+        }
+
+        // ---- FlowContext pipeline keys ----
+        public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
+        public static final String HANDOVER_POLICY_KEY        = "handoverPolicy";
+        public static final String PATH_TYPE_ANNOTATIONS_KEY  = "pathTypeAnnotations";
+        public static final String MODIFY_PATHS_KEY           = "modifyPaths";
+        public static final String PENDING_CLAIMS_KEY         = "pendingClaims";
+        public static final String PENDING_CREDENTIALS_KEY    = "pendingCredentials";
+        public static final String PENDING_PROPERTIES_KEY     = "pendingProperties";
+        public static final String PENDING_REDIRECT_URL_KEY   = "pendingRedirectUrl";
+
+        // ---- Response info keys ----
+        public static final String ERROR_TYPE_KEY       = "errorType";
+        public static final String EXTENSION_ERROR_TYPE = "EXTENSION_ERROR";
+        public static final String ERROR_MESSAGE_KEY    = "errorMessage";
+        public static final String ERROR_DESCRIPTION_KEY = "errorDescription";
+
+        // ---- Context path prefixes ----
+        public static final String PROPERTIES_PATH_PREFIX      = "/properties/";
+        public static final String USER_CLAIMS_PATH_PREFIX     = "/user/claims/";
+        public static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
+
+        // ---- Miscellaneous ----
+        public static final String ACTION_ID_METADATA_KEY = "actionId";
+        public static final String EXTENSION_ERROR_CODE   = "65033";
+    }
+
     public static class SQLConstants {
 
         private SQLConstants() {

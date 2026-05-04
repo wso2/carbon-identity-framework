@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionEvent;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.action.execution.api.model.Incomplete;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
+import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -122,7 +123,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         assertEquals(pendingProps.get("riskScore"), "80");
     }
@@ -138,7 +139,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         assertEquals(pendingProps.get("riskScore"), "80");
     }
@@ -156,7 +157,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         assertEquals(pendingProps.get("riskScore"), "75");
     }
@@ -175,7 +176,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         Object stored = pendingProps.get("riskFactors");
         assertTrue(stored instanceof List);
@@ -195,7 +196,7 @@ public class InFlowExtensionResponseProcessorTest {
         executeSuccessResponse(execCtx, replaceOp, annotations);
 
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         Object stored = pendingProps.get("tags");
         assertTrue(stored instanceof List);
@@ -220,7 +221,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         // Complex annotation → value passed through as-is.
         Object stored = pendingProps.get("item");
@@ -240,7 +241,7 @@ public class InFlowExtensionResponseProcessorTest {
         executeSuccessResponse(execCtx, replaceOp, annotations);
 
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         assertEquals(pendingProps.get("score"), "95");
     }
@@ -352,7 +353,7 @@ public class InFlowExtensionResponseProcessorTest {
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
         Map<String, Object> pendingClaims =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class);
         assertNotNull(pendingClaims);
         assertEquals(pendingClaims.get("http://wso2.org/claims/email"), "new@example.com");
     }
@@ -367,7 +368,7 @@ public class InFlowExtensionResponseProcessorTest {
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
         Map<String, Object> pendingClaims =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class);
         assertNotNull(pendingClaims);
         assertEquals(pendingClaims.get("http://wso2.org/claims/country"), "US");
     }
@@ -383,7 +384,7 @@ public class InFlowExtensionResponseProcessorTest {
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
         Map<String, Object> pendingClaims =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class);
         assertNotNull(pendingClaims);
         assertEquals(pendingClaims.get("http://wso2.org/claims/country"), "42");
     }
@@ -586,7 +587,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         assertEquals(pendingProps.get("newProp"), "newValue");
         assertEquals(pendingProps.get("existingProp"), "updated");
@@ -718,7 +719,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.INCOMPLETE);
         // URL must be stashed under the key the executor reads.
-        assertEquals(flowContext.getValue(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, String.class),
+        assertEquals(flowContext.getValue(Constants.InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, String.class),
                 "https://example.com/step-up");
     }
 
@@ -738,11 +739,11 @@ public class InFlowExtensionResponseProcessorTest {
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.INCOMPLETE);
         // Redirect URL is captured, but the REPLACE must NOT have produced any pending props.
-        assertEquals(flowContext.getValue(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, String.class),
+        assertEquals(flowContext.getValue(Constants.InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, String.class),
                 "https://example.com/step-up");
-        assertNull(flowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class));
-        assertNull(flowContext.getValue(InFlowExtensionExecutor.PENDING_CLAIMS_KEY, Map.class));
-        assertNull(flowContext.getValue(InFlowExtensionExecutor.PENDING_CREDENTIALS_KEY, Map.class));
+        assertNull(flowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class));
+        assertNull(flowContext.getValue(Constants.InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class));
+        assertNull(flowContext.getValue(Constants.InFlowExtensionConstants.PENDING_CREDENTIALS_KEY, Map.class));
     }
 
     @Test(expectedExceptions = ActionExecutionResponseProcessorException.class)
@@ -847,10 +848,10 @@ public class InFlowExtensionResponseProcessorTest {
             throws ActionExecutionResponseProcessorException {
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         if (pathTypeAnnotations != null && !pathTypeAnnotations.isEmpty()) {
-            flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+            flowContext.add(Constants.InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
         }
 
         capturedFlowContext = flowContext;
@@ -872,13 +873,13 @@ public class InFlowExtensionResponseProcessorTest {
             throws ActionExecutionResponseProcessorException {
 
         FlowContext flowContext = FlowContext.create()
-                .add(InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+                .add(Constants.InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
 
         if (pathTypeAnnotations != null && !pathTypeAnnotations.isEmpty()) {
-            flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+            flowContext.add(Constants.InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
         }
         if (modifyPaths != null) {
-            flowContext.add(InFlowExtensionRequestBuilder.MODIFY_PATHS_KEY, modifyPaths);
+            flowContext.add(Constants.InFlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
         }
 
         capturedFlowContext = flowContext;
@@ -932,7 +933,7 @@ public class InFlowExtensionResponseProcessorTest {
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         // Value should be coerced to String (default behavior for properties).
         Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionExecutor.PENDING_PROPERTIES_KEY, Map.class);
+                capturedFlowContext.getValue(Constants.InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
         assertNotNull(pendingProps);
         assertEquals(pendingProps.get("data"), "42");
     }

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicy;
@@ -303,7 +304,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorCode(), InFlowExtensionExecutor.EXTENSION_ERROR_CODE);
+        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.EXTENSION_ERROR_CODE);
         // errorMessage carries the Error reason/code field; errorDescription carries the human-readable text.
         assertEquals(response.getErrorMessage(), "internal_error");
         assertEquals(response.getErrorDescription(), "DB connection failed");
@@ -331,7 +332,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorCode(), InFlowExtensionExecutor.EXTENSION_ERROR_CODE);
+        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.EXTENSION_ERROR_CODE);
         assertEquals(response.getErrorMessage(), "internal_error");
         assertNull(response.getErrorDescription());
     }
@@ -358,7 +359,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorCode(), InFlowExtensionExecutor.EXTENSION_ERROR_CODE);
+        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.EXTENSION_ERROR_CODE);
         // Both fields null → errorMessage and errorDescription remain null; errorCode alone triggers FE-65033 routing.
         assertNull(response.getErrorMessage());
         assertNull(response.getErrorDescription());
@@ -415,7 +416,7 @@ public class InFlowExtensionExecutorTest {
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
-                    fc.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY,
+                    fc.add(Constants.InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY,
                             "https://example.com/step-up");
                     return incompleteStatus;
                 });
@@ -464,7 +465,7 @@ public class InFlowExtensionExecutorTest {
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
                     // URL already has a query string — the executor must use & not ?.
-                    fc.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY,
+                    fc.add(Constants.InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY,
                             "https://example.com/step-up?ref=abc");
                     return incompleteStatus;
                 });
@@ -497,7 +498,7 @@ public class InFlowExtensionExecutorTest {
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
-                    fc.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, "");
+                    fc.add(Constants.InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, "");
                     return incompleteStatus;
                 });
 

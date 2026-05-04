@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.utils.DiagnosticLog;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.InFlowExtensionConstants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverConfig;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicy;
@@ -74,19 +75,7 @@ public class InFlowExtensionExecutor implements Executor {
     private static final Log LOG = LogFactory.getLog(InFlowExtensionExecutor.class);
     private static final String EXECUTOR_NAME = "InFlowExtensionExecutor";
 
-    public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
-    public static final String HANDOVER_POLICY_KEY = "handoverPolicy";
-    public static final String PATH_TYPE_ANNOTATIONS_KEY = "pathTypeAnnotations";
-    public static final String PENDING_CLAIMS_KEY = "pendingClaims";
-    public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
-    public static final String PENDING_PROPERTIES_KEY = "pendingProperties";
-    public static final String PENDING_REDIRECT_URL_KEY = "pendingRedirectUrl";
-    private static final String ACTION_ID_METADATA_KEY = "actionId";
-    private static final String ERROR_TYPE_KEY = "errorType";
-    private static final String EXTENSION_ERROR_TYPE = "EXTENSION_ERROR";
-    public static final String ERROR_MESSAGE_KEY = "errorMessage";
-    public static final String ERROR_DESCRIPTION_KEY = "errorDescription";
-    public static final String EXTENSION_ERROR_CODE = "65033";
+
 
     @Override
     public String getName() {
@@ -100,7 +89,7 @@ public class InFlowExtensionExecutor implements Executor {
 
         ExecutorResponse response = new ExecutorResponse();
 
-        String actionId = getMetadataValue(context, ACTION_ID_METADATA_KEY);
+        String actionId = getMetadataValue(context, InFlowExtensionConstants.ACTION_ID_METADATA_KEY);
         if (actionId == null || actionId.isEmpty()) {
             LOG.warn("No action ID configured for In-Flow Extension executor. Cannot execute.");
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -153,8 +142,8 @@ public class InFlowExtensionExecutor implements Executor {
             FlowExecutionContext filteredContext = FlowExecutionContextFilter.filter(context, policy);
 
             FlowContext flowContext = FlowContext.create()
-                    .add(FLOW_EXECUTION_CONTEXT_KEY, filteredContext)
-                    .add(HANDOVER_POLICY_KEY, policy);
+                    .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, filteredContext)
+                    .add(InFlowExtensionConstants.HANDOVER_POLICY_KEY, policy);
 
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
                     ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
@@ -165,17 +154,17 @@ public class InFlowExtensionExecutor implements Executor {
             // and forward them to TaskExecutionNode via ExecutorResponse fields.
             if (ExecutorStatus.STATUS_COMPLETE.equals(executionResponse.getResult())) {
                 Map<String, Object> pendingClaims =
-                        (Map<String, Object>) flowContext.getValue(PENDING_CLAIMS_KEY, Map.class);
+                        (Map<String, Object>) flowContext.getValue(InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class);
                 if (pendingClaims != null && !pendingClaims.isEmpty()) {
                     executionResponse.setUpdatedUserClaims(pendingClaims);
                 }
                 Map<String, char[]> pendingCredentials =
-                        (Map<String, char[]>) flowContext.getValue(PENDING_CREDENTIALS_KEY, Map.class);
+                        (Map<String, char[]>) flowContext.getValue(InFlowExtensionConstants.PENDING_CREDENTIALS_KEY, Map.class);
                 if (pendingCredentials != null && !pendingCredentials.isEmpty()) {
                     executionResponse.setUserCredentials(pendingCredentials);
                 }
                 Map<String, Object> pendingProperties =
-                        (Map<String, Object>) flowContext.getValue(PENDING_PROPERTIES_KEY, Map.class);
+                        (Map<String, Object>) flowContext.getValue(InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
                 if (pendingProperties != null && !pendingProperties.isEmpty()) {
                     executionResponse.setContextProperty(pendingProperties);
                 }
@@ -192,11 +181,12 @@ public class InFlowExtensionExecutor implements Executor {
                 if (additionalInfo == null) {
                     additionalInfo = new HashMap<>();
                 }
-                additionalInfo.put(ERROR_TYPE_KEY, EXTENSION_ERROR_TYPE);
+                additionalInfo.put(InFlowExtensionConstants.ERROR_TYPE_KEY,
+                        InFlowExtensionConstants.EXTENSION_ERROR_TYPE);
                 executionResponse.setAdditionalInfo(additionalInfo);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("In-Flow Extension action returned FAILED. actionId: " + actionId
-                            + ", reason: " + additionalInfo.get(ERROR_MESSAGE_KEY));
+                            + ", reason: " + additionalInfo.get(InFlowExtensionConstants.ERROR_MESSAGE_KEY));
                 }
             }
 
@@ -263,10 +253,12 @@ public class InFlowExtensionExecutor implements Executor {
                 if (failure != null) {
                     Map<String, String> failureInfo = new HashMap<>();
                     if (failure.getFailureReason() != null) {
-                        failureInfo.put(ERROR_MESSAGE_KEY, failure.getFailureReason());
+                        failureInfo.put(InFlowExtensionConstants.ERROR_MESSAGE_KEY,
+                                failure.getFailureReason());
                     }
                     if (failure.getFailureDescription() != null) {
-                        failureInfo.put(ERROR_DESCRIPTION_KEY, failure.getFailureDescription());
+                        failureInfo.put(InFlowExtensionConstants.ERROR_DESCRIPTION_KEY,
+                                failure.getFailureDescription());
                     }
                     response.setAdditionalInfo(failureInfo);
                     response.setErrorMessage(buildUserFacingErrorMessage(failure));
@@ -276,14 +268,16 @@ public class InFlowExtensionExecutor implements Executor {
             case ERROR:
                 response.setResult(ExecutorStatus.STATUS_ERROR);
                 Error error = (Error) executionStatus.getResponse();
-                response.setErrorCode(EXTENSION_ERROR_CODE);
+                response.setErrorCode(InFlowExtensionConstants.EXTENSION_ERROR_CODE);
                 if (error != null) {
                     Map<String, String> errorInfo = new HashMap<>();
                     if (error.getErrorMessage() != null) {
-                        errorInfo.put(ERROR_MESSAGE_KEY, error.getErrorMessage());
+                        errorInfo.put(InFlowExtensionConstants.ERROR_MESSAGE_KEY,
+                                error.getErrorMessage());
                     }
                     if (error.getErrorDescription() != null) {
-                        errorInfo.put(ERROR_DESCRIPTION_KEY, error.getErrorDescription());
+                        errorInfo.put(InFlowExtensionConstants.ERROR_DESCRIPTION_KEY,
+                                error.getErrorDescription());
                     }
                     response.setAdditionalInfo(errorInfo);
                     response.setErrorMessage(stripI18nBraces(error.getErrorMessage()));
@@ -292,7 +286,7 @@ public class InFlowExtensionExecutor implements Executor {
                 break;
 
             case INCOMPLETE: {
-                String redirectUrl = flowContext.getValue(PENDING_REDIRECT_URL_KEY, String.class);
+                String redirectUrl = flowContext.getValue(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, String.class);
                 if (redirectUrl == null || redirectUrl.isEmpty()) {
                     // Defensive: response processor should have rejected this earlier.
                     LOG.warn("In-Flow Extension returned INCOMPLETE without a redirect URL.");

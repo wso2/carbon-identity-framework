@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.OperationExecutionResult;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.*;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
@@ -38,11 +39,8 @@ import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.flow.execution.engine.Constants.InFlowExtensionConstants;
 import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicy;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.ContextPath;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.Encryption;
-import org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionAction;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 
@@ -66,8 +64,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
 
-    public static final String MODIFY_PATHS_KEY = "modifyPaths";
-
     @Override
     public ActionType getSupportedActionType() {
 
@@ -80,7 +76,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = flowContext.getValue(
-                InFlowExtensionExecutor.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+                InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
         if (execCtx == null) {
             throw new ActionExecutionRequestBuilderException(
                     "FlowExecutionContext not found in FlowContext.");
@@ -114,7 +110,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         // Store resolved modify paths (with encryption flags) for the response processor.
         List<ContextPath> modifyPaths = (accessConfig != null && accessConfig.getModify() != null)
                 ? accessConfig.getModify() : Collections.emptyList();
-        flowContext.add(MODIFY_PATHS_KEY, modifyPaths);
+        flowContext.add(InFlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
@@ -168,7 +164,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      * includes a REDIRECT operation so the extension may signal external redirection. A
      * REPLACE operation is added only when the access config defines modify paths. Path
      * type annotations (e.g. {@code []} or {@code [schema]}) are stripped and stored in
-     * the {@link FlowContext} under {@link InFlowExtensionExecutor#PATH_TYPE_ANNOTATIONS_KEY}
+     * the {@link FlowContext} under {@link InFlowExtensionConstants#PATH_TYPE_ANNOTATIONS_KEY}
      * for the response processor.
      *
      * @param accessConfig The access config containing modify paths (may be null).
@@ -211,7 +207,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                 allowedOps.add(replaceOp);
 
                 if (!pathTypeAnnotations.isEmpty()) {
-                    flowContext.add(InFlowExtensionExecutor.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+                    flowContext.add(InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
                 }
 
                 if (LOG.isDebugEnabled()) {
@@ -224,7 +220,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         // REDIRECT is advertised when the per-flow-type handover policy allows it. A null
         // policy always permitting REDIRECT.
         FlowContextHandoverPolicy policy = flowContext.getValue(
-                InFlowExtensionExecutor.HANDOVER_POLICY_KEY, FlowContextHandoverPolicy.class);
+                InFlowExtensionConstants.HANDOVER_POLICY_KEY, FlowContextHandoverPolicy.class);
         if (policy == null || policy.isRedirectionEnabled()) {
             AllowedOperation redirectOp = new AllowedOperation();
             redirectOp.setOp(Operation.REDIRECT);
@@ -261,7 +257,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             }
         }
 
-        // Application
+        // Application (name: null)
         if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_APP_ID_PATH, expose)) {
             String appId = context.getApplicationId();
             if (appId != null) {
