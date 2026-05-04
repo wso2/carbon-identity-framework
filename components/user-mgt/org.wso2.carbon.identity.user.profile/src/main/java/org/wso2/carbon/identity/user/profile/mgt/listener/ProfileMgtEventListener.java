@@ -32,6 +32,9 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
+import org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager;
+import org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.sql.Connection;
@@ -56,8 +59,8 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     private static final String REGEX_META_EXISTS = "REGEX_META_EXISTS";
     private static final String URL = "URL";
     private static final Set<String> IMMUTABLE_CLAIM_URIS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "http://wso2.org/claims/username",
-            "http://wso2.org/claims/userid",
+            UserCoreClaimConstants.USER_ID_CLAIM_URI,
+            UserCoreClaimConstants.USER_ID_CLAIM_URI,
             "http://wso2.org/claims/created"
     )));
 
@@ -185,6 +188,11 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
             if (Objects.equals(existingValue, claims.get(claimURI))) {
                 continue;
             }
+            // For JDBC user stores, allow the initial population of the userid claim when no value is stored yet.
+            if (UserCoreClaimConstants.USER_ID_CLAIM_URI.equals(claimURI) && StringUtils.isEmpty(existingValue)
+                    && isLegacyJdbcUserStoreManager(userStoreManager)) {
+                continue;
+            }
 
             throw new UserStoreClientException("Invalid operation. " + claimURI +
                     " is an immutable claim and cannot be modified");
@@ -205,6 +213,12 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
                         " is an immutable claim and cannot be modified");
             }
         }
+    }
+
+    private boolean isLegacyJdbcUserStoreManager(UserStoreManager userStoreManager) {
+
+        return userStoreManager instanceof JDBCUserStoreManager &&
+                !(userStoreManager instanceof UniqueIDJDBCUserStoreManager);
     }
 
     private boolean isRestrictImmutableLocalClaimsUpdateEnabled() {
