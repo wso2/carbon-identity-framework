@@ -343,6 +343,9 @@ public class IdentityEventConstants {
         public static final String TOKEN_REVOKED = "TOKEN_REVOKED";
 
         public static final String POST_ISSUE_ACCESS_TOKEN_V2 = "POST_ISSUE_ACCESS_TOKEN_V2";
+
+        // Flow Event constants
+        public static final String POST_FLOW_EXECUTION_STEP_EVENT = "POST_FLOW_EXECUTION_STEP_EVENT";
     }
 
     /**
@@ -538,6 +541,8 @@ public class IdentityEventConstants {
 
         public static final String IS_PASSWORD_UPDATE_ACTION = "isPasswordUpdateAction";
         public static final String VERIFIED_BY_END_USER = "VerifiedByEndUser";
+
+        public static final String FLOW_EVENT_CONTEXT = "FLOW_EVENT_CONTEXT";
     }
 
     public class ErrorMessage {

@@ -38,13 +38,17 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCache;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheEntry;
 import org.wso2.carbon.identity.flow.execution.engine.cache.FlowExecCtxCacheKey;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineClientException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowEventContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
@@ -53,11 +57,15 @@ import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationM
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_FLOW_EXECUTION_STEP_EVENT;
+
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.FLOW_EVENT_CONTEXT;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
@@ -577,5 +585,42 @@ public class FlowExecutionEngineUtils {
             }
         }
         return tenantName;
+    }
+
+    /**
+     * Publish a flow execution step event with the current step result, context data, and tenant domain.
+     *
+     * @param context Flow execution context.
+     * @param step    Current flow execution step.
+     */
+    public static void publishFlowExecutionEvent(FlowExecutionContext context,
+                                                 FlowExecutionStep step, String errorCode) {
+
+        HashMap<String, Object> properties = new HashMap<>();
+        FlowEventContext eventContext = buildFlowEventContext(context, step, errorCode);
+        properties.put(FLOW_EVENT_CONTEXT, eventContext);
+
+        Event event = new Event(POST_FLOW_EXECUTION_STEP_EVENT, properties);
+        try {
+            FlowExecutionEngineDataHolder.getInstance().getIdentityEventService().handleEvent(event);
+        } catch (IdentityEventException e) {
+            LOG.error("Error while publishing flow execution event for flow id: " +
+                    context.getContextIdentifier(), e);
+        }
+    }
+
+    private static FlowEventContext buildFlowEventContext(FlowExecutionContext flowExecutionContext, FlowExecutionStep step, String errorCode) {
+
+        FlowEventContext eventContext = new FlowEventContext();
+        eventContext.setContextIdentifier(flowExecutionContext.getContextIdentifier());
+        eventContext.setFlowType(flowExecutionContext.getFlowType());
+        eventContext.setApplicationId(flowExecutionContext.getApplicationId());
+        eventContext.setTenantDomain(flowExecutionContext.getTenantDomain());
+        eventContext.setCurrentNode(flowExecutionContext.getCurrentNode());
+        eventContext.setUserId(flowExecutionContext.getFlowUser() != null ? flowExecutionContext.getFlowUser().getUserId() : null);
+        eventContext.setErrorCode(errorCode);
+        eventContext.setStep(step);
+        eventContext.setCurrentNodeResponse(flowExecutionContext.getCurrentNodeResponse());
+        return eventContext;
     }
 }

@@ -49,6 +49,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_CO
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.WEBAUTHN_DATA;
 import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils.publishFlowExecutionEvent;
 import static org.wso2.carbon.identity.flow.mgt.Constants.END_NODE_ID;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.INTERNAL_PROMPT;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.REDIRECTION;
@@ -109,6 +110,17 @@ public class FlowExecutionEngine {
             }
             context.setCurrentNodeResponse(nodeResponse);
             if (STATUS_COMPLETE.equals(nodeResponse.getStatus())) {
+                // Fire a per-node completion event BEFORE advancing to the next node so that event
+                // handlers (e.g. analytics publishers) receive one event per completed node in
+                // the correct order.  At this point context.getCurrentNode() still correctly
+                // references the completing node.
+                publishFlowExecutionEvent(context,
+                        new FlowExecutionStep.Builder()
+                                .flowId(context.getContextIdentifier())
+                                .flowStatus(STATUS_INCOMPLETE)
+                                .stepType(currentNode.getType())
+                                .build(),
+                        null);
                 currentNode = moveToNextNode(graph, currentNode);
                 context.setCurrentNode(currentNode);
                 continue;
