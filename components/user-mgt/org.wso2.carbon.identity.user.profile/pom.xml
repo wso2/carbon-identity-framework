@@ -94,7 +94,6 @@
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
 
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
