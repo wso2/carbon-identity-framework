@@ -126,6 +126,10 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                 results.add(processOperation(
                         operation, pathTypeAnnotations, pendingClaims, pendingCredentials, pendingProperties));
             }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("In-Flow Extension SUCCESS response contained no operations. No context updates applied.");
+            }
         }
 
         // Store non-empty pending maps in FlowContext for the executor to forward to TaskExecutionNode.
@@ -340,6 +344,16 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         if (redirectUrl == null || redirectUrl.isEmpty()) {
+            LOG.warn("In-Flow Extension INCOMPLETE response is missing a REDIRECT operation.");
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        InFlowExtensionLogConstants.COMPONENT_ID,
+                        InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
+                        .resultMessage("INCOMPLETE response from In-Flow Extension is missing a REDIRECT operation.")
+                        .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+            }
             throw new ActionExecutionResponseProcessorException(
                     "INCOMPLETE response from In-Flow Extension must contain a REDIRECT operation.");
         }
@@ -351,6 +365,24 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         flowContext.add(InFlowExtensionExecutor.PENDING_REDIRECT_URL_KEY, redirectUrl);
+
+        if (LOG.isDebugEnabled()) {
+            try {
+                String host = new java.net.URI(redirectUrl).getHost();
+                LOG.debug("In-Flow Extension INCOMPLETE: redirect URL host resolved: " + host);
+            } catch (java.net.URISyntaxException ignored) {
+                LOG.debug("In-Flow Extension INCOMPLETE: redirect URL stored in flow context.");
+            }
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    InFlowExtensionLogConstants.COMPONENT_ID,
+                    InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
+                    .resultMessage("In-Flow Extension INCOMPLETE response processed. Redirect URL stored in flow context.")
+                    .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+        }
 
         return new IncompleteStatus.Builder()
                 .responseContext(Collections.emptyMap())
@@ -409,17 +441,17 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                 operationDetailsList.add(details);
             });
 
-            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                     ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE);
-            diagLogBuilder
+            diagnosticLogBuilder
                     .inputParam("executedOperations", operationDetailsList)
                     .resultMessage("Processed operations for " + getSupportedActionType().getDisplayName() +
                             " action.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .build();
-            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -501,6 +533,18 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             }
             return decryptedOp;
         } catch (Exception e) {
+            LOG.error("Failed to decrypt inbound JWE value for path '" + operation.getPath()
+                    + "', tenant: " + tenantDomain, e);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        InFlowExtensionLogConstants.COMPONENT_ID,
+                        InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
+                        .resultMessage("Failed to decrypt inbound JWE value for modify path.")
+                        .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                        .inputParam("path", operation.getPath())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+            }
             throw new ActionExecutionResponseProcessorException(
                     "Failed to decrypt inbound JWE value for path: " + operation.getPath(), e);
         }

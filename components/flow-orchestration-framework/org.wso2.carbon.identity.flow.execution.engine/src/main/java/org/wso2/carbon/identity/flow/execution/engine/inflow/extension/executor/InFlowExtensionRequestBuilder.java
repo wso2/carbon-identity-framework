@@ -86,7 +86,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     "FlowExecutionContext not found in FlowContext.");
         }
 
-        // Resolve action-specific config. The action is already resolved by ActionExecutorServiceImpl.
+        // Resolve action-specific config.
         Action rawAction = actionExecutionContext.getAction();
         AccessConfig accessConfig = null;
         Encryption encryption = null;
@@ -105,6 +105,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             expose = accessConfig.getExposePaths();
         } else {
             expose = Collections.emptyList();
+        }
+
+        if (expose.isEmpty() && LOG.isDebugEnabled()) {
+            LOG.debug("No expose paths configured for In-Flow Extension action. Event will contain no data fields.");
         }
 
         // Store resolved modify paths (with encryption flags) for the response processor.
@@ -126,13 +130,27 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
         }
 
-        // Build allowed operations: REPLACE (from modify paths, if any) + REDIRECT (always).
+        // Build allowed operations: REPLACE (from modify paths, if any) + REDIRECT (if enabled).
         List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, flowContext);
 
         // Determine certificate PEM for outbound encryption.
         String certificatePEM = null;
         if (accessConfig != null && encryption != null && encryption.getCertificate() != null) {
             certificatePEM = encryption.getCertificate().getCertificateContent();
+        }
+
+        // Fail fast: if any expose path is marked encrypted but no certificate is configured,
+        // proceeding would silently leak sensitive data as plaintext.
+        if (certificatePEM == null && accessConfig != null) {
+            for (String exposePath : expose) {
+                if (accessConfig.isExposePathEncrypted(exposePath)) {
+                    LOG.error("Outbound encryption required for expose path '" + exposePath
+                            + "' but no certificate is configured for this In-Flow Extension action.");
+                    throw new ActionExecutionRequestBuilderException(
+                            "Outbound encryption is configured for expose path '" + exposePath +
+                                    "' but no outbound certificate is configured for this action.");
+                }
+            }
         }
 
         InFlowExtensionEvent event = buildEvent(execCtx, expose, accessConfig, certificatePEM);
@@ -204,8 +222,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
 
         // REDIRECT is advertised when the per-flow-type handover policy allows it. A null
-        // policy (test fixtures or unconfigured deployments) preserves the prior behaviour of
-        // always permitting REDIRECT.
+        // policy always permitting REDIRECT.
         FlowContextHandoverPolicy policy = flowContext.getValue(
                 InFlowExtensionExecutor.HANDOVER_POLICY_KEY, FlowContextHandoverPolicy.class);
         if (policy == null || policy.isRedirectionEnabled()) {
@@ -332,7 +349,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     if (isLeafExposed(claimPath, expose)) {
                         String claimValue = claim.getValue();
                         // Encrypt claim value if the expose path is marked as encrypted.
-                        if (shouldEncrypt(claimPath, accessConfig, certificatePEM)) {
+                        if (claimValue != null && shouldEncrypt(claimPath, accessConfig, certificatePEM)) {
                             claimValue = encryptValue(claimValue, certificatePEM);
                         }
                         userClaims.add(new UserClaim(claim.getKey(), claimValue));
@@ -396,7 +413,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             String fullPath = areaPrefix + entry.getKey();
             if (isLeafExposed(fullPath, expose)) {
                 T value = entry.getValue();
-                if (shouldEncrypt(fullPath, accessConfig, certificatePEM)) {
+                if (value != null && shouldEncrypt(fullPath, accessConfig, certificatePEM)) {
                     value = (T) encryptValue(String.valueOf(value), certificatePEM);
                 }
                 filtered.put(entry.getKey(), value);

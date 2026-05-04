@@ -20,8 +20,9 @@ package org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.Error;
@@ -104,8 +105,8 @@ public class InFlowExtensionExecutor implements Executor {
             LOG.warn("No action ID configured for In-Flow Extension executor. Cannot execute.");
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION)
+                        InFlowExtensionLogConstants.COMPONENT_ID,
+                        InFlowExtensionLogConstants.ActionIDs.EXECUTE)
                         .resultMessage("In-Flow Extension action execution failed: action ID is not configured.")
                         .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -116,11 +117,14 @@ public class InFlowExtensionExecutor implements Executor {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Executing In-Flow Extension action with ID: " + actionId);
+            LOG.debug("Executing In-Flow Extension action. actionId: " + actionId
+                    + ", flowType: " + context.getFlowType()
+                    + ", tenant: " + context.getTenantDomain());
         }
 
         ActionExecutorService actionExecutorService = getActionExecutorService();
         if (actionExecutorService == null) {
+            LOG.error("ActionExecutorService is not available. In-Flow Extension cannot execute. actionId: " + actionId);
             throw new FlowEngineException("ActionExecutorService is not available.");
         }
 
@@ -128,8 +132,8 @@ public class InFlowExtensionExecutor implements Executor {
             LOG.debug("In-Flow Extension action execution is disabled.");
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION)
+                        InFlowExtensionLogConstants.COMPONENT_ID,
+                        InFlowExtensionLogConstants.ActionIDs.EXECUTE)
                         .resultMessage("In-Flow Extension action execution failed: action type is disabled.")
                         .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
                         .configParam("actionId", actionId)
@@ -143,8 +147,6 @@ public class InFlowExtensionExecutor implements Executor {
         try {
             // Resolve the per-flow-type handover policy and hand the action framework only a
             // FILTERED copy of the FlowExecutionContext (non-whitelisted fields nulled out).
-            // The original `context` is untouched and continues to drive the engine's own
-            // bookkeeping (OTFI cache swap, TaskExecutionNode pending-update propagation).
             FlowContextHandoverConfig handoverConfig = FlowExecutionEngineDataHolder.getInstance()
                     .getFlowContextHandoverConfig();
             FlowContextHandoverPolicy policy = handoverConfig.resolve(context.getFlowType());
@@ -154,7 +156,6 @@ public class InFlowExtensionExecutor implements Executor {
                     .add(FLOW_EXECUTION_CONTEXT_KEY, filteredContext)
                     .add(HANDOVER_POLICY_KEY, policy);
 
-            // TODO: Have <T> and switch-case
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
                     ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
 
@@ -178,9 +179,14 @@ public class InFlowExtensionExecutor implements Executor {
                 if (pendingProperties != null && !pendingProperties.isEmpty()) {
                     executionResponse.setContextProperty(pendingProperties);
                 }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("In-Flow Extension action succeeded. actionId: " + actionId
+                            + ", pendingClaims: " + (pendingClaims != null ? pendingClaims.size() : 0)
+                            + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0)
+                            + ", pendingProperties: " + (pendingProperties != null ? pendingProperties.size() : 0));
+                }
             }
 
-            // Tag RETRY responses with errorType so the frontend can identify extension errors.
             if (ExecutorStatus.STATUS_RETRY.equals(executionResponse.getResult())) {
                 Map<String, String> additionalInfo = executionResponse.getAdditionalInfo();
                 if (additionalInfo == null) {
@@ -188,16 +194,20 @@ public class InFlowExtensionExecutor implements Executor {
                 }
                 additionalInfo.put(ERROR_TYPE_KEY, EXTENSION_ERROR_TYPE);
                 executionResponse.setAdditionalInfo(additionalInfo);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("In-Flow Extension action returned FAILED. actionId: " + actionId
+                            + ", reason: " + additionalInfo.get(ERROR_MESSAGE_KEY));
+                }
             }
 
             return executionResponse;
 
-        } catch (ActionExecutionException e) { // TODO: replace with a action execution server exception
-            LOG.error("Error executing In-Flow Extension action.", e);
+        } catch (ActionExecutionException e) {
+            logActionExecutionException(e, actionId);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION)
+                        InFlowExtensionLogConstants.COMPONENT_ID,
+                        InFlowExtensionLogConstants.ActionIDs.EXECUTE)
                         .resultMessage("In-Flow Extension action execution failed: " + e.getMessage())
                         .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
                         .configParam("actionId", actionId)
@@ -285,13 +295,22 @@ public class InFlowExtensionExecutor implements Executor {
                 String redirectUrl = flowContext.getValue(PENDING_REDIRECT_URL_KEY, String.class);
                 if (redirectUrl == null || redirectUrl.isEmpty()) {
                     // Defensive: response processor should have rejected this earlier.
+                    LOG.warn("In-Flow Extension returned INCOMPLETE without a redirect URL.");
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                InFlowExtensionLogConstants.COMPONENT_ID,
+                                InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
+                                .resultMessage("In-Flow Extension returned INCOMPLETE without a redirect URL.")
+                                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+                    }
                     response.setResult(ExecutorStatus.STATUS_ERROR);
                     response.setErrorMessage("Extension returned INCOMPLETE without a redirect URL.");
                     break;
                 }
 
-                // Generate OTFI exactly like MagicLinkExecutor — keeps the cache-swap mechanism
-                // in FlowExecutionService unchanged across executors.
+                // Generate OTFI — keeps the cache-swap mechanism
                 String otfi = UUID.randomUUID().toString();
                 while (otfi.equals(context.getContextIdentifier())) {
                     otfi = UUID.randomUUID().toString();
@@ -308,6 +327,15 @@ public class InFlowExtensionExecutor implements Executor {
                 response.setAdditionalInfo(redirectInfo);
 
                 response.setResult(ExecutorStatus.STATUS_EXTERNAL_REDIRECTION);
+                if (LOG.isDebugEnabled()) {
+                    try {
+                        String host = new java.net.URI(redirectUrl).getHost();
+                        LOG.debug("In-Flow Extension returned INCOMPLETE. Redirecting to: " + host
+                                + ", flowId (OTFI) generated.");
+                    } catch (java.net.URISyntaxException ignored) {
+                        LOG.debug("In-Flow Extension returned INCOMPLETE with a redirect URL.");
+                    }
+                }
                 break;
             }
 
@@ -343,6 +371,24 @@ public class InFlowExtensionExecutor implements Executor {
     private ActionExecutorService getActionExecutorService() {
 
         return FlowExecutionEngineDataHolder.getInstance().getActionExecutorService();
+    }
+
+    /**
+     * Log an {@link ActionExecutionException} at the appropriate level based on its root cause.
+     * Config and contract violations are logged at WARN; infrastructure and unexpected failures at ERROR.
+     */
+    private void logActionExecutionException(ActionExecutionException e, String actionId) {
+
+        Throwable cause = e.getCause();
+        if (cause instanceof ActionExecutionRequestBuilderException) {
+            LOG.warn("In-Flow Extension action '" + actionId
+                    + "' request build failed. Check action access configuration: " + e.getMessage());
+        } else if (cause instanceof ActionExecutionResponseProcessorException) {
+            LOG.error("In-Flow Extension action '" + actionId
+                    + "' response processing failed (extension contract violation or internal error).", e);
+        } else {
+            LOG.error("Error executing In-Flow Extension action '" + actionId + "'.", e);
+        }
     }
 
     /**
