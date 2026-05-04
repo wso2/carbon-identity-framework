@@ -55,8 +55,8 @@ public final class DebugFrameworkConstants {
 
     // Common Parameter Values.
     public static final String DEBUG_PREFIX = "debug-";
-    public static final String TRUE = "true";
-    public static final String FALSE = "false";
+    public static final String TRUE_VALUE = Boolean.TRUE.toString();
+    public static final String FALSE_VALUE = Boolean.FALSE.toString();
 
     // Database Column Names.
     public static final String DB_COLUMN_STATUS = "STATUS";

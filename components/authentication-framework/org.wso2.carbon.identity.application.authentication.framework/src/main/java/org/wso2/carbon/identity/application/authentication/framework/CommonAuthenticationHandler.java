@@ -49,6 +49,9 @@ public class CommonAuthenticationHandler {
         for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
                 .getDebugAuthenticationInterceptors()) {
             try {
+                if (!interceptor.isDebugRequest(request)) {
+                    continue;
+                }
                 if (interceptor.handleCommonAuthRequest(request, response)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Common auth request handled by debug interceptor: "
@@ -81,7 +84,9 @@ public class CommonAuthenticationHandler {
             
             if (debugHandled) {
                 // Debug flow handled, return without proceeding to regular authentication.
-                log.info("Debug flow handled by DebugService.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Debug flow handled by DebugService.");
+                }
                 return;
             }
 
@@ -97,11 +102,6 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (UserAssertionFailedException e) {
 
-            FrameworkUtils.getRequestCoordinator().handle(request, response);
-        } catch (Exception e) {
-            // Handle any exceptions from debug coordinator.
-            log.error("Exception in CommonAuthenticationHandler: " + e.getMessage(), e);
-            // Fallback to regular authentication if debug processing fails.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
     }

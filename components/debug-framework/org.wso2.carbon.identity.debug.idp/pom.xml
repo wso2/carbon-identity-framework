@@ -58,21 +58,6 @@
             <artifactId>org.wso2.carbon.idp.mgt</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.outbound.auth.oidc</groupId>
-            <artifactId>org.wso2.carbon.identity.application.authenticator.oidc</artifactId>
-            <version>5.12.36</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.wso2.carbon.identity.framework</groupId>
-                    <artifactId>org.wso2.carbon.identity.debug.framework</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.wso2.carbon.identity.framework</groupId>
-                    <artifactId>org.wso2.carbon.identity.debug.idp</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
         </dependency>
@@ -100,10 +85,34 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.15.2</version>
         </dependency>
+        <!-- <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-testng</artifactId>
+            <scope>test</scope>
+        </dependency> -->
     </dependencies>
 
     <build>
         <plugins>
+            <!-- <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin> -->
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
@@ -141,7 +150,6 @@
                             org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.authenticator.oidc.*,
                             org.osgi.framework; version="[1.7.0,2.0.0)",
                             org.osgi.service.component; version="[1.2.0,2.0.0)",
                             org.osgi.service.component.annotations; version="[1.2.0,2.0.0)",

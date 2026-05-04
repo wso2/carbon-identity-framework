@@ -32,13 +32,13 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugCommonAuthInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
-import org.wso2.carbon.identity.debug.framework.core.store.DebugSessionCleanupService;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
+import org.wso2.carbon.identity.debug.framework.store.DebugSessionCleanupService;
 
 /**
  * OSGi service component for Debug Framework.
@@ -55,31 +55,27 @@ public class DebugServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        try {
-            LOG.debug("Debug Framework OSGi component activating");
-            BundleContext bundleContext = context.getBundleContext();
+        LOG.debug("Debug Framework OSGi component activating");
+        BundleContext bundleContext = context.getBundleContext();
 
-            // Register DebugRequestCoordinator as the API-facing debug service.
-            DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
-            bundleContext.registerService(DebugRequestCoordinator.class, requestCoordinator, null);
+        // Register DebugRequestCoordinator as the API-facing debug service.
+        DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
+        bundleContext.registerService(DebugRequestCoordinator.class, requestCoordinator, null);
 
-            // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
-            bundleContext.registerService(DebugAuthenticationInterceptor.class,
-                    new DebugCommonAuthInterceptor(requestCoordinator), null);
+        // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
+        bundleContext.registerService(DebugAuthenticationInterceptor.class,
+                new DebugCommonAuthInterceptor(requestCoordinator), null);
 
-            // Register the cleanup listener as an OSGi service.
-            cleanupListenerServiceRegistration = bundleContext.registerService(
-                    DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
+        // Register the cleanup listener as an OSGi service.
+        cleanupListenerServiceRegistration = bundleContext.registerService(
+                DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
 
-            // Start the periodic cleanup service for expired sessions.
-            cleanupService = new DebugSessionCleanupService();
-            cleanupService.activate();
+        // Start the periodic cleanup service for expired sessions.
+        cleanupService = new DebugSessionCleanupService();
+        cleanupService.activate();
 
-            LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
-            LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
-        } catch (Exception e) {
-            LOG.error("Error while activating debug framework component.", e);
-        }
+        LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
+        LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
     }
 
     @Deactivate
@@ -111,9 +107,13 @@ public class DebugServiceComponent {
      *
      * @param provider the DebugProtocolProvider instance.
      */
-    @Reference(name = "debug.protocol.provider", service = DebugProtocolProvider.class, cardinality 
-        = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unsetDebugProtocolProvider")
-
+    @Reference(
+            name = "debug.protocol.provider",
+            service = DebugProtocolProvider.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugProtocolProvider"
+    )
     protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
 
         bindProtocolProvider(provider, true);

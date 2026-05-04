@@ -112,11 +112,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             if (data != null) {
                 return data;
             }
-            // Backward compatibility for rows persisted without tenant scope.
-            if (!storageDebugId.equals(normalizedDebugId)) {
-                return getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION,
-                        debugId, normalizedDebugId, true);
-            }
             return null;
         } catch (DataAccessException e) {
             // Check if error is due to missing columns and fallback
@@ -141,11 +136,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
                 prepStmt.setString(1, storageDebugId);
-                int deletedCount = prepStmt.executeUpdate();
-                if (deletedCount == 0 && !storageDebugId.equals(normalizedDebugId)) {
-                    prepStmt.setString(1, normalizedDebugId);
-                    prepStmt.executeUpdate();
-                }
+                prepStmt.executeUpdate();
 
                 if (!connection.getAutoCommit()) {
                     connection.commit();
@@ -360,10 +351,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     debugId, storageDebugId, false);
             if (data != null) {
                 return data;
-            }
-            if (!storageDebugId.equals(normalizedDebugId)) {
-                return getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION_LEGACY,
-                        debugId, normalizedDebugId, false);
             }
             return null;
         } catch (DataAccessException ex) {

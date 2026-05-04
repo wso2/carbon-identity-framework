@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
-import org.wso2.carbon.identity.debug.framework.cache.DebugSessionCache;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
@@ -36,6 +35,7 @@ import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
+import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.util.HashMap;
@@ -202,8 +202,8 @@ public class DebugRequestCoordinator {
             // Pre-execute Listeners.
             executePreListeners(debugRequest);
 
-            // Execution: Get from cache (Pure Read).
-            String resultJson = DebugSessionCache.getInstance().getResult(debugId);
+            // Execution: Get from store.
+            String resultJson = DebugSessionStore.getInstance().getResult(debugId);
 
             if (resultJson == null) {
                 throw DebugFrameworkUtils.handleClientException(
@@ -241,20 +241,15 @@ public class DebugRequestCoordinator {
 
     public boolean handleCallbackRequest(HttpServletRequest request, HttpServletResponse response) {
 
-        try {
-            DebugCallbackHandler handler = resolveCallbackHandler(request);
-            if (handler == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No debug callback handler matched the request. Skipping debug handling.");
-                }
-                return false;
+        DebugCallbackHandler handler = resolveCallbackHandler(request);
+        if (handler == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No debug callback handler matched the request. Skipping debug handling.");
             }
-
-            return handler.handleCallback(request, response);
-        } catch (Exception e) {
-            LOG.warn("Error handling debug authentication flow. Normal authentication will proceed.", e);
             return false;
         }
+
+        return handler.handleCallback(request, response);
     }
 
     private DebugCallbackHandler resolveCallbackHandler(HttpServletRequest request) {

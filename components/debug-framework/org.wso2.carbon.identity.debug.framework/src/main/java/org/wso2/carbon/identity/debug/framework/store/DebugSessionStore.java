@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.cache;
+package org.wso2.carbon.identity.debug.framework.store;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,36 +34,36 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Generic DB-backed cache for debug data.
- * Unified caching layer for:
+ * Generic DB-backed store for debug data.
+ * Unified persistence layer for:
  * - Intermediate debug context (passed from initiator to processor via state parameter)
  * - Final debug results (persisted for API retrieval)
  */
-public final class DebugSessionCache {
+public final class DebugSessionStore {
 
-    private static final Log LOG = LogFactory.getLog(DebugSessionCache.class);
-    private static final DebugSessionCache INSTANCE = new DebugSessionCache();
+    private static final Log LOG = LogFactory.getLog(DebugSessionStore.class);
+    private static final DebugSessionStore INSTANCE = new DebugSessionStore();
     private static final long SESSION_TTL_MS = DebugFrameworkConstants.CACHE_EXPIRY_MINUTES * 60 * 1000L;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
     private final DebugSessionDAO debugSessionDAO = new DebugSessionDAOImpl();
 
-    private DebugSessionCache() {
+    private DebugSessionStore() {
 
         // Singleton — prevent external instantiation.
     }
 
-    public static DebugSessionCache getInstance() {
+    public static DebugSessionStore getInstance() {
 
         return INSTANCE;
     }
 
     /**
-     * Stores a debug context map in the session cache.
+     * Stores a debug context map in the session store.
      *
-     * @param key   Cache key (typically state parameter).
-     * @param value Debug context map to cache.
+     * @param key   Store key (typically state parameter).
+     * @param value Debug context map to persist.
      */
     public void put(String key, Map<String, Object> value) throws DebugFrameworkServerException {
 
@@ -83,7 +83,7 @@ public final class DebugSessionCache {
             debugSessionDAO.createDebugSession(sessionData);
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug context cached for key: " + key);
+                LOG.debug("Debug context stored for key: " + key);
             }
         } catch (DebugFrameworkServerException e) {
             throw e;
@@ -94,10 +94,10 @@ public final class DebugSessionCache {
     }
 
     /**
-     * Stores a DebugContext in the session cache.
+     * Stores a DebugContext in the session store.
      *
-     * @param key     Cache key (typically state parameter).
-     * @param context DebugContext to cache.
+     * @param key     Store key (typically state parameter).
+     * @param context DebugContext to persist.
      */
     public void put(String key, DebugContext context) throws DebugFrameworkServerException {
 
@@ -120,9 +120,9 @@ public final class DebugSessionCache {
     }
 
     /**
-     * Retrieves a debug context map from the session cache.
+     * Retrieves a debug context map from the session store.
      *
-     * @param key Cache key.
+     * @param key Store key.
      * @return Debug context map or empty map if not found.
      */
     public Map<String, Object> get(String key) throws DebugFrameworkServerException {
@@ -145,9 +145,9 @@ public final class DebugSessionCache {
     }
 
     /**
-     * Removes a debug context from the session cache.
+     * Removes a debug context from the session store.
      *
-     * @param key Cache key.
+     * @param key Store key.
      * @return Previously cached context map or empty map if not found.
      */
     public Map<String, Object> remove(String key) throws DebugFrameworkServerException {
@@ -161,11 +161,11 @@ public final class DebugSessionCache {
     }
 
     /**
-     * Caches a debug result as JSON string (for final results).
+     * Stores a debug result as JSON string for final results.
      * Generic method supporting both intermediate context and final results.
      *
-     * @param key    Cache key (typically state parameter).
-     * @param result JSON-serialized result to cache.
+     * @param key    Store key (typically state parameter).
+     * @param result JSON-serialized result to persist.
      */
     public void putResult(String key, String result) throws DebugFrameworkServerException {
 
@@ -173,9 +173,9 @@ public final class DebugSessionCache {
     }
 
     /**
-     * Caches a debug result with metadata.
+     * Stores a debug result with metadata.
      *
-     * @param key          Cache key.
+     * @param key          Store key.
      * @param result       JSON-serialized result.
      * @param resourceType Type of debug resource (IDP, FRAUD_DETECTION).
      * @param connectionId   Identifier of the resource.
@@ -185,7 +185,7 @@ public final class DebugSessionCache {
 
         if (key == null || result == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Cache.putResult: key and result cannot be null");
+                LOG.debug("Store.putResult: key and result cannot be null");
             }
             return;
         }
@@ -202,14 +202,14 @@ public final class DebugSessionCache {
         debugSessionDAO.upsertDebugSession(sessionData);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Debug result cached for key: " + key);
+            LOG.debug("Debug result stored for key: " + key);
         }
     }
 
     /**
-     * Retrieves a cached debug result as JSON string.
+     * Retrieves a stored debug result as JSON string.
      *
-     * @param key Cache key.
+     * @param key Store key.
      * @return JSON result or null if not found.
      */
     public String getResult(String key) throws DebugFrameworkServerException {
@@ -229,9 +229,9 @@ public final class DebugSessionCache {
     }
 
     /**
-     * Removes a cached debug result.
+     * Removes a stored debug result.
      *
-     * @param key Cache key.
+     * @param key Store key.
      */
     public void removeResult(String key) throws DebugFrameworkServerException {
 

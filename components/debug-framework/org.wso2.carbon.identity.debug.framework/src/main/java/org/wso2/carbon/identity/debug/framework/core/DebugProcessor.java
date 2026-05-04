@@ -237,10 +237,6 @@ public abstract class DebugProcessor {
     protected void handleUnexpectedError(Exception e, AuthenticationContext context) {
 
         context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
-        context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE);
-        if (e instanceof java.lang.reflect.InvocationTargetException
-                && e.getCause() != null && LOG.isDebugEnabled()) {
-            LOG.debug("InvocationTargetException cause:", e.getCause());
-        }
+        context.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE_VALUE);
     }
 }

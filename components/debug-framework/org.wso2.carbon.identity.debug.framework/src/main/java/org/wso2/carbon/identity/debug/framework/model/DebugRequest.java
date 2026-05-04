@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,55 +40,33 @@ public class DebugRequest {
         this.additionalContext = new HashMap<>();
     }
 
-    /**
-     * Gets the connection identifier.
-     *
-     * @return connection ID string.
-     */
     public String getConnectionId() {
 
         return connectionId;
     }
 
-    /**
-     * Sets the connection identifier.
-     *
-     * @param connectionId Connection ID string.
-     */
     public void setConnectionId(String connectionId) {
 
         this.connectionId = connectionId;
     }
 
-    /**
-     * Gets the resource type.
-     *
-     * @return Resource type string.
-     */
     public String getResourceType() {
 
         return resourceType;
     }
 
-    /**
-     * Sets the resource type.
-     *
-     * @param resourceType Resource type string.
-     */
     public void setResourceType(String resourceType) {
 
         this.resourceType = resourceType;
     }
 
-    /**
-     * Adds a context property.
-     *
-     * @param key   Property key.
-     * @param value Property value.
-     */
     public void addContextProperty(String key, Object value) {
 
         this.additionalContext.put(key, value);
     }
 
+    public Map<String, Object> getAdditionalContext() {
+
+        return Collections.unmodifiableMap(additionalContext);
+    }
 }

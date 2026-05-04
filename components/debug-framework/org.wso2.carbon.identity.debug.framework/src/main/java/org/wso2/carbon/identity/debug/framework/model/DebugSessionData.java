@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.debug.framework.model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Model class for Debug Session Data.
@@ -76,24 +77,14 @@ public class DebugSessionData implements Serializable {
         this.status = status;
     }
 
-    /**
-     * Returns serialized session data bytes.
-     *
-     * @return Serialized session data.
-     */
     public byte[] getSessionData() {
 
-        return sessionData;
+        return sessionData == null ? null : Arrays.copyOf(sessionData, sessionData.length);
     }
 
-    /**
-     * Sets serialized session data bytes.
-     *
-     * @param sessionData Serialized session data.
-     */
     public void setSessionData(byte[] sessionData) {
 
-        this.sessionData = sessionData;
+        this.sessionData = sessionData == null ? null : Arrays.copyOf(sessionData, sessionData.length);
     }
 
     /**

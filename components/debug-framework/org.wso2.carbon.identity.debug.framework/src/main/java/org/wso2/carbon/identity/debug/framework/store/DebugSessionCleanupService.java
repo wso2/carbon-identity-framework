@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.framework.core.store;
+package org.wso2.carbon.identity.debug.framework.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

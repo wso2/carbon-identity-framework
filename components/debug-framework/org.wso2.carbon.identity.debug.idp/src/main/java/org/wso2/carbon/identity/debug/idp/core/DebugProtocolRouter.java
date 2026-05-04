@@ -36,7 +36,6 @@ import java.util.Locale;
 public class DebugProtocolRouter {
 
     private static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
-    private static final String DEFAULT_PROTOCOL_TYPE = "OIDC";
 
     private DebugProtocolRouter() {
 
@@ -141,13 +140,16 @@ public class DebugProtocolRouter {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("No protocol resolved for resource: " + connectionId
-                    + ", defaulting to protocol: " + DEFAULT_PROTOCOL_TYPE);
+                    + ". Ensure a matching protocol resolver is deployed and active.");
         }
-        return DEFAULT_PROTOCOL_TYPE;
+        return null;
     }
 
     private static String normalizeProtocolType(String protocolType) {
 
+        if (protocolType == null) {
+            return null;
+        }
         return protocolType.trim().toLowerCase(Locale.ENGLISH);
     }
 }

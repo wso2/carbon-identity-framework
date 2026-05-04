@@ -28,6 +28,19 @@ import javax.servlet.http.HttpServletResponse;
 public interface DebugAuthenticationInterceptor {
 
     /**
+     * Checks whether this interceptor should inspect the incoming common auth request.
+     * Implementations can override this with a cheap predicate to avoid running
+     * expensive debug handling logic on every /commonauth request.
+     *
+     * @param request HttpServletRequest.
+     * @return {@code true} if the request is a candidate for debug handling.
+     */
+    default boolean isDebugRequest(HttpServletRequest request) {
+
+        return true;
+    }
+
+    /**
      * Handles an incoming common auth request.
      *
      * @param request HttpServletRequest.

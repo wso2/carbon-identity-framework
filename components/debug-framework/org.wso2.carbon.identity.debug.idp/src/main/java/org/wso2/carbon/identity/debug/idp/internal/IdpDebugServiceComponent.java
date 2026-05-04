@@ -53,26 +53,21 @@ public class IdpDebugServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        try {
-            LOG.debug("Activating IDP Debug Handler Component.");
+        LOG.debug("Activating IDP Debug Handler Component.");
 
-            // Register the IDP debug resource handler with the framework.
-            IdpDebugResourceHandler idpHandler = new IdpDebugResourceHandler();
-            DebugHandlerRegistry.getInstance().register(IDP_HANDLER_TYPE, idpHandler);
+        // Register the IDP debug resource handler with the framework.
+        IdpDebugResourceHandler idpHandler = new IdpDebugResourceHandler();
+        DebugHandlerRegistry.getInstance().register(IDP_HANDLER_TYPE, idpHandler);
 
-            LOG.debug("Registered IdpDebugResourceHandler with DebugHandlerRegistry.");
+        LOG.debug("Registered IdpDebugResourceHandler with DebugHandlerRegistry.");
 
-            // Register the IDP debug protocol resolver as an OSGi service.
-            // The framework's DebugServiceComponent will pick this up via @Reference.
-            IdpDebugProtocolResolver resolver = new IdpDebugProtocolResolver();
-            resolverServiceRegistration = context.getBundleContext().registerService(
-                    DebugProtocolResolver.class, resolver, null);
+        // Register the IDP debug protocol resolver as an OSGi service.
+        // The framework's DebugServiceComponent will pick this up via @Reference.
+        IdpDebugProtocolResolver resolver = new IdpDebugProtocolResolver();
+        resolverServiceRegistration = context.getBundleContext().registerService(
+                DebugProtocolResolver.class, resolver, null);
 
-            LOG.debug("Registered IdpDebugProtocolResolver service.");
-
-        } catch (Exception e) {
-            LOG.error("Error while activating IDP Debug Handler Component.", e);
-        }
+        LOG.debug("Registered IdpDebugProtocolResolver service.");
     }
 
     /**
