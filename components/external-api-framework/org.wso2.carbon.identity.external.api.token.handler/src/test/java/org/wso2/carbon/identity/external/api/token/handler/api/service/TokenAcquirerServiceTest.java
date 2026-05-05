@@ -59,12 +59,15 @@ public class TokenAcquirerServiceTest {
     private TokenAcquirerService tokenAcquirerService;
     private APIClientConfig apiClientConfig;
     private TokenRequestContext tokenRequestContext;
+    private TokenRequestContext passwordGrantTokenRequestContext;
     private APIInvocationConfig apiInvocationConfig;
     private MockedStatic<TokenRequestBuilderUtils> mockedUtils;
 
     private static final String CLIENT_ID = "test-client-id";
     private static final String CLIENT_SECRET = "test-client-secret";
     private static final String SCOPE = "test-scope";
+    private static final String USERNAME = "test-user";
+    private static final String PASSWORD = "test-password";
     private static final String TOKEN_ENDPOINT_URL = "https://example.com/token";
     private static final String ACCESS_TOKEN = "test-access-token";
     private static final String REFRESH_TOKEN = "test-refresh-token";
@@ -118,6 +121,24 @@ public class TokenAcquirerServiceTest {
         // Initialize token request context with grant context.
         tokenRequestContext = new TokenRequestContext.Builder()
                 .grantContext(grantContext)
+                .endpointUrl(TOKEN_ENDPOINT_URL)
+                .build();
+
+        // Create a password-grant context for password-grant tests.
+        Map<String, String> passwordProperties = new HashMap<>();
+        passwordProperties.put("client_id", CLIENT_ID);
+        passwordProperties.put("client_secret", CLIENT_SECRET);
+        passwordProperties.put("username", USERNAME);
+        passwordProperties.put("password", PASSWORD);
+        passwordProperties.put("scope", SCOPE);
+
+        GrantContext passwordGrantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(passwordProperties)
+                .build();
+
+        passwordGrantTokenRequestContext = new TokenRequestContext.Builder()
+                .grantContext(passwordGrantContext)
                 .endpointUrl(TOKEN_ENDPOINT_URL)
                 .build();
 
@@ -590,6 +611,205 @@ public class TokenAcquirerServiceTest {
         TokenInvocationResult result = tokenAcquirerService.getNewAccessToken();
         assertNotNull(result);
         assertNotNull(result.getTokenResponse());
+    }
+
+    /**
+     * Test successful token acquisition using password grant.
+     */
+    @Test
+    public void testGetNewAccessTokenSuccessForPasswordGrant() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockRequestContext);
+
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", ACCESS_TOKEN);
+        APIResponse apiResponse = new APIResponse(200, responseBody);
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken();
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getStatusCode(), 200);
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)),
+                times(1));
+    }
+
+    /**
+     * Test password-grant token acquisition that returns both an access and a refresh token.
+     */
+    @Test
+    public void testGetNewAccessTokenWithRefreshTokenInResponseForPasswordGrant() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockRequestContext);
+
+        String responseBody = String.format("{\"access_token\":\"%s\",\"refresh_token\":\"%s\"," +
+                "\"token_type\":\"Bearer\",\"expires_in\":3600}", ACCESS_TOKEN, REFRESH_TOKEN);
+        APIResponse apiResponse = new APIResponse(200, responseBody);
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken();
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
+        assertEquals(result.getTokenResponse().getRefreshToken(), REFRESH_TOKEN);
+    }
+
+    /**
+     * Test password-grant token acquisition error path surfaces the configured grant type in the error.
+     */
+    @Test
+    public void testGetNewAccessTokenWithAPIClientExceptionForPasswordGrant() {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockRequestContext);
+
+        APIClientException mockException = Mockito.mock(APIClientException.class);
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, mockException);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        try {
+            tokenAcquirerService.getNewAccessToken();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65010");
+            assertEquals(e.getDescription(),
+                    "Error occurred while getting access token from PASSWORD grant type.");
+            assertNotNull(e.getCause());
+        }
+    }
+
+    /**
+     * Test successful refresh-grant call on a password-configured service.
+     */
+    @Test
+    public void testGetNewAccessTokenFromRefreshGrantSuccessForPasswordGrant() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString())).thenReturn(mockRequestContext);
+
+        String newAccessToken = "new-access-token";
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", newAccessToken);
+        APIResponse apiResponse = new APIResponse(200, responseBody);
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), newAccessToken);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString()), times(1));
+    }
+
+    /**
+     * Test refresh-grant error response on a password-configured service surfaces TOKENMGT-65012.
+     */
+    @Test
+    public void testGetNewAccessTokenFromRefreshGrantWithErrorResponseForPasswordGrant() {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString())).thenReturn(mockRequestContext);
+
+        APIResponse apiResponse = new APIResponse(400, "{\"error\":\"invalid_grant\"}");
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        try {
+            tokenAcquirerService.getNewAccessTokenFromRefreshGrant(REFRESH_TOKEN);
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65012");
+            assertEquals(e.getDescription(),
+                    "Unexpected response status code: 400. Expected: 200.");
+        }
+    }
+
+    /**
+     * Test getNewAccessToken(refreshToken) on password-configured service uses refresh grant on success.
+     */
+    @Test
+    public void testGetNewAccessTokenWithValidRefreshTokenForPasswordGrant() throws Exception {
+
+        APIRequestContext mockRequestContext = Mockito.mock(APIRequestContext.class);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString())).thenReturn(mockRequestContext);
+
+        String newAccessToken = "new-access-token-from-refresh";
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", newAccessToken);
+        APIResponse apiResponse = new APIResponse(200, responseBody);
+
+        tokenAcquirerService = new TestableTokenAcquirerService(apiClientConfig, apiResponse);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken(REFRESH_TOKEN);
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), newAccessToken);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString()), times(1));
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)),
+                times(0));
+    }
+
+    /**
+     * Test getNewAccessToken(refreshToken) falls back to a fresh password-grant call when refresh fails.
+     */
+    @Test
+    public void testGetNewAccessTokenWithRefreshTokenFallbackForPasswordGrant() throws Exception {
+
+        APIRequestContext mockRefreshRequestContext = Mockito.mock(APIRequestContext.class);
+        APIRequestContext mockPasswordRequestContext = Mockito.mock(APIRequestContext.class);
+
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                        any(TokenRequestContext.class), anyString()))
+                .thenReturn(mockRefreshRequestContext);
+        mockedUtils.when(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)))
+                .thenReturn(mockPasswordRequestContext);
+
+        String responseBody = String.format("{\"access_token\":\"%s\",\"token_type\":\"Bearer\"," +
+                "\"expires_in\":3600}", ACCESS_TOKEN);
+        APIResponse successResponse = new APIResponse(200, responseBody);
+        APIResponse errorResponse = new APIResponse(400, "{\"error\":\"invalid_grant\"}");
+
+        tokenAcquirerService = new MultiResponseTokenAcquirerService(apiClientConfig, errorResponse, successResponse);
+        tokenAcquirerService.setTokenRequestContext(passwordGrantTokenRequestContext);
+        tokenAcquirerService.setApiInvocationConfig(apiInvocationConfig);
+
+        TokenInvocationResult result = tokenAcquirerService.getNewAccessToken(REFRESH_TOKEN);
+
+        assertNotNull(result);
+        assertNotNull(result.getTokenResponse());
+        assertEquals(result.getTokenResponse().getAccessToken(), ACCESS_TOKEN);
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContextForRefreshGrant(
+                any(TokenRequestContext.class), anyString()), times(1));
+        mockedUtils.verify(() -> TokenRequestBuilderUtils.buildAPIRequestContext(any(TokenRequestContext.class)),
+                times(1));
     }
 
     /**
