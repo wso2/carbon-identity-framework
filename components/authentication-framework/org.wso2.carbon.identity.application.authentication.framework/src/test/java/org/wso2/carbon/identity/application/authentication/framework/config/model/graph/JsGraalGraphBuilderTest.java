@@ -84,11 +84,11 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
 
         initMocks(this);
         jsGraphBuilderFactory = new JsGraalGraphBuilderFactory();
-        // init() wires the JsGraalGraphEngineModeRouter into the factory. In production
-        // it is invoked by the OSGi activator; in tests we must call it explicitly,
-        // otherwise createBuilder()'s isLocalContext() check dereferences a null router.
-        // If the factory lifecycle changes (e.g. init becomes constructor-driven or moves
-        // behind a different entry point) — update this call to match.
+        // init() reads the configured GraalJS EngineMode (LOCAL/REMOTE/HYBRID) from
+        // IdentityUtil and caches it on the factory; in production it is invoked by the
+        // OSGi service component at bundle activation. The factory's engineMode field
+        // defaults to LOCAL even without init(), so this call is mainly for parity with
+        // production wiring.
         jsGraphBuilderFactory.init();
         JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
