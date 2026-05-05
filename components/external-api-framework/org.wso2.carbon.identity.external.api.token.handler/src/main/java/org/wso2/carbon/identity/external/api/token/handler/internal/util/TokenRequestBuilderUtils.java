@@ -122,6 +122,7 @@ public class TokenRequestBuilderUtils {
         try {
             switch (grantContext.getGrantType()) {
                 case CLIENT_CREDENTIAL:
+                case PASSWORD:
                     Map<String, String> authProperties = new HashMap<>();
                     authProperties.put(APIAuthentication.Property.USERNAME.getName(),
                             grantContext.getProperty(Property.CLIENT_ID.getName()));
@@ -132,7 +133,8 @@ public class TokenRequestBuilderUtils {
                             .properties(authProperties)
                             .build();
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Successfully built API authentication for CLIENT_CREDENTIAL grant type.");
+                        LOG.debug("Successfully built API authentication for "
+                                + grantContext.getGrantType().name() + " grant type.");
                     }
                     return authentication;
                 default:
@@ -157,6 +159,18 @@ public class TokenRequestBuilderUtils {
                             "scope", grantContext.getProperty(Property.SCOPE.getName())));
                 }
                 return new UrlEncodedFormEntity(formParams, StandardCharsets.UTF_8);
+            case PASSWORD:
+                List<NameValuePair> passwordGrantParams = new ArrayList<>();
+                passwordGrantParams.add(new BasicNameValuePair("grant_type", "password"));
+                passwordGrantParams.add(new BasicNameValuePair(
+                        "username", grantContext.getProperty(Property.USERNAME.getName())));
+                passwordGrantParams.add(new BasicNameValuePair(
+                        "password", grantContext.getProperty(Property.PASSWORD.getName())));
+                if (StringUtils.isNotBlank(grantContext.getProperty(Property.SCOPE.getName()))) {
+                    passwordGrantParams.add(new BasicNameValuePair(
+                            "scope", grantContext.getProperty(Property.SCOPE.getName())));
+                }
+                return new UrlEncodedFormEntity(passwordGrantParams, StandardCharsets.UTF_8);
             default:
                 throw new TokenRequestException(
                         ErrorMessage.ERROR_CODE_UNSUPPORTED_GRANT_TYPE, grantContext.getGrantType().name());
