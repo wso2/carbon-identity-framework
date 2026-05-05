@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -111,5 +111,61 @@ public class AuthMethodsTest {
 
         apiKeyAuth.applyAuth(httpPost);
         verify(httpPost).setHeader("x-api-key", "testApiKey");
+    }
+
+    @Test
+    public void testClientCredentialAuth() {
+
+        AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                .isConfidential(true)
+                .value("internalAccessToken")
+                .build();
+
+        List<AuthProperty> authProperties = Collections.singletonList(internalAccessToken);
+        AuthMethods.ClientCredentialAuth clientCredentialAuth = new AuthMethods.ClientCredentialAuth(authProperties);
+
+        assertEquals(Authentication.Type.CLIENT_CREDENTIAL.getName(), clientCredentialAuth.getAuthType());
+
+        clientCredentialAuth.applyAuth(httpPost);
+        verify(httpPost).setHeader("Authorization", "Bearer internalAccessToken");
+    }
+
+    @Test
+    public void testClientCredentialAuthIgnoresUnrelatedProperties() {
+
+        AuthProperty clientId = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.CLIENT_ID.getName())
+                .isConfidential(true)
+                .value("clientId")
+                .build();
+        AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                .isConfidential(true)
+                .value("token-xyz")
+                .build();
+        AuthProperty internalRefreshToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())
+                .isConfidential(true)
+                .value("refresh-xyz")
+                .build();
+
+        List<AuthProperty> authProperties = Arrays.asList(clientId, internalAccessToken, internalRefreshToken);
+        AuthMethods.ClientCredentialAuth clientCredentialAuth = new AuthMethods.ClientCredentialAuth(authProperties);
+
+        clientCredentialAuth.applyAuth(httpPost);
+        verify(httpPost).setHeader("Authorization", "Bearer token-xyz");
+    }
+
+    @Test
+    public void testClientCredentialAuthWithEmptyProperties() {
+
+        AuthMethods.ClientCredentialAuth clientCredentialAuth =
+                new AuthMethods.ClientCredentialAuth(Collections.emptyList());
+
+        assertEquals(Authentication.Type.CLIENT_CREDENTIAL.getName(), clientCredentialAuth.getAuthType());
+
+        clientCredentialAuth.applyAuth(httpPost);
+        verify(httpPost).setHeader("Authorization", "Bearer null");
     }
 }

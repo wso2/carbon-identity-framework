@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,6 +33,9 @@ public class ActionMgtConstants {
     public static final String API_KEY_VALUE_FIELD = "API key value";
     public static final String ALLOWED_HEADERS_FIELD = "Allowed headers";
     public static final String ALLOWED_PARAMETERS_FIELD = "Allowed parameters";
+    public static final String CLIENT_ID_FIELD = "Client ID";
+    public static final String CLIENT_SECRET_FIELD = "Client secret";
+    public static final String TOKEN_ENDPOINT_FIELD = "Token endpoint";
 
     public static final String URI_PROPERTY = "uri";
     public static final String AUTHN_TYPE_PROPERTY = "authnType";

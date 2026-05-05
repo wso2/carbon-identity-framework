@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -78,7 +78,7 @@ public class DefaultActionValidator implements ActionValidator {
         validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
         validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
         validateActionName(action.getName());
-        validateEndpointUri(action.getEndpoint().getUri());
+        validateEndpointUri(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
         doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
         doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
@@ -101,7 +101,7 @@ public class DefaultActionValidator implements ActionValidator {
             validateActionName(action.getName());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
-            validateEndpointUri(action.getEndpoint().getUri());
+            validateEndpointUri(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
             doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
@@ -141,6 +141,14 @@ public class DefaultActionValidator implements ActionValidator {
                 validateHeader(apiKeyHeader);
                 validateForBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
                         authentication.getProperty(Authentication.Property.VALUE).getValue());
+                break;
+            case CLIENT_CREDENTIAL:
+                validateForBlank(ActionMgtConstants.CLIENT_ID_FIELD,
+                        authentication.getProperty(Authentication.Property.CLIENT_ID).getValue());
+                validateForBlank(ActionMgtConstants.CLIENT_SECRET_FIELD,
+                        authentication.getProperty(Authentication.Property.CLIENT_SECRET).getValue());
+                validateEndpointUri(ActionMgtConstants.TOKEN_ENDPOINT_FIELD,
+                        authentication.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue());
                 break;
             case NONE:
             default:
@@ -252,15 +260,16 @@ public class DefaultActionValidator implements ActionValidator {
     /**
      * Validate the endpoint URI.
      *
-     * @param uri Endpoint uri.
+     * @param fieldName Field name for error message context.
+     * @param uri       Endpoint uri.
      * @throws ActionMgtClientException if the uri is not valid.
      */
-    public void validateEndpointUri(String uri) throws ActionMgtClientException {
+    public void validateEndpointUri(String fieldName, String uri) throws ActionMgtClientException {
 
         boolean isValidUri = endpointUriRegexPattern.matcher(uri).matches();
         if (!isValidUri) {
             throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ENDPOINT_URI_FIELD);
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, fieldName);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -63,7 +63,14 @@ public enum ErrorMessage {
             "Error while retrieving count of Actions per Action Type from the system."),
     ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES("65009",
             "Error while decrypting Action Endpoint Authentication properties",
-            "Error while decrypting Action Endpoint Authentication properties in the system.");
+            "Error while decrypting Action Endpoint Authentication properties in the system."),
+    ERROR_CODE_ERROR_WHILE_RETRIEVING_TOKEN("65010", "Error while retrieving access token.",
+            "Error occurred while retrieving access token for actions."),
+    ERROR_CODE_ERROR_UNSUPPORTED_AUTH_TYPE_FOR_TOKEN_RETRIEVAL("65011",
+            "Unsupported authentication type.", "Unsupported authentication type for access " +
+            "token request, only supported for client credential type."),
+    ERROR_CODE_ERROR_WHILE_TOKEN_REQUEST_BUILDING("65012", "Error while building token request.",
+            "Error while building token request context for Client Credential grant.");
 
     private final String code;
     private final String message;
