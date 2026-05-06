@@ -179,7 +179,7 @@ public class SessionDataStore {
     private static final String INFORMIX_DATABASE = "Informix";
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
-    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 500;
+    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 250;
     private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
             "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
     private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
@@ -624,9 +624,10 @@ public class SessionDataStore {
     }
 
     /**
-     * Clears session data for a batch of keys in a single database operation. This avoids the overhead of individual
-     * DELETE marker inserts when clearing a large number of cache entries (e.g., during bulk OAuth token cache
-     * eviction triggered by user claim updates).
+     * Clears session data for a batch of keys (e.g., bulk OAuth token cache eviction).
+     * JDBC batching is engaged only when the async persist pool is disabled. When the async pool is enabled, keys are
+     * enqueued individually to preserve ordering with concurrent single-key writes;
+     * batching the async path is a follow-up.
      *
      * @param keys List of session data keys to clear.
      * @param type The session data type.
@@ -643,8 +644,16 @@ public class SessionDataStore {
                     sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
                 }
             }
+            if (log.isDebugEnabled()) {
+                log.debug("Enqueued " + keys.size() + " SessionContextData entries to async persist queue. type: "
+                        + type);
+            }
         } else {
             removeSessionDataBatch(keys, type, nanoTime);
+            if (log.isDebugEnabled()) {
+                log.debug("Submitted " + keys.size() + " SessionContextData entries for synchronous batch removal. "
+                        + "type: " + type);
+            }
         }
     }
 
