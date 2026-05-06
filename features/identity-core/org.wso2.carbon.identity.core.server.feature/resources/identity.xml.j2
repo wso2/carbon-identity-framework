@@ -490,6 +490,17 @@
              Supported versions: IS 5.6.0 onwards.
         -->
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
+
+        <!-- Process the client secret before storing it in database, e.g. hashing -->
+        {% if oauth.extensions.client_secret_persistence_processor is defined %}
+        <ClientSecretPersistenceProcessor>{{oauth.extensions.client_secret_persistence_processor}}</ClientSecretPersistenceProcessor>
+        {% elif oauth.extensions.token_persistence_processor is defined %}
+        <ClientSecretPersistenceProcessor>{{oauth.extensions.token_persistence_processor}}</ClientSecretPersistenceProcessor>
+        {% else %}
+        <ClientSecretPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</ClientSecretPersistenceProcessor>
+        {% endif %}
+
+        <HashClientSecretOnly>{{oauth.hash_client_secret}}</HashClientSecretOnly>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
 
