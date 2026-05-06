@@ -133,20 +133,19 @@ public class AccessConfig {
 
     /**
      * Check if a given modify path has inbound encryption enabled.
-     * Matches the most specific (longest) modify path that is a prefix of the given path.
+     * Matches the modify entry whose path (after stripping type annotations) exactly equals the given path.
      *
-     * @param pathPrefix The path to check (clean, without annotations).
+     * @param path The terminal path to check (clean, without annotations).
      * @return {@code true} if the matching modify entry has {@code encrypted = true}.
      */
-    public boolean isModifyPathEncrypted(String pathPrefix) {
+    public boolean isModifyPathEncrypted(String path) {
 
         if (modify == null) {
             return false;
         }
         return modify.stream()
-                .filter(mp -> pathPrefix.startsWith(PathTypeAnnotationUtil.stripAnnotation(mp.getPath())[0]))
-                .reduce((a, b) -> PathTypeAnnotationUtil.stripAnnotation(a.getPath())[0].length()
-                        >= PathTypeAnnotationUtil.stripAnnotation(b.getPath())[0].length() ? a : b)
+                .filter(mp -> path.equals(PathTypeAnnotationUtil.stripAnnotation(mp.getPath())[0]))
+                .findFirst()
                 .map(ContextPath::isEncrypted)
                 .orElse(false);
     }

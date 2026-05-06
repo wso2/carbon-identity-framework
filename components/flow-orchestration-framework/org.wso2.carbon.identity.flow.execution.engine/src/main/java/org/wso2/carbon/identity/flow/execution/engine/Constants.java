@@ -294,11 +294,15 @@ public class Constants {
         public static final String PENDING_PROPERTIES_KEY     = "pendingProperties";
         public static final String PENDING_REDIRECT_URL_KEY   = "pendingRedirectUrl";
 
-        // ---- Response info keys ----
-        public static final String ERROR_TYPE_KEY       = "errorType";
-        public static final String EXTENSION_ERROR_TYPE = "EXTENSION_ERROR";
-        public static final String ERROR_MESSAGE_KEY    = "errorMessage";
-        public static final String ERROR_DESCRIPTION_KEY = "errorDescription";
+        // ---- Response info keys (FAILED path) ----
+        public static final String FAILURE_TYPE_KEY              = "failureType";
+        public static final String IN_FLOW_EXTENSION_FAILURE_TYPE = "IN_FLOW_EXTENSION_FAILURE";
+        public static final String FAILURE_MESSAGE_KEY           = "failureMessage";
+        public static final String FAILURE_DESCRIPTION_KEY       = "failureDescription";
+
+        // ---- Response info keys (ERROR path) ----
+        public static final String ERROR_MESSAGE_KEY             = "errorMessage";
+        public static final String ERROR_DESCRIPTION_KEY         = "errorDescription";
 
         // ---- Context path prefixes ----
         public static final String PROPERTIES_PATH_PREFIX      = "/properties/";
@@ -306,8 +310,8 @@ public class Constants {
         public static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
 
         // ---- Miscellaneous ----
-        public static final String ACTION_ID_METADATA_KEY = "actionId";
-        public static final String EXTENSION_ERROR_CODE   = "65033";
+        public static final String ACTION_ID_METADATA_KEY       = "actionId";
+        public static final String IN_FLOW_EXTENSION_ERROR_CODE = "65033";
     }
 
     public static class SQLConstants {

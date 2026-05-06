@@ -102,6 +102,7 @@ public class InFlowExtensionExecutor implements Executor {
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             response.setResult(ExecutorStatus.STATUS_ERROR);
+            response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
             return response;
         }
 
@@ -130,6 +131,7 @@ public class InFlowExtensionExecutor implements Executor {
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             response.setResult(ExecutorStatus.STATUS_ERROR);
+            response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
             return response;
         }
 
@@ -181,12 +183,12 @@ public class InFlowExtensionExecutor implements Executor {
                 if (additionalInfo == null) {
                     additionalInfo = new HashMap<>();
                 }
-                additionalInfo.put(InFlowExtensionConstants.ERROR_TYPE_KEY,
-                        InFlowExtensionConstants.EXTENSION_ERROR_TYPE);
+                additionalInfo.put(InFlowExtensionConstants.FAILURE_TYPE_KEY,
+                        InFlowExtensionConstants.IN_FLOW_EXTENSION_FAILURE_TYPE);
                 executionResponse.setAdditionalInfo(additionalInfo);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("In-Flow Extension action returned FAILED. actionId: " + actionId
-                            + ", reason: " + additionalInfo.get(InFlowExtensionConstants.ERROR_MESSAGE_KEY));
+                            + ", reason: " + additionalInfo.get(InFlowExtensionConstants.FAILURE_MESSAGE_KEY));
                 }
             }
 
@@ -205,6 +207,7 @@ public class InFlowExtensionExecutor implements Executor {
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             response.setResult(ExecutorStatus.STATUS_ERROR);
+            response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
             response.setErrorMessage("An error occurred while processing the extension. Please try again.");
             return response;
         }
@@ -239,6 +242,7 @@ public class InFlowExtensionExecutor implements Executor {
 
         if (executionStatus == null) {
             response.setResult(ExecutorStatus.STATUS_ERROR);
+            response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
             return response;
         }
 
@@ -253,11 +257,11 @@ public class InFlowExtensionExecutor implements Executor {
                 if (failure != null) {
                     Map<String, String> failureInfo = new HashMap<>();
                     if (failure.getFailureReason() != null) {
-                        failureInfo.put(InFlowExtensionConstants.ERROR_MESSAGE_KEY,
+                        failureInfo.put(InFlowExtensionConstants.FAILURE_MESSAGE_KEY,
                                 failure.getFailureReason());
                     }
                     if (failure.getFailureDescription() != null) {
-                        failureInfo.put(InFlowExtensionConstants.ERROR_DESCRIPTION_KEY,
+                        failureInfo.put(InFlowExtensionConstants.FAILURE_DESCRIPTION_KEY,
                                 failure.getFailureDescription());
                     }
                     response.setAdditionalInfo(failureInfo);
@@ -268,7 +272,7 @@ public class InFlowExtensionExecutor implements Executor {
             case ERROR:
                 response.setResult(ExecutorStatus.STATUS_ERROR);
                 Error error = (Error) executionStatus.getResponse();
-                response.setErrorCode(InFlowExtensionConstants.EXTENSION_ERROR_CODE);
+                response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
                 if (error != null) {
                     Map<String, String> errorInfo = new HashMap<>();
                     if (error.getErrorMessage() != null) {
@@ -300,6 +304,7 @@ public class InFlowExtensionExecutor implements Executor {
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED));
                     }
                     response.setResult(ExecutorStatus.STATUS_ERROR);
+                    response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
                     response.setErrorMessage("Extension returned INCOMPLETE without a redirect URL.");
                     break;
                 }
@@ -336,6 +341,7 @@ public class InFlowExtensionExecutor implements Executor {
             default:
                 LOG.warn("Unknown execution status: " + executionStatus.getStatus());
                 response.setResult(ExecutorStatus.STATUS_ERROR);
+                response.setErrorCode(InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
         }
 
         return response;

@@ -223,9 +223,9 @@ public class InFlowExtensionExecutorTest {
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_RETRY);
         assertEquals(response.getErrorMessage(), "Risk score exceeds threshold");
-        // Verify errorType metadata is set for RETRY.
+        // Verify failureType metadata is set for RETRY.
         assertNotNull(response.getAdditionalInfo());
-        assertEquals(response.getAdditionalInfo().get("errorType"), "EXTENSION_ERROR");
+        assertEquals(response.getAdditionalInfo().get("failureType"), "IN_FLOW_EXTENSION_FAILURE");
     }
 
     @Test
@@ -304,7 +304,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.EXTENSION_ERROR_CODE);
+        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
         // errorMessage carries the Error reason/code field; errorDescription carries the human-readable text.
         assertEquals(response.getErrorMessage(), "internal_error");
         assertEquals(response.getErrorDescription(), "DB connection failed");
@@ -332,7 +332,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.EXTENSION_ERROR_CODE);
+        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
         assertEquals(response.getErrorMessage(), "internal_error");
         assertNull(response.getErrorDescription());
     }
@@ -359,7 +359,7 @@ public class InFlowExtensionExecutorTest {
         ExecutorResponse response = executor.execute(context);
 
         assertEquals(response.getResult(), ExecutorStatus.STATUS_ERROR);
-        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.EXTENSION_ERROR_CODE);
+        assertEquals(response.getErrorCode(), Constants.InFlowExtensionConstants.IN_FLOW_EXTENSION_ERROR_CODE);
         // Both fields null → errorMessage and errorDescription remain null; errorCode alone triggers FE-65033 routing.
         assertNull(response.getErrorMessage());
         assertNull(response.getErrorDescription());

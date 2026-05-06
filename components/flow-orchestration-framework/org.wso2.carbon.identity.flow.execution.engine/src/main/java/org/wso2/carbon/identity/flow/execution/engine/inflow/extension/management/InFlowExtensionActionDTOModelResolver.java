@@ -329,14 +329,11 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         List<ContextPath> result = new ArrayList<>();
 
         for (Object item : exposeList) {
-            if (item instanceof String) {
-                // Simple string path — no encryption.
-                result.add(new ContextPath((String) item, false));
-            } else if (item instanceof Map) {
+            if (item instanceof Map) {
                 Map<?, ?> map = (Map<?, ?>) item;
                 if (!map.containsKey("path") || !(map.get("path") instanceof String)) {
                     throw new ActionDTOModelResolverClientException("Invalid expose format.",
-                            "Each expose entry must be a string or an object with a 'path' field.");
+                            "Each expose entry must be an object with a 'path' field.");
                 }
                 String path = (String) map.get("path");
                 boolean encrypted = map.containsKey("encrypted") && toBooleanSafe(map.get("encrypted"));
@@ -345,7 +342,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 result.add((ContextPath) item);
             } else {
                 throw new ActionDTOModelResolverClientException("Invalid expose format.",
-                        "Each expose entry must be a string or an object with 'path' and optional 'encrypted' fields.");
+                        "Each expose entry must be an object with 'path' and optional 'encrypted' fields.");
             }
         }
 
@@ -375,6 +372,10 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
             if (!path.startsWith("/")) {
                 throw new ActionDTOModelResolverClientException("Invalid expose path.",
                         String.format("Expose path '%s' must start with '/'.", path));
+            }
+            if (path.endsWith("/")) {
+                throw new ActionDTOModelResolverClientException("Invalid expose path.",
+                        String.format("Expose path '%s' must not end with a trailing '/'.", path));
             }
             if (!seen.add(path)) {
                 throw new ActionDTOModelResolverClientException("Duplicate expose path.",
@@ -500,7 +501,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         }
 
         try {
-            String certId = certIdValue.toString();
+            String certId = extractCertificateId(certIdValue);
             certificateManagementService.deleteCertificate(certId, tenantDomain);
         } catch (CertificateMgtException e) {
             throw new ActionDTOModelResolverException("Error deleting certificate for action: "

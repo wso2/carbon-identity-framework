@@ -121,16 +121,17 @@ public class AccessConfigTest {
     }
 
     @Test
-    public void testIsModifyPathEncryptedMatchesLongestPrefix() {
+    public void testIsModifyPathEncryptedMatchesExactPath() {
 
         List<ContextPath> modifyPaths = Arrays.asList(
-                new ContextPath("/user/", false),
-                new ContextPath("/user/credentials/", true)
+                new ContextPath("/user/username", false),
+                new ContextPath("/user/credentials/password", true)
         );
         AccessConfig config = new AccessConfig(null, modifyPaths);
 
         assertTrue(config.isModifyPathEncrypted("/user/credentials/password"));
         assertFalse(config.isModifyPathEncrypted("/user/username"));
+        assertFalse(config.isModifyPathEncrypted("/user/credentials/other"));
     }
 
     @Test

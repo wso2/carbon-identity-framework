@@ -166,7 +166,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
                 castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
-        if (action.getName() != null) {
+        if (action.getName() != null &&
+                Action.ActionTypes.IN_FLOW_EXTENSION.equals(castedActionType)) {
             validateActionNameUniqueness(resolvedActionType, action.getName(), actionId, tenantId);
         }
         ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
@@ -183,6 +184,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     public boolean isActionNameAvailable(String actionType, String name, String tenantDomain)
             throws ActionMgtException {
 
+        if (name == null) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, "Action name");
+        }
         String resolvedActionType = getActionTypeFromPath(actionType);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<ActionDTO> actionDTOS = DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId);
@@ -194,6 +199,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     public boolean isActionNameAvailable(String actionType, String name, String excludeActionId,
                                          String tenantDomain) throws ActionMgtException {
 
+        if (name == null) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, "Action name");
+        }
         String resolvedActionType = getActionTypeFromPath(actionType);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<ActionDTO> actionDTOS = DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId);
