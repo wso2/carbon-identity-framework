@@ -42,6 +42,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
@@ -177,6 +179,10 @@ public class SessionDataStore {
     private static final String INFORMIX_DATABASE = "Informix";
 
     private static final int DEFAULT_DELETE_LIMIT = 50000;
+    private static final int DEFAULT_BATCH_INSERT_CHUNK_SIZE = 500;
+    private static final String BATCH_INSERT_CHUNK_SIZE_PROPERTY =
+            "JDBCPersistenceManager.SessionDataPersist.BatchInsertChunkSize";
+    private static int batchInsertChunkSize = DEFAULT_BATCH_INSERT_CHUNK_SIZE;
     public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
@@ -351,6 +357,23 @@ public class SessionDataStore {
         if (StringUtils.isNotBlank(checkExistingEntryForDeleteOperationInsertProperty)) {
             checkExistingEntryForDeleteOperationInsert = Boolean.parseBoolean(
                     checkExistingEntryForDeleteOperationInsertProperty);
+        }
+
+        String batchInsertChunkSizeValue = IdentityUtil.getProperty(BATCH_INSERT_CHUNK_SIZE_PROPERTY);
+        if (StringUtils.isNotBlank(batchInsertChunkSizeValue)) {
+            try {
+                int parsedChunkSize = Integer.parseInt(batchInsertChunkSizeValue);
+                if (parsedChunkSize > 0) {
+                    batchInsertChunkSize = parsedChunkSize;
+                } else {
+                    log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
+                            + batchInsertChunkSizeValue + ". Value must be positive. Using default: "
+                            + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
+                }
+            } catch (NumberFormatException e) {
+                log.warn("Invalid value for " + BATCH_INSERT_CHUNK_SIZE_PROPERTY + ": "
+                        + batchInsertChunkSizeValue + ". Using default: " + DEFAULT_BATCH_INSERT_CHUNK_SIZE);
+            }
         }
     }
 
@@ -597,6 +620,115 @@ public class SessionDataStore {
             sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
         } else {
             removeSessionData(key, type, nanoTime);
+        }
+    }
+
+    /**
+     * Clears session data for a batch of keys in a single database operation. This avoids the overhead of individual
+     * DELETE marker inserts when clearing a large number of cache entries (e.g., during bulk OAuth token cache
+     * eviction triggered by user claim updates).
+     *
+     * @param keys List of session data keys to clear.
+     * @param type The session data type.
+     */
+    public void clearSessionDataBatch(List<String> keys, String type) {
+
+        if (!enablePersist || keys == null || keys.isEmpty()) {
+            return;
+        }
+        long nanoTime = FrameworkUtils.getCurrentStandardNano();
+        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
+                }
+            }
+        } else {
+            removeSessionDataBatch(keys, type, nanoTime);
+        }
+    }
+
+    /**
+     * Removes session data for a batch of keys using JDBC batch operations. Each key gets a DELETE marker row
+     * inserted into the session store.
+     *
+     * @param keys     List of session data keys to remove.
+     * @param type     The session data type.
+     * @param nanoTime The operation timestamp in nanoseconds.
+     */
+    private void removeSessionDataBatch(List<String> keys, String type, long nanoTime) {
+
+        if (!enablePersist || keys == null || keys.isEmpty()) {
+            return;
+        }
+
+        if (tempDataCleanupEnabled && maxTempDataPoolSize > 0 && isTempCache(type)) {
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
+                }
+            }
+            return;
+        }
+
+        // Filter out keys that already have a DELETE marker, consistent with the single-key
+        // removeSessionData path. This is a per-key DB query, so it is only applied when
+        // checkExistingEntryForDeleteOperationInsert is explicitly enabled.
+        if (checkExistingEntryForDeleteOperationInsert) {
+            List<String> filteredKeys = new ArrayList<>();
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key) &&
+                        !validateLastOperationOnSessionData(key, type, OPERATION_DELETE)) {
+                    filteredKeys.add(key);
+                }
+            }
+            keys = filteredKeys;
+            if (keys.isEmpty()) {
+                return;
+            }
+        }
+
+        Connection connection = null;
+        try {
+            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
+        } catch (IdentityRuntimeException e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+        PreparedStatement preparedStatement = null;
+        long timeoutNano = nanoTime + getCleanupTimeout(type, MultitenantConstants.INVALID_TENANT_ID);
+        try {
+            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlInsertDELETE, type));
+            int count = 0;
+            for (String key : keys) {
+                if (StringUtils.isNotBlank(key)) {
+                    preparedStatement.setString(1, key);
+                    preparedStatement.setString(2, type);
+                    preparedStatement.setString(3, OPERATION_DELETE);
+                    preparedStatement.setLong(4, nanoTime);
+                    preparedStatement.setLong(5, timeoutNano);
+                    preparedStatement.addBatch();
+                    count++;
+                    if (count % batchInsertChunkSize == 0) {
+                        preparedStatement.executeBatch();
+                        IdentityDatabaseUtil.commitTransaction(connection);
+                    }
+                }
+            }
+            if (count % batchInsertChunkSize != 0) {
+                preparedStatement.executeBatch();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Batch removed " + count + " SessionContextData entries from DB. type: " + type);
+            }
+        } catch (Exception e) {
+            // Only the current uncommitted chunk is rolled back. Previously committed chunks
+            // remain, matching the original per-entry commit semantics of removeSessionData.
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            log.error("Error while storing batch DELETE operation session data.", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
     }
 
