@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.debug.framework.core;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 
@@ -30,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class DebugCommonAuthInterceptor implements DebugAuthenticationInterceptor {
 
+    private static final Log LOG = LogFactory.getLog(DebugCommonAuthInterceptor.class);
     private final DebugRequestCoordinator debugRequestCoordinator;
 
     public DebugCommonAuthInterceptor(DebugRequestCoordinator debugRequestCoordinator) {
@@ -45,12 +48,12 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
         }
 
         String sessionDataKey = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
-        if (StringUtils.startsWith(sessionDataKey, DebugFrameworkConstants.DEBUG_PREFIX)) {
+        if (StringUtils.isNotBlank(sessionDataKey) && sessionDataKey.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
             return true;
         }
 
         String state = request.getParameter(DebugFrameworkConstants.OIDC_STATE_PARAM);
-        return StringUtils.startsWith(state, DebugFrameworkConstants.DEBUG_PREFIX);
+        return StringUtils.isNotBlank(state) && state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX);
     }
 
     @Override

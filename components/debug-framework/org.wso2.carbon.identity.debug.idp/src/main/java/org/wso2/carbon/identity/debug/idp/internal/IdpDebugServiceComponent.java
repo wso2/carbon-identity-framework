@@ -78,18 +78,14 @@ public class IdpDebugServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        try {
-            LOG.debug("Deactivating IDP Debug Handler Component.");
+        LOG.debug("Deactivating IDP Debug Handler Component.");
 
-            // Clear the IDP handler registration.
-            DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
+        // Clear the IDP handler registration.
+        DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
 
-            resolverServiceRegistration = unregisterService(resolverServiceRegistration);
+        resolverServiceRegistration = unregisterService(resolverServiceRegistration);
 
-            LOG.debug("IDP Debug Handler Component deactivated.");
-        } catch (Exception e) {
-            LOG.error("Error while deactivating IDP Debug Handler Component.", e);
-        }
+        LOG.debug("IDP Debug Handler Component deactivated.");
     }
 
     private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration) {

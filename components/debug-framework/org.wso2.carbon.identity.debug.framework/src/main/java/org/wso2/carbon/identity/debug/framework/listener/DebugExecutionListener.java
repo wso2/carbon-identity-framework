@@ -38,13 +38,6 @@ public interface DebugExecutionListener {
     int getExecutionOrderId();
 
     /**
-     * Returns the default order ID of this listener.
-     *
-     * @return Default order ID.
-     */
-    int getDefaultOrderId();
-
-    /**
      * Returns whether this listener is enabled.
      *
      * @return true if enabled, false otherwise.

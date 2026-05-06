@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.debug.framework.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -36,66 +35,57 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Locale;
 
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_EXPIRED_DEBUG_SESSIONS;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION_LEGACY;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION_LEGACY;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_LEGACY;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_H2;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_MSSQL_OR_DB2;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_MYSQL;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_ORACLE;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_POSTGRESQL;
 
 /**
- * Implementation of the DebugSessionDAO using JdbcTemplate.
+ * Implementation of the DebugSessionDAO using raw JDBC connections.
+ * All database operations use IdentityDatabaseUtil.getDBConnection() for consistent connection management.
  */
 public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionDAOImpl.class);
-    
+
+    private enum UpsertDbType {
+
+        H2,
+        MYSQL,
+        POSTGRESQL,
+        MSSQL_OR_DB2,
+        ORACLE
+    }
+
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
         String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
         String storageDebugId = toStorageDebugId(normalizedDebugId);
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
-        try {
-            jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION, preparedStatement -> {
-                preparedStatement.setString(1, storageDebugId);
-                preparedStatement.setString(2, sessionData.getStatus());
-                setSessionData(preparedStatement, 3, sessionData);
-                preparedStatement.setString(4, sessionData.getResultJson());
-                preparedStatement.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-                preparedStatement.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-                preparedStatement.setString(7, sessionData.getResourceType());
-                preparedStatement.setString(8, sessionData.getConnectionId());
-            });
-        } catch (DataAccessException e) {
-            // Check if error is due to missing columns and fallback
-            if (isMissingColumnError(e, DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE,
-                    DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
-                LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
-                        "Falling back to legacy insert without resource info.");
-                try {
-                    jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION_LEGACY, preparedStatement -> {
-                        preparedStatement.setString(1, storageDebugId);
-                        preparedStatement.setString(2, sessionData.getStatus());
-                        setSessionData(preparedStatement, 3, sessionData);
-                        preparedStatement.setString(4, sessionData.getResultJson());
-                        preparedStatement.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-                        preparedStatement.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-                    });
-                    return;
-                } catch (DataAccessException ex) {
-                    // Log the fallback error
-                    String errorMsg = "Error while creating debug session (fallback): " + sessionData.getDebugId();
-                    LOG.error(errorMsg, ex);
-                    throw new DebugFrameworkServerException(errorMsg, ex);
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
+                prepStmt.setString(1, storageDebugId);
+                prepStmt.setString(2, sessionData.getStatus());
+                setSessionData(prepStmt, 3, sessionData);
+                prepStmt.setString(4, sessionData.getResultJson());
+                prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+                prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
+                prepStmt.executeUpdate();
+
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
                 }
             }
+        } catch (SQLException e) {
             String errorMsg = "Error while creating debug session: " + sessionData.getDebugId();
-            LOG.error(errorMsg, e);
+            LOG.error(errorMsg);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
@@ -105,26 +95,35 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
         String normalizedDebugId = normalizeDebugId(debugId);
         String storageDebugId = toStorageDebugId(normalizedDebugId);
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
-        try {
-            DebugSessionData data = getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION,
-                    debugId, storageDebugId, true);
-            if (data != null) {
-                return data;
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
+                prepStmt.setString(1, storageDebugId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        return mapResultSetToDebugSessionData(resultSet, debugId);
+                    }
+                }
             }
-            return null;
-        } catch (DataAccessException e) {
-            // Check if error is due to missing columns and fallback
-            if (isMissingColumnError(e, DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE,
-                    DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
-                LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
-                        "Falling back to legacy retrieval without resource info.");
-                return getDebugSessionLegacyFallback(jdbcTemplate, debugId, storageDebugId, normalizedDebugId);
+            
+            // Fallback: If not found with tenant prefix, try without it (in case of callback context mismatch).
+            // Since debug identifiers are UUID-based and prefixed, they are globally unique enough.
+            if (!storageDebugId.equals(normalizedDebugId)) {
+                try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
+                    prepStmt.setString(1, normalizedDebugId);
+                    try (ResultSet resultSet = prepStmt.executeQuery()) {
+                        if (resultSet.next()) {
+                            return mapResultSetToDebugSessionData(resultSet, debugId);
+                        }
+                    }
+                }
             }
+        } catch (SQLException e) {
             String errorMsg = "Error while retrieving debug session: " + debugId;
-            LOG.error(errorMsg, e);
+            LOG.error(errorMsg);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
+        return null;
     }
 
     @Override
@@ -144,7 +143,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Unexpected error while deleting debug session: " + debugId;
-            LOG.error(errorMsg, e);
+            LOG.error(errorMsg);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
@@ -158,36 +157,13 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             boolean success = false;
             try {
-                // Attempt atomic MERGE first (works on H2 and databases supporting MERGE).
-                try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION)) {
-                    prepStmt.setString(1, storageDebugId);
-                    prepStmt.setString(2, sessionData.getStatus());
-                    setSessionData(prepStmt, 3, sessionData);
-                    prepStmt.setString(4, sessionData.getResultJson());
-                    prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-                    prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-                    prepStmt.setString(7, sessionData.getResourceType());
-                    prepStmt.setString(8, sessionData.getConnectionId());
-
+                try (PreparedStatement prepStmt = prepareUpsertStatement(connection)) {
+                    setUpsertParameters(prepStmt, storageDebugId, sessionData);
                     prepStmt.executeUpdate();
                     success = true;
                 }
             } catch (SQLException e) {
-                if (isMissingColumnError(e, DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE,
-                        DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID)) {
-                    LOG.warn("Column RESOURCE_TYPE not found in IDN_DEBUG_SESSION. " +
-                            "Falling back to legacy upsert without resource info.");
-                    success = executeUpsertLegacyFallback(connection, storageDebugId, sessionData);
-                } else if (isMergeNotSupportedError(e)) {
-                    // Fallback for databases that don't support MERGE syntax:
-                    // try INSERT, on duplicate key conflict do UPDATE.
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("MERGE not supported, falling back to try-insert/catch-update pattern.");
-                    }
-                    success = executeInsertOrUpdateFallback(connection, storageDebugId, sessionData);
-                } else {
-                    throw e;
-                }
+                throw e;
             }
 
             if (success) {
@@ -200,93 +176,70 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Error while upserting debug session: " + sessionData.getDebugId();
-            LOG.error(errorMsg, e);
+            LOG.error(errorMsg);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
 
-    /**
-     * Fallback upsert using try-INSERT/catch-UPDATE pattern for databases that don't support MERGE.
-     * This avoids the TOCTOU race condition of SELECT-then-INSERT by letting the DB enforce uniqueness.
-     */
-    private boolean executeInsertOrUpdateFallback(Connection connection, String storageDebugId,
-            DebugSessionData sessionData) throws SQLException {
+    private PreparedStatement prepareUpsertStatement(Connection connection)
+            throws SQLException, DebugFrameworkServerException {
 
-        try (PreparedStatement prepStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
-            prepStmt.setString(1, storageDebugId);
-            prepStmt.setString(2, sessionData.getStatus());
-            setSessionData(prepStmt, 3, sessionData);
-            prepStmt.setString(4, sessionData.getResultJson());
-            prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-            prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-            prepStmt.setString(7, sessionData.getResourceType());
-            prepStmt.setString(8, sessionData.getConnectionId());
-            prepStmt.executeUpdate();
-            return true;
-        } catch (SQLException insertEx) {
-            // Duplicate key — row already exists, do UPDATE instead.
-            if (isDuplicateKeyError(insertEx)) {
-                return executeUpdateSession(connection, storageDebugId, sessionData);
+        UpsertDbType dbType = resolveUpsertDbType(connection);
+        switch (dbType) {
+            case MYSQL:
+                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_MYSQL);
+            case POSTGRESQL:
+                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_POSTGRESQL);
+            case ORACLE:
+                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_ORACLE);
+            case MSSQL_OR_DB2:
+                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_MSSQL_OR_DB2);
+            case H2:
+            default:
+                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_H2);
+        }
+    }
+
+    private UpsertDbType resolveUpsertDbType(Connection connection) throws DebugFrameworkServerException {
+
+        try {
+            if (JdbcUtils.isMySQLDB(JdbcUtils.Database.IDENTITY) || JdbcUtils.isMariaDB(JdbcUtils.Database.IDENTITY)) {
+                return UpsertDbType.MYSQL;
             }
-            throw insertEx;
+            if (JdbcUtils.isPostgreSQLDB(JdbcUtils.Database.IDENTITY)) {
+                return UpsertDbType.POSTGRESQL;
+            }
+            if (JdbcUtils.isOracleDB(JdbcUtils.Database.IDENTITY)) {
+                return UpsertDbType.ORACLE;
+            }
+            if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.IDENTITY) || JdbcUtils.isDB2DB(JdbcUtils.Database.IDENTITY)) {
+                return UpsertDbType.MSSQL_OR_DB2;
+            }
+            if (JdbcUtils.isH2DB(JdbcUtils.Database.IDENTITY)) {
+                return UpsertDbType.H2;
+            }
+        } catch (DataAccessException e) {
+            throw new DebugFrameworkServerException("Error while resolving database type for debug session upsert.", e);
+        }
+
+        try {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            throw new DebugFrameworkServerException(
+                    "Unsupported database type for debug session upsert: " + databaseProductName);
+        } catch (SQLException e) {
+            throw new DebugFrameworkServerException("Unsupported database type for debug session upsert.", e);
         }
     }
 
-    /**
-     * Updates an existing debug session row.
-     */
-    private boolean executeUpdateSession(Connection connection, String storageDebugId,
-            DebugSessionData sessionData) throws SQLException {
+    private void setUpsertParameters(PreparedStatement prepStmt, String storageDebugId, DebugSessionData sessionData)
+            throws SQLException {
 
-        String updateSql = "UPDATE IDN_DEBUG_SESSION SET STATUS = ?, SESSION_DATA = ?, RESULT_JSON = ?, " +
-                "CREATED_TIME = ?, EXPIRY_TIME = ?, RESOURCE_TYPE = ?, CONNECTION_ID = ? WHERE DEBUG_ID = ?";
-        try (PreparedStatement prepStmt = connection.prepareStatement(updateSql)) {
-            prepStmt.setString(1, sessionData.getStatus());
-            setSessionData(prepStmt, 2, sessionData);
-            prepStmt.setString(3, sessionData.getResultJson());
-            prepStmt.setTimestamp(4, new Timestamp(sessionData.getCreatedTime()));
-            prepStmt.setTimestamp(5, new Timestamp(sessionData.getExpiryTime()));
-            prepStmt.setString(6, sessionData.getResourceType());
-            prepStmt.setString(7, sessionData.getConnectionId());
-            prepStmt.setString(8, storageDebugId);
-            prepStmt.executeUpdate();
-            return true;
-        }
-    }
-
-    /**
-     * Fallback for legacy schema without RESOURCE_TYPE/CONNECTION_ID columns.
-     */
-    private boolean executeUpsertLegacyFallback(Connection connection, String storageDebugId,
-            DebugSessionData sessionData) throws SQLException {
-
-        try (PreparedStatement prepStmt = connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_LEGACY)) {
-            prepStmt.setString(1, storageDebugId);
-            prepStmt.setString(2, sessionData.getStatus());
-            setSessionData(prepStmt, 3, sessionData);
-            prepStmt.setString(4, sessionData.getResultJson());
-            prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-            prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-            prepStmt.executeUpdate();
-            return true;
-        }
-    }
-
-    private boolean isMergeNotSupportedError(SQLException e) {
-
-        String message = e.getMessage();
-        if (message == null) {
-            return false;
-        }
-        String normalized = message.toLowerCase(Locale.ENGLISH);
-        return normalized.contains("syntax error") || normalized.contains("merge");
-    }
-
-    private boolean isDuplicateKeyError(SQLException e) {
-
-        String sqlState = e.getSQLState();
-        // SQL state 23000/23505 = integrity constraint violation (duplicate key).
-        return "23000".equals(sqlState) || "23505".equals(sqlState);
+        prepStmt.setString(1, storageDebugId);
+        prepStmt.setString(2, sessionData.getStatus());
+        setSessionData(prepStmt, 3, sessionData);
+        prepStmt.setString(4, sessionData.getResultJson());
+        prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+        prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
     }
 
     @Override
@@ -307,70 +260,20 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Unexpected error while deleting expired debug sessions";
-            LOG.error(errorMsg, e);
+            LOG.error(errorMsg);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
-
-    /**
-     * Retrieves a debug session from the database using the specified SQL query and identifier.
-     *
-     * @param jdbcTemplate The JDBC template.
-     * @param sqlQuery The SQL query to execute.
-     * @param debugId The debug ID.
-     * @param identifier The identifier (storage debug ID or normalized debug ID).
-     * @param includeResourceColumns Whether to include resource type and connection ID columns.
-     * @return The debug session data or null if not found.
-     * @throws DataAccessException If database access fails.
-     */
-    private DebugSessionData getDebugSessionFromDatabase(JdbcTemplate jdbcTemplate, String sqlQuery,
-                                                         String debugId, String identifier,
-                                                         boolean includeResourceColumns)
-            throws DataAccessException {
-
-        return jdbcTemplate.fetchSingleRecord(sqlQuery, (resultSet, rowNumber) ->
-                mapResultSetToDebugSessionData(resultSet, debugId, includeResourceColumns),
-                preparedStatement -> preparedStatement.setString(1, identifier));
-    }
-
-    /**
-     * Attempts to retrieve a debug session from the legacy database schema as a fallback.
-     *
-     * @param jdbcTemplate The JDBC template.
-     * @param debugId The debug ID.
-     * @param storageDebugId The storage debug ID.
-     * @param normalizedDebugId The normalized debug ID.
-     * @return The debug session data or null if not found.
-     * @throws DebugFrameworkServerException If database access fails.
-     */
-    private DebugSessionData getDebugSessionLegacyFallback(JdbcTemplate jdbcTemplate, String debugId,
-                            String storageDebugId, String normalizedDebugId) throws DebugFrameworkServerException {
-
-        try {
-            DebugSessionData data = getDebugSessionFromDatabase(jdbcTemplate, SQL_GET_DEBUG_SESSION_LEGACY,
-                    debugId, storageDebugId, false);
-            if (data != null) {
-                return data;
-            }
-            return null;
-        } catch (DataAccessException ex) {
-            String errorMsg = "Error while retrieving debug session (fallback): " + debugId;
-            LOG.error(errorMsg, ex);
-            throw new DebugFrameworkServerException(errorMsg, ex);
-        }
-    }
-
     /**
      * Maps a ResultSet row to a DebugSessionData object.
      *
      * @param resultSet The result set.
-     * @param debugId The debug ID.
-     * @param includeResourceColumns Whether to include resource type and connection ID columns.
+     * @param debugId The debug ID (original value, without tenant prefix).
      * @return The debug session data.
      * @throws SQLException If a SQL error occurs.
      */
-    private DebugSessionData mapResultSetToDebugSessionData(ResultSet resultSet, String debugId,
-                                                           boolean includeResourceColumns) throws SQLException {
+    private DebugSessionData mapResultSetToDebugSessionData(ResultSet resultSet, String debugId)
+            throws SQLException {
 
         DebugSessionData sessionData = new DebugSessionData();
         sessionData.setDebugId(debugId);
@@ -385,20 +288,15 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         sessionData.setResultJson(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_RESULT_JSON));
         sessionData.setCreatedTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_CREATED_TIME));
         sessionData.setExpiryTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_EXPIRY_TIME));
-
-        if (includeResourceColumns) {
-            sessionData.setResourceType(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_RESOURCE_TYPE));
-            sessionData.setConnectionId(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_CONNECTION_ID));
-        }
         return sessionData;
     }
 
     /**
      * Normalizes the debug ID by removing hyphens from the UUID part.
-     * This ensures consistent storage and retrieval regardless of format.
+     * This ensures consistent storage format regardless of input format.
      *
      * @param debugId The debug ID to normalize.
-     * @return Normalized debug ID (e.g., debug-32charuuid).
+     * @return Normalized debug ID (or original if not in expected format).
      */
     private String normalizeDebugId(String debugId) {
 
@@ -411,6 +309,12 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         return DebugFrameworkConstants.DEBUG_PREFIX + normalizedUuid;
     }
 
+    /**
+     * Converts a normalized debug ID to the storage key by adding tenant prefix.
+     *
+     * @param normalizedDebugId The normalized debug ID (without tenant prefix).
+     * @return The storage key with tenant prefix, or the original if no tenant context.
+     */
     private String toStorageDebugId(String normalizedDebugId) {
 
         if (normalizedDebugId == null) {
@@ -436,93 +340,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     private long getTimeInMillis(ResultSet resultSet, String columnName) throws SQLException {
 
         Timestamp timestamp = resultSet.getTimestamp(columnName);
-        return timestamp != null ? timestamp.getTime() : 0L;
+        return timestamp == null ? 0L : timestamp.getTime();
     }
 
-    private boolean isMissingColumnError(Throwable throwable, String... columnHints) {
-
-        Throwable current = throwable;
-        while (current != null) {
-            if (current instanceof SQLException) {
-                SQLException sqlException = (SQLException) current;
-                if (isMissingColumnSQLState(sqlException) || isMissingColumnMessage(sqlException, columnHints)) {
-                    return true;
-                }
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the SQL exception represents a missing column error based on SQL state codes.
-     *
-     * @param sqlException The SQL exception to check.
-     * @return True if the SQL state indicates a missing column error, false otherwise.
-     */
-    private boolean isMissingColumnSQLState(SQLException sqlException) {
-
-        String sqlState = sqlException.getSQLState();
-        return "42S22".equals(sqlState) || "42703".equals(sqlState);
-    }
-
-    /**
-     * Checks if the SQL exception message indicates a missing column error.
-     *
-     * @param sqlException The SQL exception to check.
-     * @param columnHints Optional column name hints to match in the message.
-     * @return True if the message indicates a missing column error, false otherwise.
-     */
-    private boolean isMissingColumnMessage(SQLException sqlException, String... columnHints) {
-
-        String message = sqlException.getMessage();
-        if (message == null) {
-            return false;
-        }
-
-        String normalizedMessage = message.toLowerCase(Locale.ENGLISH);
-        boolean mentionsColumn = containsColumnHint(normalizedMessage, columnHints);
-        if (!mentionsColumn) {
-            return false;
-        }
-
-        return isMissingColumnPattern(normalizedMessage);
-    }
-
-    /**
-     * Checks if the normalized message contains any of the column hints.
-     *
-     * @param normalizedMessage The normalized (lowercase) message.
-     * @param columnHints Column name hints to check.
-     * @return True if the message contains any hint, false otherwise.
-     */
-    private boolean containsColumnHint(String normalizedMessage, String... columnHints) {
-
-        if (columnHints == null || columnHints.length == 0) {
-            return true;
-        }
-
-        for (String columnHint : columnHints) {
-            if (columnHint != null && normalizedMessage.contains(columnHint.toLowerCase(Locale.ENGLISH))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the message contains patterns that indicate a missing column error.
-     *
-     * @param normalizedMessage The normalized (lowercase) message.
-     * @return True if the message matches missing column error patterns, false otherwise.
-     */
-    private boolean isMissingColumnPattern(String normalizedMessage) {
-
-        return normalizedMessage.contains("not found")
-                || normalizedMessage.contains("does not exist")
-                || normalizedMessage.contains("unknown column")
-                || normalizedMessage.contains("invalid column")
-                || normalizedMessage.contains("invalid identifier")
-                || normalizedMessage.contains("no such column");
-    }
 }

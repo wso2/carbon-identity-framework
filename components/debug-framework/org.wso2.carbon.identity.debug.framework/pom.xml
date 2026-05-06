@@ -43,17 +43,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-            <version>7.10.35</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-            <version>7.10.35</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.idp.mgt</artifactId>
-            <version>7.10.35</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -106,8 +96,6 @@
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.osgi.framework; version="[1.7.0,2.0.0)",
                             org.osgi.service.component; version="[1.2.0,2.0.0)",
                             org.apache.commons.logging; version="[1.2.0,2.0.0)",

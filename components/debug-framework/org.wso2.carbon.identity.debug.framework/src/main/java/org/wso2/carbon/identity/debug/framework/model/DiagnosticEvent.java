@@ -77,13 +77,13 @@ public class DiagnosticEvent {
         return new Builder();
     }
 
-    @SuppressWarnings("unchecked")
     /**
      * Build a {@link DiagnosticEvent} from a serialized map representation.
      *
      * @param eventMap Serialized event map.
      * @return Parsed diagnostic event, or {@code null} if input is {@code null}.
      */
+    @SuppressWarnings("unchecked")
     public static DiagnosticEvent fromMap(Map<String, Object> eventMap) {
 
         if (eventMap == null) {

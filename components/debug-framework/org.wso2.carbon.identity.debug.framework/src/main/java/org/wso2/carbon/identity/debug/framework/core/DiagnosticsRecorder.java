@@ -85,30 +85,45 @@ public class DiagnosticsRecorder {
     @SuppressWarnings("unchecked")
     private Deque<DiagnosticEvent> getOrCreateDiagnostics(DebugContext context) {
 
-        Object diagnostics = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
-        if (diagnostics instanceof Deque || diagnostics instanceof Collection) {
-            Deque<DiagnosticEvent> timeline = coerceCollection((Collection<Object>) diagnostics);
-            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-            return timeline;
-        }
-
-        Deque<DiagnosticEvent> timeline = new ArrayDeque<>();
-        context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
-        return timeline;
+        return getOrCreateDiagnosticsFromProperty(
+                context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS),
+                timeline -> context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline));
     }
 
     @SuppressWarnings("unchecked")
     private Deque<DiagnosticEvent> getOrCreateDiagnostics(AuthenticationContext context) {
 
-        Object diagnostics = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
-        if (diagnostics instanceof Deque || diagnostics instanceof Collection) {
-            Deque<DiagnosticEvent> timeline = coerceCollection((Collection<Object>) diagnostics);
-            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
+        return getOrCreateDiagnosticsFromProperty(
+                context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS),
+                timeline -> context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline));
+    }
+
+    /**
+     * Shared logic for retrieving or creating diagnostics from a property value.
+     *
+     * @param diagnosticsProperty The existing property value (may be null, Deque, or Collection).
+     * @param setter Callback to set the timeline back into the context.
+     * @return A properly-typed Deque of DiagnosticEvents.
+     */
+    @SuppressWarnings("unchecked")
+    private Deque<DiagnosticEvent> getOrCreateDiagnosticsFromProperty(Object diagnosticsProperty,
+            java.util.function.Consumer<Deque<DiagnosticEvent>> setter) {
+
+        // If already a typed Deque, return directly without coercion.
+        if (diagnosticsProperty instanceof Deque) {
+            return (Deque<DiagnosticEvent>) diagnosticsProperty;
+        }
+
+        // If a generic Collection (e.g., post-deserialization), coerce to typed Deque.
+        if (diagnosticsProperty instanceof Collection) {
+            Deque<DiagnosticEvent> timeline = coerceCollection((Collection<Object>) diagnosticsProperty);
+            setter.accept(timeline);
             return timeline;
         }
 
+        // Create new empty Deque.
         Deque<DiagnosticEvent> timeline = new ArrayDeque<>();
-        context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
+        setter.accept(timeline);
         return timeline;
     }
 

@@ -28,8 +28,8 @@ import java.util.Map;
  */
 public class DebugRequest {
 
-    private String connectionId;
     private String resourceType;
+    private boolean resultRetrieval;
     private final Map<String, Object> additionalContext;
 
     /**
@@ -38,16 +38,7 @@ public class DebugRequest {
     public DebugRequest() {
 
         this.additionalContext = new HashMap<>();
-    }
-
-    public String getConnectionId() {
-
-        return connectionId;
-    }
-
-    public void setConnectionId(String connectionId) {
-
-        this.connectionId = connectionId;
+        this.resultRetrieval = false;
     }
 
     public String getResourceType() {
@@ -58,6 +49,29 @@ public class DebugRequest {
     public void setResourceType(String resourceType) {
 
         this.resourceType = resourceType;
+    }
+
+    /**
+     * Indicates whether this is a result retrieval request (as opposed to a debug flow initiation).
+     * Used to signal listeners that cleanup should occur, rather than using a sentinel resource type string.
+     *
+     * @return true if this is a result retrieval operation, false otherwise.
+     */
+    public boolean isResultRetrieval() {
+
+        return resultRetrieval;
+    }
+
+    /**
+     * Sets the result retrieval flag.
+     * Should be set to true when this request is for retrieving a previously stored debug result,
+     * not for initiating a new debug flow.
+     *
+     * @param resultRetrieval true to mark this as a result retrieval request.
+     */
+    public void setResultRetrieval(boolean resultRetrieval) {
+
+        this.resultRetrieval = resultRetrieval;
     }
 
     public void addContextProperty(String key, Object value) {

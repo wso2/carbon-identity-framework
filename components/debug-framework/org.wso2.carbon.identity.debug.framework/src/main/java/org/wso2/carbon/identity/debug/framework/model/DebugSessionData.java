@@ -34,8 +34,6 @@ public class DebugSessionData implements Serializable {
     private String resultJson;
     private long createdTime;
     private long expiryTime;
-    private String resourceType;
-    private String connectionId;
 
     /**
      * Returns the debug session identifier.
@@ -147,43 +145,17 @@ public class DebugSessionData implements Serializable {
         this.expiryTime = expiryTime;
     }
 
-    /**
-     * Returns the resource type associated with this debug session.
-     *
-     * @return Resource type associated with this debug session.
-     */
-    public String getResourceType() {
+    @Override
+    public String toString() {
 
-        return resourceType;
+        return "DebugSessionData{" +
+                "debugId='" + debugId + '\'' +
+                ", status='" + status + '\'' +
+                ", sessionDataSize=" + (sessionData != null ? sessionData.length : 0) +
+                ", resultJsonLength=" + (resultJson != null ? resultJson.length() : 0) +
+                ", createdTime=" + createdTime +
+                ", expiryTime=" + expiryTime +
+                '}';
     }
 
-    /**
-     * Sets the resource type associated with this debug session.
-     *
-     * @param resourceType Resource type associated with this debug session.
-     */
-    public void setResourceType(String resourceType) {
-
-        this.resourceType = resourceType;
-    }
-
-    /**
-     * Returns the connection identifier associated with this debug session.
-     *
-     * @return Connection identifier associated with this debug session.
-     */
-    public String getConnectionId() {
-
-        return connectionId;
-    }
-
-    /**
-     * Sets the connection identifier associated with this debug session.
-     *
-     * @param connectionId Connection identifier associated with this debug session.
-     */
-    public void setConnectionId(String connectionId) {
-        
-        this.connectionId = connectionId;
-    }
 }

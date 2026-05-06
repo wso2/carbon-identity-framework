@@ -60,8 +60,9 @@ public class CommonAuthenticationHandler {
                     return true;
                 }
             } catch (Exception e) {
-                log.warn("Error while executing debug authentication interceptor: "
-                        + interceptor.getClass().getName() + ". Continuing with normal flow.", e);
+                log.error("Debug authentication interceptor failed: " + interceptor.getClass().getName()
+                        + ". Debug flow aborted. Proceeding with normal authentication.", e);
+                return false;
             }
         }
         return false;
@@ -83,9 +84,9 @@ public class CommonAuthenticationHandler {
             boolean debugHandled = handleDebugFlow(request, response);
             
             if (debugHandled) {
-                // Debug flow handled, return without proceeding to regular authentication.
+                // Debug flow handled; return without proceeding to regular authentication.
                 if (log.isDebugEnabled()) {
-                    log.debug("Debug flow handled by DebugService.");
+                    log.debug("Debug request handled by debug interceptor.");
                 }
                 return;
             }

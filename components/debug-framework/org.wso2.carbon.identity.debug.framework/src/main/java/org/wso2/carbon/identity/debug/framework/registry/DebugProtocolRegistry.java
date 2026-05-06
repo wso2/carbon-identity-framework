@@ -222,6 +222,8 @@ public class DebugProtocolRegistry {
 
     /**
      * Updates a list with the given entry.
+     * This prevents multiple instances of the same handler class from being registered
+     * when handlers are registered both directly and via protocol providers.
      *
      * @param entries List of entries.
      * @param entry   Entry to be updated.
@@ -235,13 +237,18 @@ public class DebugProtocolRegistry {
         }
 
         if (isAdd) {
-            if (!entries.contains(entry)) {
+            // Check if the exact instance is already registered.
+            boolean alreadyExists = entries.contains(entry);
+
+            if (!alreadyExists) {
                 entries.add(entry);
             }
             return;
         }
 
-        entries.remove(entry);
+        // When removing, remove by class type to handle removal via either registration path.
+        Class<?> entryClass = entry.getClass();
+        entries.removeIf(e -> e.getClass() == entryClass);
     }
 
     /**

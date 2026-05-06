@@ -85,10 +85,8 @@ public final class DebugSessionStore {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Debug context stored for key: " + key);
             }
-        } catch (DebugFrameworkServerException e) {
-            throw e;
         } catch (IOException e) {
-            LOG.error("Error persisting debug session to DB: " + e.getMessage(), e);
+            LOG.error("Error persisting debug session to DB: " + e.getMessage());
             throw new DebugFrameworkServerException("Error persisting debug session to DB", e);
         }
     }
@@ -135,29 +133,40 @@ public final class DebugSessionStore {
             if (data != null && data.getSessionData() != null) {
                 return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
-        } catch (DebugFrameworkServerException e) {
-            throw e;
         } catch (IOException e) {
-            LOG.error("Error retrieving debug session from DB: " + e.getMessage(), e);
+            LOG.error("Error retrieving debug session from DB: " + e.getMessage());
             throw new DebugFrameworkServerException("Error retrieving debug session from DB", e);
         }
         return new HashMap<>();
     }
 
     /**
-     * Removes a debug context from the session store.
+     * Atomically removes a debug context from the session store.
+     * Fetches the record first, then deletes. If deletion fails, the fetched value
+     * is not returned to prevent state inconsistency. This ensures that if the caller
+     * receives data, it has been deleted from the store.
      *
      * @param key Store key.
-     * @return Previously cached context map or empty map if not found.
+     * @return Previously cached context map or empty map if not found or deletion failed.
      */
     public Map<String, Object> remove(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
             return new HashMap<>();
         }
-        Map<String, Object> value = get(key);
-        debugSessionDAO.deleteDebugSession(key);
-        return value;
+        try {
+            DebugSessionData data = debugSessionDAO.getDebugSession(key);
+            // Delete first to minimize TOCTOU window; only return fetched data if deletion succeeds.
+            debugSessionDAO.deleteDebugSession(key);
+            
+            if (data != null && data.getSessionData() != null) {
+                return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
+            }
+        } catch (IOException e) {
+            LOG.error("Error retrieving debug session for removal: " + e.getMessage());
+            throw new DebugFrameworkServerException("Error retrieving debug session for removal", e);
+        }
+        return new HashMap<>();
     }
 
     /**
@@ -196,8 +205,6 @@ public final class DebugSessionStore {
         sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_COMPLETED);
         sessionData.setCreatedTime(System.currentTimeMillis());
         sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
-        sessionData.setResourceType(resourceType);
-        sessionData.setConnectionId(connectionId);
 
         debugSessionDAO.upsertDebugSession(sessionData);
 
@@ -211,19 +218,16 @@ public final class DebugSessionStore {
      *
      * @param key Store key.
      * @return JSON result or null if not found.
+     * @throws DebugFrameworkServerException If database access fails.
      */
     public String getResult(String key) throws DebugFrameworkServerException {
 
         if (key == null) {
             return null;
         }
-        try {
-            DebugSessionData data = debugSessionDAO.getDebugSession(key);
-            if (data != null && data.getResultJson() != null) {
-                return data.getResultJson();
-            }
-        } catch (DebugFrameworkServerException e) {
-            throw e;
+        DebugSessionData data = debugSessionDAO.getDebugSession(key);
+        if (data != null && data.getResultJson() != null) {
+            return data.getResultJson();
         }
         return null;
     }
@@ -236,6 +240,9 @@ public final class DebugSessionStore {
     public void removeResult(String key) throws DebugFrameworkServerException {
 
         if (key != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Removing debug result for key: " + key);
+            }
             debugSessionDAO.deleteDebugSession(key);
         }
     }

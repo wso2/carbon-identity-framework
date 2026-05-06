@@ -19,8 +19,7 @@
 package org.wso2.carbon.identity.debug.framework.core;
 
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
-
-import java.util.Map;
+import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,22 +34,22 @@ public abstract class DebugContextProvider {
      * Implementations should validate all required parameters and configurations.
      *
      * @param request HTTP servlet request containing debug parameters.
-     * @return Map containing resolved debug context data.
+     * @return DebugContext containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract Map<String, Object> resolveContext(HttpServletRequest request) 
+    public abstract DebugContext resolveContext(HttpServletRequest request) 
             throws ContextResolutionException;
 
     /**
      * Resolves and creates a debug context with specific parameters.
      * Implementations should validate all required parameters and configurations.
      *
-     * @param connectionId   resource ID.
+     * @param connectionId Resource ID.
      * @param resourceType Optional resource type.
-     * @return Map containing resolved debug context data.
+     * @return DebugContext containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract Map<String, Object> resolveContext(String connectionId, String resourceType)
+    public abstract DebugContext resolveContext(String connectionId, String resourceType)
             throws ContextResolutionException;
 
     /**

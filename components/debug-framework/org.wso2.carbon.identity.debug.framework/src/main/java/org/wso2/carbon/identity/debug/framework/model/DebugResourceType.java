@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
-import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
-import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
-
 /**
  * Enum for debug resource types.
  * Defines the different types of resources that can be debugged (IdP,
@@ -57,15 +54,4 @@ public enum DebugResourceType {
         }
     }
 
-    /**
-     * Gets the appropriate DebugResourceHandler for this resource type.
-     * IDP handler is looked up from OSGi registry.
-     * Other handlers are instantiated directly or looked up from registry.
-     *
-     * @return The appropriate DebugResourceHandler, or null if not found.
-     */
-    public DebugResourceHandler getHandler() {
-
-        return DebugHandlerRegistry.getInstance().getHandler(name().toLowerCase(java.util.Locale.ENGLISH));
-    }
 }

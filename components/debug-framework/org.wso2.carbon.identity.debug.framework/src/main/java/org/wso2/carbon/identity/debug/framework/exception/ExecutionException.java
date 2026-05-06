@@ -20,54 +20,26 @@ package org.wso2.carbon.identity.debug.framework.exception;
 
 /**
  * Exception thrown when execution of debug operations fails.
- * Used for errors in URL generation, token exchange, claim extraction, etc.
+ * @deprecated Use {@link DebugExecutionException} instead.
  */
-public class ExecutionException extends DebugFrameworkException {
+@Deprecated
+public class ExecutionException extends DebugExecutionException {
 
     private static final long serialVersionUID = 1L;
-    private static final String EMPTY_DESCRIPTION = "";
 
-    /**
-     * Constructs an ExecutionException with error code and message.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     */
     public ExecutionException(String errorCode, String message) {
-
-        this(errorCode, message, null);
+        super(errorCode, message);
     }
 
-    /**
-     * Constructs an ExecutionException with error code, message, and cause.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     * @param cause     Root cause exception.
-     */
     public ExecutionException(String errorCode, String message, Throwable cause) {
-
-        super(errorCode, message, EMPTY_DESCRIPTION, cause);
+        super(errorCode, message, cause);
     }
 
-    /**
-     * Constructs an ExecutionException with message.
-     *
-     * @param message Error message.
-     */
     public ExecutionException(String message) {
-
-        super(message, null);
+        super(message);
     }
 
-    /**
-     * Constructs an ExecutionException with message and cause.
-     *
-     * @param message Error message.
-     * @param cause   Root cause exception.
-     */
     public ExecutionException(String message, Throwable cause) {
-
         super(message, cause);
     }
 }

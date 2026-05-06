@@ -66,12 +66,6 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
     }
 
     @Override
-    public int getDefaultOrderId() {
-
-        return DEFAULT_ORDER;
-    }
-
-    @Override
     public boolean isEnabled() {
 
         return true;
@@ -107,12 +101,13 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             return true;
         }
 
-        if (debugRequest == null || !DebugFrameworkConstants.DEBUG_RESULT_RETRIEVAL
-                .equals(debugRequest.getResourceType())) {
+        // Only clean up if this is a result retrieval request (not a debug flow initiation).
+        if (debugRequest == null || !debugRequest.isResultRetrieval()) {
             return true;
         }
 
-        String debugId = debugRequest.getConnectionId();
+        String debugId = (String) debugRequest.getAdditionalContext()
+                .get(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY);
         if (debugId == null || debugId.isEmpty()) {
             return true;
         }
@@ -135,7 +130,7 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             }
         } catch (DebugFrameworkServerException e) {
             // Log the error. Cleanup should not affect the main flow.
-            LOG.error("Failed to delete debug session record from database: " + debugId, e);
+            LOG.error("Failed to delete debug session record from database: " + debugId);
         }
     }
 }

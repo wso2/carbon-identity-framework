@@ -50,6 +50,8 @@ public class DebugServiceComponent {
     private static final Log LOG = LogFactory.getLog(DebugServiceComponent.class);
 
     private ServiceRegistration<DebugExecutionListener> cleanupListenerServiceRegistration;
+    private ServiceRegistration<DebugRequestCoordinator> requestCoordinatorServiceRegistration;
+    private ServiceRegistration<DebugAuthenticationInterceptor> authInterceptorServiceRegistration;
     private DebugSessionCleanupService cleanupService;
 
     @Activate
@@ -58,42 +60,59 @@ public class DebugServiceComponent {
         LOG.debug("Debug Framework OSGi component activating");
         BundleContext bundleContext = context.getBundleContext();
 
-        // Register DebugRequestCoordinator as the API-facing debug service.
-        DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
-        bundleContext.registerService(DebugRequestCoordinator.class, requestCoordinator, null);
+        try {
+            // Register DebugRequestCoordinator as the API-facing debug service.
+            DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
+            requestCoordinatorServiceRegistration = bundleContext.registerService(
+                    DebugRequestCoordinator.class, requestCoordinator, null);
 
-        // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
-        bundleContext.registerService(DebugAuthenticationInterceptor.class,
-                new DebugCommonAuthInterceptor(requestCoordinator), null);
+            // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
+            authInterceptorServiceRegistration = bundleContext.registerService(
+                    DebugAuthenticationInterceptor.class,
+                    new DebugCommonAuthInterceptor(requestCoordinator), null);
 
-        // Register the cleanup listener as an OSGi service.
-        cleanupListenerServiceRegistration = bundleContext.registerService(
-                DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
+            // Register the cleanup listener as an OSGi service.
+            cleanupListenerServiceRegistration = bundleContext.registerService(
+                    DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
 
-        // Start the periodic cleanup service for expired sessions.
-        cleanupService = new DebugSessionCleanupService();
-        cleanupService.activate();
+            // Start the periodic cleanup service for expired sessions.
+            cleanupService = new DebugSessionCleanupService();
+            cleanupService.activate();
 
-        LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
-        LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
+            LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
+            LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
+        } catch (Exception e) {
+            LOG.error("Error during debug framework component activation");
+            throw new RuntimeException("Failed to activate Debug Framework component", e);
+        }
+        
+        LOG.debug("Debug Framework OSGi component activated successfully");
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        try {
-            // Unregister cleanup listener service.
-            cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
-                    "DebugSessionCleanupExecutionListener service unregistered");
+        LOG.debug("Debug Framework OSGi component deactivating");
 
-            // Shutdown the cleanup service.
-            if (cleanupService != null) {
-                cleanupService.deactivate();
-            }
+        // Unregister request coordinator service.
+        requestCoordinatorServiceRegistration = unregisterService(requestCoordinatorServiceRegistration,
+                "DebugRequestCoordinator service unregistered");
 
-        } catch (Exception e) {
-            LOG.error("Error while deactivating debug framework component.", e);
+        // Unregister auth interceptor service.
+        authInterceptorServiceRegistration = unregisterService(authInterceptorServiceRegistration,
+                "DebugAuthenticationInterceptor service unregistered");
+
+        // Unregister cleanup listener service.
+        cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
+                "DebugSessionCleanupExecutionListener service unregistered");
+
+        // Shutdown the cleanup service.
+        if (cleanupService != null) {
+            cleanupService.deactivate();
+            cleanupService = null;
         }
+
+        LOG.debug("Debug Framework OSGi component deactivated");
     }
 
     /**

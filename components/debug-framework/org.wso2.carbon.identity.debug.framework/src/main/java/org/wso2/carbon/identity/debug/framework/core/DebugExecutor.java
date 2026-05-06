@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
-import org.wso2.carbon.identity.debug.framework.exception.ExecutionException;
+import org.wso2.carbon.identity.debug.framework.exception.DebugExecutionException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
-
-import java.util.Map;
 
 /**
  * Abstract base class for executing debug flows.
@@ -36,19 +34,9 @@ public abstract class DebugExecutor {
      *
      * @param context DebugContext containing debug configuration and state.
      * @return DebugResult containing the outcome of the execution.
-     * @throws ExecutionException If execution fails.
+     * @throws DebugExecutionException If execution fails.
      */
-    public abstract DebugResult execute(DebugContext context) throws ExecutionException;
-
-    /**
-     * Executes a debug flow step and generates the result.
-     * Implementations handle protocol-specific logic like URL generation, token exchange, claim extraction.
-     *
-     * @param context Map containing debug configuration and state.
-     * @return DebugResult containing the outcome of the execution.
-     * @throws ExecutionException If execution fails.
-     */
-    public abstract DebugResult execute(Map<String, Object> context) throws ExecutionException;
+    public abstract DebugResult execute(DebugContext context) throws DebugExecutionException;
 
     /**
      * Validates if this executor can handle the given context.
@@ -58,15 +46,6 @@ public abstract class DebugExecutor {
      * @return true if this executor can handle the context, false otherwise.
      */
     public abstract boolean canExecute(DebugContext context);
-
-    /**
-     * Validates if this executor can handle the given context.
-     * Used to determine which executor to use for a specific resource configuration.
-     *
-     * @param context Map to validate against.
-     * @return true if this executor can handle the context, false otherwise.
-     */
-    public abstract boolean canExecute(Map<String, Object> context);
 
     /**
      * Gets the name/type of this executor.

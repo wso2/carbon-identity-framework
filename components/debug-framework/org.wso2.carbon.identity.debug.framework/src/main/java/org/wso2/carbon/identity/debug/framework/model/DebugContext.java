@@ -70,11 +70,15 @@ public class DebugContext {
     /**
      * Gets the connection identifier.
      *
-     * @return Connection ID string from properties.
+     * @return Connection ID string from properties, or null if not found or not a String.
      */
     public String getConnectionId() {
 
-        return (String) properties.get("connectionId");
+        Object value = properties.get("connectionId");
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return null;
     }
 
     /**
@@ -110,11 +114,15 @@ public class DebugContext {
     /**
      * Gets the protocol.
      *
-     * @return Protocol string (e.g., "OIDC", "SAML") from properties.
+     * @return Protocol string (e.g., "OIDC", "SAML") from properties, or null if not found or not a String.
      */
     public String getProtocol() {
 
-        return (String) properties.get("protocol");
+        Object value = properties.get("protocol");
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return null;
     }
 
     /**

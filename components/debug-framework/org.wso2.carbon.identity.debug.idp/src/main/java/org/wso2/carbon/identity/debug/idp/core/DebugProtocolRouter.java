@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
+import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 
 import java.util.List;
@@ -51,13 +52,13 @@ public class DebugProtocolRouter {
      */
     public static DebugProtocolProvider resolveProvider(String connectionId) {
 
-        //find the protocol type
+        // Find the protocol type
         String protocolType = resolveProtocolType(connectionId);
         if (StringUtils.isBlank(protocolType)) {
             return null;
         }
         
-        //get the provider for the protocol
+        // Get the provider for the protocol
         DebugProtocolProvider provider = getDebugProtocolProvider(protocolType);
         if (provider != null && LOG.isDebugEnabled()) {
             LOG.debug("Resolved protocol provider for resource: " + connectionId);
@@ -81,7 +82,8 @@ public class DebugProtocolRouter {
         }
 
         DebugResourceType resolvedType = DebugResourceType.fromString(resourceType);
-        DebugResourceHandler resourceHandler = resolvedType.getHandler();
+        DebugResourceHandler resourceHandler = DebugHandlerRegistry.getInstance()
+                .getHandler(resolvedType.name().toLowerCase(Locale.ENGLISH));
         if (resourceHandler == null && LOG.isDebugEnabled()) {
             LOG.debug("No DebugResourceHandler registered for resource type: " + resourceType);
         }

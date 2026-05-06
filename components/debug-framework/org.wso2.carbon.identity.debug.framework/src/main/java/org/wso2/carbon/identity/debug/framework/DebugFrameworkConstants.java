@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.debug.framework;
 
 /**
  * Constants for the Debug Framework.
- * Provides centralized definition of all string constants used throughout the
  */
 public final class DebugFrameworkConstants {
 
@@ -64,8 +63,6 @@ public final class DebugFrameworkConstants {
     public static final String DB_COLUMN_RESULT_JSON = "RESULT_JSON";
     public static final String DB_COLUMN_CREATED_TIME = "CREATED_TIME";
     public static final String DB_COLUMN_EXPIRY_TIME = "EXPIRY_TIME";
-    public static final String DB_COLUMN_RESOURCE_TYPE = "RESOURCE_TYPE";
-    public static final String DB_COLUMN_CONNECTION_ID = "CONNECTION_ID";
 
     // Debug Status Constants.
     public static final String DEBUG_STATUS_FAILURE = "FAILURE";
@@ -92,9 +89,7 @@ public final class DebugFrameworkConstants {
     public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
     public static final String RESOURCE_TYPE_IDP = "IDP";
     public static final String DEBUG_RESULT_RETRIEVAL = "DEBUG_RESULT_RETRIEVAL";
-    public static final String DEBUG_CONNECTION_ID = "DEBUG_CONNECTION_ID";
-    public static final String CONNECTION_ID = "CONNECTION_ID";
-    public static final String IDP_CONNECTION_ID = "IDP_CONNECTION_ID";
+    public static final String CONNECTION_ID = "connectionId";
 
     // Session Status Constants.
     public static final String SESSION_STATUS_PENDING = "PENDING";
@@ -149,7 +144,7 @@ public final class DebugFrameworkConstants {
                 "Execution failed.",
                 "Debug execution failed: %s");
 
-        private static final String ERROR_PREFIX = "DEBUG";
+        private static final String ERROR_PREFIX = "DBG";
         private final String code;
         private final String message;
         private final String description;

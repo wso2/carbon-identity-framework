@@ -34,11 +34,13 @@ import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
 import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
+import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -81,8 +83,7 @@ public class DebugRequestCoordinator {
 
         try {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Orchestrating debug request for resource type: " + debugRequest.getResourceType()
-                        + ", connection ID: " + debugRequest.getConnectionId());
+                LOG.debug("Orchestrating debug request for resource type: " + debugRequest.getResourceType());
             }
 
             // Pre-execute listeners.
@@ -91,8 +92,9 @@ public class DebugRequestCoordinator {
             // Route by resource type.
             DebugResourceType type = DebugResourceType.fromString(debugRequest.getResourceType());
 
-            // Get the handler for this resource type.
-            DebugResourceHandler handler = type.getHandler();
+            // Get the handler for this resource type from the registry.
+            DebugResourceHandler handler = DebugHandlerRegistry.getInstance()
+                    .getHandler(type.name().toLowerCase(java.util.Locale.ENGLISH));
 
             if (handler == null) {
                 throw DebugFrameworkUtils.handleClientException(
@@ -110,10 +112,16 @@ public class DebugRequestCoordinator {
         } catch (DebugFrameworkClientException e) {
             // Re-throw client exceptions.
             throw e;
+        } catch (DebugFrameworkServerException e) {
+            // DebugFrameworkServerException already has proper error semantics; let it propagate.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug framework server error in request orchestration: " + e.getMessage());
+            }
+            throw e;
         } catch (DebugFrameworkException e) {
-            LOG.error("Debug framework error in request orchestration.", e);
-            if (e instanceof DebugFrameworkServerException) {
-                throw (DebugFrameworkServerException) e;
+            // Other framework exceptions need to be converted to server exceptions.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug framework error in request orchestration: " + e.getMessage());
             }
             if (e.getErrorCode() != null) {
                 throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
@@ -178,6 +186,23 @@ public class DebugRequestCoordinator {
     }
 
     /**
+     * Parses a JSON result string into a typed map.
+     *
+     * @param resultJson The JSON string to parse.
+     * @return The parsed result as a typed map.
+     * @throws DebugFrameworkServerException If parsing fails.
+     */
+    private Map<String, Object> parseResultJson(String resultJson) throws DebugFrameworkServerException {
+
+        try {
+            return OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
+        } catch (Exception e) {
+            LOG.error("Invalid debug result JSON for debug session: " + e.getMessage());
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
+        }
+    }
+
+    /**
      * Retrieves the debug result for the given debug ID, invoking listeners.
      * This ensures that post-execution listeners (like cleanup) are executed.
      *
@@ -195,8 +220,8 @@ public class DebugRequestCoordinator {
 
         // Create a minimal request context for the listeners.
         DebugRequest debugRequest = new DebugRequest();
-        debugRequest.setConnectionId(debugId);
-        debugRequest.setResourceType(DebugFrameworkConstants.DEBUG_RESULT_RETRIEVAL);
+        debugRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
+        debugRequest.setResultRetrieval(true);
 
         try {
             // Pre-execute Listeners.
@@ -210,13 +235,7 @@ public class DebugRequestCoordinator {
                         ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
             }
 
-            Map<String, Object> resultData;
-            try {
-                resultData = OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
-            } catch (Exception e) {
-                LOG.error("Invalid debug result JSON for session: " + debugId, e);
-                throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
-            }
+            Map<String, Object> resultData = parseResultJson(resultJson);
 
             // Create response object for listeners.
             Map<String, Object> data = new HashMap<>();
@@ -231,14 +250,27 @@ public class DebugRequestCoordinator {
         } catch (DebugFrameworkClientException e) {
             throw e;
         } catch (DebugFrameworkServerException e) {
-            LOG.error("Error retrieving debug result for session: " + debugId, e);
+            // DebugFrameworkServerException already has proper error semantics; let it propagate.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug framework server error retrieving result for session: " + e.getMessage());
+            }
             throw e;
         } catch (DebugFrameworkException e) {
-            LOG.error("Debug framework error retrieving result for session: " + debugId, e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug framework error retrieving result for session: " + e.getMessage());
+            }
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
 
+    /**
+     * Handles callback requests from external debug systems.
+     * Routes to the appropriate DebugCallbackHandler based on request characteristics.
+     * 
+     * @param request The HTTP request containing callback parameters.
+     * @param response The HTTP response for sending results.
+     * @return true if callback was successfully handled, false if no handler matched or error occurred.
+     */
     public boolean handleCallbackRequest(HttpServletRequest request, HttpServletResponse response) {
 
         DebugCallbackHandler handler = resolveCallbackHandler(request);
@@ -249,12 +281,26 @@ public class DebugRequestCoordinator {
             return false;
         }
 
-        return handler.handleCallback(request, response);
-    }
+        try {
+            return handler.handleCallback(request, response);
+        } catch (Exception e) {
+            // Log at WARN (not ERROR, per guidelines) since the exception is already being handled.
+            LOG.warn("Debug callback handler failed during callback processing. "
+                    + "Debug session may be orphaned. Exception: " + e.getMessage());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug callback handler stack trace", e);
+            }
+            // Return false to prevent the request from continuing to regular auth flow.
+            // This ensures that a failed callback doesn't accidentally continue authentication.
+            return false;
+        }
+    }    
 
     private DebugCallbackHandler resolveCallbackHandler(HttpServletRequest request) {
 
-        for (DebugCallbackHandler handler : DebugProtocolRegistry.getInstance().getDebugCallbackHandlers()) {
+        List<DebugCallbackHandler> handlers = DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
+
+        for (DebugCallbackHandler handler : handlers) {
             if (handler != null && handler.canHandle(request)) {
                 return handler;
             }

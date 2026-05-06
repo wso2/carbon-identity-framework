@@ -150,19 +150,14 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             return protocolType;
         }
 
-        if (isGoogleBackedOidcAuthenticator(resource, config)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Detected Google-backed OIDC configuration from properties: " + implementationName);
-            }
-            return DebugFrameworkConstants.PROTOCOL_TYPE_GOOGLE;
-        }
-
         return null;
     }
 
     private boolean isGoogleBackedOidcProtocol(IdentityProvider resource, FederatedAuthenticatorConfig config,
             String protocolType) {
 
+        // Only apply heuristic if implementation is already identified as OIDC.
+        // This prevents false positives like "Google Analytics Integration" being treated as Google OIDC.
         return DebugFrameworkConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
                 && isGoogleBackedOidcAuthenticator(resource, config);
     }
@@ -206,6 +201,13 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
                 || DebugFrameworkConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName);
     }
 
+    /**
+     * Checks if an OIDC authenticator is backed by Google.
+     *
+     * @param resource Identity provider resource.
+     * @param config Federated authenticator configuration.
+     * @return true if IdP name or properties suggest Google backing, false otherwise.
+     */
     private boolean isGoogleBackedOidcAuthenticator(IdentityProvider resource,
             FederatedAuthenticatorConfig config) {
 
@@ -229,6 +231,13 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return false;
     }
 
+    /**
+     * Checks if an authenticator is backed by Facebook.
+     *
+     * @param resource Identity provider resource.
+     * @param config Federated authenticator configuration.
+     * @return true if IdP name or properties suggest Facebook backing, false otherwise.
+     */
     private boolean isFacebookBackedAuthenticator(IdentityProvider resource,
             FederatedAuthenticatorConfig config) {
 
@@ -254,13 +263,11 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
     private boolean containsGoogleIndicator(String value) {
 
-        String normalizedValue = StringUtils.lowerCase(value);
-        return normalizedValue.contains(GOOGLE_HOST);
+        return StringUtils.contains(StringUtils.lowerCase(value), GOOGLE_HOST);
     }
 
     private boolean containsFacebookIndicator(String value) {
 
-        String normalizedValue = StringUtils.lowerCase(value);
-        return normalizedValue.contains(FACEBOOK_HOST);
+        return StringUtils.contains(StringUtils.lowerCase(value), FACEBOOK_HOST);
     }
 }

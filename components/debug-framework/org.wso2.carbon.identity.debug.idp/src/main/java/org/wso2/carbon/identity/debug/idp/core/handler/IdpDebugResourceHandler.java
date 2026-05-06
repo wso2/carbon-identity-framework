@@ -21,14 +21,15 @@ package org.wso2.carbon.identity.debug.idp.core.handler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
+import org.wso2.carbon.identity.debug.framework.exception.DebugExecutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
-import org.wso2.carbon.identity.debug.framework.exception.ExecutionException;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
@@ -37,8 +38,6 @@ import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
-
-import java.util.Map;
 
 /**
  * Handler for debugging Identity Provider (IdP) resources.
@@ -63,7 +62,8 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
     public DebugResponse handleDebugRequest(DebugRequest debugRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        String connectionId = debugRequest.getConnectionId();
+        String connectionId = (String) debugRequest.getAdditionalContext()
+                .get(DebugFrameworkConstants.CONNECTION_ID);
         String resourceType = debugRequest.getResourceType();
 
         // Validate that connectionId is provided for IDP debugging.
@@ -91,8 +91,8 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             throw e;
         } catch (ContextResolutionException e) {
             throw new DebugFrameworkClientException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
-        } catch (ExecutionException e) {
-            LOG.error("Error in IdP debug handler for resource: " + connectionId, e);
+        } catch (DebugExecutionException e) {
+            LOG.error("Error in IdP debug handler for resource: " + connectionId);
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
@@ -120,22 +120,18 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
                     ErrorMessages.ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND, connectionId);
         }
 
-        try {
-            Map<String, Object> contextMap = contextProvider.resolveContext(connectionId, resourceType);
-            if (contextMap == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug context is null for resource: " + connectionId);
-                }
-                throw new ContextResolutionException(
-                        ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getCode(),
-                        ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getMessage(),
-                        String.format(ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED
-                            .getDescription(), connectionId));
+        DebugContext debugContext = contextProvider.resolveContext(connectionId, resourceType);
+        if (debugContext == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug context is null for resource: " + connectionId);
             }
-            return DebugContext.buildFromMap(contextMap);
-        } catch (ContextResolutionException e) {
-            throw e;
+            throw new ContextResolutionException(
+                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getCode(),
+                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getMessage(),
+                    String.format(ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED
+                        .getDescription(), connectionId));
         }
+        return debugContext;
     }
 
     /**

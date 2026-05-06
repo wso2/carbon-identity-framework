@@ -37,10 +37,12 @@ public class DebugSessionCleanupService {
     private static final Log LOG = LogFactory.getLog(DebugSessionCleanupService.class);
 
     private static final int INITIAL_DELAY = 1;
-    private static final int DELAY_BETWEEN_RUNS = 1440; // 1440 minutes = 24 hours (once a day)
+    private static final String CLEANUP_INTERVAL_PROPERTY = "debug.session.cleanup.interval.minutes";
+    private static final int DEFAULT_CLEANUP_INTERVAL = 1440; // 1440 minutes = 24 hours (default)
 
     private final ScheduledExecutorService scheduler;
     private final DebugSessionDAO debugSessionDAO;
+    private final int cleanupIntervalMinutes;
 
     public DebugSessionCleanupService() {
 
@@ -50,23 +52,63 @@ public class DebugSessionCleanupService {
             return cleanupThread;
         });
         this.debugSessionDAO = new DebugSessionDAOImpl();
+        this.cleanupIntervalMinutes = getConfiguredCleanupInterval();
+    }
+
+    /**
+     * Loads the cleanup interval from system properties or environment variables.
+     * Falls back to default (24 hours) if not configured.
+     *
+     * @return Cleanup interval in minutes.
+     */
+    private int getConfiguredCleanupInterval() {
+
+        // Check system property first, then environment variable.
+        String intervalStr = System.getProperty(CLEANUP_INTERVAL_PROPERTY,
+                System.getenv("DEBUG_SESSION_CLEANUP_INTERVAL_MINUTES"));
+
+        if (intervalStr != null && !intervalStr.trim().isEmpty()) {
+            try {
+                int interval = Integer.parseInt(intervalStr.trim());
+                if (interval > 0) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Using configured debug session cleanup interval: " + interval + " minutes");
+                    }
+                    return interval;
+                } else {
+                    LOG.warn("Invalid debug session cleanup interval configured: " + interval
+                            + ". Using default: " + DEFAULT_CLEANUP_INTERVAL + " minutes");
+                }
+            } catch (NumberFormatException e) {
+                LOG.warn("Failed to parse debug session cleanup interval: " + intervalStr
+                        + ". Using default: " + DEFAULT_CLEANUP_INTERVAL + " minutes", e);
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Using default debug session cleanup interval: " + DEFAULT_CLEANUP_INTERVAL + " minutes");
+        }
+        return DEFAULT_CLEANUP_INTERVAL;
     }
 
     /**
      * Starts the periodic cleanup task.
+     * Uses scheduleAtFixedRate to maintain a consistent interval even if cleanup takes longer than expected.
+     *
+     * @throws IllegalStateException If the cleanup task cannot be scheduled.
      */
     public void activate() {
 
         try {
-            scheduler.scheduleWithFixedDelay(new DebugSessionCleanupTask(), INITIAL_DELAY,
-                    DELAY_BETWEEN_RUNS, TimeUnit.MINUTES);
+            scheduler.scheduleAtFixedRate(new DebugSessionCleanupTask(), INITIAL_DELAY,
+                    cleanupIntervalMinutes, TimeUnit.MINUTES);
         } catch (RejectedExecutionException e) {
-            LOG.error("Failed to activate debug session cleanup service.", e);
-            return;
+            throw new IllegalStateException("Failed to activate debug session cleanup service: "
+                    + "scheduler rejected the cleanup task. The scheduler may have been shut down.", e);
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Debug session cleanup service activated.");
+            LOG.debug("Debug session cleanup service activated with interval: " + cleanupIntervalMinutes + " minutes");
         }
     }
 
