@@ -146,12 +146,13 @@ public class ClaimDialectDAO {
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
         String query = SQLConstants.REMOVE_CLAIM_DIALECTS_BY_TENANT_ID;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(query);) {
                 prepStmt.setInt(1, tenantId);
                 prepStmt.executeUpdate();
                 IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new ClaimMetadataException("Error while deleting claim dialects of tenant: " + tenantId, e);
             }
         } catch (SQLException e) {
