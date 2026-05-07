@@ -40,9 +40,9 @@ public interface DebugResourceHandler {
      * Getting the appropriate protocol provider.
      * Executing the debug flow.
      *
-     * @param debugRequest The debug request containing connectionId,
-     *                     resourceType, properties, etc.
-     * @return DebugResponse containing the debug result with authorizationUrl, status, debugId.
+     * @param debugRequest The debug request containing resourceId,
+     *                     resource type and other parameters.
+     * @return DebugResponse containing the execution result.
      * @throws DebugFrameworkClientException If the request has validation errors.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
@@ -50,27 +50,25 @@ public interface DebugResourceHandler {
             throws DebugFrameworkClientException, DebugFrameworkServerException;
 
     /**
-     * Gets the processor for the given resource ID.
-     * The processor handles callback-based flows.
+     * Retrieves the debug processor for a given resource.
      *
-     * @param connectionId The resource ID associated with the callback.
-     * @return DebugProcessor instance, or null if not applicable.
+     * @param resourceId The resource ID associated with the callback.
+     * @return DebugProcessor instance, or null if not available.
      */
-    default DebugProcessor getProcessor(String connectionId) {
+    default DebugProcessor getProcessor(String resourceId) {
 
-        return null; // Default implementation returns null
+        return null;
     }
 
     /**
-     * Gets the executor for the given resource ID.
-     * The executor handles initial debug requests.
+     * Retrieves the debug executor for a given resource.
      *
-     * @param connectionId The resource ID.
-     * @return DebugExecutor instance, or null if not applicable.
+     * @param resourceId The resource ID.
+     * @return DebugExecutor instance, or null if not available.
      */
-    default DebugExecutor getExecutor(String connectionId) {
+    default DebugExecutor getExecutor(String resourceId) {
 
-        return null; 
+        return null;
     }
 
 }

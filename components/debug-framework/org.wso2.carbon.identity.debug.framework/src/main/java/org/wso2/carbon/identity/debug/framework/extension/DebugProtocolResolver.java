@@ -26,12 +26,12 @@ package org.wso2.carbon.identity.debug.framework.extension;
 public interface DebugProtocolResolver {
 
     /**
-     * Resolves the debug protocol for the given resource ID.
+     * Resolves the debug protocol type for a given resource.
      *
-     * @param connectionId The resource ID to resolve the protocol for.
-     * @return The resolved protocol type, or null if not resolved.
+     * @param resourceId The resource ID to resolve the protocol for.
+     * @return Protocol type identifier (e.g. "OIDC", "SAML"), or null if unable to resolve.
      */
-    String resolveProtocol(String connectionId);
+    String resolveProtocol(String resourceId);
 
     /**
      * Gets the order of execution for this resolver.

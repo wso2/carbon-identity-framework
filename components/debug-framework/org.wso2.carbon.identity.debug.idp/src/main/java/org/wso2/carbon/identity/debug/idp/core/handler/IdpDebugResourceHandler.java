@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.debug.idp.core.handler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
@@ -38,6 +37,11 @@ import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
+import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
+
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Handler for debugging Identity Provider (IdP) resources.
@@ -46,7 +50,7 @@ import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
  */
 public class IdpDebugResourceHandler implements DebugResourceHandler {
 
-    private static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
+    protected static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
 
     /**
      * Handles a debug request using typed classes.
@@ -63,12 +67,12 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
         String connectionId = (String) debugRequest.getAdditionalContext()
-                .get(DebugFrameworkConstants.CONNECTION_ID);
+                .get(IdpDebugConstants.CONNECTION_ID);
         String resourceType = debugRequest.getResourceType();
 
         // Validate that connectionId is provided for IDP debugging.
         if (StringUtils.isEmpty(connectionId)) {
-            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_CONNECTION_ID);
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_RESOURCE_ID);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -106,7 +110,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @throws ContextResolutionException    If context resolution fails.
      * @throws DebugFrameworkClientException If context provider is not available.
      */
-    private DebugContext resolveDebugContext(String connectionId, String resourceType,
+    protected DebugContext resolveDebugContext(String connectionId, String resourceType,
             DebugProtocolProvider protocolProvider)
             throws ContextResolutionException, DebugFrameworkClientException {
 
@@ -120,7 +124,10 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
                     ErrorMessages.ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND, connectionId);
         }
 
-        DebugContext debugContext = contextProvider.resolveContext(connectionId, resourceType);
+        Map<String, Object> params = new HashMap<>();
+        params.put("connectionId", connectionId);
+        params.put("resourceType", resourceType);
+        DebugContext debugContext = contextProvider.resolveContext(params);
         if (debugContext == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Debug context is null for resource: " + connectionId);
@@ -140,7 +147,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param connectionId Connection ID or name.
      * @return DebugProtocolProvider for the resource, or null if not available.
      */
-    private DebugProtocolProvider resolveProtocolProvider(String connectionId) {
+    protected DebugProtocolProvider resolveProtocolProvider(String connectionId) {
 
         DebugProtocolProvider protocolProvider = DebugProtocolRouter.resolveProvider(connectionId);
         if (protocolProvider == null && LOG.isDebugEnabled()) {
@@ -157,7 +164,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param connectionId The connection ID identifying the IdP resource.
      * @return DebugContextProvider instance, or null if not available.
      */
-    private DebugContextProvider getContextProvider(DebugProtocolProvider protocolProvider, String connectionId) {
+    protected DebugContextProvider getContextProvider(DebugProtocolProvider protocolProvider, String connectionId) {
 
         if (protocolProvider == null) {
             return null;
@@ -183,7 +190,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         return getExecutor(resolveProtocolProvider(connectionId), connectionId);
     }
 
-    private DebugExecutor getExecutor(DebugProtocolProvider protocolProvider, String connectionId) {
+    protected DebugExecutor getExecutor(DebugProtocolProvider protocolProvider, String connectionId) {
 
         if (protocolProvider == null) {
             return null;

@@ -68,30 +68,6 @@ public class DebugContext {
     }
 
     /**
-     * Gets the connection identifier.
-     *
-     * @return Connection ID string from properties, or null if not found or not a String.
-     */
-    public String getConnectionId() {
-
-        Object value = properties.get("connectionId");
-        if (value instanceof String) {
-            return (String) value;
-        }
-        return null;
-    }
-
-    /**
-     * Sets the connection identifier.
-     *
-     * @param connectionId Connection ID string.
-     */
-    public void setConnectionId(String connectionId) {
-
-        this.properties.put("connectionId", connectionId);
-    }
-
-    /**
      * Gets the resource type.
      *
      * @return Resource type string.

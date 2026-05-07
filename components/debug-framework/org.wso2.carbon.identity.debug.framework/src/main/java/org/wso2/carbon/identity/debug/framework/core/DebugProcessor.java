@@ -67,26 +67,26 @@ public abstract class DebugProcessor {
             DebugContext debugContext) throws IOException {
 
         String state = null;
-        String connectionId = null;
+        String resourceIdentifier = null;
 
         try {
             // Extract protocol-specific parameters.
-            state = request.getParameter(DebugFrameworkConstants.OIDC_STATE_PARAM);
+            state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
             if (state == null || state.trim().isEmpty()) {
                 state = (String) debugContext.getProperty("DEBUG_STATE");
             }
 
             // Extract resource identifier.
-            connectionId = extractConnectionId(debugContext);
+            resourceIdentifier = extractResourceIdentifier(debugContext);
 
             // Step 1: Validate callback (protocol/resource-specific).
-            if (!validateCallback(request, debugContext, response, state, connectionId)) {
+            if (!validateCallback(request, debugContext, response, state, resourceIdentifier)) {
                 return;
             }
 
             // Step 2: Process authentication/authorization (protocol/resource-specific).
-            if (!processAuthentication(request, debugContext, response, state, connectionId)) {
-                sendDebugResponse(response, state, connectionId);
+            if (!processAuthentication(request, debugContext, response, state, resourceIdentifier)) {
+                sendDebugResponse(response, state, resourceIdentifier);
                 return;
             }
 
@@ -94,8 +94,8 @@ public abstract class DebugProcessor {
             Map<String, Object> debugData = extractDebugData(debugContext);
 
             // Step 4: Validate extracted data (protocol/resource-specific).
-            if (!validateDebugData(debugData, debugContext, response, state, connectionId)) {
-                sendDebugResponse(response, state, connectionId);
+            if (!validateDebugData(debugData, debugContext, response, state, resourceIdentifier)) {
+                sendDebugResponse(response, state, resourceIdentifier);
                 return;
             }
 
@@ -103,7 +103,7 @@ public abstract class DebugProcessor {
             buildAndCacheDebugResult(debugContext, state);
 
             // Step 6: Send response to client.
-            sendDebugResponse(response, state, connectionId);
+            sendDebugResponse(response, state, resourceIdentifier);
 
         } catch (IOException e) {
             LOG.error("Unexpected error processing debug callback. Cause: " + e.getMessage());
@@ -114,73 +114,61 @@ public abstract class DebugProcessor {
 
             // Try to extract state for error response.
             if (state == null) {
-                state = request.getParameter(DebugFrameworkConstants.OIDC_STATE_PARAM);
+                state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
                 if (state == null || state.trim().isEmpty()) {
                     state = (String) debugContext.getProperty("DEBUG_STATE");
                 }
             }
-            sendDebugResponse(response, state, connectionId);
+            sendDebugResponse(response, state, resourceIdentifier);
         }
     }
 
     /**
-     * Extracts resource identifier from context.
-     * Subclasses can override to extract resource ID in protocol-specific way.
-     * Default implementation retrieves CONNECTION_ID property.
+     * Extracts a resource identifier from the debug context.
+     * Default implementation returns empty string.
+     * Subclasses in resource-specific layers override this with
+     * their own identifier concept.
      *
      * @param debugContext DebugContext.
      * @return Resource identifier or empty string if not found.
      */
-    protected String extractConnectionId(DebugContext debugContext) {
-
-        Object connectionId = debugContext.getProperty(DebugFrameworkConstants.CONNECTION_ID);
-        return connectionId != null ? connectionId.toString() : "";
+    protected String extractResourceIdentifier(DebugContext debugContext) {
+        return "";
     }
 
     /**
      * Validates callback parameters.
      * Subclasses MUST implement with specific validation logic.
-     * 
-     * Examples:
-     * - OIDC: Validate authorization code, state parameter, error responses.
-     * - SAML: Validate SAMLResponse, RelayState.
-     * - Custom: Validate any protocol-specific parameters.
      *
      * @param request  HttpServletRequest containing callback parameters.
      * @param debugContext DebugContext (protocol-agnostic) for storing validation state.
      * @param response HttpServletResponse for error responses.
+     * @param state State parameter.
+     * @param resourceIdentifier Generic resource identifier.
      * @return true if validation passes, false otherwise.
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean validateCallback(HttpServletRequest request, DebugContext debugContext,
-            HttpServletResponse response, String state, String connectionId) throws IOException;
+            HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
 
     /**
      * Processes the authentication/authorization flow.
      * Subclasses MUST implement with specific authentication logic.
-     * 
-     * Examples:
-     * - OIDC: Exchange authorization code for tokens.
-     * - SAML: Validate and process SAML assertion.
-     * - Custom: Implement protocol-specific authentication.
      *
      * @param request  HttpServletRequest containing authentication parameters.
      * @param debugContext DebugContext (protocol-agnostic) for storing authentication state.
      * @param response HttpServletResponse for error responses.
+     * @param state State parameter.
+     * @param resourceIdentifier Generic resource identifier.
      * @return true if authentication succeeds, false otherwise.
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean processAuthentication(HttpServletRequest request, DebugContext debugContext,
-            HttpServletResponse response, String state, String connectionId) throws IOException;
+            HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
 
     /**
      * Extracts debug data from the debug context.
      * Subclasses MUST implement with specific data extraction logic.
-     * 
-     * Examples:
-     * - OIDC: Extract claims from ID token and access token.
-     * - SAML: Extract attributes from SAML assertion.
-     * - Custom: Extract any protocol-specific debug data.
      *
      * @param debugContext DebugContext containing authentication results.
      * @return Map of extracted debug data (key-value pairs).
@@ -190,20 +178,17 @@ public abstract class DebugProcessor {
     /**
      * Validates the extracted debug data.
      * Subclasses MUST implement with specific validation logic.
-     * 
-     * Examples:
-     * - OIDC: Validate required claims are present.
-     * - SAML: Validate required attributes are present.
-     * - Custom: Validate protocol-specific data requirements.
      *
      * @param debugData Map of extracted debug data.
      * @param debugContext DebugContext (protocol-agnostic).
      * @param response HttpServletResponse for error responses.
+     * @param state State parameter.
+     * @param resourceIdentifier Generic resource identifier.
      * @return true if validation passes, false otherwise.
      * @throws IOException If response cannot be sent.
      */
     protected abstract boolean validateDebugData(Map<String, Object> debugData, DebugContext debugContext,
-            HttpServletResponse response, String state, String connectionId) throws IOException;
+            HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
 
     /**
      * Builds and caches the final debug result.
@@ -219,18 +204,13 @@ public abstract class DebugProcessor {
     /**
      * Sends the debug response to the client.
      * Subclasses MUST implement to send appropriate HTTP response.
-     * 
-     * Examples:
-     * - HTTP redirect to debug result page.
-     * - JSON response with debug data.
-     * - Custom response format.
      *
-     * @param response   HttpServletResponse for sending the response.
-     * @param state      The state parameter for debug identification.
-     * @param connectionId The connection identifier.
+     * @param response           HttpServletResponse for sending the response.
+     * @param state              The state parameter for debug identification.
+     * @param resourceIdentifier The resource identifier.
      * @throws IOException If response cannot be sent.
      */
-    protected abstract void sendDebugResponse(HttpServletResponse response, String state, String connectionId)
+    protected abstract void sendDebugResponse(HttpServletResponse response, String state, String resourceIdentifier)
             throws IOException;
 
     /**
@@ -243,6 +223,8 @@ public abstract class DebugProcessor {
      */
     protected void handleUnexpectedError(Exception e, DebugContext debugContext) {
 
+        debugContext.setProperty(DebugFrameworkConstants.DEBUG_PROTOCOL_CODE, null);
+        debugContext.setProperty(DebugFrameworkConstants.DEBUG_PROTOCOL_STATE, null);
         debugContext.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
         debugContext.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE_VALUE);
     }

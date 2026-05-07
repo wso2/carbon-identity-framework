@@ -21,43 +21,47 @@ package org.wso2.carbon.identity.debug.framework.core;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * Abstract base class for resolving and creating debug context.
- * Extensions should implement specific context resolution logic for different authentication protocols.
+ * Extensions should implement specific context resolution logic for different
+ * authentication protocols.
  */
 public abstract class DebugContextProvider {
 
     /**
-     * Resolves and creates a debug context from the given request.
-     * Implementations should validate all required parameters and configurations.
+     * Resolves and creates a debug context from the given HTTP request.
+     * Implementations should extract all required parameters from the request
+     * and delegate to the parameter-based {@link resolveContext(Map)} method.
      *
      * @param request HTTP servlet request containing debug parameters.
      * @return DebugContext containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract DebugContext resolveContext(HttpServletRequest request) 
+    public abstract DebugContext resolveContext(HttpServletRequest request)
             throws ContextResolutionException;
 
     /**
-     * Resolves and creates a debug context with specific parameters.
+     * Resolves and creates a debug context from a generic parameter map.
      * Implementations should validate all required parameters and configurations.
+     * The keys and expected values are defined by each concrete implementation.
      *
-     * @param connectionId Resource ID.
-     * @param resourceType Optional resource type.
+     * @param params Protocol-specific parameters required for context resolution.
      * @return DebugContext containing resolved debug context data.
      * @throws ContextResolutionException If context resolution fails.
      */
-    public abstract DebugContext resolveContext(String connectionId, String resourceType)
+    public abstract DebugContext resolveContext(Map<String, Object> params)
             throws ContextResolutionException;
 
     /**
-     * Validates if the resolver can handle the given request or resource configuration.
-     * Used to determine which resolver to use in a chain of responsibility pattern.
+     * Validates if this provider can handle the given parameter set.
+     * Used to determine which provider to use in a chain of responsibility pattern.
      *
-     * @param connectionId Resource ID to check.
-     * @return true if this resolver can handle the resource, false otherwise.
+     * @param params Protocol-specific parameters to check.
+     * @return true if this provider can handle the parameters, false otherwise.
      */
-    public abstract boolean canResolve(String connectionId);
+    public abstract boolean canResolve(Map<String, Object> params);
 }

@@ -52,7 +52,7 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
             return true;
         }
 
-        String state = request.getParameter(DebugFrameworkConstants.OIDC_STATE_PARAM);
+        String state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
         return StringUtils.isNotBlank(state) && state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX);
     }
 

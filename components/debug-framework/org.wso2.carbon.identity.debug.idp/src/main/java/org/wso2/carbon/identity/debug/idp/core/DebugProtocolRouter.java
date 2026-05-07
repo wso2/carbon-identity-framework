@@ -36,7 +36,7 @@ import java.util.Locale;
  */
 public class DebugProtocolRouter {
 
-    private static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
+    protected static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
 
     private DebugProtocolRouter() {
 
@@ -100,7 +100,7 @@ public class DebugProtocolRouter {
         return DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
     }
 
-    private static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
+    protected static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
 
         if (StringUtils.isEmpty(protocolType)) {
             return null;
@@ -120,7 +120,7 @@ public class DebugProtocolRouter {
         return provider;
     }
 
-    private static String resolveProtocolType(String connectionId) {
+    protected static String resolveProtocolType(String connectionId) {
 
         if (StringUtils.isBlank(connectionId)) {
             LOG.warn("Connection ID is blank — cannot resolve protocol. " +
@@ -147,7 +147,7 @@ public class DebugProtocolRouter {
         return null;
     }
 
-    private static String normalizeProtocolType(String protocolType) {
+    protected static String normalizeProtocolType(String protocolType) {
 
         if (protocolType == null) {
             return null;

@@ -40,9 +40,9 @@ import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
 @Component(name = "identity.debug.idp.component", immediate = true)
 public class IdpDebugServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
-    private static final String IDP_HANDLER_TYPE = "idp";
-    private ServiceRegistration<DebugProtocolResolver> resolverServiceRegistration;
+    protected static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
+    protected static final String IDP_HANDLER_TYPE = "idp";
+    protected ServiceRegistration<DebugProtocolResolver> resolverServiceRegistration;
 
     /**
      * Activates the IDP debug handler component.
@@ -83,18 +83,12 @@ public class IdpDebugServiceComponent {
         // Clear the IDP handler registration.
         DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
 
-        resolverServiceRegistration = unregisterService(resolverServiceRegistration);
+        if (resolverServiceRegistration != null) {
+            resolverServiceRegistration.unregister();
+            resolverServiceRegistration = null;
+        }
 
         LOG.debug("IDP Debug Handler Component deactivated.");
     }
 
-    private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration) {
-
-        if (registration == null) {
-            return null;
-        }
-
-        registration.unregister();
-        return null;
-    }
 }

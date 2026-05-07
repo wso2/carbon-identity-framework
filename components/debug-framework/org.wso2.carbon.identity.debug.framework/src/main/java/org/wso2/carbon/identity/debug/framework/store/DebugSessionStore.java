@@ -108,9 +108,6 @@ public final class DebugSessionStore {
         Map<String, Object> contextMap = new HashMap<>(context.getProperties());
         
         // Add metadata fields.
-        if (context.getConnectionId() != null) {
-            contextMap.put("connectionId", context.getConnectionId());
-        }
         if (context.getResourceType() != null) {
             contextMap.put("resourceType", context.getResourceType());
         }

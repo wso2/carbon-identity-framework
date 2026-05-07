@@ -99,10 +99,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     "Tenant domain could not be resolved for debug session retrieval. Debug ID: " + debugId);
         }
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("Retrieving debug session. Debug ID: " + debugId + ", Tenant: " + tenantDomain);
-        }
-
         String normalizedDebugId = normalizeDebugId(debugId);
         String storageDebugId = toStorageDebugId(normalizedDebugId);
 

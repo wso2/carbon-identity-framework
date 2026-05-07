@@ -68,8 +68,6 @@ public class DebugRequestCoordinator {
     /**
      * Handles debug requests for any resource type using typed classes.
      * This is the preferred method with type safety.
-     * The connectionId is optional and may be null for connection types that don't
-     * require it.
      *
      * @param debugRequest The debug request with resource information.
      * @return DebugResponse containing debug result data.

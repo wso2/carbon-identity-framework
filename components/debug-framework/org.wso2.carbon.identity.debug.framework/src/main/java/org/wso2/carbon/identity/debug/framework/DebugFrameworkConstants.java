@@ -27,22 +27,10 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
     public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
 
-    // OIDC specific callback parameters.
-    public static final String OIDC_CODE_PARAM = "code";
-    public static final String OIDC_STATE_PARAM = "state";
-    public static final String OIDC_ERROR_PARAM = "error";
-
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 5;
 
     // Debug Result Context Properties.
-    public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
-    public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
-    public static final String DEBUG_OIDC_CODE = "DEBUG_OIDC_CODE";
-    public static final String DEBUG_OIDC_STATE = "DEBUG_OIDC_STATE";
-    public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
-    public static final String DEBUG_CALLBACK_TIMESTAMP = "DEBUG_CALLBACK_TIMESTAMP";
-    public static final String DEBUG_CALLBACK_PROCESSED = "DEBUG_CALLBACK_PROCESSED";
     public static final String DEBUG_DIAGNOSTICS = "diagnostics";
 
     // Diagnostic event property keys.
@@ -68,28 +56,26 @@ public final class DebugFrameworkConstants {
     public static final String DEBUG_STATUS_FAILURE = "FAILURE";
     public static final String DEBUG_STATUS_SUCCESS = "SUCCESS";
 
-    // Canonical protocol type keys.
-    public static final String PROTOCOL_TYPE_OIDC = "OIDC";
-    public static final String PROTOCOL_TYPE_GOOGLE = "Google";
-    public static final String PROTOCOL_TYPE_FACEBOOK = "Facebook";
-    public static final String PROTOCOL_TYPE_GITHUB = "GitHub";
-    public static final String PROTOCOL_TYPE_SAML = "SAML";
+    // Callback parameter names.
+    public static final String CALLBACK_STATE_PARAM = "state";
+    public static final String CALLBACK_CODE_PARAM = "code";
+    public static final String CALLBACK_ERROR_PARAM = "error";
 
-    // Known implementation names used for protocol detection.
-    public static final String IMPLEMENTATION_OPENID_CONNECT = "OpenIDConnectAuthenticator";
-    public static final String IMPLEMENTATION_GOOGLE_OIDC = "GoogleOIDCAuthenticator";
-    public static final String IMPLEMENTATION_FACEBOOK = "FacebookAuthenticator";
-    public static final String IMPLEMENTATION_GITHUB = "GitHubAuthenticator";
-    public static final String IMPLEMENTATION_SAML_SSO = "SAMLSSOAuthenticator";
+    // Debug Result Context Properties.
+    public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
+    public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
+    public static final String DEBUG_PROTOCOL_CODE = "DEBUG_PROTOCOL_CODE";
+    public static final String DEBUG_PROTOCOL_STATE = "DEBUG_PROTOCOL_STATE";
+    public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
+    public static final String DEBUG_CALLBACK_TIMESTAMP = "DEBUG_CALLBACK_TIMESTAMP";
+    public static final String DEBUG_CALLBACK_PROCESSED = "DEBUG_CALLBACK_PROCESSED";
 
     // Debug Flow Type Constants.
     public static final String DEBUG_FLOW_TYPE = "DEBUG_FLOW_TYPE";
     public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
     public static final String DEBUG_CREATION_TIMESTAMP = "DEBUG_CREATION_TIMESTAMP";
     public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
-    public static final String RESOURCE_TYPE_IDP = "IDP";
     public static final String DEBUG_RESULT_RETRIEVAL = "DEBUG_RESULT_RETRIEVAL";
-    public static final String CONNECTION_ID = "connectionId";
 
     // Session Status Constants.
     public static final String SESSION_STATUS_PENDING = "PENDING";
@@ -111,9 +97,9 @@ public final class DebugFrameworkConstants {
         ERROR_CODE_MISSING_RESOURCE_TYPE("60002",
                 "Resource type is required.",
                 "The resource type must be provided in the debug request."),
-        ERROR_CODE_MISSING_CONNECTION_ID("60003",
-                "Connection ID is required.",
-                "Connection ID is required for IDP debugging."),
+        ERROR_CODE_MISSING_RESOURCE_ID("60003",
+                "Resource ID is required.",
+                "The resource ID must be provided in the debug request."),
         ERROR_CODE_HANDLER_NOT_FOUND("60004",
                 "Handler not found.",
                 "No handler available for resource type: %s"),
