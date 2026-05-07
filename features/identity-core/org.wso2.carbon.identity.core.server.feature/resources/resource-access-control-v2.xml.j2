@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -977,9 +977,11 @@
         <!-- [Organization] Push Device Management API -->
         <Resource context="(.*)/o/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
         <Resource context="(.*)/o/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+        <Resource context="(.*)/o/api/users/v1/me/push/devices/(.*)/update" secured="false" http-method="POST"/>
         <!-- Push Device Management API -->
         <Resource context="(.*)/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
         <Resource context="(.*)/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+        <Resource context="(.*)/api/users/v1/me/push/devices/(.*)/update" secured="false" http-method="POST"/>
 
         <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Scopes>internal_login</Scopes>
