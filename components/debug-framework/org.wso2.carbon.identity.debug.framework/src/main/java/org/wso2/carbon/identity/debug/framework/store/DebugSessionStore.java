@@ -86,8 +86,9 @@ public final class DebugSessionStore {
                 LOG.debug("Debug context stored for key: " + key);
             }
         } catch (IOException e) {
-            LOG.error("Error persisting debug session to DB: " + e.getMessage());
-            throw new DebugFrameworkServerException("Error persisting debug session to DB", e);
+            String errorMsg = "Error persisting debug session to DB";
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
 
@@ -134,8 +135,9 @@ public final class DebugSessionStore {
                 return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
         } catch (IOException e) {
-            LOG.error("Error retrieving debug session from DB: " + e.getMessage());
-            throw new DebugFrameworkServerException("Error retrieving debug session from DB", e);
+            String errorMsg = "Error retrieving debug session from DB";
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            throw new DebugFrameworkServerException(errorMsg, e);
         }
         return new HashMap<>();
     }
@@ -163,34 +165,20 @@ public final class DebugSessionStore {
                 return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
         } catch (IOException e) {
-            LOG.error("Error retrieving debug session for removal: " + e.getMessage());
-            throw new DebugFrameworkServerException("Error retrieving debug session for removal", e);
+            String errorMsg = "Error retrieving debug session for removal";
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            throw new DebugFrameworkServerException(errorMsg, e);
         }
         return new HashMap<>();
     }
 
     /**
      * Stores a debug result as JSON string for final results.
-     * Generic method supporting both intermediate context and final results.
      *
      * @param key    Store key (typically state parameter).
      * @param result JSON-serialized result to persist.
      */
     public void putResult(String key, String result) throws DebugFrameworkServerException {
-
-        putResult(key, result, null, null);
-    }
-
-    /**
-     * Stores a debug result with metadata.
-     *
-     * @param key          Store key.
-     * @param result       JSON-serialized result.
-     * @param resourceType Type of debug resource (IDP, FRAUD_DETECTION).
-     * @param connectionId   Identifier of the resource.
-     */
-    public void putResult(String key, String result, String resourceType, String connectionId)
-            throws DebugFrameworkServerException {
 
         if (key == null || result == null) {
             if (LOG.isDebugEnabled()) {

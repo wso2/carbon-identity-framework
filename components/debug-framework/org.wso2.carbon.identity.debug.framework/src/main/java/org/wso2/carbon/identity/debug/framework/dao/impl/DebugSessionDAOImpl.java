@@ -85,13 +85,23 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Error while creating debug session: " + sessionData.getDebugId();
-            LOG.error(errorMsg);
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
 
     @Override
     public DebugSessionData getDebugSession(String debugId) throws DebugFrameworkServerException {
+
+        String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
+        if (tenantDomain == null || tenantDomain.trim().isEmpty()) {
+            throw new DebugFrameworkServerException(
+                    "Tenant domain could not be resolved for debug session retrieval. Debug ID: " + debugId);
+        }
+
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Retrieving debug session. Debug ID: " + debugId + ", Tenant: " + tenantDomain);
+        }
 
         String normalizedDebugId = normalizeDebugId(debugId);
         String storageDebugId = toStorageDebugId(normalizedDebugId);
@@ -105,22 +115,9 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     }
                 }
             }
-            
-            // Fallback: If not found with tenant prefix, try without it (in case of callback context mismatch).
-            // Since debug identifiers are UUID-based and prefixed, they are globally unique enough.
-            if (!storageDebugId.equals(normalizedDebugId)) {
-                try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
-                    prepStmt.setString(1, normalizedDebugId);
-                    try (ResultSet resultSet = prepStmt.executeQuery()) {
-                        if (resultSet.next()) {
-                            return mapResultSetToDebugSessionData(resultSet, debugId);
-                        }
-                    }
-                }
-            }
         } catch (SQLException e) {
-            String errorMsg = "Error while retrieving debug session: " + debugId;
-            LOG.error(errorMsg);
+            String errorMsg = "Error while retrieving debug session: " + debugId + " for tenant: " + tenantDomain;
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
         return null;
@@ -143,7 +140,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Unexpected error while deleting debug session: " + debugId;
-            LOG.error(errorMsg);
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
@@ -176,7 +173,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Error while upserting debug session: " + sessionData.getDebugId();
-            LOG.error(errorMsg);
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
@@ -260,7 +257,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             }
         } catch (SQLException e) {
             String errorMsg = "Unexpected error while deleting expired debug sessions";
-            LOG.error(errorMsg);
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }

@@ -106,7 +106,10 @@ public abstract class DebugProcessor {
             sendDebugResponse(response, state, connectionId);
 
         } catch (IOException e) {
-            LOG.error("Unexpected error processing debug callback.", e);
+            LOG.error("Unexpected error processing debug callback. Cause: " + e.getMessage());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Stack trace for debug callback processing failure: ", e);
+            }
             handleUnexpectedError(e, debugContext);
 
             // Try to extract state for error response.

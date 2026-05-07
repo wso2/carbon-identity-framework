@@ -197,7 +197,7 @@ public class DebugRequestCoordinator {
         try {
             return OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
         } catch (Exception e) {
-            LOG.error("Invalid debug result JSON for debug session: " + e.getMessage());
+            LOG.error("Invalid debug result JSON for debug session. Cause: " + e.getMessage());
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
@@ -220,6 +220,7 @@ public class DebugRequestCoordinator {
 
         // Create a minimal request context for the listeners.
         DebugRequest debugRequest = new DebugRequest();
+        debugRequest.setResourceType(DebugResourceType.CUSTOM.name());
         debugRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
         debugRequest.setResultRetrieval(true);
 

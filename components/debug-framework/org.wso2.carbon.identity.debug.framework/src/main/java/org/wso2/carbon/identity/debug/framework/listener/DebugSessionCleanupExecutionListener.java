@@ -129,8 +129,12 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
                 LOG.debug("Successfully deleted debug session record from database: " + debugId);
             }
         } catch (DebugFrameworkServerException e) {
-            // Log the error. Cleanup should not affect the main flow.
-            LOG.error("Failed to delete debug session record from database: " + debugId);
+            // Log the error message. Cleanup should not affect the main flow.
+            LOG.error("Failed to delete debug session record from database for debug ID: " + debugId 
+                    + ". Error code: " + e.getErrorCode() + ". Cause: " + e.getMessage());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Stack trace for failed debug session deletion: ", e);
+            }
         }
     }
 }
