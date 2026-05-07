@@ -110,10 +110,12 @@ public class FlowExecutionEngine {
             }
             context.setCurrentNodeResponse(nodeResponse);
             if (STATUS_COMPLETE.equals(nodeResponse.getStatus())) {
-                // Fire a per-node completion event BEFORE advancing to the next node so that event
-                // handlers (e.g. analytics publishers) receive one event per completed node in
-                // the correct order.  At this point context.getCurrentNode() still correctly
-                // references the completing node.
+                /*
+                 * Fire a per-node completion event BEFORE advancing to the next node so that event
+                 * handlers (e.g. analytics publishers) receive one event per completed node in
+                 * the correct order.  At this point context.getCurrentNode() still correctly
+                 * references the completing node.
+                 */
                 publishFlowExecutionEvent(context,
                         new FlowExecutionStep.Builder()
                                 .flowId(context.getContextIdentifier())

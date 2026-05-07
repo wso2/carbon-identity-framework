@@ -596,7 +596,11 @@ public class FlowExecutionEngineUtils {
     public static void publishFlowExecutionEvent(FlowExecutionContext context,
                                                  FlowExecutionStep step, String errorCode) {
 
-        HashMap<String, Object> properties = new HashMap<>();
+        if (context == null) {
+            return;
+        }
+
+        Map<String, Object> properties = new HashMap<>();
         FlowEventContext eventContext = buildFlowEventContext(context, step, errorCode);
         properties.put(FLOW_EVENT_CONTEXT, eventContext);
 
