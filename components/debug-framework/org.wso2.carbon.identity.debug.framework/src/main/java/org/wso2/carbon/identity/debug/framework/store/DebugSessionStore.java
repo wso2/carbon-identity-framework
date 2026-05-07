@@ -82,12 +82,9 @@ public final class DebugSessionStore {
 
             debugSessionDAO.createDebugSession(sessionData);
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug context stored for key: " + key);
-            }
         } catch (IOException e) {
             String errorMsg = "Error persisting debug session to DB";
-            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
     }
@@ -108,6 +105,10 @@ public final class DebugSessionStore {
         Map<String, Object> contextMap = new HashMap<>(context.getProperties());
         
         // Add metadata fields.
+        Object connectionId = context.getProperty("connectionId");
+        if (connectionId != null) {
+            contextMap.put("connectionId", connectionId);
+        }
         if (context.getResourceType() != null) {
             contextMap.put("resourceType", context.getResourceType());
         }
@@ -133,7 +134,7 @@ public final class DebugSessionStore {
             }
         } catch (IOException e) {
             String errorMsg = "Error retrieving debug session from DB";
-            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
         return new HashMap<>();
@@ -154,16 +155,13 @@ public final class DebugSessionStore {
             return new HashMap<>();
         }
         try {
-            DebugSessionData data = debugSessionDAO.getDebugSession(key);
-            // Delete first to minimize TOCTOU window; only return fetched data if deletion succeeds.
-            debugSessionDAO.deleteDebugSession(key);
-            
+            DebugSessionData data = debugSessionDAO.deleteAndReturnDebugSession(key);
             if (data != null && data.getSessionData() != null) {
                 return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
         } catch (IOException e) {
             String errorMsg = "Error retrieving debug session for removal";
-            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
         return new HashMap<>();
@@ -192,10 +190,6 @@ public final class DebugSessionStore {
         sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
 
         debugSessionDAO.upsertDebugSession(sessionData);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Debug result stored for key: " + key);
-        }
     }
 
     /**

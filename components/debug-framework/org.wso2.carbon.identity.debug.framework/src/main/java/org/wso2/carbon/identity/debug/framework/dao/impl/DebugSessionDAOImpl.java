@@ -120,6 +120,43 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     }
 
     @Override
+    public DebugSessionData deleteAndReturnDebugSession(String debugId) throws DebugFrameworkServerException {
+
+        String normalizedDebugId = normalizeDebugId(debugId);
+        String storageDebugId = toStorageDebugId(normalizedDebugId);
+        DebugSessionData data = null;
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            // First fetch the data.
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
+                prepStmt.setString(1, storageDebugId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        data = mapResultSetToDebugSessionData(resultSet, debugId);
+                    }
+                }
+            }
+
+            // If data exists, delete it.
+            if (data != null) {
+                try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
+                    prepStmt.setString(1, storageDebugId);
+                    prepStmt.executeUpdate();
+                }
+            }
+
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
+            return data;
+        } catch (SQLException e) {
+            String errorMsg = "Error while performing atomic delete-and-return for debug session: " + debugId;
+            LOG.error(errorMsg + ". Cause: " + e.getMessage());
+            throw new DebugFrameworkServerException(errorMsg, e);
+        }
+    }
+
+    @Override
     public void deleteDebugSession(String debugId) throws DebugFrameworkServerException {
 
         String normalizedDebugId = normalizeDebugId(debugId);
