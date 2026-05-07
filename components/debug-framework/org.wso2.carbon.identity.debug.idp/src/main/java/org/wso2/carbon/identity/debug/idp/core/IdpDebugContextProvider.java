@@ -31,13 +31,19 @@ import java.util.Map;
  */
 public abstract class IdpDebugContextProvider extends DebugContextProvider {
 
-    private static final String RESOURCE_TYPE_KEY = "resourceType";
+    public static final String RESOURCE_TYPE_KEY = "resourceType";
 
     @Override
     public DebugContext resolveContext(Map<String, Object> params)
             throws ContextResolutionException {
-        String connectionId = (String) params.get(IdpDebugConstants.CONNECTION_ID);
-        String resourceType = (String) params.get(RESOURCE_TYPE_KEY);
+        Object rawConnectionId = params.get(IdpDebugConstants.CONNECTION_ID);
+        Object rawResourceType = params.get(RESOURCE_TYPE_KEY);
+        if (!(rawConnectionId instanceof String) || !(rawResourceType instanceof String)) {
+            throw new ContextResolutionException(
+                    "Invalid or missing parameters: connectionId and resourceType must be non-null Strings.");
+        }
+        String connectionId = (String) rawConnectionId;
+        String resourceType = (String) rawResourceType;
         return resolveContext(connectionId, resourceType);
     }
 

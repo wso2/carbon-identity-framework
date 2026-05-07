@@ -35,7 +35,7 @@ public abstract class DebugContextProvider {
     /**
      * Resolves and creates a debug context from the given HTTP request.
      * Implementations should extract all required parameters from the request
-     * and delegate to the parameter-based {@link resolveContext(Map)} method.
+     * and delegate to the parameter-based {`@link` `#resolveContext`(Map)} method.
      *
      * @param request HTTP servlet request containing debug parameters.
      * @return DebugContext containing resolved debug context data.

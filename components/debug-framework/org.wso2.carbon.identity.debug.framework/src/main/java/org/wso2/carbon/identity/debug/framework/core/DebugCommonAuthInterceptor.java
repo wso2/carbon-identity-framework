@@ -40,6 +40,7 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
         this.debugRequestCoordinator = debugRequestCoordinator;
     }
 
+    @Override
     public boolean isDebugRequest(HttpServletRequest request) {
 
         String debugFlowFlag = request.getParameter(DebugFrameworkConstants.DEBUG_IDENTIFIER_PARAM);

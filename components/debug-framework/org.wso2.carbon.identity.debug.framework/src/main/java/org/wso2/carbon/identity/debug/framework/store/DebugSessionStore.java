@@ -219,9 +219,6 @@ public final class DebugSessionStore {
     public void removeResult(String key) throws DebugFrameworkServerException {
 
         if (key != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Removing debug result for key: " + key);
-            }
             debugSessionDAO.deleteDebugSession(key);
         }
     }

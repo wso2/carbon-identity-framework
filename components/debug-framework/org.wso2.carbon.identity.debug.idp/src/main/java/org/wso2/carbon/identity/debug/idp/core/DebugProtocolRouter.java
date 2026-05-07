@@ -74,7 +74,7 @@ public class DebugProtocolRouter {
      */
     public static DebugResourceHandler getDebugResourceHandler(String resourceType) {
 
-        if (StringUtils.isEmpty(resourceType)) {
+        if (StringUtils.isBlank(resourceType)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resource type is empty, unable to route debug request");
             }
@@ -82,6 +82,12 @@ public class DebugProtocolRouter {
         }
 
         DebugResourceType resolvedType = DebugResourceType.fromString(resourceType);
+        if (resolvedType == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Unsupported resource type: " + resourceType);
+            }
+            return null;
+        }
         DebugResourceHandler resourceHandler = DebugHandlerRegistry.getInstance()
                 .getHandler(resolvedType.name().toLowerCase(Locale.ENGLISH));
         if (resourceHandler == null && LOG.isDebugEnabled()) {
