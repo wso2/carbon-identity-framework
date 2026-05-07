@@ -39,6 +39,20 @@ public interface JsBaseGraphBuilderFactory extends JsGenericGraphBuilderFactory<
     JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
+    @Override
+    default JsBaseGraphBuilder createBaseGraphBuilder(AuthenticationContext authenticationContext,
+                                                            Map<Integer, StepConfig> stepConfigMap) {
+        throw new UnsupportedOperationException("createGraphBuilder must be implemented by " +
+                this.getClass().getName());
+    }
+    @Override
+    default JsBaseGraphBuilder createBaseGraphBuilder(AuthenticationContext authenticationContext,
+                                                            Map<Integer, StepConfig> stepConfigMap,
+                                                            AuthGraphNode currentNode) {
+        throw new UnsupportedOperationException("createGraphBuilder must be implemented by " +
+                this.getClass().getName());
+    }
+
     ScriptEngine createEngine(AuthenticationContext authenticationContext);
 
     JsSerializer getJsUtil();

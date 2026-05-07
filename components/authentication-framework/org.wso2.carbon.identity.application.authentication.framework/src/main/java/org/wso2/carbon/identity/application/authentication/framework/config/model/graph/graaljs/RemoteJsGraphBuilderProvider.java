@@ -36,8 +36,12 @@ import java.util.Map;
  * <p>
  * An implementation is expected to be registered as an OSGi service by the
  * {@code script.remote.engine} bundle. When the engine mode resolves to
- * {@code REMOTE} (or {@code HYBRID} → REMOTE) and no provider is bound, the
- * factory will fail loudly rather than silently degrading.
+ * {@code REMOTE} (or {@code HYBRID} → REMOTE via {@link ScriptEngineModeResolver})
+ * and no provider is bound, the factory will fail loudly rather than silently
+ * degrading.
+ * <p>
+ * Per-request mode routing is owned by the separate {@link ScriptEngineModeResolver}
+ * SPI; this interface deals only with builder construction.
  */
 public interface RemoteJsGraphBuilderProvider {
 
@@ -62,18 +66,4 @@ public interface RemoteJsGraphBuilderProvider {
     JsBaseGraphBuilder create(AuthenticationContext authenticationContext,
                               Map<Integer, StepConfig> stepConfigMap,
                               AuthGraphNode currentNode);
-
-    /**
-     * Decide whether the given request should be routed to remote execution.
-     * <p>
-     * Only consulted by the framework when the configured engine mode is {@code HYBRID};
-     * for {@code LOCAL} the framework never asks, and for {@code REMOTE} the framework
-     * always routes remote without asking. Implementations typically delegate to a
-     * pluggable {@code ScriptEngineModeResolver} OSGi service.
-     *
-     * @param authenticationContext the current authentication context.
-     * @return {@code true} if the request should run on the remote engine,
-     *         {@code false} to fall back to local execution.
-     */
-    boolean route(AuthenticationContext authenticationContext);
 }

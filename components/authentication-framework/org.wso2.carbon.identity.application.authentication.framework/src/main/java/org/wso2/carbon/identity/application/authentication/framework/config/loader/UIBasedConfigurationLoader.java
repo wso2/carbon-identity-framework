@@ -93,7 +93,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             sequenceConfig.getStepMap().clear();
             JsGenericGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
                     .getJsGenericGraphBuilderFactory();
-            JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMapCopy);
+            JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBaseGraphBuilder(context,
+                                                                                              stepConfigMapCopy);
             context.setServiceProviderName(serviceProvider.getApplicationName());
             context.setServiceProviderResourceId(serviceProvider.getApplicationResourceId());
 

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.RemoteJsGraphBuilderProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.ScriptEngineModeResolver;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -130,6 +131,7 @@ public class FrameworkServiceDataHolder {
     private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
     private OrganizationDiscoveryHandler organizationDiscoveryHandler;
     private RemoteJsGraphBuilderProvider remoteJsGraphBuilderProvider;
+    private ScriptEngineModeResolver scriptEngineModeResolver;
     private OrganizationUserSharingService organizationUserSharingService;
 
     private FrameworkServiceDataHolder() {
@@ -887,5 +889,15 @@ public class FrameworkServiceDataHolder {
     public void setRemoteJsGraphBuilderProvider(RemoteJsGraphBuilderProvider remoteJsGraphBuilderProvider) {
 
         this.remoteJsGraphBuilderProvider = remoteJsGraphBuilderProvider;
+    }
+
+    public ScriptEngineModeResolver getScriptEngineModeResolver() {
+
+        return scriptEngineModeResolver;
+    }
+
+    public void setScriptEngineModeResolver(ScriptEngineModeResolver scriptEngineModeResolver) {
+
+        this.scriptEngineModeResolver = scriptEngineModeResolver;
     }
 }

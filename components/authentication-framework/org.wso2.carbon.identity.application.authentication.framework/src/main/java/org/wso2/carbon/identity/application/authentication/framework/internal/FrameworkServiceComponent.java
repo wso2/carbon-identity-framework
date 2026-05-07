@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.RemoteJsGraphBuilderProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.ScriptEngineModeResolver;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -1138,5 +1139,24 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setRemoteJsGraphBuilderProvider(null);
         log.info("RemoteJsGraphBuilderProvider unset.");
+    }
+
+    @Reference(
+            name = "script.engine.mode.resolver",
+            service = ScriptEngineModeResolver.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetScriptEngineModeResolver"
+    )
+    protected void setScriptEngineModeResolver(ScriptEngineModeResolver resolver) {
+
+        FrameworkServiceDataHolder.getInstance().setScriptEngineModeResolver(resolver);
+        log.info("ScriptEngineModeResolver set: " + resolver.getClass().getName());
+    }
+
+    protected void unsetScriptEngineModeResolver(ScriptEngineModeResolver resolver) {
+
+        FrameworkServiceDataHolder.getInstance().setScriptEngineModeResolver(null);
+        log.info("ScriptEngineModeResolver unset.");
     }
 }
