@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.flow.inflow.extensions.internal;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverConfig;
 
 /**
  * Data holder for the In-Flow Extension bundle.
@@ -33,7 +32,6 @@ public class InFlowExtensionDataHolder {
     private ActionExecutorService actionExecutorService;
     private ActionManagementService actionManagementService;
     private CertificateManagementService certificateManagementService;
-    private FlowContextHandoverConfig flowContextHandoverConfig;
 
     private InFlowExtensionDataHolder() {
 
@@ -74,26 +72,4 @@ public class InFlowExtensionDataHolder {
         this.certificateManagementService = certificateManagementService;
     }
 
-    /**
-     * Get the In-Flow Extension context handover config. Lazily initialised on first access
-     * (the constructor reads from {@code IdentityUtil} which requires the carbon configuration
-     * to be loaded — keeping this lazy avoids ordering issues with OSGi component activation).
-     *
-     * @return The handover config, never null.
-     */
-    public synchronized FlowContextHandoverConfig getFlowContextHandoverConfig() {
-
-        if (flowContextHandoverConfig == null) {
-            flowContextHandoverConfig = new FlowContextHandoverConfig();
-        }
-        return flowContextHandoverConfig;
-    }
-
-    /**
-     * Override the handover config. Intended for tests only.
-     */
-    public synchronized void setFlowContextHandoverConfig(FlowContextHandoverConfig flowContextHandoverConfig) {
-
-        this.flowContextHandoverConfig = flowContextHandoverConfig;
-    }
 }

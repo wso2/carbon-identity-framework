@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.flow.inflow.extensions.metadata;
 
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 
 /**
  * Public-API entry point for retrieving the controlled In-Flow Extension context tree.
@@ -26,15 +27,12 @@ import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandove
  * external bundles such as the flow-management API server can call it without depending on
  * the engine's {@code internal} package.
  *
- * <p>Singleton with lazy-init {@link FlowContextHandoverConfig} — the config reads from
- * {@code IdentityUtil} which requires the carbon configuration to be loaded, so we defer
- * construction until first use to avoid OSGi activation-order issues.</p>
+ * <p>Delegates config lookup to {@link FlowExecutionEngineDataHolder}, which owns the
+ * engine-level {@link FlowContextHandoverConfig} singleton.</p>
  */
 public final class InFlowExtensionContextTreeService {
 
     private static final InFlowExtensionContextTreeService INSTANCE = new InFlowExtensionContextTreeService();
-
-    private volatile FlowContextHandoverConfig handoverConfig;
 
     private InFlowExtensionContextTreeService() {
 
@@ -53,26 +51,7 @@ public final class InFlowExtensionContextTreeService {
      */
     public InFlowExtensionContextTreeMetadata buildContextTree(String flowType) {
 
-        return new InFlowExtensionContextTreeBuilder(getHandoverConfig()).build(flowType);
-    }
-
-    /**
-     * Override the handover config. Intended for tests only.
-     */
-    public void setHandoverConfig(FlowContextHandoverConfig handoverConfig) {
-
-        this.handoverConfig = handoverConfig;
-    }
-
-    private FlowContextHandoverConfig getHandoverConfig() {
-
-        if (handoverConfig == null) {
-            synchronized (this) {
-                if (handoverConfig == null) {
-                    handoverConfig = new FlowContextHandoverConfig();
-                }
-            }
-        }
-        return handoverConfig;
+        return new InFlowExtensionContextTreeBuilder(
+                FlowExecutionEngineDataHolder.getInstance().getFlowContextHandoverConfig()).build(flowType);
     }
 }

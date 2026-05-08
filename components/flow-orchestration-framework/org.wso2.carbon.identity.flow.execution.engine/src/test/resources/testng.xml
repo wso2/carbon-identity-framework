@@ -19,6 +19,12 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.flow.execution.engine">
+    <test name="flow-engine-config-tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfigTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowExecutionContextFilterTest"/>
+        </classes>
+    </test>
     <test name="flow-engine-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.flow.execution.engine.FlowServiceTest"/>

@@ -34,10 +34,10 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants;
+import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.execution.engine.config.FlowExecutionContextFilter;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverPolicy;
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowExecutionContextFilter;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.inflow.extensions.internal.InFlowExtensionDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
@@ -141,16 +141,14 @@ public class InFlowExtensionExecutor implements Executor {
         }
 
         try {
-            // Resolve the per-flow-type handover policy and hand the action framework only a
+            // Resolve the handover config and hand the action framework only a
             // FILTERED copy of the FlowExecutionContext (non-whitelisted fields nulled out).
-            FlowContextHandoverConfig handoverConfig = InFlowExtensionDataHolder.getInstance()
+            FlowContextHandoverConfig handoverConfig = FlowExecutionEngineDataHolder.getInstance()
                     .getFlowContextHandoverConfig();
-            FlowContextHandoverPolicy policy = handoverConfig.resolve(context.getFlowType());
-            FlowExecutionContext filteredContext = FlowExecutionContextFilter.filter(context, policy);
+            FlowExecutionContext filteredContext = FlowExecutionContextFilter.filter(context, handoverConfig);
 
             FlowContext flowContext = FlowContext.create()
-                    .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, filteredContext)
-                    .add(InFlowExtensionConstants.HANDOVER_POLICY_KEY, policy);
+                    .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, filteredContext);
 
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
                     ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.internal;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
@@ -48,6 +49,7 @@ public class FlowExecutionEngineDataHolder {
     private FederatedAssociationManager federatedAssociationManager;
     private IdentityEventService identityEventService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
+    private FlowContextHandoverConfig flowContextHandoverConfig;
 
     private FlowExecutionEngineDataHolder() {
 
@@ -218,5 +220,27 @@ public class FlowExecutionEngineDataHolder {
     public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get the flow execution context handover config. Lazily initialised on first access
+     * so that {@code IdentityConfigParser} is guaranteed to be loaded before we read it.
+     *
+     * @return the handover config, never null.
+     */
+    public synchronized FlowContextHandoverConfig getFlowContextHandoverConfig() {
+
+        if (flowContextHandoverConfig == null) {
+            flowContextHandoverConfig = new FlowContextHandoverConfig();
+        }
+        return flowContextHandoverConfig;
+    }
+
+    /**
+     * Override the handover config. Intended for tests only.
+     */
+    public synchronized void setFlowContextHandoverConfig(FlowContextHandoverConfig flowContextHandoverConfig) {
+
+        this.flowContextHandoverConfig = flowContextHandoverConfig;
     }
 }

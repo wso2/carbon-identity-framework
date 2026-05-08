@@ -99,6 +99,11 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
@@ -152,6 +157,10 @@
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             org.wso2.carbon.identity.flow.execution.engine;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.flow.execution.engine.config;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.flow.execution.engine.internal;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.execution.engine.exception;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.execution.engine.graph;
@@ -195,7 +204,6 @@
                             org.wso2.carbon.identity.flow.inflow.extensions.executor,
                             org.wso2.carbon.identity.flow.inflow.extensions.model,
                             org.wso2.carbon.identity.flow.inflow.extensions.management,
-                            org.wso2.carbon.identity.flow.inflow.extensions.config,
                             org.wso2.carbon.identity.flow.inflow.extensions.metadata;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>

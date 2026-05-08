@@ -18,20 +18,21 @@
 
 package org.wso2.carbon.identity.flow.inflow.extensions.metadata;
 
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverPolicy;
+import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Builds the controlled In-Flow Extension context tree returned by the metadata endpoint.
- * The canonical tree shape lives in code here (rather than a static resource) so it can
- * evolve alongside the {@link FlowContextHandoverPolicy} without an extra file to keep in
- * sync. Nodes are pruned when the policy disables them, so the Console UI never offers the
- * admin a checkbox for a field the deployment has switched off at the server level.
+ * Consumes the engine-level {@link FlowContextHandoverConfig} flat allow-lists and projects
+ * them back into the user/flow/properties tree shape the Console UI expects, so the frontend
+ * requires no change. Nodes are pruned when the corresponding attribute is absent from the
+ * allow-list.
  */
 public class InFlowExtensionContextTreeBuilder {
 
@@ -49,6 +50,10 @@ public class InFlowExtensionContextTreeBuilder {
     private static final String OP_EXPOSE = "EXPOSE";
     private static final String OP_MODIFY = "MODIFY";
 
+    // Flow context attributes that appear under the "flow" branch of the tree.
+    private static final List<String> FLOW_BRANCH_ATTRS =
+            Arrays.asList("tenantDomain", "applicationId", "flowType", "callbackUrl", "portalUrl");
+
     private final FlowContextHandoverConfig handoverConfig;
 
     public InFlowExtensionContextTreeBuilder(FlowContextHandoverConfig handoverConfig) {
@@ -64,18 +69,22 @@ public class InFlowExtensionContextTreeBuilder {
      */
     public InFlowExtensionContextTreeMetadata build(String flowType) {
 
-        FlowContextHandoverPolicy policy = handoverConfig.resolve(flowType);
+        Set<String> attrs = handoverConfig.getIncludedAttributes();
+        Set<String> userAttrs = handoverConfig.isFullUserPassthrough()
+                ? null   // null → all user children shown
+                : handoverConfig.getIncludedUserAttributes();
 
         List<InFlowExtensionContextTreeNode> tree = new ArrayList<>();
-        InFlowExtensionContextTreeNode userNode = buildUserNode(policy);
+
+        InFlowExtensionContextTreeNode userNode = buildUserNode(attrs, userAttrs);
         if (userNode != null) {
             tree.add(userNode);
         }
-        InFlowExtensionContextTreeNode flowNode = buildFlowNode(policy);
+        InFlowExtensionContextTreeNode flowNode = buildFlowNode(attrs);
         if (flowNode != null) {
             tree.add(flowNode);
         }
-        InFlowExtensionContextTreeNode propsNode = buildPropertiesNode(policy);
+        InFlowExtensionContextTreeNode propsNode = buildPropertiesNode(attrs);
         if (propsNode != null) {
             tree.add(propsNode);
         }
@@ -83,18 +92,18 @@ public class InFlowExtensionContextTreeBuilder {
         return new InFlowExtensionContextTreeMetadata(
                 flowType,
                 tree,
-                policy.isRedirectionEnabled(),
+                true,   // redirection is unconditionally enabled
                 resolveAllowReadOnlyClaimsModification(flowType));
     }
 
     /**
      * Whether the Console UI may permit MODIFY on read-only claims for this flow type.
-     * Hardcoded enumerative mapping (rather than {@code != PASSWORD_RECOVERY}) so that any
-     * future flow type defaults to the safe value (false) until explicitly added here.
+     * Hardcoded enumerative mapping so that any future flow type defaults to false until
+     * explicitly added here.
      *
-     * <p>The default tree (null flowType) inherits the registration-style permissive default
-     * — that matches today's behaviour for the connection-level access-config editor, which
-     * doesn't yet know which flow the action will be wired into.</p>
+     * <p>The default tree (null flowType) returns true — matches current behaviour for the
+     * connection-level access-config editor which doesn't yet know which flow the action
+     * will be wired into.</p>
      */
     static boolean resolveAllowReadOnlyClaimsModification(String flowType) {
 
@@ -106,19 +115,27 @@ public class InFlowExtensionContextTreeBuilder {
             case FLOW_INVITED_USER_REGISTRATION:
                 return true;
             case FLOW_PASSWORD_RECOVERY:
-                return false;
             default:
                 return false;
         }
     }
 
-    private InFlowExtensionContextTreeNode buildUserNode(FlowContextHandoverPolicy policy) {
+    /**
+     * Build the "user" subtree. {@code userAttrs == null} means full passthrough (show all).
+     */
+    private InFlowExtensionContextTreeNode buildUserNode(Set<String> attrs, Set<String> userAttrs) {
 
-        if (!policy.isUserEnabled()) {
+        // User branch is shown when flowUser is in attrs OR any individual user attr is listed.
+        boolean fullPassthrough = attrs.contains(FlowContextHandoverConstants.ATTR_FLOW_USER);
+        boolean hasAnyUserAttr = fullPassthrough
+                || (userAttrs != null && !userAttrs.isEmpty());
+        if (!hasAnyUserAttr) {
             return null;
         }
+
         List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
-        if (policy.isUserUserId()) {
+
+        if (fullPassthrough || (userAttrs != null && userAttrs.contains("userId"))) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("userId")
                     .title("User ID")
@@ -129,7 +146,18 @@ public class InFlowExtensionContextTreeBuilder {
                     .replaceable(false)
                     .build());
         }
-        if (policy.isUserUserStoreDomain()) {
+        if (fullPassthrough || (userAttrs != null && userAttrs.contains("username"))) {
+            children.add(InFlowExtensionContextTreeNode.builder()
+                    .key("username")
+                    .title("Username")
+                    .path("/user/username")
+                    .dataType("String")
+                    .nodeType(NODE_LEAF)
+                    .allowedOperations(Collections.singletonList(OP_EXPOSE))
+                    .replaceable(false)
+                    .build());
+        }
+        if (fullPassthrough || (userAttrs != null && userAttrs.contains("userStoreDomain"))) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("userStoreDomain")
                     .title("User Store Domain")
@@ -140,7 +168,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .replaceable(false)
                     .build());
         }
-        if (policy.isUserClaims()) {
+        if (fullPassthrough || (userAttrs != null && userAttrs.contains("claims"))) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("claims")
                     .title("Claims")
@@ -153,7 +181,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .children(Collections.emptyList())
                     .build());
         }
-        if (policy.isUserCredentials()) {
+        if (fullPassthrough || (userAttrs != null && userAttrs.contains("userCredentials"))) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("credentials")
                     .title("Credentials")
@@ -180,26 +208,17 @@ public class InFlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private InFlowExtensionContextTreeNode buildFlowNode(FlowContextHandoverPolicy policy) {
+    /**
+     * Build the "flow" subtree from top-level context attributes that map to the flow branch.
+     */
+    private InFlowExtensionContextTreeNode buildFlowNode(Set<String> attrs) {
 
-        if (!policy.isFlowEnabled()) {
-            return null;
-        }
         List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
-        if (policy.isFlowTenantDomain()) {
-            children.add(flowLeaf("tenantDomain", "Tenant Domain", "/flow/tenantDomain"));
-        }
-        if (policy.isFlowApplicationId()) {
-            children.add(flowLeaf("applicationId", "Application ID", "/flow/applicationId"));
-        }
-        if (policy.isFlowFlowType()) {
-            children.add(flowLeaf("flowType", "Flow Type", "/flow/flowType"));
-        }
-        if (policy.isFlowCallbackUrl()) {
-            children.add(flowLeaf("callbackUrl", "Callback URL", "/flow/callbackUrl"));
-        }
-        if (policy.isFlowPortalUrl()) {
-            children.add(flowLeaf("portalUrl", "Portal URL", "/flow/portalUrl"));
+        for (String attr : FLOW_BRANCH_ATTRS) {
+            if (attrs.contains(attr)) {
+                String title = attrTitle(attr);
+                children.add(flowLeaf(attr, title, "/flow/" + attr));
+            }
         }
         if (children.isEmpty()) {
             return null;
@@ -229,10 +248,23 @@ public class InFlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private InFlowExtensionContextTreeNode buildPropertiesNode(FlowContextHandoverPolicy policy) {
+    /**
+     * Build the "properties" node if {@code "properties"} is in the included attributes.
+     */
+    private InFlowExtensionContextTreeNode buildPropertiesNode(Set<String> attrs) {
 
-        if (!policy.isPropertiesEnabled()) {
-            return null;
+        if (!attrs.contains("properties")) {
+            return InFlowExtensionContextTreeNode.builder()
+                    .key("properties")
+                    .title("Properties")
+                    .path("/properties/")
+                    .dataType("Map<String, Object>")
+                    .nodeType(NODE_COMPLEX_MAP)
+                    .allowedOperations(Arrays.asList(OP_MODIFY))
+                    .dynamicEntryAllowed(true)
+                    .dynamicEntryType("Object")
+                    .children(Collections.emptyList())
+                    .build();
         }
         return InFlowExtensionContextTreeNode.builder()
                 .key("properties")
@@ -245,5 +277,17 @@ public class InFlowExtensionContextTreeBuilder {
                 .dynamicEntryType("Object")
                 .children(Collections.emptyList())
                 .build();
+    }
+
+    private static String attrTitle(String attr) {
+
+        switch (attr) {
+            case "tenantDomain":   return "Tenant Domain";
+            case "applicationId":  return "Application ID";
+            case "flowType":       return "Flow Type";
+            case "callbackUrl":    return "Callback URL";
+            case "portalUrl":      return "Portal URL";
+            default:               return attr;
+        }
     }
 }

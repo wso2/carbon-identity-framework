@@ -19,12 +19,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.flow.inflow.extensions">
-    <test name="in-flow-extension-config-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverPolicyTest"/>
-            <class name="org.wso2.carbon.identity.flow.inflow.extensions.config.FlowExecutionContextFilterTest"/>
-        </classes>
-    </test>
     <test name="in-flow-extension-executor-tests">
         <classes>
             <class name="org.wso2.carbon.identity.flow.inflow.extensions.executor.HierarchicalPrefixMatcherTest"/>
@@ -32,6 +26,11 @@
             <class name="org.wso2.carbon.identity.flow.inflow.extensions.executor.InFlowExtensionRequestBuilderTest"/>
             <class name="org.wso2.carbon.identity.flow.inflow.extensions.executor.InFlowExtensionResponseProcessorTest"/>
             <class name="org.wso2.carbon.identity.flow.inflow.extensions.executor.InFlowExtensionExecutorTest"/>
+        </classes>
+    </test>
+    <test name="in-flow-extension-metadata-tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.flow.inflow.extensions.metadata.InFlowExtensionContextTreeBuilderTest"/>
         </classes>
     </test>
     <test name="in-flow-extension-model-tests">

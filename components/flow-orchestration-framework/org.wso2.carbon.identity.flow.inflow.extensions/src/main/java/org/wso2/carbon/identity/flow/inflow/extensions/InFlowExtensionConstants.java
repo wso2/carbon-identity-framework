@@ -33,7 +33,6 @@ public class InFlowExtensionConstants {
 
     // ---- FlowContext pipeline keys ----
     public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
-    public static final String HANDOVER_POLICY_KEY        = "handoverPolicy";
     public static final String PATH_TYPE_ANNOTATIONS_KEY  = "pathTypeAnnotations";
     public static final String MODIFY_PATHS_KEY           = "modifyPaths";
     public static final String PENDING_CLAIMS_KEY         = "pendingClaims";

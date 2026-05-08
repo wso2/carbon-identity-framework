@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants;
-import org.wso2.carbon.identity.flow.inflow.extensions.config.FlowContextHandoverPolicy;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 
@@ -220,15 +219,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             }
         }
 
-        // REDIRECT is advertised when the per-flow-type handover policy allows it. A null
-        // policy always permitting REDIRECT.
-        FlowContextHandoverPolicy policy = flowContext.getValue(
-                InFlowExtensionConstants.HANDOVER_POLICY_KEY, FlowContextHandoverPolicy.class);
-        if (policy == null || policy.isRedirectionEnabled()) {
-            AllowedOperation redirectOp = new AllowedOperation();
-            redirectOp.setOp(Operation.REDIRECT);
-            allowedOps.add(redirectOp);
-        }
+        // REDIRECT is always advertised — redirection is unconditionally enabled.
+        AllowedOperation redirectOp = new AllowedOperation();
+        redirectOp.setOp(Operation.REDIRECT);
+        allowedOps.add(redirectOp);
 
         return allowedOps;
     }
@@ -251,8 +245,6 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
 
-        // Inbound HTTP request headers — passed through to the extension. Filtered downstream
-        // by ActionExecutorServiceImpl against the action's allowedHeaders / allowedParameters.
         eventBuilder.request(buildRequest());
 
         // Tenant
@@ -264,8 +256,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             }
         }
 
-        // Organization — always populated when present on the IdentityContext. Returns null
-        // for carbon.super per OrganizationResolver design; leave the field unset in that case.
+        // Organization — always populated when present on the IdentityContext.
         org.wso2.carbon.identity.core.context.model.Organization coreOrg =
                 IdentityContext.getThreadLocalIdentityContext().getOrganization();
         if (coreOrg != null) {
