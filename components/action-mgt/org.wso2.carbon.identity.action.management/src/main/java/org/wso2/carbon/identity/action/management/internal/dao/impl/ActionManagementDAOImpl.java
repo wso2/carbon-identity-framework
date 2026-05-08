@@ -452,6 +452,22 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         scopesValue)
                         .build();
                 break;
+            case PASSWORD_CREDENTIAL:
+                ActionProperty passwordGrantScopesProperty =
+                        propertiesFromDB.remove(Authentication.Property.SCOPES.getName());
+                String passwordGrantScopesValue =
+                        (passwordGrantScopesProperty != null && passwordGrantScopesProperty.getValue() != null)
+                                ? passwordGrantScopesProperty.getValue().toString()
+                                : StringUtils.EMPTY;
+                authentication = new Authentication.PasswordCredentialAuthBuilder(
+                        propertiesFromDB.remove(Authentication.Property.CLIENT_ID.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.CLIENT_SECRET.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.TOKEN_ENDPOINT.getName()).getValue().toString(),
+                        passwordGrantScopesValue,
+                        propertiesFromDB.remove(Authentication.Property.USERNAME.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.PASSWORD.getName()).getValue().toString())
+                        .build();
+                break;
             case NONE:
                 authentication = new Authentication.NoneAuthBuilder().build();
                 break;

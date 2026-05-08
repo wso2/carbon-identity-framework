@@ -150,6 +150,18 @@ public class DefaultActionValidator implements ActionValidator {
                 validateEndpointUri(ActionMgtConstants.TOKEN_ENDPOINT_FIELD,
                         authentication.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue());
                 break;
+            case PASSWORD_CREDENTIAL:
+                validateForBlank(ActionMgtConstants.CLIENT_ID_FIELD,
+                        authentication.getProperty(Authentication.Property.CLIENT_ID).getValue());
+                validateForBlank(ActionMgtConstants.CLIENT_SECRET_FIELD,
+                        authentication.getProperty(Authentication.Property.CLIENT_SECRET).getValue());
+                validateEndpointUri(ActionMgtConstants.TOKEN_ENDPOINT_FIELD,
+                        authentication.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue());
+                validateForBlank(ActionMgtConstants.USERNAME_FIELD,
+                        authentication.getProperty(Authentication.Property.USERNAME).getValue());
+                validateForBlank(ActionMgtConstants.PASSWORD_FIELD,
+                        authentication.getProperty(Authentication.Property.PASSWORD).getValue());
+                break;
             case NONE:
             default:
                 break;

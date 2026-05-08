@@ -40,7 +40,8 @@ import java.util.Map;
 import java.util.function.IntConsumer;
 
 /**
- * Manager class for handling Client Credentials Token acquisition and management for actions.
+ * Manager class for handling Client Credentials and Password Credential token acquisition
+ * and management for actions.
  */
 public class TokenManager {
 
@@ -79,13 +80,19 @@ public class TokenManager {
     public String getNewAccessToken(String actionId, Authentication authentication, String refreshToken)
             throws ActionExecutionException, ActionMgtException {
 
-        if (authentication.getType() != Authentication.Type.CLIENT_CREDENTIAL) {
+        if (authentication.getType() != Authentication.Type.CLIENT_CREDENTIAL
+                && authentication.getType() != Authentication.Type.PASSWORD_CREDENTIAL) {
             throw new ActionExecutionException("Unsupported authentication type for access token request, only " +
-                    "supported for client credential type.");
+                    "supported for client credential and password credential types.");
         }
 
         List<AuthProperty> authProperties = authentication.getPropertiesWithDecryptedValues(actionId);
-        TokenRequestContext tokenRequestContext = buildTokenRequestContext(authProperties);
+        TokenRequestContext tokenRequestContext;
+        if (authentication.getType() == Authentication.Type.PASSWORD_CREDENTIAL) {
+            tokenRequestContext = buildPasswordCredentialTokenRequestContext(authProperties);
+        } else {
+            tokenRequestContext = buildTokenRequestContext(authProperties);
+        }
         tokenAcquirerService.setTokenRequestContext(tokenRequestContext);
 
         TokenInvocationResult tokenInvocationResult;
@@ -177,6 +184,44 @@ public class TokenManager {
         } catch (TokenHandlerException e) {
             throw new ActionExecutionException(
                     "Error while building token request context for Client Credential grant.", e);
+        }
+    }
+
+    private TokenRequestContext buildPasswordCredentialTokenRequestContext(List<AuthProperty> decryptedProperties)
+            throws ActionExecutionException {
+
+        try {
+            Map<String, String> grantTypeProperties = new HashMap<>();
+            grantTypeProperties.put(
+                    GrantContext.Property.CLIENT_ID.getName(),
+                    getPropertyValue(decryptedProperties, Authentication.Property.CLIENT_ID));
+            grantTypeProperties.put(
+                    GrantContext.Property.CLIENT_SECRET.getName(),
+                    getPropertyValue(decryptedProperties, Authentication.Property.CLIENT_SECRET));
+            grantTypeProperties.put(
+                    GrantContext.Property.USERNAME.getName(),
+                    getPropertyValue(decryptedProperties, Authentication.Property.USERNAME));
+            grantTypeProperties.put(
+                    GrantContext.Property.PASSWORD.getName(),
+                    getPropertyValue(decryptedProperties, Authentication.Property.PASSWORD));
+            String scopes = getPropertyValue(decryptedProperties, Authentication.Property.SCOPES);
+            if (StringUtils.isNotBlank(scopes)) {
+                grantTypeProperties.put(GrantContext.Property.SCOPE.getName(), scopes);
+            }
+
+            GrantContext grantContext = new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(grantTypeProperties)
+                    .build();
+
+            TokenRequestContext.Builder builder = new TokenRequestContext.Builder()
+                    .grantContext(grantContext)
+                    .endpointUrl(getPropertyValue(decryptedProperties, Authentication.Property.TOKEN_ENDPOINT));
+
+            return builder.build();
+        } catch (TokenHandlerException e) {
+            throw new ActionExecutionException(
+                    "Error while building token request context for Password Credential grant.", e);
         }
     }
 

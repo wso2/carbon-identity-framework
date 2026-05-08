@@ -32,6 +32,9 @@ import java.util.List;
  */
 public final class AuthMethods {
 
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private AuthMethods() {
 
     }
@@ -65,7 +68,7 @@ public final class AuthMethods {
         @Override
         public void applyAuth(HttpPost httpPost) {
 
-            httpPost.setHeader("Authorization", "Bearer " + token);
+            httpPost.setHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + token);
         }
 
         @Override
@@ -100,7 +103,7 @@ public final class AuthMethods {
             String auth = username + ":" + password;
             byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
             String authHeader = "Basic " + new String(encodedAuth, StandardCharsets.UTF_8);
-            httpPost.setHeader("Authorization", authHeader);
+            httpPost.setHeader(AUTHORIZATION_HEADER, authHeader);
         }
 
         @Override
@@ -161,13 +164,42 @@ public final class AuthMethods {
         @Override
         public void applyAuth(HttpPost httpPost) {
 
-            httpPost.setHeader("Authorization", "Bearer " + internalAccessToken);
+            httpPost.setHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + internalAccessToken);
         }
 
         @Override
         public String getAuthType() {
 
             return Authentication.Type.CLIENT_CREDENTIAL.getName();
+        }
+    }
+
+    /**
+     * This class applies password credential authentication to the http request.
+     */
+    public static final class PasswordCredentialAuth implements AuthMethod {
+
+        private String internalAccessToken;
+
+        public PasswordCredentialAuth(List<AuthProperty> authPropertyList) {
+
+            authPropertyList.forEach(authProperty -> {
+                if (Authentication.Property.INTERNAL_ACCESS_TOKEN.getName().equals(authProperty.getName())) {
+                    this.internalAccessToken = authProperty.getValue();
+                }
+            });
+        }
+
+        @Override
+        public void applyAuth(HttpPost httpPost) {
+
+            httpPost.setHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + internalAccessToken);
+        }
+
+        @Override
+        public String getAuthType() {
+
+            return Authentication.Type.PASSWORD_CREDENTIAL.getName();
         }
     }
 }

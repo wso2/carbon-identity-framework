@@ -168,4 +168,62 @@ public class AuthMethodsTest {
         clientCredentialAuth.applyAuth(httpPost);
         verify(httpPost).setHeader("Authorization", "Bearer null");
     }
+
+    @Test
+    public void testPasswordCredentialAuth() {
+
+        AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                .isConfidential(true)
+                .value("internalAccessToken")
+                .build();
+
+        List<AuthProperty> authProperties = Collections.singletonList(internalAccessToken);
+        AuthMethods.PasswordCredentialAuth passwordCredentialAuth =
+                new AuthMethods.PasswordCredentialAuth(authProperties);
+
+        assertEquals(Authentication.Type.PASSWORD_CREDENTIAL.getName(), passwordCredentialAuth.getAuthType());
+
+        passwordCredentialAuth.applyAuth(httpPost);
+        verify(httpPost).setHeader("Authorization", "Bearer internalAccessToken");
+    }
+
+    @Test
+    public void testPasswordCredentialAuthIgnoresUnrelatedProperties() {
+
+        AuthProperty username = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.USERNAME.getName())
+                .isConfidential(true)
+                .value("user1")
+                .build();
+        AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                .isConfidential(true)
+                .value("token-xyz")
+                .build();
+        AuthProperty internalRefreshToken = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())
+                .isConfidential(true)
+                .value("refresh-xyz")
+                .build();
+
+        List<AuthProperty> authProperties = Arrays.asList(username, internalAccessToken, internalRefreshToken);
+        AuthMethods.PasswordCredentialAuth passwordCredentialAuth =
+                new AuthMethods.PasswordCredentialAuth(authProperties);
+
+        passwordCredentialAuth.applyAuth(httpPost);
+        verify(httpPost).setHeader("Authorization", "Bearer token-xyz");
+    }
+
+    @Test
+    public void testPasswordCredentialAuthWithEmptyProperties() {
+
+        AuthMethods.PasswordCredentialAuth passwordCredentialAuth =
+                new AuthMethods.PasswordCredentialAuth(Collections.emptyList());
+
+        assertEquals(Authentication.Type.PASSWORD_CREDENTIAL.getName(), passwordCredentialAuth.getAuthType());
+
+        passwordCredentialAuth.applyAuth(httpPost);
+        verify(httpPost).setHeader("Authorization", "Bearer null");
+    }
 }

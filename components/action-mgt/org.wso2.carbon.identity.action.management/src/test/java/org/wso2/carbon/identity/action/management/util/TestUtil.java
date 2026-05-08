@@ -63,9 +63,11 @@ public class TestUtil {
     public static final String TEST_UPDATED_AT = "2025-08-22 15:25:41.388";
 
     public static final String TEST_USERNAME = "sampleUsername";
+    public static final String TEST_USERNAME_UPDATED = "UpdatedSampleUsername";
     public static final String TEST_USERNAME_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.BASIC, Authentication.Property.USERNAME);
     public static final String TEST_PASSWORD = "samplePassword";
+    public static final String TEST_PASSWORD_UPDATED = "UpdatedSamplePassword";
     public static final String TEST_PASSWORD_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.BASIC, Authentication.Property.PASSWORD);
     public static final String TEST_ACCESS_TOKEN = "5e482c2a-e83a-3afe-bc6a-ff79e1fdaaba";
@@ -182,6 +184,14 @@ public class TestUtil {
                                                                          String tokenEndpoint, String scopes) {
 
         return new Authentication.ClientCredentialAuthBuilder(clientId, clientSecret, tokenEndpoint, scopes).build();
+    }
+
+    public static Authentication buildMockPasswordCredentialAuthentication(String clientId, String clientSecret,
+                                                                           String tokenEndpoint, String scopes,
+                                                                           String username, String password) {
+
+        return new Authentication.PasswordCredentialAuthBuilder(
+                clientId, clientSecret, tokenEndpoint, scopes, username, password).build();
     }
 
     public static EndpointConfig buildMockEndpointConfig(String uri, Authentication authentication) {
