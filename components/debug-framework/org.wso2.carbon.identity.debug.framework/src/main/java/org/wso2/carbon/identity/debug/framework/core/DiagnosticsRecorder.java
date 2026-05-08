@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DiagnosticEvent;
@@ -49,36 +48,45 @@ public class DiagnosticsRecorder {
     }
 
     /**
-     * Record a diagnostic event in the given authentication context.
+     * Record a diagnostic event in the given properties map.
      *
-     * @param context Authentication context holding flow properties.
+     * @param properties Properties map to store diagnostics in.
      * @param event Diagnostic event to record.
      */
-    public void record(AuthenticationContext context, DiagnosticEvent event) {
+    public void record(Map<String, Object> properties, DiagnosticEvent event) {
 
-        Deque<DiagnosticEvent> diagnostics = getOrCreateDiagnostics(context);
+        if (properties == null) {
+            return;
+        }
+        Deque<DiagnosticEvent> diagnostics = getOrCreateDiagnostics(properties);
         diagnostics.addFirst(normalize(event));
     }
 
     /**
-     * Retrieve diagnostics recorded for the given debug context.
+     * Retrieve diagnostics recorded for the given properties map.
+     *
+     * @param properties Properties map holding flow properties.
+     * @return Snapshot list of diagnostics in latest-first order.
+     */
+    public List<DiagnosticEvent> getDiagnostics(Map<String, Object> properties) {
+
+        if (properties == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(getOrCreateDiagnostics(properties));
+    }
+
+    /**
+     * Retrieve diagnostics recorded in the given debug context.
      *
      * @param context Debug context holding flow properties.
      * @return Snapshot list of diagnostics in latest-first order.
      */
     public List<DiagnosticEvent> getDiagnostics(DebugContext context) {
 
-        return new ArrayList<>(getOrCreateDiagnostics(context));
-    }
-
-    /**
-     * Retrieve diagnostics recorded for the given authentication context.
-     *
-     * @param context Authentication context holding flow properties.
-     * @return Snapshot list of diagnostics in latest-first order.
-     */
-    public List<DiagnosticEvent> getDiagnostics(AuthenticationContext context) {
-
+        if (context == null) {
+            return new ArrayList<>();
+        }
         return new ArrayList<>(getOrCreateDiagnostics(context));
     }
 
@@ -91,11 +99,11 @@ public class DiagnosticsRecorder {
     }
 
     @SuppressWarnings("unchecked")
-    private Deque<DiagnosticEvent> getOrCreateDiagnostics(AuthenticationContext context) {
+    private Deque<DiagnosticEvent> getOrCreateDiagnostics(Map<String, Object> properties) {
 
         return getOrCreateDiagnosticsFromProperty(
-                context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS),
-                timeline -> context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline));
+                properties.get(DebugFrameworkConstants.DEBUG_DIAGNOSTICS),
+                timeline -> properties.put(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline));
     }
 
     /**

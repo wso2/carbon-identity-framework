@@ -246,9 +246,9 @@ public class DebugProtocolRegistry {
             return;
         }
 
-        // When removing, remove by class type to handle removal via either registration path.
-        Class<?> entryClass = entry.getClass();
-        entries.removeIf(e -> e.getClass() == entryClass);
+        // When removing, remove by instance to ensure only the intended entry is removed.
+        // This prevents accidental removal of other instances of the same class.
+        entries.remove(entry);
     }
 
     /**

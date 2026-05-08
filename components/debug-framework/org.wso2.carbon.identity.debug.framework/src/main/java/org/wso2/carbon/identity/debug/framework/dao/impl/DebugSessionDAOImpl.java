@@ -39,6 +39,7 @@ import java.sql.Types;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_EXPIRED_DEBUG_SESSIONS;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION_FOR_UPDATE;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_H2;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_MSSQL_OR_DB2;
@@ -67,7 +68,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
         String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
-        String storageDebugId = toStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
@@ -93,14 +94,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     @Override
     public DebugSessionData getDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-        if (tenantDomain == null || tenantDomain.trim().isEmpty()) {
-            throw new DebugFrameworkServerException(
-                    "Tenant domain could not be resolved for debug session retrieval. Debug ID: " + debugId);
-        }
-
         String normalizedDebugId = normalizeDebugId(debugId);
-        String storageDebugId = toStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
@@ -112,7 +107,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while retrieving debug session: " + debugId + " for tenant: " + tenantDomain;
+            String errorMsg = "Error while retrieving debug session: " + debugId;
             LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -123,12 +118,13 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     public DebugSessionData deleteAndReturnDebugSession(String debugId) throws DebugFrameworkServerException {
 
         String normalizedDebugId = normalizeDebugId(debugId);
-        String storageDebugId = toStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
         DebugSessionData data = null;
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            // First fetch the data.
-            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
+            // First fetch the data with a lock.
+            try (PreparedStatement prepStmt = connection
+                    .prepareStatement(SQL_GET_DEBUG_SESSION_FOR_UPDATE)) {
                 prepStmt.setString(1, storageDebugId);
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     if (resultSet.next()) {
@@ -160,7 +156,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     public void deleteDebugSession(String debugId) throws DebugFrameworkServerException {
 
         String normalizedDebugId = normalizeDebugId(debugId);
-        String storageDebugId = toStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
@@ -172,7 +168,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Unexpected error while deleting debug session: " + debugId;
+            String errorMsg = "Error while deleting debug session: " + debugId;
             LOG.error(errorMsg + ". Cause: " + e.getMessage());
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -182,18 +178,14 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     public void upsertDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
         String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
-        String storageDebugId = toStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             boolean success = false;
-            try {
-                try (PreparedStatement prepStmt = prepareUpsertStatement(connection)) {
-                    setUpsertParameters(prepStmt, storageDebugId, sessionData);
-                    prepStmt.executeUpdate();
-                    success = true;
-                }
-            } catch (SQLException e) {
-                throw e;
+            try (PreparedStatement prepStmt = prepareUpsertStatement(connection)) {
+                setUpsertParameters(prepStmt, storageDebugId, sessionData);
+                prepStmt.executeUpdate();
+                success = true;
             }
 
             if (success) {
@@ -340,21 +332,23 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     }
 
     /**
-     * Converts a normalized debug ID to the storage key by adding tenant prefix.
+     * Resolves the storage debug ID and validates tenant domain.
      *
-     * @param normalizedDebugId The normalized debug ID (without tenant prefix).
-     * @return The storage key with tenant prefix, or the original if no tenant context.
+     * @param normalizedDebugId The normalized debug ID.
+     * @return The storage key with tenant prefix.
+     * @throws DebugFrameworkServerException If tenant domain cannot be resolved.
      */
-    private String toStorageDebugId(String normalizedDebugId) {
+    private String resolveStorageDebugId(String normalizedDebugId) throws DebugFrameworkServerException {
 
         if (normalizedDebugId == null) {
             return null;
         }
         String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-        if (tenantDomain != null && !tenantDomain.trim().isEmpty()) {
-            return tenantDomain + ":" + normalizedDebugId;
+        if (tenantDomain == null || tenantDomain.trim().isEmpty()) {
+            throw new DebugFrameworkServerException(
+                    "Tenant domain could not be resolved for debug session storage ID: " + normalizedDebugId);
         }
-        return normalizedDebugId;
+        return tenantDomain + ":" + normalizedDebugId;
     }
 
     private void setSessionData(PreparedStatement preparedStatement, int parameterIndex,

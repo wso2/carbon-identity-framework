@@ -148,14 +148,15 @@ public class DebugSessionData implements Serializable {
     @Override
     public String toString() {
 
-        return "DebugSessionData{" +
-                "debugId='" + debugId + '\'' +
-                ", status='" + status + '\'' +
-                ", sessionDataSize=" + (sessionData != null ? sessionData.length : 0) +
-                ", resultJsonLength=" + (resultJson != null ? resultJson.length() : 0) +
-                ", createdTime=" + createdTime +
-                ", expiryTime=" + expiryTime +
-                '}';
+        StringBuilder sb = new StringBuilder("DebugSessionData{");
+        sb.append("debugId='").append(debugId).append('\'');
+        sb.append(", status='").append(status).append('\'');
+        sb.append(", sessionDataSize=").append(sessionData != null ? sessionData.length : 0);
+        sb.append(", resultJsonLength=").append(resultJson != null ? resultJson.length() : 0);
+        sb.append(", createdTime=").append(createdTime);
+        sb.append(", expiryTime=").append(expiryTime);
+        sb.append('}');
+        return sb.toString();
     }
 
 }

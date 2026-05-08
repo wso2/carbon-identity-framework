@@ -211,11 +211,15 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
     protected boolean isGoogleBackedOidcAuthenticator(IdentityProvider resource,
             FederatedAuthenticatorConfig config) {
 
+        if (config != null && IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(config.getName())) {
+            return true;
+        }
+
         if (resource != null && containsGoogleIndicator(resource.getIdentityProviderName())) {
             return true;
         }
 
-        Property[] properties = config.getProperties();
+        Property[] properties = config != null ? config.getProperties() : null;
         if (properties == null || properties.length == 0) {
             return false;
         }
@@ -241,11 +245,15 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
     protected boolean isFacebookBackedAuthenticator(IdentityProvider resource,
             FederatedAuthenticatorConfig config) {
 
+        if (config != null && IdpDebugConstants.IMPLEMENTATION_FACEBOOK.equalsIgnoreCase(config.getName())) {
+            return true;
+        }
+
         if (resource != null && containsFacebookIndicator(resource.getIdentityProviderName())) {
             return true;
         }
 
-        Property[] properties = config.getProperties();
+        Property[] properties = config != null ? config.getProperties() : null;
         if (properties == null || properties.length == 0) {
             return false;
         }

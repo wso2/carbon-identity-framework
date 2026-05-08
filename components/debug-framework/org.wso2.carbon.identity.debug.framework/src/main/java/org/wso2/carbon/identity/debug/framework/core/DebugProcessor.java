@@ -35,14 +35,6 @@ import javax.servlet.http.HttpServletResponse;
  * debug flow processing.
  * Uses DebugContext (protocol-agnostic) instead of WSO2's AuthenticationContext,
  * ensuring the debug framework remains independent of specific authentication implementations.
- * 
- * ARCHITECTURAL NOTE:
- * The debug framework was previously coupled to WSO2's AuthenticationContext, which violated
- * separation of concerns. This refactoring decouples the framework by using DebugContext,
- * a lightweight, protocol-agnostic property container. This enables:
- * - Protocol-independent debug operations (can be reused outside WSO2 auth flows)
- * - Easier testing (no dependency on framework internals)
- * - Flexibility for future integrations (non-WSO2 systems, custom flows, etc.)
  *
  * Subclasses MUST implement all abstract methods with their specific logic.
  * Subclasses should NOT make assumptions about protocols or resource types.
@@ -106,10 +98,7 @@ public abstract class DebugProcessor {
             sendDebugResponse(response, state, resourceIdentifier);
 
         } catch (IOException e) {
-            LOG.error("Unexpected error processing debug callback. Cause: " + e.getMessage());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Stack trace for debug callback processing failure: ", e);
-            }
+            LOG.error("Unexpected error processing debug callback.", e);
             handleUnexpectedError(e, debugContext);
 
             // Try to extract state for error response.
@@ -119,7 +108,16 @@ public abstract class DebugProcessor {
                     state = (String) debugContext.getProperty("DEBUG_STATE");
                 }
             }
-            sendDebugResponse(response, state, resourceIdentifier);
+            
+            try {
+                if (!response.isCommitted()) {
+                    sendDebugResponse(response, state, resourceIdentifier);
+                }
+            } catch (IOException innerEx) {
+                LOG.error("Error sending debug response after initial failure", innerEx);
+                e.addSuppressed(innerEx);
+            }
+            throw e;
         }
     }
 

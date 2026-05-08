@@ -23,26 +23,12 @@ import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * Abstract base class for resolving and creating debug context.
  * Extensions should implement specific context resolution logic for different
  * authentication protocols.
  */
 public abstract class DebugContextProvider {
-
-    /**
-     * Resolves and creates a debug context from the given HTTP request.
-     * Implementations should extract all required parameters from the request
-     * and delegate to the parameter-based {`@link` `#resolveContext`(Map)} method.
-     *
-     * @param request HTTP servlet request containing debug parameters.
-     * @return DebugContext containing resolved debug context data.
-     * @throws ContextResolutionException If context resolution fails.
-     */
-    public abstract DebugContext resolveContext(HttpServletRequest request)
-            throws ContextResolutionException;
 
     /**
      * Resolves and creates a debug context from a generic parameter map.

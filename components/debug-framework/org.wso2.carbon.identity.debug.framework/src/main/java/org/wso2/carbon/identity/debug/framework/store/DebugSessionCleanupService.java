@@ -46,12 +46,23 @@ public class DebugSessionCleanupService {
 
     public DebugSessionCleanupService() {
 
+        this(new DebugSessionDAOImpl());
+    }
+
+    /**
+     * Constructs a new cleanup service with a custom DAO.
+     * Useful for testing and dependency injection.
+     *
+     * @param debugSessionDAO Custom DAO implementation.
+     */
+    public DebugSessionCleanupService(DebugSessionDAO debugSessionDAO) {
+
         this.scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread cleanupThread = new Thread(runnable, "IdentityDebugSessionCleanupTask");
             cleanupThread.setDaemon(true);
             return cleanupThread;
         });
-        this.debugSessionDAO = new DebugSessionDAOImpl();
+        this.debugSessionDAO = debugSessionDAO;
         this.cleanupIntervalMinutes = getConfiguredCleanupInterval();
     }
 

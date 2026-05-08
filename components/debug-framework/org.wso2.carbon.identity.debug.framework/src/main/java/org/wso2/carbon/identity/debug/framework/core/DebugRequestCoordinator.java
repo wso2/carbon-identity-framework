@@ -140,7 +140,8 @@ public class DebugRequestCoordinator {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
-        if (debugRequest.getResourceType() == null || debugRequest.getResourceType().trim().isEmpty()) {
+        if (!debugRequest.isResultRetrieval() &&
+                (debugRequest.getResourceType() == null || debugRequest.getResourceType().trim().isEmpty())) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_RESOURCE_TYPE);
         }
     }
@@ -190,12 +191,13 @@ public class DebugRequestCoordinator {
      * @return The parsed result as a typed map.
      * @throws DebugFrameworkServerException If parsing fails.
      */
-    private Map<String, Object> parseResultJson(String resultJson) throws DebugFrameworkServerException {
+    private Map<String, Object> parseResultJson(String resultJson, String debugId)
+            throws DebugFrameworkServerException {
 
         try {
             return OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
         } catch (Exception e) {
-            LOG.error("Invalid debug result JSON for debug session. Cause: " + e.getMessage());
+            LOG.error("Invalid debug result JSON for debug session: " + debugId + ". Cause: " + e.getMessage());
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
@@ -218,7 +220,6 @@ public class DebugRequestCoordinator {
 
         // Create a minimal request context for the listeners.
         DebugRequest debugRequest = new DebugRequest();
-        debugRequest.setResourceType(DebugResourceType.CUSTOM.name());
         debugRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
         debugRequest.setResultRetrieval(true);
 
@@ -234,7 +235,7 @@ public class DebugRequestCoordinator {
                         ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
             }
 
-            Map<String, Object> resultData = parseResultJson(resultJson);
+            Map<String, Object> resultData = parseResultJson(resultJson, debugId);
 
             // Create response object for listeners.
             Map<String, Object> data = new HashMap<>();
@@ -283,12 +284,15 @@ public class DebugRequestCoordinator {
         try {
             return handler.handleCallback(request, response);
         } catch (Exception e) {
-            // Log at WARN (not ERROR, per guidelines) since the exception is already being handled.
-            LOG.warn("Debug callback handler failed during callback processing. "
-                    + "Debug session may be orphaned. Exception: " + e.getMessage());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug callback handler stack trace", e);
+            // Attempt to extract debug ID for better logging.
+            String debugId = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
+            if (debugId == null) {
+                debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
             }
+
+            // Log at WARN (not ERROR, per guidelines) since the exception is already being handled.
+            LOG.warn("Debug callback handler failed during callback processing for session: " + debugId
+                    + ". Debug session may be orphaned.", e);
             // Return false to prevent the request from continuing to regular auth flow.
             // This ensures that a failed callback doesn't accidentally continue authentication.
             return false;

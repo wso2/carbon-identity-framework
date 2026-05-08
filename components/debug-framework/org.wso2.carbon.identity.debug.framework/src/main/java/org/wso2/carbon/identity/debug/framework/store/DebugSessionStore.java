@@ -47,16 +47,27 @@ public final class DebugSessionStore {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
-    private final DebugSessionDAO debugSessionDAO = new DebugSessionDAOImpl();
+    private DebugSessionDAO debugSessionDAO;
 
     private DebugSessionStore() {
 
-        // Singleton — prevent external instantiation.
+        this.debugSessionDAO = new DebugSessionDAOImpl();
     }
+
 
     public static DebugSessionStore getInstance() {
 
         return INSTANCE;
+    }
+
+    /**
+     * Sets the DebugSessionDAO implementation.
+     *
+     * @param debugSessionDAO The DebugSessionDAO implementation.
+     */
+    public void setDebugSessionDAO(DebugSessionDAO debugSessionDAO) {
+
+        this.debugSessionDAO = debugSessionDAO;
     }
 
     /**
@@ -83,7 +94,7 @@ public final class DebugSessionStore {
             debugSessionDAO.createDebugSession(sessionData);
 
         } catch (IOException e) {
-            String errorMsg = "Error persisting debug session to DB";
+            String errorMsg = "Error persisting debug session: " + key + " to DB";
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -133,7 +144,7 @@ public final class DebugSessionStore {
                 return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
         } catch (IOException e) {
-            String errorMsg = "Error retrieving debug session from DB";
+            String errorMsg = "Error retrieving debug session: " + key + " from DB";
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
@@ -160,7 +171,7 @@ public final class DebugSessionStore {
                 return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
             }
         } catch (IOException e) {
-            String errorMsg = "Error retrieving debug session for removal";
+            String errorMsg = "Error retrieving debug session: " + key + " for removal";
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }

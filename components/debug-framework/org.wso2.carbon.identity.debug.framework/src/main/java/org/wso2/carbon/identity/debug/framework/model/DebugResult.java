@@ -234,13 +234,14 @@ public class DebugResult {
 
     @Override
     public String toString() {
-        
-        return "DebugResult{" +
-                "successful=" + successful +
-                ", debugId='" + debugId + '\'' +
-                ", timestamp=" + timestamp +
-                ", status='" + status + '\'' +
-                ", errorCode='" + errorCode + '\'' +
-                '}';
+
+        StringBuilder sb = new StringBuilder("DebugResult{");
+        sb.append("successful=").append(successful);
+        sb.append(", debugId='").append(debugId).append('\'');
+        sb.append(", timestamp=").append(timestamp);
+        sb.append(", status='").append(status).append('\'');
+        sb.append(", errorCode='").append(errorCode).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

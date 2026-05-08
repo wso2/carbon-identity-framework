@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.util;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.debug.framework.core.DiagnosticsRecorder;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DiagnosticEvent;
@@ -29,17 +28,52 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Utility for recording and retrieving protocol-agnostic debug diagnostic events.
- * Keeps a simple static API while diagnostics are internally modeled as
- * first-class {@link DiagnosticEvent} instances.
- * Map conversion is used only at integration boundaries where map payloads are required.
+ * Utility class for recording and retrieving diagnostic events.
  */
-public final class DebugDiagnosticsUtil {
+public class DebugDiagnosticsUtil {
 
     private static final DiagnosticsRecorder DIAGNOSTICS_RECORDER = new DiagnosticsRecorder();
 
     private DebugDiagnosticsUtil() {
+    }
 
+    /**
+     * Records a diagnostic event with stage, status, and message for a properties map.
+     *
+     * @param properties The properties map.
+     * @param stage The diagnostic stage.
+     * @param status The diagnostic status.
+     * @param message The diagnostic message.
+     */
+    public static void recordEvent(Map<String, Object> properties, String stage, String status, String message) {
+
+        recordEvent(properties, stage, status, message, null);
+    }
+
+    /**
+     * Records a diagnostic event with details for a properties map.
+     *
+     * @param properties The properties map.
+     * @param stage The diagnostic stage.
+     * @param status The diagnostic status.
+     * @param message The diagnostic message.
+     * @param details Additional event details.
+     */
+    public static void recordEvent(Map<String, Object> properties, String stage, String status, String message,
+                                   Map<String, Object> details) {
+
+        DIAGNOSTICS_RECORDER.record(properties, buildEvent(stage, status, message, details));
+    }
+
+    /**
+     * Records a typed diagnostic event for a properties map.
+     *
+     * @param properties The properties map.
+     * @param event Diagnostic event.
+     */
+    public static void recordEvent(Map<String, Object> properties, DiagnosticEvent event) {
+
+        DIAGNOSTICS_RECORDER.record(properties, event);
     }
 
     /**
@@ -65,7 +99,7 @@ public final class DebugDiagnosticsUtil {
      * @param details Additional event details.
      */
     public static void recordEvent(DebugContext context, String stage, String status, String message,
-            Map<String, Object> details) {
+                                   Map<String, Object> details) {
 
         DIAGNOSTICS_RECORDER.record(context, buildEvent(stage, status, message, details));
     }
@@ -77,45 +111,6 @@ public final class DebugDiagnosticsUtil {
      * @param event Diagnostic event.
      */
     public static void recordEvent(DebugContext context, DiagnosticEvent event) {
-
-        DIAGNOSTICS_RECORDER.record(context, event);
-    }
-
-    /**
-     * Records a diagnostic event with stage, status, and message for an authentication context.
-     *
-     * @param context The authentication context.
-     * @param stage The diagnostic stage.
-     * @param status The diagnostic status.
-     * @param message The diagnostic message.
-     */
-    public static void recordEvent(AuthenticationContext context, String stage, String status, String message) {
-
-        recordEvent(context, stage, status, message, null);
-    }
-
-    /**
-     * Records a diagnostic event with details for an authentication context.
-     *
-     * @param context The authentication context.
-     * @param stage The diagnostic stage.
-     * @param status The diagnostic status.
-     * @param message The diagnostic message.
-     * @param details Additional event details.
-     */
-    public static void recordEvent(AuthenticationContext context, String stage, String status, String message,
-            Map<String, Object> details) {
-
-        DIAGNOSTICS_RECORDER.record(context, buildEvent(stage, status, message, details));
-    }
-
-    /**
-     * Records a typed diagnostic event for an authentication context.
-     *
-     * @param context The authentication context.
-     * @param event Diagnostic event.
-     */
-    public static void recordEvent(AuthenticationContext context, DiagnosticEvent event) {
 
         DIAGNOSTICS_RECORDER.record(context, event);
     }
@@ -145,27 +140,27 @@ public final class DebugDiagnosticsUtil {
     }
 
     /**
-     * Returns diagnostics recorded in the authentication context.
+     * Returns diagnostics recorded in the properties map.
      *
-     * @param context The authentication context.
+     * @param properties The properties map.
      * @return Diagnostic events.
      */
-    public static List<Map<String, Object>> getDiagnostics(AuthenticationContext context) {
+    public static List<Map<String, Object>> getDiagnostics(Map<String, Object> properties) {
 
-        return DIAGNOSTICS_RECORDER.getDiagnostics(context).stream()
+        return DIAGNOSTICS_RECORDER.getDiagnostics(properties).stream()
                 .map(DiagnosticEvent::toMap)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
-     * Returns typed diagnostics recorded in the authentication context.
+     * Returns typed diagnostics recorded in the properties map.
      *
-     * @param context The authentication context.
+     * @param properties The properties map.
      * @return Diagnostic events.
      */
-    public static List<DiagnosticEvent> getDiagnosticEvents(AuthenticationContext context) {
+    public static List<DiagnosticEvent> getDiagnosticEvents(Map<String, Object> properties) {
 
-        return DIAGNOSTICS_RECORDER.getDiagnostics(context);
+        return DIAGNOSTICS_RECORDER.getDiagnostics(properties);
     }
 
     private static DiagnosticEvent buildEvent(String stage, String status, String message,

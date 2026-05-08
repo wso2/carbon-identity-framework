@@ -81,9 +81,8 @@ public class DebugServiceComponent {
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
-        } catch (Exception e) {
-            LOG.error("Error during debug framework component activation");
-            throw new RuntimeException("Failed to activate Debug Framework component", e);
+        } catch (Throwable e) {
+            LOG.error("Error during debug framework component activation", e);
         }
         
         LOG.debug("Debug Framework OSGi component activated successfully");
@@ -94,25 +93,29 @@ public class DebugServiceComponent {
 
         LOG.debug("Debug Framework OSGi component deactivating");
 
-        // Unregister request coordinator service.
-        requestCoordinatorServiceRegistration = unregisterService(requestCoordinatorServiceRegistration,
-                "DebugRequestCoordinator service unregistered");
+        try {
+            // Unregister request coordinator service.
+            requestCoordinatorServiceRegistration = unregisterService(requestCoordinatorServiceRegistration,
+                    "DebugRequestCoordinator service unregistered");
 
-        // Unregister auth interceptor service.
-        authInterceptorServiceRegistration = unregisterService(authInterceptorServiceRegistration,
-                "DebugAuthenticationInterceptor service unregistered");
+            // Unregister auth interceptor service.
+            authInterceptorServiceRegistration = unregisterService(authInterceptorServiceRegistration,
+                    "DebugAuthenticationInterceptor service unregistered");
 
-        // Unregister cleanup listener service.
-        cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
-                "DebugSessionCleanupExecutionListener service unregistered");
+            // Unregister cleanup listener service.
+            cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
+                    "DebugSessionCleanupExecutionListener service unregistered");
 
-        // Shutdown the cleanup service.
-        if (cleanupService != null) {
-            cleanupService.deactivate();
-            cleanupService = null;
+            // Shutdown the cleanup service.
+            if (cleanupService != null) {
+                cleanupService.deactivate();
+                cleanupService = null;
+            }
+
+            LOG.debug("Debug Framework OSGi component deactivated");
+        } catch (Throwable e) {
+            LOG.error("Error during debug framework component deactivation", e);
         }
-
-        LOG.debug("Debug Framework OSGi component deactivated");
     }
 
     /**
