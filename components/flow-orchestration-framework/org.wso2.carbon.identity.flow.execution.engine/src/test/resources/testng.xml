@@ -30,26 +30,4 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
         </classes>
     </test>
-    <test name="in-flow-extension-config-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowContextHandoverPolicyTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.config.FlowExecutionContextFilterTest"/>
-        </classes>
-    </test>
-    <test name="in-flow-extension-executor-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.HierarchicalPrefixMatcherTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.PathTypeAnnotationUtilTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionRequestBuilderTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionResponseProcessorTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.executor.InFlowExtensionExecutorTest"/>
-        </classes>
-    </test>
-    <test name="in-flow-extension-model-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.AccessConfigTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.OperationExecutionResultTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.inflow.extension.model.InFlowExtensionEventTest"/>
-        </classes>
-    </test>
 </suite>

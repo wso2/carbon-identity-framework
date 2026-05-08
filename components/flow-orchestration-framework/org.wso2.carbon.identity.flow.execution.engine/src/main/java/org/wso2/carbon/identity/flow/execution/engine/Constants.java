@@ -163,7 +163,7 @@ public class Constants {
                 "Error while loading claim metadata.",
                 "Error occurred loading the claim metadata for tenant: %s."),
         ERROR_CODE_INFLOW_EXTENSION_ERROR("65033",
-                "InFlow extension reported an error.",
+                "%s",
                 "%s"),
 
 
@@ -269,49 +269,6 @@ public class Constants {
         private ExecutorStatus() {
 
         }
-    }
-
-    /**
-     * Constants for the In-Flow Extension executor pipeline.
-     *
-     * <p>Keys are shared across the executor, request builder, and response processor
-     * via the {@link org.wso2.carbon.identity.action.execution.api.model.FlowContext}
-     * handoff mechanism. Path prefixes drive operation routing in the response processor.</p>
-     */
-    public static class InFlowExtensionConstants {
-
-        private InFlowExtensionConstants() {
-
-        }
-
-        // ---- FlowContext pipeline keys ----
-        public static final String FLOW_EXECUTION_CONTEXT_KEY = "flowExecutionContext";
-        public static final String HANDOVER_POLICY_KEY        = "handoverPolicy";
-        public static final String PATH_TYPE_ANNOTATIONS_KEY  = "pathTypeAnnotations";
-        public static final String MODIFY_PATHS_KEY           = "modifyPaths";
-        public static final String PENDING_CLAIMS_KEY         = "pendingClaims";
-        public static final String PENDING_CREDENTIALS_KEY    = "pendingCredentials";
-        public static final String PENDING_PROPERTIES_KEY     = "pendingProperties";
-        public static final String PENDING_REDIRECT_URL_KEY   = "pendingRedirectUrl";
-
-        // ---- Response info keys (FAILED path) ----
-        public static final String FAILURE_TYPE_KEY              = "failureType";
-        public static final String IN_FLOW_EXTENSION_FAILURE_TYPE = "IN_FLOW_EXTENSION_FAILURE";
-        public static final String FAILURE_MESSAGE_KEY           = "failureMessage";
-        public static final String FAILURE_DESCRIPTION_KEY       = "failureDescription";
-
-        // ---- Response info keys (ERROR path) ----
-        public static final String ERROR_MESSAGE_KEY             = "errorMessage";
-        public static final String ERROR_DESCRIPTION_KEY         = "errorDescription";
-
-        // ---- Context path prefixes ----
-        public static final String PROPERTIES_PATH_PREFIX      = "/properties/";
-        public static final String USER_CLAIMS_PATH_PREFIX     = "/user/claims/";
-        public static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
-
-        // ---- Miscellaneous ----
-        public static final String ACTION_ID_METADATA_KEY       = "actionId";
-        public static final String IN_FLOW_EXTENSION_ERROR_CODE = "65033";
     }
 
     public static class SQLConstants {
