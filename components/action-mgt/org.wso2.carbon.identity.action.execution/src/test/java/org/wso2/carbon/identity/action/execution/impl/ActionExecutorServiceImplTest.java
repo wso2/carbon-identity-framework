@@ -868,6 +868,108 @@ public class ActionExecutorServiceImplTest {
         }
     }
 
+    @Test
+    public void testActionExecuteWithPasswordCredentialUsesExistingAccessTokenWhenAvailable() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction("existing-access-token", null);
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(successInvocation);
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(0)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(1)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testActionExecuteWithPasswordCredentialFetchesAccessTokenWhenAbsent() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction(null, null);
+        wireClientCredentialPipeline(action, actionType);
+
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("new-token");
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(successInvocation);
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(1)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(1)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testActionExecuteWithPasswordCredentialRefreshesTokenAndRetriesOnUnauthorized() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction("expired-token", "refresh-token");
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse unauthorized = createUnauthorizedActionInvocationResponse();
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any()))
+                .thenReturn(unauthorized)
+                .thenReturn(successInvocation);
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("refreshed-token");
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(1)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(2)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class)
+    public void testActionExecuteWithPasswordCredentialExhaustsRetriesOnRepeatedUnauthorized() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction("expired-token", "refresh-token");
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse unauthorized = createUnauthorizedActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(unauthorized);
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("refreshed-token");
+
+        try {
+            actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+        } finally {
+            verify(apiClient, times(3)).callAPI(any(), any(), any(), any(), any());
+            verify(tokenManager, times(2)).getNewAccessToken(any(), any(), any());
+        }
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving access token for actions.")
+    public void testActionExecuteWithPasswordCredentialFailsWhenInitialTokenRetrievalFails() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction(null, null);
+        wireClientCredentialPipeline(action, actionType);
+
+        when(tokenManager.getNewAccessToken(any(), any(), any()))
+                .thenThrow(new ActionExecutionException("Error occurred while retrieving access token for actions."));
+
+        try {
+            actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+        } finally {
+            verify(apiClient, times(0)).callAPI(any(), any(), any(), any(), any());
+        }
+    }
+
     private void wireClientCredentialPipeline(Action action, ActionType actionType) throws Exception {
 
         when(actionManagementService.getActionsByActionType(any(), any()))
@@ -923,6 +1025,67 @@ public class ActionExecutorServiceImplTest {
                 new AuthProperty.AuthPropertyBuilder()
                         .name(Authentication.Property.SCOPES.getName())
                         .value("read").isConfidential(false).build()
+        );
+        when(authentication.getPropertiesWithDecryptedValues(any())).thenReturn(decryptedProperties);
+
+        if (existingAccessToken != null) {
+            AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                    .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                    .value(existingAccessToken)
+                    .isConfidential(true).build();
+            when(authentication.getInternalPropertyWithDecryptedValue(any(),
+                    eq(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())))
+                    .thenReturn(internalAccessToken);
+        }
+        if (existingRefreshToken != null) {
+            AuthProperty internalRefreshToken = new AuthProperty.AuthPropertyBuilder()
+                    .name(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())
+                    .value(existingRefreshToken)
+                    .isConfidential(true).build();
+            when(authentication.getInternalPropertyWithDecryptedValue(any(),
+                    eq(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())))
+                    .thenReturn(internalRefreshToken);
+        }
+
+        when(endpointConfig.getAuthentication()).thenReturn(authentication);
+        return action;
+    }
+
+    private Action createPasswordCredentialAction(String existingAccessToken, String existingRefreshToken)
+            throws ActionMgtException {
+
+        Action action = mock(Action.class);
+        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        when(action.getId()).thenReturn("actionId");
+        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        when(action.getActionVersion()).thenReturn("v1");
+
+        EndpointConfig endpointConfig = mock(EndpointConfig.class);
+        when(action.getEndpoint()).thenReturn(endpointConfig);
+        when(endpointConfig.getUri()).thenReturn("http://example.com");
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.PASSWORD_CREDENTIAL);
+
+        List<AuthProperty> decryptedProperties = Arrays.asList(
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_ID.getName())
+                        .value("clientId").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_SECRET.getName())
+                        .value("clientSecret").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.TOKEN_ENDPOINT.getName())
+                        .value("http://token-endpoint").isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.SCOPES.getName())
+                        .value("read").isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.USERNAME.getName())
+                        .value("user1").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.PASSWORD.getName())
+                        .value("pass1").isConfidential(true).build()
         );
         when(authentication.getPropertiesWithDecryptedValues(any())).thenReturn(decryptedProperties);
 

@@ -45,7 +45,8 @@ public class Authentication {
         BEARER("bearer", "BEARER"),
         BASIC("basic", "BASIC"),
         API_KEY("apiKey", "API_KEY"),
-        CLIENT_CREDENTIAL("clientCredential", "CLIENT_CREDENTIAL");
+        CLIENT_CREDENTIAL("clientCredential", "CLIENT_CREDENTIAL"),
+        PASSWORD_CREDENTIAL("passwordCredential", "PASSWORD_CREDENTIAL");
 
         private final String pathParam;
         private final String name;
@@ -145,6 +146,13 @@ public class Authentication {
         this.type = clientCredentialAuthBuilder.type;
         this.properties = clientCredentialAuthBuilder.properties;
         this.internalAuthProperties = clientCredentialAuthBuilder.internalProperties;
+    }
+
+    public Authentication(PasswordCredentialAuthBuilder passwordCredentialAuthBuilder) {
+
+        this.type = passwordCredentialAuthBuilder.type;
+        this.properties = passwordCredentialAuthBuilder.properties;
+        this.internalAuthProperties = passwordCredentialAuthBuilder.internalProperties;
     }
 
     public Type getType() {
@@ -355,6 +363,68 @@ public class Authentication {
     }
 
     /**
+     * Password Credential Authentication builder.
+     */
+    public static class PasswordCredentialAuthBuilder {
+
+        private final Type type;
+        private final List<AuthProperty> properties = new ArrayList<>();
+        private final List<AuthProperty> internalProperties = new ArrayList<>();
+
+        public PasswordCredentialAuthBuilder(String clientId, String clientSecret, String tokenEndpoint, String scopes,
+                                             String username, String password,
+                                             String internalAccessToken, String internalRefreshToken) {
+
+            this.type = Type.PASSWORD_CREDENTIAL;
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_ID.getName()).value(clientId).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_SECRET.getName()).value(clientSecret).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.TOKEN_ENDPOINT.getName()).value(tokenEndpoint).isConfidential(false).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.USERNAME.getName()).value(username).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.PASSWORD.getName()).value(password).isConfidential(true).build());
+            if (StringUtils.isNotBlank(scopes)) {
+                this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                        .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
+            }
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_ACCESS_TOKEN.getName()).value(internalAccessToken).isConfidential(true)
+                    .build());
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_REFRESH_TOKEN.getName()).value(internalRefreshToken).isConfidential(true)
+                    .build());
+        }
+
+        public PasswordCredentialAuthBuilder(String clientId, String clientSecret, String tokenEndpoint, String scopes,
+                                             String username, String password) {
+
+            this.type = Type.PASSWORD_CREDENTIAL;
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_ID.getName()).value(clientId).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.CLIENT_SECRET.getName()).value(clientSecret).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.TOKEN_ENDPOINT.getName()).value(tokenEndpoint).isConfidential(false).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.USERNAME.getName()).value(username).isConfidential(true).build());
+            this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.PASSWORD.getName()).value(password).isConfidential(true).build());
+            if (StringUtils.isNotBlank(scopes)) {
+                this.properties.add(new AuthProperty.AuthPropertyBuilder()
+                        .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
+            }
+        }
+
+        public Authentication build() {
+
+            return new Authentication(this);
+        }
+    }
+
+    /**
      * This builder build endpoint by taking the authentication type and properties as input.
      */
     public static class AuthenticationBuilder {
@@ -394,6 +464,18 @@ public class Authentication {
                             getProperty(Type.CLIENT_CREDENTIAL, authPropertiesMap, Property.CLIENT_SECRET.getName()),
                             getProperty(Type.CLIENT_CREDENTIAL, authPropertiesMap, Property.TOKEN_ENDPOINT.getName()),
                             getOptionalProperty(authPropertiesMap, Property.SCOPES.getName()),
+                            getOptionalProperty(authPropertiesMap, Property.INTERNAL_ACCESS_TOKEN.getName()),
+                            getOptionalProperty(authPropertiesMap, Property.INTERNAL_REFRESH_TOKEN.getName())
+                    ).build();
+                case PASSWORD_CREDENTIAL:
+                    return new Authentication.PasswordCredentialAuthBuilder(
+                            getProperty(Type.PASSWORD_CREDENTIAL, authPropertiesMap, Property.CLIENT_ID.getName()),
+                            getProperty(Type.PASSWORD_CREDENTIAL, authPropertiesMap, Property.CLIENT_SECRET.getName()),
+                            getProperty(Type.PASSWORD_CREDENTIAL, authPropertiesMap,
+                                    Property.TOKEN_ENDPOINT.getName()),
+                            getOptionalProperty(authPropertiesMap, Property.SCOPES.getName()),
+                            getProperty(Type.PASSWORD_CREDENTIAL, authPropertiesMap, Property.USERNAME.getName()),
+                            getProperty(Type.PASSWORD_CREDENTIAL, authPropertiesMap, Property.PASSWORD.getName()),
                             getOptionalProperty(authPropertiesMap, Property.INTERNAL_ACCESS_TOKEN.getName()),
                             getOptionalProperty(authPropertiesMap, Property.INTERNAL_REFRESH_TOKEN.getName())
                     ).build();

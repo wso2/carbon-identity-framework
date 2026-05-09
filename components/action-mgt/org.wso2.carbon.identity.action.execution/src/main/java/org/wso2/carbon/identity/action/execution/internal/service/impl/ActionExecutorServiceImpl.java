@@ -289,13 +289,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             ActionInvocationResponse actionInvocationResponse =
                     executeActionAsynchronously(action, authenticationMethod, payload);
 
-            if (endpointAuthentication.getType() == Authentication.Type.CLIENT_CREDENTIAL) {
+            if (isOAuth2GrantBasedAuth(endpointAuthentication.getType())) {
                 int maxRetries = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
                 int attempt = 0;
                 while (actionInvocationResponse.isUnauthorized() && attempt < maxRetries) {
                     attempt++;
                     logRetryAttemptDueToUnauthorizedResponse(action, attempt, maxRetries);
-                    authenticationMethod = buildClientCredentialAuthMethod(action, endpointAuthentication, true);
+                    authenticationMethod = buildOAuth2GrantAuthMethod(action, endpointAuthentication, true);
                     logActionRequest(action, payload);
                     actionInvocationResponse = executeActionAsynchronously(action, authenticationMethod, payload);
                 }
@@ -719,7 +719,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 authProperties = authentication.getPropertiesWithDecryptedValues(action.getId());
                 return new AuthMethods.APIKeyAuth(authProperties);
             case CLIENT_CREDENTIAL:
-                return buildClientCredentialAuthMethod(action, authentication, false);
+            case PASSWORD_CREDENTIAL:
+                return buildOAuth2GrantAuthMethod(action, authentication, false);
             case NONE:
                 return null;
             default:
@@ -727,8 +728,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private AuthMethods.AuthMethod buildClientCredentialAuthMethod(Action action, Authentication authentication,
-                                                                   boolean isRetry)
+    private AuthMethods.AuthMethod buildOAuth2GrantAuthMethod(Action action, Authentication authentication,
+                                                              boolean isRetry)
             throws ActionExecutionException, ActionMgtException {
 
         if (!isRetry) {
@@ -740,7 +741,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Using existing access token for action: " + action.getId() + " for authentication");
                 }
-                return buildClientCredentialAuth(decryptedInternalAccessToken.getValue());
+                return buildOAuth2GrantAuth(authentication.getType(), decryptedInternalAccessToken.getValue());
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No existing access token found for action: " + action.getId() +
@@ -759,17 +760,31 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throw e;
         }
         logSuccessResponseForAccessTokenRetrieval(action, authentication);
-        return buildClientCredentialAuth(newAccessToken);
+        return buildOAuth2GrantAuth(authentication.getType(), newAccessToken);
     }
 
-    private AuthMethods.AuthMethod buildClientCredentialAuth(String accessToken) {
+    private AuthMethods.AuthMethod buildOAuth2GrantAuth(Authentication.Type type, String accessToken)
+            throws ActionExecutionException {
 
         AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
                 .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
                 .value(accessToken)
                 .isConfidential(true)
                 .build();
-        return new AuthMethods.ClientCredentialAuth(Collections.singletonList(internalAccessToken));
+        List<AuthProperty> properties = Collections.singletonList(internalAccessToken);
+        switch (type) {
+            case CLIENT_CREDENTIAL:
+                return new AuthMethods.ClientCredentialAuth(properties);
+            case PASSWORD_CREDENTIAL:
+                return new AuthMethods.PasswordCredentialAuth(properties);
+            default:
+                throw new ActionExecutionException("Unsupported OAuth2 grant authentication type: " + type);
+        }
+    }
+
+    private boolean isOAuth2GrantBasedAuth(Authentication.Type type) {
+
+        return type == Authentication.Type.CLIENT_CREDENTIAL || type == Authentication.Type.PASSWORD_CREDENTIAL;
     }
 
     private String resolveInternalRefreshToken(Action action, Authentication authentication) {

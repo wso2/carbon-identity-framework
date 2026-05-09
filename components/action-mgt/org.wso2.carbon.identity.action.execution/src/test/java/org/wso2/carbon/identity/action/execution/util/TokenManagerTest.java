@@ -215,6 +215,89 @@ public class TokenManagerTest {
         assertEquals(TokenManager.getInstance(), TokenManager.getInstance());
     }
 
+    @Test
+    public void testGetNewAccessTokenForPasswordCredentialReturnsAccessTokenOnSuccess() throws Exception {
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.PASSWORD_CREDENTIAL);
+        when(authentication.getPropertiesWithDecryptedValues(ACTION_ID)).thenReturn(
+                passwordCredentialProperties("client-id", "client-secret", "https://token.endpoint",
+                        "openid email", "user1", "pass1"));
+
+        TokenInvocationResult successResult = mock(TokenInvocationResult.class);
+        when(successResult.getStatus()).thenReturn(TokenInvocationResult.Status.SUCCESS);
+        TokenResponse tokenResponse = mock(TokenResponse.class);
+        when(tokenResponse.getAccessToken()).thenReturn("new-access-token");
+        when(tokenResponse.getRefreshToken()).thenReturn("new-refresh-token");
+        when(successResult.getTokenResponse()).thenReturn(tokenResponse);
+
+        when(tokenAcquirerService.getNewAccessToken("existing-refresh-token")).thenReturn(successResult);
+
+        String result = tokenManager.getNewAccessToken(ACTION_ID, authentication, "existing-refresh-token");
+
+        assertEquals(result, "new-access-token");
+
+        ArgumentCaptor<TokenRequestContext> contextCaptor = ArgumentCaptor.forClass(TokenRequestContext.class);
+        verify(tokenAcquirerService).setTokenRequestContext(contextCaptor.capture());
+        TokenRequestContext capturedContext = contextCaptor.getValue();
+        assertEquals(capturedContext.getTokenEndpointUrl(), "https://token.endpoint");
+    }
+
+    @Test
+    public void testGetNewAccessTokenForPasswordCredentialWithoutRefreshTokenPassesNullToService() throws Exception {
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.PASSWORD_CREDENTIAL);
+        when(authentication.getPropertiesWithDecryptedValues(ACTION_ID)).thenReturn(
+                passwordCredentialProperties("client-id", "client-secret", "https://token.endpoint",
+                        null, "user1", "pass1"));
+
+        TokenInvocationResult successResult = mock(TokenInvocationResult.class);
+        when(successResult.getStatus()).thenReturn(TokenInvocationResult.Status.SUCCESS);
+        TokenResponse tokenResponse = mock(TokenResponse.class);
+        when(tokenResponse.getAccessToken()).thenReturn("a");
+        when(tokenResponse.getRefreshToken()).thenReturn("r");
+        when(successResult.getTokenResponse()).thenReturn(tokenResponse);
+
+        when(tokenAcquirerService.getNewAccessToken(any())).thenReturn(successResult);
+
+        tokenManager.getNewAccessToken(ACTION_ID, authentication, null);
+
+        verify(tokenAcquirerService).getNewAccessToken((String) null);
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving access token for actions.")
+    public void testGetNewAccessTokenForPasswordCredentialWrapsTokenHandlerException() throws Exception {
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.PASSWORD_CREDENTIAL);
+        when(authentication.getPropertiesWithDecryptedValues(ACTION_ID)).thenReturn(
+                passwordCredentialProperties("c", "s", "http://t", null, "u", "p"));
+
+        when(tokenAcquirerService.getNewAccessToken(any()))
+                .thenThrow(new TokenHandlerException(
+                        ErrorMessage.ERROR_CODE_GETTING_ACCESS_TOKEN, "password"));
+
+        tokenManager.getNewAccessToken(ACTION_ID, authentication, null);
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving access token for actions.")
+    public void testGetNewAccessTokenForPasswordCredentialThrowsWhenStatusIsNotSuccess() throws Exception {
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.PASSWORD_CREDENTIAL);
+        when(authentication.getPropertiesWithDecryptedValues(ACTION_ID)).thenReturn(
+                passwordCredentialProperties("c", "s", "http://t", "scope", "u", "p"));
+
+        TokenInvocationResult result = mock(TokenInvocationResult.class);
+        when(result.getStatus()).thenReturn(TokenInvocationResult.Status.ERROR);
+        when(tokenAcquirerService.getNewAccessToken(any())).thenReturn(result);
+
+        tokenManager.getNewAccessToken(ACTION_ID, authentication, null);
+    }
+
     private List<AuthProperty> clientCredentialProperties(String clientId, String clientSecret,
                                                           String tokenEndpoint, String scopes) {
 
@@ -231,6 +314,32 @@ public class TokenManagerTest {
                 new AuthProperty.AuthPropertyBuilder()
                         .name(Authentication.Property.SCOPES.getName())
                         .value(scopes).isConfidential(false).build()
+        );
+    }
+
+    private List<AuthProperty> passwordCredentialProperties(String clientId, String clientSecret,
+                                                            String tokenEndpoint, String scopes,
+                                                            String username, String password) {
+
+        return Arrays.asList(
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_ID.getName())
+                        .value(clientId).isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_SECRET.getName())
+                        .value(clientSecret).isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.TOKEN_ENDPOINT.getName())
+                        .value(tokenEndpoint).isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.SCOPES.getName())
+                        .value(scopes).isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.USERNAME.getName())
+                        .value(username).isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.PASSWORD.getName())
+                        .value(password).isConfidential(true).build()
         );
     }
 }
