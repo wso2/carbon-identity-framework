@@ -183,13 +183,6 @@ public class CacheBackedActionManagementService implements ActionManagementServi
     }
 
     @Override
-    public boolean isActionNameAvailable(String actionType, String name, String tenantDomain)
-            throws ActionMgtException {
-
-        return ACTION_MGT_SERVICE.isActionNameAvailable(actionType, name, tenantDomain);
-    }
-
-    @Override
     public boolean isActionNameAvailable(String actionType, String name, String excludeActionId,
                                          String tenantDomain) throws ActionMgtException {
 

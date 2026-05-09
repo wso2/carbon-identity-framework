@@ -79,7 +79,6 @@ public class FlowExecutionEngineServiceComponent {
                     FlowExecutionService.getInstance(), null);
             bundleContext.registerService(FlowExecutionListener.class.getName(), new InputProcessingListener(),
                     null);
-
             LOG.debug("Flow Engine service successfully activated.");
         } catch (Throwable e) {
             LOG.error("Error while initiating Flow Engine service", e);
@@ -242,7 +241,6 @@ public class FlowExecutionEngineServiceComponent {
         LOG.debug("Unsetting the Claim Metadata Management Service in the Flow Engine component.");
         FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
-
 
     @Reference(
             name = "identity.event.service",

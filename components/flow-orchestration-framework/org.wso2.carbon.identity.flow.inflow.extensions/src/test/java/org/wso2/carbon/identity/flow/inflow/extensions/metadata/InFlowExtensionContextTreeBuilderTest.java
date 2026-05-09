@@ -97,14 +97,44 @@ public class InFlowExtensionContextTreeBuilderTest {
 
     // ========================= flow branch =========================
 
+    /**
+     * With an empty allow-list the modifiable fields (claims, credentials, properties) are still
+     * present but carry only MODIFY — no EXPOSE. Read-only fields (flow branch, user read-only
+     * scalar) are absent because they have no modify path.
+     */
     @Test
-    public void testEmptyAllowListProducesEmptyTree() {
+    public void testEmptyAllowListRestrictsExposeOnly() {
 
         InFlowExtensionContextTreeMetadata meta = buildWith(
                 new HashSet<>(), new HashSet<>(), null);
 
-        assertTrue(meta.getContextTree().isEmpty(),
-                "Empty allow-list must produce an empty tree");
+        // Modifiable nodes always present.
+        assertNotNull(findNode(meta, "user"),       "user node must be present (has modifiable children)");
+        assertNotNull(findNode(meta, "properties"), "properties node must be present (modifiable)");
+
+        // Read-only-only node absent when nothing configured.
+        assertNull(findNode(meta, "flow"), "flow node must be absent when no flow attrs configured");
+
+        // Properties has only MODIFY.
+        InFlowExtensionContextTreeNode propsNode = findNode(meta, "properties");
+        assertFalse(propsNode.getAllowedOperations().contains("EXPOSE"),
+                "properties must not have EXPOSE when not in allow-list");
+        assertTrue(propsNode.getAllowedOperations().contains("MODIFY"),
+                "properties must have MODIFY regardless of allow-list");
+
+        // Claims and credentials carry only MODIFY.
+        List<InFlowExtensionContextTreeNode> userChildren = findNode(meta, "user").getChildren();
+        InFlowExtensionContextTreeNode claimsNode = findChildNode(userChildren, "claims");
+        assertNotNull(claimsNode, "claims always present");
+        assertFalse(claimsNode.getAllowedOperations().contains("EXPOSE"),
+                "claims must not have EXPOSE when not in allow-list");
+        assertTrue(claimsNode.getAllowedOperations().contains("MODIFY"));
+
+        InFlowExtensionContextTreeNode credNode = findChildNode(userChildren, "credentials");
+        assertNotNull(credNode, "credentials always present");
+        assertFalse(credNode.getAllowedOperations().contains("EXPOSE"),
+                "credentials must not have EXPOSE when not in allow-list");
+        assertTrue(credNode.getAllowedOperations().contains("MODIFY"));
     }
 
     @Test
@@ -139,13 +169,26 @@ public class InFlowExtensionContextTreeBuilderTest {
     // ========================= user branch =========================
 
     @Test
-    public void testUserNodeAbsentWhenNoUserAttrsIncluded() {
+    public void testReadOnlyUserFieldsAbsentWhenNoUserAttrsIncluded() {
 
         InFlowExtensionContextTreeMetadata meta = buildWith(
                 new HashSet<>(Arrays.asList("tenantDomain")),
                 new HashSet<>(), null);
 
-        assertNull(findNode(meta, "user"), "user node must not appear");
+        // User node is always present (claims + credentials always included).
+        InFlowExtensionContextTreeNode userNode = findNode(meta, "user");
+        assertNotNull(userNode, "user node must be present");
+
+        List<InFlowExtensionContextTreeNode> children = userNode.getChildren();
+
+        // Read-only user fields absent when not configured.
+        assertFalse(hasChildKey(children, "userId"),          "userId must not appear");
+        assertFalse(hasChildKey(children, "username"),        "username must not appear");
+        assertFalse(hasChildKey(children, "userStoreDomain"), "userStoreDomain must not appear");
+
+        // Modifiable fields still present.
+        assertTrue(hasChildKey(children, "claims"),      "claims must always be present");
+        assertTrue(hasChildKey(children, "credentials"), "credentials must always be present");
     }
 
     @Test
@@ -159,11 +202,27 @@ public class InFlowExtensionContextTreeBuilderTest {
         assertNotNull(userNode, "user node should be present");
 
         List<InFlowExtensionContextTreeNode> children = userNode.getChildren();
-        assertTrue(hasChildKey(children, "username"),       "username expected");
-        assertTrue(hasChildKey(children, "claims"),         "claims expected");
-        assertFalse(hasChildKey(children, "userId"),        "userId not in allow-list");
-        assertFalse(hasChildKey(children, "userStoreDomain"), "userStoreDomain not in allow-list");
-        assertFalse(hasChildKey(children, "credentials"),   "credentials not in allow-list");
+
+        // Configured read-only field is exposed.
+        assertTrue(hasChildKey(children, "username"), "username expected");
+
+        // Claims configured → EXPOSE+MODIFY.
+        InFlowExtensionContextTreeNode claimsNode = findChildNode(children, "claims");
+        assertNotNull(claimsNode, "claims must be present");
+        assertTrue(claimsNode.getAllowedOperations().contains("EXPOSE"), "claims must have EXPOSE");
+        assertTrue(claimsNode.getAllowedOperations().contains("MODIFY"), "claims must have MODIFY");
+
+        // Read-only fields not configured → absent.
+        assertFalse(hasChildKey(children, "userId"),          "userId not in allow-list");
+        assertFalse(hasChildKey(children, "userStoreDomain"),  "userStoreDomain not in allow-list");
+
+        // credentials not configured but always present → MODIFY only, no EXPOSE.
+        InFlowExtensionContextTreeNode credNode = findChildNode(children, "credentials");
+        assertNotNull(credNode, "credentials always present");
+        assertFalse(credNode.getAllowedOperations().contains("EXPOSE"),
+                "credentials must not have EXPOSE when not in allow-list");
+        assertTrue(credNode.getAllowedOperations().contains("MODIFY"),
+                "credentials must have MODIFY regardless");
     }
 
     @Test
@@ -188,17 +247,22 @@ public class InFlowExtensionContextTreeBuilderTest {
     // ========================= properties branch =========================
 
     @Test
-    public void testPropertiesNodeAbsentWhenNotInAllowList() {
+    public void testPropertiesHasOnlyModifyWhenNotExposed() {
 
         InFlowExtensionContextTreeMetadata meta = buildWith(
-                new HashSet<>(Arrays.asList("tenantDomain")),
+                new HashSet<>(Arrays.asList("tenantDomain")), // properties not in allow-list
                 new HashSet<>(), null);
 
-        assertNull(findNode(meta, "properties"), "properties node must not appear");
+        InFlowExtensionContextTreeNode propsNode = findNode(meta, "properties");
+        assertNotNull(propsNode, "properties node must always be present");
+        assertFalse(propsNode.getAllowedOperations().contains("EXPOSE"),
+                "properties must not expose when not in allow-list");
+        assertTrue(propsNode.getAllowedOperations().contains("MODIFY"),
+                "properties must always allow MODIFY");
     }
 
     @Test
-    public void testPropertiesNodeAppearsWhenInAllowList() {
+    public void testPropertiesHasExposeAndModifyWhenExposed() {
 
         InFlowExtensionContextTreeMetadata meta = buildWith(
                 new HashSet<>(Arrays.asList("properties")),
@@ -206,6 +270,79 @@ public class InFlowExtensionContextTreeBuilderTest {
 
         InFlowExtensionContextTreeNode propsNode = findNode(meta, "properties");
         assertNotNull(propsNode, "properties node should be present");
+        assertTrue(propsNode.getAllowedOperations().contains("EXPOSE"),
+                "properties must have EXPOSE when in allow-list");
+        assertTrue(propsNode.getAllowedOperations().contains("MODIFY"),
+                "properties must always have MODIFY");
+    }
+
+    @Test
+    public void testClaimsHasOnlyModifyWhenNotExposed() {
+
+        InFlowExtensionContextTreeMetadata meta = buildWith(
+                new HashSet<>(),
+                new HashSet<>(), null); // "claims" not in userAttrs
+
+        List<InFlowExtensionContextTreeNode> userChildren = findNode(meta, "user").getChildren();
+        InFlowExtensionContextTreeNode claimsNode = findChildNode(userChildren, "claims");
+        assertNotNull(claimsNode);
+        assertFalse(claimsNode.getAllowedOperations().contains("EXPOSE"));
+        assertTrue(claimsNode.getAllowedOperations().contains("MODIFY"));
+    }
+
+    @Test
+    public void testClaimsHasExposeAndModifyWhenExposed() {
+
+        InFlowExtensionContextTreeMetadata meta = buildWith(
+                new HashSet<>(),
+                new HashSet<>(Arrays.asList("claims")), null);
+
+        List<InFlowExtensionContextTreeNode> userChildren = findNode(meta, "user").getChildren();
+        InFlowExtensionContextTreeNode claimsNode = findChildNode(userChildren, "claims");
+        assertNotNull(claimsNode);
+        assertTrue(claimsNode.getAllowedOperations().contains("EXPOSE"));
+        assertTrue(claimsNode.getAllowedOperations().contains("MODIFY"));
+    }
+
+    @Test
+    public void testCredentialsHasOnlyModifyWhenNotExposed() {
+
+        InFlowExtensionContextTreeMetadata meta = buildWith(
+                new HashSet<>(),
+                new HashSet<>(), null); // "userCredentials" not in userAttrs
+
+        List<InFlowExtensionContextTreeNode> userChildren = findNode(meta, "user").getChildren();
+        InFlowExtensionContextTreeNode credNode = findChildNode(userChildren, "credentials");
+        assertNotNull(credNode);
+        assertFalse(credNode.getAllowedOperations().contains("EXPOSE"));
+        assertTrue(credNode.getAllowedOperations().contains("MODIFY"));
+    }
+
+    @Test
+    public void testCredentialsHasExposeAndModifyWhenExposed() {
+
+        InFlowExtensionContextTreeMetadata meta = buildWith(
+                new HashSet<>(),
+                new HashSet<>(Arrays.asList("userCredentials")), null);
+
+        List<InFlowExtensionContextTreeNode> userChildren = findNode(meta, "user").getChildren();
+        InFlowExtensionContextTreeNode credNode = findChildNode(userChildren, "credentials");
+        assertNotNull(credNode);
+        assertTrue(credNode.getAllowedOperations().contains("EXPOSE"));
+        assertTrue(credNode.getAllowedOperations().contains("MODIFY"));
+    }
+
+    @Test
+    public void testFullPassthroughGivesExposeOnClaimsAndCredentials() {
+
+        // flowUser in attrs → full passthrough → all user fields exposed.
+        InFlowExtensionContextTreeMetadata meta = buildWith(
+                new HashSet<>(Arrays.asList("flowUser")),
+                new HashSet<>(), null);
+
+        List<InFlowExtensionContextTreeNode> userChildren = findNode(meta, "user").getChildren();
+        assertTrue(findChildNode(userChildren, "claims").getAllowedOperations().contains("EXPOSE"));
+        assertTrue(findChildNode(userChildren, "credentials").getAllowedOperations().contains("EXPOSE"));
     }
 
     // ========================= flowType metadata field =========================
@@ -278,5 +415,19 @@ public class InFlowExtensionContextTreeBuilderTest {
             }
         }
         return false;
+    }
+
+    private InFlowExtensionContextTreeNode findChildNode(List<InFlowExtensionContextTreeNode> children,
+                                                         String key) {
+
+        if (children == null) {
+            return null;
+        }
+        for (InFlowExtensionContextTreeNode child : children) {
+            if (key.equals(child.getKey())) {
+                return child;
+            }
+        }
+        return null;
     }
 }

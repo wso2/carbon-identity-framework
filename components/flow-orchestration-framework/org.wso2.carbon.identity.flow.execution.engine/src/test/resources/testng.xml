@@ -19,12 +19,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.flow.execution.engine">
-    <test name="flow-engine-config-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfigTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowExecutionContextFilterTest"/>
-        </classes>
-    </test>
     <test name="flow-engine-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.flow.execution.engine.FlowServiceTest"/>
@@ -33,7 +27,14 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNodeTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtilsTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.dao.FlowContextStoreDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListenerTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
+        </classes>
+    </test>
+    <test name="flow-engine-config-tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfigTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowExecutionContextFilterTest"/>
         </classes>
     </test>
 </suite>

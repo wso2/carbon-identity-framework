@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.flow.inflow.extensions.metadata;
 
 import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,21 +120,29 @@ public class InFlowExtensionContextTreeBuilder {
     }
 
     /**
-     * Build the "user" subtree. {@code userAttrs == null} means full passthrough (show all).
+     * Build the "user" subtree.
+     *
+     * <p>Strategy:
+     * <ul>
+     *   <li><b>Read-only fields</b> (userId, username, userStoreDomain): only emitted when the
+     *       attribute is in the allow-list (or full-passthrough is active). They support EXPOSE
+     *       only, so excluding them when restricted is the correct behaviour.</li>
+     *   <li><b>Modifiable fields</b> (claims, credentials): always emitted because modifications
+     *       bypass the context handover — they travel through the executor response and are applied
+     *       by the task execution node. EXPOSE is added only when the attribute is configured.</li>
+     * </ul>
+     *
+     * <p>{@code userAttrs == null} signals full-passthrough (show and expose everything).
      */
     private InFlowExtensionContextTreeNode buildUserNode(Set<String> attrs, Set<String> userAttrs) {
 
-        // User branch is shown when flowUser is in attrs OR any individual user attr is listed.
-        boolean fullPassthrough = attrs.contains(FlowContextHandoverConstants.ATTR_FLOW_USER);
-        boolean hasAnyUserAttr = fullPassthrough
-                || (userAttrs != null && !userAttrs.isEmpty());
-        if (!hasAnyUserAttr) {
-            return null;
-        }
+        // userAttrs == null → full passthrough set by the caller (build()).
+        boolean fullPassthrough = (userAttrs == null);
 
         List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
 
-        if (fullPassthrough || (userAttrs != null && userAttrs.contains("userId"))) {
+        // ── Read-only fields: emit only when exposed ────────────────────────────────────────
+        if (fullPassthrough || userAttrs.contains("userId")) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("userId")
                     .title("User ID")
@@ -146,7 +153,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .replaceable(false)
                     .build());
         }
-        if (fullPassthrough || (userAttrs != null && userAttrs.contains("username"))) {
+        if (fullPassthrough || userAttrs.contains("username")) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("username")
                     .title("Username")
@@ -157,7 +164,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .replaceable(false)
                     .build());
         }
-        if (fullPassthrough || (userAttrs != null && userAttrs.contains("userStoreDomain"))) {
+        if (fullPassthrough || userAttrs.contains("userStoreDomain")) {
             children.add(InFlowExtensionContextTreeNode.builder()
                     .key("userStoreDomain")
                     .title("User Store Domain")
@@ -168,35 +175,39 @@ public class InFlowExtensionContextTreeBuilder {
                     .replaceable(false)
                     .build());
         }
-        if (fullPassthrough || (userAttrs != null && userAttrs.contains("claims"))) {
-            children.add(InFlowExtensionContextTreeNode.builder()
-                    .key("claims")
-                    .title("Claims")
-                    .path("/user/claims/")
-                    .dataType("Map<String, String>")
-                    .nodeType(NODE_MAP)
-                    .allowedOperations(Arrays.asList(OP_EXPOSE, OP_MODIFY))
-                    .dynamicEntryAllowed(true)
-                    .dynamicEntryType("String")
-                    .children(Collections.emptyList())
-                    .build());
-        }
-        if (fullPassthrough || (userAttrs != null && userAttrs.contains("userCredentials"))) {
-            children.add(InFlowExtensionContextTreeNode.builder()
-                    .key("credentials")
-                    .title("Credentials")
-                    .path("/user/credentials/")
-                    .dataType("Map<String, char[]>")
-                    .nodeType(NODE_MAP)
-                    .allowedOperations(Arrays.asList(OP_EXPOSE, OP_MODIFY))
-                    .dynamicEntryAllowed(true)
-                    .dynamicEntryType("char[]")
-                    .children(Collections.emptyList())
-                    .build());
-        }
-        if (children.isEmpty()) {
-            return null;
-        }
+
+        // ── Modifiable fields: always present, restrict EXPOSE when not configured ──────────
+        List<String> claimsOps = (fullPassthrough || userAttrs.contains("claims"))
+                ? Arrays.asList(OP_EXPOSE, OP_MODIFY)
+                : Collections.singletonList(OP_MODIFY);
+        children.add(InFlowExtensionContextTreeNode.builder()
+                .key("claims")
+                .title("Claims")
+                .path("/user/claims/")
+                .dataType("Map<String, String>")
+                .nodeType(NODE_MAP)
+                .allowedOperations(claimsOps)
+                .dynamicEntryAllowed(true)
+                .dynamicEntryType("String")
+                .children(Collections.emptyList())
+                .build());
+
+        List<String> credOps = (fullPassthrough || userAttrs.contains("userCredentials"))
+                ? Arrays.asList(OP_EXPOSE, OP_MODIFY)
+                : Collections.singletonList(OP_MODIFY);
+        children.add(InFlowExtensionContextTreeNode.builder()
+                .key("credentials")
+                .title("Credentials")
+                .path("/user/credentials/")
+                .dataType("Map<String, char[]>")
+                .nodeType(NODE_MAP)
+                .allowedOperations(credOps)
+                .dynamicEntryAllowed(true)
+                .dynamicEntryType("char[]")
+                .children(Collections.emptyList())
+                .build());
+
+        // User node is always returned (claims + credentials are always present).
         return InFlowExtensionContextTreeNode.builder()
                 .key("user")
                 .title("User")
@@ -249,30 +260,24 @@ public class InFlowExtensionContextTreeBuilder {
     }
 
     /**
-     * Build the "properties" node if {@code "properties"} is in the included attributes.
+     * Build the "properties" node.
+     *
+     * <p>Properties is always emitted because modifications bypass the context handover (they
+     * travel through the executor response and are applied by the task execution node).
+     * EXPOSE is included only when {@code "properties"} is in the allow-list.
      */
     private InFlowExtensionContextTreeNode buildPropertiesNode(Set<String> attrs) {
 
-        if (!attrs.contains("properties")) {
-            return InFlowExtensionContextTreeNode.builder()
-                    .key("properties")
-                    .title("Properties")
-                    .path("/properties/")
-                    .dataType("Map<String, Object>")
-                    .nodeType(NODE_COMPLEX_MAP)
-                    .allowedOperations(Arrays.asList(OP_MODIFY))
-                    .dynamicEntryAllowed(true)
-                    .dynamicEntryType("Object")
-                    .children(Collections.emptyList())
-                    .build();
-        }
+        List<String> ops = attrs.contains("properties")
+                ? Arrays.asList(OP_EXPOSE, OP_MODIFY)
+                : Collections.singletonList(OP_MODIFY);
         return InFlowExtensionContextTreeNode.builder()
                 .key("properties")
                 .title("Properties")
                 .path("/properties/")
                 .dataType("Map<String, Object>")
                 .nodeType(NODE_COMPLEX_MAP)
-                .allowedOperations(Arrays.asList(OP_EXPOSE, OP_MODIFY))
+                .allowedOperations(ops)
                 .dynamicEntryAllowed(true)
                 .dynamicEntryType("Object")
                 .children(Collections.emptyList())

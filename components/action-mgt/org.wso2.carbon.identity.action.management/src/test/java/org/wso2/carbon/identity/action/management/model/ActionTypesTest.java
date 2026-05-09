@@ -56,7 +56,7 @@ public class ActionTypesTest {
                 {Action.ActionTypes.IN_FLOW_EXTENSION, "inFlowExtension", "IN_FLOW_EXTENSION",
                         "In-Flow Extension",
                         "Configure an extension point within any flow via a custom service.",
-                        Action.ActionTypes.Category.EXTENSION}
+                        Action.ActionTypes.Category.IN_FLOW_EXTENSION}
         };
     }
 
@@ -81,7 +81,7 @@ public class ActionTypesTest {
                                 Action.ActionTypes.PRE_UPDATE_PASSWORD, Action.ActionTypes.PRE_UPDATE_PROFILE,
                                 Action.ActionTypes.PRE_REGISTRATION, Action.ActionTypes.PRE_ISSUE_ID_TOKEN}},
                 {Action.ActionTypes.Category.IN_FLOW, new Action.ActionTypes[]{Action.ActionTypes.AUTHENTICATION}},
-                {Action.ActionTypes.Category.EXTENSION,
+                {Action.ActionTypes.Category.IN_FLOW_EXTENSION,
                         new Action.ActionTypes[]{Action.ActionTypes.IN_FLOW_EXTENSION}}
         };
     }
