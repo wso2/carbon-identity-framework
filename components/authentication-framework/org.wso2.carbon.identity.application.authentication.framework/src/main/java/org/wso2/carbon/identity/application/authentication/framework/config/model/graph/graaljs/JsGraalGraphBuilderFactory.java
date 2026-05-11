@@ -227,7 +227,7 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
         if (isRemoteProviderRequired(authenticationContext)) {
             return remoteProvider().create(authenticationContext, stepConfigMap);
         }
-        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
+        return this.createBuilder(authenticationContext, stepConfigMap);
     }
 
     @Deprecated
@@ -244,8 +244,7 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
         if (isRemoteProviderRequired(authenticationContext)) {
             return remoteProvider().create(authenticationContext, stepConfigMap, currentNode);
         }
-        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap,
-                                       createEngine(authenticationContext), currentNode);
+        return this.createBuilder(authenticationContext, stepConfigMap, currentNode);
     }
 
     /**
