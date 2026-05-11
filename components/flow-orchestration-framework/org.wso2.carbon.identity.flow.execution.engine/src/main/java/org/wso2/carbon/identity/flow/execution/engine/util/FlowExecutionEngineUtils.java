@@ -634,7 +634,7 @@ public class FlowExecutionEngineUtils {
         NodeResponse currentNodeResponse = context.getCurrentNodeResponse();
         NodeConfig currentNode = context.getCurrentNode();
         ExecutorDTO executorConfig = currentNode.getExecutorConfig();
-        if (currentNodeResponse.getError() != null) {
+        if (currentNodeResponse != null && currentNodeResponse.getError() != null) {
             errorCode = currentNodeResponse.getError();
         }
 
@@ -644,11 +644,13 @@ public class FlowExecutionEngineUtils {
         properties.put(CURRENT_NODE_TYPE, currentNode.getType());
         properties.put(CONTEXT_ID, context.getContextIdentifier());
         properties.put(TENANT_DOMAIN, context.getTenantDomain());
-        properties.put(CURRENT_NODE_RESPONSE_STATUS, currentNodeResponse.getStatus());
-        properties.put(CURRENT_NODE_RESPONSE_TYPE, currentNodeResponse.getType());
         properties.put(APPLICATION_ID, context.getApplicationId());
         properties.put(EXECUTOR_NAME, executorConfig != null ? executorConfig.getName() : null);
         properties.put(ERROR_CODE, errorCode);
+        if (currentNodeResponse != null) {
+            properties.put(CURRENT_NODE_RESPONSE_STATUS, currentNodeResponse.getStatus());
+            properties.put(CURRENT_NODE_RESPONSE_TYPE, currentNodeResponse.getType());
+        }
         return properties;
     }
 }
