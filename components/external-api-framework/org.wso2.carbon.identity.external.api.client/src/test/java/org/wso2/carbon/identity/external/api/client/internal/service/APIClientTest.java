@@ -379,4 +379,285 @@ public class APIClientTest {
 
         apiClient.callAPI(requestContext, null);
     }
+
+    /**
+     * Test that a response whose body is within the client-level limit is returned successfully.
+     */
+    @Test
+    public void testResponseWithinClientLevelLimitSucceeds() throws Exception {
+
+        final String smallBody = "OK";
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = smallBody.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Client with a small limit that still covers the 2-byte response.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = limitedClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getResponseBody(), smallBody);
+    }
+
+    /**
+     * Test that a response whose Content-Length header exceeds the client-level limit fails fast.
+     */
+    @Test
+    public void testResponseExceedsClientLevelLimitViaContentLengthFails() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length); // Sets Content-Length.
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Limit smaller than the 20-byte body.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        try {
+            limitedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException for response size limit exceeded.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED.getCode());
+        }
+    }
+
+    /**
+     * Test that a response without a Content-Length header whose stream exceeds the limit is rejected.
+     */
+    @Test
+    public void testResponseExceedsClientLevelLimitViaStreamWithNoContentLengthFails() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                // Use chunked transfer so no Content-Length header is sent.
+                exchange.getResponseHeaders().set("Transfer-Encoding", "chunked");
+                exchange.sendResponseHeaders(200, 0);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(body.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Limit smaller than the 20-byte body.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        try {
+            limitedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException for response size limit exceeded.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED.getCode());
+        }
+    }
+
+    /**
+     * Test that a per-invocation response limit override takes precedence over the client-level default
+     * and correctly rejects a response body larger than the invocation-level limit.
+     */
+    @Test
+    public void testInvocationLevelLimitOverrideRejectsOversizedResponse() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Client default is generous (1 KB), but invocation overrides to 10 bytes.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(1024L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        // Invocation-level override is smaller than the 20-byte body.
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+        invocationConfig.setResponseLimitInBytes(10L);
+
+        try {
+            limitedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException for response size limit exceeded.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_RESPONSE_SIZE_LIMIT_EXCEEDED.getCode());
+        }
+    }
+
+    /**
+     * Test that a per-invocation response limit override higher than the client default allows a
+     * response that would otherwise be blocked by the client-level limit.
+     */
+    @Test
+    public void testInvocationLevelLimitOverrideAllowsLargerResponseThanClientDefault() throws Exception {
+
+        final String body = "1234567890ABCDEFGHIJ"; // 20 bytes.
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = body.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Client default is 10 bytes (smaller than the body).
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .responseLimitInBytes(10L)
+                .build();
+        APIClient limitedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        // Invocation-level override is larger than the 20-byte body, so it should pass.
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+        invocationConfig.setResponseLimitInBytes(1024L);
+
+        APIResponse response = limitedClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getResponseBody(), body);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -57,12 +57,16 @@ public class MyAccountAuthorizedAPIListener extends AbstractAuthorizedAPIManagem
 
     private static final List<String> authorizedNoPolicyAPIIdentifiers = Arrays.asList(
             "/api/users/v2/me/approval-tasks",
-            "/o/api/users/v2/me/approval-tasks");
+            "/api/users/v1/me/change-password",
+            "/o/api/users/v2/me/approval-tasks",
+            "/o/api/users/v1/me/change-password");
     private static final List<String> authorizedNoPolicyScopes = Arrays.asList(
             "internal_approval_task_view",
             "internal_approval_task_update",
+            "internal_user_password_update",
             "internal_org_approval_task_view",
-            "internal_org_approval_task_update");
+            "internal_org_approval_task_update",
+            "internal_org_user_password_update");
     private static final List<String> authorizedRBACAPIIdentifiers = Arrays.asList(
             IMPERSONATION_API_RESOURCE, IMPERSONATION_ORG_API_RESOURCE);
     private static final List<String> authorizedRBACScopes = Arrays.asList(

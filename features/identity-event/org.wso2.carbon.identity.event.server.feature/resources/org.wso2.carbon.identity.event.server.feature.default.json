@@ -301,7 +301,8 @@
   "identity_mgt.events.schemes.OrganizationSessionHandler.subscriptions": [
     "SESSION_TERMINATE",
     "SESSION_EXTENSION",
-    "SESSION_CREATE"
+    "SESSION_CREATE",
+    "SESSION_EXPIRE"
   ],
   "identity_mgt.events.schemes.FragmentApplicationMgtHandler.module_index": "47",
   "identity_mgt.events.schemes.FragmentApplicationMgtHandler.subscriptions": [
@@ -407,6 +408,7 @@
     "POST_SEND_RECOVERY_NOTIFICATION",
     "POST_ADD_USER_WITH_ASK_PASSWORD",
     "POST_UPDATE_CREDENTIAL_BY_SCIM",
+    "POST_UPDATE_CREDENTIAL_BY_ME_API",
     "POST_USER_ACCOUNT_CONFIRMATION",
     "POST_USER_PROFILE_UPDATE",
     "AUTHENTICATION_SUCCESS",

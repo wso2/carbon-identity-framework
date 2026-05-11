@@ -289,6 +289,10 @@ public class ClaimMetadataUtils {
             claim.setMultiValued(Boolean.parseBoolean(claimProperties.get(ClaimConstants.MULTI_VALUED_PROPERTY)));
         }
 
+        if (claimProperties.containsKey(ClaimConstants.EXTENDED_VALUED_PROPERTY)) {
+            claim.setExtendedValued(Boolean.parseBoolean(claimProperties.get(ClaimConstants.EXTENDED_VALUED_PROPERTY)));
+        }
+
         if (claimProperties.containsKey(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)) {
             claim.setManagedInUserStore(
                     Boolean.parseBoolean(claimProperties.get(ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY)));

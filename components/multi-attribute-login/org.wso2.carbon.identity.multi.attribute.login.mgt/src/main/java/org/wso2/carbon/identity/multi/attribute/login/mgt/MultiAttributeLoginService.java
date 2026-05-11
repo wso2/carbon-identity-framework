@@ -67,4 +67,18 @@ public interface MultiAttributeLoginService {
      */
     ResolvedUserResult resolveUser(String loginIdentifier, String tenantDomain, String hint);
 
+    /**
+     * Resolves user from given login identifier and returns resolved user details.
+     *
+     * @param loginIdentifier         Multi attribute login identifier.
+     * @param tenantDomain            User tenant domain.
+     * @param allowDuplicateUsernames Indicates whether to allow duplicate usernames across user stores.
+     * @return ResolvedUserResult object, which gives whether user input resolved or not and if resolve, gives user
+     * object.
+     */
+    default ResolvedUserResult resolveUser(String loginIdentifier, String tenantDomain,
+                                           boolean allowDuplicateUsernames) {
+
+        return null;
+    }
 }

@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -66,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -638,6 +640,123 @@ public class DefaultStepHandlerTest {
                     "Expected authentication result to be not authenticated");
             Assert.assertEquals(authResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE),
                     FrameworkConstants.ERROR_STATUS_AUTHENTICATOR_NOT_SUPPORTED);
+        }
+    }
+
+    @DataProvider(name = "updateRetryParamForAPIBasedAuthFlowsData")
+    public Object[][] updateRetryParamForAPIBasedAuthFlowsData() {
+
+        // isAPIBased, includeFailureReason, retryParam, expectUserAccountLocked
+        return new Object[][] {
+                // API-based + flag enabled + no auth failure params → adds authFailure=true and authFailureMsg
+                {true, "true", "", true},
+                // API-based + flag enabled + authFailure=true present + no authFailureMsg → appends authFailureMsg
+                {true, "true", "&authFailure=true", true},
+                // API-based + flag enabled + authFailureMsg already exists → replaces with user.account.locked
+                {true, "true", "&authFailure=true&authFailureMsg=other.message", true},
+                // Not API-based flow → retryParam unchanged, no user.account.locked added
+                {false, "true", "", false},
+                // Flag disabled → retryParam unchanged, no user.account.locked added
+                {true, "false", "", false},
+        };
+    }
+
+    @Test(dataProvider = "updateRetryParamForAPIBasedAuthFlowsData")
+    public void testUpdateRetryParamForAPIBasedAuthFlows(boolean isAPIBased, String includeFailureReason,
+                                                         String retryParam, boolean expectUserAccountLocked)
+            throws URISyntaxException, IOException {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            when(errorMsgContext.getErrorCode()).thenReturn(UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            when(errorMsgContext.getMaximumLoginAttempts()).thenReturn(5);
+            when(errorMsgContext.getFailedLoginAttempts()).thenReturn(3);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE))
+                    .thenReturn(includeFailureReason);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(isAPIBased);
+
+            AuthenticationContext context = new AuthenticationContext();
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+
+            AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
+            when(defaultStepHandler.getAuthenticatorConfig()).thenReturn(authenticatorConfig);
+            when(authenticatorConfig.getParameterMap()).thenReturn(new HashMap<>());
+
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn("http://example.com/");
+
+            String redirectUrl = defaultStepHandler.getRedirectUrl(request, response, context, "",
+                    "true", retryParam, "");
+
+            if (expectUserAccountLocked) {
+                Assert.assertTrue(redirectUrl.contains("authFailureMsg=user.account.locked"),
+                        "Expected URL to contain authFailureMsg=user.account.locked but got: " + redirectUrl);
+            } else {
+                Assert.assertFalse(redirectUrl.contains("user.account.locked"),
+                        "Expected URL not to contain user.account.locked but got: " + redirectUrl);
+            }
+        }
+    }
+
+    @Test
+    public void testOrgDiscoveryParamsRouteToOrgIdentifierHandler() throws Exception {
+
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ConfigurationFacade> configFacadeMock = mockStatic(ConfigurationFacade.class)) {
+
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            ConfigurationFacade configFacade = mock(ConfigurationFacade.class);
+            configFacadeMock.when(ConfigurationFacade::getInstance).thenReturn(configFacade);
+            when(configFacade.getAuthenticationEndpointURL()).thenReturn("/authenticationendpoint/login.do");
+
+            HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+            HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+            when(mockRequest.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID))
+                    .thenReturn("org123");
+
+            ApplicationAuthenticator orgAuthenticator = mock(ApplicationAuthenticator.class);
+            when(orgAuthenticator.getName()).thenReturn(FrameworkConstants.ORGANIZATION_IDENTIFIER_HANDLER);
+            when(orgAuthenticator.isAuthenticationRequired(any(), any(), any())).thenReturn(true);
+            when(orgAuthenticator.process(any(), any(), any()))
+                    .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+
+            AuthenticatorConfig authConfig = mock(AuthenticatorConfig.class);
+            when(authConfig.getApplicationAuthenticator()).thenReturn(orgAuthenticator);
+
+            StepConfig stepConfig = mock(StepConfig.class);
+            when(stepConfig.getOrder()).thenReturn(1);
+            when(stepConfig.getAuthenticatorList()).thenReturn(Collections.singletonList(authConfig));
+
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(sequenceConfig.getStepMap()).thenReturn(Collections.singletonMap(1, stepConfig));
+
+            AuthenticationContext authContext = mock(AuthenticationContext.class);
+            when(authContext.getCurrentStep()).thenReturn(1);
+            when(authContext.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(authContext.getCurrentAuthenticatedIdPs()).thenReturn(new HashMap<>());
+            when(authContext.isPassiveAuthenticate()).thenReturn(false);
+            when(authContext.isSharedAppLogin()).thenReturn(false);
+
+            frameworkUtils.when(() -> FrameworkUtils.getApplicationName(authContext))
+                    .thenReturn(Optional.empty());
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorIdPMappingString(anyList()))
+                    .thenReturn("");
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatedStepIdPs(
+                    any(StepConfig.class), any(Map.class))).thenReturn(new HashMap<>());
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(mockRequest))
+                    .thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticatorPropertyMapFromIdP(any(), any()))
+                    .thenReturn(new HashMap<>());
+
+            defaultStepHandler.handle(mockRequest, mockResponse, authContext);
+
+            verify(orgAuthenticator).process(mockRequest, mockResponse, authContext);
         }
     }
 }

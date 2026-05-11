@@ -127,7 +127,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
                 log.debug("Cache miss for local claim list for tenant: " + tenantId);
             }
             localClaimList = super.getLocalClaims(tenantId);
-            localClaimCache.addToCache(tenantId, new ArrayList<>(localClaimList), tenantId);
+            localClaimCache.addToCacheOnRead(tenantId, new ArrayList<>(localClaimList), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for local claim list for tenant: " + tenantId);
@@ -211,7 +211,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
                         tenantId);
             }
             externalClaimList = super.getExternalClaims(externalClaimDialectURI, tenantId);
-            externalClaimCache.addToCache(cacheKey, new ArrayList<>(externalClaimList), tenantId);
+            externalClaimCache.addToCacheOnRead(cacheKey, new ArrayList<>(externalClaimList), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for external claim list for dialect: " + externalClaimDialectURI + " in tenant: " +
@@ -328,7 +328,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
                         localClaimURI, tenantId));
             }
             associatedLocalClaims = super.getMappedExternalClaims(localClaimURI, tenantId);
-            associatedClaimCache.addToCache(localClaimURI, new ArrayList<>(associatedLocalClaims), tenantId);
+            associatedClaimCache.addToCacheOnRead(localClaimURI, new ArrayList<>(associatedLocalClaims), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Cache hit for associated claims of local claim:%s in tenant:%s ",

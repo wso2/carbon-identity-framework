@@ -55,6 +55,8 @@ public class ActionExecutorConfig {
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
     private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS = 2000;
     private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS = 2000;
+    private static final String CASE_INSENSITIVE_HEADER_FILTERING =
+            "Actions.ActionRequest.CaseInsensitiveHeaderFiltering";
 
     private ActionExecutorConfig() {
 
@@ -334,6 +336,23 @@ public class ActionExecutorConfig {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Returns whether case-insensitive header filtering is enabled.
+     * If the configuration is missing or invalid, the default value is true.
+     *
+     * @return true if case-insensitive header filtering is enabled, false otherwise.
+     */
+    public boolean isCaseInsensitiveHeaderFilteringEnabled() {
+
+        Object propertyValue = IdentityConfigParser.getInstance().getConfiguration()
+                .get(CASE_INSENSITIVE_HEADER_FILTERING);
+        if (propertyValue == null || StringUtils.isBlank(propertyValue.toString())) {
+            LOG.debug("CaseInsensitiveHeaderFiltering property is not set or is blank. Using default: true.");
+            return true;
+        }
+        return Boolean.parseBoolean(propertyValue.toString());
     }
 
     private Set<String> getExcludedParamsInActionRequestForAllTypes() {

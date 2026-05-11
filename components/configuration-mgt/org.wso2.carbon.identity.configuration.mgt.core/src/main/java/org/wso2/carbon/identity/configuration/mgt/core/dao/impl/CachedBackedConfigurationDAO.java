@@ -90,7 +90,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
                 log.debug(message);
             }
             resource = configurationDAO.getResourceByName(tenantId, resourceTypeId, name);
-            addResourceToCache(resource);
+            addResourceToCacheOnRead(resource);
         }
         return resource;
     }
@@ -111,7 +111,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
                 log.debug(message);
             }
             resource = configurationDAO.getResourceById(resourceId);
-            addResourceToCache(resource);
+            addResourceToCacheOnRead(resource);
         }
         return resource;
     }
@@ -349,6 +349,25 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
         return null;
     }
 
+    private void addResourceToCacheOnRead(Resource resource) throws ConfigurationManagementException {
+
+        if (resource == null) {
+            return;
+        }
+        ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resource.getResourceId(),
+                resource.getTenantDomain());
+        ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resource.getResourceName(),
+                resource.getTenantDomain());
+        ResourceCacheEntry resourceCacheEntry = new ResourceCacheEntry(resource);
+        if (log.isDebugEnabled()) {
+            String message = String.format("[AddToCacheOnRead]Following two cache entries created. 1. Resource by name cache %s, 2." +
+                            " Resource by id cache %s. Tenant domain for all caches: %s", resource.getResourceName(),
+                    resource.getResourceId(), resource.getTenantDomain());
+            log.debug(message);
+        }
+        resourceByIdCache.addToCacheOnRead(resourceByIdCacheKey, resourceCacheEntry);
+        resourceByNameCache.addToCacheOnRead(resourceByNameCacheKey, resourceCacheEntry);
+    }
     private void addResourceToCache(Resource resource) throws ConfigurationManagementException {
 
         if (resource == null) {

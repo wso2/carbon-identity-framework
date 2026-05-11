@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.nustaq.serialization.annotations.Version;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedSequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -48,6 +49,14 @@ import java.util.Map;
 /**
  * This class is used to store the session context as the optimized one by storing only the important attributes.
  * This can be converted back to the original session context when needed.
+ *
+ * <p><b>Serialization Compatibility Rules (FST):</b></p>
+ * <ul>
+ *   <li>New fields MUST be annotated with {@code @Version(n)} where n is incremented for each release.</li>
+ *   <li>New fields MUST be declared AFTER all existing fields.</li>
+ *   <li>NEVER remove, reorder, or change the type of existing fields.</li>
+ *   <li>Code must handle null/default values for versioned fields when deserializing old data.</li>
+ * </ul>
  */
 public class OptimizedSessionContext implements Serializable {
 
@@ -59,10 +68,11 @@ public class OptimizedSessionContext implements Serializable {
     private final Map<String, Object> properties;
     private final SessionAuthHistory sessionAuthHistory;
     private final Map<String, Map<String, OptimizedAuthenticatedIdPData>> optimizedAuthenticatedIdPsOfApp;
-    // Commenting out session related improvements until a proper fix for session deserialization compatibility.
-//    private final String authenticatedSharedAppOrgId;
-//    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
     private final String impersonatedUser;
+    @Version(1)
+    private final String authenticatedSharedAppOrgId;
+    @Version(1)
+    private Map<String, OptimizedAuthenticatedOrgData> optimizedAuthenticatedOrgData;
 
     private static final Log LOG = LogFactory.getLog(OptimizedSessionContext.class);
 
@@ -77,9 +87,9 @@ public class OptimizedSessionContext implements Serializable {
         this.optimizedAuthenticatedIdPsOfApp = getOptimizedAuthenticatedIdPsOfApp(sessionContext.
                 getAuthenticatedIdPsOfApp());
         this.impersonatedUser = sessionContext.getImpersonatedUser();
-//        this.authenticatedSharedAppOrgId = sessionContext.getAuthenticatedSharedAppOrgId();
-//        this.optimizedAuthenticatedOrgData =
-//                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
+        this.authenticatedSharedAppOrgId = sessionContext.getAuthenticatedSharedAppOrgId();
+        this.optimizedAuthenticatedOrgData =
+                getOptimizedAuthenticatedOrgData(sessionContext.getAuthenticatedOrgData());
         if (LOG.isDebugEnabled()) {
             LOG.debug("Optimization process for the session context is completed.");
         }
@@ -177,10 +187,10 @@ public class OptimizedSessionContext implements Serializable {
         }
         sessionContext.setAuthenticatedIdPsOfApp(authenticatedIdPsOfApp);
         sessionContext.setImpersonatedUser(this.impersonatedUser);
-//        sessionContext.setAuthenticatedSharedAppOrgId(this.authenticatedSharedAppOrgId);
-//        if (optimizedAuthenticatedOrgData != null) {
-//            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
-//        }
+        sessionContext.setAuthenticatedSharedAppOrgId(this.authenticatedSharedAppOrgId);
+        if (optimizedAuthenticatedOrgData != null) {
+            sessionContext.setAuthenticatedOrgData(getAuthenticatedOrgDataMap(this.optimizedAuthenticatedOrgData));
+        }
         return sessionContext;
     }
 

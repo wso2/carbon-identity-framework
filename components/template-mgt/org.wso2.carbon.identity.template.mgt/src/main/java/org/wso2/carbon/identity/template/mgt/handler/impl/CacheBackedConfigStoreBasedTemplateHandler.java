@@ -95,7 +95,7 @@ public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandl
             if (log.isDebugEnabled()) {
                 log.debug("Entry fetched from Config store for Template " + templateId + ". Updating cache");
             }
-            configStoreBasedTemplateCache.addToCache(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template),
+            configStoreBasedTemplateCache.addToCacheOnRead(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template),
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
         } else {
             if (log.isDebugEnabled()) {

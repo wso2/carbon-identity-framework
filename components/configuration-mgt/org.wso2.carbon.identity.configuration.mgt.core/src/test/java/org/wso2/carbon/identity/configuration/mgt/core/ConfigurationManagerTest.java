@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.sql.DataSource;
@@ -100,6 +101,12 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.spy
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSamplesPath;
 
 public class ConfigurationManagerTest {
+
+    private static final String EXTERNAL_CONSENT_RESOURCE_TYPE_NAME = "external_consent_page_configurations";
+    private static final String EXTERNAL_CONSENT_RESOURCE_NAME = "external_consent_page";
+    private static final String EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE = "external_consent_page_url";
+    private static final String EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE = "enforce_external_consent_page";
+    private static final String EXTERNAL_CONSENT_PAGE_URL_VALUE = "https://localhost:9443/consent-mgt/consent";
 
     private ConfigurationManager configurationManager;
     private Connection connection;
@@ -710,10 +717,112 @@ public class ConfigurationManagerTest {
         assertFalse(resource.isHasAttribute());
     }
 
+    @Test(priority = 38)
+    public void testAddExternalConsentResourceWhenEnforcedWithoutUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        ResourceAdd resourceAdd = getExternalConsentResourceAdd("true", null);
+        Resource resource = configurationManager.addResource(resourceType.getName(), resourceAdd);
+
+        assertNotNull(resource.getResourceId(), "Created resource id cannot be null");
+    }
+
+    @Test(priority = 39)
+    public void testReplaceExternalConsentResourceWhenEnforcedWithBlankUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+        Resource replacedResource =
+                configurationManager.replaceResource(resourceType.getName(), getExternalConsentResourceAdd("true", " "));
+
+        assertEquals("Resource ids should match after replace.", resource.getResourceId(),
+                replacedResource.getResourceId());
+    }
+
+    @Test(priority = 40)
+    public void testAddExternalConsentEnforcementAttributeWithoutUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd(null, null));
+        Attribute attribute = configurationManager.addAttribute(resourceType.getName(), resource.getResourceName(),
+                new Attribute(EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE, "true"));
+
+        assertEquals("Added attribute key does not match.", EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE, attribute.getKey());
+        assertEquals("Added attribute value does not match.", "true", attribute.getValue());
+    }
+
+    @Test(priority = 41)
+    public void testReplaceExternalConsentUrlAttributeWhenEnforcedWithBlankUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+        Attribute replacedAttribute = configurationManager.replaceAttribute(resourceType.getName(),
+                resource.getResourceName(), new Attribute(EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE, " "));
+
+        assertEquals("Replaced attribute key does not match.", EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE,
+                replacedAttribute.getKey());
+        assertEquals("Replaced attribute value does not match.", " ", replacedAttribute.getValue());
+    }
+
+    @Test(priority = 42)
+    public void testDeleteExternalConsentUrlAttributeWhenEnforced() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+
+        configurationManager.deleteAttribute(resourceType.getName(), resource.getResourceName(),
+                EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE);
+        try {
+            configurationManager.getAttribute(resourceType.getName(), resource.getResourceName(),
+                    EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE);
+            fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        } catch (ConfigurationManagementClientException e) {
+            // Expected path. Attribute should be absent after delete.
+        }
+    }
+
+    @Test(priority = 43)
+    public void testAddExternalConsentResourceWhenEnforcedWithUrl() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getExternalConsentResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(),
+                getExternalConsentResourceAdd("true", EXTERNAL_CONSENT_PAGE_URL_VALUE));
+
+        assertNotNull(resource.getResourceId(), "Created resource id cannot be null");
+    }
+
     private void removeCreatedTimeColumn() throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         jdbcTemplate.executeUpdate(REMOVE_CREATED_TIME_COLUMN_H2);
+    }
+
+    private ResourceTypeAdd getExternalConsentResourceTypeAdd() {
+
+        ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
+        resourceTypeAdd.setName(EXTERNAL_CONSENT_RESOURCE_TYPE_NAME);
+        resourceTypeAdd.setDescription("Resource type for external consent page configurations.");
+        return resourceTypeAdd;
+    }
+
+    private ResourceAdd getExternalConsentResourceAdd(String enforceValue, String urlValue) {
+
+        ResourceAdd resourceAdd = new ResourceAdd();
+        resourceAdd.setName(EXTERNAL_CONSENT_RESOURCE_NAME);
+        List<Attribute> attributes = new ArrayList<>();
+
+        if (enforceValue != null) {
+            attributes.add(new Attribute(EXTERNAL_CONSENT_ENFORCE_ATTRIBUTE, enforceValue));
+        }
+        if (urlValue != null) {
+            attributes.add(new Attribute(EXTERNAL_CONSENT_PAGE_URL_ATTRIBUTE, urlValue));
+        }
+        resourceAdd.setAttributes(attributes.isEmpty() ? null : attributes);
+        return resourceAdd;
     }
 
     private void mockIdentityTenantUtilForTheTest(MockedStatic<IdentityTenantUtil> identityTenantUtil) {

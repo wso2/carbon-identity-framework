@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -229,7 +230,8 @@ public class OutboundProvisioningTest {
              MockedStatic<ApplicationManagementService> appMgtService = Mockito.mockStatic(ApplicationManagementService.class);
              MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil = Mockito.mockStatic(
-                     OrganizationManagementUtil.class)) {
+                     OrganizationManagementUtil.class);
+             MockedStatic<LoggerUtils> loggerUtils = Mockito.mockStatic(LoggerUtils.class)) {
 
             mockCarbonContext(carbonContext);
             connection = getConnection(DB_NAME);

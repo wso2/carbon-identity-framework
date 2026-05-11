@@ -113,7 +113,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
         Rule rule = ruleManagementDAO.getRuleByRuleId(ruleId, tenantId);
         if (rule != null) {
             LOG.debug("Rule cache miss for rule id: " + ruleId + ". Adding to cache.");
-            ruleCache.addToCache(new RuleCacheKey(ruleId), new RuleCacheEntry(rule), tenantId);
+            ruleCache.addToCacheOnRead(new RuleCacheKey(ruleId), new RuleCacheEntry(rule), tenantId);
         }
         return rule;
     }

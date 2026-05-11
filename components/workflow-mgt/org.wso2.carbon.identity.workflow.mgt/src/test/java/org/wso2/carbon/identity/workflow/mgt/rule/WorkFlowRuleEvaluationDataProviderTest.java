@@ -483,7 +483,7 @@ public class WorkFlowRuleEvaluationDataProviderTest {
         String bareClaimUri = "http://wso2.org/claims/mobile";
         String fieldName = "user." + bareClaimUri;
         Map<String, Object> contextData = new HashMap<>();
-        contextData.put("eventType", "ADD_USER");
+        contextData.put("eventType", "ASSIGN_USER_ROLE");
         contextData.put("Username", TEST_USERNAME);
         FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
 
@@ -539,6 +539,173 @@ public class WorkFlowRuleEvaluationDataProviderTest {
                 Collections.singletonList(field));
 
         provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+    }
+
+    // ---- group.id ----
+
+    @Test
+    public void testGetEvaluationData_groupId_returnsGroupIdFromUserStore()
+            throws Exception {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Group Name", "engineering");
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        when(mockUserStoreManager.getGroupIdByGroupName("engineering")).thenReturn("group-id-abc");
+
+        Field field = new Field("group.id", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-13",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getName(), "group.id");
+        assertEquals(result.get(0).getValue(), "group-id-abc");
+        assertEquals(result.get(0).getValueType(), ValueType.STRING);
+    }
+
+    @Test
+    public void testGetEvaluationData_groupId_noGroupNameInContext_returnsNull()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.id", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-13",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertNull(result.get(0).getValue());
+    }
+
+    @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
+    public void testGetEvaluationData_groupId_userStoreException_throwsDataProviderException()
+            throws Exception {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Group Name", "engineering");
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        when(mockUserStoreManager.getGroupIdByGroupName("engineering"))
+                .thenThrow(new org.wso2.carbon.user.core.UserStoreException("DB error"));
+
+        Field field = new Field("group.id", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-13",
+                Collections.singletonList(field));
+
+        provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+    }
+
+    // ---- group.hasAssignedUsers ----
+
+    @Test
+    public void testGetEvaluationData_groupHasAssignedUsers_withUsersInContext_returnsTrue()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Users to be Added", Arrays.asList("user1", "user2"));
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.hasAssignedUsers", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-14",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getName(), "group.hasAssignedUsers");
+        assertEquals(result.get(0).getValue(), "true");
+    }
+
+    @Test
+    public void testGetEvaluationData_groupHasAssignedUsers_noUsersInContext_returnsFalse()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Users to be Added", Collections.emptyList());
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.hasAssignedUsers", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-14",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.get(0).getValue(), "false");
+    }
+
+    @Test
+    public void testGetEvaluationData_groupHasAssignedUsers_nullInContext_returnsFalse()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.hasAssignedUsers", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-14",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.get(0).getValue(), "false");
+    }
+
+    // ---- group.hasUnassignedUsers ----
+
+    @Test
+    public void testGetEvaluationData_groupHasUnassignedUsers_withUsersInContext_returnsTrue()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Users to be Deleted", Arrays.asList("user3"));
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.hasUnassignedUsers", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-15",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.size(), 1);
+        assertEquals(result.get(0).getName(), "group.hasUnassignedUsers");
+        assertEquals(result.get(0).getValue(), "true");
+    }
+
+    @Test
+    public void testGetEvaluationData_groupHasUnassignedUsers_noUsersInContext_returnsFalse()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        contextData.put("Users to be Deleted", Collections.emptyList());
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.hasUnassignedUsers", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-15",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.get(0).getValue(), "false");
+    }
+
+    @Test
+    public void testGetEvaluationData_groupHasUnassignedUsers_nullInContext_returnsFalse()
+            throws RuleEvaluationDataProviderException {
+
+        Map<String, Object> contextData = new HashMap<>();
+        FlowContext flowContext = new FlowContext(FlowType.APPROVAL_WORKFLOW, contextData);
+
+        Field field = new Field("group.hasUnassignedUsers", ValueType.STRING);
+        RuleEvaluationContext ruleContext = new RuleEvaluationContext("rule-15",
+                Collections.singletonList(field));
+
+        List<FieldValue> result = provider.getEvaluationData(ruleContext, flowContext, TENANT_DOMAIN);
+
+        assertEquals(result.get(0).getValue(), "false");
     }
 
     // ---- Multiple fields ----

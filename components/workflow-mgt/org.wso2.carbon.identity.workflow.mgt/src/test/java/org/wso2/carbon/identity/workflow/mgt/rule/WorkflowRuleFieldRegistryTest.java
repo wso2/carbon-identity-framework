@@ -56,14 +56,14 @@ public class WorkflowRuleFieldRegistryTest {
             "user.domain",
             "user.groups",
             "user.roles",
-            "initiator.domain",
-            "initiator.groups",
-            "initiator.roles",
             "role.id",
             "role.audience",
             "role.permissions",
             "role.hasAssignedUsers",
-            "role.hasUnassignedUsers"
+            "role.hasUnassignedUsers",
+            "group.id",
+            "group.hasAssignedUsers",
+            "group.hasUnassignedUsers"
     );
 
     @Test
@@ -170,7 +170,7 @@ public class WorkflowRuleFieldRegistryTest {
 
         FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("user.groups");
         assertNotNull(field);
-        assertEquals(field.getOperators().size(), 1);
+        assertEquals(field.getOperators().size(), 2);
         assertEquals(field.getOperators().get(0).getName(), "contains");
     }
 
@@ -197,22 +197,6 @@ public class WorkflowRuleFieldRegistryTest {
     }
 
     @Test
-    public void testInitiatorFieldsMirrorUserFields() {
-
-        // Initiator fields should mirror the user fields structure.
-        FieldDefinition userDomain = WorkflowRuleFieldRegistry.FIELDS.get("user.domain");
-        FieldDefinition initiatorDomain = WorkflowRuleFieldRegistry.FIELDS.get("initiator.domain");
-        assertNotNull(initiatorDomain);
-        assertEquals(initiatorDomain.getOperators().size(), userDomain.getOperators().size());
-        assertEquals(initiatorDomain.getValue().getValueType(), userDomain.getValue().getValueType());
-
-        FieldDefinition userGroups = WorkflowRuleFieldRegistry.FIELDS.get("user.groups");
-        FieldDefinition initiatorGroups = WorkflowRuleFieldRegistry.FIELDS.get("initiator.groups");
-        assertNotNull(initiatorGroups);
-        assertEquals(initiatorGroups.getOperators().size(), userGroups.getOperators().size());
-    }
-
-    @Test
     public void testRolePermissionsField_isInputTypeString() {
 
         FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("role.permissions");
@@ -221,7 +205,7 @@ public class WorkflowRuleFieldRegistryTest {
                 "role.permissions value should be InputValue.");
         assertEquals(field.getValue().getValueType(), Value.ValueType.STRING);
         assertEquals(field.getValue().getInputType(), Value.InputType.INPUT);
-        assertEquals(field.getOperators().size(), 1);
+        assertEquals(field.getOperators().size(), 2);
         assertEquals(field.getOperators().get(0).getName(), "contains");
     }
 
@@ -277,5 +261,34 @@ public class WorkflowRuleFieldRegistryTest {
         assertEquals(refValue.getValueReferenceAttribute(), "id");
         assertEquals(refValue.getValueDisplayAttribute(), "name");
         assertEquals(refValue.getLinks().size(), 2);
+    }
+
+    @Test
+    public void testGroupHasAssignedUsersField_hasFixedTrueFalseOptions() {
+
+        FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("group.hasAssignedUsers");
+        assertNotNull(field);
+        assertTrue(field.getValue() instanceof OptionsInputValue,
+                "group.hasAssignedUsers value should be OptionsInputValue.");
+        OptionsInputValue inputValue = (OptionsInputValue) field.getValue();
+        assertEquals(inputValue.getValueType(), Value.ValueType.STRING);
+        assertEquals(inputValue.getValues().size(), 2);
+        assertEquals(inputValue.getValues().get(0).getName(), "true");
+        assertEquals(inputValue.getValues().get(1).getName(), "false");
+        assertEquals(field.getOperators().size(), 1);
+        assertEquals(field.getOperators().get(0).getName(), "equals");
+    }
+
+    @Test
+    public void testGroupHasUnassignedUsersField_hasFixedTrueFalseOptions() {
+
+        FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("group.hasUnassignedUsers");
+        assertNotNull(field);
+        assertTrue(field.getValue() instanceof OptionsInputValue,
+                "group.hasUnassignedUsers value should be OptionsInputValue.");
+        OptionsInputValue inputValue = (OptionsInputValue) field.getValue();
+        assertEquals(inputValue.getValues().size(), 2);
+        assertEquals(inputValue.getValues().get(0).getName(), "true");
+        assertEquals(inputValue.getValues().get(1).getName(), "false");
     }
 }

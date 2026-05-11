@@ -124,7 +124,7 @@ public class ApprovalWorkflowMetadataProviderTest {
     }
 
     @Test
-    public void testGetExpressionMeta_withTwoClaims_returnsStaticFieldsPlusFourDynamicFields()
+    public void testGetExpressionMeta_withTwoClaims_returnsStaticFieldsPlusTwoDynamicFields()
             throws RuleMetadataException, ClaimMetadataException {
 
         LocalClaim claim1 = new LocalClaim("http://wso2.org/claims/givenname");
@@ -133,13 +133,12 @@ public class ApprovalWorkflowMetadataProviderTest {
 
         List<FieldDefinition> result = provider.getExpressionMeta(FlowType.APPROVAL_WORKFLOW, TENANT_DOMAIN);
 
-        // 11 static fields + 2 claims * 2 prefixes (user. and initiator.) = 15.
-        int expectedSize = WorkflowRuleFieldRegistry.FIELDS.size() + (2 * 2);
+        int expectedSize = WorkflowRuleFieldRegistry.FIELDS.size() + (2 * 1);
         assertEquals(result.size(), expectedSize);
     }
 
     @Test
-    public void testGetExpressionMeta_claimFieldsContainUserAndInitiatorPrefixes()
+    public void testGetExpressionMeta_claimFieldsContainOnlyUserPrefix()
             throws RuleMetadataException, ClaimMetadataException {
 
         LocalClaim claim = new LocalClaim("http://wso2.org/claims/emailaddress");
@@ -156,7 +155,7 @@ public class ApprovalWorkflowMetadataProviderTest {
                 .count();
 
         assertEquals(userClaimFields, 1);
-        assertEquals(initiatorClaimFields, 1);
+        assertEquals(initiatorClaimFields, 0);
     }
 
     @Test
@@ -227,7 +226,7 @@ public class ApprovalWorkflowMetadataProviderTest {
                 .orElse(null);
 
         assertNotNull(claimField);
-        assertEquals(claimField.getOperators().size(), 3);
+        assertEquals(claimField.getOperators().size(), 8);
         List<String> opNames = claimField.getOperators().stream()
                 .map(op -> op.getName())
                 .collect(java.util.stream.Collectors.toList());

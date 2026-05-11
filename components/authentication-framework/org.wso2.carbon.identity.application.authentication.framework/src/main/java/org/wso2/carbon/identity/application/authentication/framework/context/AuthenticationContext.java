@@ -24,6 +24,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
@@ -133,6 +134,9 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean isSharedAppLogin;
     // This attribute hold the organization login data for organization application and shared application login flows.
     private OrganizationLoginData organizationLoginData;
+
+    // This attribute is used to mark whether the password reset flow is completed.
+    private boolean passwordResetComplete;
 
     public String getCallerPath() {
         return callerPath;
@@ -846,7 +850,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
         return this.externalIdPResourceId;
     }
-    
+
     public long getExpiryTime() {
 
         return expiryTimeNano;
@@ -939,6 +943,47 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setOrganizationLoginData(OrganizationLoginData organizationLoginData) {
 
         this.organizationLoginData = organizationLoginData;
+    }
+
+    /**
+     * Check whether the password reset flow is completed.
+     *
+     * @return True if the password reset flow is completed.
+     */
+    public boolean isPasswordResetComplete() {
+
+        return passwordResetComplete;
+    }
+
+    /**
+     * Set the password reset flow completion status.
+     *
+     * @param passwordResetComplete True if the password reset flow is completed.
+     */
+    public void setPasswordResetComplete(boolean passwordResetComplete) {
+
+        this.passwordResetComplete = passwordResetComplete;
+    }
+
+    /**
+     * Returns the tenant domain of the user who is going to log in. This value is equal to the value returned with
+     * getTenantDomain method if the logging-in user is not a shared user.
+     *
+     * @return The tenant domain of the user who will be logging in.
+     */
+    public String getUserResidentTenantDomain() {
+
+        Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
+        for (StepConfig stepConfig : stepMap.values()) {
+            if (stepConfig.getAuthenticatedUser() != null && stepConfig.getAuthenticatedUser().isSharedUser() &&
+                    stepConfig.getAuthenticatedAutenticator() != null &&
+                    FrameworkConstants.SHARED_USER_IDENTIFIER_HANDLER.equals(
+                            stepConfig.getAuthenticatedAutenticator().getName())) {
+                return stepConfig.getAuthenticatedUser().getTenantDomain();
+            }
+        }
+
+        return tenantDomain;
     }
 
     /**

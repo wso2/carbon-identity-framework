@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.util;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -175,6 +176,69 @@ public class RequestFilterTest {
                 assertEquals(filteredHeader.getValue(), new String[]{"X-header-1-value"});
             } else if (filteredHeader.getName().equals("X-Header-3")) {
                 assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
+            }
+        });
+    }
+
+    @Test(description = "Ensures excluded headers are NOT removed from the action-level config if casing does not " +
+            "match and case-insensitive matching is disabled.")
+    public void testGetFilteredHeadersWhenExcludedHeadersAreConfiguredCaseSensitive() {
+
+        Set<String> excludedHeaders = new HashSet<>();
+        excludedHeaders.add("X-HEADER-2");
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        Mockito.when(config.isCaseInsensitiveHeaderFilteringEnabled()).thenReturn(false);
+        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(excludedHeaders);
+
+        List<String> allowedHeadersInAction = new ArrayList<>();
+        allowedHeadersInAction.add("X-Header-1");
+        allowedHeadersInAction.add("x-header-2");
+        allowedHeadersInAction.add("X-Header-3");
+
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, allowedHeadersInAction,
+                ActionType.PRE_ISSUE_ACCESS_TOKEN);
+
+        assertEquals(filteredHeaders.size(), 3);
+        filteredHeaders.forEach(filteredHeader -> {
+            if (filteredHeader.getName().equalsIgnoreCase("X-Header-1")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-1-value"});
+            } else if (filteredHeader.getName().equalsIgnoreCase("x-header-2")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-2-value"});
+            } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-3")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
+            }
+        });
+    }
+
+    @Test(description = "Ensures excluded headers are removed from the action-level config irrespective of case.")
+    public void testGetFilteredHeadersWhenExcludedHeadersAreConfiguredCaseInsensitive() {
+
+        Set<String> excludedHeaders = new HashSet<>();
+        excludedHeaders.add("X-HEADER-2");
+
+        ActionExecutorConfig config = ActionExecutorConfig.getInstance();
+        Mockito.when(config.isCaseInsensitiveHeaderFilteringEnabled()).thenReturn(true);
+        Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
+                .thenReturn(excludedHeaders);
+
+        List<String> allowedHeadersInAction = new ArrayList<>();
+        allowedHeadersInAction.add("X-Header-1");
+        allowedHeadersInAction.add("x-header-2");
+        allowedHeadersInAction.add("X-Header-3");
+
+        List<Header> filteredHeaders = RequestFilter.getFilteredHeaders(requestHeaders, allowedHeadersInAction,
+                ActionType.PRE_ISSUE_ACCESS_TOKEN);
+
+        assertEquals(filteredHeaders.size(), 2);
+        filteredHeaders.forEach(filteredHeader -> {
+            if (filteredHeader.getName().equalsIgnoreCase("X-Header-1")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-1-value"});
+            } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-3")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
+            } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-2")) {
+                Assert.fail();
             }
         });
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -83,6 +83,7 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
     private static final String FILE_ELEMENT_ISSUER = "Issuer";
     private static final String FILE_ELEMENT_JWKS_ENDPOINT = "JWKSEndpoint";
+    private static final String FILE_ELEMENT_SAML_METADATA_ENDPOINT = "SAMLMetadataEndpoint";
     private static final String FILE_ELEMENT_FEDERATED_ASSOCIATION_CONFIG = "FederatedAssociationConfig";
     private static final String THUMB_PRINT = "thumbPrint";
     private static final String CERT_VALUE = "certValue";
@@ -91,6 +92,8 @@ public class IdentityProvider implements Serializable {
     private static final String IDP_ISSUER_NAME = "idpIssuerName";
     private static final String JWKS_URI = "jwksUri";
     private static final String JWKS_DISPLAYNAME = "Identity Provider's JWKS Endpoint";
+    private static final String SAML_METADATA_URI = "samlMetadataUri";
+    private static final String SAML_METADATA_DISPLAY_NAME = "Identity Provider's SAML Metadata Endpoint";
     private static final String TEMPLATE_ID = "TemplateId";
 
     @XmlTransient
@@ -234,6 +237,12 @@ public class IdentityProvider implements Serializable {
                 jwksEndpoint.setValue(element.getText());
                 jwksEndpoint.setDisplayName(JWKS_DISPLAYNAME);
                 idpProperties.add(jwksEndpoint);
+            } else if (FILE_ELEMENT_SAML_METADATA_ENDPOINT.equals(elementName)) {
+                IdentityProviderProperty samlMetadataEndpoint = new IdentityProviderProperty();
+                samlMetadataEndpoint.setName(SAML_METADATA_URI);
+                samlMetadataEndpoint.setValue(element.getText());
+                samlMetadataEndpoint.setDisplayName(SAML_METADATA_DISPLAY_NAME);
+                idpProperties.add(samlMetadataEndpoint);
             } else if (FILE_ELEMENT_FEDERATED_AUTHENTICATOR_CONFIGS.equals(elementName)) {
 
                 Iterator<?> federatedAuthenticatorConfigsIter = element.getChildElements();

@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
@@ -435,17 +434,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             log.error("Null or empty string given as 'event' to be associated with the service.");
             throw new InternalWorkflowException("Event type cannot be null");
         }
-
-        List<Association> existingAssociations = associationDAO.listAssociationsForWorkflow(workflowId);
-        if (hasDuplicateAssociation(existingAssociations, eventId, condition)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Duplicate association found for workflow: " + workflowId +
-                         " with event: " + eventId + " with the same condition.");
-            }
-            throw new WorkflowClientException("The workflow " + workflowId + " is already associated with the " +
-                    "event " + eventId + " with the same condition.");
-        }
-           
         if (condition != null && !isUUID(condition)) {
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = factory.newXPath();
@@ -883,20 +871,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             log.debug("The condition: " + condition + " is not a valid condition.");
             throw new WorkflowClientException("The condition is not a valid condition.");
         }
-
-        List<Association> existingAssociations =
-                associationDAO.listAssociationsForWorkflow(association.getWorkflowId());
-        if (hasDuplicateAssociationForUpdate(existingAssociations, association.getEventId(), association.getCondition(),
-                associationId)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Duplicate association found for workflow: " + association.getWorkflowId() +
-                        " with event: " + association.getEventId() + " with the same condition.");
-            }
-            throw new WorkflowClientException("The workflow " + association.getWorkflowId() +
-                    " is already associated with the " + "event " + association.getEventId() +
-                    " with the same condition.");
-        }
-
         association.setEnabled(isEnable);
         associationDAO.updateAssociation(association);
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -1105,7 +1079,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public void abortWorkflowRequest(String requestId) throws WorkflowException {
 
-        log.info("Aborting workflow request: " + requestId);
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         WorkflowRequest workflowRequest = new WorkflowRequest();
@@ -1390,42 +1363,5 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             throws WorkflowException {
 
         return workflowRequestDAO.retrieveWorkflow(requestId);
-    }
-
-    /**
-     * Check if a duplicate association exists for the given event and condition.
-     * Used when adding a new association to ensure no conflicts exist.
-     *
-     * @param existingAssociations List of existing associations for the workflow.
-     * @param eventId             The event ID to check.
-     * @param condition           The condition to check.
-     * @return true if a duplicate association is found, false otherwise.
-     */
-    private boolean hasDuplicateAssociation(List<Association> existingAssociations, String eventId, String condition) {
-
-        return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
-                .filter(Objects::nonNull)
-                .anyMatch(association -> StringUtils.equals(association.getEventId(), eventId) &&
-                        StringUtils.equals(association.getCondition(), condition));
-    }
-
-    /**
-     * Check if a duplicate association exists for the given event and condition during update.
-     * Excludes the current association being updated from the duplicate check.
-     *
-     * @param existingAssociations List of existing associations for the workflow.
-     * @param eventId             The event ID to check.
-     * @param condition           The condition to check.
-     * @param associationId       The ID of the association being updated (to exclude from check).
-     * @return true if a duplicate association is found, false otherwise.
-     */
-    private boolean hasDuplicateAssociationForUpdate(List<Association> existingAssociations, String eventId,
-                                                     String condition, String associationId) {
-
-        return !CollectionUtils.isEmpty(existingAssociations) && existingAssociations.stream()
-                .filter(Objects::nonNull)
-                .anyMatch(association -> !StringUtils.equals(association.getAssociationId(), associationId)
-                        && StringUtils.equals(association.getEventId(), eventId)
-                        && StringUtils.equals(association.getCondition(), condition));
     }
 }

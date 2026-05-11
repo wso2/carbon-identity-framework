@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultSequenceHandlerUtils;
@@ -44,6 +45,10 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -57,6 +62,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_CODE_DEFAULT;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_NO_ASSOCIATED_LOCAL_USER_FOUND;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_PROCESSING_APPLICATION_CLAIM_CONFIGS;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
@@ -195,6 +201,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
         AuthenticatedUser user =
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUsername);
+        resolveSharedUser(user, context);
         sequenceConfig.setAuthenticatedUser(user);
         stepConfig.setAuthenticatedUser(user);
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
@@ -222,6 +229,46 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             log.debug(
                     "Authenticated User: " + sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
             log.debug("Authenticated User Tenant Domain: " + tenantDomain);
+        }
+    }
+
+    /**
+     * Check if the authenticated user is a shared user to the accessing organization.
+     * If so, update the user details to reflect resident profile details.
+     *
+     * @param user    Authenticated user.
+     * @param context Authentication context.
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    private void resolveSharedUser(AuthenticatedUser user, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        if (!FrameworkUtils.useResidentUserIdForAuthenticatedSharedUsers()) {
+            return;
+        }
+
+        OrganizationManager organizationManager = FrameworkServiceDataHolder.getInstance().getOrganizationManager();
+        OrganizationUserSharingService organizationUserSharingService =
+                FrameworkServiceDataHolder.getInstance().getOrganizationUserSharingService();
+        try {
+            UserAssociation association = organizationUserSharingService.getUserAssociation(
+                    user.getUserId(), organizationManager.resolveOrganizationId(user.getTenantDomain()));
+            if (association != null) {
+                user.setSharedUser(true);
+                user.setUserId(association.getAssociatedUserId());
+                user.setUserResidentOrganization(association.getUserResidentOrganizationId());
+                user.setAccessingOrganization(organizationManager.resolveOrganizationId(context.getTenantDomain()));
+                user.setTenantDomain(organizationManager.resolveTenantDomain(
+                        association.getUserResidentOrganizationId()));
+                user.setAuthenticatedSubjectIdentifier(user.getUserName() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
+                        organizationManager.resolveTenantDomain(association.getUserResidentOrganizationId()));
+            }
+        } catch (OrganizationManagementException e) {
+            throw new PostAuthenticationFailedException(ERROR_CODE_DEFAULT.getErrorCode(),
+                    "Error while resolving the organization of the user: " + user.getLoggableMaskedUserId(), e);
+        } catch (UserIdNotFoundException e) {
+            throw new PostAuthenticationFailedException(ERROR_CODE_DEFAULT.getErrorCode(),
+                    "Authenticated user ID not found for: " + user.getLoggableMaskedUserId(), e);
         }
     }
 

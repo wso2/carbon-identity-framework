@@ -18,10 +18,17 @@
 
 package org.wso2.carbon.identity.flow.mgt.utils;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
+import org.wso2.carbon.identity.compatibility.settings.core.exception.CompatibilitySettingException;
+import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilitySetting;
+import org.wso2.carbon.identity.compatibility.settings.core.model.CompatibilitySettingGroup;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
@@ -35,8 +42,12 @@ import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
@@ -51,6 +62,7 @@ import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.RE
 public class FlowMgtConfigUtils {
 
     private static final Log LOG = LogFactory.getLog(FlowMgtConfigUtils.class);
+    private static final Set<String> SERVER_DEFAULT_ENABLED_FLOWS = loadServerDefaultEnabledFlows();
 
     private FlowMgtConfigUtils() {
 
@@ -59,6 +71,40 @@ public class FlowMgtConfigUtils {
     private static ConfigurationManager getConfigurationManager() {
 
         return FlowMgtServiceDataHolder.getInstance().getConfigurationManager();
+    }
+
+    private static Set<String> loadServerDefaultEnabledFlows() {
+
+        try {
+            Set<String> defaultEnabledFlows = new HashSet<>();
+            OMElement flowExecutionElement = IdentityConfigParser.getInstance()
+                    .getConfigElement(Constants.FlowConfigConstants.FLOW_EXECUTION_CONFIG);
+            if (flowExecutionElement == null) {
+                LOG.debug("No flow execution configuration found in identity.xml");
+                return defaultEnabledFlows;
+            }
+            Iterator<OMElement> defaultEnabledFlowsIt = flowExecutionElement
+                    .getChildrenWithLocalName(Constants.FlowConfigConstants.DEFAULT_ENABLED_FLOWS_CONFIG);
+            if (!defaultEnabledFlowsIt.hasNext()) {
+                return defaultEnabledFlows;
+            }
+            OMElement defaultEnabledFlowsElement = defaultEnabledFlowsIt.next();
+            Iterator<OMElement> flowTypeElements = defaultEnabledFlowsElement
+                    .getChildrenWithLocalName(Constants.FlowConfigConstants.FLOW_TYPE_ELEMENT);
+            while (flowTypeElements.hasNext()) {
+                String flowType = flowTypeElements.next().getText();
+                if (StringUtils.isNotBlank(flowType)) {
+                    defaultEnabledFlows.add(flowType.trim());
+                }
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Loaded server default enabled flows: " + defaultEnabledFlows);
+            }
+            return Collections.unmodifiableSet(defaultEnabledFlows);
+        } catch (Exception e) {
+            LOG.debug("Could not load server default enabled flows from identity.xml: " + e.getMessage());
+            return Collections.emptySet();
+        }
     }
 
     /**
@@ -114,7 +160,7 @@ public class FlowMgtConfigUtils {
             List<FlowConfigDTO> flowMgtConfigs = new ArrayList<>();
             Resources resources = getConfigurationManager().getResourcesByType(RESOURCE_TYPE);
             if (resources == null || CollectionUtils.isEmpty(resources.getResources())) {
-                return getDefaultFlowConfigs();
+                return getDefaultFlowConfigs(tenantDomain);
             }
             resources.getResources()
                     .forEach(resource -> {
@@ -124,7 +170,7 @@ public class FlowMgtConfigUtils {
             Arrays.stream(Constants.FlowTypes.values()).map(
                     Constants.FlowTypes::getType).forEach(flowType -> {
                 if (flowMgtConfigs.stream().noneMatch(config -> config.getFlowType().equals(flowType))) {
-                    FlowConfigDTO defaultConfig = getDefaultConfig(flowType);
+                    FlowConfigDTO defaultConfig = getDefaultConfig(flowType, tenantDomain);
                     flowMgtConfigs.add(defaultConfig);
                 }
             });
@@ -136,7 +182,7 @@ public class FlowMgtConfigUtils {
                         tenantDomain);
             }
         }
-        return getDefaultFlowConfigs();
+        return getDefaultFlowConfigs(tenantDomain);
     }
 
     /**
@@ -144,12 +190,12 @@ public class FlowMgtConfigUtils {
      *
      * @return FlowMgtConfig
      */
-    private static List<FlowConfigDTO> getDefaultFlowConfigs() {
+    private static List<FlowConfigDTO> getDefaultFlowConfigs(String tenantDomain) {
 
         List<FlowConfigDTO> flowConfigDTOS = new ArrayList<>();
         Arrays.stream(Constants.FlowTypes.values()).map(
                 Constants.FlowTypes::getType).forEach(flowType -> {
-            FlowConfigDTO flowConfigDTO = getDefaultConfig(flowType);
+            FlowConfigDTO flowConfigDTO = getDefaultConfig(flowType, tenantDomain);
             flowConfigDTOS.add(flowConfigDTO);
         });
         return flowConfigDTOS;
@@ -168,7 +214,7 @@ public class FlowMgtConfigUtils {
 
         String resourceName = RESOURCE_NAME_PREFIX + flowType;
         Resource resource = getResource(resourceName, tenantDomain);
-        return buildAndPopulateFlowConfigFromResource(flowType, resource);
+        return buildAndPopulateFlowConfigFromResource(flowType, resource, tenantDomain);
     }
 
     /**
@@ -177,15 +223,48 @@ public class FlowMgtConfigUtils {
      * @param flowType The type of the flow.
      * @return FlowConfigDTO
      */
-    private static FlowConfigDTO getDefaultConfig(String flowType) {
+    private static FlowConfigDTO getDefaultConfig(String flowType, String tenantDomain) {
 
         LOG.debug("Returning default flow configuration for flow type: " + flowType);
         Constants.FlowTypes requestedFlowType = Constants.FlowTypes.valueOf(flowType);
         FlowConfigDTO flowConfigDTO = new FlowConfigDTO();
         flowConfigDTO.setFlowType(flowType);
-        flowConfigDTO.setIsEnabled(false);
+        boolean isEnabled = SERVER_DEFAULT_ENABLED_FLOWS.contains(flowType)
+                && isFlowEnabledForTenantByDefault(flowType, tenantDomain);
+        flowConfigDTO.setIsEnabled(isEnabled);
         flowConfigDTO.addAllFlowCompletionConfigs(requestedFlowType.getSupportedFlowCompletionConfigs());
         return flowConfigDTO;
+    }
+
+    private static boolean isFlowEnabledForTenantByDefault(String flowType, String tenantDomain) {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            return false;
+        }
+        CompatibilitySettingsManager manager =
+                FlowMgtServiceDataHolder.getInstance().getCompatibilitySettingsManager();
+        if (manager == null) {
+            return false;
+        }
+        try {
+            String settingKey = Constants.FlowTypes.valueOf(flowType).getDefaultEnablementCompatibilityKey();
+            CompatibilitySetting setting = manager.getCompatibilitySettingsByGroupAndSetting(
+                    tenantDomain,
+                    Constants.FlowConfigConstants.COMPATIBILITY_SETTING_GROUP,
+                    settingKey);
+            CompatibilitySettingGroup group = setting.getCompatibilitySetting(
+                    Constants.FlowConfigConstants.COMPATIBILITY_SETTING_GROUP);
+            if (group == null) {
+                return false;
+            }
+            return Boolean.parseBoolean(group.getSettingValue(settingKey));
+        } catch (CompatibilitySettingException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Could not evaluate compatibility setting for tenant: " + tenantDomain +
+                        ". Default flows will not be enabled.", e);
+            }
+            return false;
+        }
     }
 
     /**
@@ -194,10 +273,11 @@ public class FlowMgtConfigUtils {
      * @param resource The resource containing flow configuration attributes.
      * @return FlowConfigDTO
      */
-    private static FlowConfigDTO buildAndPopulateFlowConfigFromResource(String flowType, Resource resource) {
+    private static FlowConfigDTO buildAndPopulateFlowConfigFromResource(String flowType, Resource resource,
+                                                                         String tenantDomain) {
 
         if (resource == null || CollectionUtils.isEmpty(resource.getAttributes())) {
-            return getDefaultConfig(flowType);
+            return getDefaultConfig(flowType, tenantDomain);
         }
         return buildAndPopulateFlowConfigFromResource(resource);
     }

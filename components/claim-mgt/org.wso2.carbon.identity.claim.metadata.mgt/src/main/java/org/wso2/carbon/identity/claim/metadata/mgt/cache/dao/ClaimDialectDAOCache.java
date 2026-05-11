@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.cache.dao;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * The DAO cache implementation for claim dialects.
@@ -36,6 +38,11 @@ public class ClaimDialectDAOCache extends BaseCache<Integer, Serializable> {
     private ClaimDialectDAOCache() {
 
         super(CACHE_NAME);
+    }
+
+    public void putClaimDialectsOnRead(int tenantId, List<ClaimDialect> claimDialectList) {
+
+        super.addToCacheOnRead(tenantId, (Serializable) claimDialectList, tenantId);
     }
 
     /**

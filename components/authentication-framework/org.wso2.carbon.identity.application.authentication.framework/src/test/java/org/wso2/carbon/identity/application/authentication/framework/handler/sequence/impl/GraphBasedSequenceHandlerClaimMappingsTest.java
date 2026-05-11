@@ -81,6 +81,7 @@ public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequen
         ServiceProvider sp1 = getTestServiceProvider("js-sp-4-claim.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
+        context.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
         FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader

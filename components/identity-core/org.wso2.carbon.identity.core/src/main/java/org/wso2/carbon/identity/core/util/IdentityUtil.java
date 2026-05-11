@@ -127,11 +127,13 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDE
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.AGENT_IDENTITY_USERSTORE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_AGENT_IDENTITY_USERSTORE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SINGLE_CHARACTER_WILDCARD;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.UNDERSCORE;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 public class IdentityUtil {
@@ -2531,5 +2533,31 @@ public class IdentityUtil {
                 jsonArray.set(i, childArray);
             }
         }
+    }
+
+    public static int getMaxApproverNotificationsForWorkflow() {
+
+        String configuredValue = IdentityUtil.getProperty(WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        if (StringUtils.isBlank(configuredValue)) {
+            return DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Workflow engine max approver notifications has been configured. Parsing max approver count.");
+        }
+
+        try {
+            int parsedValue = Integer.parseInt(configuredValue);
+            if (parsedValue > 0) {
+                return parsedValue;
+            }
+            log.warn("Invalid configuration for property: " + WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS +
+                    ". The value should be a positive integer. Using default value: " +
+                    DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid number format for property: " + WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS +
+                    ". Using default value: " + DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS);
+        }
+        return DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS;
     }
 }

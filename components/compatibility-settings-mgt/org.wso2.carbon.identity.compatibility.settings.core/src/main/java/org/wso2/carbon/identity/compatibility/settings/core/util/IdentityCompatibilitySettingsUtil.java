@@ -25,7 +25,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.compatibility.settings.core.cache.CompatibilitySettingCache;
 import org.wso2.carbon.identity.compatibility.settings.core.cache.CompatibilitySettingCacheEntry;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants.ErrorMessages;
@@ -261,7 +261,8 @@ public class IdentityCompatibilitySettingsUtil {
             try {
                 // Start a tenant flow as the root org to access parent organization details since organizational
                 // manager does no support accessing super organization details in a sub-organization tenant flow.
-                FrameworkUtils.startTenantFlow(parentTenantDomain);
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(parentTenantDomain, true);
                 String rootOrgId = organizationManager.resolveOrganizationId(parentTenantDomain);
                 if (rootOrgId != null && !rootOrgId.equals(organization.getId())) {
                     Organization rootorganization =
@@ -271,7 +272,7 @@ public class IdentityCompatibilitySettingsUtil {
                     }
                 }
             } finally {
-                FrameworkUtils.endTenantFlow();
+                PrivilegedCarbonContext.endTenantFlow();
             }
 
         }

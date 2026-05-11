@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ public class APIClientUtils {
     private static final int DEFAULT_POOL_SIZE_TO_BE_SET;
     private static final int DEFAULT_MAX_PER_ROUTE;
     private static final int DEFAULT_RETRY_COUNT;
+    private static final long DEFAULT_RESPONSE_LIMIT;
 
     static {
         DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = getProperty("ExternalAPIClient.HTTPClient.HTTPReadTimeout");
@@ -42,6 +43,7 @@ public class APIClientUtils {
         DEFAULT_POOL_SIZE_TO_BE_SET = getProperty("ExternalAPIClient.HTTPClient.HTTPConnectionPoolSize");
         DEFAULT_MAX_PER_ROUTE = getProperty("ExternalAPIClient.HTTPClient.HTTPConnectionMaxPerRoute");
         DEFAULT_RETRY_COUNT = getProperty("ExternalAPIClient.DefaultRetryCount");
+        DEFAULT_RESPONSE_LIMIT = getLongProperty("ExternalAPIClient.DefaultResponseLimit");
     }
 
     /**
@@ -104,6 +106,16 @@ public class APIClientUtils {
         return DEFAULT_RETRY_COUNT;
     }
 
+    /**
+     * Gets the default response limit in bytes.
+     *
+     * @return default response limit in bytes.
+     */
+    public static long getDefaultResponseLimit() {
+
+        return DEFAULT_RESPONSE_LIMIT;
+    }
+
     private static int getProperty(String propertyName) {
 
         Object configValue = identityConfigParser.getConfiguration().get(propertyName);
@@ -116,6 +128,21 @@ public class APIClientUtils {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
                 String.format("The API client configuration %s value must be an integer.", propertyName));
+        }
+    }
+
+    private static long getLongProperty(String propertyName) {
+
+        Object configValue = identityConfigParser.getConfiguration().get(propertyName);
+        try {
+            if (configValue == null) {
+                throw new IllegalArgumentException(
+                        String.format("The API client configuration %s value must be a long.", propertyName));
+            }
+            return Long.parseLong(configValue.toString());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                String.format("The API client configuration %s value must be a long.", propertyName));
         }
     }
 }

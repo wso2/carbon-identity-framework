@@ -120,6 +120,10 @@ public class SelfRegistrationUser   {
     this.password = password;
   }
 
+  public void setPassword(char[] password) {
+    this.password = password != null ? new String(password) : null;
+  }
+
   public SelfRegistrationUser claims(List<Claim> claims) {
     this.claims = claims;
     return this;

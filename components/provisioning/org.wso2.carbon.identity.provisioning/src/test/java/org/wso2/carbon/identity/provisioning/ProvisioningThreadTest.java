@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.provisioning.cache.ProvisioningEntityCache;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
@@ -68,6 +69,7 @@ public class ProvisioningThreadTest {
     @Mock
     private AbstractOutboundProvisioningConnector mockConnector;
     private MockedStatic<IdPManagementUtil> idPManagementUtil;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -79,12 +81,14 @@ public class ProvisioningThreadTest {
         int tenantId = -1234;
         idPManagementUtil = mockStatic(IdPManagementUtil.class);
         idPManagementUtil.when(() -> IdPManagementUtil.getTenantIdOfDomain(tenantDomainName)).thenReturn(tenantId);
+        loggerUtils = mockStatic(LoggerUtils.class);
     }
 
     @AfterMethod
     public void tearDown() {
 
         idPManagementUtil.close();
+        loggerUtils.close();
     }
 
 

@@ -50,6 +50,7 @@ public class AuthServiceConstants {
     public static final String ERROR_CODE_PREFIX = "ABA-";
     public static final String REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST = "isInitialAPIBasedAuthRequest";
     public static final String REQ_ATTR_RELYING_PARTY = "relyingParty";
+    public static final String APP_TENANT_DOMAIN = "appTenantDomain";
 
     /**
      * Enum for error messages.

@@ -21,12 +21,14 @@ package org.wso2.carbon.identity.compatibility.settings.core.util;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.compatibility.settings.core.cache.CompatibilitySettingCache;
 import org.wso2.carbon.identity.compatibility.settings.core.cache.CompatibilitySettingCacheEntry;
 import org.wso2.carbon.identity.compatibility.settings.core.constant.IdentityCompatibilitySettingsConstants.ErrorMessages;
@@ -90,6 +92,18 @@ public class IdentityCompatibilitySettingsUtilTest {
     private MockedStatic<CompatibilitySettingCache> cacheMockedStatic;
     private IdentityCompatibilitySettingsDataHolder dataHolder;
     private CompatibilitySettingCache cache;
+
+    @BeforeClass
+    public void setUpClass() {
+
+        System.setProperty("carbon.home", System.getProperty("java.io.tmpdir"));
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        System.clearProperty("carbon.home");
+    }
 
     @BeforeMethod
     public void setUp() {
@@ -428,12 +442,16 @@ public class IdentityCompatibilitySettingsUtilTest {
 
         try (MockedStatic<OrganizationManagementUtil> orgUtilMockedStatic =
                      mockStatic(OrganizationManagementUtil.class);
-             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class)) {
+             MockedStatic<PrivilegedCarbonContext> carbonContextMockedStatic =
+                     mockStatic(PrivilegedCarbonContext.class)) {
 
             orgUtilMockedStatic.when(() -> OrganizationManagementUtil.getRootOrgTenantDomainBySubOrgTenantDomain(
                     TENANT_DOMAIN)).thenReturn(ROOT_TENANT_DOMAIN);
-            frameworkUtilsMockedStatic.when(() -> FrameworkUtils.startTenantFlow(anyString())).thenAnswer(i -> null);
-            frameworkUtilsMockedStatic.when(FrameworkUtils::endTenantFlow).thenAnswer(i -> null);
+            PrivilegedCarbonContext mockContext = mock(PrivilegedCarbonContext.class);
+            carbonContextMockedStatic.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                    .thenReturn(mockContext);
+            carbonContextMockedStatic.when(PrivilegedCarbonContext::startTenantFlow).thenAnswer(i -> null);
+            carbonContextMockedStatic.when(PrivilegedCarbonContext::endTenantFlow).thenAnswer(i -> null);
 
             Instant result = IdentityCompatibilitySettingsUtil.getOrganizationCreationTime(TENANT_DOMAIN, true);
             assertEquals(result, rootCreatedTime);

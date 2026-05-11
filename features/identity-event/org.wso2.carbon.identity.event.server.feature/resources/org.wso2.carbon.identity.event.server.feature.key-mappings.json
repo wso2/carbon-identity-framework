@@ -47,5 +47,6 @@
 
   "identity_mgt.dpop_event_handler.subscriptions": "identity_mgt.events.schemes.dpopEventHandler.subscriptions",
 
-  "identity_mgt.workflow_pending_user_authn_handler.enable": "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable"
+  "identity_mgt.workflow_pending_user_authn_handler.enable": "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.properties.enable",
+  "oauth.client_secret_hash_algorithm":"oauth.hash_token_algorithm"
 }

@@ -374,6 +374,19 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is Oracle for the given NamedJdbcTemplate.
+     *
+     * @param namedJdbcTemplate NamedJdbcTemplate to check.
+     * @return true if DB is Oracle, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isOracleDB(NamedJdbcTemplate namedJdbcTemplate) throws DataAccessException {
+
+        return isOracleDB(namedJdbcTemplate.getDriverName())
+                || isOracleDB(namedJdbcTemplate.getDatabaseProductName());
+    }
+
+    /**
      * Check whether the DB type string contains in the driver name or db product name.
      *
      * @param dbType database type string.

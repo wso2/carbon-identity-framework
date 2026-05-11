@@ -90,7 +90,7 @@ public class CacheBackedActionManagementService implements ActionManagementServi
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry fetched from DB for Action Type " + actionType + ". Updating cache.");
             }
-            actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(actions), tenantDomain);
+            actionCacheByType.addToCacheOnRead(cacheKey, new ActionCacheEntry(actions), tenantDomain);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry for Action Type " + actionType + " not found in cache or DB.");

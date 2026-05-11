@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2019-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -23,6 +23,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.external.api.client.api.model.APIAuthPropertyTest"/>
             <class name="org.wso2.carbon.identity.external.api.client.api.model.APIAuthenticationTest"/>
+            <class name="org.wso2.carbon.identity.external.api.client.api.model.APIClientConfigTest"/>
             <class name="org.wso2.carbon.identity.external.api.client.api.model.APIInvocationConfigTest"/>
             <class name="org.wso2.carbon.identity.external.api.client.api.model.APIRequestContextTest"/>
             <class name="org.wso2.carbon.identity.external.api.client.api.model.APIResponseTest"/>

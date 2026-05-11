@@ -63,6 +63,17 @@ public class IdentityContextCache extends AuthenticationBaseCache<String, Identi
             SessionDataStore.getInstance().storeSessionData(key, INBOUND_CONTEXT_CACHE_NAME, context, tenantId);
         }
     }
+    public void addToCacheOnRead(String key, IdentityMessageContext context) {
+        super.addToCacheOnRead(key, context);
+        if (enableRequestScopeCache) {
+            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+            String tenantDomain = context.getRequest().getTenantDomain();
+            if (tenantDomain != null) {
+                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            }
+            SessionDataStore.getInstance().storeSessionData(key, INBOUND_CONTEXT_CACHE_NAME, context, tenantId);
+        }
+    }
 
     public IdentityMessageContext getValueFromCache(String key) {
         IdentityMessageContext context = super.getValueFromCache(key);

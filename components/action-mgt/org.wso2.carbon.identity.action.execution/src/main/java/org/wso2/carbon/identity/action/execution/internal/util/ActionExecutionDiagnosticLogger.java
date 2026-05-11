@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationError
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.utils.DiagnosticLog;
 
@@ -206,6 +207,70 @@ public class ActionExecutionDiagnosticLogger {
 
         triggerLogEvent(initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
                 message, DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    public void logRetryAttemptDueToUnauthorizedResponse(Action action, int attempt, int maxRetries) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        String message = String.format(
+                "Received unauthorized response from external endpoint %s for action execution. " +
+                        "Refreshing the token and retrying the API call. Attempt %d of %d.",
+                action.getEndpoint().getUri(), attempt, maxRetries);
+
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
+                        message, DiagnosticLog.ResultStatus.SUCCESS);
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
+    }
+
+    public void logMaxRetriesReachedForUnauthorizedResponse(Action action, int maxRetries) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        String message = String.format(
+                "Maximum retry attempts (%d) reached for action execution after receiving unauthorized response " +
+                        "from external endpoint %s.", maxRetries, action.getEndpoint().getUri());
+
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
+                        message, DiagnosticLog.ResultStatus.SUCCESS);
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
+    }
+
+    public void logSuccessResponseForAccessTokenRetrieval(Action action, Authentication authentication) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        String tokenEndpoint = authentication.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue();
+        String message = "Successfully retrieved a new access token using " + authentication.getType() +
+                " authentication from the token endpoint " + tokenEndpoint + " for action execution.";
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST,
+                        message, DiagnosticLog.ResultStatus.SUCCESS);
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
+    }
+
+    public void logErrorResponseForAccessTokenRetrieval(Action action, Authentication authentication, Exception e) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        String tokenEndpoint = authentication.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue();
+        String message = "Failed to retrieve a new access token using " + authentication.getType() +
+                " authentication from the token endpoint " + tokenEndpoint + " for action execution.";
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder =
+                initializeDiagnosticLogBuilder(ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST,
+                        message, DiagnosticLog.ResultStatus.FAILED)
+                        .inputParam("Failure Message", e.getMessage());
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
     public void logAPICallTimeout(HttpPost request, int currentAttempt, int retryCount) {

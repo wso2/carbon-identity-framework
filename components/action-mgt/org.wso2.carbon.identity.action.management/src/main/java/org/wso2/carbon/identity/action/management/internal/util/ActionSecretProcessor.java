@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -80,6 +80,24 @@ public class ActionSecretProcessor {
         }
     }
 
+    public void deleteAssociatedInternalSecrets(Authentication authentication, String actionId)
+            throws SecretManagementException {
+
+        if (authentication.getInternalAuthProperties() == null ||
+                authentication.getInternalAuthProperties().isEmpty()) {
+            return;
+        }
+        for (AuthProperty authProperty : authentication.getInternalAuthProperties()) {
+            if (authProperty.getIsConfidential()) {
+                String secretName = buildSecretName(actionId, authentication.getType().name(), authProperty.getName());
+                if (isSecretPropertyExists(secretName)) {
+                    ActionMgtServiceComponentHolder.getInstance().getSecretManager()
+                            .deleteSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
+                }
+            }
+        }
+    }
+
     public List<AuthProperty> getPropertiesWithSecretReferences(List<AuthProperty> authProperties, String actionId,
                                                                 String authType) throws SecretManagementException {
 
@@ -133,7 +151,7 @@ public class ActionSecretProcessor {
      * @return Decrypted Auth Property if it is a confidential property.
      * @throws SecretManagementException If an error occurs while decrypting the secret.
      */
-    private AuthProperty decryptProperty(AuthProperty authProperty, String authType, String actionId)
+    public AuthProperty decryptProperty(AuthProperty authProperty, String authType, String actionId)
             throws SecretManagementException {
 
         String secretName = buildSecretName(actionId, authType, authProperty.getName());

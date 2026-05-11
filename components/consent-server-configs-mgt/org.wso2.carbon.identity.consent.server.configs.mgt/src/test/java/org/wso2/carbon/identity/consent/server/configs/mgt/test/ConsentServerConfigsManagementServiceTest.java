@@ -41,6 +41,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.ENFORCE_EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.consent.server.configs.mgt.utils.Constants.EXTERNAL_CONSENT_PAGE_URL;
 
@@ -81,16 +82,58 @@ public class ConsentServerConfigsManagementServiceTest {
         }
     }
 
+    @DataProvider(name = "enforceExternalConsentPageDataProvider")
+    public Object[][] enforceExternalConsentPageDataProvider() {
+
+        return new Object[][]{
+                // enforce=true, url present -> true
+                {"tenant1", getResources("true", EXTERNAL_CONSENT_PAGE_URL_VALUE), true},
+                // enforce=true, url missing -> false (falls back due to missing url)
+                {"tenant2", getResources("true", ""), false},
+                // enforce=true, url blank -> false (falls back due to blank url)
+                {"tenant2_1", getResources("true", "   "), false},
+                // enforce=false, url present -> false
+                {"tenant3", getResources("false", EXTERNAL_CONSENT_PAGE_URL_VALUE), false},
+                // enforce missing, url present -> false
+                {"tenant4", getResources(null, EXTERNAL_CONSENT_PAGE_URL_VALUE), false},
+                // null resources -> false (exception caught)
+                {"tenant5", null, false}
+        };
+    }
+
+    @Test(dataProvider = "enforceExternalConsentPageDataProvider")
+    public void isExternalConsentPageEnforcedTest(String tenantDomain, Resources resources,
+                                                   boolean expectedResult) throws Exception {
+
+        when(configurationManager.getTenantResources(anyString(), any(Condition.class))).thenReturn(resources);
+        boolean isEnforced = serverConfigsService.isExternalConsentPageEnforced(tenantDomain);
+        Assert.assertEquals(isEnforced, expectedResult);
+    }
+
     private Resources getResources() {
+
+        return getResources(null, EXTERNAL_CONSENT_PAGE_URL_VALUE);
+    }
+
+    private Resources getResources(String enforceValue, String urlValue) {
 
         Resources resources = new Resources();
         List<Resource> resourceList = new ArrayList<>();
         List<Attribute> attributes = new ArrayList<>();
 
-        Attribute attribute = new Attribute();
-        attribute.setKey(EXTERNAL_CONSENT_PAGE_URL);
-        attribute.setValue(EXTERNAL_CONSENT_PAGE_URL_VALUE);
-        attributes.add(attribute);
+        if (enforceValue != null) {
+            Attribute enforceAttribute = new Attribute();
+            enforceAttribute.setKey(ENFORCE_EXTERNAL_CONSENT_PAGE);
+            enforceAttribute.setValue(enforceValue);
+            attributes.add(enforceAttribute);
+        }
+
+        if (urlValue != null) {
+            Attribute urlAttribute = new Attribute();
+            urlAttribute.setKey(EXTERNAL_CONSENT_PAGE_URL);
+            urlAttribute.setValue(urlValue);
+            attributes.add(urlAttribute);
+        }
 
         Resource resource = new Resource();
         resource.setAttributes(attributes);

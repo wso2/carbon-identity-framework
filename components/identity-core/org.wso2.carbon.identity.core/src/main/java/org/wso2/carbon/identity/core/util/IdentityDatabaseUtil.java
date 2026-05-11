@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -33,6 +34,7 @@ import javax.sql.DataSource;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DB2;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORACLE;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.POSTGRE_SQL;
 
 /**
  * Utility class for database operations.
@@ -55,6 +57,17 @@ public class IdentityDatabaseUtil {
     public static String getParentSchema() {
 
         return JDBCPersistenceManager.getInstance().getParentSchema();
+    }
+
+    /**
+     * This method returns the custom schema from the configurations for PostgreSQL database.
+     * Custom schema is used when the tables are not created in the first schema of the search path of the db user.
+     *
+     * @return postgres Schema.
+     */
+    public static String getPostgresSchema() {
+
+        return JDBCPersistenceManager.getInstance().getPostgresSchema();
     }
 
     /**
@@ -228,6 +241,15 @@ public class IdentityDatabaseUtil {
                 String parentSchema = getParentSchema();
                 if (parentSchema != null) {
                     schemaName = parentSchema;
+                }
+            }
+
+            // For PostgreSQL, use the configured schema if available. This handles cases where tables reside in a
+            // non-default schema that differs from the first entry in the database user's search path.
+            if (POSTGRE_SQL.equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())) {
+                String postgresSchema = getPostgresSchema();
+                if (StringUtils.isNotBlank(postgresSchema)) {
+                    schemaName = postgresSchema.trim();
                 }
             }
             try (ResultSet resultSet = metaData.getTables(catalogName, schemaName, tableName, new String[]{"TABLE"})) {

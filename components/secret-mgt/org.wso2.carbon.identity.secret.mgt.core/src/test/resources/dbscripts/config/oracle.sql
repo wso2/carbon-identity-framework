@@ -1,0 +1,37 @@
+-- -----------------------------------------------------
+-- Table IDN_SECRET_TYPE
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS IDN_SECRET_TYPE (
+  ID          VARCHAR(255)  NOT NULL,
+  NAME        VARCHAR(255)  NOT NULL,
+  DESCRIPTION VARCHAR(1023) NULL,
+  PRIMARY KEY (ID),
+  UNIQUE (NAME)
+);
+
+-- -----------------------------------------------------
+-- Table IDN_SECRET (Oracle schema with CLOB column)
+-- SECRET_VALUE is nullable because the Oracle INSERT path
+-- (INSERT_SECRET_ORACLE) only populates SECRET_VALUE_CLOB.
+-- SECRET_VALUE_CLOB stores the secret for Oracle deployments.
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS IDN_SECRET (
+  ID                VARCHAR(255)  NOT NULL,
+  TENANT_ID         INT           NOT NULL,
+  SECRET_NAME       VARCHAR(1023) NOT NULL,
+  SECRET_VALUE      VARCHAR(4096) NULL,
+  SECRET_VALUE_CLOB CLOB          NULL,
+  CREATED_TIME      TIMESTAMP     NOT NULL,
+  LAST_MODIFIED     TIMESTAMP     NOT NULL,
+  TYPE_ID           VARCHAR(255)  NOT NULL,
+  DESCRIPTION       VARCHAR(1023) NULL,
+  KEY_ID            VARCHAR(225)  NULL,
+  UNIQUE (SECRET_NAME, TENANT_ID, TYPE_ID),
+  PRIMARY KEY (ID)
+);
+
+ALTER TABLE IDN_SECRET ADD CONSTRAINT TYPE_ID_FOREIGN_CONSTRAINT_ORACLE FOREIGN KEY (TYPE_ID) REFERENCES IDN_SECRET_TYPE (ID)
+ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- IDN_SECRET --
+CREATE INDEX IDN_SECRET_TYPE_ID_ORACLE ON IDN_SECRET (TYPE_ID);

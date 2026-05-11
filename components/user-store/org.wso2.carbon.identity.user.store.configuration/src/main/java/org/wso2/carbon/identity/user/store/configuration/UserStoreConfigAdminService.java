@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.transform.TransformerConfigurationException;
@@ -50,9 +49,9 @@ import javax.xml.transform.TransformerConfigurationException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .getFileBasedUserStoreDAOFactory;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreStateChange;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateConnectionUrlForInitExpressions;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .validateForFederatedDomain;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.H2_INIT_REGEX;
 
 /**
  * User store config admin service.
@@ -65,8 +64,6 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
-
-    private static Pattern h2InitPattern = Pattern.compile(H2_INIT_REGEX, Pattern.CASE_INSENSITIVE);
 
     /**
      * Get details of current secondary user store configurations
@@ -422,15 +419,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID) throws
             IdentityUserStoreMgtException {
-        if (StringUtils.isNotEmpty(connectionURL)) {
-            String validationConnectionString = connectionURL.toLowerCase().replace("\\", "");
-            Matcher matcher = h2InitPattern.matcher(validationConnectionString);
-            if (matcher.find()) {
-                String errorMessage = "INIT expressions are not allowed in the connection URL due to security reasons.";
-                LOG.error(errorMessage);
-                throw new IdentityUserStoreMgtException(errorMessage);
-            }
-        }
+
+        validateConnectionUrlForInitExpressions(connectionURL);
+
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().testRDBMSConnection(domainName,
                 driverName, connectionURL, username, connectionPassword, messageID);
     }

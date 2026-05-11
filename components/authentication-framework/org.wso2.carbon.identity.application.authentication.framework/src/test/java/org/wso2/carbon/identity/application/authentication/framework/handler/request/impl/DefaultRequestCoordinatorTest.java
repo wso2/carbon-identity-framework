@@ -38,6 +38,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationData;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
@@ -72,6 +74,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -80,7 +83,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
@@ -819,5 +824,168 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         method.invoke(coordinator, responseWrapper, context);
 
         verify(responseWrapper, times(1)).sendRedirect(expectedUrlForIOException);
+    }
+
+    @Test
+    public void testUpdateContextForOrganizationLogin() throws Exception {
+
+        OrganizationData accessingOrg = new OrganizationData();
+        accessingOrg.setId("org-id-123");
+        accessingOrg.setHandle("org.example.com");
+        OrganizationLoginData orgLoginData = new OrganizationLoginData();
+        orgLoginData.setAccessingOrganization(accessingOrg);
+        orgLoginData.setSharedApplicationId("shared-app-id-123");
+
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isEnhancedOrganizationAuthenticationEnabled()).thenReturn(false);
+        when(serviceProvider.isApplicationEnabled()).thenReturn(true);
+        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+        SequenceConfig initialSequenceConfig = mock(SequenceConfig.class);
+        when(initialSequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain("carbon.super");
+        context.setRequestType("oauth2");
+        context.setRelyingParty("console");
+        context.setOrganizationLoginData(orgLoginData);
+        context.setSharedAppLoginContextUpdateRequired(true);
+        context.setSequenceConfig(initialSequenceConfig);
+
+        SequenceConfig sharedAppSequenceConfig = mock(SequenceConfig.class);
+        DefaultRequestCoordinator spyCoordinator = spy(new DefaultRequestCoordinator());
+        doReturn(sharedAppSequenceConfig).when(spyCoordinator)
+                .getSharedAppSequenceConfig(any(), any(), any());
+        doNothing().when(spyCoordinator).findPreviousOrganizationSession(any(), any());
+
+        HttpServletRequest requestMock = mock(HttpServletRequest.class);
+        HttpServletResponse responseMock = mock(HttpServletResponse.class);
+        CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
+        CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
+        DefaultAuthenticationRequestHandler authHandler = mock(DefaultAuthenticationRequestHandler.class);
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("carbon.super");
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+
+            frameworkUtils.when(() -> FrameworkUtils.getContextData(request)).thenReturn(context);
+            frameworkUtils.when(FrameworkUtils::getAuthenticationRequestHandler).thenReturn(authHandler);
+            frameworkUtils.when(FrameworkUtils::isAuthenticationContextExpiryEnabled).thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.addAuthenticationContextToCache(anyString(), any()))
+                    .thenAnswer(inv -> null);
+            frameworkUtils.when(() -> FrameworkUtils.removeALORCookie(any(), any())).thenAnswer(inv -> null);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
+
+            ApplicationManagementServiceImpl mockAppMgtService = mock(ApplicationManagementServiceImpl.class);
+            applicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(mockAppMgtService);
+            when(mockAppMgtService.getServiceProviderByClientId(any(), any(), any())).thenReturn(serviceProvider);
+
+            spyCoordinator.handle(request, response);
+
+            assertEquals(context.getTenantDomain(), "org.example.com");
+            assertEquals(context.getSequenceConfig(), sharedAppSequenceConfig);
+            assertEquals(context.getServiceProviderResourceId(), "shared-app-id-123");
+            assertEquals(context.getCurrentStep(), 0);
+            assertTrue(context.isSharedAppLogin());
+            assertFalse(context.isSharedAppLoginContextUpdateRequired());
+            assertEquals(context.getOrganizationLoginData().getRootOrganizationTenantDomain(), "carbon.super");
+        }
+    }
+
+    @DataProvider(name = "spUuidOutboundQueryParamProvider")
+    public Object[][] provideSpUuidOutboundQueryParamScenarios() {
+
+        return new Object[][] {
+            // spId not in query string -> appended.
+            {
+                "sessionDataKey=key123&isSaaSApp=false",
+                "sessionDataKey=key123&isSaaSApp=false&spId=shared-app-id-123",
+            },
+            // spId already present (root app uuid) -> replaced with shared app uuid.
+            {
+                "sessionDataKey=key123&spId=root-app-uuid&isSaaSApp=false",
+                "sessionDataKey=key123&spId=shared-app-id-123&isSaaSApp=false",
+            },
+            // notspId present (substring false-positive guard) -> spId appended, notspId untouched.
+            {
+                "sessionDataKey=key123&notspId=other-value&isSaaSApp=false",
+                "sessionDataKey=key123&notspId=other-value&isSaaSApp=false&spId=shared-app-id-123",
+            },
+        };
+    }
+
+    @Test(dataProvider = "spUuidOutboundQueryParamProvider")
+    public void testUpdateServiceProviderUuidInOutboundQueryParams(String initialQueryParams,
+            String expectedQueryParams) throws Exception {
+
+        OrganizationData accessingOrg = new OrganizationData();
+        accessingOrg.setId("org-id-123");
+        accessingOrg.setHandle("org.example.com");
+        OrganizationLoginData orgLoginData = new OrganizationLoginData();
+        orgLoginData.setAccessingOrganization(accessingOrg);
+        orgLoginData.setSharedApplicationId("shared-app-id-123");
+
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isEnhancedOrganizationAuthenticationEnabled()).thenReturn(false);
+        when(serviceProvider.isApplicationEnabled()).thenReturn(true);
+        ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+        SequenceConfig initialSequenceConfig = mock(SequenceConfig.class);
+        when(initialSequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain("carbon.super");
+        context.setRequestType("oauth2");
+        context.setRelyingParty("console");
+        context.setOrganizationLoginData(orgLoginData);
+        context.setSharedAppLoginContextUpdateRequired(true);
+        context.setSequenceConfig(initialSequenceConfig);
+        context.setContextIdIncludedQueryParams(initialQueryParams);
+        context.setQueryParams(initialQueryParams);
+
+        DefaultRequestCoordinator spyCoordinator = spy(new DefaultRequestCoordinator());
+        doReturn(mock(SequenceConfig.class)).when(spyCoordinator)
+                .getSharedAppSequenceConfig(any(), any(), any());
+        doNothing().when(spyCoordinator).findPreviousOrganizationSession(any(), any());
+
+        HttpServletRequest requestMock = mock(HttpServletRequest.class);
+        HttpServletResponse responseMock = mock(HttpServletResponse.class);
+        CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
+        CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
+        DefaultAuthenticationRequestHandler authHandler = mock(DefaultAuthenticationRequestHandler.class);
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain("carbon.super");
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+
+            frameworkUtils.when(() -> FrameworkUtils.getContextData(request)).thenReturn(context);
+            frameworkUtils.when(FrameworkUtils::getAuthenticationRequestHandler).thenReturn(authHandler);
+            frameworkUtils.when(FrameworkUtils::isAuthenticationContextExpiryEnabled).thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.addAuthenticationContextToCache(anyString(), any()))
+                    .thenAnswer(inv -> null);
+            frameworkUtils.when(() -> FrameworkUtils.removeALORCookie(any(), any())).thenAnswer(inv -> null);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
+
+            ApplicationManagementServiceImpl mockAppMgtService = mock(ApplicationManagementServiceImpl.class);
+            applicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(mockAppMgtService);
+            when(mockAppMgtService.getServiceProviderByClientId(any(), any(), any())).thenReturn(serviceProvider);
+
+            spyCoordinator.handle(request, response);
+
+            assertEquals(context.getContextIdIncludedQueryParams(), expectedQueryParams);
+            assertEquals(context.getQueryParams(), expectedQueryParams);
+        }
     }
 }

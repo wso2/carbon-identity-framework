@@ -54,6 +54,24 @@ public class InMemoryIdentityDataStore extends UserIdentityDataStore {
     @Override
     public void store(UserIdentityClaimsDO userIdentityDTO, UserStoreManager userStoreManager)
             throws IdentityException {
+        storeToCache(userIdentityDTO, userStoreManager, false);
+    }
+
+    @Override
+    public void storeOnRead(UserIdentityClaimsDO userIdentityDTO, UserStoreManager userStoreManager)
+            throws IdentityException {
+        storeToCache(userIdentityDTO, userStoreManager, true);
+    }
+
+    /**
+     * Stores the given {@link UserIdentityClaimsDO} to the cache.
+     *
+     * @param userIdentityDTO    the identity claims to store
+     * @param userStoreManager   the user store manager
+     * @param onRead             if {@code true}, uses {@code cache.putOnRead()}; otherwise uses {@code cache.put()}
+     */
+    private void storeToCache(UserIdentityClaimsDO userIdentityDTO, UserStoreManager userStoreManager, boolean onRead)
+            throws IdentityException {
 
         try {
             PrivilegedCarbonContext.startTenantFlow();
@@ -88,12 +106,15 @@ public class InMemoryIdentityDataStore extends UserIdentityDataStore {
 
                 org.wso2.carbon.user.core.UserStoreManager store = (org.wso2.carbon.user.core.UserStoreManager) userStoreManager;
                 String domainName = store.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-
                 String key = domainName + userStoreManager.getTenantId() + userName;
 
                 Cache<String, UserIdentityClaimsDO> cache = getCache();
                 if (cache != null) {
-                    cache.put(key, userIdentityDTO);
+                    if (onRead) {
+                        cache.putOnRead(key, userIdentityDTO);
+                    } else {
+                        cache.put(key, userIdentityDTO);
+                    }
                 }
             }
         } catch (UserStoreException e) {

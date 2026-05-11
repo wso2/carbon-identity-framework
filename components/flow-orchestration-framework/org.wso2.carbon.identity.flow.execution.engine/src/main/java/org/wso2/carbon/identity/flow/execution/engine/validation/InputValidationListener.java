@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,7 +34,10 @@ import java.util.Optional;
 
 /**
  * Listener to handle input validation.
+ *
+ * @deprecated Use {@link InputValidator} instead.
  */
+@Deprecated
 public class InputValidationListener extends AbstractFlowExecutionListener {
 
     @Override
@@ -56,6 +59,7 @@ public class InputValidationListener extends AbstractFlowExecutionListener {
     }
 
     @Override
+    @Deprecated
     public boolean doPreExecute(FlowExecutionContext FlowExecutionContext)
             throws FlowEngineException {
 
@@ -106,6 +110,7 @@ public class InputValidationListener extends AbstractFlowExecutionListener {
     }
 
     @Override
+    @Deprecated
     public boolean doPostExecute(FlowExecutionStep step, FlowExecutionContext FlowExecutionContext)
             throws FlowEngineException {
 

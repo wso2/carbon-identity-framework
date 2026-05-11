@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -198,11 +197,18 @@ public class ApplicationDataRetrievalClient {
 
             String responseString = IdentityManagementEndpointUtil.getHttpClientResponseString(request);
 
+            if (StringUtils.isEmpty(responseString)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No response received for application ID: " + applicationId + " in tenant: " + tenant);
+                }
+                return new HashSet<>();
+            }
+
             JSONObject root = new JSONObject(responseString);
             JSONObject authSeq = root.getJSONObject("authenticationSequence");
             JSONArray steps = authSeq.getJSONArray("steps");
 
-            StringBuilder resultBuilder = new StringBuilder();
+            Set<String> configuredAuthenticatorsSet = new HashSet<>();
 
             for (int i = 0; i < steps.length(); i++) {
                 JSONObject step = steps.getJSONObject(i);
@@ -212,22 +218,17 @@ public class ApplicationDataRetrievalClient {
                     JSONObject option = options.getJSONObject(j);
                     String idp = option.getString("idp");
                     String authenticator = option.getString("authenticator");
-
-                    if (resultBuilder.length() > 0) {
-                        resultBuilder.append(";");
-                    }
-                    resultBuilder.append(authenticator).append(":").append(idp);
+                    configuredAuthenticatorsSet.add(authenticator + ":" + idp);
                 }
             }
 
-            Set<String> configuredAuthenticatorsSet = new HashSet<>(Arrays.asList((resultBuilder.toString()).split(";")));
             if (log.isDebugEnabled()) {
                 log.debug("Found " + configuredAuthenticatorsSet.size() + " authenticators for application: " + applicationId);
             }
             return configuredAuthenticatorsSet;
 
         } catch (IOException | JSONException e) {
-            String msg = "Error while getting authenticators of" + applicationId + " in tenant : " + tenant;
+            String msg = "Error while getting authenticators of " + applicationId + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }
@@ -241,21 +242,19 @@ public class ApplicationDataRetrievalClient {
      * @param tenant Tenant domain of the application.
      * @param applicationName Name of the application.
      * @return The authenticators configured for the given application
-     * @throws ApplicationDataRetrievalClientException If IO exception occurs or access URL is not configured.
+     * @throws ApplicationDataRetrievalClientException If an error occurs while retrieving the application data.
      */
     public Set<String> getApplicationAuthenticatorsByAppName(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
 
-        try {
-            String applicationID = getApplicationID(tenant,applicationName);
-            return getApplicationAuthenticatorsByAppId(tenant, applicationID);
-        } catch (JSONException e) {
-            String msg = "Error while getting authenticators of" + applicationName + " in tenant : " + tenant;
+        String applicationID = getApplicationID(tenant, applicationName);
+        if (StringUtils.isEmpty(applicationID)) {
             if (log.isDebugEnabled()) {
-                log.debug(msg, e);
+                log.debug("No application found for name: " + applicationName + " in tenant: " + tenant);
             }
-            throw new ApplicationDataRetrievalClientException(msg, e);
+            return new HashSet<>();
         }
+        return getApplicationAuthenticatorsByAppId(tenant, applicationID);
     }
 
     /**

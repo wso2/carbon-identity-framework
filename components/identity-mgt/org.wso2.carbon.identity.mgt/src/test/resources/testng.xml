@@ -17,7 +17,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.mgt.policy.password">
-    <test name="org.wso2.carbon.identity.mgt.policy.password" preserve-order="false" parallel="false">
+    <test name="org.wso2.carbon.identity.mgt.policy.password" preserve-order="false" parallel="none">
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>
             <class name="org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordLengthPolicyTest"/>
@@ -29,9 +29,15 @@
 
         </classes>
     </test>
-    <test name="org.wso2.carbon.identity.mgt.listener" preserve-order="false" parallel="false">
+    <test name="org.wso2.carbon.identity.mgt.listener" preserve-order="false" parallel="none">
         <classes>
             <class name="org.wso2.carbon.identity.mgt.listener.TenantSyncListenerTest"/>
+        </classes>
+    </test>
+    <test name="org.wso2.carbon.identity.mgt.store" preserve-order="false" parallel="none">
+        <classes>
+            <class name="org.wso2.carbon.identity.mgt.store.InMemoryIdentityDataStoreTest"/>
+            <class name="org.wso2.carbon.identity.mgt.store.UserStoreBasedIdentityDataStoreTest"/>
         </classes>
     </test>
 </suite>

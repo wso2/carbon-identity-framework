@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.claim.metadata.mgt.util.SQLConstants;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,6 +47,8 @@ public class ClaimDAOTest {
     @Mock
     PreparedStatement mockedPreparedStatement;
     @Mock
+    DatabaseMetaData mockedDatabaseMetaData;
+    @Mock
     ResultSet mockedResultSet;
     private ClaimDAO claimDAO;
 
@@ -56,6 +59,8 @@ public class ClaimDAOTest {
         claimDAO = new ClaimDAO();
 
         when(mockedConnection.prepareStatement(anyString())).thenReturn(mockedPreparedStatement);
+        when(mockedConnection.getMetaData()).thenReturn(mockedDatabaseMetaData);
+        when(mockedDatabaseMetaData.getDatabaseProductName()).thenReturn("H2");
         when(mockedPreparedStatement.executeQuery()).thenReturn(mockedResultSet);
     }
 

@@ -490,6 +490,17 @@
              Supported versions: IS 5.6.0 onwards.
         -->
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
+
+        <!-- Process the client secret before storing it in database, e.g. hashing -->
+        {% if oauth.extensions.client_secret_persistence_processor is defined %}
+        <ClientSecretPersistenceProcessor>{{oauth.extensions.client_secret_persistence_processor}}</ClientSecretPersistenceProcessor>
+        {% elif oauth.extensions.token_persistence_processor is defined %}
+        <ClientSecretPersistenceProcessor>{{oauth.extensions.token_persistence_processor}}</ClientSecretPersistenceProcessor>
+        {% else %}
+        <ClientSecretPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</ClientSecretPersistenceProcessor>
+        {% endif %}
+
+        <HashClientSecretOnly>{{oauth.hash_client_secret}}</HashClientSecretOnly>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
 
@@ -874,6 +885,12 @@
             <UserName>{{oauth.token_generation.include_username_in_access_token}}</UserName>
         </EnableAssertions>
 
+        <!-- Revoke grant cache upon login. If this is set to true, the authorization grant caches will be cleared upon each login, since the inactive account suspension handler updates the login time on every login.
+                Default value : false
+                Supported versions: IS 7.3.0 onwards
+            -->
+        <RevokeCacheAtLogin>{{identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login}}</RevokeCacheAtLogin>
+
         <!-- This should be true if subject identifier in the token validation response needs to adhere to the
         following SP configuration.
 
@@ -1189,6 +1206,23 @@
             <Enable>{{oauth.token_persistence.enable}}</Enable>
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
+            <!-- Determines whether access tokens should be persisted in the database.
+                 Default: true. Set to false to enable the non-persistent access token feature. -->
+            <PersistAccessToken>{{oauth.token_persistence.persist_access_token | default(true)}}</PersistAccessToken>
+            <!-- Determines whether refresh tokens should be persisted in the database.
+                 Default: true. Set to false to enable the non-persistent refresh token feature.
+                 Note: This feature is only subject to use with non-persistent access token feature. -->
+            <PersistRefreshToken>{{oauth.token_persistence.persist_refresh_token | default(true)}}</PersistRefreshToken>
+            <!-- Applicable when non-persistent access tokens are enabled.
+                 Determines whether revoked access tokens should still be retained.
+                 Default: true. -->
+            {% if oauth.token_persistence.retain_revoked_token is defined %}
+            <KeepRevokedAccessTokens>{{ oauth.token_persistence.retain_revoked_token }}</KeepRevokedAccessTokens>
+            {% elif oauth.token_persistence.retain_revoked_access_token is defined %}
+            <KeepRevokedAccessTokens>{{ oauth.token_persistence.retain_revoked_access_token }}</KeepRevokedAccessTokens>
+            {% else %}
+            <KeepRevokedAccessTokens>true</KeepRevokedAccessTokens>
+            {% endif %}
         </TokenPersistence>
 
         <!--
@@ -1360,6 +1394,11 @@
         -->
         <DropUnregisteredScopes>{{oauth.drop_unregistered_scopes}}</DropUnregisteredScopes>
         {% endif %}
+
+        {% if oauth.drop_unrequested_oidc_scopes is defined %}
+        <DropUnrequestedOIDCScopes>{{oauth.drop_unrequested_oidc_scopes}}</DropUnrequestedOIDCScopes>
+        {% endif %}
+
         {% if oauth.client_id_validation_regex is defined %}
         <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
         {% endif %}
@@ -1478,6 +1517,12 @@
         <AllowIssuerSelectionForSubOrgApplications>{{oauth.allow_issuer_selection_for_sub_org_applications}}</AllowIssuerSelectionForSubOrgApplications>
     </OAuth>
 
+    <PushAuthenticator>
+        <DeviceRegistrationContext>
+            <ValidityPeriod>{{push_authenticator.device_registration_context.validity_period}}</ValidityPeriod>
+        </DeviceRegistrationContext>
+    </PushAuthenticator>
+
     <RestApiAuthentication>
             <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
             <AddRealmUserToError>{{rest_api_authentication.add_realm_user_to_error}}</AddRealmUserToError>
@@ -1560,6 +1605,7 @@
         {% endif %}
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
         <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
+        <SAMLAllowNestedAssertionsInResponse>{{saml.response.allow_nested_assertions}}</SAMLAllowNestedAssertionsInResponse>
     </SSOService>
 
     <Consent>
@@ -2136,6 +2182,7 @@
             <ScopeWithinUserstore>{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</ScopeWithinUserstore>
         </UniquenessValidation>
         <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
+        <RestrictImmutableLocalClaimUpdate>{{identity_mgt.user_claim_update.restrict_immutable_local_claim_update}}</RestrictImmutableLocalClaimUpdate>
     </UserClaimUpdate>
 
     <HiddenClaims>
@@ -2341,6 +2388,9 @@
             -->
             <ConfidentialDataProtectionEnabled>{{outbound_provisioning_management.confidential_data_protection_enabled}}</ConfidentialDataProtectionEnabled>
         {% endif %}
+        {% if outbound_provisioning_management.enable_scim_compliant_email_attribute is defined %}
+            <EnableSCIMCompliantEmailAttribute>{{outbound_provisioning_management.enable_scim_compliant_email_attribute}}</EnableSCIMCompliantEmailAttribute>
+        {% endif %}
         <SCIM2Client>
             <!--
                 HTTP retry count for SCIM2 outbound provisioning client.
@@ -2369,6 +2419,7 @@
         </HTTPClient>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
         <ActionRequest>
+            <CaseInsensitiveHeaderFiltering>{{actions.action_request.case_insensitive_header_filtering}}</CaseInsensitiveHeaderFiltering>
             <ExcludedHeaders>
                  {% for header in actions.action_request.excluded_headers %}
                     <Header>{{header}}</Header>
@@ -2476,15 +2527,23 @@
             <HTTPConnectionMaxPerRoute>{{external_api_client.http_client.max_connection_per_route}}</HTTPConnectionMaxPerRoute>
         </HTTPClient>
         <DefaultRetryCount>{{external_api_client.retry_count}}</DefaultRetryCount>
+        <DefaultResponseLimit>{{external_api_client.response_limit}}</DefaultResponseLimit>
     </ExternalAPIClient>
 
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
+        <Registration>
+            <SkipSignupConfirmationIfAccountLockDisabled>{{webhooks.registration.skip_signup_confirmation_if_account_lock_disabled}}</SkipSignupConfirmationIfAccountLockDisabled>
+        </Registration>
     </Webhooks>
 
     <LocalAuthenticators>
         <HideUserExistenceOnAuthFlow>{{authentication.local_authenticators.hide_user_existence}}</HideUserExistenceOnAuthFlow>
     </LocalAuthenticators>
+
+    <IdentitySecretManager>
+        <SecretValueClobColumnExists>{{identity_secret_manager.secret_value_clob_column_exists}}</SecretValueClobColumnExists>
+    </IdentitySecretManager>
 
     <EventListeners>
         <EventListener id="input_validation"
@@ -3004,6 +3063,11 @@
                    enable="{{cache.push_device_registration_request_cache.enable}}"
                    timeout="{{cache.push_device_registration_request_cache.timeout}}"
                    capacity="{{cache.push_device_registration_request_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="saml_cert_cache" name="SAMLCertCache"
+                   enable="{{cache.saml_cert_cache.enable}}"
+                   timeout="{{cache.saml_cert_cache.timeout}}"
+                   capacity="{{cache.saml_cert_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -4172,6 +4236,28 @@
     -->
     <EnableLegacySaaSAuthentication>{{authentication.enable_legacy_saas_mode | default(false)}}</EnableLegacySaaSAuthentication>
 
+    <!--
+        SaaS application configurations.
+        Note: SaaS applications are deprecated as of WSO2 Identity Server 7.0.0.
+        These configurations are provided solely for backward compatibility.
+    -->
+    <SaaS>
+        <!--
+            Controls whether administrators can create new SaaS applications.
+            When set to 'false', creation of new SaaS applications will be rejected.
+            Existing SaaS applications will continue to be available.
+            Default: false.
+        -->
+        <EnableAppCreation>{{saas.enable_app_creation}}</EnableAppCreation>
+        <!--
+            Controls whether cross-tenant operations are permitted within adaptive authentication scripts for SaaS applications.
+            When set to 'false', cross-tenant user operations will be blocked.
+            WARNING: Enabling this introduces a known security risk by allowing adaptive scripts to operate on users from other tenants.
+            Default: false.
+        -->
+        <EnableCrossTenantOperations>{{saas.enable_cross_tenant_operations}}</EnableCrossTenantOperations>
+    </SaaS>
+
     <EnablePerUserFunctionalityLocking>{{user.enable_per_user_functionality_locking}}</EnablePerUserFunctionalityLocking>
 
     <TenantContextsToRewrite>
@@ -4223,6 +4309,7 @@
                     <Path>/oauth2/userinfo</Path>
                     <Path>/oauth2/authorize</Path>
                     <Path>/oauth2/jwks</Path>
+                    <Path>/oauth2/authn</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -4249,6 +4336,21 @@
             <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
+
+    <OrgResourceContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                    <Path>/api/server/v1/branding-preference/text</Path>
+                    <Path>/api/server/v1/branding-preference/text/resolve</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgResourceContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>
@@ -4800,6 +4902,9 @@
 
     <!-- Configuration to enable or disable claim filtering based on scope. -->
     <EnableScopeBasedClaimFiltering>{{authentication.enable_scope_based_claim_filtering}}</EnableScopeBasedClaimFiltering>
+    <!-- Configuration options for controlling the inclusion of additional information in API-based authentication responses. -->
+    <IncludeAuthFailureReasonInAPIBasedAuthResponse>{{authentication.include_auth_failure_reason_in_api_based_response}}</IncludeAuthFailureReasonInAPIBasedAuthResponse>
+    <IncludeMultiOptionsInAPIBasedAuthResponse>{{authentication.include_multi_options_in_api_based_auth_response}}</IncludeMultiOptionsInAPIBasedAuthResponse>
 
     <!-- Configuration to allow only SP requested claims during federated flow. -->
     <AllowSPRequestedFedClaimsOnly>{{authentication.allow_sp_requested_fed_claims_only}}</AllowSPRequestedFedClaimsOnly>
@@ -4940,6 +5045,11 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
+     {% if scim2.enable_legacy_enterprise_user is defined %}
+     <!-- Config to allow legacy SCIM enterprise user behavior -->
+     <EnableSCIMLegacyEnterpriseUser>{{scim2.enable_legacy_enterprise_user}}</EnableSCIMLegacyEnterpriseUser>
+     {% endif %}
+
     {% if cache_invalidator.mb.enabled is defined %}
     <CacheInvalidator>
         <MB>
@@ -5076,6 +5186,10 @@
         <CustomContent>
             <MaxFileSize>{{branding_configuration.custom_content.max_file_size}}</MaxFileSize>
         </CustomContent>
+        <!-- When enabled, only a generic loading indicator will be shown on intermediate SAML (Inbound and Federated) and Passive STS pages. -->
+        <UseIntermediateLoaderPage>{{branding_configuration.use_intermediate_loader_page}}</UseIntermediateLoaderPage>
+        <!-- When enabled, the invalid tenant domain error page will be served from the Authentication Portal. -->
+        <UseInvalidTenantDomainErrorPageFromAuthPortal>{{branding_configuration.use_invalid_tenant_domain_error_page_from_auth_portal}}</UseInvalidTenantDomainErrorPageFromAuthPortal>
     </BrandingConfiguration>
     <FlowExecution>
         {% if flow_execution.excluded_userstores is defined %}
@@ -5095,6 +5209,16 @@
             {% endfor %}
         </FlowTypeTTLs>
         <EnableLegacyFlows>{{flow_execution.enable_legacy_flows}}</EnableLegacyFlows>
+        <EnableLegacySelfRegistrationFlow>{{flow_execution.enable_legacy_self_registration_flow}}</EnableLegacySelfRegistrationFlow>
+        <EnableLegacyPasswordRecoveryFlow>{{flow_execution.enable_legacy_password_recovery_flow}}</EnableLegacyPasswordRecoveryFlow>
+        <EnableLegacyInvitedUserRegistrationFlow>{{flow_execution.enable_legacy_invited_user_registration_flow}}</EnableLegacyInvitedUserRegistrationFlow>
+        {% if flow_execution.default_enabled_flows is defined %}
+        <DefaultEnabledFlows>
+            {% for flow_type in flow_execution.default_enabled_flows %}
+            <FlowType>{{flow_type}}</FlowType>
+            {% endfor %}
+        </DefaultEnabledFlows>
+        {% endif %}
         <Registration>
             <DisplayClaimAvailability>{{flow_execution.registration.display_claim_availability}}</DisplayClaimAvailability>
             <DefaultUserStore>{{flow_execution.registration.default_user_store}}</DefaultUserStore>
@@ -5139,7 +5263,19 @@
     <APIFiltering>
         <SingleCharacterWildcard>{{api.filters.single_character_wildcard}}</SingleCharacterWildcard>
     </APIFiltering>
+
     <IdentityProviders>
         <SupportMultipleCertificateExport>{{identity_providers.support_multiple_certificate_export}}</SupportMultipleCertificateExport>
     </IdentityProviders>
+
+    <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
+    <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>
+    <WorkflowEngine>
+        <MaxApproverNotifications>{{workflow_engine.max_approver_notifications}}</MaxApproverNotifications>
+    </WorkflowEngine>
+    <UseResidentUserIdForAuthenticatedSharedUsers>{{use_resident_user_id_for_authenticated_shared_users.enabled}}</UseResidentUserIdForAuthenticatedSharedUsers>
+
+    <AppNativeAuthentication>
+        <HandleFailCompletedAuthenticatorStatus>{{app_native_authentication.handle_fail_completed_authenticator_status}}</HandleFailCompletedAuthenticatorStatus>
+    </AppNativeAuthentication>
 </Server>

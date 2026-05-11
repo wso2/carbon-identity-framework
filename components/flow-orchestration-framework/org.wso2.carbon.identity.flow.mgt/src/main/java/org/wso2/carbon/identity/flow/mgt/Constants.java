@@ -73,6 +73,8 @@ public class Constants {
                 "Unexpected server error while invoking the AI service for tenant, %s"),
         ERROR_CODE_DELETE_FLOW("65013", "Error while deleting the flow.",
                 "Unexpected server error while deleting the flow for tenant, %s"),
+        ERROR_CODE_LOAD_SYSTEM_DEFAULT_FLOW("65014", "Error while loading system default flow.",
+                "Unexpected error while loading system default flow for flow type, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -141,26 +143,37 @@ public class Constants {
 
     public enum FlowTypes {
 
-        REGISTRATION("REGISTRATION", FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
+        REGISTRATION("REGISTRATION", "defaultEnableRegistration",
+                FlowCompletionConfig.IS_ACCOUNT_LOCK_ON_CREATION_ENABLED,
                 FlowCompletionConfig.IS_EMAIL_VERIFICATION_ENABLED, FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
-        PASSWORD_RECOVERY("PASSWORD_RECOVERY", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+        PASSWORD_RECOVERY("PASSWORD_RECOVERY", "defaultEnablePasswordRecovery",
+                FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED),
-        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
+        INVITED_USER_REGISTRATION("INVITED_USER_REGISTRATION", "defaultEnableInvitedUserRegistration",
+                FlowCompletionConfig.IS_AUTO_LOGIN_ENABLED,
                 FlowCompletionConfig.IS_FLOW_COMPLETION_NOTIFICATION_ENABLED);
 
         private final String type;
+        private final String defaultEnablementCompatibilityKey;
         private final ArrayList<FlowCompletionConfig> supportedFlowCompletionConfigs = new ArrayList<>();
 
-        FlowTypes(String type, FlowCompletionConfig... requiredFlowCompletionConfigs) {
+        FlowTypes(String type, String defaultEnablementCompatibilityKey,
+                  FlowCompletionConfig... requiredFlowCompletionConfigs) {
 
             this.type = type;
+            this.defaultEnablementCompatibilityKey = defaultEnablementCompatibilityKey;
             this.supportedFlowCompletionConfigs.addAll(Arrays.asList(requiredFlowCompletionConfigs));
         }
 
         public String getType() {
 
             return type;
+        }
+
+        public String getDefaultEnablementCompatibilityKey() {
+
+            return defaultEnablementCompatibilityKey;
         }
 
         public ArrayList<FlowCompletionConfig> getSupportedFlowCompletionConfigs() {
@@ -232,6 +245,7 @@ public class Constants {
     public static class ExecutorTypes {
 
         public static final String USER_ONBOARDING = "UserOnboardingExecutor";
+        public static final String USER_RESOLVER = "UserResolveExecutor";
 
         private ExecutorTypes() {
 
@@ -248,6 +262,10 @@ public class Constants {
         public static final String FLOW_TYPE = "flowType";
         public static final String IS_ENABLED = "isEnabled";
         public static final String IS_AUTO_LOGIN_ENABLED = "isAutoLoginEnabled";
+        public static final String FLOW_EXECUTION_CONFIG = "FlowExecution";
+        public static final String DEFAULT_ENABLED_FLOWS_CONFIG = "DefaultEnabledFlows";
+        public static final String FLOW_TYPE_ELEMENT = "FlowType";
+        public static final String COMPATIBILITY_SETTING_GROUP = "flowExecution";
 
         private FlowConfigConstants() {
 

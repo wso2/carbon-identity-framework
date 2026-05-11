@@ -52,6 +52,7 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_G
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_GENERATE_SMS_OTP;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_MOBILE_CHANGE_VERIFICATION;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_SEND_RECOVERY_NOTIFICATION;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_UPDATE_CREDENTIAL_BY_ME_API;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_UPDATE_CREDENTIAL_BY_SCIM;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_USER_ACCOUNT_CONFIRMATION;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_USER_PROFILE_UPDATE;
@@ -383,6 +384,9 @@ public class EventUtil {
         } else if (POST_UPDATE_CREDENTIAL_BY_SCIM.equals(eventName)) {
             String scenario = (String) event.getEventProperties().get(SCENARIO);
             return POST_CREDENTIAL_UPDATE_BY_ADMIN.equals(scenario) || POST_CREDENTIAL_UPDATE_BY_USER.equals(scenario);
+        } else if (POST_UPDATE_CREDENTIAL_BY_ME_API.equals(eventName)) {
+            String scenario = (String) event.getEventProperties().get(SCENARIO);
+            return POST_CREDENTIAL_UPDATE_BY_USER.equals(scenario);
         }
         return false;
     }

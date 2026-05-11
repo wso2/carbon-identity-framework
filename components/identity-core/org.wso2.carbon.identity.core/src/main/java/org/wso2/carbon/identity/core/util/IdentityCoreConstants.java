@@ -52,6 +52,8 @@ public class IdentityCoreConstants {
     public static final String UTC = "UTC";
     public static final int EVENT_LISTENER_ORDER_ID = -1;
     public static final String ENABLE_LEGACY_SAAS_AUTHENTICATION = "EnableLegacySaaSAuthentication";
+    public static final String SAAS_ENABLE_APP_CREATION = "SaaS.EnableAppCreation";
+    public static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
     public static final String SUPER_TENANT_ALIAS_IN_PUBLIC_URL = "SuperTenantAliasInPublicUrl";
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
@@ -142,6 +144,9 @@ public class IdentityCoreConstants {
     public static final String DEFAULT_AGENT_IDENTITY_USERSTORE_NAME = "AGENT";
 
     public static final int MAXIMUM_ALLOWED_JWT_PAYLOAD_JSON_DEPTH = 255;
+
+    public static final String WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS = "WorkflowEngine.MaxApproverNotifications";
+    public static final int DEFAULT_WORKFLOW_ENGINE_MAX_APPROVER_NOTIFICATIONS = 15;
 
     public static class Filter {
 

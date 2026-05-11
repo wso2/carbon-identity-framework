@@ -166,15 +166,22 @@ public abstract class FrameworkConstants {
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
     public static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
+    public static final String SHARED_USER_IDENTIFIER_HANDLER = "SharedUserIdentifierExecutor";
     public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
     public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";
     public static final String USER_ORGANIZATION_CLAIM = "user_organization";
+    public static final String USER_ORG_CLAIM = "user_org";
+    public static final String ORG_ID_CLAIM = "org_id";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     public static final String CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING = "EnableScopeBasedClaimFiltering";
     public static final String CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY = "AllowSPRequestedFedClaimsOnly";
+    public static final String INCLUDE_AUTH_FAILURE_REASON_IN_API_BASED_AUTH_RESPONSE =
+            "IncludeAuthFailureReasonInAPIBasedAuthResponse";
+    public static final String INCLUDE_MULTI_OPTIONS_IN_API_BASED_RESPONSE =
+            "IncludeMultiOptionsInAPIBasedAuthResponse";
 
     public static final String REMEMBER_ME_OPT_ON = "on";
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
@@ -448,6 +455,13 @@ public abstract class FrameworkConstants {
          */
         public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
 
+        /**
+         * Configuration to return resident user id instead of shared user id in token responses when a shared user is
+         * linked to a federated IdP and use local attributes property is set to true.
+         */
+        public static final String USE_RESIDENT_USER_ID_FOR_AUTHENTICATED_SHARED_USERS =
+                "UseResidentUserIdForAuthenticatedSharedUsers";
+
         private Config() {
         }
 
@@ -656,6 +670,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_GET_SECRET_BY_NAME = "getSecretByName";
         public static final String JS_AUTH_FAILURE = "fail";
         public static final String JS_ENDPOINT_PARAMS = "endpointParams";
+        public static final String JS_PASSWORD_RESET_COMPLETE = "passwordResetComplete";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
@@ -841,6 +856,7 @@ public abstract class FrameworkConstants {
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
             public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
             public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
+            public static final String JIT_PROVISIONING = "jit-provisioning";
         }
     }
 
