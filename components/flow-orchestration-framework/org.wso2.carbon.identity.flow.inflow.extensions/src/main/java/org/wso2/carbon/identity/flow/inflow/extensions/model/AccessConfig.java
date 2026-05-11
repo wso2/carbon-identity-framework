@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.flow.inflow.extensions.executor.PathTypeAnnotati
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Access Configuration for In-Flow Extension actions.
@@ -84,7 +85,7 @@ public class AccessConfig {
         if (expose == null) {
             return Collections.emptyList();
         }
-        return expose.stream().map(ContextPath::getPath).toList();
+        return expose.stream().map(ContextPath::getPath).collect(Collectors.toList());
     }
 
     /**
@@ -108,7 +109,7 @@ public class AccessConfig {
         if (modify == null) {
             return Collections.emptyList();
         }
-        return modify.stream().map(ContextPath::getPath).toList();
+        return modify.stream().map(ContextPath::getPath).collect(Collectors.toList());
     }
 
     /**
