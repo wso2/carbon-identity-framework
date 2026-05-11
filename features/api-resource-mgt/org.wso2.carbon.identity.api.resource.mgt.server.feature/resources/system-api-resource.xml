@@ -968,6 +968,32 @@
                     description="Delete consent in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Management V2 Elements API" identifier="/api/identity/consent-mgt/v2.0/elements"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Elements API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Consent Element" name="internal_consent_mgt_element_view"
+                   description="View Consent Elements"/>
+            <Scope displayName="Create Consent Element" name="internal_consent_mgt_element_create"
+                   description="Create new Consent Element"/>
+            <Scope displayName="Delete Consent Element" name="internal_consent_mgt_element_delete"
+                   description="Delete Consent Element"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Management V2 Purposes API" identifier="/api/identity/consent-mgt/v2.0/purposes"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Purposes API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Consent Purpose" name="internal_consent_mgt_purpose_view"
+                   description="View Consent Purposes"/>
+            <Scope displayName="Create Consent Purpose" name="internal_consent_mgt_purpose_create"
+                   description="Create new Consent Purpose"/>
+            <Scope displayName="Update Consent Purpose" name="internal_consent_mgt_purpose_update"
+                   description="Update Consent Purpose"/>
+            <Scope displayName="Delete Consent Purpose" name="internal_consent_mgt_purpose_delete"
+                   description="Delete Consent Purpose"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
                  requiresAuthorization="true" description="API representation of the Identity Recovery API" type="TENANT">
         <Scopes>
