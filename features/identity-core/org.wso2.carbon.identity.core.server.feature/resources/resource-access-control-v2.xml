@@ -307,6 +307,44 @@
         <Scopes>internal_consent_mgt_delete</Scopes>
     </Resource>
 
+    <!-- Consent Management V2 API -->
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements/(.+)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements/(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)$" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)$" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/(.+)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/latest" secured="true" http-method="PUT">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
+
     <!-- [Organization] Identity Recovery API -->
     <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_recovery_view</Scopes>
