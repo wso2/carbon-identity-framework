@@ -38,6 +38,20 @@ public interface JsGenericGraphBuilderFactory<T> {
     JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
+    default JsBaseGraphBuilder createBaseGraphBuilder(AuthenticationContext authenticationContext,
+                                                  Map<Integer, StepConfig> stepConfigMap) {
+
+        throw new UnsupportedOperationException("createGraphBuilder must be implemented by " +
+                this.getClass().getName());
+    }
+
+    default JsBaseGraphBuilder createBaseGraphBuilder(AuthenticationContext authenticationContext,
+                                                  Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+
+        throw new UnsupportedOperationException("createGraphBuilder must be implemented by " +
+                this.getClass().getName());
+    }
+
     T createEngine(AuthenticationContext authenticationContext);
 
     JsGenericSerializer getJsUtil();

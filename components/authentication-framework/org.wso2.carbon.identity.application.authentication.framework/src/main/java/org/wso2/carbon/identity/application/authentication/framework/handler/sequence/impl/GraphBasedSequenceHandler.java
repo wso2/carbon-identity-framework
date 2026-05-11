@@ -806,7 +806,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         GenericSerializableJsFunction fn = dynamicDecisionNode.getGenericFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         JsGenericGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGenericGraphBuilderFactory();
-        JsBaseGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+        JsBaseGraphBuilder graphBuilder = jsGraphBuilderFactory.createBaseGraphBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         graphBuilder.getScriptEvaluator(fn).evaluate(context, JsWrapperFactoryProvider.getInstance()
                 .getWrapperFactory().
@@ -822,7 +822,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         GenericSerializableJsFunction fn = dynamicDecisionNode.getGenericFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         JsGenericGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGenericGraphBuilderFactory();
-        JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+        JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBaseGraphBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         jsGraphBuilder.getScriptEvaluator(fn).evaluate(context, JsWrapperFactoryProvider.getInstance()
                 .getWrapperFactory().
@@ -839,7 +839,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         GenericSerializableJsFunction fn = dynamicDecisionNode.getGenericHandlerMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
         JsGenericGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGenericGraphBuilderFactory();
-        JsBaseGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+        JsBaseGraphBuilder graphBuilder = jsGraphBuilderFactory.createBaseGraphBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         return graphBuilder.getScriptEvaluator(fn).evaluate(context, JsWrapperFactoryProvider.getInstance()
                 .getWrapperFactory().

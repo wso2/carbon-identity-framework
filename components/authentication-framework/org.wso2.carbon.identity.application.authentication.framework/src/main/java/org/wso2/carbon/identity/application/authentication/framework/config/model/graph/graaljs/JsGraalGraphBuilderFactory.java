@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
@@ -39,13 +40,17 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_ENGINE_MODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_SCRIPT_STATEMENTS_LIMIT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_LOG;
@@ -61,11 +66,57 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
+
+    /**
+     * Configured GraalJS engine mode for adaptive authentication script execution.
+     * <p>
+     * The framework owns the engine-mode switch and the per-request HYBRID dispatch;
+     * builder construction and remote transport details live behind
+     * {@link RemoteJsGraphBuilderProvider}, while the HYBRID per-request decision
+     * is delegated to {@link ScriptEngineModeResolver}.
+     */
+    private enum EngineMode { LOCAL, REMOTE, HYBRID }
+
     private int javascriptResourceLimit = 0;
+    private EngineMode engineMode = EngineMode.LOCAL;
 
     public void init() {
 
         setJavascriptResourceLimit();
+        readEngineMode();
+    }
+
+    /**
+     * Read the configured engine mode (LOCAL / REMOTE / HYBRID) from {@code IdentityUtil}.
+     * <p>
+     * This is the only piece of remote-engine config the framework reads — gRPC target
+     * and tracing toggle live in the {@code script.remote.engine} bundle behind the
+     * {@link RemoteJsGraphBuilderProvider} SPI; the per-request HYBRID decision lives
+     * behind {@link ScriptEngineModeResolver}. The framework only needs the mode value
+     * to dispatch per request between local construction, the resolver, or unconditional
+     * delegation to the provider.
+     */
+    private void readEngineMode() {
+
+        String mode = IdentityUtil.getProperty(GRAALJS_ENGINE_MODE);
+
+        if (StringUtils.isBlank(mode)) {
+            LOG.warn("GraalJS engine mode is not configured or empty. Defaulting to LOCAL.");
+            engineMode = EngineMode.LOCAL;
+            return;
+        }
+
+        String normalized = mode.trim().toUpperCase(Locale.ROOT);
+
+        try {
+            engineMode = EngineMode.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("Unknown GraalJS engine mode '" + mode.trim() +
+                    "'. Defaulting to LOCAL.");
+            engineMode = EngineMode.LOCAL;
+        }
+
+        LOG.info("GraalJS engine mode: " + engineMode);
     }
 
     @SuppressWarnings("unchecked")
@@ -163,17 +214,100 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
         return JsGraalGraphBuilder.getCurrentBuilder();
     }
 
+    @Deprecated
     public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                              Map<Integer, StepConfig> stepConfigMap) {
 
         return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext));
     }
 
-    public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
-                                             Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+    public JsBaseGraphBuilder createBaseGraphBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap) {
 
-        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap, createEngine(authenticationContext),
-                currentNode);
+        if (isRemoteProviderRequired(authenticationContext)) {
+            return remoteProvider().create(authenticationContext, stepConfigMap);
+        }
+        return this.createBuilder(authenticationContext, stepConfigMap);
+    }
+
+    @Deprecated
+    public JsGraalGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+
+        return new JsGraalGraphBuilder(authenticationContext, stepConfigMap,
+                                       createEngine(authenticationContext), currentNode);
+    }
+
+    public JsBaseGraphBuilder createBaseGraphBuilder(AuthenticationContext authenticationContext,
+                                            Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode) {
+
+        if (isRemoteProviderRequired(authenticationContext)) {
+            return remoteProvider().create(authenticationContext, stepConfigMap, currentNode);
+        }
+        return this.createBuilder(authenticationContext, stepConfigMap, currentNode);
+    }
+
+    /**
+     * Decide whether this request should run on the remote engine.
+     * <ul>
+     *   <li>{@code LOCAL}  → never remote.</li>
+     *   <li>{@code REMOTE} → always remote (provider is required; throws if absent).</li>
+     *   <li>{@code HYBRID} → provider is required (HYBRID exists to allow per-request
+     *       remote routing, so the remote bundle must be deployed); the per-request
+     *       LOCAL/REMOTE choice is delegated to the {@link ScriptEngineModeResolver}
+     *       OSGi service. If no resolver is bound, falls back to LOCAL with a warning.</li>
+     * </ul>
+     * For {@code REMOTE} and {@code HYBRID}, the missing-provider failure is surfaced loudly
+     * at the integration boundary rather than as an NPE deeper in the call stack.
+     */
+    private boolean isRemoteProviderRequired(AuthenticationContext authenticationContext) {
+
+        switch (engineMode) {
+            case REMOTE:
+                return true;
+            case HYBRID:
+                return resolveExecutionMode(authenticationContext)
+                        == ScriptEngineModeResolver.ExecutionMode.REMOTE;
+            case LOCAL:
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Consult the {@link ScriptEngineModeResolver} OSGi service for the per-request
+     * HYBRID decision. Falls back to LOCAL with a warning when no resolver is bound,
+     * matching the prior {@code script.remote.engine} bundle's HYBRID fallback.
+     */
+    private ScriptEngineModeResolver.ExecutionMode resolveExecutionMode(
+            AuthenticationContext authenticationContext) {
+
+        ScriptEngineModeResolver resolver =
+                FrameworkServiceDataHolder.getInstance().getScriptEngineModeResolver();
+        if (resolver == null) {
+            LOG.warn("HYBRID engine mode is configured but no ScriptEngineModeResolver " +
+                    "OSGi service is registered. Falling back to LOCAL.");
+            return ScriptEngineModeResolver.ExecutionMode.LOCAL;
+        }
+        return resolver.resolve(authenticationContext);
+    }
+
+    /**
+     * Resolve the {@link RemoteJsGraphBuilderProvider} OSGi service from the data holder.
+     * <p>
+     * Throws a {@link FrameworkRuntimeException} when remote execution is requested but the
+     * {@code script.remote.engine} bundle is not deployed.
+     */
+    private RemoteJsGraphBuilderProvider remoteProvider() {
+
+        RemoteJsGraphBuilderProvider provider =
+                FrameworkServiceDataHolder.getInstance().getRemoteJsGraphBuilderProvider();
+        if (provider == null) {
+            throw new FrameworkRuntimeException(
+                    "No RemoteJsGraphBuilderProvider OSGi service is registered. Ensure the " +
+                    "script.remote.engine bundle is deployed.", null);
+        }
+        return provider;
     }
 
     private void setJavascriptResourceLimit() {

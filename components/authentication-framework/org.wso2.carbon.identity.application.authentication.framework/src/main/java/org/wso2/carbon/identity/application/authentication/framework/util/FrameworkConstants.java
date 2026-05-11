@@ -753,6 +753,12 @@ public abstract class FrameworkConstants {
         public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
                 = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
         public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;
+
+        // Engine mode: "LOCAL", "REMOTE", or "HYBRID". The framework reads this to decide
+        // whether to delegate builder creation to the RemoteJsGraphBuilderProvider SPI;
+        // every other remote-engine config key lives in the script.remote.engine bundle.
+        public static final String GRAALJS_ENGINE_MODE
+                = "AdaptiveAuth.GraalJS.EngineMode";
     }
 
     /**

@@ -4525,6 +4525,30 @@
         <!--Number of statements that can be run with GraalJS script engine on one execution-->
         <GraalJS>
             <ScriptStatementsLimit>{{authentication.adaptive.graaljs.script_statements_limit}}</ScriptStatementsLimit>
+            <!--Engine mode: "LOCAL", "REMOTE", or "HYBRID" (per-request routing via OSGi resolver)-->
+            {% if authentication.adaptive.graaljs.engine_mode is defined %}
+            <EngineMode>{{authentication.adaptive.graaljs.engine_mode}}</EngineMode>
+            {% endif %}
+            <!--gRPC target for remote engine (host:port)-->
+            {% if authentication.adaptive.graaljs.grpc_target is defined %}
+            <GrpcTarget>{{authentication.adaptive.graaljs.grpc_target}}</GrpcTarget>
+            {% endif %}
+            <!--gRPC request timeout in seconds for remote streaming transport-->
+            {% if authentication.adaptive.graaljs.grpc_request_timeout is defined %}
+            <GrpcRequestTimeout>{{authentication.adaptive.graaljs.grpc_request_timeout}}</GrpcRequestTimeout>
+            {% endif %}
+            <!--gRPC channel pool size for remote engine connections-->
+            {% if authentication.adaptive.graaljs.grpc_channel_pool_size is defined %}
+            <GrpcChannelPoolSize>{{authentication.adaptive.graaljs.grpc_channel_pool_size}}</GrpcChannelPoolSize>
+            {% endif %}
+            <!--gRPC channel idle timeout in seconds for remote engine connections-->
+            {% if authentication.adaptive.graaljs.grpc_channel_idle_timeout is defined %}
+            <GrpcChannelIdleTimeout>{{authentication.adaptive.graaljs.grpc_channel_idle_timeout}}</GrpcChannelIdleTimeout>
+            {% endif %}
+            <!--Remote engine tracing toggle (guards debug/perf logs in remote package)-->
+            {% if authentication.adaptive.graaljs.remote_engine_tracing is defined %}
+            <RemoteEngineTracing>{{authentication.adaptive.graaljs.remote_engine_tracing}}</RemoteEngineTracing>
+            {% endif %}
         </GraalJS>
 
         <AllowUpdatingAuthenticatedSubject>{{authentication.adaptive.allow_updating_authenticated_subject}}</AllowUpdatingAuthenticatedSubject>
