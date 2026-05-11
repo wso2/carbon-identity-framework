@@ -206,6 +206,42 @@ public class PathTypeAnnotationUtilTest {
         assertEquals(result, "test");
     }
 
+    @Test
+    public void testCoerceValueNoAnnotationNullValue() {
+
+        Object result = PathTypeAnnotationUtil.coerceValue(
+                "/properties/score", null, Collections.emptyMap());
+        assertNull(result);
+    }
+
+    @Test
+    public void testCoerceValuePrimaryTypeAnnotationNullValue() {
+
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/score", "Integer");
+
+        Object result = PathTypeAnnotationUtil.coerceValue("/properties/score", null, annotations);
+        assertNull(result);
+    }
+
+    @Test
+    public void testCoerceValueMultivaluedPrimaryPreservesNullElements() {
+
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("/properties/tags", "[String]");
+
+        List<Object> input = Arrays.asList("tag1", null, "tag3");
+        Object result = PathTypeAnnotationUtil.coerceValue("/properties/tags", input, annotations);
+
+        assertTrue(result instanceof List);
+        @SuppressWarnings("unchecked")
+        List<String> list = (List<String>) result;
+        assertEquals(list.size(), 3);
+        assertEquals(list.get(0), "tag1");
+        assertNull(list.get(1));
+        assertEquals(list.get(2), "tag3");
+    }
+
     // ========================= validateAnnotationLimits =========================
 
     @Test

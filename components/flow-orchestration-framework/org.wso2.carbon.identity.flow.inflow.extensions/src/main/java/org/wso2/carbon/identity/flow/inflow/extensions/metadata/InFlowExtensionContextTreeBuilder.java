@@ -48,6 +48,7 @@ public class InFlowExtensionContextTreeBuilder {
 
     private static final String OP_EXPOSE = "EXPOSE";
     private static final String OP_MODIFY = "MODIFY";
+    private static final String DATA_TYPE_STRING = "String";
 
     // Flow context attributes that appear under the "flow" branch of the tree.
     private static final List<String> FLOW_BRANCH_ATTRS =
@@ -75,17 +76,14 @@ public class InFlowExtensionContextTreeBuilder {
 
         List<InFlowExtensionContextTreeNode> tree = new ArrayList<>();
 
-        InFlowExtensionContextTreeNode userNode = buildUserNode(attrs, userAttrs);
-        if (userNode != null) {
-            tree.add(userNode);
-        }
+        // User and properties nodes are always non-null (always construct and return a node).
+        tree.add(buildUserNode(userAttrs));
+        tree.add(buildPropertiesNode(attrs));
+
+        // Flow node is conditionally non-null (returns null if no flow attributes are configured).
         InFlowExtensionContextTreeNode flowNode = buildFlowNode(attrs);
         if (flowNode != null) {
             tree.add(flowNode);
-        }
-        InFlowExtensionContextTreeNode propsNode = buildPropertiesNode(attrs);
-        if (propsNode != null) {
-            tree.add(propsNode);
         }
 
         return new InFlowExtensionContextTreeMetadata(
@@ -110,8 +108,7 @@ public class InFlowExtensionContextTreeBuilder {
             return true;
         }
         switch (flowType) {
-            case FLOW_REGISTRATION:
-            case FLOW_INVITED_USER_REGISTRATION:
+            case FLOW_REGISTRATION, FLOW_INVITED_USER_REGISTRATION:
                 return true;
             case FLOW_PASSWORD_RECOVERY:
             default:
@@ -134,7 +131,7 @@ public class InFlowExtensionContextTreeBuilder {
      *
      * <p>{@code userAttrs == null} signals full-passthrough (show and expose everything).
      */
-    private InFlowExtensionContextTreeNode buildUserNode(Set<String> attrs, Set<String> userAttrs) {
+    private InFlowExtensionContextTreeNode buildUserNode(Set<String> userAttrs) {
 
         // userAttrs == null → full passthrough set by the caller (build()).
         boolean fullPassthrough = (userAttrs == null);
@@ -147,7 +144,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .key("userId")
                     .title("User ID")
                     .path("/user/userId")
-                    .dataType("String")
+                    .dataType(DATA_TYPE_STRING)
                     .nodeType(NODE_LEAF)
                     .allowedOperations(Collections.singletonList(OP_EXPOSE))
                     .replaceable(false)
@@ -158,7 +155,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .key("username")
                     .title("Username")
                     .path("/user/username")
-                    .dataType("String")
+                    .dataType(DATA_TYPE_STRING)
                     .nodeType(NODE_LEAF)
                     .allowedOperations(Collections.singletonList(OP_EXPOSE))
                     .replaceable(false)
@@ -169,7 +166,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .key("userStoreDomain")
                     .title("User Store Domain")
                     .path("/user/userStoreDomain")
-                    .dataType("String")
+                    .dataType(DATA_TYPE_STRING)
                     .nodeType(NODE_LEAF)
                     .allowedOperations(Collections.singletonList(OP_EXPOSE))
                     .replaceable(false)
@@ -252,7 +249,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .key(key)
                 .title(title)
                 .path(path)
-                .dataType("String")
+                .dataType(DATA_TYPE_STRING)
                 .nodeType(NODE_LEAF)
                 .allowedOperations(Collections.singletonList(OP_EXPOSE))
                 .readOnly(true)

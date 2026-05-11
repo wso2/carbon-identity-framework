@@ -91,9 +91,7 @@ public class FlowMgtService {
 
         clearFlowResolveCache(flowDTO.getFlowType(), tenantID);
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
-
         FLOW_DAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
-
         AuditLog.AuditLogBuilder auditLogBuilder =
                 new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                         flowConfig.getId(),

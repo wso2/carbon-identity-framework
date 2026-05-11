@@ -37,6 +37,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Incomplete;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants;
 import org.wso2.carbon.identity.flow.inflow.extensions.internal.InFlowExtensionDataHolder;
@@ -69,6 +72,7 @@ public class InFlowExtensionResponseProcessorTest {
     private InFlowExtensionResponseProcessor responseProcessor;
     private MockedStatic<LoggerUtils> loggerUtilsMock;
     private MockedStatic<InFlowExtensionDataHolder> holderMock;
+    private InFlowExtensionDataHolder holderInstance;
     private FlowContext capturedFlowContext;
 
     @BeforeMethod
@@ -78,7 +82,7 @@ public class InFlowExtensionResponseProcessorTest {
         loggerUtilsMock = mockStatic(LoggerUtils.class);
         loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
 
-        InFlowExtensionDataHolder holderInstance = mock(InFlowExtensionDataHolder.class);
+        holderInstance = mock(InFlowExtensionDataHolder.class);
         holderMock = mockStatic(InFlowExtensionDataHolder.class);
         holderMock.when(InFlowExtensionDataHolder::getInstance).thenReturn(holderInstance);
     }
@@ -384,24 +388,30 @@ public class InFlowExtensionResponseProcessorTest {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        // Identity claim should be rejected.
+        // Identity claim should be rejected by the identity-claim prefix guard.
         PerformableOperation claimOp = createOperation(
                 Operation.REPLACE, "/user/claims/http://wso2.org/claims/identity/accountLocked", "true");
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        // Claim should NOT be set.
-        assertNull(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/identity/accountLocked"));
+        // Claim must NOT be staged in the pending map.
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class));
     }
 
     @Test
     public void testUserClaimReplaceNonExistentClaimRejected()
-            throws ActionExecutionResponseProcessorException {
+            throws ActionExecutionResponseProcessorException, ClaimMetadataException {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        // Claim not in the mocked local claim list should be rejected.
+        // Mock ClaimMetadataManagementService to return null for an unknown claim URI.
+        ClaimMetadataManagementService claimService = mock(ClaimMetadataManagementService.class);
+        when(holderInstance.getClaimMetadataManagementService()).thenReturn(claimService);
+        when(claimService.getLocalClaim("http://wso2.org/claims/nonexistent", "carbon.super"))
+                .thenReturn(java.util.Optional.empty());
+
+        // Claim not registered in the system should be rejected.
         PerformableOperation claimOp = createOperation(
                 Operation.REPLACE,
                 "/user/claims/http://wso2.org/claims/nonexistent", "value");
@@ -409,7 +419,8 @@ public class InFlowExtensionResponseProcessorTest {
                 execCtx, claimOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertNull(execCtx.getFlowUser().getClaims().get("http://wso2.org/claims/nonexistent"));
+        // Claim must NOT be staged in the pending map.
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class));
     }
 
     @Test
@@ -418,7 +429,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        // Non-local dialect claim should be rejected.
+        // Non-local dialect claim should be rejected by the local-dialect prefix guard.
         PerformableOperation claimOp = createOperation(
                 Operation.REPLACE,
                 "/user/claims/urn:ietf:params:scim:schemas:core:2.0:User:name.givenName", "John");
@@ -426,8 +437,8 @@ public class InFlowExtensionResponseProcessorTest {
                 execCtx, claimOp, Collections.emptyMap());
 
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        assertNull(execCtx.getFlowUser().getClaims().get(
-                "urn:ietf:params:scim:schemas:core:2.0:User:name.givenName"));
+        // Claim must NOT be staged in the pending map.
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class));
     }
 
     @Test
@@ -557,6 +568,44 @@ public class InFlowExtensionResponseProcessorTest {
 
         // Unknown path → operation fails, but overall status is SUCCESS.
         assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+    }
+
+    @Test
+    public void testNullPathOperationFails() throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        // Operation with null path must fail gracefully without NPE.
+        PerformableOperation op = new PerformableOperation();
+        op.setOp(Operation.REPLACE);
+        // path is intentionally not set (null).
+
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Nothing should be staged in any pending map.
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class));
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class));
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_CREDENTIALS_KEY, Map.class));
+    }
+
+    @Test
+    public void testUnsupportedOperationTypeOnValidPathFails()
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+
+        // ADD (non-REPLACE) on a valid properties path must be rejected before routing.
+        PerformableOperation op = new PerformableOperation();
+        op.setOp(Operation.ADD);
+        op.setPath("/properties/riskScore");
+        op.setValue("90");
+
+        ActionExecutionStatus<Success> status = executeSuccessResponse(execCtx, op, Collections.emptyMap());
+
+        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
+        // Property must NOT be staged.
+        assertNull(capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class));
     }
 
     // ========================= processSuccessResponse — Multiple operations =========================
@@ -907,23 +956,44 @@ public class InFlowExtensionResponseProcessorTest {
     }
 
     @Test
-    public void testNonStringValueForEncryptedPathHandledGracefully()
-            throws ActionExecutionResponseProcessorException {
+    public void testNonStringValueForEncryptedPathThrowsException() {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
         List<ContextPath> modifyPaths = Arrays.asList(new ContextPath("/properties/data", true));
 
-        // Non-string value (Integer) for an encrypted path — should pass through without decryption.
+        // Non-string value (Integer) for an encrypted path must now be rejected with an exception
+        // because accepting non-JWE values would make the encryption flag advisory.
         PerformableOperation op = createOperation(Operation.REPLACE, "/properties/data", 42);
 
-        ActionExecutionStatus<Success> status = executeSuccessResponseWithModifyPaths(
-                execCtx, Collections.singletonList(op), Collections.emptyMap(), modifyPaths);
+        try {
+            executeSuccessResponseWithModifyPaths(
+                    execCtx, Collections.singletonList(op), Collections.emptyMap(), modifyPaths);
+            throw new AssertionError("Expected ActionExecutionResponseProcessorException was not thrown.");
+        } catch (ActionExecutionResponseProcessorException e) {
+            assertTrue(e.getMessage().contains("/properties/data"),
+                    "Exception message should reference the offending path.");
+        }
+    }
 
-        assertEquals(status.getStatus(), ActionExecutionStatus.Status.SUCCESS);
-        // Value should be coerced to String (default behavior for properties).
-        Map<String, Object> pendingProps =
-                capturedFlowContext.getValue(InFlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
-        assertNotNull(pendingProps);
-        assertEquals(pendingProps.get("data"), "42");
+    @Test
+    public void testPlaintextStringForEncryptedPathThrowsException() {
+
+        FlowExecutionContext execCtx = createFlowExecutionContext();
+        List<ContextPath> modifyPaths = Arrays.asList(new ContextPath("/properties/secret", true));
+
+        // Plain-text string (not JWE-formatted) for an encrypted modify path must be rejected.
+        PerformableOperation op = createOperation(Operation.REPLACE, "/properties/secret", "plaintext-value");
+
+        try (MockedStatic<JWEEncryptionUtil> jweUtilMock = mockStatic(JWEEncryptionUtil.class)) {
+            jweUtilMock.when(() -> JWEEncryptionUtil.isJWEEncrypted(anyString())).thenReturn(false);
+            try {
+                executeSuccessResponseWithModifyPaths(
+                        execCtx, Collections.singletonList(op), Collections.emptyMap(), modifyPaths);
+                throw new AssertionError("Expected ActionExecutionResponseProcessorException was not thrown.");
+            } catch (ActionExecutionResponseProcessorException e) {
+                assertTrue(e.getMessage().contains("/properties/secret"),
+                        "Exception message should reference the offending path.");
+            }
+        }
     }
 }

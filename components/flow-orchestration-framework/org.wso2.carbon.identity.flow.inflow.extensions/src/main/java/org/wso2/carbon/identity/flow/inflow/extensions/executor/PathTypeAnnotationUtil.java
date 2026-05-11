@@ -113,6 +113,10 @@ public final class PathTypeAnnotationUtil {
     public static Object coerceValue(String path, Object value,
                                      Map<String, String> pathTypeAnnotations) {
 
+        if (value == null) {
+            return null;
+        }
+
         String annotation = pathTypeAnnotations.get(path);
 
         if (annotation == null) {
@@ -135,7 +139,7 @@ public final class PathTypeAnnotationUtil {
                 List<Object> rawList = (List<Object>) resolvedList;
                 List<String> stringList = new ArrayList<>();
                 for (Object item : rawList) {
-                    stringList.add(String.valueOf(item));
+                    stringList.add(item == null ? null : String.valueOf(item));
                 }
                 return stringList;
             }
@@ -342,51 +346,73 @@ public final class PathTypeAnnotationUtil {
     @SuppressWarnings("unchecked")
     private static boolean validateSingleComplexObject(Object value, Map<String, String> schema) {
 
-        if (!(value instanceof Map)) {
+        if (!isMapAndWithinAttributeLimit(value)) {
             return false;
         }
 
         Map<String, Object> map = (Map<String, Object>) value;
 
-        // Attribute count limit.
-        if (map.size() > MAX_ATTRIBUTES_PER_OBJECT) {
+        if (!containsOnlySchemaKeys(map, schema)) {
             return false;
         }
 
-        // All keys in the value must be defined in the schema.
-        for (String key : map.keySet()) {
-            if (!schema.containsKey(key)) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            if (!validateEntryValueAgainstType(entry, schema)) {
                 return false;
             }
         }
 
-        // Validate single nesting level: each attribute value must be primary or primary array.
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String type = schema.get(entry.getKey());
-            Object attrValue = entry.getValue();
+        return true;
+    }
 
-            if (type != null && type.endsWith("[]")) {
-                // Array attribute: validate it's a list of primitives within item limit.
-                if (!(attrValue instanceof List)) {
-                    return false;
-                }
-                List<Object> list = (List<Object>) attrValue;
-                if (list.size() > MAX_ARRAY_ITEMS) {
-                    return false;
-                }
-                for (Object item : list) {
-                    if (item instanceof Map || item instanceof List) {
-                        return false;
-                    }
-                }
-            } else {
-                // Primary attribute: must not be a nested structure.
-                if (attrValue instanceof Map || attrValue instanceof List) {
-                    return false;
-                }
+    private static boolean isMapAndWithinAttributeLimit(Object value) {
+
+        return value instanceof Map && ((Map<?, ?>) value).size() <= MAX_ATTRIBUTES_PER_OBJECT;
+    }
+
+    private static boolean containsOnlySchemaKeys(Map<String, Object> valueMap, Map<String, String> schema) {
+
+        for (String key : valueMap.keySet()) {
+            if (!schema.containsKey(key)) {
+                return false;
             }
         }
-
         return true;
+    }
+
+    private static boolean validateEntryValueAgainstType(Map.Entry<String, Object> entry, Map<String, String> schema) {
+
+        String type = schema.get(entry.getKey());
+        Object attrValue = entry.getValue();
+
+        if (type != null && type.endsWith("[]")) {
+            return validatePrimaryArrayAttribute(attrValue);
+        }
+        return !isNestedStructure(attrValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static boolean validatePrimaryArrayAttribute(Object value) {
+
+        if (!(value instanceof List)) {
+            return false;
+        }
+
+        List<Object> list = (List<Object>) value;
+        if (list.size() > MAX_ARRAY_ITEMS) {
+            return false;
+        }
+
+        for (Object item : list) {
+            if (isNestedStructure(item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isNestedStructure(Object value) {
+
+        return value instanceof Map || value instanceof List;
     }
 }

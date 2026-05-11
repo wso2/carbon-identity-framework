@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -65,6 +65,10 @@ import java.util.Map;
 public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuilder {
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
+    private static final int MAX_DIAGNOSTIC_PATHS = 20;
+    private static final String DIAGNOSTIC_REASON = "reason";
+    private static final String REASON_UNSUPPORTED_ACTION = "unsupported-action-model";
+    private static final String REASON_OMITTED_ENCRYPTED_EXPOSE_PATHS = "omitted-encrypted-expose-paths";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -77,88 +81,30 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                                                               ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-        FlowExecutionContext execCtx = flowContext.getValue(
-                InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
-        if (execCtx == null) {
-            throw new ActionExecutionRequestBuilderException(
-                    "FlowExecutionContext not found in FlowContext.");
+        FlowExecutionContext execCtx = getFlowExecutionContextOrThrow(flowContext);
+        ResolvedActionConfig resolvedActionConfig = resolveActionConfig(actionExecutionContext, execCtx.getFlowType());
+        if (resolvedActionConfig.isFallback()) {
+            return buildFallbackRequest(flowContext, execCtx);
         }
 
-        // Resolve action-specific config.
-        Action rawAction = actionExecutionContext.getAction();
-        AccessConfig accessConfig = null;
-        Encryption encryption = null;
-        if (rawAction instanceof InFlowExtensionAction) {
-            InFlowExtensionAction ext = (InFlowExtensionAction) rawAction;
-            accessConfig = ext.resolveAccessConfig(execCtx.getFlowType());
-            encryption = ext.getEncryption();
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No InFlowExtensionAction resolved. Proceeding with empty access configuration.");
-            }
-        }
+        AccessConfig accessConfig = resolvedActionConfig.getAccessConfig();
+        Encryption encryption = resolvedActionConfig.getEncryption();
 
-        List<String> expose;
-        if (accessConfig != null && accessConfig.getExpose() != null) {
-            expose = accessConfig.getExposePaths();
-        } else {
-            expose = Collections.emptyList();
-        }
-
-        if (expose.isEmpty() && LOG.isDebugEnabled()) {
-            LOG.debug("No expose paths configured for In-Flow Extension action. Event will contain no data fields.");
-        }
-
-        // Store resolved modify paths (with encryption flags) for the response processor.
-        List<ContextPath> modifyPaths = (accessConfig != null && accessConfig.getModify() != null)
-                ? accessConfig.getModify() : Collections.emptyList();
+        List<String> exposePaths = resolveExposePaths(accessConfig);
+        List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
         flowContext.add(InFlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
-                    ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
-                    .resultMessage("Building request for In-Flow Extension action.")
-                    .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
-                    .configParam("flowType", execCtx.getFlowType())
-                    .configParam("exposePaths", expose.size())
-                    .configParam("modifyPaths", modifyPaths.size())
-                    .configParam("outboundEncryption", encryption != null)
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-        }
-
-        // Build allowed operations: REPLACE (from modify paths, if any) + REDIRECT (if enabled).
         List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, flowContext);
+        String certificatePEM = resolveOutboundCertificate(accessConfig, encryption);
+        ExposeResolution exposeResolution = pruneEncryptedExposePathsWithoutCertificate(
+                exposePaths, accessConfig, certificatePEM);
 
-        // Determine certificate PEM for outbound encryption.
-        String certificatePEM = null;
-        if (accessConfig != null && encryption != null && encryption.getCertificate() != null) {
-            certificatePEM = encryption.getCertificate().getCertificateContent();
-        }
+        triggerRequestBuildDiagnostic(execCtx, exposeResolution.getEffectiveExposePaths(),
+                modifyPaths, encryption, exposeResolution.getOmittedEncryptedExposePaths());
 
-        // Fail fast: if any expose path is marked encrypted but no certificate is configured,
-        // proceeding would silently leak sensitive data as plaintext.
-        if (certificatePEM == null && accessConfig != null) {
-            for (String exposePath : expose) {
-                if (accessConfig.isExposePathEncrypted(exposePath)) {
-                    LOG.error("Outbound encryption required for expose path '" + exposePath
-                            + "' but no certificate is configured for this In-Flow Extension action.");
-                    throw new ActionExecutionRequestBuilderException(
-                            "Outbound encryption is configured for expose path '" + exposePath +
-                                    "' but no outbound certificate is configured for this action.");
-                }
-            }
-        }
-
-        InFlowExtensionEvent event = buildEvent(execCtx, expose, accessConfig, certificatePEM);
-
-        return new ActionExecutionRequest.Builder()
-                .actionType(ActionType.IN_FLOW_EXTENSION)
-                .flowId(execCtx.getContextIdentifier())
-                .event(event)
-                .allowedOperations(allowedOperations)
-                .build();
+        InFlowExtensionEvent event = buildEvent(execCtx, exposeResolution.getEffectiveExposePaths(),
+                accessConfig, certificatePEM);
+        return buildRequestPayload(execCtx, event, allowedOperations);
     }
 
     /**
@@ -178,51 +124,18 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         List<AllowedOperation> allowedOps = new ArrayList<>();
 
-        if (accessConfig != null && accessConfig.getModify() != null && !accessConfig.getModify().isEmpty()) {
-            List<String> cleanPaths = new ArrayList<>();
-            Map<String, String> pathTypeAnnotations = new HashMap<>();
+        if (hasModifyPaths(accessConfig)) {
+            AllowedModifyExtraction extraction = extractAllowedModifyPaths(accessConfig.getModify());
+            addReplaceOperationIfAny(allowedOps, extraction.getCleanPaths());
+            storeAnnotationsIfAny(flowContext, extraction.getPathTypeAnnotations());
 
-            for (ContextPath modifyPath : accessConfig.getModify()) {
-                String rawPath = modifyPath.getPath();
-                if (rawPath == null) {
-                    continue;
-                }
-
-                String[] stripped = PathTypeAnnotationUtil.stripAnnotation(rawPath);
-                String cleanPath = stripped[0];
-                String annotation = stripped[1];
-                if (annotation != null) {
-                    if (!PathTypeAnnotationUtil.validateAnnotationLimits(annotation)) {
-                        LOG.warn("Annotation for path " + cleanPath
-                                + " exceeds maximum attribute limit. Skipping path.");
-                        continue;
-                    }
-                    pathTypeAnnotations.put(cleanPath, annotation);
-                }
-                cleanPaths.add(cleanPath);
-            }
-
-            if (!cleanPaths.isEmpty()) {
-                AllowedOperation replaceOp = new AllowedOperation();
-                replaceOp.setOp(Operation.REPLACE);
-                replaceOp.setPaths(cleanPaths);
-                allowedOps.add(replaceOp);
-
-                if (!pathTypeAnnotations.isEmpty()) {
-                    flowContext.add(InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
-                }
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Built REPLACE allowed operation with " + cleanPaths.size()
-                            + " modify paths. Path annotations: " + pathTypeAnnotations.size());
-                }
+            if (LOG.isDebugEnabled() && !extraction.getSkippedPaths().isEmpty()) {
+                LOG.debug("Skipped " + extraction.getSkippedPaths().size()
+                        + " modify path(s) due to invalid or missing path definitions.");
             }
         }
 
-        // REDIRECT is always advertised — redirection is unconditionally enabled.
-        AllowedOperation redirectOp = new AllowedOperation();
-        redirectOp.setOp(Operation.REDIRECT);
-        allowedOps.add(redirectOp);
+        addRedirectOperation(allowedOps);
 
         return allowedOps;
     }
@@ -244,86 +157,14 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             throws ActionExecutionRequestBuilderException {
 
         InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
-
         eventBuilder.request(buildRequest());
 
-        // Tenant
-        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_TENANT_PATH, expose)) {
-            String tenantDomain = context.getTenantDomain();
-            if (tenantDomain != null) {
-                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-                eventBuilder.tenant(new Tenant(String.valueOf(tenantId), tenantDomain));
-            }
-        }
-
-        // Organization — always populated when present on the IdentityContext.
-        org.wso2.carbon.identity.core.context.model.Organization coreOrg =
-                IdentityContext.getThreadLocalIdentityContext().getOrganization();
-        if (coreOrg != null) {
-            eventBuilder.organization(new Organization.Builder()
-                    .id(coreOrg.getId())
-                    .name(coreOrg.getName())
-                    .orgHandle(coreOrg.getOrganizationHandle())
-                    .depth(coreOrg.getDepth())
-                    .build());
-        }
-
-        // Application (name: null)
-        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_APP_ID_PATH, expose)) {
-            String appId = context.getApplicationId();
-            if (appId != null) {
-                eventBuilder.application(new Application(appId, null));
-            }
-        }
-
-        // User
-        if (isAreaExposed(HierarchicalPrefixMatcher.USER_PREFIX, expose)) {
-            FlowUser flowUser = context.getFlowUser();
-            if (flowUser != null) {
-                eventBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
-
-                if (isLeafExposed(HierarchicalPrefixMatcher.USER_STORE_DOMAIN_PATH, expose)) {
-                    String userStoreDomain = flowUser.getUserStoreDomain();
-                    if (userStoreDomain != null) {
-                        eventBuilder.userStore(new UserStore(userStoreDomain));
-                    }
-                }
-            }
-        }
-
-        // Flow type
-        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_TYPE_PATH, expose)) {
-            eventBuilder.flowType(context.getFlowType());
-        }
-
-        // Flow ID — always set from context identifier.
-        eventBuilder.flowId(context.getContextIdentifier());
-
-        // Callback URL
-        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_CALLBACK_URL_PATH, expose)) {
-            String callbackUrl = context.getCallbackUrl();
-            if (callbackUrl != null) {
-                eventBuilder.callbackUrl(callbackUrl);
-            }
-        }
-
-        // Portal URL
-        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_PORTAL_URL_PATH, expose)) {
-            String portalUrl = context.getPortalUrl();
-            if (portalUrl != null) {
-                eventBuilder.portalUrl(portalUrl);
-            }
-        }
-
-        // Flow properties
-        if (isAreaExposed(HierarchicalPrefixMatcher.PROPERTIES_PREFIX, expose)) {
-            Map<String, Object> properties = context.getProperties();
-            if (properties != null && !properties.isEmpty()) {
-                eventBuilder.flowProperties(
-                        filterMap(properties, HierarchicalPrefixMatcher.PROPERTIES_PREFIX,
-                                expose, accessConfig, certificatePEM));
-            }
-        }
+        applyTenant(eventBuilder, context, expose);
+        applyOrganization(eventBuilder);
+        applyApplication(eventBuilder, context, expose);
+        applyUserAndUserStore(eventBuilder, context, expose, accessConfig, certificatePEM);
+        applyFlowMetadata(eventBuilder, context, expose);
+        applyFlowProperties(eventBuilder, context, expose, accessConfig, certificatePEM);
 
         return eventBuilder.build();
     }
@@ -375,53 +216,16 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                            AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        String userId = isLeafExposed(HierarchicalPrefixMatcher.USER_ID_PATH, expose)
-                ? flowUser.getUserId() : null;
-        User.Builder userBuilder = new User.Builder(userId);
-
-        if (isAreaExposed(HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX, expose)) {
-            Map<String, String> claims = flowUser.getClaims();
-            if (claims != null && !claims.isEmpty()) {
-                List<UserClaim> userClaims = new ArrayList<>();
-
-                for (Map.Entry<String, String> claim : claims.entrySet()) {
-                    String claimPath = HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX + claim.getKey();
-                    if (isLeafExposed(claimPath, expose)) {
-                        String claimValue = claim.getValue();
-                        // Encrypt claim value if the expose path is marked as encrypted.
-                        if (claimValue != null && shouldEncrypt(claimPath, accessConfig, certificatePEM)) {
-                            claimValue = encryptValue(claimValue, certificatePEM);
-                        }
-                        userClaims.add(new UserClaim(claim.getKey(), claimValue));
-                    }
-                }
-                if (!userClaims.isEmpty()) {
-                    userBuilder.claims(userClaims);
-                }
-            }
+        User.Builder userBuilder = new User.Builder(resolveUserId(flowUser, expose));
+        List<UserClaim> userClaims = buildFilteredClaims(flowUser, expose, accessConfig, certificatePEM);
+        if (!userClaims.isEmpty()) {
+            userBuilder.claims(userClaims);
         }
 
-        if (isAreaExposed(HierarchicalPrefixMatcher.USER_CREDENTIALS_PREFIX, expose)) {
-            Map<String, char[]> credentials = flowUser.getUserCredentials();
-            if (credentials != null && !credentials.isEmpty()) {
-                Map<String, char[]> filteredCredentials = new HashMap<>();
-                for (Map.Entry<String, char[]> entry : credentials.entrySet()) {
-                    String credPath = HierarchicalPrefixMatcher.USER_CREDENTIALS_PREFIX + entry.getKey();
-                    if (isLeafExposed(credPath, expose)) {
-                        String plaintext = new String(entry.getValue());
-                        java.util.Arrays.fill(entry.getValue(), '\0');
-                        if (shouldEncrypt(credPath, accessConfig, certificatePEM)) {
-                            filteredCredentials.put(entry.getKey(),
-                                    encryptValue(plaintext, certificatePEM).toCharArray());
-                        } else {
-                            filteredCredentials.put(entry.getKey(), plaintext.toCharArray());
-                        }
-                    }
-                }
-                if (!filteredCredentials.isEmpty()) {
-                    userBuilder.userCredentials(filteredCredentials);
-                }
-            }
+        Map<String, char[]> filteredCredentials =
+                buildFilteredCredentials(flowUser, expose, accessConfig, certificatePEM);
+        if (!filteredCredentials.isEmpty()) {
+            userBuilder.userCredentials(filteredCredentials);
         }
 
         return userBuilder.build();
@@ -445,7 +249,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             throws ActionExecutionRequestBuilderException {
 
         if (map == null) {
-            return null;
+            return Collections.emptyMap();
         }
 
         Map<String, T> filtered = new HashMap<>();
@@ -460,6 +264,507 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             }
         }
         return filtered;
+    }
+
+    private FlowExecutionContext getFlowExecutionContextOrThrow(FlowContext flowContext)
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = flowContext.getValue(
+                InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+        if (execCtx == null) {
+            throw new ActionExecutionRequestBuilderException("FlowExecutionContext not found in FlowContext.");
+        }
+        return execCtx;
+    }
+
+    private ResolvedActionConfig resolveActionConfig(ActionExecutionRequestContext actionExecutionContext,
+                                                     String flowType) {
+
+        Action rawAction = actionExecutionContext.getAction();
+        if (rawAction instanceof InFlowExtensionAction) {
+            InFlowExtensionAction ext = (InFlowExtensionAction) rawAction;
+            return new ResolvedActionConfig(ext.resolveAccessConfig(flowType), ext.getEncryption(), false);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("No InFlowExtensionAction resolved. Falling back to an empty request body.");
+        }
+        return new ResolvedActionConfig(null, null, true);
+    }
+
+    private List<String> resolveExposePaths(AccessConfig accessConfig) {
+
+        if (accessConfig == null || accessConfig.getExpose() == null) {
+            return Collections.emptyList();
+        }
+        return accessConfig.getExposePaths();
+    }
+
+    private List<ContextPath> resolveModifyPaths(AccessConfig accessConfig) {
+
+        if (accessConfig == null || accessConfig.getModify() == null) {
+            return Collections.emptyList();
+        }
+        return accessConfig.getModify();
+    }
+
+    private String resolveOutboundCertificate(AccessConfig accessConfig, Encryption encryption) {
+
+        if (accessConfig == null || encryption == null || encryption.getCertificate() == null) {
+            return null;
+        }
+        return encryption.getCertificate().getCertificateContent();
+    }
+
+    private ExposeResolution pruneEncryptedExposePathsWithoutCertificate(List<String> exposePaths,
+                                                                         AccessConfig accessConfig,
+                                                                         String certificatePEM) {
+
+        if (certificatePEM != null || accessConfig == null || exposePaths.isEmpty()) {
+            return new ExposeResolution(exposePaths, Collections.emptyList());
+        }
+
+        List<String> effectiveExposePaths = new ArrayList<>();
+        List<String> omittedEncryptedExposePaths = new ArrayList<>();
+        for (String exposePath : exposePaths) {
+            if (accessConfig.isExposePathEncrypted(exposePath)) {
+                omittedEncryptedExposePaths.add(exposePath);
+            } else {
+                effectiveExposePaths.add(exposePath);
+            }
+        }
+
+        if (!omittedEncryptedExposePaths.isEmpty()) {
+            LOG.warn("Outbound certificate is not configured. Omitted " + omittedEncryptedExposePaths.size()
+                    + " encrypted expose path(s).");
+            triggerOmittedExposeDiagnostic(omittedEncryptedExposePaths);
+        }
+
+        return new ExposeResolution(effectiveExposePaths, omittedEncryptedExposePaths);
+    }
+
+    private ActionExecutionRequest buildFallbackRequest(FlowContext flowContext, FlowExecutionContext execCtx) {
+
+        flowContext.add(InFlowExtensionConstants.MODIFY_PATHS_KEY, Collections.emptyList());
+        List<AllowedOperation> allowedOperations = buildAllowedOperations(null, flowContext);
+        triggerFallbackDiagnostic(execCtx);
+
+        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+                .flowId(execCtx.getContextIdentifier())
+                .build();
+        return buildRequestPayload(execCtx, event, allowedOperations);
+    }
+
+    private ActionExecutionRequest buildRequestPayload(FlowExecutionContext execCtx, InFlowExtensionEvent event,
+                                                       List<AllowedOperation> allowedOperations) {
+
+        return new ActionExecutionRequest.Builder()
+                .actionType(ActionType.IN_FLOW_EXTENSION)
+                .flowId(execCtx.getContextIdentifier())
+                .event(event)
+                .allowedOperations(allowedOperations)
+                .build();
+    }
+
+    private void triggerRequestBuildDiagnostic(FlowExecutionContext execCtx, List<String> exposePaths,
+                                               List<ContextPath> modifyPaths, Encryption encryption,
+                                               List<String> omittedEncryptedExposePaths) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
+                .resultMessage("Building request for In-Flow Extension action.")
+                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam("flowType", execCtx.getFlowType())
+                .configParam("exposePaths", exposePaths.size())
+                .configParam("modifyPaths", modifyPaths.size())
+                .configParam("outboundEncryption", encryption != null)
+                .inputParam("exposePathKeys", limitForDiagnostic(exposePaths))
+                .inputParam("modifyPathKeys", limitForDiagnostic(extractModifyPathKeys(modifyPaths)))
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+
+        if (!omittedEncryptedExposePaths.isEmpty()) {
+            diagnosticLogBuilder
+                    .configParam(DIAGNOSTIC_REASON, REASON_OMITTED_ENCRYPTED_EXPOSE_PATHS)
+                    .inputParam("omittedEncryptedExposePaths", limitForDiagnostic(omittedEncryptedExposePaths));
+        }
+
+        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+    }
+
+    private List<String> extractModifyPathKeys(List<ContextPath> modifyPaths) {
+
+        List<String> modifyPathKeys = new ArrayList<>();
+        for (ContextPath modifyPath : modifyPaths) {
+            if (modifyPath != null && modifyPath.getPath() != null) {
+                modifyPathKeys.add(modifyPath.getPath());
+            }
+        }
+        return modifyPathKeys;
+    }
+
+    private List<String> limitForDiagnostic(List<String> values) {
+
+        if (values.size() <= MAX_DIAGNOSTIC_PATHS) {
+            return values;
+        }
+        return new ArrayList<>(values.subList(0, MAX_DIAGNOSTIC_PATHS));
+    }
+
+    private void triggerFallbackDiagnostic(FlowExecutionContext execCtx) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
+                .resultMessage("No InFlowExtensionAction resolved. Built minimal fallback request.")
+                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam("flowType", execCtx.getFlowType())
+                .configParam(DIAGNOSTIC_REASON, REASON_UNSUPPORTED_ACTION)
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    private void triggerOmittedExposeDiagnostic(List<String> omittedEncryptedExposePaths) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
+                .resultMessage("Omitted encrypted expose paths because outbound certificate is not configured.")
+                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam(DIAGNOSTIC_REASON, REASON_OMITTED_ENCRYPTED_EXPOSE_PATHS)
+                .inputParam("omittedEncryptedExposePaths", limitForDiagnostic(omittedEncryptedExposePaths))
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    private boolean hasModifyPaths(AccessConfig accessConfig) {
+
+        return accessConfig != null && accessConfig.getModify() != null && !accessConfig.getModify().isEmpty();
+    }
+
+    private AllowedModifyExtraction extractAllowedModifyPaths(List<ContextPath> modifyPaths) {
+
+        List<String> cleanPaths = new ArrayList<>();
+        Map<String, String> pathTypeAnnotations = new HashMap<>();
+        List<String> skippedPaths = new ArrayList<>();
+
+        for (ContextPath modifyPath : modifyPaths) {
+            String rawPath = modifyPath == null ? null : modifyPath.getPath();
+            if (rawPath == null) {
+                skippedPaths.add("<null-path>");
+            } else {
+                String[] strippedPath = PathTypeAnnotationUtil.stripAnnotation(rawPath);
+                String cleanPath = strippedPath[0];
+                String annotation = strippedPath[1];
+
+                boolean isAnnotationValid = annotation == null || PathTypeAnnotationUtil
+                        .validateAnnotationLimits(annotation);
+                if (isAnnotationValid) {
+                    if (annotation != null) {
+                        pathTypeAnnotations.put(cleanPath, annotation);
+                    }
+                    cleanPaths.add(cleanPath);
+                } else {
+                    LOG.warn("Annotation for path " + cleanPath
+                            + " exceeds maximum attribute limit. Skipping path.");
+                    skippedPaths.add(cleanPath);
+                }
+            }
+        }
+
+        return new AllowedModifyExtraction(cleanPaths, pathTypeAnnotations, skippedPaths);
+    }
+
+    private void addReplaceOperationIfAny(List<AllowedOperation> allowedOperations, List<String> cleanPaths) {
+
+        if (cleanPaths.isEmpty()) {
+            return;
+        }
+
+        AllowedOperation replaceOp = new AllowedOperation();
+        replaceOp.setOp(Operation.REPLACE);
+        replaceOp.setPaths(cleanPaths);
+        allowedOperations.add(replaceOp);
+    }
+
+    private void storeAnnotationsIfAny(FlowContext flowContext, Map<String, String> pathTypeAnnotations) {
+
+        if (!pathTypeAnnotations.isEmpty()) {
+            flowContext.add(InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+        }
+    }
+
+    private void addRedirectOperation(List<AllowedOperation> allowedOperations) {
+
+        AllowedOperation redirectOp = new AllowedOperation();
+        redirectOp.setOp(Operation.REDIRECT);
+        allowedOperations.add(redirectOp);
+    }
+
+    private void applyTenant(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                             List<String> expose) {
+
+        if (!isLeafExposed(HierarchicalPrefixMatcher.FLOW_TENANT_PATH, expose)) {
+            return;
+        }
+
+        String tenantDomain = context.getTenantDomain();
+        if (tenantDomain != null) {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            eventBuilder.tenant(new Tenant(String.valueOf(tenantId), tenantDomain));
+        }
+    }
+
+    private void applyOrganization(InFlowExtensionEvent.Builder eventBuilder) {
+
+        org.wso2.carbon.identity.core.context.model.Organization coreOrg =
+                IdentityContext.getThreadLocalIdentityContext().getOrganization();
+        if (coreOrg == null) {
+            return;
+        }
+
+        eventBuilder.organization(new Organization.Builder()
+                .id(coreOrg.getId())
+                .name(coreOrg.getName())
+                .orgHandle(coreOrg.getOrganizationHandle())
+                .depth(coreOrg.getDepth())
+                .build());
+    }
+
+    private void applyApplication(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                  List<String> expose) {
+
+        if (!isLeafExposed(HierarchicalPrefixMatcher.FLOW_APP_ID_PATH, expose)) {
+            return;
+        }
+
+        String appId = context.getApplicationId();
+        if (appId != null) {
+            eventBuilder.application(new Application(appId, null));
+        }
+    }
+
+    private void applyUserAndUserStore(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                       List<String> expose, AccessConfig accessConfig,
+                                       String certificatePEM) throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(HierarchicalPrefixMatcher.USER_PREFIX, expose)) {
+            return;
+        }
+
+        FlowUser flowUser = context.getFlowUser();
+        if (flowUser == null) {
+            return;
+        }
+
+        eventBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
+        if (isLeafExposed(HierarchicalPrefixMatcher.USER_STORE_DOMAIN_PATH, expose)
+                && flowUser.getUserStoreDomain() != null) {
+            eventBuilder.userStore(new UserStore(flowUser.getUserStoreDomain()));
+        }
+    }
+
+    private void applyFlowMetadata(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                   List<String> expose) {
+
+        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_TYPE_PATH, expose)) {
+            eventBuilder.flowType(context.getFlowType());
+        }
+
+        eventBuilder.flowId(context.getContextIdentifier());
+
+        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_CALLBACK_URL_PATH, expose)
+                && context.getCallbackUrl() != null) {
+            eventBuilder.callbackUrl(context.getCallbackUrl());
+        }
+
+        if (isLeafExposed(HierarchicalPrefixMatcher.FLOW_PORTAL_URL_PATH, expose)
+                && context.getPortalUrl() != null) {
+            eventBuilder.portalUrl(context.getPortalUrl());
+        }
+    }
+
+    private void applyFlowProperties(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+                                     List<String> expose, AccessConfig accessConfig,
+                                     String certificatePEM) throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(HierarchicalPrefixMatcher.PROPERTIES_PREFIX, expose)) {
+            return;
+        }
+
+        Map<String, Object> properties = context.getProperties();
+        if (properties != null && !properties.isEmpty()) {
+            eventBuilder.flowProperties(
+                    filterMap(properties, HierarchicalPrefixMatcher.PROPERTIES_PREFIX,
+                            expose, accessConfig, certificatePEM));
+        }
+    }
+
+    private String resolveUserId(FlowUser flowUser, List<String> expose) {
+
+        if (isLeafExposed(HierarchicalPrefixMatcher.USER_ID_PATH, expose)) {
+            return flowUser.getUserId();
+        }
+        return null;
+    }
+
+    private List<UserClaim> buildFilteredClaims(FlowUser flowUser, List<String> expose,
+                                                AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX, expose)) {
+            return Collections.emptyList();
+        }
+
+        Map<String, String> claims = flowUser.getClaims();
+        if (claims == null || claims.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<UserClaim> userClaims = new ArrayList<>();
+        for (Map.Entry<String, String> claim : claims.entrySet()) {
+            String claimPath = HierarchicalPrefixMatcher.USER_CLAIMS_PREFIX + claim.getKey();
+            if (isLeafExposed(claimPath, expose)) {
+                String claimValue = claim.getValue();
+                if (claimValue != null && shouldEncrypt(claimPath, accessConfig, certificatePEM)) {
+                    claimValue = encryptValue(claimValue, certificatePEM);
+                }
+                userClaims.add(new UserClaim(claim.getKey(), claimValue));
+            }
+        }
+        return userClaims;
+    }
+
+    private Map<String, char[]> buildFilteredCredentials(FlowUser flowUser, List<String> expose,
+                                                         AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(HierarchicalPrefixMatcher.USER_CREDENTIALS_PREFIX, expose)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, char[]> credentials = flowUser.getUserCredentials();
+        if (credentials == null || credentials.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, char[]> filteredCredentials = new HashMap<>();
+        for (Map.Entry<String, char[]> entry : credentials.entrySet()) {
+            String credentialPath = HierarchicalPrefixMatcher.USER_CREDENTIALS_PREFIX + entry.getKey();
+            if (isLeafExposed(credentialPath, expose)) {
+                char[] credentialValue = entry.getValue();
+                String plaintext = new String(credentialValue);
+                java.util.Arrays.fill(credentialValue, '\0');
+
+                filteredCredentials.put(entry.getKey(),
+                        toEncryptedOrPlainCredentialChars(plaintext, credentialPath, accessConfig, certificatePEM));
+            }
+        }
+        return filteredCredentials;
+    }
+
+    private char[] toEncryptedOrPlainCredentialChars(String plaintext, String credentialPath,
+                                                     AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (shouldEncrypt(credentialPath, accessConfig, certificatePEM)) {
+            return encryptValue(plaintext, certificatePEM).toCharArray();
+        }
+        return plaintext.toCharArray();
+    }
+
+    private static class ResolvedActionConfig {
+
+        private final AccessConfig accessConfig;
+        private final Encryption encryption;
+        private final boolean fallback;
+
+        private ResolvedActionConfig(AccessConfig accessConfig, Encryption encryption, boolean fallback) {
+
+            this.accessConfig = accessConfig;
+            this.encryption = encryption;
+            this.fallback = fallback;
+        }
+
+        private AccessConfig getAccessConfig() {
+
+            return accessConfig;
+        }
+
+        private Encryption getEncryption() {
+
+            return encryption;
+        }
+
+        private boolean isFallback() {
+
+            return fallback;
+        }
+    }
+
+    private static class ExposeResolution {
+
+        private final List<String> effectiveExposePaths;
+        private final List<String> omittedEncryptedExposePaths;
+
+        private ExposeResolution(List<String> effectiveExposePaths, List<String> omittedEncryptedExposePaths) {
+
+            this.effectiveExposePaths = effectiveExposePaths;
+            this.omittedEncryptedExposePaths = omittedEncryptedExposePaths;
+        }
+
+        private List<String> getEffectiveExposePaths() {
+
+            return effectiveExposePaths;
+        }
+
+        private List<String> getOmittedEncryptedExposePaths() {
+
+            return omittedEncryptedExposePaths;
+        }
+    }
+
+    private static class AllowedModifyExtraction {
+
+        private final List<String> cleanPaths;
+        private final Map<String, String> pathTypeAnnotations;
+        private final List<String> skippedPaths;
+
+        private AllowedModifyExtraction(List<String> cleanPaths, Map<String, String> pathTypeAnnotations,
+                                        List<String> skippedPaths) {
+
+            this.cleanPaths = cleanPaths;
+            this.pathTypeAnnotations = pathTypeAnnotations;
+            this.skippedPaths = skippedPaths;
+        }
+
+        private List<String> getCleanPaths() {
+
+            return cleanPaths;
+        }
+
+        private Map<String, String> getPathTypeAnnotations() {
+
+            return pathTypeAnnotations;
+        }
+
+        private List<String> getSkippedPaths() {
+
+            return skippedPaths;
+        }
     }
 
     /**

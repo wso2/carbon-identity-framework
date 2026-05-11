@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.flow.inflow.extensions.internal.InFlowExtensionDataHolder;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
@@ -78,6 +81,12 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
     private static final Log LOG = LogFactory.getLog(InFlowExtensionResponseProcessor.class);
 
+    /** Shared error message for null-value REPLACE operations. */
+    private static final String ERROR_VALUE_REQUIRED_FOR_REPLACE = "Value is required for REPLACE operation.";
+
+    /** Diagnostic log parameter key for the action type. */
+    private static final String DIAG_PARAM_ACTION_TYPE = "actionType";
+
     @Override
     public ActionType getSupportedActionType() {
 
@@ -122,7 +131,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             for (PerformableOperation operation : operations) {
                 operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
                 results.add(processOperation(
-                        operation, pathTypeAnnotations, pendingClaims, pendingCredentials, pendingProperties));
+                        operation, pathTypeAnnotations, pendingClaims, pendingCredentials,
+                        pendingProperties, tenantDomain));
             }
         } else {
             if (LOG.isDebugEnabled()) {
@@ -160,15 +170,28 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
      * @param pendingProperties   Accumulator map for flow property updates.
+     * @param tenantDomain        Tenant domain, used for claim URI validation.
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
             Map<String, String> pathTypeAnnotations,
             Map<String, Object> pendingClaims,
             Map<String, char[]> pendingCredentials,
-            Map<String, Object> pendingProperties) {
+            Map<String, Object> pendingProperties,
+            String tenantDomain) {
 
+        // Reject null/empty path early to prevent NPE in subsequent startsWith checks.
         String path = operation.getPath();
+        if (path == null || path.isEmpty()) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Operation path is null or empty.");
+        }
+
+        // Only REPLACE is supported; reject any other operation type.
+        if (operation.getOp() != Operation.REPLACE) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Unsupported operation type: " + operation.getOp() + ". Only REPLACE is supported.");
+        }
 
         // Check if operation is on a read-only area.
         if (HierarchicalPrefixMatcher.isReadOnly(path)) {
@@ -180,7 +203,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         if (path.startsWith(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX)) {
             return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
         } else if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
-            return handleUserClaimOperation(operation, pendingClaims);
+            return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
         }
@@ -215,7 +238,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (operation.getValue() == null) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Value is required for REPLACE operation.");
+                    ERROR_VALUE_REQUIRED_FOR_REPLACE);
         }
 
         // Validate complex object structure against annotation schema before coercion.
@@ -243,16 +266,24 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     }
 
     /**
-     * Handle REPLACE operation on user claims — collect into pending claims map.
+     * Handle REPLACE operation on user claims — validate the claim URI then collect into pending
+     * claims map. Validation gates:
+     * <ol>
+     *   <li>Claim URI must be in the WSO2 local claim dialect ({@code http://wso2.org/claims/}).</li>
+     *   <li>Identity-system claims ({@code http://wso2.org/claims/identity/}) are rejected.</li>
+     *   <li>If {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
+     *       is available, the claim URI must correspond to a registered local claim; unknown
+     *       claims are rejected. When the service is unavailable the check is skipped
+     *       (fail-open).</li>
+     * </ol>
      * The value is always stringified via {@code String.valueOf()}.
-     * Claim URI validation is intentionally omitted — validation is the responsibility
-     * of flow validators, not the response processor.
      *
      * @param operation     The performable operation.
      * @param pendingClaims Accumulator map for user claim updates.
+     * @param tenantDomain  Tenant domain for claim existence lookup.
      */
     private OperationExecutionResult handleUserClaimOperation(PerformableOperation operation,
-            Map<String, Object> pendingClaims) {
+            Map<String, Object> pendingClaims, String tenantDomain) {
 
         String claimUri = extractNameFromPath(operation.getPath(),
                 InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX);
@@ -264,12 +295,63 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (operation.getValue() == null) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Value is required for REPLACE operation.");
+                    ERROR_VALUE_REQUIRED_FOR_REPLACE);
+        }
+
+        // Validate claim URI — must be local dialect, not an identity sub-claim.
+        if (!claimUri.startsWith(PathTypeAnnotationUtil.LOCAL_CLAIM_DIALECT_PREFIX)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Claim URI must be in the local dialect (" +
+                            PathTypeAnnotationUtil.LOCAL_CLAIM_DIALECT_PREFIX + "): " + claimUri);
+        }
+        if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Identity-system claims cannot be modified by In-Flow Extensions: " + claimUri);
+        }
+
+        // Verify claim existence via ClaimMetadataManagementService when available.
+        String claimValidationFailure = validateLocalClaimExists(claimUri, tenantDomain);
+        if (claimValidationFailure != null) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    claimValidationFailure);
         }
 
         pendingClaims.put(claimUri, String.valueOf(operation.getValue()));
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "User claim replace applied.");
+    }
+
+    /**
+     * Validate that the given claim URI corresponds to a registered local claim in the tenant.
+     * Returns {@code null} if the claim is valid or if the service is unavailable (fail-open).
+     * Returns a descriptive failure message if validation fails.
+     *
+     * @param claimUri     Local claim URI to check.
+     * @param tenantDomain Tenant domain for the lookup.
+     * @return Failure reason string, or {@code null} when validation passes or is skipped.
+     */
+    private String validateLocalClaimExists(String claimUri, String tenantDomain) {
+
+        org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService claimService =
+                InFlowExtensionDataHolder.getInstance().getClaimMetadataManagementService();
+        if (claimService == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("ClaimMetadataManagementService is unavailable. Skipping claim existence check for: "
+                        + claimUri);
+            }
+            return null;
+        }
+        try {
+            java.util.Optional<LocalClaim> localClaim = claimService.getLocalClaim(claimUri, tenantDomain);
+            if (!localClaim.isPresent()) {
+                return "Unknown local claim URI. Claim is not registered in the system: " + claimUri;
+            }
+            return null;
+        } catch (ClaimMetadataException e) {
+            LOG.warn("Failed to look up claim URI '" + claimUri + "' in tenant '" + tenantDomain +
+                    "'. Skipping claim existence check.", e);
+            return null;
+        }
     }
 
     /**
@@ -294,7 +376,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (operation.getValue() == null) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Value is required for REPLACE operation.");
+                    ERROR_VALUE_REQUIRED_FOR_REPLACE);
         }
 
         pendingCredentials.put(credentialKey, String.valueOf(operation.getValue()).toCharArray());
@@ -325,70 +407,123 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             ActionExecutionResponseContext<ActionInvocationIncompleteResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
+        // Contract: INCOMPLETE must carry a REDIRECT op. Every other op is intentionally
+        // discarded — the extension is expected to resend them on the resume call after redirect.
         List<PerformableOperation> operations =
                 responseContext.getActionInvocationResponse().getOperations();
+        IncompleteOpScan scan = scanIncompleteOperations(operations);
 
-        // Contract: INCOMPLETE must carry a REDIRECT op. If present, every other op is
-        // intentionally discarded — the extension is expected to resend (possibly with
-        // different values) on the resume call after the user returns from the redirect.
-        // REDIRECT operations carry their target in the dedicated `url` field
-        // (PerformableOperation rejects path/value for REDIRECT and rejects url for everything else).
-        String redirectUrl = null;
-        int ignoredOpCount = 0;
-        if (operations != null) {
-            for (PerformableOperation op : operations) {
-                if (op.getOp() == Operation.REDIRECT) {
-                    redirectUrl = op.getUrl();
-                } else {
-                    ignoredOpCount++;
-                }
-            }
-        }
+        validateRedirectPresent(scan.redirectUrl);
+        logIgnoredIncompleteOps(scan.ignoredOpCount);
 
-        if (redirectUrl == null || redirectUrl.isEmpty()) {
-            LOG.warn("In-Flow Extension INCOMPLETE response is missing a REDIRECT operation.");
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        InFlowExtensionLogConstants.COMPONENT_ID,
-                        InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
-                        .resultMessage("INCOMPLETE response from In-Flow Extension is missing a REDIRECT operation.")
-                        .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
-            }
-            throw new ActionExecutionResponseProcessorException(
-                    "INCOMPLETE response from In-Flow Extension must contain a REDIRECT operation.");
-        }
-
-        if (ignoredOpCount > 0 && LOG.isDebugEnabled()) {
-            LOG.debug("Ignored " + ignoredOpCount + " non-REDIRECT operation(s) on INCOMPLETE response. "
-                    + "REPLACE ops on the redirect call are by-contract dropped — the extension is "
-                    + "expected to resend them on the resume call after callback.");
-        }
-
-        flowContext.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, redirectUrl);
-
-        if (LOG.isDebugEnabled()) {
-            try {
-                String host = new java.net.URI(redirectUrl).getHost();
-                LOG.debug("In-Flow Extension INCOMPLETE: redirect URL host resolved: " + host);
-            } catch (java.net.URISyntaxException ignored) {
-                LOG.debug("In-Flow Extension INCOMPLETE: redirect URL stored in flow context.");
-            }
-        }
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    InFlowExtensionLogConstants.COMPONENT_ID,
-                    InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
-                    .resultMessage("In-Flow Extension INCOMPLETE response processed. Redirect URL stored in flow context.")
-                    .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-        }
+        flowContext.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, scan.redirectUrl);
+        debugLogRedirectHost(scan.redirectUrl);
+        logIncompleteSuccess();
 
         return new IncompleteStatus.Builder()
                 .responseContext(Collections.emptyMap())
                 .build();
+    }
+
+    /**
+     * Scan the operation list from an INCOMPLETE response to extract the redirect URL and count
+     * non-REDIRECT operations that will be ignored.
+     *
+     * @param operations List of operations from the INCOMPLETE response (may be null).
+     * @return Scan result holding the redirect URL and ignored-op count.
+     */
+    private IncompleteOpScan scanIncompleteOperations(List<PerformableOperation> operations) {
+
+        if (operations == null) {
+            return new IncompleteOpScan(null, 0);
+        }
+        String redirectUrl = null;
+        int ignoredOpCount = 0;
+        for (PerformableOperation op : operations) {
+            if (op.getOp() == Operation.REDIRECT) {
+                redirectUrl = op.getUrl();
+            } else {
+                ignoredOpCount++;
+            }
+        }
+        return new IncompleteOpScan(redirectUrl, ignoredOpCount);
+    }
+
+    /**
+     * Assert that a redirect URL was found in the INCOMPLETE response; throw and emit diagnostics
+     * if it is absent.
+     */
+    private void validateRedirectPresent(String redirectUrl)
+            throws ActionExecutionResponseProcessorException {
+
+        if (redirectUrl != null && !redirectUrl.isEmpty()) {
+            return;
+        }
+        LOG.warn("In-Flow Extension INCOMPLETE response is missing a REDIRECT operation.");
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    InFlowExtensionConstants.Log.COMPONENT_ID,
+                    InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    .resultMessage(
+                            "INCOMPLETE response from In-Flow Extension is missing a REDIRECT operation.")
+                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+        }
+        throw new ActionExecutionResponseProcessorException(
+                "INCOMPLETE response from In-Flow Extension must contain a REDIRECT operation.");
+    }
+
+    /** Log the number of non-REDIRECT ops discarded in an INCOMPLETE response, if any. */
+    private void logIgnoredIncompleteOps(int ignoredOpCount) {
+
+        if (ignoredOpCount > 0 && LOG.isDebugEnabled()) {
+            LOG.debug("Ignored " + ignoredOpCount + " non-REDIRECT operation(s) on INCOMPLETE response. "
+                    + "REPLACE ops are by-contract dropped — the extension is expected to resend "
+                    + "them on the resume call after callback.");
+        }
+    }
+
+    /** Log the redirect URL host at DEBUG level after parsing the URI. */
+    private void debugLogRedirectHost(String redirectUrl) {
+
+        if (!LOG.isDebugEnabled()) {
+            return;
+        }
+        try {
+            String host = new java.net.URI(redirectUrl).getHost();
+            LOG.debug("In-Flow Extension INCOMPLETE: redirect URL host resolved: " + host);
+        } catch (java.net.URISyntaxException ignored) {
+            LOG.debug("In-Flow Extension INCOMPLETE: redirect URL stored in flow context.");
+        }
+    }
+
+    /** Emit a diagnostic success event after a valid INCOMPLETE response is processed. */
+    private void logIncompleteSuccess() {
+
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    InFlowExtensionConstants.Log.COMPONENT_ID,
+                    InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    .resultMessage(
+                            "In-Flow Extension INCOMPLETE response processed. Redirect URL stored in flow context.")
+                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+        }
+    }
+
+    /** Lightweight value holder for the result of scanning INCOMPLETE response operations. */
+    private static final class IncompleteOpScan {
+
+        private final String redirectUrl;
+        private final int ignoredOpCount;
+
+        private IncompleteOpScan(String redirectUrl, int ignoredOpCount) {
+
+            this.redirectUrl = redirectUrl;
+            this.ignoredOpCount = ignoredOpCount;
+        }
     }
 
     @Override
@@ -504,24 +639,25 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             return operation;
         }
 
-        // Only decrypt string values that look like JWE compact serialization.
+        // For encrypted modify paths the value MUST be a JWE compact serialization.
+        // Accepting plaintext would make the encryption flag advisory; it is enforced here.
         Object value = operation.getValue();
 
         if (!(value instanceof String)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Value for encrypted path " + operation.getPath() +
-                        " is not a String. Using as-is.");
-            }
-            return operation;
+            emitEncryptionContractViolation(operation.getPath(),
+                    "Value for encrypted modify path is not a String.");
+            throw new ActionExecutionResponseProcessorException(
+                    "Value for encrypted modify path '" + operation.getPath() +
+                            "' must be a JWE-encrypted string, but received a non-String value.");
         }
 
         String stringValue = (String) value;
         if (!JWEEncryptionUtil.isJWEEncrypted(stringValue)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Value for encrypted path " + operation.getPath() +
-                        " is not JWE-encrypted. Using as-is.");
-            }
-            return operation;
+            emitEncryptionContractViolation(operation.getPath(),
+                    "Value for encrypted modify path is not JWE-encrypted.");
+            throw new ActionExecutionResponseProcessorException(
+                    "Value for encrypted modify path '" + operation.getPath() +
+                            "' must be JWE-encrypted, but received a plaintext value.");
         }
 
         try {
@@ -539,8 +675,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     + "', tenant: " + tenantDomain, e);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        InFlowExtensionLogConstants.COMPONENT_ID,
-                        InFlowExtensionLogConstants.ActionIDs.PROCESS_RESPONSE)
+                        InFlowExtensionConstants.Log.COMPONENT_ID,
+                        InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                         .resultMessage("Failed to decrypt inbound JWE value for modify path.")
                         .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
                         .inputParam("path", operation.getPath())
@@ -549,6 +685,26 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             }
             throw new ActionExecutionResponseProcessorException(
                     "Failed to decrypt inbound JWE value for path: " + operation.getPath(), e);
+        }
+    }
+
+    // ========================= Decryption diagnostics helpers =========================
+
+    /**
+     * Emit a diagnostic failure event for a broken encryption contract on a modify path.
+     * Extracted to keep {@link #decryptOperationValueIfNeeded} readable.
+     */
+    private void emitEncryptionContractViolation(String path, String reason) {
+
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    InFlowExtensionConstants.Log.COMPONENT_ID,
+                    InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    .resultMessage(reason)
+                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .inputParam("path", path)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
         }
     }
 

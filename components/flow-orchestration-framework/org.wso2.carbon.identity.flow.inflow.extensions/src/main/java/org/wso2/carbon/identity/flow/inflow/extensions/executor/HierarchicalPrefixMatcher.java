@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,34 +21,10 @@ package org.wso2.carbon.identity.flow.inflow.extensions.executor;
 import java.util.List;
 
 /**
- * Utility class for hierarchical prefix-based path matching for In-Flow Extension access control.
- *
- * <p>Expose and modify path lists always contain <b>exact leaf paths</b> (no trailing {@code /}).
- * Two distinct matching operations are needed, served by two explicit methods:</p>
- * <ul>
- *   <li>{@link #anyExposedUnder(String, List)} — area-gate check: is <em>any</em> leaf path
- *       in the list under a given area prefix (e.g. {@code /user/claims/})?</li>
- *   <li>{@link #isExposedPath(String, List)} — exact check: is a specific leaf path
- *       (e.g. {@code /user/claims/http://wso2.org/claims/email}) present in the list?</li>
- * </ul>
- *
- * <p>Prefix hierarchy:</p>
- * <pre>
- * /user/                           - User context
- *   /user/claims/{claimURI}        - User claims
- *   /user/userId                   - User's unique identifier
- *   /user/userStoreDomain          - User store domain
- *   /user/credentials/{key}        - User credentials (no key validation required)
- *
- * /properties/{key}                - Flow properties (fully extensible)
- *
- * /flow/                           - Flow metadata (READ-ONLY)
- *   /flow/tenantDomain             - Tenant domain
- *   /flow/applicationId            - Application ID
- *   /flow/flowType                 - Flow type (REGISTRATION, etc.)
- *   /flow/callbackUrl              - Callback URL (expose-only)
- *   /flow/portalUrl                - Portal URL (expose-only)
- * </pre>
+ * Utility class for hierarchical prefix-based path matching used in In-Flow Extension
+ * access control.
+ * Provides area-gate checks via {@link #anyExposedUnder(String, List)} and exact
+ * leaf-path checks via {@link #isExposedPath(String, List)}.
  */
 public final class HierarchicalPrefixMatcher {
 

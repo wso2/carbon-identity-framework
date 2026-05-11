@@ -21,17 +21,22 @@ package org.wso2.carbon.identity.flow.inflow.extensions.internal;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 
 /**
  * Data holder for the In-Flow Extension bundle.
+ *
+ * <p>This singleton is used by DS bind/unbind methods to expose dynamic OSGi references
+ * to classes outside the component lifecycle methods.</p>
  */
-public class InFlowExtensionDataHolder {
+public final class InFlowExtensionDataHolder {
 
     private static final InFlowExtensionDataHolder instance = new InFlowExtensionDataHolder();
 
     private ActionExecutorService actionExecutorService;
     private ActionManagementService actionManagementService;
     private CertificateManagementService certificateManagementService;
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     private InFlowExtensionDataHolder() {
 
@@ -70,6 +75,16 @@ public class InFlowExtensionDataHolder {
     public void setCertificateManagementService(CertificateManagementService certificateManagementService) {
 
         this.certificateManagementService = certificateManagementService;
+    }
+
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
 }

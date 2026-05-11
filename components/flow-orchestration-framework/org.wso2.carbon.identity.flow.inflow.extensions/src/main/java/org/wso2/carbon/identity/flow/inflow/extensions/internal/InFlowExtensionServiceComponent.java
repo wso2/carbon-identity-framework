@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.inflow.extensions.executor.InFlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.inflow.extensions.executor.InFlowExtensionRequestBuilder;
@@ -98,7 +99,10 @@ public class InFlowExtensionServiceComponent {
 
     protected void unsetActionManagementService(ActionManagementService actionManagementService) {
 
-        LOG.debug("Unsetting the ActionManagementService in the In-Flow Extension component.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting the ActionManagementService in the In-Flow Extension component. Service: "
+                    + actionManagementService);
+        }
         InFlowExtensionDataHolder.getInstance().setActionManagementService(null);
     }
 
@@ -117,7 +121,10 @@ public class InFlowExtensionServiceComponent {
 
     protected void unsetActionExecutorService(ActionExecutorService actionExecutorService) {
 
-        LOG.debug("Unsetting the ActionExecutorService in the In-Flow Extension component.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting the ActionExecutorService in the In-Flow Extension component. Service: "
+                    + actionExecutorService);
+        }
         InFlowExtensionDataHolder.getInstance().setActionExecutorService(null);
     }
 
@@ -138,7 +145,35 @@ public class InFlowExtensionServiceComponent {
     protected void unsetCertificateManagementService(
             CertificateManagementService certificateManagementService) {
 
-        LOG.debug("Unsetting the CertificateManagementService in the In-Flow Extension component.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting the CertificateManagementService in the In-Flow Extension component. Service: "
+                    + certificateManagementService);
+        }
         InFlowExtensionDataHolder.getInstance().setCertificateManagementService(null);
+    }
+
+    @Reference(
+            name = "ClaimMetadataManagementService",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService"
+    )
+    protected void setClaimMetadataManagementService(
+            ClaimMetadataManagementService claimMetadataManagementService) {
+
+        LOG.debug("Setting the ClaimMetadataManagementService in the In-Flow Extension component.");
+        InFlowExtensionDataHolder.getInstance()
+                .setClaimMetadataManagementService(claimMetadataManagementService);
+    }
+
+    protected void unsetClaimMetadataManagementService(
+            ClaimMetadataManagementService claimMetadataManagementService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unsetting the ClaimMetadataManagementService in the In-Flow Extension component. Service: "
+                    + claimMetadataManagementService);
+        }
+        InFlowExtensionDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }

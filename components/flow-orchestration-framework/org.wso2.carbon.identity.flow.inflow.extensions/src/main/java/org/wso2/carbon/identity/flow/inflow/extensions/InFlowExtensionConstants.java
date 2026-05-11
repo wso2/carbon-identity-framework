@@ -53,4 +53,48 @@ public class InFlowExtensionConstants {
 
     // ---- Miscellaneous ----
     public static final String ACTION_ID_METADATA_KEY       = "actionId";
+
+    /**
+     * Constants for In-Flow Extension action management (action properties stored in
+     * IDN_ACTION_PROPERTIES, certificate naming, and expose-path limits).
+     */
+    public static final class ActionManagement {
+
+        public static final String ACCESS_CONFIG_EXPOSE        = "ACCESS_CONFIG_EXPOSE";
+        public static final String ACCESS_CONFIG_MODIFY        = "ACCESS_CONFIG_MODIFY";
+        public static final String OVERRIDE_KEY_SEPARATOR      = ":";
+        public static final String ACCESS_CONFIG_EXPOSE_PREFIX = ACCESS_CONFIG_EXPOSE + OVERRIDE_KEY_SEPARATOR;
+        public static final String ACCESS_CONFIG_MODIFY_PREFIX = ACCESS_CONFIG_MODIFY + OVERRIDE_KEY_SEPARATOR;
+        public static final int    MAX_EXPOSE_PATHS            = 50;
+        public static final String ICON_URL                    = "ICON_URL";
+        public static final String CERTIFICATE                 = "CERTIFICATE";
+        public static final String CERTIFICATE_NAME_PREFIX     = "ACTIONS:";
+
+        private ActionManagement() { }
+    }
+
+    /**
+     * Diagnostic log constants for the In-Flow Extension layer.
+     */
+    public static final class Log {
+
+        public static final String COMPONENT_ID = "inflow-extension";
+
+        private Log() {
+
+        }
+
+        /**
+         * Action IDs for diagnostic events emitted by the In-Flow Extension layer.
+         */
+        public static final class ActionIDs {
+
+            public static final String EXECUTE          = "execute-inflow-extension";
+            public static final String PROCESS_RESPONSE = "process-inflow-extension-response";
+
+            private ActionIDs() {
+
+            }
+        }
+    }
 }

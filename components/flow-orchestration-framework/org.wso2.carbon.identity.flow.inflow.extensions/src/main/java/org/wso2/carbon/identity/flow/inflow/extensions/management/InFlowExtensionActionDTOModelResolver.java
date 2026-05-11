@@ -44,14 +44,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY_PREFIX;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.CERTIFICATE;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ICON_URL;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.CERTIFICATE_NAME_PREFIX;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.MAX_EXPOSE_PATHS;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE_PREFIX;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY_PREFIX;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.CERTIFICATE;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.CERTIFICATE_NAME_PREFIX;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ICON_URL;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.MAX_EXPOSE_PATHS;
 
 /**
  * ActionDTOModelResolver implementation for In-Flow Extension actions.
@@ -113,33 +113,38 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
 
         // Handle icon URL: pass through as a PRIMITIVE string.
         Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
-        if (iconUrlValue instanceof String && !((String) iconUrlValue).isEmpty()) {
-            properties.put(ICON_URL, new ActionProperty.BuilderForDAO((String) iconUrlValue).build());
+        if (iconUrlValue instanceof String iconUrlStr && !iconUrlStr.isEmpty()) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForDAO(iconUrlStr).build());
         }
 
         // Handle per-flow-type override properties (prefixed keys).
-        if (actionDTO.getProperties() != null) {
-            for (Map.Entry<String, ActionProperty> entry : actionDTO.getProperties().entrySet()) {
-                String key = entry.getKey();
-                if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
-                    Object overrideExpose = actionDTO.getPropertyValue(key);
-                    if (overrideExpose != null) {
-                        List<ContextPath> validatedOverrideExpose = validateExpose(overrideExpose);
-                        properties.put(key, createBlobProperty(validatedOverrideExpose));
-                    }
-                } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
-                    Object overrideModify = actionDTO.getPropertyValue(key);
-                    if (overrideModify != null) {
-                        List<ContextPath> validatedOverrideModify = validateExpose(overrideModify);
-                        properties.put(key, createBlobProperty(validatedOverrideModify));
-                    }
-                }
-            }
-        }
+        resolveAddOverrideProperties(actionDTO, properties);
 
         return new ActionDTO.Builder(actionDTO)
                 .properties(properties)
                 .build();
+    }
+
+    private void resolveAddOverrideProperties(ActionDTO actionDTO, Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        if (actionDTO.getProperties() == null) {
+            return;
+        }
+        for (Map.Entry<String, ActionProperty> entry : actionDTO.getProperties().entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
+                Object overrideExpose = actionDTO.getPropertyValue(key);
+                if (overrideExpose != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideExpose)));
+                }
+            } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                Object overrideModify = actionDTO.getPropertyValue(key);
+                if (overrideModify != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideModify)));
+                }
+            }
+        }
     }
 
     @Override
@@ -172,11 +177,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         if (actionDTO.getProperties() != null) {
             for (Map.Entry<String, ActionProperty> entry : actionDTO.getProperties().entrySet()) {
                 String key = entry.getKey();
-                if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)
-                        && actionDTO.getPropertyValue(key) != null) {
-                    properties.put(key, deserializeExposeProperty(
-                            ((BinaryObject) actionDTO.getPropertyValue(key)).getJSONString()));
-                } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)
+                if ((key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX) || key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX))
                         && actionDTO.getPropertyValue(key) != null) {
                     properties.put(key, deserializeExposeProperty(
                             ((BinaryObject) actionDTO.getPropertyValue(key)).getJSONString()));
@@ -233,51 +234,63 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
 
         // Handle certificate update.
         handleCertificateUpdate(updatingActionDTO, existingActionDTO, properties, tenantDomain);
-
-        // Handle icon URL update (PUT semantics: carry forward existing if not provided).
-        Object updatingIconUrl = updatingActionDTO.getPropertyValue(ICON_URL);
-        if (updatingIconUrl instanceof String && !((String) updatingIconUrl).isEmpty()) {
-            properties.put(ICON_URL, new ActionProperty.BuilderForDAO((String) updatingIconUrl).build());
-        } else if (existingActionDTO.getPropertyValue(ICON_URL) != null) {
-            properties.put(ICON_URL, new ActionProperty.BuilderForDAO(
-                    existingActionDTO.getPropertyValue(ICON_URL).toString()).build());
-        }
-
-        // Handle per-flow-type override properties. Since DAO treats update as PUT (full replace),
-        // we must carry forward all existing overrides that are not explicitly being updated.
-        // First, carry forward all existing per-flow-type overrides.
-        if (existingActionDTO.getProperties() != null) {
-            for (Map.Entry<String, ActionProperty> entry : existingActionDTO.getProperties().entrySet()) {
-                String key = entry.getKey();
-                if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)
-                        || key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
-                    properties.put(key, createBlobProperty(existingActionDTO.getPropertyValue(key)));
-                }
-            }
-        }
-        // Then, overlay with any explicitly updated per-flow-type overrides.
-        if (updatingActionDTO.getProperties() != null) {
-            for (Map.Entry<String, ActionProperty> entry : updatingActionDTO.getProperties().entrySet()) {
-                String key = entry.getKey();
-                if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
-                    Object overrideExpose = updatingActionDTO.getPropertyValue(key);
-                    if (overrideExpose != null) {
-                        List<ContextPath> validatedOverrideExpose = validateExpose(overrideExpose);
-                        properties.put(key, createBlobProperty(validatedOverrideExpose));
-                    }
-                } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
-                    Object overrideModify = updatingActionDTO.getPropertyValue(key);
-                    if (overrideModify != null) {
-                        List<ContextPath> validatedOverrideModify = validateExpose(overrideModify);
-                        properties.put(key, createBlobProperty(validatedOverrideModify));
-                    }
-                }
-            }
-        }
+        resolveUpdateIconUrl(updatingActionDTO, existingActionDTO, properties);
+        carryForwardExistingOverrides(existingActionDTO, properties);
+        overlayUpdatedOverrides(updatingActionDTO, properties);
 
         return new ActionDTO.Builder(updatingActionDTO)
                 .properties(properties)
                 .build();
+    }
+
+    private void resolveUpdateIconUrl(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+                                      Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        Object updatingIconUrl = updatingActionDTO.getPropertyValue(ICON_URL);
+        if (updatingIconUrl instanceof String updatingIconUrlStr && !updatingIconUrlStr.isEmpty()) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForDAO(updatingIconUrlStr).build());
+        } else if (existingActionDTO.getPropertyValue(ICON_URL) != null) {
+            properties.put(ICON_URL, new ActionProperty.BuilderForDAO(
+                    existingActionDTO.getPropertyValue(ICON_URL).toString()).build());
+        }
+    }
+
+    private void carryForwardExistingOverrides(ActionDTO existingActionDTO,
+                                               Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        if (existingActionDTO.getProperties() == null) {
+            return;
+        }
+        for (Map.Entry<String, ActionProperty> entry : existingActionDTO.getProperties().entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX) || key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                properties.put(key, createBlobProperty(existingActionDTO.getPropertyValue(key)));
+            }
+        }
+    }
+
+    private void overlayUpdatedOverrides(ActionDTO updatingActionDTO, Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        if (updatingActionDTO.getProperties() == null) {
+            return;
+        }
+        for (Map.Entry<String, ActionProperty> entry : updatingActionDTO.getProperties().entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
+                Object overrideExpose = updatingActionDTO.getPropertyValue(key);
+                if (overrideExpose != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideExpose)));
+                }
+            } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                Object overrideModify = updatingActionDTO.getPropertyValue(key);
+                if (overrideModify != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideModify)));
+                }
+            }
+        }
     }
 
     @Override
@@ -338,8 +351,8 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
                 String path = (String) map.get("path");
                 boolean encrypted = map.containsKey("encrypted") && toBooleanSafe(map.get("encrypted"));
                 result.add(new ContextPath(path, encrypted));
-            } else if (item instanceof ContextPath) {
-                result.add((ContextPath) item);
+            } else if (item instanceof ContextPath contextPath) {
+                result.add(contextPath);
             } else {
                 throw new ActionDTOModelResolverClientException("Invalid expose format.",
                         "Each expose entry must be an object with 'path' and optional 'encrypted' fields.");
@@ -453,7 +466,7 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
         Object existingCertValue = existingActionDTO.getPropertyValue(CERTIFICATE);
 
         // Empty string signals explicit certificate removal.
-        boolean isExplicitRemoval = newCertValue instanceof String && ((String) newCertValue).isEmpty();
+        boolean isExplicitRemoval = newCertValue instanceof String s && s.isEmpty();
 
         if (isExplicitRemoval && existingCertValue != null) {
             // Explicitly clearing the certificate — delete the existing one.
@@ -520,8 +533,8 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
      */
     private String extractCertificateId(Object certValue) {
 
-        if (certValue instanceof Certificate) {
-            return ((Certificate) certValue).getId();
+        if (certValue instanceof Certificate certificate) {
+            return certificate.getId();
         }
         return certValue.toString();
     }
@@ -532,18 +545,18 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
      */
     private String extractCertificatePEM(Object certValue) throws ActionDTOModelResolverClientException {
 
-        if (certValue instanceof Certificate) {
-            return ((Certificate) certValue).getCertificateContent();
+        if (certValue instanceof Certificate certificate) {
+            return certificate.getCertificateContent();
         } else if (certValue instanceof Map) {
             Map<?, ?> certMap = (Map<?, ?>) certValue;
             Object content = certMap.get("certificateContent");
-            if (content instanceof String) {
-                return (String) content;
+            if (content instanceof String pem) {
+                return pem;
             }
             throw new ActionDTOModelResolverClientException("Invalid certificate format.",
                     "Certificate object must contain a 'certificateContent' field.");
-        } else if (certValue instanceof String) {
-            return (String) certValue;
+        } else if (certValue instanceof String pem) {
+            return pem;
         }
         throw new ActionDTOModelResolverClientException("Invalid certificate format.",
                 "Certificate must be a PEM string, a Certificate object, or a map with 'certificateContent'.");
@@ -580,11 +593,11 @@ public class InFlowExtensionActionDTOModelResolver implements ActionDTOModelReso
      */
     private static boolean toBooleanSafe(Object value) {
 
-        if (value instanceof Boolean) {
-            return (Boolean) value;
+        if (value instanceof Boolean b) {
+            return b;
         }
-        if (value instanceof String) {
-            return Boolean.parseBoolean((String) value);
+        if (value instanceof String s) {
+            return Boolean.parseBoolean(s);
         }
         return false;
     }

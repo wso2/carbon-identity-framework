@@ -32,12 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_MODIFY_PREFIX;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.CERTIFICATE;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ICON_URL;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE;
-import static org.wso2.carbon.identity.flow.inflow.extensions.management.InFlowExtensionActionConstants.ACCESS_CONFIG_EXPOSE_PREFIX;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE_PREFIX;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY_PREFIX;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.CERTIFICATE;
+import static org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.ActionManagement.ICON_URL;
 
 /**
  * ActionConverter implementation for In-Flow Extension actions.
@@ -66,63 +66,72 @@ public class InFlowExtensionActionConverter implements ActionConverter {
     @Override
     public ActionDTO buildActionDTO(Action action) {
 
-        if (!(action instanceof InFlowExtensionAction)) {
+        if (!(action instanceof InFlowExtensionAction inFlowExtensionAction)) {
             return new ActionDTO.Builder(action).build();
         }
 
-        InFlowExtensionAction inFlowExtensionAction = (InFlowExtensionAction) action;
-        AccessConfig accessConfig = inFlowExtensionAction.getAccessConfig();
-
         Map<String, ActionProperty> properties = new HashMap<>();
-        // Default access config (no prefix).
-        if (accessConfig != null) {
-            if (accessConfig.getExpose() != null) {
-                properties.put(ACCESS_CONFIG_EXPOSE,
-                        new ActionProperty.BuilderForService(accessConfig.getExpose()).build());
-            }
-            if (accessConfig.getModify() != null) {
-                properties.put(ACCESS_CONFIG_MODIFY,
-                        new ActionProperty.BuilderForService(accessConfig.getModify()).build());
-            }
-        }
-
-        // Encryption certificate (separate from access config).
-        Encryption encryption = inFlowExtensionAction.getEncryption();
-        if (encryption != null && encryption.getCertificate() != null) {
-            properties.put(CERTIFICATE,
-                    new ActionProperty.BuilderForService(encryption.getCertificate()).build());
-        } else if (encryption != null) {
-            // Encryption object present but no certificate — signals explicit removal.
-            properties.put(CERTIFICATE,
-                    new ActionProperty.BuilderForService("").build());
-        }
-
-        // Icon URL.
+        putDefaultAccessConfigProperties(properties, inFlowExtensionAction.getAccessConfig());
+        putEncryptionProperty(properties, inFlowExtensionAction.getEncryption());
         if (inFlowExtensionAction.getIconUrl() != null) {
             properties.put(ICON_URL,
                     new ActionProperty.BuilderForService(inFlowExtensionAction.getIconUrl()).build());
         }
-
-        // Per-flow-type overrides using prefixed keys.
-        Map<String, AccessConfig> overrides = inFlowExtensionAction.getFlowTypeOverrides();
-        if (overrides != null) {
-            for (Map.Entry<String, AccessConfig> entry : overrides.entrySet()) {
-                String flowType = entry.getKey();
-                AccessConfig overrideConfig = entry.getValue();
-                if (overrideConfig.getExpose() != null) {
-                    properties.put(ACCESS_CONFIG_EXPOSE_PREFIX + flowType,
-                            new ActionProperty.BuilderForService(overrideConfig.getExpose()).build());
-                }
-                if (overrideConfig.getModify() != null) {
-                    properties.put(ACCESS_CONFIG_MODIFY_PREFIX + flowType,
-                            new ActionProperty.BuilderForService(overrideConfig.getModify()).build());
-                }
-            }
-        }
+        putFlowTypeOverrideProperties(properties, inFlowExtensionAction.getFlowTypeOverrides());
 
         return new ActionDTO.Builder(inFlowExtensionAction)
                 .properties(properties)
                 .build();
+    }
+
+    private void putDefaultAccessConfigProperties(Map<String, ActionProperty> properties, AccessConfig accessConfig) {
+
+        if (accessConfig == null) {
+            return;
+        }
+        if (accessConfig.getExpose() != null) {
+            properties.put(ACCESS_CONFIG_EXPOSE,
+                    new ActionProperty.BuilderForService(accessConfig.getExpose()).build());
+        }
+        if (accessConfig.getModify() != null) {
+            properties.put(ACCESS_CONFIG_MODIFY,
+                    new ActionProperty.BuilderForService(accessConfig.getModify()).build());
+        }
+    }
+
+    private void putEncryptionProperty(Map<String, ActionProperty> properties, Encryption encryption) {
+
+        if (encryption == null) {
+            return;
+        }
+        if (encryption.getCertificate() != null) {
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForService(encryption.getCertificate()).build());
+        } else {
+            // Encryption object present but no certificate — signals explicit removal.
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForService("").build());
+        }
+    }
+
+    private void putFlowTypeOverrideProperties(Map<String, ActionProperty> properties,
+                                               Map<String, AccessConfig> overrides) {
+
+        if (overrides == null) {
+            return;
+        }
+        for (Map.Entry<String, AccessConfig> entry : overrides.entrySet()) {
+            String flowType = entry.getKey();
+            AccessConfig overrideConfig = entry.getValue();
+            if (overrideConfig.getExpose() != null) {
+                properties.put(ACCESS_CONFIG_EXPOSE_PREFIX + flowType,
+                        new ActionProperty.BuilderForService(overrideConfig.getExpose()).build());
+            }
+            if (overrideConfig.getModify() != null) {
+                properties.put(ACCESS_CONFIG_MODIFY_PREFIX + flowType,
+                        new ActionProperty.BuilderForService(overrideConfig.getModify()).build());
+            }
+        }
     }
 
     /**
@@ -149,15 +158,15 @@ public class InFlowExtensionActionConverter implements ActionConverter {
         // Encryption certificate (separate from access config).
         Encryption encryption = null;
         Object certValue = actionDTO.getPropertyValue(CERTIFICATE);
-        if (certValue instanceof Certificate) {
-            encryption = new Encryption((Certificate) certValue);
+        if (certValue instanceof Certificate certificate) {
+            encryption = new Encryption(certificate);
         }
 
         // Icon URL.
         String iconUrl = null;
         Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
-        if (iconUrlValue instanceof String) {
-            iconUrl = (String) iconUrlValue;
+        if (iconUrlValue instanceof String iconUrlStr) {
+            iconUrl = iconUrlStr;
         }
 
         // Reconstruct per-flow-type overrides from prefixed keys.

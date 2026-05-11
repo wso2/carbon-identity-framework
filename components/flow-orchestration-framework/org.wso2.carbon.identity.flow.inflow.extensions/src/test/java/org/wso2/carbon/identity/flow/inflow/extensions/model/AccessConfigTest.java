@@ -41,8 +41,10 @@ public class AccessConfigTest {
         AccessConfig config = new AccessConfig(null, null);
         assertNull(config.getExpose());
         assertNull(config.getModify());
-        assertNull(config.getExposePaths());
-        assertNull(config.getModifyPaths());
+        assertNotNull(config.getExposePaths());
+        assertTrue(config.getExposePaths().isEmpty());
+        assertNotNull(config.getModifyPaths());
+        assertTrue(config.getModifyPaths().isEmpty());
     }
 
     @Test

@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.inflow.extensions.model.*;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
@@ -178,6 +179,31 @@ public class InFlowExtensionRequestBuilderTest {
         assertEquals(ops.size(), 1);
         assertEquals(ops.get(0).getOp(), Operation.REDIRECT);
     }
+
+        @Test
+        public void testBuildRequestWithNonInFlowActionFallsBackToMinimalPayload()
+                        throws ActionExecutionRequestBuilderException {
+
+                FlowExecutionContext execCtx = createFullFlowExecutionContext();
+                FlowContext flowContext = FlowContext.create()
+                                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+                ActionExecutionRequestContext reqCtx = mock(ActionExecutionRequestContext.class);
+                when(reqCtx.getAction()).thenReturn(mock(Action.class));
+
+                ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
+
+                assertNotNull(request);
+                assertEquals(request.getActionType(), ActionType.IN_FLOW_EXTENSION);
+                assertEquals(request.getAllowedOperations().size(), 1);
+                assertEquals(request.getAllowedOperations().get(0).getOp(), Operation.REDIRECT);
+
+                InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+                assertNotNull(event);
+                assertEquals(event.getFlowId(), execCtx.getContextIdentifier());
+                assertNull(event.getUser());
+                assertNull(event.getFlowType());
+        }
 
     @Test
     public void testBuildRequestWithEmptyModifyPaths()
@@ -649,6 +675,32 @@ public class InFlowExtensionRequestBuilderTest {
             assertTrue(credValue.startsWith("encrypted."),
                     "credential should be encrypted when expose path is marked encrypted");
         }
+    }
+
+    @Test
+    public void testEncryptedExposePathIsOmittedWhenCertificateIsMissing()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        execCtx.setProperty("riskScore", "85");
+
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(
+                        new ContextPath("/properties/riskScore", true),
+                        new ContextPath("/properties/existingProp", false)),
+                null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getFlowProperties());
+        assertFalse(event.getFlowProperties().containsKey("riskScore"),
+                "Encrypted expose path should be omitted when outbound certificate is missing.");
+        assertEquals(event.getFlowProperties().get("existingProp"), "existingValue");
     }
 
     // ========================= Outbound encryption failure =========================

@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.flow.inflow.extensions.executor.PathTypeAnnotati
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Access Configuration for In-Flow Extension actions.
@@ -78,14 +77,14 @@ public class AccessConfig {
      * Returns the flat list of expose path strings (without encryption metadata).
      * Convenience method for components that only need path prefixes.
      *
-     * @return List of path strings, or {@code null} if expose is not configured.
+     * @return List of path strings, or an empty list if expose is not configured.
      */
     public List<String> getExposePaths() {
 
         if (expose == null) {
-            return null;
+            return Collections.emptyList();
         }
-        return expose.stream().map(ContextPath::getPath).collect(Collectors.toList());
+        return expose.stream().map(ContextPath::getPath).toList();
     }
 
     /**
@@ -102,14 +101,14 @@ public class AccessConfig {
      * Returns the flat list of modify path strings (without encryption metadata).
      * Convenience method for components that only need path strings.
      *
-     * @return List of path strings, or {@code null} if modify is not configured.
+     * @return List of path strings, or an empty list if modify is not configured.
      */
     public List<String> getModifyPaths() {
 
         if (modify == null) {
-            return null;
+            return Collections.emptyList();
         }
-        return modify.stream().map(ContextPath::getPath).collect(Collectors.toList());
+        return modify.stream().map(ContextPath::getPath).toList();
     }
 
     /**
