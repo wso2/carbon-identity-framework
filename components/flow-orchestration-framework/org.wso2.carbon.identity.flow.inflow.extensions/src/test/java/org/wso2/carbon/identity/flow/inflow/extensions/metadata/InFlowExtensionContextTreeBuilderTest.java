@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.flow.inflow.extensions.metadata;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
 
 import java.util.Arrays;
 import java.util.HashSet;

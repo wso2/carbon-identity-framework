@@ -2527,31 +2527,6 @@
         </Types>
     </Actions>
 
-    <!--
-        Global flow execution context handover filtering configuration. Controls which
-        FlowExecutionContext fields are exposed to action framework consumers (request
-        builder / response processor). Configured via
-        [flow_execution_context.handover.filtering] in deployment.toml.
-        The j2 loops emit one <IncludedAttribute> / <IncludedUserAttribute> element per
-        list entry; IdentityConfigParser returns them as a List<String>.
-    -->
-    <FlowExecutionContextHandover>
-        <IncludedAttributes>
-            {% if flow_execution_context.handover.filtering.included_attributes is defined %}
-            {% for attr in flow_execution_context.handover.filtering.included_attributes %}
-            <IncludedAttribute>{{attr}}</IncludedAttribute>
-            {% endfor %}
-            {% endif %}
-        </IncludedAttributes>
-        <IncludedUserAttributes>
-            {% if flow_execution_context.handover.filtering.included_user_attributes is defined %}
-            {% for attr in flow_execution_context.handover.filtering.included_user_attributes %}
-            <IncludedUserAttribute>{{attr}}</IncludedUserAttribute>
-            {% endfor %}
-            {% endif %}
-        </IncludedUserAttributes>
-    </FlowExecutionContextHandover>
-
     <ExternalAPIClient>
         <HTTPClient>
             <HTTPConnectionTimeout>{{external_api_client.http_client.connection_timeout}}</HTTPConnectionTimeout>

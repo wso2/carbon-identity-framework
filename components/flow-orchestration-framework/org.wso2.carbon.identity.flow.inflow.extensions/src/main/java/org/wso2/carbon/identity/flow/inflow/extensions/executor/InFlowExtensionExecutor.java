@@ -34,11 +34,10 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants;
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowExecutionContextFilter;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
-import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.inflow.extensions.internal.InFlowExtensionDataHolder;
+import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.inflow.extensions.util.InFlowExtensionContextFilterUtil;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
@@ -108,11 +107,10 @@ public class InFlowExtensionExecutor implements Executor {
         }
 
         try {
-            // Resolve the handover config and hand the action framework only a
-            // FILTERED copy of the FlowExecutionContext (non-whitelisted fields nulled out).
-            FlowContextHandoverConfig handoverConfig = FlowExecutionEngineDataHolder.getInstance()
-                    .getFlowContextHandoverConfig();
-            FlowExecutionContext filteredContext = FlowExecutionContextFilter.filter(context, handoverConfig);
+            // Hand the action framework only a FILTERED copy of the FlowExecutionContext
+            // (non-whitelisted fields nulled out). Policy is sourced from compile-time constants.
+            FlowExecutionContext filteredContext = InFlowExtensionContextFilterUtil.filter(
+                    context, FlowContextHandoverConfig.defaultPolicy());
 
             FlowContext flowContext = FlowContext.create()
                     .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, filteredContext);

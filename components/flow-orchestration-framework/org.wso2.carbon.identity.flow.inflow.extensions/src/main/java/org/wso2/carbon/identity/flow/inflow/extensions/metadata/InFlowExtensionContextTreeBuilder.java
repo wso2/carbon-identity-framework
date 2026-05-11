@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.flow.inflow.extensions.metadata;
 
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
+import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;

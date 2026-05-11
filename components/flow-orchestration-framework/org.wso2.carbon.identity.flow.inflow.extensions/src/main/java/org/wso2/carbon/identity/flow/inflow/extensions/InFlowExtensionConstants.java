@@ -18,6 +18,11 @@
 
 package org.wso2.carbon.identity.flow.inflow.extensions;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Constants for the In-Flow Extension executor pipeline.
  *
@@ -96,5 +101,63 @@ public class InFlowExtensionConstants {
 
             }
         }
+    }
+
+    /**
+     * Compile-time default handover policy constants.
+     *
+     * <p>These constants define which {@code FlowExecutionContext} and {@code FlowUser}
+     * fields are handed to the action framework during in-flow extension execution.
+     * {@code "properties"} is intentionally excluded from {@link #INCLUDED_ATTRIBUTES}:
+     * it is always modifiable via the executor response path (context tree always exposes
+     * it with MODIFY ops), but must not be forwarded to external services by default.</p>
+     *
+     * <p>When the toml-based dynamic config PR is merged, these constants serve as the
+     * documented defaults for {@code identity.xml.j2}.</p>
+     */
+    public static final class HandoverPolicy {
+
+        private HandoverPolicy() { }
+
+        /** Attribute name for the {@code flowUser} field. When present in
+         *  {@link #INCLUDED_ATTRIBUTES}, {@code fullUserPassthrough} is set to true. */
+        public static final String ATTR_FLOW_USER = "flowUser";
+
+        /** Context identifier; always copied by the filter regardless of config. */
+        public static final String ATTR_CONTEXT_IDENTIFIER = "contextIdentifier";
+
+        /** User-credentials property name; requires per-entry {@code char[]} cloning. */
+        public static final String ATTR_USER_CREDENTIALS = "userCredentials";
+
+        /**
+         * Top-level {@code FlowExecutionContext} fields that are handed to the action framework.
+         * Corresponds to the future toml key:
+         * {@code flow_execution_context.handover.filtering.included_attributes}.
+         */
+        public static final Set<String> INCLUDED_ATTRIBUTES = Collections.unmodifiableSet(
+                new HashSet<>(Arrays.asList(
+                        "contextIdentifier",
+                        "tenantDomain",
+                        "applicationId",
+                        "flowType",
+                        "callbackUrl",
+                        "portalUrl",
+                        "flowUser"          // presence sets fullUserPassthrough = true
+                        // "properties" intentionally excluded — sensitive flow-state data
+                )));
+
+        /**
+         * {@code FlowUser} fields that are handed over when full-passthrough is not active.
+         * Corresponds to the future toml key:
+         * {@code flow_execution_context.handover.filtering.included_user_attributes}.
+         */
+        public static final Set<String> INCLUDED_USER_ATTRIBUTES = Collections.unmodifiableSet(
+                new HashSet<>(Arrays.asList(
+                        "userId",
+                        "username",
+                        "userStoreDomain",
+                        "claims",
+                        "userCredentials"
+                )));
     }
 }

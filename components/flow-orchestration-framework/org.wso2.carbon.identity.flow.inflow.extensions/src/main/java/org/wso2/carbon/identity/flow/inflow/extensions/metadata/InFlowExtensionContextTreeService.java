@@ -18,8 +18,7 @@
 
 package org.wso2.carbon.identity.flow.inflow.extensions.metadata;
 
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
+import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
 
 /**
  * Public-API entry point for retrieving the controlled In-Flow Extension context tree.
@@ -52,6 +51,6 @@ public final class InFlowExtensionContextTreeService {
     public InFlowExtensionContextTreeMetadata buildContextTree(String flowType) {
 
         return new InFlowExtensionContextTreeBuilder(
-                FlowExecutionEngineDataHolder.getInstance().getFlowContextHandoverConfig()).build(flowType);
+                FlowContextHandoverConfig.defaultPolicy()).build(flowType);
     }
 }

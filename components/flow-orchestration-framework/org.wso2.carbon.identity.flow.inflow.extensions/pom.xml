@@ -132,7 +132,8 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.flow.inflow.extensions.internal
+                            org.wso2.carbon.identity.flow.inflow.extensions.internal,
+                            org.wso2.carbon.identity.flow.inflow.extensions.util
                         </Private-Package>
                         <Import-Package>
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
@@ -156,10 +157,6 @@
                             version="${carbon.identity.package.import.version.range}",
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             org.wso2.carbon.identity.flow.execution.engine;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.flow.execution.engine.config;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.flow.execution.engine.internal;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.flow.execution.engine.exception;
                             version="${carbon.identity.package.import.version.range}",

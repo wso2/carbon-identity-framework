@@ -31,10 +31,4 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
         </classes>
     </test>
-    <test name="flow-engine-config-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfigTest"/>
-            <class name="org.wso2.carbon.identity.flow.execution.engine.config.FlowExecutionContextFilterTest"/>
-        </classes>
-    </test>
 </suite>

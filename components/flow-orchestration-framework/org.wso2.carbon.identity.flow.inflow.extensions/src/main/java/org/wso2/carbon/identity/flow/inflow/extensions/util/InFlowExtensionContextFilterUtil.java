@@ -1,27 +1,29 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.carbon.identity.flow.execution.engine.config;
+package org.wso2.carbon.identity.flow.inflow.extensions.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants.HandoverPolicy;
+import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -36,23 +38,25 @@ import java.util.Set;
 
 /**
  * Builds a filtered defensive copy of a {@link FlowExecutionContext} containing only the
- * attributes permitted by the supplied {@link FlowContextHandoverConfig}. Used at the
- * engine boundary by downstream consumers (e.g. the In-Flow Extension executor) to bound
- * the data surface visible to external code.
+ * attributes permitted by the supplied {@link FlowContextHandoverConfig}.
+ *
+ * <p>This class mirrors the engine's {@code FlowExecutionContextFilter} but lives in
+ * the inflow module to avoid a cross-bundle dependency on {@code engine.config.*}. When the
+ * toml-based dynamic configuration PR is merged, this class can be removed and the engine's
+ * filter used directly.</p>
  *
  * <p>Implementation reflects over the JavaBean property descriptors of
- * {@link FlowExecutionContext} and {@link FlowUser}, so any new getter/setter pair added
- * to those models is automatically eligible for whitelisting via deployment.toml without
- * a filter change. The original context is never mutated; non-permitted attributes are
- * left null/empty on the copy.</p>
+ * {@link FlowExecutionContext} and {@link FlowUser}. Descriptors are cached on class load.
+ * The original context is never mutated; non-permitted attributes are left null/empty on
+ * the copy.</p>
  *
- * <p>Map fields receive a defensive shallow {@link HashMap} copy. The {@code userCredentials}
- * field receives a per-entry {@code char[]} clone so that the request builder's
- * post-extraction {@code Arrays.fill(...,'\0')} wipe zeroes the copy, not the source.</p>
+ * <p>Map fields receive a defensive shallow {@link HashMap} copy. The
+ * {@code userCredentials} field receives a per-entry {@code char[]} clone so that the
+ * request builder's post-extraction wipe zeroes the copy, not the source.</p>
  */
-public final class FlowExecutionContextFilter {
+public final class InFlowExtensionContextFilterUtil {
 
-    private static final Log LOG = LogFactory.getLog(FlowExecutionContextFilter.class);
+    private static final Log LOG = LogFactory.getLog(InFlowExtensionContextFilterUtil.class);
 
     private static final Map<String, PropertyDescriptor> CONTEXT_PROPERTIES;
     private static final Map<String, PropertyDescriptor> USER_PROPERTIES;
@@ -62,7 +66,7 @@ public final class FlowExecutionContextFilter {
         USER_PROPERTIES = Collections.unmodifiableMap(introspect(FlowUser.class));
     }
 
-    private FlowExecutionContextFilter() {
+    private InFlowExtensionContextFilterUtil() {
 
     }
 
@@ -70,36 +74,33 @@ public final class FlowExecutionContextFilter {
      * Build a filtered copy of {@code original} according to {@code config}.
      *
      * @param original the source context (untouched).
-     * @param config   the handover config; if null, a permissive fallback is used.
+     * @param config   the handover policy.
      * @return a new {@link FlowExecutionContext} carrying only whitelisted attributes,
      *         or {@code null} if {@code original} is {@code null}.
      */
-    public static FlowExecutionContext filter(FlowExecutionContext original, FlowContextHandoverConfig config) {
+    public static FlowExecutionContext filter(FlowExecutionContext original,
+                                             FlowContextHandoverConfig config) {
 
         if (original == null) {
             return null;
         }
-        if (config == null) {
-            config = FlowContextHandoverConfig.permissive();
-        }
 
         FlowExecutionContext copy = new FlowExecutionContext();
 
-        // contextIdentifier is engine-internal and always propagated.
+        // contextIdentifier is engine-internal and always propagated regardless of config.
         copy.setContextIdentifier(original.getContextIdentifier());
 
-        // Top-level attributes (skip flowUser — handled separately below;
-        // skip contextIdentifier — already copied).
+        // Top-level attributes (flowUser and contextIdentifier are handled separately).
         for (String name : config.getIncludedAttributes()) {
-            if (FlowContextHandoverConstants.ATTR_FLOW_USER.equals(name)
-                    || FlowContextHandoverConstants.ATTR_CONTEXT_IDENTIFIER.equals(name)) {
+            if (HandoverPolicy.ATTR_FLOW_USER.equals(name)
+                    || HandoverPolicy.ATTR_CONTEXT_IDENTIFIER.equals(name)) {
                 continue;
             }
             copyProperty(CONTEXT_PROPERTIES, name, original, copy);
         }
 
         // User attributes — a fresh non-null FlowUser is always set on the copy so that
-        // request builders / response processors don't have to null-guard the user.
+        // request builders / response processors don't need to null-guard the user object.
         FlowUser dstUser = new FlowUser();
         copy.setFlowUser(dstUser);
         FlowUser srcUser = original.getFlowUser();
@@ -113,24 +114,6 @@ public final class FlowExecutionContextFilter {
         }
 
         return copy;
-    }
-
-    /**
-     * Known JavaBean property names on {@link FlowExecutionContext} (read+writable).
-     * Used by {@link FlowContextHandoverConfig#permissive()} to seed an "everything allowed"
-     * baseline.
-     */
-    public static Set<String> getKnownContextAttributes() {
-
-        return CONTEXT_PROPERTIES.keySet();
-    }
-
-    /**
-     * Known JavaBean property names on {@link FlowUser} (read+writable).
-     */
-    public static Set<String> getKnownUserAttributes() {
-
-        return USER_PROPERTIES.keySet();
     }
 
     private static <T> void copyProperty(Map<String, PropertyDescriptor> descriptors, String name,
@@ -166,7 +149,7 @@ public final class FlowExecutionContextFilter {
         if (!(value instanceof Map)) {
             return value;
         }
-        if (FlowContextHandoverConstants.ATTR_USER_CREDENTIALS.equals(name)) {
+        if (HandoverPolicy.ATTR_USER_CREDENTIALS.equals(name)) {
             Map<String, char[]> src = (Map<String, char[]>) value;
             Map<String, char[]> out = new LinkedHashMap<>();
             for (Map.Entry<String, char[]> entry : src.entrySet()) {
@@ -182,7 +165,8 @@ public final class FlowExecutionContextFilter {
 
         Map<String, PropertyDescriptor> result = new HashMap<>();
         try {
-            for (PropertyDescriptor pd : Introspector.getBeanInfo(beanClass, Object.class).getPropertyDescriptors()) {
+            for (PropertyDescriptor pd :
+                    Introspector.getBeanInfo(beanClass, Object.class).getPropertyDescriptors()) {
                 if (pd.getReadMethod() != null && pd.getWriteMethod() != null) {
                     result.put(pd.getName(), pd);
                 }

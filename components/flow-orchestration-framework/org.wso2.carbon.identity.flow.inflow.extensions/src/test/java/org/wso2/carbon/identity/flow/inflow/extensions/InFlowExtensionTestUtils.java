@@ -18,28 +18,20 @@
 
 package org.wso2.carbon.identity.flow.inflow.extensions;
 
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConstants;
+import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
 
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Test-only helper that builds {@link FlowContextHandoverConfig} instances without
- * touching {@code IdentityConfigParser} or triggering {@code FlowExecutionContextFilter}'s
- * static initialiser (which fails in the inflow test classpath due to missing
- * authentication-framework dependencies).
- *
- * <p>Uses reflection to call the private 3-arg constructor on
- * {@link FlowContextHandoverConfig} directly.</p>
+ * Test-only helper that builds {@link FlowContextHandoverConfig} instances using the
+ * inflow module's own factory method — no reflection, no engine class dependencies.
  */
 public final class InFlowExtensionTestUtils {
 
     /**
-     * Commonly used attribute sets that cover all fields the filter exposes without needing
-     * {@code FlowExecutionContextFilter.getKnownContextAttributes()}.
+     * Commonly used attribute sets that cover all fields exposed by the filter.
      */
     public static final Set<String> ALL_CONTEXT_ATTRS = new HashSet<>(Arrays.asList(
             "tenantDomain", "applicationId", "flowType", "callbackUrl", "portalUrl",
@@ -53,9 +45,7 @@ public final class InFlowExtensionTestUtils {
     }
 
     /**
-     * Construct a permissive {@link FlowContextHandoverConfig} without triggering
-     * {@code FlowContextHandoverConfig.permissive()} (which calls
-     * {@code FlowExecutionContextFilter}'s static initialiser).
+     * Construct a permissive {@link FlowContextHandoverConfig} covering all known fields.
      */
     public static FlowContextHandoverConfig permissiveConfig() {
 
@@ -67,15 +57,6 @@ public final class InFlowExtensionTestUtils {
      */
     public static FlowContextHandoverConfig configOf(Set<String> attrs, Set<String> userAttrs) {
 
-        try {
-            Constructor<FlowContextHandoverConfig> ctor =
-                    FlowContextHandoverConfig.class.getDeclaredConstructor(
-                            Set.class, Set.class, boolean.class);
-            ctor.setAccessible(true);
-            boolean fullPassthrough = attrs.contains(FlowContextHandoverConstants.ATTR_FLOW_USER);
-            return ctor.newInstance(attrs, userAttrs, fullPassthrough);
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot construct FlowContextHandoverConfig for test", e);
-        }
+        return FlowContextHandoverConfig.of(attrs, userAttrs);
     }
 }

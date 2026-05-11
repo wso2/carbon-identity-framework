@@ -36,9 +36,6 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
 import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
-import org.wso2.carbon.identity.flow.execution.engine.config.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
-import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionTestUtils;
 import org.wso2.carbon.identity.flow.inflow.extensions.internal.InFlowExtensionDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
@@ -88,11 +85,6 @@ public class InFlowExtensionExecutorTest {
         holderMock = mockStatic(InFlowExtensionDataHolder.class);
         holderMock.when(InFlowExtensionDataHolder::getInstance).thenReturn(holderInstance);
 
-        // Set a permissive handover config directly on the engine DataHolder so tests remain
-        // focused on status mapping rather than filtering (avoids cross-module mockStatic).
-        FlowExecutionEngineDataHolder.getInstance()
-                .setFlowContextHandoverConfig(InFlowExtensionTestUtils.permissiveConfig());
-
         loggerUtilsMock = mockStatic(LoggerUtils.class);
         loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
     }
@@ -103,8 +95,6 @@ public class InFlowExtensionExecutorTest {
         loggerUtilsMock.close();
         holderMock.close();
         mocks.close();
-        // Reset the handover config so it doesn't leak between test classes.
-        FlowExecutionEngineDataHolder.getInstance().setFlowContextHandoverConfig(null);
     }
 
     // ========================= getName =========================
