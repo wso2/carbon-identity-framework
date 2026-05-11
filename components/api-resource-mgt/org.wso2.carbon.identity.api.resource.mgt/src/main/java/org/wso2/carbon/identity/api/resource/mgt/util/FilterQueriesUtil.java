@@ -207,24 +207,27 @@ public class FilterQueriesUtil {
                                                FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " LIKE ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value + "%");
+        String attributeNameWithLowerCaseFunction = "LOWER(" + attributeName + ")";
+        filter.append(attributeNameWithLowerCaseFunction).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(count, value.toLowerCase() + "%");
     }
 
     private static void endWithFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
                                              FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " LIKE ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, "%" + value);
+        String attributeNameWithLowerCaseFunction = "LOWER(" + attributeName + ")";
+        filter.append(attributeNameWithLowerCaseFunction).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(count, "%" + value.toLowerCase());
     }
 
     private static void containsFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
                                               FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " LIKE ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, "%" + value + "%");
+        String attributeNameWithLowerCaseFunction = "LOWER(" + attributeName + ")";
+        filter.append(attributeNameWithLowerCaseFunction).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(count, "%" + value.toLowerCase() + "%");
     }
 
     private static void greaterThanOrEqualFilterBuilder(int count, String value, String attributeName,
