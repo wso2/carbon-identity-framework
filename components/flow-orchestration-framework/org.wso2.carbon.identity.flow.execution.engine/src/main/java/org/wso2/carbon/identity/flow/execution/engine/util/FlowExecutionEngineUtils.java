@@ -46,13 +46,15 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
-import org.wso2.carbon.identity.flow.execution.engine.model.FlowEventContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
+import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
 
@@ -64,8 +66,17 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.POST_FLOW_EXECUTION_STEP_EVENT;
-
-import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.FLOW_EVENT_CONTEXT;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.APPLICATION_ID;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.CONTEXT_ID;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.CURRENT_NODE_ID;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.CURRENT_NODE_RESPONSE_STATUS;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.CURRENT_NODE_RESPONSE_TYPE;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.CURRENT_NODE_TYPE;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.ERROR_CODE;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.EXECUTOR_NAME;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.FLOW_TYPE;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.STEP_TYPE;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
@@ -600,9 +611,11 @@ public class FlowExecutionEngineUtils {
             return;
         }
 
-        Map<String, Object> properties = new HashMap<>();
-        FlowEventContext eventContext = buildFlowEventContext(context, step, errorCode);
-        properties.put(FLOW_EVENT_CONTEXT, eventContext);
+        if (context.getCurrentNode() == null) {
+            return;
+        }
+
+        Map<String, Object> properties = getEventProperties(context, step, errorCode);
 
         Event event = new Event(POST_FLOW_EXECUTION_STEP_EVENT, properties);
         try {
@@ -613,20 +626,29 @@ public class FlowExecutionEngineUtils {
         }
     }
 
-    private static FlowEventContext buildFlowEventContext(FlowExecutionContext flowExecutionContext,
-                                                          FlowExecutionStep step, String errorCode) {
+    private static Map<String, Object> getEventProperties(FlowExecutionContext context, FlowExecutionStep step,
+                                                          String errorCode) {
 
-        return new FlowEventContext.Builder()
-                .contextIdentifier(flowExecutionContext.getContextIdentifier())
-                .flowType(flowExecutionContext.getFlowType())
-                .applicationId(flowExecutionContext.getApplicationId())
-                .tenantDomain(flowExecutionContext.getTenantDomain())
-                .currentNode(flowExecutionContext.getCurrentNode())
-                .userId(flowExecutionContext.getFlowUser() != null
-                        ? flowExecutionContext.getFlowUser().getUserId() : null)
-                .errorCode(errorCode)
-                .step(step)
-                .currentNodeResponse(flowExecutionContext.getCurrentNodeResponse())
-                .build();
+        Map<String, Object> properties = new HashMap<>();
+
+        NodeResponse currentNodeResponse = context.getCurrentNodeResponse();
+        NodeConfig currentNode = context.getCurrentNode();
+        ExecutorDTO executorConfig = currentNode.getExecutorConfig();
+        if (currentNodeResponse.getError() != null) {
+            errorCode = currentNodeResponse.getError();
+        }
+
+        properties.put(FLOW_TYPE, context.getFlowType());
+        properties.put(STEP_TYPE, step != null ? step.getStepType() : null);
+        properties.put(CURRENT_NODE_ID, currentNode.getId());
+        properties.put(CURRENT_NODE_TYPE, currentNode.getType());
+        properties.put(CONTEXT_ID, context.getContextIdentifier());
+        properties.put(TENANT_DOMAIN, context.getTenantDomain());
+        properties.put(CURRENT_NODE_RESPONSE_STATUS, currentNodeResponse.getStatus());
+        properties.put(CURRENT_NODE_RESPONSE_TYPE, currentNodeResponse.getType());
+        properties.put(APPLICATION_ID, context.getApplicationId());
+        properties.put(EXECUTOR_NAME, executorConfig != null ? executorConfig.getName() : null);
+        properties.put(ERROR_CODE, errorCode);
+        return properties;
     }
 }

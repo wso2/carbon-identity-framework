@@ -209,12 +209,13 @@ public class FlowExecutionEngineDataHolder {
         this.federatedAssociationManager = federatedAssociationManager;
     }
 
-
     public IdentityEventService getIdentityEventService() {
+
         return identityEventService;
     }
 
     public void setIdentityEventService(IdentityEventService identityEventService) {
+
         this.identityEventService = identityEventService;
     }
 }

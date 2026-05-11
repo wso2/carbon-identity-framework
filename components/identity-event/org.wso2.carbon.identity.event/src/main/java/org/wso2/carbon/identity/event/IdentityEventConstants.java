@@ -542,7 +542,14 @@ public class IdentityEventConstants {
         public static final String IS_PASSWORD_UPDATE_ACTION = "isPasswordUpdateAction";
         public static final String VERIFIED_BY_END_USER = "VerifiedByEndUser";
 
-        public static final String FLOW_EVENT_CONTEXT = "FLOW_EVENT_CONTEXT";
+        public static final String FLOW_TYPE = "FLOW_TYPE";
+        public static final String STEP_TYPE = "STEP_TYPE";
+        public static final String CURRENT_NODE_ID = "CURRENT_NODE_ID";
+        public static final String CURRENT_NODE_TYPE = "CURRENT_NODE_TYPE";
+        public static final String CONTEXT_ID = "CONTEXT_ID";
+        public static final String CURRENT_NODE_RESPONSE_STATUS = "CURRENT_NODE_RESPONSE_STATUS";
+        public static final String CURRENT_NODE_RESPONSE_TYPE = "CURRENT_NODE_RESPONSE_TYPE";
+        public static final String EXECUTOR_NAME = "EXECUTOR_NAME";
     }
 
     public class ErrorMessage {
