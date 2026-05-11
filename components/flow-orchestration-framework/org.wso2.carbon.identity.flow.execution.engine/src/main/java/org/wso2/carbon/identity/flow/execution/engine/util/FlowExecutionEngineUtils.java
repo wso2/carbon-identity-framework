@@ -613,18 +613,20 @@ public class FlowExecutionEngineUtils {
         }
     }
 
-    private static FlowEventContext buildFlowEventContext(FlowExecutionContext flowExecutionContext, FlowExecutionStep step, String errorCode) {
+    private static FlowEventContext buildFlowEventContext(FlowExecutionContext flowExecutionContext,
+                                                          FlowExecutionStep step, String errorCode) {
 
-        FlowEventContext eventContext = new FlowEventContext();
-        eventContext.setContextIdentifier(flowExecutionContext.getContextIdentifier());
-        eventContext.setFlowType(flowExecutionContext.getFlowType());
-        eventContext.setApplicationId(flowExecutionContext.getApplicationId());
-        eventContext.setTenantDomain(flowExecutionContext.getTenantDomain());
-        eventContext.setCurrentNode(flowExecutionContext.getCurrentNode());
-        eventContext.setUserId(flowExecutionContext.getFlowUser() != null ? flowExecutionContext.getFlowUser().getUserId() : null);
-        eventContext.setErrorCode(errorCode);
-        eventContext.setStep(step);
-        eventContext.setCurrentNodeResponse(flowExecutionContext.getCurrentNodeResponse());
-        return eventContext;
+        return new FlowEventContext.Builder()
+                .contextIdentifier(flowExecutionContext.getContextIdentifier())
+                .flowType(flowExecutionContext.getFlowType())
+                .applicationId(flowExecutionContext.getApplicationId())
+                .tenantDomain(flowExecutionContext.getTenantDomain())
+                .currentNode(flowExecutionContext.getCurrentNode())
+                .userId(flowExecutionContext.getFlowUser() != null
+                        ? flowExecutionContext.getFlowUser().getUserId() : null)
+                .errorCode(errorCode)
+                .step(step)
+                .currentNodeResponse(flowExecutionContext.getCurrentNodeResponse())
+                .build();
     }
 }

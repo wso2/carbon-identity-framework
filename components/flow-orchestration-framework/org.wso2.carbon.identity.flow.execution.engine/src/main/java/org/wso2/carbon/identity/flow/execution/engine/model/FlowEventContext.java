@@ -25,85 +25,250 @@ import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
  */
 public class FlowEventContext {
 
-    private String contextIdentifier;
-    private String flowType;
-    private String applicationId;
-    private String tenantDomain;
-    private NodeConfig currentNode;
-    private String userId;
-    private String errorCode;
-    private FlowExecutionStep step;
-    private NodeResponse currentNodeResponse;
+    private final String contextIdentifier;
+    private final String flowType;
+    private final String applicationId;
+    private final String tenantDomain;
+    private final NodeConfig currentNode;
+    private final String userId;
+    private final String errorCode;
+    private final FlowExecutionStep step;
+    private final NodeResponse currentNodeResponse;
 
+    private FlowEventContext(Builder builder) {
+
+        this.contextIdentifier = builder.contextIdentifier;
+        this.flowType = builder.flowType;
+        this.applicationId = builder.applicationId;
+        this.tenantDomain = builder.tenantDomain;
+        this.currentNode = builder.currentNode;
+        this.userId = builder.userId;
+        this.errorCode = builder.errorCode;
+        this.step = builder.step;
+        this.currentNodeResponse = builder.currentNodeResponse;
+    }
+
+    /**
+     * Get the context identifier.
+     *
+     * @return Context identifier.
+     */
     public String getContextIdentifier() {
+
         return contextIdentifier;
     }
 
-    public void setContextIdentifier(String contextIdentifier) {
-        this.contextIdentifier = contextIdentifier;
-    }
-
+    /**
+     * Get the flow type.
+     *
+     * @return Flow type.
+     */
     public String getFlowType() {
+
         return flowType;
     }
 
-    public void setFlowType(String flowType) {
-        this.flowType = flowType;
-    }
-
+    /**
+     * Get the application ID.
+     *
+     * @return Application ID.
+     */
     public String getApplicationId() {
+
         return applicationId;
     }
 
-    public void setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
-    }
-
+    /**
+     * Get the tenant domain.
+     *
+     * @return Tenant domain.
+     */
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
-    public void setTenantDomain(String tenantDomain) {
-        this.tenantDomain = tenantDomain;
-    }
-
+    /**
+     * Get the current node configuration.
+     *
+     * @return Current node configuration.
+     */
     public NodeConfig getCurrentNode() {
+
         return currentNode;
     }
 
-    public void setCurrentNode(NodeConfig currentNode) {
-        this.currentNode = currentNode;
-    }
-
+    /**
+     * Get the user ID.
+     *
+     * @return User ID.
+     */
     public String getUserId() {
+
         return userId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
+    /**
+     * Get the error code.
+     *
+     * @return Error code.
+     */
     public String getErrorCode() {
+
         return errorCode;
     }
 
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-
+    /**
+     * Get the flow execution step.
+     *
+     * @return Flow execution step.
+     */
     public FlowExecutionStep getStep() {
+
         return step;
     }
 
-    public void setStep(FlowExecutionStep step) {
-        this.step = step;
-    }
-
+    /**
+     * Get the current node response.
+     *
+     * @return Current node response.
+     */
     public NodeResponse getCurrentNodeResponse() {
+
         return currentNodeResponse;
     }
 
-    public void setCurrentNodeResponse(NodeResponse currentNodeResponse) {
-        this.currentNodeResponse = currentNodeResponse;
+    /**
+     * Builder for FlowEventContext.
+     */
+    public static class Builder {
+
+        private String contextIdentifier;
+        private String flowType;
+        private String applicationId;
+        private String tenantDomain;
+        private NodeConfig currentNode;
+        private String userId;
+        private String errorCode;
+        private FlowExecutionStep step;
+        private NodeResponse currentNodeResponse;
+
+        /**
+         * Set the context identifier.
+         *
+         * @param contextIdentifier Context identifier.
+         * @return Builder.
+         */
+        public Builder contextIdentifier(String contextIdentifier) {
+
+            this.contextIdentifier = contextIdentifier;
+            return this;
+        }
+
+        /**
+         * Set the flow type.
+         *
+         * @param flowType Flow type.
+         * @return Builder.
+         */
+        public Builder flowType(String flowType) {
+
+            this.flowType = flowType;
+            return this;
+        }
+
+        /**
+         * Set the application ID.
+         *
+         * @param applicationId Application ID.
+         * @return Builder.
+         */
+        public Builder applicationId(String applicationId) {
+
+            this.applicationId = applicationId;
+            return this;
+        }
+
+        /**
+         * Set the tenant domain.
+         *
+         * @param tenantDomain Tenant domain.
+         * @return Builder.
+         */
+        public Builder tenantDomain(String tenantDomain) {
+
+            this.tenantDomain = tenantDomain;
+            return this;
+        }
+
+        /**
+         * Set the current node configuration.
+         *
+         * @param currentNode Current node configuration.
+         * @return Builder.
+         */
+        public Builder currentNode(NodeConfig currentNode) {
+
+            this.currentNode = currentNode;
+            return this;
+        }
+
+        /**
+         * Set the user ID.
+         *
+         * @param userId User ID.
+         * @return Builder.
+         */
+        public Builder userId(String userId) {
+
+            this.userId = userId;
+            return this;
+        }
+
+        /**
+         * Set the error code.
+         *
+         * @param errorCode Error code.
+         * @return Builder.
+         */
+        public Builder errorCode(String errorCode) {
+
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        /**
+         * Set the flow execution step.
+         *
+         * @param step Flow execution step.
+         * @return Builder.
+         */
+        public Builder step(FlowExecutionStep step) {
+
+            this.step = step;
+            return this;
+        }
+
+        /**
+         * Set the current node response.
+         *
+         * @param currentNodeResponse Current node response.
+         * @return Builder.
+         */
+        public Builder currentNodeResponse(NodeResponse currentNodeResponse) {
+
+            this.currentNodeResponse = currentNodeResponse;
+            return this;
+        }
+
+        /**
+         * Build the FlowEventContext.
+         *
+         * @return FlowEventContext.
+         */
+        public FlowEventContext build() {
+
+            return new FlowEventContext(this);
+        }
     }
 }
