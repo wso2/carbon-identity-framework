@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -1234,6 +1234,34 @@
                    description="View users shared with organizations"/>
             <Scope displayName="Update Shared Users Attributes" name="internal_org_user_shared_access_update"
                    description="Update the attributes of users shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Sharing API" identifier="/api/server/v1/agents"
+                 requiresAuthorization="true"
+                 description="API representation of the agent share API" type="TENANT">
+        <Scopes>
+             <Scope displayName="Share Agents" name="internal_agent_share"
+                    description="Share agents with organizations"/>
+             <Scope displayName="Unshare Agents" name="internal_agent_unshare"
+                    description="Unshare agents from organizations"/>
+             <Scope displayName="View Shared Agents" name="internal_agent_shared_access_view"
+                    description="View agents shared with organizations"/>
+             <Scope displayName="Update Shared Agents Attributes" name="internal_agent_shared_access_update"
+                    description="Update the attributes of agents shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Agent Sharing API" identifier="/o/api/server/v1/agents"
+                 requiresAuthorization="true"
+                 description="API representation of the agent share API" type="ORGANIZATION">
+        <Scopes>
+             <Scope displayName="Share Agents" name="internal_org_agent_share"
+                    description="Share agents with organizations"/>
+             <Scope displayName="Unshare Agents" name="internal_org_agent_unshare"
+                    description="Unshare agents from organizations"/>
+             <Scope displayName="View Shared Agents" name="internal_org_agent_shared_access_view"
+                    description="View agents shared with organizations"/>
+             <Scope displayName="Update Shared Agents Attributes" name="internal_org_agent_shared_access_update"
+                    description="Update the attributes of agents shared with organizations"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management Feature" identifier="console:applications"
