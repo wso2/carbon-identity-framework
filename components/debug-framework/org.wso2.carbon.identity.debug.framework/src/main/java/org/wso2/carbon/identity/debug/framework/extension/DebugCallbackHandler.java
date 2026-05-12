@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +42,8 @@ public interface DebugCallbackHandler {
      * @param request  The HTTP servlet request.
      * @param response The HTTP servlet response.
      * @return true if the callback is handled and the normal flow should be skipped.
+     * @throws DebugFrameworkException If callback processing fails.
      */
-    boolean handleCallback(HttpServletRequest request, HttpServletResponse response);
+    boolean handleCallback(HttpServletRequest request, HttpServletResponse response)
+            throws DebugFrameworkException;
 }

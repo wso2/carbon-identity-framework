@@ -20,12 +20,8 @@ package org.wso2.carbon.identity.debug.idp.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
-import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
-import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
-import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 
 import java.util.List;
@@ -64,46 +60,6 @@ public class DebugProtocolRouter {
             LOG.debug("Resolved protocol provider for resource: " + connectionId);
         }
         return provider;
-    }
-
-    /**
-     * Retrieves the debug resource handler for the specified resource type.
-     *
-     * @param resourceType The resource type.
-     * @return DebugResourceHandler instance, or null if not available.
-     */
-    public static DebugResourceHandler getDebugResourceHandler(String resourceType) {
-
-        if (StringUtils.isBlank(resourceType)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Resource type is empty, unable to route debug request");
-            }
-            return null;
-        }
-
-        DebugResourceType resolvedType = DebugResourceType.fromString(resourceType);
-        if (resolvedType == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Unsupported resource type: " + resourceType);
-            }
-            return null;
-        }
-        DebugResourceHandler resourceHandler = DebugHandlerRegistry.getInstance()
-                .getHandler(resolvedType.name().toLowerCase(Locale.ENGLISH));
-        if (resourceHandler == null && LOG.isDebugEnabled()) {
-            LOG.debug("No DebugResourceHandler registered for resource type: " + resourceType);
-        }
-        return resourceHandler;
-    }
-
-    /**
-     * Retrieves all registered callback handlers.
-     *
-     * @return List of all DebugCallbackHandler instances.
-     */
-    public static List<DebugCallbackHandler> getAllCallbackHandlers() {
-
-        return DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
     }
 
     protected static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
@@ -158,6 +114,6 @@ public class DebugProtocolRouter {
         if (protocolType == null) {
             return null;
         }
-        return protocolType.trim().toLowerCase(Locale.ENGLISH);
+        return protocolType.trim().toLowerCase(Locale.ROOT);
     }
 }

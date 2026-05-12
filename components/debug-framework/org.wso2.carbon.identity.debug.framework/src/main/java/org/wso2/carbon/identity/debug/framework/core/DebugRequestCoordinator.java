@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.debug.framework.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +42,7 @@ import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -92,7 +94,7 @@ public class DebugRequestCoordinator {
 
             // Get the handler for this resource type from the registry.
             DebugResourceHandler handler = DebugHandlerRegistry.getInstance()
-                    .getHandler(type.name().toLowerCase(java.util.Locale.ENGLISH));
+                    .getHandler(type.name().toLowerCase(Locale.ROOT));
 
             if (handler == null) {
                 throw DebugFrameworkUtils.handleClientException(
@@ -196,7 +198,7 @@ public class DebugRequestCoordinator {
 
         try {
             return OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             LOG.error("Invalid debug result JSON for debug session: " + debugId + ". Cause: " + e.getMessage());
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
@@ -283,14 +285,13 @@ public class DebugRequestCoordinator {
 
         try {
             return handler.handleCallback(request, response);
-        } catch (Exception e) {
+        } catch (DebugFrameworkException e) {
             // Attempt to extract debug ID for better logging.
             String debugId = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
             if (debugId == null) {
                 debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
             }
 
-            // Log at WARN (not ERROR, per guidelines) since the exception is already being handled.
             LOG.warn("Debug callback handler failed during callback processing for session: " + debugId
                     + ". Debug session may be orphaned.", e);
             // Return false to prevent the request from continuing to regular auth flow.
