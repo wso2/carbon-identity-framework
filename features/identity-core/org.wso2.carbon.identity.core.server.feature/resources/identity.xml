@@ -3061,6 +3061,7 @@
             <StreamName>org.wso2.is.analytics.stream.MoesifData</StreamName>
             <StreamVersion>1.0.0</StreamVersion>
             <InlineBody></InlineBody>
+            <Enabled>false</Enabled>
         </Moesif>
     </Analytics>
 </Server>

@@ -2274,6 +2274,20 @@
                    description="Delete workflow instance"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Moesif Configurations Management API" identifier="/api/server/v1/moesif-publishers"
+                 requiresAuthorization="true"
+                 description="API representation of the Moesif Configurations Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Moesif Configurations" name="internal_moesif_config_view"
+                   description="View moesif configurations"/>
+            <Scope displayName="Create Moesif Configurations" name="internal_moesif_config_create"
+                   description="Create new moesif configurations"/>
+            <Scope displayName="Update Moesif Configurations" name="internal_moesif_config_update"
+                   description="Update moesif configurations"/>
+            <Scope displayName="Delete Moesif Configurations" name="internal_moesif_config_delete"
+                   description="Delete moesif configurations"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Credential Management API" identifier="/api/server/v1/users/(.*)/credentials"
                              requiresAuthorization="true"
                              description="API representation of the User Credential Management API" type="TENANT">
