@@ -2007,6 +2007,20 @@
         <Scopes>internal_vc_template_delete</Scopes>
     </Resource>
 
+    <!-- Moesif Configuration Management API -->
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="GET">
+        <Scopes>internal_moesif_config_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="POST">
+        <Scopes>internal_moesif_config_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="PUT">
+        <Scopes>internal_moesif_config_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="DELETE">
+        <Scopes>internal_moesif_config_delete</Scopes>
+    </Resource>
+
     <Resource context="/.well-known/oauth-authorization-server/(.*)oauth2/token" secured="false" http-method="GET"/>
 
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
