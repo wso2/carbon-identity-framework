@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.application.mgt.util.ScopeAuthorizationInfo;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -412,6 +414,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             throws SQLException, IdentityApplicationManagementException {
 
         List<ScopeAuthorizationInfo> systemApiScopes = resolveSystemApiScopesByName(dbConnection, scopes);
+        // Silently drop other system APIs being auto authorized based on the server-wide blocked list.
+        systemApiScopes = filterBlockedAPIScopes(systemApiScopes, apiId, tenantId);
         boolean hasSharedScopes = systemApiScopes.stream().anyMatch(scopeInfo -> !scopeInfo.getApiId().equals(apiId));
 
         if (hasSharedScopes) {
@@ -593,6 +597,56 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     "Auto-authorized %d new APIs (skipped %d already authorized) out of %d total shared scope APIs",
                     apisToAdd.size(), alreadyAuthorizedApis.size(), apiIdsToAuthorize.size()));
         }
+    }
+
+    private List<ScopeAuthorizationInfo> filterBlockedAPIScopes(List<ScopeAuthorizationInfo> systemApiScopes,
+                                                                String primaryApiId, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        if (CollectionUtils.isEmpty(systemApiScopes)) {
+            return systemApiScopes;
+        }
+        List<String> blockedIdentifiers = IdentityUtil.getPropertyAsList(
+                ApplicationConstants.APPLICATION_API_AUTHORIZATION_BLOCKED_API_RESOURCES);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Blocked API identifiers from the server config: %s", blockedIdentifiers));
+        }
+        if (blockedIdentifiers.isEmpty()) {
+            return systemApiScopes;
+        }
+        // Identify other API resources that share scopes with the primary API resource.
+        Set<String> nonPrimaryApiIds = systemApiScopes.stream()
+                .map(ScopeAuthorizationInfo::getApiId)
+                .filter(id -> !id.equals(primaryApiId))
+                .collect(Collectors.toSet());
+        if (nonPrimaryApiIds.isEmpty()) {
+            return systemApiScopes;
+        }
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        Set<String> blockedApiIds = new HashSet<>();
+        for (String apiId : nonPrimaryApiIds) {
+            try {
+                APIResource apiResource = ApplicationManagementServiceComponentHolder.getInstance()
+                        .getAPIResourceManager().getAPIResourceById(apiId, tenantDomain);
+                if (apiResource != null && !StringUtils.isBlank(apiResource.getIdentifier())
+                        && blockedIdentifiers.contains(apiResource.getIdentifier())) {
+                    blockedApiIds.add(apiId);
+                }
+            } catch (APIResourceMgtException e) {
+                throw new IdentityApplicationManagementException("Error while retrieving API resource for apiId: "
+                        + apiId, e);
+            }
+        }
+        if (blockedApiIds.isEmpty()) {
+            return systemApiScopes;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Skipping implicit cross-API authorization for %d blocked API Id(s): %s",
+                    blockedApiIds.size(), blockedApiIds));
+        }
+        return systemApiScopes.stream()
+                .filter(scopeInfo -> !blockedApiIds.contains(scopeInfo.getApiId()))
+                .collect(Collectors.toList());
     }
 
     /**
