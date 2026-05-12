@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.action.execution.internal.component;
 
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 /**
  * This class holds references for dependent services required for Action Execution Service to function.
@@ -30,6 +32,8 @@ public class ActionExecutionServiceComponentHolder {
 
     private ActionManagementService actionManagementService;
     private RuleEvaluationService ruleEvaluationService;
+    private SecretManager secretManager;
+    private SecretResolveManager secretResolveManager;
 
     private ActionExecutionServiceComponentHolder() {
 
@@ -58,5 +62,45 @@ public class ActionExecutionServiceComponentHolder {
     public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
 
         this.ruleEvaluationService = ruleEvaluationService;
+    }
+
+    /**
+     * Get the SecretManager.
+     *
+     * @return SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
+
+        return secretManager;
+    }
+
+    /**
+     * Set the SecretManager.
+     *
+     * @param secretManager SecretManager instance.
+     */
+    public void setSecretManager(SecretManager secretManager) {
+
+        this.secretManager = secretManager;
+    }
+
+    /**
+     * Get the SecretResolveManager.
+     *
+     * @return SecretResolveManager instance.
+     */
+    public SecretResolveManager getSecretResolveManager() {
+
+        return secretResolveManager;
+    }
+
+    /**
+     * Set the SecretResolveManager.
+     *
+     * @param secretResolveManager SecretResolveManager instance.
+     */
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        this.secretResolveManager = secretResolveManager;
     }
 }

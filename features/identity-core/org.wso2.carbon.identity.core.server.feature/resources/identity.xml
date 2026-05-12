@@ -58,6 +58,7 @@
             <UserSessionMapping>
                 <Enable>true</Enable>
             </UserSessionMapping>
+            <BatchInsertChunkSize>250</BatchInsertChunkSize>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>true</Enable>
@@ -878,6 +879,7 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
+        <SAML2ArtifactDoubleEncodingDisabled>true</SAML2ArtifactDoubleEncodingDisabled>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
         <SAMLIDPMetadataEnableSHA256Alg>true</SAMLIDPMetadataEnableSHA256Alg>

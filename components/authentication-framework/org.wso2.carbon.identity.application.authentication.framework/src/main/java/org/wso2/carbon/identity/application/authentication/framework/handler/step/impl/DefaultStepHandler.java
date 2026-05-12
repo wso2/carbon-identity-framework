@@ -903,7 +903,7 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
 
-            if (context.getSubject() != null && context.isSharedAppLogin()) {
+            if (context.getSubject() != null && !context.getSubject().isSharedUser() && context.isSharedAppLogin()) {
                 String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
                 context.getSubject().setAccessingOrganization(accessingOrgId);
                 context.getSubject().setUserResidentOrganization(accessingOrgId);

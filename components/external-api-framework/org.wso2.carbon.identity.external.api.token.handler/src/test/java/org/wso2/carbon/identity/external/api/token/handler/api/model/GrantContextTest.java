@@ -38,6 +38,8 @@ public class GrantContextTest {
     private static final String CLIENT_ID = "test-client-id";
     private static final String CLIENT_SECRET = "test-client-secret";
     private static final String SCOPE = "test-scope";
+    private static final String USERNAME = "test-user";
+    private static final String PASSWORD = "test-password";
 
     /**
      * Test successful creation of GrantContext with CLIENT_CREDENTIAL grant type.
@@ -237,6 +239,223 @@ public class GrantContextTest {
             assertEquals(e.getErrorCode(), "TOKENMGT-65003");
             assertEquals(
                     e.getDescription(), "The property client_id must be included as an authentication property.");
+        }
+    }
+
+    /**
+     * Test successful creation of GrantContext with PASSWORD grant type.
+     */
+    @Test
+    public void testCreatePasswordGrantContext() throws TokenHandlerException {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+        properties.put(GrantContext.Property.SCOPE.getName(), SCOPE);
+
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(properties)
+                .build();
+
+        assertNotNull(grantContext);
+        assertEquals(grantContext.getGrantType(), GrantContext.GrantType.PASSWORD);
+        assertEquals(grantContext.getProperty(GrantContext.Property.CLIENT_ID.getName()), CLIENT_ID);
+        assertEquals(grantContext.getProperty(GrantContext.Property.CLIENT_SECRET.getName()), CLIENT_SECRET);
+        assertEquals(grantContext.getProperty(GrantContext.Property.USERNAME.getName()), USERNAME);
+        assertEquals(grantContext.getProperty(GrantContext.Property.PASSWORD.getName()), PASSWORD);
+        assertEquals(grantContext.getProperty(GrantContext.Property.SCOPE.getName()), SCOPE);
+    }
+
+    /**
+     * Test PASSWORD grant context creation without scope should succeed (scope is optional).
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithoutScope() throws TokenHandlerException {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(properties)
+                .build();
+
+        assertNotNull(grantContext);
+        assertEquals(grantContext.getGrantType(), GrantContext.GrantType.PASSWORD);
+        assertEquals(grantContext.getProperty(GrantContext.Property.USERNAME.getName()), USERNAME);
+        assertEquals(grantContext.getProperty(GrantContext.Property.PASSWORD.getName()), PASSWORD);
+        assertNull(grantContext.getProperty(GrantContext.Property.SCOPE.getName()));
+    }
+
+    /**
+     * Test PASSWORD grant context creation with blank scope should succeed (scope treated as missing).
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithBlankScope() throws TokenHandlerException {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+        properties.put(GrantContext.Property.SCOPE.getName(), "   ");
+
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(properties)
+                .build();
+
+        assertNotNull(grantContext);
+        assertNull(grantContext.getProperty(GrantContext.Property.SCOPE.getName()));
+    }
+
+    /**
+     * Test PASSWORD grant context creation without client_id should throw exception.
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithoutClientId() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+
+        try {
+            new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(properties)
+                    .build();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property client_id must be included as an authentication property.");
+        }
+    }
+
+    /**
+     * Test PASSWORD grant context creation without client_secret should throw exception.
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithoutClientSecret() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+
+        try {
+            new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(properties)
+                    .build();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property client_secret must be included as an authentication property.");
+        }
+    }
+
+    /**
+     * Test PASSWORD grant context creation without username should throw exception.
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithoutUsername() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+
+        try {
+            new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(properties)
+                    .build();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property username must be included as an authentication property.");
+        }
+    }
+
+    /**
+     * Test PASSWORD grant context creation without password should throw exception.
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithoutPassword() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+
+        try {
+            new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(properties)
+                    .build();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65003");
+            assertEquals(
+                    e.getDescription(), "The property password must be included as an authentication property.");
+        }
+    }
+
+    /**
+     * Test PASSWORD grant context creation with blank username should throw exception.
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithBlankUsername() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), "   ");
+        properties.put(GrantContext.Property.PASSWORD.getName(), PASSWORD);
+
+        try {
+            new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(properties)
+                    .build();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65002");
+            assertEquals(e.getDescription(), "The property username cannot be blank or empty.");
+        }
+    }
+
+    /**
+     * Test PASSWORD grant context creation with blank password should throw exception.
+     */
+    @Test
+    public void testCreatePasswordGrantContextWithBlankPassword() {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), "");
+
+        try {
+            new GrantContext.Builder()
+                    .grantType(GrantContext.GrantType.PASSWORD)
+                    .properties(properties)
+                    .build();
+            fail("Expected TokenHandlerException was not thrown.");
+        } catch (TokenHandlerException e) {
+            assertEquals(e.getErrorCode(), "TOKENMGT-65002");
+            assertEquals(e.getDescription(), "The property password cannot be blank or empty.");
         }
     }
 

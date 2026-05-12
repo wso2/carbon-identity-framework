@@ -50,6 +50,9 @@ public class TokenRequestBuilderUtils {
     private static final String ACCEPT_HEADER = "Accept";
     private static final String CONTENT_TYPE_FORM_URL_ENCODED = "application/x-www-form-urlencoded";
     private static final String ACCEPT_HEADER_VALUE = "application/json";
+    private static final String GRANT_TYPE = "grant_type";
+    private static final String SCOPE = "scope";
+    private static final String REFRESH_TOKEN = "refresh_token";
 
     private TokenRequestBuilderUtils() {
     }
@@ -81,8 +84,8 @@ public class TokenRequestBuilderUtils {
         LOG.debug("Building APIRequestContext for refresh token grant.");
 
         List<NameValuePair> formParams = new ArrayList<>();
-        formParams.add(new BasicNameValuePair("grant_type", "refresh_token"));
-        formParams.add(new BasicNameValuePair("refresh_token", refreshToken));
+        formParams.add(new BasicNameValuePair(GRANT_TYPE, REFRESH_TOKEN));
+        formParams.add(new BasicNameValuePair(REFRESH_TOKEN, refreshToken));
 
         return buildBasicAPIRequestContext(
                 requestContext, new UrlEncodedFormEntity(formParams, StandardCharsets.UTF_8));
@@ -122,6 +125,7 @@ public class TokenRequestBuilderUtils {
         try {
             switch (grantContext.getGrantType()) {
                 case CLIENT_CREDENTIAL:
+                case PASSWORD:
                     Map<String, String> authProperties = new HashMap<>();
                     authProperties.put(APIAuthentication.Property.USERNAME.getName(),
                             grantContext.getProperty(Property.CLIENT_ID.getName()));
@@ -132,7 +136,8 @@ public class TokenRequestBuilderUtils {
                             .properties(authProperties)
                             .build();
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Successfully built API authentication for CLIENT_CREDENTIAL grant type.");
+                        LOG.debug("Successfully built API authentication for "
+                                + grantContext.getGrantType().name() + " grant type.");
                     }
                     return authentication;
                 default:
@@ -151,12 +156,24 @@ public class TokenRequestBuilderUtils {
         switch (grantContext.getGrantType()) {
             case CLIENT_CREDENTIAL:
                 List<NameValuePair> formParams = new ArrayList<>();
-                formParams.add(new BasicNameValuePair("grant_type", "client_credentials"));
+                formParams.add(new BasicNameValuePair(GRANT_TYPE, "client_credentials"));
                 if (StringUtils.isNotBlank(grantContext.getProperty(Property.SCOPE.getName()))) {
                     formParams.add(new BasicNameValuePair(
-                            "scope", grantContext.getProperty(Property.SCOPE.getName())));
+                            SCOPE, grantContext.getProperty(Property.SCOPE.getName())));
                 }
                 return new UrlEncodedFormEntity(formParams, StandardCharsets.UTF_8);
+            case PASSWORD:
+                List<NameValuePair> passwordGrantParams = new ArrayList<>();
+                passwordGrantParams.add(new BasicNameValuePair(GRANT_TYPE, "password"));
+                passwordGrantParams.add(new BasicNameValuePair(
+                        "username", grantContext.getProperty(Property.USERNAME.getName())));
+                passwordGrantParams.add(new BasicNameValuePair(
+                        "password", grantContext.getProperty(Property.PASSWORD.getName())));
+                if (StringUtils.isNotBlank(grantContext.getProperty(Property.SCOPE.getName()))) {
+                    passwordGrantParams.add(new BasicNameValuePair(
+                            SCOPE, grantContext.getProperty(Property.SCOPE.getName())));
+                }
+                return new UrlEncodedFormEntity(passwordGrantParams, StandardCharsets.UTF_8);
             default:
                 throw new TokenRequestException(
                         ErrorMessage.ERROR_CODE_UNSUPPORTED_GRANT_TYPE, grantContext.getGrantType().name());

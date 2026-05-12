@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -63,9 +63,11 @@ public class TestUtil {
     public static final String TEST_UPDATED_AT = "2025-08-22 15:25:41.388";
 
     public static final String TEST_USERNAME = "sampleUsername";
+    public static final String TEST_USERNAME_UPDATED = "UpdatedSampleUsername";
     public static final String TEST_USERNAME_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.BASIC, Authentication.Property.USERNAME);
     public static final String TEST_PASSWORD = "samplePassword";
+    public static final String TEST_PASSWORD_UPDATED = "UpdatedSamplePassword";
     public static final String TEST_PASSWORD_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.BASIC, Authentication.Property.PASSWORD);
     public static final String TEST_ACCESS_TOKEN = "5e482c2a-e83a-3afe-bc6a-ff79e1fdaaba";
@@ -79,6 +81,15 @@ public class TestUtil {
     public static final String TEST_API_KEY_VALUE_UPDATED = "UpdatedSampleValue";
     public static final String TEST_API_KEY_VALUE_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.API_KEY, Authentication.Property.VALUE);
+    public static final String TEST_CLIENT_ID = "sampleClientId";
+    public static final String TEST_CLIENT_ID_UPDATED = "UpdatedSampleClientId";
+    public static final String TEST_CLIENT_SECRET = "sampleClientSecret";
+    public static final String TEST_CLIENT_SECRET_UPDATED = "UpdatedSampleClientSecret";
+    public static final String TEST_TOKEN_ENDPOINT = "https://example.com/oauth2/token";
+    public static final String TEST_TOKEN_ENDPOINT_UPDATED = "https://example.com/oauth2/token-updated";
+    public static final String TEST_INVALID_TOKEN_ENDPOINT = "invalid token endpoint";
+    public static final String TEST_SCOPES = "openid profile";
+    public static final String TEST_SCOPES_UPDATED = "openid email";
 
     public static final String TEST_ACTION_PROPERTY_NAME_1 = "samplePropertyName";
     public static final String TEST_ACTION_PROPERTY_VALUE_1 = "samplePropertyValue";
@@ -167,6 +178,20 @@ public class TestUtil {
     public static Authentication buildMockAPIKeyAuthentication(String header, String value) {
 
         return new Authentication.APIKeyAuthBuilder(header, value).build();
+    }
+
+    public static Authentication buildMockClientCredentialAuthentication(String clientId, String clientSecret,
+                                                                         String tokenEndpoint, String scopes) {
+
+        return new Authentication.ClientCredentialAuthBuilder(clientId, clientSecret, tokenEndpoint, scopes).build();
+    }
+
+    public static Authentication buildMockPasswordCredentialAuthentication(String clientId, String clientSecret,
+                                                                           String tokenEndpoint, String scopes,
+                                                                           String username, String password) {
+
+        return new Authentication.PasswordCredentialAuthBuilder(
+                clientId, clientSecret, tokenEndpoint, scopes, username, password).build();
     }
 
     public static EndpointConfig buildMockEndpointConfig(String uri, Authentication authentication) {

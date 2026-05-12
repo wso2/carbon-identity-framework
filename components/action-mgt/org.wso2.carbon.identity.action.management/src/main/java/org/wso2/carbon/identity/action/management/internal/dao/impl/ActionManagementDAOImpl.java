@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -437,6 +438,35 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 authentication = new Authentication.APIKeyAuthBuilder(
                         propertiesFromDB.remove(Authentication.Property.HEADER.getName()).getValue().toString(),
                         propertiesFromDB.remove(Authentication.Property.VALUE.getName()).getValue().toString()).build();
+                break;
+            case CLIENT_CREDENTIAL:
+                ActionProperty scopesProperty =
+                        propertiesFromDB.remove(Authentication.Property.SCOPES.getName());
+                String scopesValue = (scopesProperty != null && scopesProperty.getValue() != null)
+                        ? scopesProperty.getValue().toString()
+                        : StringUtils.EMPTY;
+                authentication = new Authentication.ClientCredentialAuthBuilder(
+                        propertiesFromDB.remove(Authentication.Property.CLIENT_ID.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.CLIENT_SECRET.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.TOKEN_ENDPOINT.getName()).getValue().toString(),
+                        scopesValue)
+                        .build();
+                break;
+            case PASSWORD_CREDENTIAL:
+                ActionProperty passwordGrantScopesProperty =
+                        propertiesFromDB.remove(Authentication.Property.SCOPES.getName());
+                String passwordGrantScopesValue =
+                        (passwordGrantScopesProperty != null && passwordGrantScopesProperty.getValue() != null)
+                                ? passwordGrantScopesProperty.getValue().toString()
+                                : StringUtils.EMPTY;
+                authentication = new Authentication.PasswordCredentialAuthBuilder(
+                        propertiesFromDB.remove(Authentication.Property.CLIENT_ID.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.CLIENT_SECRET.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.TOKEN_ENDPOINT.getName()).getValue().toString(),
+                        passwordGrantScopesValue,
+                        propertiesFromDB.remove(Authentication.Property.USERNAME.getName()).getValue().toString(),
+                        propertiesFromDB.remove(Authentication.Property.PASSWORD.getName()).getValue().toString())
+                        .build();
                 break;
             case NONE:
                 authentication = new Authentication.NoneAuthBuilder().build();

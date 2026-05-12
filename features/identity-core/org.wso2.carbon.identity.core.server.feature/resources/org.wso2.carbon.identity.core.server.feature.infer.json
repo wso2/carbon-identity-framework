@@ -340,7 +340,8 @@
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
-      "saas.enable_cross_tenant_operations": false
+      "saas.enable_cross_tenant_operations": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -405,6 +406,7 @@
       "authentication.include_auth_failure_reason_in_api_based_response": false,
       "authentication.include_multi_options_in_api_based_auth_response": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
       "actions.action_request.case_insensitive_header_filtering": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
@@ -434,6 +436,7 @@
       "authentication.include_auth_failure_reason_in_api_based_response": false,
       "authentication.include_multi_options_in_api_based_auth_response": false,
       "app_native_authentication.handle_fail_completed_authenticator_status": false,
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
       "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": false,
       "actions.action_request.case_insensitive_header_filtering": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,

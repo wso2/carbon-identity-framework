@@ -757,7 +757,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             FrameworkUtils.getProvisioningHandler()
                     .handleWithV2Roles(assignedRoleIdList, subjectIdentifier, extAttributesValueMap, userStoreDomain,
-                            context.getTenantDomain());
+                            context.getTenantDomain(), context);
         } catch (FrameworkException e) {
             if (FrameworkUtils.isAuthenticationFailOnJitFail()) {
                 throw e;
