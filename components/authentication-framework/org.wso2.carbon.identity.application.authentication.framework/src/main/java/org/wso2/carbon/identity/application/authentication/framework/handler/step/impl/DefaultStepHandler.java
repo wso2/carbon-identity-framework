@@ -1628,7 +1628,7 @@ public class DefaultStepHandler implements StepHandler {
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
-            if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
+            if (FrameworkConstants.ORG_ID_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
                 String organizationId = entry.getValue();
                 if (StringUtils.isNotBlank(organizationId)) {
                     request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
