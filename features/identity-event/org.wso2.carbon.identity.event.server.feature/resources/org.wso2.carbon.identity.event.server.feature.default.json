@@ -428,5 +428,10 @@
     "POST_UPDATE_ORGANIZATION",
     "POST_PATCH_ORGANIZATION",
     "PRE_DELETE_ORGANIZATION"
-   ]
+  ],
+  "identity_mgt.events.schemes.OrganizationAgentSharingHandler.module_index": "64",
+  "identity_mgt.events.schemes.OrganizationAgentSharingHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
+  ]
 }
