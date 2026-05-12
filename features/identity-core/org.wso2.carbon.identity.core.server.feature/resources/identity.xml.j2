@@ -2902,6 +2902,16 @@
         {% elif analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
         <PublishActiveSessionCount>true</PublishActiveSessionCount>
         {% endif %}
+        {% if analytics.moesif.enabled is sameas true %}
+            <Moesif>
+                <ProviderURL>{{analytics.moesif.provider_url}}</ProviderURL>
+                <AuthType>{{analytics.moesif.auth_type}}</AuthType>
+                <ApiKeyHeader>{{analytics.moesif.api_key_header}}</ApiKeyHeader>
+                <StreamName>{{analytics.moesif.stream_name}}</StreamName>
+                <StreamVersion>{{analytics.moesif.stream_version}}</StreamVersion>
+                <InlineBody>{{analytics.moesif.inline_body}}</InlineBody>
+            </Moesif>
+            {% endif %}
     </Analytics>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -5284,17 +5294,4 @@
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>{{app_native_authentication.handle_fail_completed_authenticator_status}}</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>
-
-    {% if analytics.moesif.enabled is sameas true %}
-    <Analytics>
-        <Moesif>
-            <ProviderURL>{{analytics.moesif.provider_url}}</ProviderURL>
-            <AuthType>{{analytics.moesif.auth_type}}</AuthType>
-            <ApiKeyHeader>{{analytics.moesif.api_key_header}}</ApiKeyHeader>
-            <StreamName>{{analytics.moesif.stream_name}}</StreamName>
-            <StreamVersion>{{analytics.moesif.stream_version}}</StreamVersion>
-            <InlineBody>{{analytics.moesif.inline_body}}</InlineBody>
-        </Moesif>
-    </Analytics>
-    {% endif %}
 </Server>
