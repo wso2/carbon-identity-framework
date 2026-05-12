@@ -134,7 +134,7 @@ public class FlowExecutionService {
                     return null;
                 }
             }
-            FlowExecutionEngineUtils.publishFlowExecutionEvent(context, step, null);
+            FlowExecutionEngineUtils.publishFlowExecutionSuccessEvent(context, step);
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
                 FlowExecutionEngineUtils.removeFlowContextFromCache(flowId);
                 if (step.getData() == null) {
@@ -153,7 +153,7 @@ public class FlowExecutionService {
             return step;
         } catch (FlowEngineException e) {
 
-            FlowExecutionEngineUtils.publishFlowExecutionEvent(context, null, e.getErrorCode());
+            FlowExecutionEngineUtils.publishFlowExecutionFailureEvent(context, e.getErrorCode());
             if (context != null && REGISTRATION.getType().equals(context.getFlowType())) {
                 Map<String, String> userClaims =
                         context.getFlowUser() != null ? context.getFlowUser().getClaims() : null;

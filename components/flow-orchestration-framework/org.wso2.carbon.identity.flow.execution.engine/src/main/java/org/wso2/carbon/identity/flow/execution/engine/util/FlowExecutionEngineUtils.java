@@ -598,14 +598,7 @@ public class FlowExecutionEngineUtils {
         return tenantName;
     }
 
-    /**
-     * Publish a flow execution step event with the current step result, context data, and tenant domain.
-     *
-     * @param context Flow execution context.
-     * @param step    Current flow execution step.
-     */
-    public static void publishFlowExecutionEvent(FlowExecutionContext context,
-                                                 FlowExecutionStep step, String errorCode) {
+    private static void publishFlowExecutionEvent(FlowExecutionContext context, FlowExecutionStep step, String errorCode) {
 
         if (context == null) {
             return;
@@ -624,6 +617,28 @@ public class FlowExecutionEngineUtils {
             LOG.error("Error while publishing flow execution event for flow id: " +
                     context.getContextIdentifier(), e);
         }
+    }
+
+    /**
+     * Publish a flow execution step event with the current step result, context data, and tenant domain.
+     *
+     * @param context Flow execution context.
+     * @param step    Current flow execution step.
+     */
+    public static void publishFlowExecutionSuccessEvent(FlowExecutionContext context, FlowExecutionStep step) {
+
+        publishFlowExecutionEvent(context, step, null);
+    }
+
+    /**
+     * Publish a flow execution step event with the current step result, context data, and tenant domain.
+     *
+     * @param context   Flow execution context.
+     * @param errorCode Error code representing the failure reason.
+     */
+    public static void publishFlowExecutionFailureEvent(FlowExecutionContext context, String errorCode) {
+
+        publishFlowExecutionEvent(context, null, errorCode);
     }
 
     private static Map<String, Object> getEventProperties(FlowExecutionContext context, FlowExecutionStep step,
