@@ -2082,6 +2082,19 @@
                    description="Manage edits of tenants from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Management Feature" identifier="console:consents"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Consent Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Consent Management Feature" name="console:consents"
+                   description="Manage consent from the Console"/>
+            <Scope displayName="Consent Management View Feature" name="console:consents_view"
+                   description="Manage views of consent from the Console"/>
+            <Scope displayName="Consent Management Edit Feature" name="console:consents_edit"
+                   description="Manage edits of consent from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Flows Feature" identifier="console:flows"
                      requiresAuthorization="true"
                      description="Resource representation of the Flows Feature"
