@@ -31,6 +31,8 @@ public class Constants {
     public static final String CLAIM_URI_PREFIX = "http://wso2.org/claims/";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String PASSWORD_KEY = "password";
+    public static final String CONSENT_PREFIX = "consent.";
+    public static final String CONSENT_REJECTED_PREFIX = "consent.rejected.";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";
@@ -212,7 +214,10 @@ public class Constants {
                 "The provided username: %s does not meet the configured format requirements."),
         ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED("60016",
                 "Password does not meet the required format.",
-                "The provided password does not meet the configured format requirements.")
+                "The provided password does not meet the configured format requirements."),
+        ERROR_CODE_POLICY_CONSENT_FAILURE("65033",
+                "Error occurred during policy consent processing.",
+                "Error occurred while processing policy consent for the %s request of flow id: %s.")
         ;
 
         private static final String ERROR_PREFIX = "FE";

@@ -66,6 +66,8 @@ public class FlowUser implements Serializable {
     private static final String LOCAL_CREDENTIAL_EXISTS_CLAIM_URI = "http://wso2.org/claims/identity/localCredentialExists";
 
     private final Map<String, String> claims = new HashMap<>();
+    private final Map<String, String> userConsents = new HashMap<>();
+    private final Map<String, String> rejectedUserConsents = new HashMap<>();
 
     @JsonProperty("userCredentials")
     @JsonSerialize(using = UserCredentialsSerializer.class)
@@ -102,6 +104,26 @@ public class FlowUser implements Serializable {
     public Map<String, String> getClaims() {
 
         return claims;
+    }
+
+    public Map<String, String> getUserConsents() {
+
+        return userConsents;
+    }
+
+    public void addConsent(String key, String value) {
+
+        this.userConsents.put(key, value);
+    }
+
+    public Map<String, String> getRejectedUserConsents() {
+
+        return rejectedUserConsents;
+    }
+
+    public void addRejectedConsent(String key, String value) {
+
+        this.rejectedUserConsents.put(key, value);
     }
 
     public void addClaims(Map<String, String> claims) {

@@ -76,6 +76,8 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIE
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CONFIG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_VARIANT;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_REJECTED_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
@@ -190,10 +192,24 @@ public class InputValidationService {
                 (key, value) -> {
                     if (key.startsWith(CLAIM_URI_PREFIX)) {
                         context.getFlowUser().addClaim(key, value);
+                    } else if (key.startsWith(CONSENT_REJECTED_PREFIX)) {
+                        context.getFlowUser().addRejectedConsent(key, value);
+                    } else if (key.startsWith(CONSENT_PREFIX)) {
+                        context.getFlowUser().addConsent(key, value);
                     }
                 }
         );
         context.getFlowUser().getClaims().forEach(
+                (key, value) -> {
+                    context.getUserInputData().remove(key);
+                }
+        );
+        context.getFlowUser().getUserConsents().forEach(
+                (key, value) -> {
+                    context.getUserInputData().remove(key);
+                }
+        );
+        context.getFlowUser().getRejectedUserConsents().forEach(
                 (key, value) -> {
                     context.getUserInputData().remove(key);
                 }
@@ -528,6 +544,10 @@ public class InputValidationService {
                             }
                             inputIdentifiers.add(identifier);
                         }
+                    }
+                    if (Constants.ComponentTypes.POLICY.equalsIgnoreCase(child.getType())) {
+                        inputIdentifiers.add(CONSENT_PREFIX + "Policy");
+                        inputIdentifiers.add(CONSENT_REJECTED_PREFIX + "Policy");
                     }
                     if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(child.getType())) {
                         // If the button has an executor, add the required inputs defined from the executor.

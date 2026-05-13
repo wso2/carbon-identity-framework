@@ -66,6 +66,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.PolicyConsentPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentService;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.AsyncSequenceExecutor;
@@ -259,6 +260,8 @@ public class FrameworkServiceComponent {
         SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
         bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
         dataHolder.setSSOConsentService(ssoConsentService);
+        PolicyConsentPostAuthnHandler policyConsentPostAuthnHandler = new PolicyConsentPostAuthnHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), policyConsentPostAuthnHandler, null);
         bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
         JITProvisioningIdentityProviderMgtListener jitProvisioningIDPMgtListener =
                 new JITProvisioningIdentityProviderMgtListener();

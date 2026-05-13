@@ -67,6 +67,8 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_REJECTED_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
@@ -220,6 +222,75 @@ public class InputValidationServiceTest {
         Assert.assertEquals(FlowExecutionContext.getFlowUser().getClaims().get(CLAIM_URI_PREFIX + "input1"),
                 "value1");
         Assert.assertEquals(FlowExecutionContext.getUserInputData().get("input2"), "value2");
+    }
+
+    @Test
+    public void testHandleUserInputsWithAcceptedConsent() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CONSENT_PREFIX + "Policy", "policy-id-1,policy-id-2");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        Assert.assertEquals(FlowExecutionContext.getFlowUser().getUserConsents().size(), 1);
+        Assert.assertEquals(
+                FlowExecutionContext.getFlowUser().getUserConsents().get(CONSENT_PREFIX + "Policy"),
+                "policy-id-1,policy-id-2");
+        Assert.assertTrue(FlowExecutionContext.getFlowUser().getRejectedUserConsents().isEmpty());
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testHandleUserInputsWithRejectedConsent() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CONSENT_REJECTED_PREFIX + "Policy", "policy-id-3");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        Assert.assertEquals(FlowExecutionContext.getFlowUser().getRejectedUserConsents().size(), 1);
+        Assert.assertEquals(
+                FlowExecutionContext.getFlowUser().getRejectedUserConsents().get(CONSENT_REJECTED_PREFIX + "Policy"),
+                "policy-id-3");
+        Assert.assertTrue(FlowExecutionContext.getFlowUser().getUserConsents().isEmpty());
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testHandleUserInputsWithMixedConsentAndClaims() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "user@example.com");
+        userInputData.put(CONSENT_PREFIX + "Policy", "policy-id-1");
+        userInputData.put(CONSENT_REJECTED_PREFIX + "Policy", "policy-id-2");
+        userInputData.put("nonClaimInput", "someValue");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        // Claims routed to FlowUser claims.
+        Assert.assertEquals(FlowExecutionContext.getFlowUser().getClaims().size(), 1);
+        Assert.assertEquals(
+                FlowExecutionContext.getFlowUser().getClaims().get(CLAIM_URI_PREFIX + "email"),
+                "user@example.com");
+
+        // Accepted consents routed to userConsents.
+        Assert.assertEquals(FlowExecutionContext.getFlowUser().getUserConsents().size(), 1);
+        Assert.assertEquals(
+                FlowExecutionContext.getFlowUser().getUserConsents().get(CONSENT_PREFIX + "Policy"),
+                "policy-id-1");
+
+        // Rejected consents routed to rejectedUserConsents.
+        Assert.assertEquals(FlowExecutionContext.getFlowUser().getRejectedUserConsents().size(), 1);
+        Assert.assertEquals(
+                FlowExecutionContext.getFlowUser().getRejectedUserConsents().get(CONSENT_REJECTED_PREFIX + "Policy"),
+                "policy-id-2");
+
+        // Non-claim input remains in userInputData.
+        Assert.assertEquals(FlowExecutionContext.getUserInputData().size(), 1);
+        Assert.assertEquals(FlowExecutionContext.getUserInputData().get("nonClaimInput"), "someValue");
     }
 
     @Test
