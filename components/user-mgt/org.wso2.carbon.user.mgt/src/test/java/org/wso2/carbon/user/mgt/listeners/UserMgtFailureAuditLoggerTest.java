@@ -23,7 +23,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 
+import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.WriterAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -67,8 +69,11 @@ public class UserMgtFailureAuditLoggerTest {
 
         out = new ByteArrayOutputStream();
         writer = new PrintWriter(out);
-        PatternLayout layout = PatternLayout.createDefaultLayout();
-        appender = WriterAppender.newBuilder().setName("writeLogger").setTarget(writer).setLayout(layout).build();
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        PatternLayout layout = PatternLayout.newBuilder().withConfiguration(config).build();
+        appender = WriterAppender.newBuilder().setName("writeLogger").setTarget(writer).setLayout(layout)
+                .setConfiguration(config).build();
         appender.start();
         logger.addAppender(appender);
         userMgtFailureAuditLogger = spy(UserMgtFailureAuditLogger.class);

@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 
+import java.util.Set;
+
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.flow.mgt.Constants.StepTypes.VIEW;
@@ -71,6 +73,20 @@ public class InputValidator {
                         context.getContextIdentifier());
             }
             return null;
+        }
+
+        String currentActionId = context.getCurrentActionId();
+        if (currentActionId != null) {
+            Set<String> actionInputs = context.getCurrentStepInputs().get(currentActionId);
+            if (actionInputs == null || actionInputs.isEmpty()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Triggered action " + currentActionId + " does not require inputs. " +
+                            "Skipping input validation for flow: " + context.getContextIdentifier());
+                }
+                context.getCurrentStepInputs().clear();
+                context.getCurrentRequiredInputs().clear();
+                return null;
+            }
         }
 
         if (MapUtils.isEmpty(context.getUserInputData())) {

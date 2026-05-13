@@ -28,6 +28,11 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -37,9 +42,15 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -561,6 +572,179 @@ public class SessionContextCacheTest {
             Assert.assertNotNull(result,
                     "getValueFromCache should return entry when max lifetime feature is disabled and idle is valid");
             Assert.assertEquals(result, cacheEntry, "Should return the same cache entry");
+        }
+    }
+
+    /**
+     * Test addToCacheOnRead – success path with an AuthenticatedUser in session properties.
+     * Expects entry to be stored in SessionDataStore with a tenant ID.
+     */
+    @Test
+    public void testAddToCacheOnReadWithAuthenticatedUser() {
+
+        try (MockedStatic<SessionContextLoader> loaderStatic = mockStatic(SessionContextLoader.class);
+             MockedStatic<SessionDataStore> storeStatic = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            // Mock SessionContextLoader to return a SessionContextCacheEntry.
+            SessionContextLoader mockLoader = mock(SessionContextLoader.class);
+            loaderStatic.when(SessionContextLoader::getInstance).thenReturn(mockLoader);
+            try {
+                when(mockLoader.optimizeSessionContextCacheEntry(any())).thenReturn(cacheEntry);
+            } catch (SessionDataStorageOptimizationException e) {
+                Assert.fail("Unexpected exception setting up mock: " + e.getMessage());
+            }
+
+            // Mock SessionDataStore.
+            SessionDataStore mockStore = mock(SessionDataStore.class);
+            storeStatic.when(SessionDataStore::getInstance).thenReturn(mockStore);
+
+            // Set an AuthenticatedUser in the session context properties.
+            AuthenticatedUser authenticatedUser = mock(AuthenticatedUser.class);
+            when(authenticatedUser.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+            when(mockSessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER))
+                    .thenReturn(authenticatedUser);
+
+            tenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+            tenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(false);
+
+            sessionContextCache.addToCacheOnRead(cacheKey, cacheEntry, TENANT_DOMAIN);
+
+            // Verify storeSessionData was called with a tenant ID.
+            verify(mockStore).storeSessionData(
+                    eq(CONTEXT_ID), anyString(), any(SessionContextCacheEntry.class), eq(1));
+        }
+    }
+
+    /**
+     * Test addToCacheOnRead – success path without an AuthenticatedUser (no-arg storeSessionData variant).
+     */
+    @Test
+    public void testAddToCacheOnReadWithoutAuthenticatedUser() {
+
+        try (MockedStatic<SessionContextLoader> loaderStatic = mockStatic(SessionContextLoader.class);
+             MockedStatic<SessionDataStore> storeStatic = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            SessionContextLoader mockLoader = mock(SessionContextLoader.class);
+            loaderStatic.when(SessionContextLoader::getInstance).thenReturn(mockLoader);
+            try {
+                when(mockLoader.optimizeSessionContextCacheEntry(any())).thenReturn(cacheEntry);
+            } catch (SessionDataStorageOptimizationException e) {
+                Assert.fail("Unexpected exception: " + e.getMessage());
+            }
+
+            SessionDataStore mockStore = mock(SessionDataStore.class);
+            storeStatic.when(SessionDataStore::getInstance).thenReturn(mockStore);
+
+            // No AUTHENTICATED_USER in context properties.
+            when(mockSessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER)).thenReturn(null);
+            tenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(false);
+
+            sessionContextCache.addToCacheOnRead(cacheKey, cacheEntry, TENANT_DOMAIN);
+
+            // Verify storeSessionData was called without tenant ID (3-arg overload).
+            verify(mockStore).storeSessionData(
+                    eq(CONTEXT_ID), anyString(), any(SessionContextCacheEntry.class));
+            verify(mockStore, never()).storeSessionData(
+                    anyString(), anyString(), any(), anyInt());
+        }
+    }
+
+    /**
+     * Test addToCacheOnRead – SessionContextLoader throws SessionDataStorageOptimizationClientException.
+     * Method should return early without calling SessionDataStore.
+     */
+    @Test
+    public void testAddToCacheOnReadClientExceptionReturnEarly() {
+
+        try (MockedStatic<SessionContextLoader> loaderStatic = mockStatic(SessionContextLoader.class);
+             MockedStatic<SessionDataStore> storeStatic = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            SessionContextLoader mockLoader = mock(SessionContextLoader.class);
+            loaderStatic.when(SessionContextLoader::getInstance).thenReturn(mockLoader);
+            try {
+                when(mockLoader.optimizeSessionContextCacheEntry(any()))
+                        .thenThrow(new SessionDataStorageOptimizationClientException("client error"));
+            } catch (SessionDataStorageOptimizationException e) {
+                Assert.fail("Unexpected exception: " + e.getMessage());
+            }
+
+            SessionDataStore mockStore = mock(SessionDataStore.class);
+            storeStatic.when(SessionDataStore::getInstance).thenReturn(mockStore);
+            tenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(false);
+            when(mockSessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER)).thenReturn(null);
+
+            sessionContextCache.addToCacheOnRead(cacheKey, cacheEntry, TENANT_DOMAIN);
+
+            // Must NOT reach storeSessionData.
+            verify(mockStore, never()).storeSessionData(anyString(), anyString(), any());
+            verify(mockStore, never()).storeSessionData(anyString(), anyString(), any(), anyInt());
+        }
+    }
+
+    /**
+     * Test addToCacheOnRead – SessionContextLoader throws SessionDataStorageOptimizationServerException.
+     * Method should return early without calling SessionDataStore.
+     */
+    @Test
+    public void testAddToCacheOnReadServerExceptionReturnEarly() {
+
+        try (MockedStatic<SessionContextLoader> loaderStatic = mockStatic(SessionContextLoader.class);
+             MockedStatic<SessionDataStore> storeStatic = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            SessionContextLoader mockLoader = mock(SessionContextLoader.class);
+            loaderStatic.when(SessionContextLoader::getInstance).thenReturn(mockLoader);
+            try {
+                when(mockLoader.optimizeSessionContextCacheEntry(any()))
+                        .thenThrow(new SessionDataStorageOptimizationServerException("server error"));
+            } catch (SessionDataStorageOptimizationException e) {
+                Assert.fail("Unexpected exception: " + e.getMessage());
+            }
+
+            SessionDataStore mockStore = mock(SessionDataStore.class);
+            storeStatic.when(SessionDataStore::getInstance).thenReturn(mockStore);
+            tenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(false);
+            when(mockSessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER)).thenReturn(null);
+
+            sessionContextCache.addToCacheOnRead(cacheKey, cacheEntry, TENANT_DOMAIN);
+
+            verify(mockStore, never()).storeSessionData(anyString(), anyString(), any());
+            verify(mockStore, never()).storeSessionData(anyString(), anyString(), any(), anyInt());
+        }
+    }
+
+    /**
+     * Test addToCacheOnRead – SessionContextLoader throws generic SessionDataStorageOptimizationException.
+     * Method should return early without calling SessionDataStore.
+     */
+    @Test
+    public void testAddToCacheOnReadGenericExceptionReturnEarly() {
+
+        try (MockedStatic<SessionContextLoader> loaderStatic = mockStatic(SessionContextLoader.class);
+             MockedStatic<SessionDataStore> storeStatic = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityTenantUtil> tenantUtil = mockStatic(IdentityTenantUtil.class)) {
+
+            SessionContextLoader mockLoader = mock(SessionContextLoader.class);
+            loaderStatic.when(SessionContextLoader::getInstance).thenReturn(mockLoader);
+            try {
+                when(mockLoader.optimizeSessionContextCacheEntry(any()))
+                        .thenThrow(new SessionDataStorageOptimizationException("generic error"));
+            } catch (SessionDataStorageOptimizationException e) {
+                Assert.fail("Unexpected exception: " + e.getMessage());
+            }
+
+            SessionDataStore mockStore = mock(SessionDataStore.class);
+            storeStatic.when(SessionDataStore::getInstance).thenReturn(mockStore);
+            tenantUtil.when(IdentityTenantUtil::isTenantedSessionsEnabled).thenReturn(false);
+            when(mockSessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER)).thenReturn(null);
+
+            sessionContextCache.addToCacheOnRead(cacheKey, cacheEntry, TENANT_DOMAIN);
+
+            verify(mockStore, never()).storeSessionData(anyString(), anyString(), any());
+            verify(mockStore, never()).storeSessionData(anyString(), anyString(), any(), anyInt());
         }
     }
 

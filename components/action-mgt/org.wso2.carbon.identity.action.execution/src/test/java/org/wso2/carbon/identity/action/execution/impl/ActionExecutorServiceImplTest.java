@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
@@ -68,18 +69,27 @@ import org.wso2.carbon.identity.action.execution.internal.util.APIClient;
 import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutionDiagnosticLogger;
 import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.internal.util.RequestFilter;
+import org.wso2.carbon.identity.action.execution.internal.util.TokenManager;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionRule;
+import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,6 +101,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -118,6 +129,27 @@ public class ActionExecutorServiceImplTest {
     private MockedStatic<LoggerUtils> loggerUtils;
     private MockedStatic<ActionExecutionRequestBuilderFactory> actionExecutionRequestBuilderFactory;
     private MockedStatic<ActionExecutionResponseProcessorFactory> actionExecutionResponseProcessorFactory;
+    private MockedStatic<TokenManager> tokenManagerStatic;
+    private TokenManager tokenManager;
+
+    @BeforeClass
+    public void initIdentityConfig() throws URISyntaxException {
+
+        // Mocking TokenManager triggers its static initializer, which loads APIClientUtils ->
+        // IdentityConfigParser. Pre-initialize the parser with the minimal identity.xml on the
+        // test classpath so the singleton is cached before any mockStatic(TokenManager.class) call.
+        URL identityXml = this.getClass().getClassLoader()
+                .getResource("repository/conf/identity/identity.xml");
+        if (identityXml != null) {
+            File configFile = new File(identityXml.toURI());
+            File carbonHome = configFile.getParentFile().getParentFile()
+                    .getParentFile().getParentFile();
+            if (System.getProperty("carbon.home") == null) {
+                System.setProperty("carbon.home", carbonHome.getAbsolutePath());
+            }
+            IdentityConfigParser.getInstance(configFile.getAbsolutePath());
+        }
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -127,11 +159,28 @@ public class ActionExecutorServiceImplTest {
         actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         when(actionExecutorConfig.getHttpConnectionPoolSize()).thenReturn(20);
         when(actionExecutorConfig.getRetiredUpToVersion(any())).thenReturn("v0");
+        when(actionExecutorConfig.getHttpRequestRetryCount()).thenReturn(2);
         MockitoAnnotations.openMocks(this);
         ActionExecutionServiceComponentHolder actionExecutionServiceComponentHolder =
                 ActionExecutionServiceComponentHolder.getInstance();
         actionExecutionServiceComponentHolder.setActionManagementService(actionManagementService);
         actionExecutionServiceComponentHolder.setRuleEvaluationService(ruleEvaluationService);
+
+        // Mock SecretManager so persistInternalTokens() in CLIENT_CREDENTIAL flow does not NPE.
+        SecretManager secretManager = mock(SecretManager.class);
+        SecretResolveManager secretResolveManager = mock(SecretResolveManager.class);
+        SecretType secretType = mock(SecretType.class);
+        when(secretType.getId()).thenReturn("secret-type-id");
+        when(secretManager.getSecretType(any())).thenReturn(secretType);
+        when(secretManager.isSecretExist(any(), any())).thenReturn(false);
+        actionExecutionServiceComponentHolder.setSecretManager(secretManager);
+        actionExecutionServiceComponentHolder.setSecretResolveManager(secretResolveManager);
+
+        // Mock the TokenManager singleton so CLIENT_CREDENTIAL tests do not require the external API client.
+        tokenManager = mock(TokenManager.class);
+        tokenManagerStatic = mockStatic(TokenManager.class);
+        tokenManagerStatic.when(TokenManager::getInstance).thenReturn(tokenManager);
+
         // Set apiClient field using reflection
         setField(actionExecutorService, "apiClient", apiClient);
         setFinalField(actionExecutorService, "DIAGNOSTIC_LOGGER", actionExecutionDiagnosticLogger);
@@ -151,6 +200,7 @@ public class ActionExecutorServiceImplTest {
         actionExecutionRequestBuilderFactory.close();
         actionExecutionResponseProcessorFactory.close();
         actionExecutorConfigStatic.close();
+        tokenManagerStatic.close();
     }
 
     @Test
@@ -709,6 +759,357 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
                 actionType, action.getId(), FlowContext.create(), "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
+    }
+
+    @Test
+    public void testActionExecuteWithClientCredentialUsesExistingAccessTokenWhenAvailable() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createClientCredentialAction("existing-access-token", null);
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(successInvocation);
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        // Existing token must be reused — no token retrieval.
+        verify(tokenManager, times(0)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(1)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testActionExecuteWithClientCredentialFetchesAccessTokenWhenAbsent() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createClientCredentialAction(null, null);
+        wireClientCredentialPipeline(action, actionType);
+
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("new-token");
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(successInvocation);
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(1)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(1)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testActionExecuteWithClientCredentialRefreshesTokenAndRetriesOnUnauthorized() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createClientCredentialAction("expired-token", "refresh-token");
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse unauthorized = createUnauthorizedActionInvocationResponse();
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        // First call: 401; second call after refresh: success.
+        when(apiClient.callAPI(any(), any(), any(), any(), any()))
+                .thenReturn(unauthorized)
+                .thenReturn(successInvocation);
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("refreshed-token");
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        // 401 triggers exactly one refresh + retry.
+        verify(tokenManager, times(1)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(2)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class)
+    public void testActionExecuteWithClientCredentialExhaustsRetriesOnRepeatedUnauthorized() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createClientCredentialAction("expired-token", "refresh-token");
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse unauthorized = createUnauthorizedActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(unauthorized);
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("refreshed-token");
+
+        try {
+            actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+        } finally {
+            // Initial call + retryCount(2) refresh attempts = 3 API invocations and 2 refreshes.
+            verify(apiClient, times(3)).callAPI(any(), any(), any(), any(), any());
+            verify(tokenManager, times(2)).getNewAccessToken(any(), any(), any());
+        }
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving access token for actions.")
+    public void testActionExecuteWithClientCredentialFailsWhenInitialTokenRetrievalFails() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createClientCredentialAction(null, null);
+        wireClientCredentialPipeline(action, actionType);
+
+        when(tokenManager.getNewAccessToken(any(), any(), any()))
+                .thenThrow(new ActionExecutionException("Error occurred while retrieving access token for actions."));
+
+        try {
+            actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+        } finally {
+            // API must not be invoked when token retrieval fails up-front.
+            verify(apiClient, times(0)).callAPI(any(), any(), any(), any(), any());
+        }
+    }
+
+    @Test
+    public void testActionExecuteWithPasswordCredentialUsesExistingAccessTokenWhenAvailable() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction("existing-access-token", null);
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(successInvocation);
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(0)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(1)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testActionExecuteWithPasswordCredentialFetchesAccessTokenWhenAbsent() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction(null, null);
+        wireClientCredentialPipeline(action, actionType);
+
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("new-token");
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(successInvocation);
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(1)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(1)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testActionExecuteWithPasswordCredentialRefreshesTokenAndRetriesOnUnauthorized() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction("expired-token", "refresh-token");
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse unauthorized = createUnauthorizedActionInvocationResponse();
+        ActionInvocationResponse successInvocation = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any()))
+                .thenReturn(unauthorized)
+                .thenReturn(successInvocation);
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("refreshed-token");
+
+        ActionExecutionStatus expected = new SuccessStatus.Builder().build();
+        when(actionExecutionResponseProcessor.processSuccessResponse(any(), any())).thenReturn(expected);
+
+        ActionExecutionStatus actual = actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+
+        assertEquals(actual.getStatus(), expected.getStatus());
+        verify(tokenManager, times(1)).getNewAccessToken(any(), any(), any());
+        verify(apiClient, times(2)).callAPI(any(), any(), any(), any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class)
+    public void testActionExecuteWithPasswordCredentialExhaustsRetriesOnRepeatedUnauthorized() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction("expired-token", "refresh-token");
+        wireClientCredentialPipeline(action, actionType);
+
+        ActionInvocationResponse unauthorized = createUnauthorizedActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(unauthorized);
+        when(tokenManager.getNewAccessToken(any(), any(), any())).thenReturn("refreshed-token");
+
+        try {
+            actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+        } finally {
+            verify(apiClient, times(3)).callAPI(any(), any(), any(), any(), any());
+            verify(tokenManager, times(2)).getNewAccessToken(any(), any(), any());
+        }
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving access token for actions.")
+    public void testActionExecuteWithPasswordCredentialFailsWhenInitialTokenRetrievalFails() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createPasswordCredentialAction(null, null);
+        wireClientCredentialPipeline(action, actionType);
+
+        when(tokenManager.getNewAccessToken(any(), any(), any()))
+                .thenThrow(new ActionExecutionException("Error occurred while retrieving access token for actions."));
+
+        try {
+            actionExecutorService.execute(actionType, FlowContext.create(), "tenant");
+        } finally {
+            verify(apiClient, times(0)).callAPI(any(), any(), any(), any(), any());
+        }
+    }
+
+    private void wireClientCredentialPipeline(Action action, ActionType actionType) throws Exception {
+
+        when(actionManagementService.getActionsByActionType(any(), any()))
+                .thenReturn(Collections.singletonList(action));
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any(), any()))
+                .thenReturn(mock(ActionExecutionRequest.class));
+        when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
+    }
+
+    private ActionInvocationResponse createUnauthorizedActionInvocationResponse() {
+
+        ActionInvocationResponse response = mock(ActionInvocationResponse.class);
+        when(response.isError()).thenReturn(true);
+        when(response.isUnauthorized()).thenReturn(true);
+        when(response.getResponse()).thenReturn(null);
+        return response;
+    }
+
+    private Action createClientCredentialAction(String existingAccessToken, String existingRefreshToken)
+            throws ActionMgtException {
+
+        Action action = mock(Action.class);
+        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        when(action.getId()).thenReturn("actionId");
+        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        when(action.getActionVersion()).thenReturn("v1");
+
+        EndpointConfig endpointConfig = mock(EndpointConfig.class);
+        when(action.getEndpoint()).thenReturn(endpointConfig);
+        when(endpointConfig.getUri()).thenReturn("http://example.com");
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.CLIENT_CREDENTIAL);
+
+        List<AuthProperty> decryptedProperties = Arrays.asList(
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_ID.getName())
+                        .value("clientId").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_SECRET.getName())
+                        .value("clientSecret").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.TOKEN_ENDPOINT.getName())
+                        .value("http://token-endpoint").isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.SCOPES.getName())
+                        .value("read").isConfidential(false).build()
+        );
+        when(authentication.getPropertiesWithDecryptedValues(any())).thenReturn(decryptedProperties);
+
+        if (existingAccessToken != null) {
+            AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                    .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                    .value(existingAccessToken)
+                    .isConfidential(true).build();
+            when(authentication.getInternalPropertyWithDecryptedValue(any(),
+                    eq(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())))
+                    .thenReturn(internalAccessToken);
+        }
+        if (existingRefreshToken != null) {
+            AuthProperty internalRefreshToken = new AuthProperty.AuthPropertyBuilder()
+                    .name(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())
+                    .value(existingRefreshToken)
+                    .isConfidential(true).build();
+            when(authentication.getInternalPropertyWithDecryptedValue(any(),
+                    eq(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())))
+                    .thenReturn(internalRefreshToken);
+        }
+
+        when(endpointConfig.getAuthentication()).thenReturn(authentication);
+        return action;
+    }
+
+    private Action createPasswordCredentialAction(String existingAccessToken, String existingRefreshToken)
+            throws ActionMgtException {
+
+        Action action = mock(Action.class);
+        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        when(action.getId()).thenReturn("actionId");
+        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        when(action.getActionVersion()).thenReturn("v1");
+
+        EndpointConfig endpointConfig = mock(EndpointConfig.class);
+        when(action.getEndpoint()).thenReturn(endpointConfig);
+        when(endpointConfig.getUri()).thenReturn("http://example.com");
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getType()).thenReturn(Authentication.Type.PASSWORD_CREDENTIAL);
+
+        List<AuthProperty> decryptedProperties = Arrays.asList(
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_ID.getName())
+                        .value("clientId").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.CLIENT_SECRET.getName())
+                        .value("clientSecret").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.TOKEN_ENDPOINT.getName())
+                        .value("http://token-endpoint").isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.SCOPES.getName())
+                        .value("read").isConfidential(false).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.USERNAME.getName())
+                        .value("user1").isConfidential(true).build(),
+                new AuthProperty.AuthPropertyBuilder()
+                        .name(Authentication.Property.PASSWORD.getName())
+                        .value("pass1").isConfidential(true).build()
+        );
+        when(authentication.getPropertiesWithDecryptedValues(any())).thenReturn(decryptedProperties);
+
+        if (existingAccessToken != null) {
+            AuthProperty internalAccessToken = new AuthProperty.AuthPropertyBuilder()
+                    .name(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())
+                    .value(existingAccessToken)
+                    .isConfidential(true).build();
+            when(authentication.getInternalPropertyWithDecryptedValue(any(),
+                    eq(Authentication.Property.INTERNAL_ACCESS_TOKEN.getName())))
+                    .thenReturn(internalAccessToken);
+        }
+        if (existingRefreshToken != null) {
+            AuthProperty internalRefreshToken = new AuthProperty.AuthPropertyBuilder()
+                    .name(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())
+                    .value(existingRefreshToken)
+                    .isConfidential(true).build();
+            when(authentication.getInternalPropertyWithDecryptedValue(any(),
+                    eq(Authentication.Property.INTERNAL_REFRESH_TOKEN.getName())))
+                    .thenReturn(internalRefreshToken);
+        }
+
+        when(endpointConfig.getAuthentication()).thenReturn(authentication);
+        return action;
     }
 
     private String getJSONRequestPayload(ActionExecutionRequest actionExecutionRequest) throws JsonProcessingException {

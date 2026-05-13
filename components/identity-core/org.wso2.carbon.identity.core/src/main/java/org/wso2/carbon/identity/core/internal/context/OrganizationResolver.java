@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -22,12 +22,14 @@ import org.apache.catalina.connector.Request;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Organization;
 import org.wso2.carbon.identity.core.context.model.RootOrganization;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementClientException;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.model.MinimalOrganization;
 import org.wso2.carbon.user.api.Tenant;
@@ -73,14 +75,7 @@ public class OrganizationResolver {
 
         try {
             if (PATTERN_TENANT_AND_ORG_QUALIFIED.matcher(requestURI).find()) {
-                // Handle the requests starts with /t/<tenant>/o/<org_id>/
-                // Request URI has tenant domain -> Resolve Root organization info.
-                String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
-                resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
-
-                // Request URI has an organization ID -> Resolve sub-organization info.
-                String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
-                resolveOrganization(organizationId);
+                resolveTenantAndOrgQualifiedContext(requestURI);
             } else if (PATTERN_ORG_QUALIFIED_ONLY.matcher(requestURI).find()) {
                 // Handle the requests starts with /o/<org_id>/
                 // Request URI has an organization ID -> Resolve both root and sub-organization info.
@@ -97,6 +92,29 @@ public class OrganizationResolver {
                 resolveRootOrganization(IdentityContext.getThreadLocalIdentityContext().getTenantId());
                 // Resolve root organization information to the Organization object in tenanted paths.
                 resolveRootOrganizationToOrganization();
+            }
+        } catch (OrganizationManagementClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Client error while initializing organization information: " + e.getMessage(), e);
+            }
+        } catch (OrganizationManagementException | UserStoreException e) {
+            LOG.error("Error while initializing organization information.", e);
+        }
+    }
+
+    private void resolveTenantAndOrgQualifiedContext(String requestURI) {
+
+        try {
+            // Request URI has tenant domain -> Resolve Root organization info.
+            String tenantDomainOfRootOrg = extractResourceFromURI(requestURI, TENANT_SEPARATOR);
+            resolveRootOrganization(IdentityTenantUtil.getTenantId(tenantDomainOfRootOrg));
+
+            // Request URI has an organization ID -> Resolve sub-organization info.
+            String organizationId = extractResourceFromURI(requestURI, ORG_SEPARATOR);
+            resolveOrganization(organizationId);
+        } catch (IdentityRuntimeException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Invalid tenant domain in request URI: " + requestURI, e);
             }
         } catch (OrganizationManagementException | UserStoreException e) {
             LOG.error("Error while initializing organization information.", e);

@@ -139,7 +139,7 @@ public class CacheBackedLocalClaimDAO {
                         localClaimURI, tenantId));
             }
             associatedLocalClaims = localClaimDAO.fetchMappedExternalClaims(localClaimURI, tenantId);
-            associatedClaimDAOCache.addToCache(localClaimURI, new ArrayList<>(associatedLocalClaims), tenantId);
+            associatedClaimDAOCache.addToCacheOnRead(localClaimURI, new ArrayList<>(associatedLocalClaims), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Cache hit for associated claims of local claim:%s in tenant:%s ",

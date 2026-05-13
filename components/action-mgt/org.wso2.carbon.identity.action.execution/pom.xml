@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.10.105-SNAPSHOT</version>
+        <version>7.11.82-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -74,6 +74,10 @@
             <artifactId>mockito-testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.external.api.token.handler</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -120,6 +124,13 @@
                             org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.external.api.token.handler.api.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.external.api.client.api.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.external.api.client.api.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.external.api.client.api.service; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
                             com.fasterxml.jackson.databind.*;

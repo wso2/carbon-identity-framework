@@ -32,6 +32,7 @@
             <class name="org.wso2.carbon.identity.workflow.mgt.rule.FieldDefinitionBuilderTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.rule.ApprovalWorkflowMetadataProviderTest"/>
             <class name="org.wso2.carbon.identity.workflow.mgt.rule.WorkFlowRuleEvaluationDataProviderTest"/>
+            <class name="org.wso2.carbon.identity.workflow.mgt.WorkFlowExecutorManagerTest"/>
         </classes>
     </test>
 </suite>

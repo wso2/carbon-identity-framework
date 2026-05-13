@@ -211,7 +211,7 @@ public class ApplicationAuthenticatorManager {
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
 
-        if (LOCAL_IDP_NAME.equals(idp.getIdentityProviderName())) {
+        if (idp == null || LOCAL_IDP_NAME.equals(idp.getIdentityProviderName())) {
             return idp;
         }
 

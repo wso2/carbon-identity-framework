@@ -128,7 +128,7 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
 
             Pair<Boolean, String> valueToCache =
                     Pair.of(adminAdvisoryBannerDTO.getEnableBanner(), adminAdvisoryBannerDTO.getBannerContent());
-            advisoryBannerCache.addToCache(CACHE_KEY, valueToCache, tenantDomain);
+            advisoryBannerCache.addToCacheOnRead(CACHE_KEY, valueToCache, tenantDomain);
 
             return Optional.of(adminAdvisoryBannerDTO);
         } catch (ConfigurationManagementException e) {

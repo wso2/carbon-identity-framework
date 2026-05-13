@@ -33,6 +33,8 @@ public class OrganizationLoginData implements Serializable {
     private String sharedApplicationId;
     // Accessing organization data in shared application login.
     private OrganizationData accessingOrganization;
+    // Primary (main) application details before switching to sub-org sequence.
+    private PrimaryAppData primaryAppData;
 
     public OrganizationData getAccessingOrganization() {
 
@@ -62,5 +64,15 @@ public class OrganizationLoginData implements Serializable {
     public void setRootOrganizationTenantDomain(String rootOrganizationTenantDomain) {
 
         this.rootOrganizationTenantDomain = rootOrganizationTenantDomain;
+    }
+
+    public PrimaryAppData getPrimaryAppData() {
+
+        return primaryAppData;
+    }
+
+    public void setPrimaryAppData(PrimaryAppData primaryAppData) {
+
+        this.primaryAppData = primaryAppData;
     }
 }

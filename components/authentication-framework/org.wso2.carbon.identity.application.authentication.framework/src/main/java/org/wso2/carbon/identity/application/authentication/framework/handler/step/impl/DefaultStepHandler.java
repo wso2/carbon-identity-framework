@@ -100,6 +100,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_IDENTIFIER_HANDLER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_INVALID_USER_ASSERTION;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
@@ -245,8 +250,15 @@ public class DefaultStepHandler implements StepHandler {
             return;
         }
 
-        // if Request has fidp param and if this is the first step
-        if (fidp != null && stepConfig.getOrder() == 1) {
+        if (stepConfig.getOrder() == 1 && canHandleOrgDiscovery(request, context, authConfigList)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Organization discovery parameters found in the request and sequence can handle " +
+                        "the organization discovery. Initiating organization login with discovery parameters.");
+            }
+            handleOrganizationDiscovery(request, response, context);
+            return;
+        } else if (fidp != null && stepConfig.getOrder() == 1) {
+            // if request has fidp param and if this is the first step.
             handleHomeRealmDiscovery(request, response, context);
             return;
         } else if (context.isReturning()) {
@@ -511,6 +523,23 @@ public class DefaultStepHandler implements StepHandler {
                     showAuthFailureReason, retryParam, loginPage));
         } catch (IOException | URISyntaxException e) {
             throw new FrameworkException(e.getMessage(), e);
+        }
+    }
+
+    private void handleOrganizationDiscovery(HttpServletRequest request, HttpServletResponse response,
+                                             AuthenticationContext context)
+            throws FrameworkException {
+
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        StepConfig stepConfig = sequenceConfig.getStepMap().get(context.getCurrentStep());
+
+        // OrganizationIdentifierHandler presence in the step is guaranteed by the caller.
+        for (AuthenticatorConfig authConfig : stepConfig.getAuthenticatorList()) {
+            ApplicationAuthenticator authenticator = authConfig.getApplicationAuthenticator();
+            if (authenticator != null && ORGANIZATION_IDENTIFIER_HANDLER.equals(authenticator.getName())) {
+                doAuthentication(request, response, context, authConfig);
+                return;
+            }
         }
     }
 
@@ -865,12 +894,16 @@ public class DefaultStepHandler implements StepHandler {
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
+                String userAccessingOrganization = resolveUserAccessingOrganization(context.getSubject());
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
-                // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
-                context.getSubject().setAccessingOrganization(userResidentOrganization);
+                if (StringUtils.isNotBlank(userAccessingOrganization)) {
+                    context.getSubject().setAccessingOrganization(userAccessingOrganization);
+                } else {
+                    context.getSubject().setAccessingOrganization(userResidentOrganization);
+                }
             }
 
-            if (context.getSubject() != null && context.isSharedAppLogin()) {
+            if (context.getSubject() != null && !context.getSubject().isSharedUser() && context.isSharedAppLogin()) {
                 String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
                 context.getSubject().setAccessingOrganization(accessingOrgId);
                 context.getSubject().setUserResidentOrganization(accessingOrgId);
@@ -1593,6 +1626,18 @@ public class DefaultStepHandler implements StepHandler {
 
         AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
+        // First check for org_id claim as it is the standard claim to be used for organization login.
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            ClaimMapping claimMapping = entry.getKey();
+            if (FrameworkConstants.ORG_ID_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                String organizationId = entry.getValue();
+                if (StringUtils.isNotBlank(organizationId)) {
+                    request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
+                }
+                return;
+            }
+        }
+        // Check for user_organization claim as a fallback if org_id claim is not present.
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
             if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
@@ -1607,22 +1652,54 @@ public class DefaultStepHandler implements StepHandler {
 
     /**
      * Resolve user resident organization for the users authenticated via the B2B organization login authenticator.
+     * The resolution is done in the following priority order:
+     * 1. {@link FrameworkConstants#USER_ORG_CLAIM} claim.
+     * 2. {@link FrameworkConstants#ORG_ID_CLAIM} claim.
+     * 3. {@link FrameworkConstants#USER_ORGANIZATION_CLAIM} claim.
      *
-     * @param authenticatedUser   The authenticated user.
+     * @param authenticatedUser The authenticated user.
      * @return The organization where the user's identity is managed.
+     * @throws FrameworkException If the user resident organization could not be resolved.
      */
     private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser) throws FrameworkException {
 
-        // Check for user organization claim for the authenticated user via the organization login authenticator.
+        if (MapUtils.isNotEmpty(authenticatedUser.getUserAttributes())) {
+            String orgIdValue = null;
+            String userOrganizationValue = null;
+            for (Map.Entry<ClaimMapping, String> userAttribute : authenticatedUser.getUserAttributes().entrySet()) {
+                String claimUri = userAttribute.getKey().getLocalClaim().getClaimUri();
+                // user_org has the highest priority.
+                if (FrameworkConstants.USER_ORG_CLAIM.equals(claimUri)) {
+                    return userAttribute.getValue();
+                }
+                if (FrameworkConstants.ORG_ID_CLAIM.equals(claimUri)) {
+                    orgIdValue = userAttribute.getValue();
+                } else if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimUri)) {
+                    userOrganizationValue = userAttribute.getValue();
+                }
+            }
+            if (orgIdValue != null) {
+                return orgIdValue;
+            }
+            if (userOrganizationValue != null) {
+                return userOrganizationValue;
+            }
+        }
+
+        throw new FrameworkException("User resident organization could not be found.");
+    }
+
+    private String resolveUserAccessingOrganization(AuthenticatedUser authenticatedUser) {
+
         if (authenticatedUser.getUserAttributes() != null) {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
-                if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
-                        userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                if (FrameworkConstants.ORG_ID_CLAIM.equals(userAttributes.getKey().getLocalClaim().getClaimUri())) {
                     return userAttributes.getValue();
                 }
             }
         }
-        throw new FrameworkException("User resident organization could not found");
+
+        return null;
     }
 
     private void handleAPIBasedAuthenticationData(HttpServletRequest request, ApplicationAuthenticator authenticator,
@@ -1767,6 +1844,22 @@ public class DefaultStepHandler implements StepHandler {
 
         return ORGANIZATION_IDENTIFIER_HANDLER.equals(authenticator.getName()) &&
                 status == AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+    }
+
+    private boolean canHandleOrgDiscovery(HttpServletRequest request, AuthenticationContext context,
+                                          List<AuthenticatorConfig> authConfigList) {
+
+        return !context.isSharedAppLogin() && hasOrgDiscoveryParam(request) && authConfigList.stream()
+                .anyMatch(ac -> ac.getApplicationAuthenticator() != null
+                        && ORGANIZATION_IDENTIFIER_HANDLER.equals(ac.getApplicationAuthenticator().getName()));
+    }
+
+    private boolean hasOrgDiscoveryParam(HttpServletRequest request) {
+
+        return request.getParameter(ORG_ID) != null
+                || request.getParameter(ORG_HANDLE) != null
+                || request.getParameter(ORG_NAME) != null
+                || (request.getParameter(LOGIN_HINT) != null && request.getParameter(ORG_DISCOVERY_TYPE) != null);
     }
 
     private String updateRetryParamForAPIBasedAuthFlows(String retryParam, HttpServletRequest request) {

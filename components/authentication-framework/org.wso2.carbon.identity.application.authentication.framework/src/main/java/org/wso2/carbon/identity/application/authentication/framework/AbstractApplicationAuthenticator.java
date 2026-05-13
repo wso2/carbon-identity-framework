@@ -127,7 +127,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
                             String userDomain = context.getSubject().getTenantDomain();
                             String tenantDomain = context.getTenantDomain();
-                            if (!StringUtils.equals(userDomain, tenantDomain)) {
+                            if (!StringUtils.equals(userDomain, tenantDomain) &&
+                                    FrameworkUtils.getSharedUserIdentifiedInSequence(context).isEmpty()) {
                                 context.setProperty(FrameworkConstants.USER_TENANT_DOMAIN_MISMATCH, true);
                                 throw new AuthenticationFailedException(
                                         ErrorMessages.MISMATCHING_TENANT_DOMAIN.getCode(),

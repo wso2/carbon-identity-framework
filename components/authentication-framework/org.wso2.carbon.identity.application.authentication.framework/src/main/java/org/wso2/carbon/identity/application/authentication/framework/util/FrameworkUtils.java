@@ -102,6 +102,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
@@ -1290,7 +1291,7 @@ public class FrameworkUtils {
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
         }
         cacheEntry.setContext(sessionContext);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, getLoginTenantDomainFromContext());
     }
 
     @Deprecated
@@ -1302,11 +1303,36 @@ public class FrameworkUtils {
     public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain,
                                                 String loginTenantDomain) {
 
+        addSessionContextToCache(key, sessionContext, tenantDomain, loginTenantDomain, null);
+    }
+
+    /**
+     * Adds the given session context to the session context cache. When an {@code orgId} is provided and the
+     * session context holds an {@link AuthenticatedOrgData} entry for that organization, the authenticated
+     * sequences of that organization are used for cleanup (clearing user attributes and the authentication
+     * graph). Otherwise, the top-level authenticated sequences of the session context are used.
+     *
+     * @param key               Session context cache key.
+     * @param sessionContext    Session context to be cached.
+     * @param tenantDomain      Application tenant domain used to resolve session timeout configurations.
+     * @param loginTenantDomain Login tenant domain under which the cache entry is stored.
+     * @param orgId             Organization id used to look up authenticated sequences from
+     *                          {@link SessionContext#getAuthenticatedOrgData()}.
+     */
+    public static void addSessionContextToCache(String key, SessionContext sessionContext, String tenantDomain,
+                                                String loginTenantDomain, String orgId) {
+
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
         cacheEntry.setContextIdentifier(key);
 
-        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
+        Map<String, SequenceConfig> seqData;
+        if (orgId != null && sessionContext.getAuthenticatedOrgData() != null
+                && sessionContext.getAuthenticatedOrgData().get(orgId) != null) {
+            seqData = sessionContext.getAuthenticatedOrgData().get(orgId).getAuthenticatedSequences();
+        } else {
+            seqData = sessionContext.getAuthenticatedSequences();
+        }
         if (seqData != null) {
             for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
                 if (entry.getValue() != null) {
@@ -2463,7 +2489,7 @@ public class FrameworkUtils {
         } catch (UserSessionException e) {
             activeSessionCount = -1;
             log.error("An error occurred while retrieving the active session count. Therefore the active session " +
-                    "count is set to -1 in the analytics event.");
+                    "count is set to -1 in the analytics event.", e);
         }
         return activeSessionCount;
     }
@@ -2751,9 +2777,7 @@ public class FrameworkUtils {
             return Collections.emptyList();
         }
         IdPGroup[] possibleIdPGroups = identityProvider.getIdPGroupConfig();
-        if (ArrayUtils.isEmpty(possibleIdPGroups)) {
-            return Collections.emptyList();
-        }
+  
         String idpGroupValueAttr = remoteClaims.get(idpGroupClaimUri);
         if (StringUtils.isBlank(idpGroupValueAttr)) {
             return Collections.emptyList();
@@ -4106,6 +4130,41 @@ public class FrameworkUtils {
     }
 
     /**
+     * Pre-process user's username considering authentication context.
+     * produces identical results to
+     * preprocessUsernameWithContextTenantDomain(String username, AuthenticationContext context) method for non-shared
+     * users. For shared users, this method appends the user resident tenant domain to the username.
+     *
+     * @param username Username of the user.
+     * @param context  Authentication context.
+     * @return preprocessed username with context tenant domain.
+     */
+    public static String preprocessUsernameWithUserResidentTenantDomain(
+            String username, AuthenticationContext context) {
+
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
+            return username;
+        }
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + context.getUserTenantDomain();
+            }
+        } else if (!username.endsWith(context.getUserTenantDomain())) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
+            return username + "@" + context.getUserResidentTenantDomain();
+        }
+        return username;
+    }
+
+    /**
      * Pre-process user's username considering the service provider.
      *
      * @param username Username of the user.
@@ -5096,5 +5155,41 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(
                 IdentityUtil.getProperty(FrameworkConstants.Config.MARK_STEP_COMPLETED_ON_INTERRUPT));
+    }
+
+    /**
+     * Check whether to use the resident user id when a shared user logs in to a sub-organization through a
+     * federated authenticator while use local account attributes configuration is set to true in the application.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public static boolean useResidentUserIdForAuthenticatedSharedUsers() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.Config.USE_RESIDENT_USER_ID_FOR_AUTHENTICATED_SHARED_USERS));
+    }
+
+    /**
+     * Retrieves the shared authenticated user identified during the authentication sequence, if any.
+     * Iterates over the step configurations in the sequence and returns the authenticated user from
+     * the step handled by {@link FrameworkConstants#SHARED_USER_IDENTIFIER_HANDLER}, provided that
+     * the user is a shared user.
+     *
+     * @param context Authentication context containing the sequence configuration and step results.
+     * @return An {@link Optional} containing the shared {@link AuthenticatedUser} if one was identified
+     *         in the sequence, or an empty {@link Optional} otherwise.
+     */
+    public static Optional<AuthenticatedUser> getSharedUserIdentifiedInSequence(AuthenticationContext context) {
+
+        for (StepConfig stepConfig : context.getSequenceConfig().getStepMap().values()) {
+            if (stepConfig.getAuthenticatedAutenticator() != null &&
+                    FrameworkConstants.SHARED_USER_IDENTIFIER_HANDLER.equals(
+                    stepConfig.getAuthenticatedAutenticator().getName()) &&
+                    stepConfig.getAuthenticatedUser() != null && stepConfig.getAuthenticatedUser().isSharedUser()) {
+                return Optional.of(stepConfig.getAuthenticatedUser());
+            }
+        }
+
+        return Optional.empty();
     }
 }

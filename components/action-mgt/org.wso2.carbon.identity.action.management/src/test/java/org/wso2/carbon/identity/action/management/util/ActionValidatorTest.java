@@ -26,6 +26,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.service.impl.DefaultActionValidator;
+import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
@@ -156,7 +157,7 @@ public class ActionValidatorTest {
     public void testIsInvalidEndpointUri(String endpointUri) {
 
         try {
-            actionValidator.validateEndpointUri(endpointUri);
+            actionValidator.validateEndpointUri(ActionMgtConstants.ENDPOINT_URI_FIELD, endpointUri);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), "Endpoint URI is invalid.");
@@ -176,7 +177,7 @@ public class ActionValidatorTest {
     @Test(dataProvider = "validEndpointUriDataProvider")
     public void testIsValidEndpointUriName(String endpointUri) throws ActionMgtClientException {
 
-        actionValidator.validateEndpointUri(endpointUri);
+        actionValidator.validateEndpointUri(ActionMgtConstants.ENDPOINT_URI_FIELD, endpointUri);
     }
 
     @DataProvider

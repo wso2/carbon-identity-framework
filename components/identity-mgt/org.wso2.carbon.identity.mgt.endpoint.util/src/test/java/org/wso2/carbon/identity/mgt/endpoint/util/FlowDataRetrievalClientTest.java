@@ -100,7 +100,7 @@ public class FlowDataRetrievalClientTest {
              MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
 
             endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
-                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute"))
+                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute", true, false))
                     .thenReturn("https://localhost:9443/api/server/v1/flow/execute");
             httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
                     .thenAnswer(invocation -> {
@@ -137,7 +137,7 @@ public class FlowDataRetrievalClientTest {
              MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
 
             endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
-                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute"))
+                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute", true, false))
                     .thenReturn("https://localhost:9443/api/server/v1/flow/execute");
             httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
                     .thenAnswer(invocation -> {
@@ -207,7 +207,7 @@ public class FlowDataRetrievalClientTest {
              MockedStatic<HTTPClientManager> httpClientManager = mockStatic(HTTPClientManager.class)) {
 
             endpointUtil.when(() -> IdentityManagementEndpointUtil.getBasePath(
-                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute"))
+                    SUPER_TENANT_DOMAIN, "/api/server/v1/flow/execute", true, false))
                     .thenReturn("https://localhost:9443/api/server/v1/flow/execute");
             httpClientManager.when(() -> HTTPClientManager.executeWithHttpClient(any()))
                     .thenAnswer(invocation -> {

@@ -39,6 +39,7 @@
   "session_data.cleanup.enable_periodic_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": true,
   "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": false,
+  "session_data.session_data_persist.batch_insert_chunk_size": "250",
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
   "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
@@ -343,7 +344,7 @@
   "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
   "oauth.drop_unregistered_scopes": true,
-  "oauth.drop_unrequested_oidc_scopes": true,
+  "oauth.drop_unrequested_oidc_scopes": false,
   "oauth.allowed_scopes": ["^device_.*"],
   "oauth.restricted_query_parameters": ["username", "password", "client_secret"],
   "oauth.callback.enforce_literal_characters": true,
@@ -581,6 +582,7 @@
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
+  "identity_mgt.user_claim_update.restrict_immutable_local_claim_update": true,
 
   "identity_mgt.claims.hidden_claims": [
     "http://wso2.org/claims/identity/askPassword",
@@ -732,6 +734,8 @@
   "event.default_listener.organization_discovery_user_operation_listener.enable": true,
   "event.default_listener.organization_user_association_listener.priority": "128",
   "event.default_listener.organization_user_association_listener.enable": true,
+  "event.default_listener.organization_agent_association_listener.priority": "130",
+  "event.default_listener.organization_agent_association_listener.enable": true,
   "event.default_listener.shared_user_profile_update_governance_listener.priority": "8",
   "event.default_listener.shared_user_profile_update_governance_listener.enable": true,
 
@@ -2215,6 +2219,7 @@
   "actions.http_client.connection_pool_size": "20",
   "actions.http_client.retry_count": "2",
   "actions.maximum_actions_per_action_type": "1",
+  "actions.action_request.case_insensitive_header_filtering": true,
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.pre_issue_access_token.version.latest": "v1",
   "actions.types.pre_issue_id_token.enable": true,
@@ -2249,6 +2254,7 @@
   "outbound_adapters.httppublisher.type": "Publisher",
 
   "webhooks.maximum_webhooks_per_tenant": "10",
+  "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": true,
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,
@@ -2309,5 +2315,18 @@
   "enhanced_organization_authentication_feature.enabled": true,
 
   "workflow_engine.max_approver_notifications": 15,
-  "app_native_authentication.handle_fail_completed_authenticator_status": true
+  "use_resident_user_id_for_authenticated_shared_users.enabled": true,
+  "app_native_authentication.handle_fail_completed_authenticator_status": true,
+  "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
+  "enhanced_organization_authentication.enabled_by_default_for_new_apps": true,
+  "saas.enable_app_creation": false,
+  "saas.enable_cross_tenant_operations": false,
+
+  "analytics.moesif.provider_url": "https://api.moesif.net/v1/actions",
+  "analytics.moesif.auth_type": "API_KEY",
+  "analytics.moesif.api_key_header": "X-Moesif-Application-Id",
+  "analytics.moesif.stream_name": "org.wso2.is.analytics.stream.MoesifData",
+  "analytics.moesif.stream_version": "1.0.0",
+  "analytics.moesif.inline_body": "",
+  "analytics.moesif.enabled": false
 }

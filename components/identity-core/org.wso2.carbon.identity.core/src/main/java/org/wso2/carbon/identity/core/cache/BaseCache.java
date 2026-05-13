@@ -159,6 +159,33 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
     }
 
     /**
+     * Add a cache entry during a READ operation.
+     * <p>
+     * This populates the cache only if the key does not already have a value.
+     * If a value already exists, the cache is left unchanged, which avoids
+     * unnecessary cache invalidation broadcasts in clustered environments.
+     *
+     * @param key   Key which the cache entry is indexed by.
+     * @param entry Value to be stored in the cache.
+    */
+    public void addToCacheOnRead(K key, V entry, String tenantDomain) {
+
+        if (!isEnabled()) {
+            return;
+        }
+
+        try {
+            startTenantFlow(tenantDomain);
+            Cache<K, V> cache = getBaseCache();
+            if (cache != null) {
+                cache.putOnRead(key, entry);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    /**
      * Add a cache entry.
      *
      * @param key   Key which cache entry is indexed.
@@ -176,6 +203,34 @@ public abstract class BaseCache<K extends Serializable, V extends Serializable> 
             Cache<K, V> cache = getBaseCache();
             if (cache != null) {
                 cache.put(key, entry);
+            }
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    /**
+     * Add a cache entry.
+     * <p>
+     * This populates the cache only if the key does not already have a value.
+     * If a value already exists, the cache is left unchanged, which avoids
+     * unnecessary cache invalidation broadcasts in clustered environments.
+     *
+     * @param key   Key which cache entry is indexed.
+     * @param entry Actual object where cache entry is placed.
+     * @param tenantDomain The tenant domain where the cache is maintained.
+     */
+    public void addToCacheOnRead(K key, V entry, int tenantId) {
+
+        if (!isEnabled()) {
+            return;
+        }
+
+        try {
+            startTenantFlow(tenantId);
+            Cache<K, V> cache = getBaseCache();
+            if (cache != null) {
+                cache.putOnRead(key, entry);
             }
         } finally {
             PrivilegedCarbonContext.endTenantFlow();

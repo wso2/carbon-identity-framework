@@ -67,6 +67,7 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
             <CheckExistingEntryForDeleteOperationInsert>{{session_data.session_data_persist.check_existing_entry_for_delete_operation_insert}}</CheckExistingEntryForDeleteOperationInsert>
+            <BatchInsertChunkSize>{{session_data.session_data_persist.batch_insert_chunk_size}}</BatchInsertChunkSize>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
@@ -490,6 +491,17 @@
              Supported versions: IS 5.6.0 onwards.
         -->
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
+
+        <!-- Process the client secret before storing it in database, e.g. hashing -->
+        {% if oauth.extensions.client_secret_persistence_processor is defined %}
+        <ClientSecretPersistenceProcessor>{{oauth.extensions.client_secret_persistence_processor}}</ClientSecretPersistenceProcessor>
+        {% elif oauth.extensions.token_persistence_processor is defined %}
+        <ClientSecretPersistenceProcessor>{{oauth.extensions.token_persistence_processor}}</ClientSecretPersistenceProcessor>
+        {% else %}
+        <ClientSecretPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</ClientSecretPersistenceProcessor>
+        {% endif %}
+
+        <HashClientSecretOnly>{{oauth.hash_client_secret}}</HashClientSecretOnly>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
 
@@ -873,6 +885,12 @@
         <EnableAssertions>
             <UserName>{{oauth.token_generation.include_username_in_access_token}}</UserName>
         </EnableAssertions>
+
+        <!-- Revoke grant cache upon login. If this is set to true, the authorization grant caches will be cleared upon each login, since the inactive account suspension handler updates the login time on every login.
+                Default value : false
+                Supported versions: IS 7.3.0 onwards
+            -->
+        <RevokeCacheAtLogin>{{identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login}}</RevokeCacheAtLogin>
 
         <!-- This should be true if subject identifier in the token validation response needs to adhere to the
         following SP configuration.
@@ -2165,6 +2183,7 @@
             <ScopeWithinUserstore>{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</ScopeWithinUserstore>
         </UniquenessValidation>
         <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
+        <RestrictImmutableLocalClaimUpdate>{{identity_mgt.user_claim_update.restrict_immutable_local_claim_update}}</RestrictImmutableLocalClaimUpdate>
     </UserClaimUpdate>
 
     <HiddenClaims>
@@ -2401,6 +2420,7 @@
         </HTTPClient>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
         <ActionRequest>
+            <CaseInsensitiveHeaderFiltering>{{actions.action_request.case_insensitive_header_filtering}}</CaseInsensitiveHeaderFiltering>
             <ExcludedHeaders>
                  {% for header in actions.action_request.excluded_headers %}
                     <Header>{{header}}</Header>
@@ -2513,6 +2533,9 @@
 
     <Webhooks>
         <MaximumWebhooksPerTenant>{{webhooks.maximum_webhooks_per_tenant}}</MaximumWebhooksPerTenant>
+        <Registration>
+            <SkipSignupConfirmationIfAccountLockDisabled>{{webhooks.registration.skip_signup_confirmation_if_account_lock_disabled}}</SkipSignupConfirmationIfAccountLockDisabled>
+        </Registration>
     </Webhooks>
 
     <LocalAuthenticators>
@@ -2775,6 +2798,11 @@
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="{{event.default_listener.organization_user_association_listener.priority}}"
                        enable="{{event.default_listener.organization_user_association_listener.enable}}"/>
+        <EventListener id="organization_agent_association_listener"
+                               type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                               name="org.wso2.carbon.identity.organization.management.organization.agent.sharing.listener.SharedAgentOperationEventListener"
+                               orderId="{{event.default_listener.organization_agent_association_listener.priority}}"
+                               enable="{{event.default_listener.organization_agent_association_listener.enable}}"/>
         <EventListener id="shared_user_profile_update_governance_listener"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
@@ -2874,6 +2902,17 @@
         {% elif analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
         <PublishActiveSessionCount>true</PublishActiveSessionCount>
         {% endif %}
+        {% if analytics.moesif.enabled is sameas true %}
+            <Moesif>
+                <ProviderURL>{{analytics.moesif.provider_url}}</ProviderURL>
+                <AuthType>{{analytics.moesif.auth_type}}</AuthType>
+                <ApiKeyHeader>{{analytics.moesif.api_key_header}}</ApiKeyHeader>
+                <StreamName>{{analytics.moesif.stream_name}}</StreamName>
+                <StreamVersion>{{analytics.moesif.stream_version}}</StreamVersion>
+                <InlineBody>{{analytics.moesif.inline_body}}</InlineBody>
+                <Enabled>{{analytics.moesif.enabled}}</Enabled>
+            </Moesif>
+            {% endif %}
     </Analytics>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -4214,6 +4253,28 @@
     -->
     <EnableLegacySaaSAuthentication>{{authentication.enable_legacy_saas_mode | default(false)}}</EnableLegacySaaSAuthentication>
 
+    <!--
+        SaaS application configurations.
+        Note: SaaS applications are deprecated as of WSO2 Identity Server 7.0.0.
+        These configurations are provided solely for backward compatibility.
+    -->
+    <SaaS>
+        <!--
+            Controls whether administrators can create new SaaS applications.
+            When set to 'false', creation of new SaaS applications will be rejected.
+            Existing SaaS applications will continue to be available.
+            Default: false.
+        -->
+        <EnableAppCreation>{{saas.enable_app_creation}}</EnableAppCreation>
+        <!--
+            Controls whether cross-tenant operations are permitted within adaptive authentication scripts for SaaS applications.
+            When set to 'false', cross-tenant user operations will be blocked.
+            WARNING: Enabling this introduces a known security risk by allowing adaptive scripts to operate on users from other tenants.
+            Default: false.
+        -->
+        <EnableCrossTenantOperations>{{saas.enable_cross_tenant_operations}}</EnableCrossTenantOperations>
+    </SaaS>
+
     <EnablePerUserFunctionalityLocking>{{user.enable_per_user_functionality_locking}}</EnablePerUserFunctionalityLocking>
 
     <TenantContextsToRewrite>
@@ -4292,6 +4353,21 @@
             <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
+
+    <OrgResourceContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                    <Path>/api/server/v1/branding-preference/text</Path>
+                    <Path>/api/server/v1/branding-preference/text/resolve</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgResourceContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>
@@ -4986,6 +5062,11 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
+     {% if scim2.enable_legacy_enterprise_user is defined %}
+     <!-- Config to allow legacy SCIM enterprise user behavior -->
+     <EnableSCIMLegacyEnterpriseUser>{{scim2.enable_legacy_enterprise_user}}</EnableSCIMLegacyEnterpriseUser>
+     {% endif %}
+
     {% if cache_invalidator.mb.enabled is defined %}
     <CacheInvalidator>
         <MB>
@@ -5148,6 +5229,13 @@
         <EnableLegacySelfRegistrationFlow>{{flow_execution.enable_legacy_self_registration_flow}}</EnableLegacySelfRegistrationFlow>
         <EnableLegacyPasswordRecoveryFlow>{{flow_execution.enable_legacy_password_recovery_flow}}</EnableLegacyPasswordRecoveryFlow>
         <EnableLegacyInvitedUserRegistrationFlow>{{flow_execution.enable_legacy_invited_user_registration_flow}}</EnableLegacyInvitedUserRegistrationFlow>
+        {% if flow_execution.default_enabled_flows is defined %}
+        <DefaultEnabledFlows>
+            {% for flow_type in flow_execution.default_enabled_flows %}
+            <FlowType>{{flow_type}}</FlowType>
+            {% endfor %}
+        </DefaultEnabledFlows>
+        {% endif %}
         <Registration>
             <DisplayClaimAvailability>{{flow_execution.registration.display_claim_availability}}</DisplayClaimAvailability>
             <DefaultUserStore>{{flow_execution.registration.default_user_store}}</DefaultUserStore>
@@ -5202,6 +5290,7 @@
     <WorkflowEngine>
         <MaxApproverNotifications>{{workflow_engine.max_approver_notifications}}</MaxApproverNotifications>
     </WorkflowEngine>
+    <UseResidentUserIdForAuthenticatedSharedUsers>{{use_resident_user_id_for_authenticated_shared_users.enabled}}</UseResidentUserIdForAuthenticatedSharedUsers>
 
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>{{app_native_authentication.handle_fail_completed_authenticator_status}}</HandleFailCompletedAuthenticatorStatus>

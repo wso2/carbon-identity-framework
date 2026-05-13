@@ -70,7 +70,7 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
         }
 
         List<CORSOrigin> corsOrigins = corsOriginDAO.getCORSOriginsByTenantId(tenantId);
-        addCORSOriginsToCache(corsOrigins.toArray(new CORSOrigin[0]), tenantId);
+        addCORSOriginsToCacheOnRead(corsOrigins.toArray(new CORSOrigin[0]), tenantId);
         return corsOrigins;
     }
 
@@ -98,7 +98,7 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
         }
 
         List<CORSOrigin> corsOrigins = corsOriginDAO.getCORSOriginsByApplicationId(applicationId, tenantId);
-        addCORSOriginsToCache(corsOrigins.toArray(new CORSOrigin[0]), applicationId, tenantId);
+        addCORSOriginsToCacheOnRead(corsOrigins.toArray(new CORSOrigin[0]), applicationId, tenantId);
         return corsOrigins;
     }
 
@@ -165,6 +165,24 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     }
 
     /**
+     * Add CORS origins of a particular tenant to the cache during a READ operation.
+     *
+     * @param corsOrigins  The  origins that should be added to the cache.
+     * @param tenantId The tenant domain specific to the cache entry.
+     */
+    private void addCORSOriginsToCacheOnRead(CORSOrigin[] corsOrigins, int tenantId) {
+
+        CORSOriginCacheKey cacheKey = new CORSOriginCacheKey(tenantId);
+        CORSOriginCacheEntry cacheEntry = new CORSOriginCacheEntry(corsOrigins);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding CORS origins to Cache with Key: " + tenantId);
+        }
+
+        CORSOriginCache.getInstance().addToCacheOnRead(cacheKey, cacheEntry, tenantId);
+    }
+
+    /**
      * Add CORS origins of a particular application to the CORSOriginByAppId cache.
      *
      * @param corsOrigins The origins that should be added to the cache.
@@ -181,6 +199,25 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
         }
 
         CORSOriginByAppIdCache.getInstance().addToCache(cacheKey, cacheEntry, tenantId);
+    }
+
+    /**
+     * Add CORS origins of a particular application to the CORSOriginByAppId cache during a READ operation.
+     *
+     * @param corsOrigins The origins that should be added to the cache.
+     * @param applicationId The id of the application.
+     * @param tenantId The tenant domain specific to the cache entry.
+     */
+    private void addCORSOriginsToCacheOnRead(CORSOrigin[] corsOrigins, int applicationId, int tenantId) {
+
+        CORSOriginByAppIdCacheKey cacheKey = new CORSOriginByAppIdCacheKey(applicationId);
+        CORSOriginByAppIdCacheEntry cacheEntry = new CORSOriginByAppIdCacheEntry(corsOrigins);
+        if (log.isDebugEnabled()) {
+            log.debug("Adding CORS origins to Cache for application id: " + applicationId +
+                    ", tenant id: " + tenantId);
+        }
+
+        CORSOriginByAppIdCache.getInstance().addToCacheOnRead(cacheKey, cacheEntry, tenantId);
     }
 
     /**

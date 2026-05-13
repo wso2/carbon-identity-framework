@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.compatibility.settings.core.CompatibilitySettingsManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.flow.mgt.FlowAIService;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
@@ -112,5 +113,21 @@ public class FlowMgtServiceComponent {
     protected void unsetConfigurationManager(ConfigurationManager configurationManager) {
 
         FlowMgtServiceDataHolder.getInstance().setConfigurationManager(null);
+    }
+
+    @Reference(
+            name = "compatibility.settings.manager",
+            service = CompatibilitySettingsManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCompatibilitySettingsManager")
+    protected void setCompatibilitySettingsManager(CompatibilitySettingsManager compatibilitySettingsManager) {
+
+        FlowMgtServiceDataHolder.getInstance().setCompatibilitySettingsManager(compatibilitySettingsManager);
+    }
+
+    protected void unsetCompatibilitySettingsManager(CompatibilitySettingsManager compatibilitySettingsManager) {
+
+        FlowMgtServiceDataHolder.getInstance().setCompatibilitySettingsManager(null);
     }
 }

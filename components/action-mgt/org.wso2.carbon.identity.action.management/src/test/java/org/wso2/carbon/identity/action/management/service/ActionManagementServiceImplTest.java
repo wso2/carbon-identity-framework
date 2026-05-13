@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -72,10 +72,21 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_HEADER_UPDATED;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CLIENT_ID;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CLIENT_ID_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CLIENT_SECRET;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CLIENT_SECRET_UPDATED;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_INVALID_ACTION_NAME;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_INVALID_API_KEY_HEADER;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_INVALID_TOKEN_ENDPOINT;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_SCOPES;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_SCOPES_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_TOKEN_ENDPOINT;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_TOKEN_ENDPOINT_UPDATED;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USERNAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USERNAME_UPDATED;
 
 /**
  * This class is a test suite for the ActionManagementServiceImpl class.
@@ -527,6 +538,415 @@ public class ActionManagementServiceImplTest {
         Assert.assertNotNull(result.getActionRule());
         Assert.assertEquals(result.getActionRule().getId(), sampleAction.getActionRule().getId());
         Assert.assertEquals(result.getActionRule().getRule(), sampleAction.getActionRule().getRule());
+    }
+
+    @Test(priority = 18)
+    public void testDeleteActionToCleanupForClientCredentialTests() throws ActionMgtException {
+
+        actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertNull(actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                TENANT_DOMAIN));
+    }
+
+    @Test(priority = 19)
+    public void testAddActionWithClientCredentialAuthentication()
+            throws ActionMgtException, SecretManagementException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockClientCredentialAuthentication(TEST_CLIENT_ID, TEST_CLIENT_SECRET,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES));
+        sampleAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+
+        Assert.assertNotNull(sampleAction.getId());
+        Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
+        Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
+
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+        Authentication creatingActionAuth = creatingAction.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(creatingActionAuth, sampleAction.getId());
+
+        Assert.assertEquals(sampleActionAuth.getType(), Authentication.Type.CLIENT_CREDENTIAL);
+        Assert.assertEquals(sampleActionAuth.getProperties().size(), creatingActionAuth.getProperties().size());
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+    }
+
+    @Test(priority = 20)
+    public void testGetActionWithClientCredentialAuthentication() throws ActionMgtException {
+
+        Action result = actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                TENANT_DOMAIN);
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.CLIENT_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+    }
+
+    @Test(priority = 21)
+    public void testUpdateActionEndpointAuthenticationWithSameClientCredentialType()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication updatingAuthentication = TestUtil.buildMockClientCredentialAuthentication(
+                TEST_CLIENT_ID_UPDATED, TEST_CLIENT_SECRET_UPDATED, TEST_TOKEN_ENDPOINT_UPDATED, TEST_SCOPES_UPDATED);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.CLIENT_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT_UPDATED);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(),
+                TEST_SCOPES_UPDATED);
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
+        sampleAction = result;
+    }
+
+    @Test(priority = 22)
+    public void testUpdateActionEndpointAuthenticationFromClientCredentialToBasic()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication updatingAuthentication = TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.BASIC);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                secretProperties.get(Authentication.Property.USERNAME.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                secretProperties.get(Authentication.Property.PASSWORD.getName()));
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID));
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET));
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT));
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.SCOPES));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
+        sampleAction = result;
+    }
+
+    @Test(priority = 23)
+    public void testUpdateActionEndpointAuthenticationFromBasicToClientCredential()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication updatingAuthentication = TestUtil.buildMockClientCredentialAuthentication(
+                TEST_CLIENT_ID, TEST_CLIENT_SECRET, TEST_TOKEN_ENDPOINT, TEST_SCOPES);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.CLIENT_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.USERNAME));
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.PASSWORD));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
+        sampleAction = result;
+    }
+
+    @Test(priority = 24)
+    public void testDeleteActionWithClientCredentialAuthentication() throws ActionMgtException {
+
+        actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertNull(actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                TENANT_DOMAIN));
+    }
+
+    @Test(priority = 25, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithClientCredentialMissingClientId() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockClientCredentialAuthentication(StringUtils.EMPTY, TEST_CLIENT_SECRET,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 26, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithClientCredentialMissingClientSecret() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockClientCredentialAuthentication(TEST_CLIENT_ID, StringUtils.EMPTY,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 27, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithClientCredentialInvalidTokenEndpoint() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockClientCredentialAuthentication(TEST_CLIENT_ID, TEST_CLIENT_SECRET,
+                        TEST_INVALID_TOKEN_ENDPOINT, TEST_SCOPES));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 28)
+    public void testAddActionWithPasswordCredentialAuthentication()
+            throws ActionMgtException, SecretManagementException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockPasswordCredentialAuthentication(TEST_CLIENT_ID, TEST_CLIENT_SECRET,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES, TEST_USERNAME, TEST_PASSWORD));
+        sampleAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+
+        Assert.assertNotNull(sampleAction.getId());
+        Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
+        Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
+        Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
+
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+        Authentication creatingActionAuth = creatingAction.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(creatingActionAuth, sampleAction.getId());
+
+        Assert.assertEquals(sampleActionAuth.getType(), Authentication.Type.PASSWORD_CREDENTIAL);
+        Assert.assertEquals(sampleActionAuth.getProperties().size(), creatingActionAuth.getProperties().size());
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                secretProperties.get(Authentication.Property.USERNAME.getName()));
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                secretProperties.get(Authentication.Property.PASSWORD.getName()));
+    }
+
+    @Test(priority = 29)
+    public void testGetActionWithPasswordCredentialAuthentication() throws ActionMgtException {
+
+        Action result = actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                TENANT_DOMAIN);
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.PASSWORD_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
+    }
+
+    @Test(priority = 30)
+    public void testUpdateActionEndpointAuthenticationWithSamePasswordCredentialType()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication updatingAuthentication = TestUtil.buildMockPasswordCredentialAuthentication(
+                TEST_CLIENT_ID_UPDATED, TEST_CLIENT_SECRET_UPDATED, TEST_TOKEN_ENDPOINT_UPDATED, TEST_SCOPES_UPDATED,
+                TEST_USERNAME_UPDATED, TEST_PASSWORD_UPDATED);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.PASSWORD_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT_UPDATED);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(),
+                TEST_SCOPES_UPDATED);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                secretProperties.get(Authentication.Property.USERNAME.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                secretProperties.get(Authentication.Property.PASSWORD.getName()));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
+        sampleAction = result;
+    }
+
+    @Test(priority = 31)
+    public void testUpdateActionEndpointAuthenticationFromPasswordCredentialToClientCredential()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication updatingAuthentication = TestUtil.buildMockClientCredentialAuthentication(
+                TEST_CLIENT_ID, TEST_CLIENT_SECRET, TEST_TOKEN_ENDPOINT, TEST_SCOPES);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.CLIENT_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.USERNAME));
+        Assert.assertNull(resultActionAuth.getProperty(Authentication.Property.PASSWORD));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
+        sampleAction = result;
+    }
+
+    @Test(priority = 32)
+    public void testUpdateActionEndpointAuthenticationFromClientCredentialToPasswordCredential()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication updatingAuthentication = TestUtil.buildMockPasswordCredentialAuthentication(
+                TEST_CLIENT_ID, TEST_CLIENT_SECRET, TEST_TOKEN_ENDPOINT, TEST_SCOPES, TEST_USERNAME, TEST_PASSWORD);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), Authentication.Type.PASSWORD_CREDENTIAL);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_ID).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_ID.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.CLIENT_SECRET).getValue(),
+                secretProperties.get(Authentication.Property.CLIENT_SECRET.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.TOKEN_ENDPOINT).getValue(),
+                TEST_TOKEN_ENDPOINT);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                secretProperties.get(Authentication.Property.USERNAME.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                secretProperties.get(Authentication.Property.PASSWORD.getName()));
+        Assert.assertEquals(result.getCreatedAt(), sampleAction.getCreatedAt());
+        Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
+        sampleAction = result;
+    }
+
+    @Test(priority = 33)
+    public void testDeleteActionWithPasswordCredentialAuthentication() throws ActionMgtException {
+
+        actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertNull(actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                TENANT_DOMAIN));
+    }
+
+    @Test(priority = 34, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithPasswordCredentialMissingClientId() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockPasswordCredentialAuthentication(StringUtils.EMPTY, TEST_CLIENT_SECRET,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES, TEST_USERNAME, TEST_PASSWORD));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 35, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithPasswordCredentialMissingClientSecret() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockPasswordCredentialAuthentication(TEST_CLIENT_ID, StringUtils.EMPTY,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES, TEST_USERNAME, TEST_PASSWORD));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 36, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithPasswordCredentialInvalidTokenEndpoint() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockPasswordCredentialAuthentication(TEST_CLIENT_ID, TEST_CLIENT_SECRET,
+                        TEST_INVALID_TOKEN_ENDPOINT, TEST_SCOPES, TEST_USERNAME, TEST_PASSWORD));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 37, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithPasswordCredentialMissingUsername() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockPasswordCredentialAuthentication(TEST_CLIENT_ID, TEST_CLIENT_SECRET,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES, StringUtils.EMPTY, TEST_PASSWORD));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+    }
+
+    @Test(priority = 38, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
+    public void testAddActionWithPasswordCredentialMissingPassword() throws ActionMgtException {
+
+        Action creatingAction = TestUtil.buildMockAction(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockPasswordCredentialAuthentication(TEST_CLIENT_ID, TEST_CLIENT_SECRET,
+                        TEST_TOKEN_ENDPOINT, TEST_SCOPES, TEST_USERNAME, StringUtils.EMPTY));
+        actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
     private Map<String, String> resolveAuthPropertiesMap(Authentication authentication, String actionId)

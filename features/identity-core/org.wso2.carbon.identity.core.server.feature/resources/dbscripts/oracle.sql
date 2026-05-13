@@ -2051,6 +2051,8 @@ INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('a1b2c3d4-5e6f-7a89-b012-3456789ab8de', 'EMAIL_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to email provider properties')
 INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
+('f47bce92-3d81-4a06-b7e5-29c1d830f5a2', 'SMS_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to SMS provider properties')
+INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('e2bc9d81-91a0-4efc-9091-c37afc46663b', 'WEBHOOK_SECRETS', 'Secret type to uniquely identify secrets relevant to webhook configurations')
 SELECT 1 FROM dual
 /

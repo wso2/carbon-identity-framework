@@ -48,6 +48,12 @@ public class LongWaitResultCache extends AuthenticationBaseCache<LongWaitResultC
     }
 
     @Override
+    public void addToCacheOnRead(LongWaitResultCacheKey key, LongWaitResultCacheEntry entry) {
+
+        super.addToCacheOnRead(key, entry);
+    }
+
+    @Override
     public LongWaitResultCacheEntry getValueFromCache(LongWaitResultCacheKey key) {
 
         return super.getValueFromCache(key);

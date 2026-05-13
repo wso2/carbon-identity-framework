@@ -148,6 +148,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_GROUP_LIST;
@@ -236,6 +237,7 @@ public class ApplicationManagementServiceImplTest {
     public void setup() throws RegistryException, UserStoreException, SecretManagementException {
 
         setupConfiguration();
+        IdentityUtil.populateProperties();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
 
         SecretManager secretManager = mock(SecretManagerImpl.class);
@@ -2314,6 +2316,170 @@ public class ApplicationManagementServiceImplTest {
 
             Assert.assertTrue(result,
                     "Method should return true for organization audience type variation: " + audienceType);
+        }
+    }
+
+    @DataProvider(name = "saasAppCreationDataProvider")
+    public Object[][] saasAppCreationDataProvider() {
+
+        return new Object[][]{
+                // configValue, isSaasApp, expectSuccess
+                {"true", true, true},
+                {"false", true, false},
+                {null, true, false},
+                {"false", false, true}
+        };
+    }
+
+    @Test(dataProvider = "saasAppCreationDataProvider")
+    public void testAddApplicationWithSaaSConfig(String configValue, boolean isSaasApp, boolean expectSuccess)
+            throws Exception {
+
+        String appName = isSaasApp ? "TestSaaSApp" : "TestNonSaaSApp";
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(appName);
+        serviceProvider.setSaasApp(isSaasApp);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation")).thenReturn(configValue);
+
+            if (expectSuccess) {
+                ServiceProvider addedSP = applicationManagementService.addApplication(serviceProvider,
+                        SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+                Assert.assertEquals(addedSP.getApplicationName(), appName);
+                Assert.assertEquals(addedSP.isSaasApp(), isSaasApp);
+
+                applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+            } else {
+                IdentityApplicationManagementClientException exception = Assert.expectThrows(
+                        IdentityApplicationManagementClientException.class,
+                        () -> applicationManagementService.addApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME,
+                                USERNAME_1));
+
+                Assert.assertEquals(exception.getErrorCode(), INVALID_REQUEST.getCode());
+            }
+        }
+    }
+
+    @DataProvider(name = "saasAppConversionDataProvider")
+    public Object[][] saasAppConversionDataProvider() {
+
+        return new Object[][]{
+                // configValue, wasAlreadySaaS, updateToSaaS, expectSuccess
+                {"true", false, true, true},    // Enabled: non-SaaS -> SaaS allowed
+                {"false", false, true, false},  // Disabled: non-SaaS -> SaaS blocked
+                {null, false, true, false},     // Not set: non-SaaS -> SaaS blocked
+                {"false", true, true, true},    // Disabled but already SaaS: update allowed
+                {"false", false, false, true}   // Disabled: non-SaaS stays non-SaaS allowed
+        };
+    }
+
+    /**
+     * Test updateApplication behaviour when converting a non-SaaS app to SaaS based on config.
+     */
+    @Test(dataProvider = "saasAppConversionDataProvider")
+    public void testUpdateApplicationWithSaaSConversion(String configValue, boolean wasAlreadySaaS,
+            boolean updateToSaaS, boolean expectSuccess) throws Exception {
+
+        String appName = "TestSaaSConversionApp";
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(appName);
+        addApplicationConfigurations(inputSP);
+        inputSP.setSaasApp(wasAlreadySaaS);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            // Enable SaaS creation if the app needs to be created as SaaS.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation"))
+                    .thenReturn(wasAlreadySaaS ? "true" : configValue);
+
+            applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+            // Now set the config to the test's intended value for the update operation.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation")).thenReturn(configValue);
+
+            ServiceProvider storedSP = applicationManagementService.getApplicationExcludingFileBasedSPs(
+                    appName, SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider spForUpdate = new ServiceProvider();
+            spForUpdate.setApplicationName(appName);
+            spForUpdate.setApplicationID(inputSP.getApplicationID());
+            spForUpdate.setApplicationResourceId(storedSP.getApplicationResourceId());
+            spForUpdate.setApplicationVersion(storedSP.getApplicationVersion());
+            addApplicationConfigurations(spForUpdate);
+            spForUpdate.setSaasApp(updateToSaaS);
+
+            if (expectSuccess) {
+                applicationManagementService.updateApplication(spForUpdate, SUPER_TENANT_DOMAIN_NAME,
+                        REGISTRY_SYSTEM_USERNAME);
+
+                ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs(
+                        appName, SUPER_TENANT_DOMAIN_NAME);
+                Assert.assertEquals(retrievedSP.isSaasApp(), updateToSaaS);
+            } else {
+                IdentityApplicationManagementException exception = Assert.expectThrows(
+                        IdentityApplicationManagementException.class,
+                        () -> applicationManagementService.updateApplication(spForUpdate, SUPER_TENANT_DOMAIN_NAME,
+                                REGISTRY_SYSTEM_USERNAME));
+                Assert.assertTrue(exception.getCause() instanceof IdentityApplicationManagementClientException);
+                Assert.assertEquals(
+                        ((IdentityApplicationManagementClientException) exception.getCause()).getErrorCode(),
+                        INVALID_REQUEST.getCode());
+            }
+        } finally {
+            applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        }
+    }
+
+    /**
+     * Test updateApplicationByResourceId behaviour when converting a non-SaaS app to SaaS based on config.
+     */
+    @Test(dataProvider = "saasAppConversionDataProvider")
+    public void testUpdateApplicationByResourceIdWithSaaSConversion(String configValue, boolean wasAlreadySaaS,
+            boolean updateToSaaS, boolean expectSuccess) throws Exception {
+
+        String appName = "TestSaaSConversionByResourceIdApp";
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(appName);
+        addApplicationConfigurations(inputSP);
+        inputSP.setSaasApp(wasAlreadySaaS);
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            // Enable SaaS creation if the app needs to be created as SaaS.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation"))
+                    .thenReturn(wasAlreadySaaS ? "true" : configValue);
+
+            String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+
+            // Now set the config to the test's intended value for the update operation.
+            identityUtil.when(() -> IdentityUtil.getProperty("SaaS.EnableAppCreation")).thenReturn(configValue);
+
+            ServiceProvider storedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                    SUPER_TENANT_DOMAIN_NAME);
+            ServiceProvider spForUpdate = new ServiceProvider();
+            spForUpdate.setApplicationName(appName);
+            spForUpdate.setApplicationResourceId(storedSP.getApplicationResourceId());
+            spForUpdate.setApplicationID(storedSP.getApplicationID());
+            spForUpdate.setApplicationVersion(storedSP.getApplicationVersion());
+            addApplicationConfigurations(spForUpdate);
+            spForUpdate.setSaasApp(updateToSaaS);
+
+            if (expectSuccess) {
+                applicationManagementService.updateApplicationByResourceId(resourceId, spForUpdate,
+                        SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+                ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                        SUPER_TENANT_DOMAIN_NAME);
+                Assert.assertEquals(retrievedSP.isSaasApp(), updateToSaaS);
+            } else {
+                IdentityApplicationManagementClientException exception = Assert.expectThrows(
+                        IdentityApplicationManagementClientException.class,
+                        () -> applicationManagementService.updateApplicationByResourceId(resourceId, spForUpdate,
+                                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME));
+                Assert.assertEquals(exception.getErrorCode(), INVALID_REQUEST.getCode());
+            }
+        } finally {
+            applicationManagementService.deleteApplication(appName, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
         }
     }
 

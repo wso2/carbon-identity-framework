@@ -79,7 +79,7 @@ public class CacheBackedLongWaitStatusDAO implements LongWaitStatusDAO {
 
             LongWaitResultCacheKey cacheKey = new LongWaitResultCacheKey(waitKey);
             LongWaitResultCacheEntry cacheEntry = new LongWaitResultCacheEntry(status);
-            LongWaitResultCache.getInstance().addToCache(cacheKey, cacheEntry);
+            LongWaitResultCache.getInstance().addToCacheOnRead(cacheKey, cacheEntry);
         }
         return status;
     }

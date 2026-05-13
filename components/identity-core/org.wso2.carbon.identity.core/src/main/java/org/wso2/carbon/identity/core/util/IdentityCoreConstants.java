@@ -52,6 +52,8 @@ public class IdentityCoreConstants {
     public static final String UTC = "UTC";
     public static final int EVENT_LISTENER_ORDER_ID = -1;
     public static final String ENABLE_LEGACY_SAAS_AUTHENTICATION = "EnableLegacySaaSAuthentication";
+    public static final String SAAS_ENABLE_APP_CREATION = "SaaS.EnableAppCreation";
+    public static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
     public static final String SUPER_TENANT_ALIAS_IN_PUBLIC_URL = "SuperTenantAliasInPublicUrl";
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";

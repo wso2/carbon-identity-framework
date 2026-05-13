@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.provisioning.internal;
 
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
 import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
@@ -39,6 +40,7 @@ public class ProvisioningServiceDataHolder {
     private DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener;
     private RoleManagementService roleManagementService;
     private ProvisioningHandler provisioningHandler;
+    private OrganizationManager organizationManager;
 
     private ProvisioningServiceDataHolder() {
     }
@@ -119,6 +121,16 @@ public class ProvisioningServiceDataHolder {
 
     public void setProvisioningHandler(ProvisioningHandler provisioningHandler) {
         this.provisioningHandler = provisioningHandler;
+    }
+
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }
 

@@ -74,6 +74,18 @@ public abstract class AuthenticationBaseCache<K extends Serializable, V extends 
     }
 
     /**
+     * Add a cache entry on read. If TenantQualifiedUrls enabled, add to the cache of tenant from Context
+     * else add to the super tenant.
+     *
+     * @param key   Key which cache entry is indexed.
+     * @param entry Actual object where cache entry is placed.
+     */
+    public void addToCacheOnRead(K key, V entry) {
+
+        addToCacheOnRead(key, entry, getLoginTenantDomainFromContext());
+    }
+
+    /**
      * Retrieves a cache entry. If TenantQualifiedUrls enabled, retrieve from the cache of tenant from Context
      * else retrieve from the cache of super tenant.
      *

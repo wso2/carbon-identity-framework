@@ -74,7 +74,7 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
         String roleId = super.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
 
         if (roleName != null) {
-            roleCacheByName.addToCache(cacheKey, new RoleIdCacheEntry(roleId), tenantDomain);
+            roleCacheByName.addToCacheOnRead(cacheKey, new RoleIdCacheEntry(roleId), tenantDomain);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Cached role ID for role: " + roleName + " to tenant: " + tenantDomain);
             }
@@ -104,7 +104,7 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Entry fetched from DB for role ID: " + roleId + ". Updating cache.");
         }
-        roleBasicInfoCache.addToCache(cacheKey, new RoleBasicInfoCacheEntry(roleBasicInfo), tenantDomain);
+        roleBasicInfoCache.addToCacheOnRead(cacheKey, new RoleBasicInfoCacheEntry(roleBasicInfo), tenantDomain);
         return roleBasicInfo;
     }
 

@@ -58,6 +58,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ActionTypes.NEXT;
@@ -343,6 +344,23 @@ public class FlowMgtServiceTest {
         } catch (FlowMgtFrameworkException e) {
             assertEquals(e.getErrorCode(), ERROR_CODE_INVALID_FIRST_NODE.getCode());
         }
+    }
+
+    @Test
+    public void testGetFlowReturnsNullWhenNoSystemDefault() throws Exception {
+
+        // "REGISTRATION" is a known flow type but no flow is stored in the DB for this tenant
+        // and no system default file exists, so null is returned.
+        FlowDTO result = service.getFlow("REGISTRATION", TEST_TENANT_ID);
+        assertNull(result);
+    }
+
+    @Test
+    public void testGetGraphConfigReturnsNullWhenNoSystemDefault() throws Exception {
+
+        // Same as above but for graph config.
+        GraphConfig result = service.getGraphConfig("REGISTRATION", TEST_TENANT_ID);
+        assertNull(result);
     }
 
     private StepDTO createViewStep(String id, List<ComponentDTO> components) {
