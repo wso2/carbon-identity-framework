@@ -38,7 +38,7 @@ public class ActionManagementExceptionHandler {
      * @param data  Data.
      * @return ActionMgtClientException.
      */
-    public static ActionMgtClientException handleClientException(ErrorMessage error, String... data) {
+    public static ActionMgtClientException handleClientException(ErrorMessage error, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
@@ -56,7 +56,7 @@ public class ActionManagementExceptionHandler {
      * @param data  Data.
      * @return ActionMgtServerException.
      */
-    public static ActionMgtServerException handleServerException(ErrorMessage error, Throwable e, String... data) {
+    public static ActionMgtServerException handleServerException(ErrorMessage error, Throwable e, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {

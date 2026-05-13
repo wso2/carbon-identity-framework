@@ -221,11 +221,9 @@ public class ActionDTOBuilder {
                 .updatedAt(this.updatedAt)
                 .endpoint(this.endpoint)
                 .rule(this.rule)
+                .attributes(this.attributes)
                 .build();
 
-        return new ActionDTO.Builder(action)
-                .attributes(this.attributes)
-                .properties(this.properties)
-                .build();
+        return new ActionDTO.Builder(action).properties(this.properties).build();
     }
 }

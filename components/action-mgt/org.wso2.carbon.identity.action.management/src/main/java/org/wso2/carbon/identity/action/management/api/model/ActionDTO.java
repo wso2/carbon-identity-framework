@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.management.api.model;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -108,7 +109,10 @@ public class ActionDTO {
 
     public List<String> getAttributes() {
 
-        return attributes;
+        if (attributes == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(attributes);
     }
 
     public Map<String, ActionProperty> getProperties() {
@@ -172,12 +176,6 @@ public class ActionDTO {
             this.endpoint = action.getEndpoint();
             this.rule = action.getActionRule();
             this.attributes = action.getAttributes();
-        }
-
-        public Builder attributes(List<String> attributes) {
-
-            this.attributes = attributes;
-            return this;
         }
 
         public Builder properties(Map<String, ActionProperty> properties) {

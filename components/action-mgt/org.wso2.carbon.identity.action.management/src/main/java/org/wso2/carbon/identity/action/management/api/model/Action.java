@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.management.api.model;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -225,7 +226,10 @@ public class Action {
 
     public List<String> getAttributes() {
 
-        return attributes;
+        if (attributes == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(attributes);
     }
 
     /**

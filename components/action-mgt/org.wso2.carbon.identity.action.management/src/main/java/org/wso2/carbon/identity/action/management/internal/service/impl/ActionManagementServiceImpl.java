@@ -80,11 +80,12 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreAddActionValidations(
                 castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
-        validateActionAttributes(action.getAttributes(), tenantDomain);
+        List<String> filteredAttributes = validateAndFilterActionAttributes(action.getAttributes(), tenantDomain);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
-        ActionDTO creatingActionDTO = buildActionDTOForCreation(resolvedActionType, generatedActionId, action);
+        ActionDTO creatingActionDTO = buildActionDTOForCreation(
+                resolvedActionType, generatedActionId, action, filteredAttributes);
 
         DAO_FACADE.addAction(creatingActionDTO, tenantId);
         ActionDTO createdActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, generatedActionId, tenantId);
@@ -166,8 +167,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
                 castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
-        validateActionAttributes(action.getAttributes(), tenantDomain);
-        ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
+        List<String> filteredAttributes = validateAndFilterActionAttributes(action.getAttributes(), tenantDomain);
+        ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action, filteredAttributes);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
         ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId, tenantId);
@@ -315,31 +316,35 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     /**
-     * Validate the action attributes.
+     * Validate and filter the action attributes.
      * Validates that attributes are in correct format and within max count limit.
      * System attribute validation happens in the converter layer.
      *
      * @param attributes List of attributes to validate.
-     * @throws ActionMgtClientException If attributes are invalid or exceed max
-     *                                  count.
+     * @param tenantDomain Tenant domain.
+     * @return Filtered list of attributes.
+     * @throws ActionMgtClientException If attributes are invalid or exceed max count.
      */
-    private void validateActionAttributes(List<String> attributes, String tenantDomain)
+    private List<String> validateAndFilterActionAttributes(List<String> attributes, String tenantDomain)
             throws ActionMgtException {
 
         if (attributes == null || attributes.isEmpty()) {
-            return;
+            return attributes;
         }
 
         // Validate count
         if (attributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
-                    String.valueOf(attributes.size()),
-                    String.valueOf(ActionMgtConstants.MAX_ATTRIBUTES));
+                    attributes.size(),
+                    ActionMgtConstants.MAX_ATTRIBUTES);
         }
 
         ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()
                 .getClaimMetadataManagementService();
+
+        java.util.Set<String> uniqueAttributes = new java.util.LinkedHashSet<>();
+        java.util.Set<String> duplicatedAttributes = new java.util.HashSet<>();
 
         // Validate individual attribute format and existence in system claims
         for (String attribute : attributes) {
@@ -349,17 +354,28 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                         "Each attribute must be a non-empty string");
             }
 
-            try {
-                if (claimMetadataManagementService == null ||
-                        claimMetadataManagementService.getLocalClaim(attribute, tenantDomain).isEmpty()) {
-                    throw ActionManagementExceptionHandler.handleClientException(
-                            ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
+            if (uniqueAttributes.add(attribute)) {
+                try {
+                    if (claimMetadataManagementService == null ||
+                            claimMetadataManagementService.getLocalClaim(attribute, tenantDomain).isEmpty()) {
+                        throw ActionManagementExceptionHandler.handleClientException(
+                                ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
+                    }
+                } catch (ClaimMetadataException e) {
+                    throw ActionManagementExceptionHandler.handleServerException(
+                            ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
                 }
-            } catch (ClaimMetadataException e) {
-                throw ActionManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
+            } else {
+                duplicatedAttributes.add(attribute);
             }
         }
+
+        if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
+            LOG.debug("Ignored duplicated attributes in action configuration : " +
+                    String.join(", ", duplicatedAttributes));
+        }
+
+        return new java.util.ArrayList<>(uniqueAttributes);
     }
 
     /**
@@ -413,9 +429,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param actionType The type of the action.
      * @param actionId The unique identifier for the action.
      * @param action The action model containing details for the action.
+     * @param attributes The filtered attributes for the action.
      * @return The constructed `ActionDTO` object.
      */
-    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action)
+    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action,
+                                                List<String> attributes)
             throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
@@ -434,6 +452,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .type(resolvedActionType)
                     .status(resolvedStatus)
                     .actionVersion(actionVersion)
+                    .attributes(attributes)
                     .build();
         }
 
@@ -442,6 +461,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .type(resolvedActionType)
                 .status(resolvedStatus)
                 .actionVersion(actionVersion)
+                .attributes(attributes)
                 .build();
     }
 
@@ -453,9 +473,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param actionType The type of the action.
      * @param actionId The unique identifier for the action.
      * @param action The action model containing details for the action.
+     * @param attributes The filtered attributes for the action.
      * @return The constructed `ActionDTO` object.
      */
-    private ActionDTO buildActionDTOForUpdate(String actionType, String actionId, Action action) {
+    private ActionDTO buildActionDTOForUpdate(String actionType, String actionId, Action action,
+                                              List<String> attributes) {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
         String actionVersion = action.getActionVersion();
@@ -469,6 +491,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .id(actionId)
                     .type(resolvedActionType)
                     .actionVersion(actionVersion)
+                    .attributes(attributes)
                     .build();
         }
 
@@ -476,6 +499,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .id(actionId)
                 .type(resolvedActionType)
                 .actionVersion(actionVersion)
+                .attributes(attributes)
                 .build();
     }
 
