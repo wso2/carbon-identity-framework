@@ -2191,6 +2191,20 @@
               <Scopes>internal_user_credential_mgt_delete</Scopes>
           </Resource>
 
+          <!-- Moesif Configuration Management API -->
+          <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="GET">
+              <Scopes>internal_moesif_config_view</Scopes>
+          </Resource>
+          <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="POST">
+              <Scopes>internal_moesif_config_create</Scopes>
+          </Resource>
+          <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="PUT">
+              <Scopes>internal_moesif_config_update</Scopes>
+          </Resource>
+          <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="DELETE">
+              <Scopes>internal_moesif_config_delete</Scopes>
+          </Resource>
+
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Scopes>internal_identity_mgt_view</Scopes>

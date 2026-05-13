@@ -3052,4 +3052,16 @@
     </AppNativeAuthentication>
     <!-- Config to allow legacy SCIM enterprise user behaviors -->
     <EnableSCIMLegacyEnterpriseUser>false</EnableSCIMLegacyEnterpriseUser>
+
+    <Analytics>
+        <Moesif>
+            <ProviderURL>https://api.moesif.net/v1/actions</ProviderURL>
+            <AuthType>API_KEY</AuthType>
+            <ApiKeyHeader>X-Moesif-Application-Id</ApiKeyHeader>
+            <StreamName>org.wso2.is.analytics.stream.MoesifData</StreamName>
+            <StreamVersion>1.0.0</StreamVersion>
+            <InlineBody></InlineBody>
+            <Enabled>false</Enabled>
+        </Moesif>
+    </Analytics>
 </Server>
