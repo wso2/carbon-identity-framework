@@ -35,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
@@ -43,6 +44,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,6 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -80,8 +84,8 @@ public class PolicyConsentPostAuthnHandlerTest {
     private static final String VERSION_UUID_1 = "version-uuid-1";
     private static final String VERSION_UUID_2 = "version-uuid-2";
     private static final String AUTH_ENDPOINT_URL = "https://localhost:9443/authenticationendpoint/login.do";
-        private static final String CONSOLE_APPLICATION_NAME = FrameworkConstants.Application.CONSOLE_APP;
-        private static final String MY_ACCOUNT_APPLICATION_NAME = FrameworkConstants.Application.MY_ACCOUNT_APP;
+    private static final String CONSOLE_APPLICATION_NAME = FrameworkConstants.Application.CONSOLE_APP;
+    private static final String MY_ACCOUNT_APPLICATION_NAME = FrameworkConstants.Application.MY_ACCOUNT_APP;
 
     @Mock
     private ConsentManager consentManager;
@@ -96,9 +100,10 @@ public class PolicyConsentPostAuthnHandlerTest {
     private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMock;
     private MockedStatic<FrameworkUtils> frameworkUtilsMock;
     private MockedStatic<ConfigurationFacade> configurationFacadeMock;
+    private MockedStatic<LoggerUtils> loggerUtilsMock;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws ConsentManagementException {
 
         openMocks(this);
         handler = new PolicyConsentPostAuthnHandler();
@@ -109,7 +114,12 @@ public class PolicyConsentPostAuthnHandlerTest {
         sequenceConfig = mock(SequenceConfig.class);
 
         when(authenticatedUser.getAuthenticatedSubjectIdentifier()).thenReturn(SUBJECT_ID);
+        when(authenticatedUser.getUserName()).thenReturn(SUBJECT_ID);
         when(authenticatedUser.getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+        ApplicationConfig appConfig = mock(ApplicationConfig.class);
+        when(appConfig.getServiceProvider()).thenReturn(mock(ServiceProvider.class));
+        when(sequenceConfig.getApplicationConfig()).thenReturn(appConfig);
 
         context.setSequenceConfig(sequenceConfig);
         context.setContextIdentifier(SESSION_DATA_KEY);
@@ -127,6 +137,19 @@ public class PolicyConsentPostAuthnHandlerTest {
         configurationFacadeMock = mockStatic(ConfigurationFacade.class);
         configurationFacadeMock.when(ConfigurationFacade::getInstance).thenReturn(configurationFacadeInstance);
         when(configurationFacadeInstance.getAuthenticationEndpointURL()).thenReturn(AUTH_ENDPOINT_URL);
+
+        // Prevent LoggerUtils.isDiagnosticLogsEnabled() from calling IdentityTenantUtil.getTenantId()
+        // with a null tenant domain (no CarbonContext in unit tests).
+        loggerUtilsMock = mockStatic(LoggerUtils.class);
+        loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+        // Default stubs so ConsentReceiptUtils.buildReceiptInput() can complete without NPE.
+        // Tests that need specific Purpose behaviour override these with their own stubs.
+        Purpose defaultPurpose = mock(Purpose.class);
+        when(defaultPurpose.getId()).thenReturn(1);
+        when(consentManager.getPurposeByUuid(anyString())).thenReturn(defaultPurpose);
+        PurposeCategory defaultPurposeCategory = mock(PurposeCategory.class);
+        when(consentManager.getPurposeCategoryByName("DEFAULT")).thenReturn(defaultPurposeCategory);
     }
 
     @AfterMethod
@@ -135,6 +158,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         frameworkServiceDataHolderMock.close();
         frameworkUtilsMock.close();
         configurationFacadeMock.close();
+        loggerUtilsMock.close();
     }
 
     // -------------------------------------------------------------------------
@@ -161,29 +185,29 @@ public class PolicyConsentPostAuthnHandlerTest {
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
     }
 
-        @Test(description = "Returns SUCCESS_COMPLETED immediately for Console application.")
-        public void testHandleSkipsForConsoleApplication() throws Exception {
+    @Test(description = "Returns SUCCESS_COMPLETED immediately for Console application.")
+    public void testHandleSkipsForConsoleApplication() throws Exception {
 
-                context.setServiceProviderName(CONSOLE_APPLICATION_NAME);
+        context.setServiceProviderName(CONSOLE_APPLICATION_NAME);
 
-                PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
-                assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-                verify(response, never()).sendRedirect(anyString());
-                verify(consentManager, never()).listPurposes(any(), anyInt(), anyInt());
-        }
+        assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
+        verify(response, never()).sendRedirect(anyString());
+        verify(consentManager, never()).listPurposes(anyList(), anyInt());
+    }
 
-        @Test(description = "Returns SUCCESS_COMPLETED immediately for My Account application.")
-        public void testHandleSkipsForMyAccountApplication() throws Exception {
+    @Test(description = "Returns SUCCESS_COMPLETED immediately for My Account application.")
+    public void testHandleSkipsForMyAccountApplication() throws Exception {
 
-                context.setServiceProviderName(MY_ACCOUNT_APPLICATION_NAME);
+        context.setServiceProviderName(MY_ACCOUNT_APPLICATION_NAME);
 
-                PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
-                assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-                verify(response, never()).sendRedirect(anyString());
-                verify(consentManager, never()).listPurposes(any(), anyInt(), anyInt());
-        }
+        assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
+        verify(response, never()).sendRedirect(anyString());
+        verify(consentManager, never()).listPurposes(anyList(), anyInt());
+    }
 
     @Test(description = "getName returns the expected handler name.")
     public void testGetName() {
@@ -198,7 +222,7 @@ public class PolicyConsentPostAuthnHandlerTest {
     @Test(description = "Returns SUCCESS_COMPLETED when there are no policy purposes at all.")
     public void testPreConsentSuccessWhenNoPolicyPurposesExist() throws Exception {
 
-        when(consentManager.listPurposes(any(), anyInt(), anyInt())).thenReturn(Collections.emptyList());
+        when(consentManager.listPurposes(anyList(), anyInt())).thenReturn(Collections.emptyList());
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
@@ -210,11 +234,10 @@ public class PolicyConsentPostAuthnHandlerTest {
     public void testPreConsentRedirectsForMandatoryPurposeWithNoActiveReceipt() throws Exception {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        // No ACTIVE receipt for this version.
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), eq(ACTIVE_STATE),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
@@ -227,10 +250,10 @@ public class PolicyConsentPostAuthnHandlerTest {
     public void testPreConsentSkipsMandatoryPurposeWithActiveReceipt() throws Exception {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), eq(ACTIVE_STATE),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
@@ -243,10 +266,10 @@ public class PolicyConsentPostAuthnHandlerTest {
     public void testRedirectUrlContainsMandatoryPurposeIdsParam() throws Exception {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), eq(ACTIVE_STATE),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
         handler.handle(request, response, context);
@@ -264,15 +287,14 @@ public class PolicyConsentPostAuthnHandlerTest {
     // handlePrePolicyConsent — optional purposes
     // -------------------------------------------------------------------------
 
-    @Test(description = "Returns INCOMPLETE and redirects when an optional purpose has no receipt of any state.")
+    @Test(description = "Returns INCOMPLETE and redirects when an optional purpose has no REJECTED receipt.")
     public void testPreConsentRedirectsForOptionalPurposeWithNoReceipt() throws Exception {
 
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
-        // No receipt of any state.
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), isNull(),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
@@ -281,15 +303,15 @@ public class PolicyConsentPostAuthnHandlerTest {
         verify(response).sendRedirect(anyString());
     }
 
-        @Test(description = "Returns SUCCESS_COMPLETED when an optional purpose already has a REJECTED receipt.")
+    @Test(description = "Returns SUCCESS_COMPLETED when an optional purpose already has a REJECTED receipt.")
     public void testPreConsentSkipsOptionalPurposeWithRejectedReceipt() throws Exception {
 
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
         // A REJECTED receipt already exists — user saw and skipped this version.
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), isNull(),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
@@ -302,10 +324,10 @@ public class PolicyConsentPostAuthnHandlerTest {
     public void testRedirectUrlContainsOptionalPurposeIdsParam() throws Exception {
 
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), isNull(),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
         handler.handle(request, response, context);
@@ -324,13 +346,13 @@ public class PolicyConsentPostAuthnHandlerTest {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_2, VERSION_UUID_2);
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Arrays.asList(mandatory, optional));
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), eq(ACTIVE_STATE),
-                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
-        when(consentManager.listReceipts(eq(SUBJECT_ID), isNull(), isNull(),
-                eq(PURPOSE_UUID_2), eq(VERSION_UUID_2), eq(1), eq(0)))
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+                eq(PURPOSE_UUID_2), eq(VERSION_UUID_2), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
         handler.handle(request, response, context);
@@ -344,7 +366,7 @@ public class PolicyConsentPostAuthnHandlerTest {
     @Test(description = "Throws PostAuthenticationFailedException when ConsentManager throws during pre-consent.")
     public void testPreConsentWrapsConsentManagerException() throws Exception {
 
-        when(consentManager.listPurposes(any(), anyInt(), anyInt()))
+        when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenThrow(new ConsentManagementException("DB error", "CM_00001"));
 
         try {
@@ -388,13 +410,11 @@ public class PolicyConsentPostAuthnHandlerTest {
                 Arrays.asList(PURPOSE_UUID_1, PURPOSE_UUID_2));
         context.addParameter("policyOptionalUnconsentedIds", Collections.emptyList());
         when(request.getParameter("consent")).thenReturn("approve");
-        when(request.getParameter("skippedOptionalIds")).thenReturn(null);
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-        verify(consentManager, times(2)).addConsent(eq(SUBJECT_ID), eq("SYSTEM"), eq(TENANT_DOMAIN),
-                anyString(), any(), eq(true));
+        verify(consentManager, times(2)).addConsent(any(ReceiptInput.class));
     }
 
     @Test(description = "Returns SUCCESS_COMPLETED with no consent recording when both purpose lists are empty.")
@@ -405,12 +425,10 @@ public class PolicyConsentPostAuthnHandlerTest {
         context.addParameter("policyMandatoryUnconsentedIds", Collections.emptyList());
         context.addParameter("policyOptionalUnconsentedIds", Collections.emptyList());
         when(request.getParameter("consent")).thenReturn("approve");
-        when(request.getParameter("skippedOptionalIds")).thenReturn(null);
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-        verify(consentManager, never()).addConsent(anyString(), anyString(), anyString(), anyString(), any(), eq(true));
         verify(consentManager, never()).addConsent(any(ReceiptInput.class));
     }
 
@@ -431,14 +449,14 @@ public class PolicyConsentPostAuthnHandlerTest {
         context.addParameter("policyOptionalUnconsentedIds",
                 Collections.singletonList(PURPOSE_UUID_1));
         when(request.getParameter("consent")).thenReturn("approve");
-        when(request.getParameter("skippedOptionalIds")).thenReturn(null);
+        // PURPOSE_UUID_1 is in the approved set — user checked the checkbox.
+        when(request.getParameterValues("optionalPurposeId")).thenReturn(new String[]{PURPOSE_UUID_1});
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-        verify(consentManager, times(1)).addConsent(eq(SUBJECT_ID), eq("SYSTEM"), eq(TENANT_DOMAIN),
-                anyString(), any(), eq(true));
-        verify(consentManager, never()).addConsent(any(ReceiptInput.class));
+        // buildReceiptInput only sets state for the rejected path; ACTIVE leaves state as null.
+        verify(consentManager, times(1)).addConsent(any(ReceiptInput.class));
     }
 
     @Test(description = "Records REJECTED receipt via ReceiptInput for skipped optional purposes.")
@@ -460,14 +478,12 @@ public class PolicyConsentPostAuthnHandlerTest {
         context.addParameter("policyOptionalUnconsentedIds",
                 Collections.singletonList(PURPOSE_UUID_1));
         when(request.getParameter("consent")).thenReturn("approve");
-        when(request.getParameter("skippedOptionalIds")).thenReturn(PURPOSE_UUID_1);
+        // No optionalPurposeId submitted — PURPOSE_UUID_1 is skipped/rejected.
+        when(request.getParameterValues("optionalPurposeId")).thenReturn(null);
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-        // REJECTED path calls addConsent(ReceiptInput), not the String-based helper.
-        verify(consentManager, never()).addConsent(eq(SUBJECT_ID), eq("SYSTEM"), eq(TENANT_DOMAIN),
-                anyString(), any(), eq(true));
         ArgumentCaptor<ReceiptInput> captor = ArgumentCaptor.forClass(ReceiptInput.class);
         verify(consentManager, times(1)).addConsent(captor.capture());
         assertEquals(captor.getValue().getState(), REJECTED_STATE);
@@ -494,19 +510,17 @@ public class PolicyConsentPostAuthnHandlerTest {
         context.addParameter("policyOptionalUnconsentedIds",
                 Arrays.asList(PURPOSE_UUID_1, PURPOSE_UUID_2));
         when(request.getParameter("consent")).thenReturn("approve");
-        // UUID_1 skipped, UUID_2 accepted.
-        when(request.getParameter("skippedOptionalIds")).thenReturn(PURPOSE_UUID_1);
+        // UUID_1 skipped (not submitted), UUID_2 accepted.
+        when(request.getParameterValues("optionalPurposeId")).thenReturn(new String[]{PURPOSE_UUID_2});
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-        // UUID_2 accepted → String-based helper (ACTIVE).
-        verify(consentManager, times(1)).addConsent(eq(SUBJECT_ID), eq("SYSTEM"), eq(TENANT_DOMAIN),
-                anyString(), any(), eq(true));
-        // UUID_1 skipped → ReceiptInput with REJECTED.
         ArgumentCaptor<ReceiptInput> captor = ArgumentCaptor.forClass(ReceiptInput.class);
-        verify(consentManager, times(1)).addConsent(captor.capture());
-        assertEquals(captor.getValue().getState(), REJECTED_STATE);
+        verify(consentManager, times(2)).addConsent(captor.capture());
+        // buildReceiptInput sets REJECTED_STATE explicitly; ACTIVE leaves state as null.
+        assertEquals(captor.getAllValues().stream().filter(r -> REJECTED_STATE.equals(r.getState())).count(), 1L);
+        assertEquals(captor.getAllValues().stream().filter(r -> r.getState() == null).count(), 1L);
     }
 
     // -------------------------------------------------------------------------
@@ -522,19 +536,18 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(consentManager.getPIICategoryByName("Policy")).thenThrow(notFoundException);
         PIICategory newCategory = mock(PIICategory.class);
         when(newCategory.getId()).thenReturn(2);
-        when(consentManager.addPIICategory(any())).thenReturn(newCategory);
+        when(consentManager.addPIICategoryWithUuid(any())).thenReturn(newCategory);
 
         context.addParameter("policyConsentPrompted", true);
         context.addParameter("policyMandatoryUnconsentedIds",
                 Collections.singletonList(PURPOSE_UUID_1));
         context.addParameter("policyOptionalUnconsentedIds", Collections.emptyList());
         when(request.getParameter("consent")).thenReturn("approve");
-        when(request.getParameter("skippedOptionalIds")).thenReturn(null);
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
         assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
-        verify(consentManager).addPIICategory(any());
+        verify(consentManager).addPIICategoryWithUuid(any());
     }
 
     // -------------------------------------------------------------------------
