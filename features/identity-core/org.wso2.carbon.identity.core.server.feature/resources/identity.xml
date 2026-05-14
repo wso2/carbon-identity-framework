@@ -900,6 +900,8 @@
         <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
         <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
         <PromptSubjectClaimRequestedConsent>true</PromptSubjectClaimRequestedConsent>
+        <!--Specify whether consent versioning along with the V2 API and related functionalities should be enabled.-->
+        <EnableV2API>true</EnableV2API>
     </Consent>
 
     <SecurityTokenService>
