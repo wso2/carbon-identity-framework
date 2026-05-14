@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -306,6 +306,56 @@
               http-method="DELETE">
         <Scopes>internal_consent_mgt_delete</Scopes>
     </Resource>
+
+    <!-- Consent Management V2 API -->
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_element_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="GET">
+        <Scopes>internal_consent_mgt_element_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements/(.+)" secured="true" http-method="GET">
+        <Scopes>internal_consent_mgt_element_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements/(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_element_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_purpose_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes" secured="true" http-method="GET">
+        <Scopes>internal_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)$" secured="true" http-method="GET">
+        <Scopes>internal_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)$" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_purpose_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_purpose_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions" secured="true" http-method="GET">
+        <Scopes>internal_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/(.+)" secured="true" http-method="GET">
+        <Scopes>internal_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_purpose_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/latest" secured="true" http-method="PUT">
+        <Scopes>internal_consent_mgt_purpose_update</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
 
     <!-- [Organization] Identity Recovery API -->
     <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="GET">
@@ -1843,6 +1893,46 @@
         <Scopes>internal_user_shared_access_view</Scopes>
     </Resource>
 
+    <!-- [Organization] Agent share API -->
+    <Resource context="(.*)/o/api/server/v1/agents/share(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_agent_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/agents/share-with-all(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_agent_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/agents/unshare(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_agent_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/agents/unshare-with-all(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_agent_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/agents/share(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_agent_shared_access_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/agents/(.*)/share" secured="true" http-method="GET">
+        <Scopes>internal_org_agent_shared_access_view</Scopes>
+    </Resource>
+
+    <!-- Agent share API -->
+    <Resource context="(.*)/api/server/v1/agents/share(.*)" secured="true" http-method="POST">
+        <Scopes>internal_agent_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/agents/share-with-all(.*)" secured="true" http-method="POST">
+        <Scopes>internal_agent_share</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/agents/unshare(.*)" secured="true" http-method="POST">
+        <Scopes>internal_agent_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/agents/unshare-with-all(.*)" secured="true" http-method="POST">
+        <Scopes>internal_agent_unshare</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/agents/share(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_agent_shared_access_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/agents/(.*)/share" secured="true" http-method="GET">
+        <Scopes>internal_agent_shared_access_view</Scopes>
+    </Resource>
+
     <!-- [Organization] Async Operation Status API -->
     <Resource context="(.*)/o/api/server/v1/async-operations(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_async_operation_status_view</Scopes>
@@ -1965,6 +2055,20 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/vc-templates(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_vc_template_delete</Scopes>
+    </Resource>
+
+    <!-- Moesif Configuration Management API -->
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="GET">
+        <Scopes>internal_moesif_config_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="POST">
+        <Scopes>internal_moesif_config_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="PUT">
+        <Scopes>internal_moesif_config_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="DELETE">
+        <Scopes>internal_moesif_config_delete</Scopes>
     </Resource>
 
     <Resource context="/.well-known/oauth-authorization-server/(.*)oauth2/token" secured="false" http-method="GET"/>
