@@ -205,6 +205,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Consent.ENABLE_V2_API_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
@@ -3726,6 +3727,20 @@ public class FrameworkUtils {
                     + " with id: " + serviceProvider.getApplicationID());
         }
         return isSkipConsent;
+    }
+
+    /**
+     * Check whether the Consent V2 API is enabled via the Consent.EnableV2API configuration property.
+     *
+     * @return true if enabled, false if explicitly disabled or not configured.
+     */
+    public static boolean isConsentV2APIEnabled() {
+
+        String value = IdentityUtil.getProperty(ENABLE_V2_API_PROPERTY);
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return Boolean.parseBoolean(value);
     }
 
     /**

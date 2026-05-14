@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.consent.mgt.listener;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
@@ -65,7 +65,7 @@ public class PolicyConsentFlowExecutionListener extends AbstractFlowExecutionLis
     @Override
     public boolean isEnabled() {
 
-        return true;
+        return FrameworkUtils.isConsentV2APIEnabled();
     }
 
     @Override

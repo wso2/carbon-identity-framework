@@ -106,10 +106,25 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
                                              AuthenticationContext context) throws PostAuthenticationFailedException {
 
+        if (!FrameworkUtils.isConsentV2APIEnabled()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Consent V2 API is disabled. Skipping policy consent handling.");
+            }
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }                                  
+
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
         if (authenticatedUser == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("User not available in AuthenticationContext. Skipping policy consent handling.");
+            }
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        if (authenticatedUser.isOrganizationUser()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Sub-organization user detected. Skipping policy consent handling for user: "
+                        + authenticatedUser.getAuthenticatedSubjectIdentifier());
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -476,4 +491,5 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
 
         return context.getSequenceConfig().getApplicationConfig().getServiceProvider();
     }
+
 }
