@@ -131,7 +131,6 @@ public class PreUpdatePasswordActionConverterTest {
                 new ActionProperty.BuilderForService(PasswordSharing.Format.SHA256_HASHED).build());
         properties.put(CERTIFICATE, new ActionProperty.BuilderForService(mockCertificate).build());
         ActionDTO dto = new ActionDTO.Builder(action)
-                .attributes(TEST_ATTRIBUTES)
                 .properties(properties)
                 .build();
 
@@ -176,12 +175,15 @@ public class PreUpdatePasswordActionConverterTest {
         assertNotNull(convertedAction.getPasswordSharing());
         assertEquals(convertedAction.getPasswordSharing().getFormat(), PasswordSharing.Format.SHA256_HASHED);
 
+        Action dummyActionWithAttributes = new Action.ActionRequestBuilder()
+                .name(TEST_ACTION)
+                .attributes(TEST_ATTRIBUTES)
+                .build();
         HashMap<String, ActionProperty> properties = new HashMap<>();
         properties.put(CERTIFICATE, new ActionProperty.BuilderForService(mockCertificate).build());
         properties.put(PASSWORD_SHARING_FORMAT,
                 new ActionProperty.BuilderForService(PasswordSharing.Format.SHA256_HASHED).build());
-        dto = new ActionDTO.Builder(dummyAction)
-                .attributes(TEST_ATTRIBUTES)
+        dto = new ActionDTO.Builder(dummyActionWithAttributes)
                 .properties(properties)
                 .build();
         convertedAction = (PreUpdatePasswordAction) converter.buildAction(dto);

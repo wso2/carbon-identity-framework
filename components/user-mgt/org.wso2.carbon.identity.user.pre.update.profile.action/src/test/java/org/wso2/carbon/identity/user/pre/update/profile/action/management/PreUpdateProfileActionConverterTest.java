@@ -108,7 +108,6 @@ public class PreUpdateProfileActionConverterTest {
     public void testBuildActionForGetOperationWithAllAttributes() {
 
         ActionDTO dto = new ActionDTO.Builder(action)
-                .attributes(TEST_ATTRIBUTES)
                 .build();
 
         // Convert to Action object
@@ -139,10 +138,12 @@ public class PreUpdateProfileActionConverterTest {
     @Test(description = "Test ActionConverter returns action dto with partial properties")
     public void testBuildActionForGetOperationWithPartialAttributes() {
 
-        Action dummyAction = new Action.ActionRequestBuilder().name(TEST_ACTION).build();
-
-        ActionDTO dto = new ActionDTO.Builder(dummyAction)
+        Action dummyActionWithAttributes = new Action.ActionRequestBuilder()
+                .name(TEST_ACTION)
                 .attributes(TEST_ATTRIBUTES)
+                .build();
+
+        ActionDTO dto = new ActionDTO.Builder(dummyActionWithAttributes)
                 .build();
         PreUpdateProfileAction convertedAction = (PreUpdateProfileAction) converter.buildAction(dto);
         assertNotNull(convertedAction.getAttributes());
