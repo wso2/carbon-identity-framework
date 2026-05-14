@@ -1706,6 +1706,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if consent_mgt.enable_v2_api %}
     <APIResourceCollection name="consents" displayName="Consent Management" type="tenant">
         <Scopes>
             <Feature>
@@ -1730,6 +1731,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% endif %}
     <APIResourceCollection name="userCredentialManagement" displayName="User Credential Management" type="tenant">
         <Scopes>
             <Feature>

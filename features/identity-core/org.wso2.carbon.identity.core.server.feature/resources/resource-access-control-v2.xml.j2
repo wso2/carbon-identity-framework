@@ -423,6 +423,7 @@
         </Resource>
 
         <!-- Consent Management V2 API -->
+        {% if consent_mgt.enable_v2_api %}
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="POST">
             <Scopes>internal_consent_mgt_element_create</Scopes>
         </Resource>
@@ -471,6 +472,7 @@
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
+        {% endif %}
 
         <!-- [Organization] Identity Recovery API -->
         <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="GET">

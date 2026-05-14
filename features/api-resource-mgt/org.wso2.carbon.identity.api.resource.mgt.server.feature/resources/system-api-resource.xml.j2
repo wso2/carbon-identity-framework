@@ -977,6 +977,7 @@
                     description="Delete consent in the organization (root)"/>
         </Scopes>
     </APIResource>
+    {% if consent_mgt.enable_v2_api %}
     <APIResource name="Consent Management V2 Elements API" identifier="/api/identity/consent-mgt/v2.0/elements"
                  requiresAuthorization="true"
                  description="API representation of the Consent Management V2 Elements API" type="TENANT">
@@ -1003,6 +1004,7 @@
                    description="Delete Consent Purpose"/>
         </Scopes>
     </APIResource>
+    {% endif %}
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
                  requiresAuthorization="true" description="API representation of the Identity Recovery API" type="TENANT">
         <Scopes>
@@ -2082,6 +2084,7 @@
                    description="Manage edits of tenants from the Console"/>
         </Scopes>
     </APIResource>
+    {% if consent_mgt.enable_v2_api %}
     <APIResource name="Consent Management Feature" identifier="console:consents"
                  requiresAuthorization="true"
                  description="Resource representation of the Consent Management Feature"
@@ -2095,6 +2098,7 @@
                    description="Manage edits of consent from the Console"/>
         </Scopes>
     </APIResource>
+    {% endif %}
     <APIResource name="Flows Feature" identifier="console:flows"
                      requiresAuthorization="true"
                      description="Resource representation of the Flows Feature"
