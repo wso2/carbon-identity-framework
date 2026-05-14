@@ -35,6 +35,9 @@ import org.wso2.carbon.identity.flow.mgt.model.ComponentDTO;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.POLICY;
+
 /**
  * Listener to enrich POLICY components with purpose details from the consent manager.
  */
@@ -72,10 +75,10 @@ public class PolicyConsentFlowExecutionListener extends AbstractFlowExecutionLis
             return true;
         }
         for (ComponentDTO component : step.getData().getComponents()) {
-            if (org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM.equals(component.getType())
+            if (FORM.equals(component.getType())
                     && component.getComponents() != null) {
                 for (ComponentDTO child : component.getComponents()) {
-                    if (org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.POLICY.equals(child.getType())) {
+                    if (POLICY.equals(child.getType())) {
                         enrichPolicyComponent(child, context);
                     }
                 }
@@ -95,11 +98,14 @@ public class PolicyConsentFlowExecutionListener extends AbstractFlowExecutionLis
         List<Map<String, Object>> policies = (List<Map<String, Object>>) policiesObj;
 
         for (Map<String, Object> policy : policies) {
-            Object purposeIdObj = policy.get(PURPOSE_ID_KEY);
-            if (!(purposeIdObj instanceof String) || StringUtils.isBlank((String) purposeIdObj)) {
+            String purposeId = (String) policy.get(PURPOSE_ID_KEY);
+            if (StringUtils.isBlank(purposeId)) {
                 continue;
             }
-            String purposeId = (String) purposeIdObj;
+            String purposeName = (String) policy.get(POLICY_NAME_KEY);
+            if (!StringUtils.isBlank(purposeName)) {
+                continue;
+            }
             Purpose purpose;
             try {
                 purpose = IdentityConsentDataHolder.getInstance().getConsentManager().getPurposeByUuid(purposeId);
