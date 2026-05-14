@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.consent.mgt.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
