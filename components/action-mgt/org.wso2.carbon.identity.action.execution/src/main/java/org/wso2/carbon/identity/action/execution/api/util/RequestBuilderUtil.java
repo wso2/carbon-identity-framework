@@ -25,6 +25,7 @@ import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,10 @@ public class RequestBuilderUtil {
     public static Map<String, String> getClaimValues(String userId, List<String> requestedClaims,
                                                      String tenantDomain, RealmService realmService)
             throws ActionExecutionRequestBuilderException {
+
+        if (requestedClaims == null || requestedClaims.isEmpty()) {
+            return Collections.emptyMap();
+        }
 
         try {
             Map<String, String> claimValues =
