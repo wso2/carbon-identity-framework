@@ -151,6 +151,15 @@ public class GroupDAOImpl implements GroupDAO {
                     } else {
                         throw e;
                     }
+                } catch (UserStoreException e) {
+                    if (StringUtils.startsWith(e.getMessage(), "Invalid Domain Name")) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(String.format("Skipping group: %s in tenant: %s. " +
+                                    "User store domain not registered.", name, tenantDomain));
+                        }
+                    } else {
+                        throw e;
+                    }
                 }
             }
             return groupNamesToIDs;
