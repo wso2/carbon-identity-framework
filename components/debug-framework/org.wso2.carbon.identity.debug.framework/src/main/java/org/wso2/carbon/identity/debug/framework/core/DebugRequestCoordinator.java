@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,9 +32,9 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
-import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
-import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
@@ -71,26 +71,26 @@ public class DebugRequestCoordinator {
      * Handles debug requests for any resource type using typed classes.
      * This is the preferred method with type safety.
      *
-     * @param debugRequest The debug request with resource information.
-     * @return DebugResponse containing debug result data.
+     * @param debugFrameworkRequest The debug request with resource information.
+     * @return DebugFrameworkResponse containing debug result data.
      * @throws DebugFrameworkClientException If the request has validation errors.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public DebugResponse handleDebugRequest(DebugRequest debugRequest)
+    public DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        validateDebugRequest(debugRequest);
+        validateDebugRequest(debugFrameworkRequest);
 
         try {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Orchestrating debug request for resource type: " + debugRequest.getResourceType());
+                LOG.debug("Orchestrating debug request for resource type: " + debugFrameworkRequest.getResourceType());
             }
 
             // Pre-execute listeners.
-            executePreListeners(debugRequest);
+            executePreListeners(debugFrameworkRequest);
 
             // Route by resource type.
-            DebugResourceType type = DebugResourceType.fromString(debugRequest.getResourceType());
+            DebugResourceType type = DebugResourceType.fromString(debugFrameworkRequest.getResourceType());
 
             // Get the handler for this resource type from the registry.
             DebugResourceHandler handler = DebugHandlerRegistry.getInstance()
@@ -98,16 +98,16 @@ public class DebugRequestCoordinator {
 
             if (handler == null) {
                 throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, debugRequest.getResourceType());
+                        ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, debugFrameworkRequest.getResourceType());
             }
 
             // Delegate to handler with typed objects.
-            DebugResponse debugResponse = handler.handleDebugRequest(debugRequest);
+            DebugFrameworkResponse debugFrameworkResponse = handler.handleDebugRequest(debugFrameworkRequest);
 
             // Post-execute listeners.
-            executePostListeners(debugResponse, debugRequest);
+            executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
 
-            return debugResponse;
+            return debugFrameworkResponse;
 
         } catch (DebugFrameworkClientException e) {
             // Re-throw client exceptions.
@@ -133,17 +133,19 @@ public class DebugRequestCoordinator {
     /**
      * Validates the debug request.
      *
-     * @param debugRequest The debug request to validate.
+     * @param debugFrameworkRequest The debug request to validate.
      * @throws DebugFrameworkClientException If validation fails.
      */
-    private void validateDebugRequest(DebugRequest debugRequest) throws DebugFrameworkClientException {
+    private void validateDebugRequest(DebugFrameworkRequest debugFrameworkRequest) 
+            throws DebugFrameworkClientException {
 
-        if (debugRequest == null) {
+        if (debugFrameworkRequest == null) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
-        if (!debugRequest.isResultRetrieval() &&
-                (debugRequest.getResourceType() == null || debugRequest.getResourceType().trim().isEmpty())) {
+        if (!debugFrameworkRequest.isResultRetrieval() &&
+                (debugFrameworkRequest.getResourceType() == null || 
+                    debugFrameworkRequest.getResourceType().trim().isEmpty())) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_RESOURCE_TYPE);
         }
     }
@@ -151,15 +153,15 @@ public class DebugRequestCoordinator {
     /**
      * Executes pre-execute listeners.
      *
-     * @param debugRequest The debug request.
+     * @param debugFrameworkRequest The debug request.
      * @throws DebugFrameworkClientException If a listener aborts the request.
      * @throws DebugFrameworkException If a listener throws an exception.
      */
-    private void executePreListeners(DebugRequest debugRequest) throws DebugFrameworkException {
+    private void executePreListeners(DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException {
 
         for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
                 .getDebugExecutionListeners()) {
-            if (listener.isEnabled() && !listener.doPreExecute(debugRequest)) {
+            if (listener.isEnabled() && !listener.doPreExecute(debugFrameworkRequest)) {
                 throw DebugFrameworkUtils.handleClientException(
                         ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "pre-execute");
             }
@@ -169,17 +171,18 @@ public class DebugRequestCoordinator {
     /**
      * Executes post-execute listeners.
      *
-     * @param debugResponse The debug response.
-     * @param debugRequest The debug request.
+     * @param debugFrameworkResponse The debug response.
+     * @param debugFrameworkRequest The debug request.
      * @throws DebugFrameworkClientException If a listener aborts the request.
      * @throws DebugFrameworkException  If a listener throws an exception.
      */
-    private void executePostListeners(DebugResponse debugResponse, DebugRequest debugRequest)
+    private void executePostListeners(DebugFrameworkResponse debugFrameworkResponse,
+            DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkException {
 
         for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
                 .getDebugExecutionListeners()) {
-            if (listener.isEnabled() && !listener.doPostExecute(debugResponse, debugRequest)) {
+            if (listener.isEnabled() && !listener.doPostExecute(debugFrameworkResponse, debugFrameworkRequest)) {
                 throw DebugFrameworkUtils.handleClientException(
                         ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "post-execute");
             }
@@ -221,13 +224,13 @@ public class DebugRequestCoordinator {
         }
 
         // Create a minimal request context for the listeners.
-        DebugRequest debugRequest = new DebugRequest();
-        debugRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
-        debugRequest.setResultRetrieval(true);
+        DebugFrameworkRequest debugFrameworkRequest = new DebugFrameworkRequest();
+        debugFrameworkRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
+        debugFrameworkRequest.setResultRetrieval(true);
 
         try {
             // Pre-execute Listeners.
-            executePreListeners(debugRequest);
+            executePreListeners(debugFrameworkRequest);
 
             // Execution: Get from store.
             String resultJson = DebugSessionStore.getInstance().getResult(debugId);
@@ -242,10 +245,10 @@ public class DebugRequestCoordinator {
             // Create response object for listeners.
             Map<String, Object> data = new HashMap<>();
             data.put("result", resultData);
-            DebugResponse debugResponse = DebugResponse.success(data);
+            DebugFrameworkResponse debugFrameworkResponse = DebugFrameworkResponse.success(data);
 
             // Post-Execute Listeners.
-            executePostListeners(debugResponse, debugRequest);
+            executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
 
             return resultData;
 

@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.debug.framework.listener;
 
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
-import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
-import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 
 /**
  * Interface for debug execution listeners.
@@ -47,19 +47,20 @@ public interface DebugExecutionListener {
     /**
      * Pre-execute method called before the debug request is processed.
      *
-     * @param debugRequest The debug request about to be executed.
+     * @param debugFrameworkRequest The debug request about to be executed.
      * @return true if execution should proceed, false to abort.
      * @throws DebugFrameworkException If an error occurs during pre-execution.
      */
-    boolean doPreExecute(DebugRequest debugRequest) throws DebugFrameworkException;
+    boolean doPreExecute(DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException;
 
     /**
      * Post-execute method called after the debug request is processed.
      *
-     * @param debugResponse The debug response from execution.
-     * @param debugRequest  The original debug request.
+     * @param debugFrameworkResponse The debug response from execution.
+     * @param debugFrameworkRequest  The original debug request.
      * @return true if execution should proceed, false to abort.
      * @throws DebugFrameworkException If an error occurs during post-execution.
      */
-    boolean doPostExecute(DebugResponse debugResponse, DebugRequest debugRequest) throws DebugFrameworkException;
+    boolean doPostExecute(DebugFrameworkResponse debugFrameworkResponse,
+            DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException;
 }

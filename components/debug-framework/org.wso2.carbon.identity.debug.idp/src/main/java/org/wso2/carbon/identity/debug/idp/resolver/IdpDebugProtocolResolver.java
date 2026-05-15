@@ -39,7 +39,6 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
     protected static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
     private static final String GOOGLE_HOST = "google";
     private static final String FACEBOOK_HOST = "facebook";
-    // Order should be relatively high to allow specific resolvers (e.g. for App) to run first if needed.
     private static final int RESOLVER_ORDER = 10;
 
     @Override

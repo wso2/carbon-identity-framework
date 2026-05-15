@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
-import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
-import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 
 /**
  * Debug execution listener that cleans up session records from the database
@@ -74,12 +74,12 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
     /**
      * No-op for pre-execution. Cleanup only happens after execution.
      *
-     * @param debugRequest The debug request about to be executed.
+     * @param debugFrameworkRequest The debug request about to be executed.
      * @return true to allow execution to proceed.
      * @throws DebugFrameworkException If an error occurs.
      */
     @Override
-    public boolean doPreExecute(DebugRequest debugRequest) throws DebugFrameworkException {
+    public boolean doPreExecute(DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException {
 
         return true;
     }
@@ -88,25 +88,25 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
      * Post-execute cleanup: deletes the debug session record from the database
      * after a successful response has been retrieved.
      *
-     * @param debugResponse The debug response from execution.
-     * @param debugRequest  The original debug request.
+     * @param debugFrameworkResponse The debug response from execution.
+     * @param debugFrameworkRequest  The original debug request.
      * @return true to allow execution to proceed.
      * @throws DebugFrameworkException If an error occurs.
      */
     @Override
-    public boolean doPostExecute(DebugResponse debugResponse, DebugRequest debugRequest)
-            throws DebugFrameworkException {
+    public boolean doPostExecute(DebugFrameworkResponse debugFrameworkResponse,
+            DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException {
 
-        if (debugResponse == null || !debugResponse.isSuccess()) {
+        if (debugFrameworkResponse == null || !debugFrameworkResponse.isSuccess()) {
             return true;
         }
 
         // Only clean up if this is a result retrieval request (not a debug flow initiation).
-        if (debugRequest == null || !debugRequest.isResultRetrieval()) {
+        if (debugFrameworkRequest == null || !debugFrameworkRequest.isResultRetrieval()) {
             return true;
         }
 
-        String debugId = (String) debugRequest.getAdditionalContext()
+        String debugId = (String) debugFrameworkRequest.getAdditionalContext()
                 .get(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY);
         if (debugId == null || debugId.isEmpty()) {
             return true;

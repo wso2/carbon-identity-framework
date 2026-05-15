@@ -29,7 +29,7 @@ public interface DebugProtocolResolver {
      * Resolves the debug protocol type for a given resource.
      *
      * @param resourceId The resource ID to resolve the protocol for.
-     * @return Protocol type identifier (e.g. "OIDC", "SAML"), or null if unable to resolve.
+     * @return Protocol type identifier, or null if unable to resolve.
      */
     String resolveProtocol(String resourceId);
 

@@ -22,8 +22,8 @@ import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
-import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
-import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 
 /**
  * Interface for handling debug requests for different resource types.
@@ -40,13 +40,13 @@ public interface DebugResourceHandler {
      * Getting the appropriate protocol provider.
      * Executing the debug flow.
      *
-     * @param debugRequest The debug request containing resourceId,
+     * @param debugFrameworkRequest The debug request containing resourceId,
      *                     resource type and other parameters.
-     * @return DebugResponse containing the execution result.
+     * @return DebugFrameworkResponse containing the execution result.
      * @throws DebugFrameworkClientException If the request has validation errors.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    DebugResponse handleDebugRequest(DebugRequest debugRequest)
+    DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException;
 
     /**

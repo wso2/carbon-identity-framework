@@ -26,16 +26,16 @@ import java.util.Map;
  * Represents a debug request with resource information.
  * This model provides type-safe access to debug request parameters.
  */
-public class DebugRequest {
+public class DebugFrameworkRequest {
 
     private String resourceType;
     private boolean resultRetrieval;
     private final Map<String, Object> additionalContext;
 
     /**
-     * Constructs an empty DebugRequest.
+     * Constructs an empty DebugFrameworkRequest.
      */
-    public DebugRequest() {
+    public DebugFrameworkRequest() {
 
         this.additionalContext = new HashMap<>();
         this.resultRetrieval = false;

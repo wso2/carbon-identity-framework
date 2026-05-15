@@ -88,30 +88,6 @@ public class DebugContext {
     }
 
     /**
-     * Gets the protocol.
-     *
-     * @return Protocol string (e.g., "OIDC", "SAML") from properties, or null if not found or not a String.
-     */
-    public String getProtocol() {
-
-        Object value = properties.get("protocol");
-        if (value instanceof String) {
-            return (String) value;
-        }
-        return null;
-    }
-
-    /**
-     * Sets the protocol.
-     *
-     * @param protocol Protocol string.
-     */
-    public void setProtocol(String protocol) {
-
-        this.properties.put("protocol", protocol);
-    }
-
-    /**
      * Gets a context property.
      *
      * @param key Property key.

@@ -55,6 +55,8 @@ public final class DebugFrameworkConstants {
     // Debug Status Constants.
     public static final String DEBUG_STATUS_FAILURE = "FAILURE";
     public static final String DEBUG_STATUS_SUCCESS = "SUCCESS";
+    public static final String DEBUG_STATUS_SUCCESS_INCOMPLETE = "SUCCESS_INCOMPLETE";
+    public static final String DEBUG_STATUS_SUCCESS_COMPLETE = "SUCCESS_COMPLETE";
 
     // Callback parameter names.
     public static final String CALLBACK_STATE_PARAM = "state";
@@ -130,7 +132,7 @@ public final class DebugFrameworkConstants {
                 "Execution failed.",
                 "Debug execution failed: %s");
 
-        private static final String ERROR_PREFIX = "DBG";
+        private static final String ERROR_PREFIX = "DSM";
         private final String code;
         private final String message;
         private final String description;

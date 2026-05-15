@@ -23,12 +23,14 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_FAILURE;
 import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS;
+import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE;
+import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_INCOMPLETE;
 
 /**
  * Represents a debug response with status and result information.
  * This model provides type-safe access to debug response data.
  */
-public class DebugResponse {
+public class DebugFrameworkResponse {
 
     private String status;
     private String message;
@@ -36,31 +38,31 @@ public class DebugResponse {
     private Map<String, Object> data;
 
     /**
-     * Constructs an empty DebugResponse.
+     * Constructs an empty DebugFrameworkResponse.
      */
-    public DebugResponse() {
+    public DebugFrameworkResponse() {
 
         this.data = new HashMap<>();
     }
 
     /**
-     * Constructs a successful DebugResponse with data.
+     * Constructs a successful DebugFrameworkResponse with data.
      *
      * @param data The response data.
      */
-    public DebugResponse(Map<String, Object> data) {
+    public DebugFrameworkResponse(Map<String, Object> data) {
 
         this.status = DEBUG_STATUS_SUCCESS;
         this.data = data != null ? data : new HashMap<>();
     }
 
     /**
-     * Constructs a DebugResponse with custom status and message.
+     * Constructs a DebugFrameworkResponse with custom status and message.
      *
      * @param status  The response status.
      * @param message The response message.
      */
-    public DebugResponse(String status, String message) {
+    public DebugFrameworkResponse(String status, String message) {
 
         this.status = status;
         this.message = message;
@@ -71,23 +73,23 @@ public class DebugResponse {
      * Creates a success response.
      *
      * @param data The response data.
-     * @return DebugResponse instance with SUCCESS status.
+     * @return DebugFrameworkResponse instance with SUCCESS status.
      */
-    public static DebugResponse success(Map<String, Object> data) {
+    public static DebugFrameworkResponse success(Map<String, Object> data) {
 
-        return new DebugResponse(data);
+        return new DebugFrameworkResponse(data);
     }
 
     /**
      * Creates an error response.
      *
      * @param message The error message.
-     * @return DebugResponse instance with FAILURE status.
+     * @return DebugFrameworkResponse instance with FAILURE status.
      */
-    public static DebugResponse error(String message) {
+    public static DebugFrameworkResponse error(String message) {
 
         String fallbackMessage = message != null ? message : "Unknown error occurred during debug execution";
-        return new DebugResponse(DEBUG_STATUS_FAILURE, fallbackMessage);
+        return new DebugFrameworkResponse(DEBUG_STATUS_FAILURE, fallbackMessage);
     }
 
     /**
@@ -95,11 +97,11 @@ public class DebugResponse {
      *
      * @param errorCode The error code.
      * @param message   The error message.
-     * @return DebugResponse instance with FAILURE status and error code.
+     * @return DebugFrameworkResponse instance with FAILURE status and error code.
      */
-    public static DebugResponse error(String errorCode, String message) {
+    public static DebugFrameworkResponse error(String errorCode, String message) {
 
-        DebugResponse response = new DebugResponse(DEBUG_STATUS_FAILURE, message);
+        DebugFrameworkResponse response = new DebugFrameworkResponse(DEBUG_STATUS_FAILURE, message);
         response.setErrorCode(errorCode);
         return response;
     }
@@ -125,21 +127,23 @@ public class DebugResponse {
     }
 
     /**
-     * Creates a DebugResponse from DebugResult.
+     * Creates a DebugFrameworkResponse from DebugResult.
      * Flattens resultData and metadata into the top-level data map.
      *
      * @param result The DebugResult to convert.
-     * @return DebugResponse instance.
+     * @return DebugFrameworkResponse instance.
      */
-    public static DebugResponse fromDebugResult(DebugResult result) {
+    public static DebugFrameworkResponse fromDebugResult(DebugResult result) {
 
         if (result == null) {
             return error("Result is null");
         }
 
         // Set top-level status and message.
-        DebugResponse response = new DebugResponse();
-        response.setStatus(result.isSuccessful() ? DEBUG_STATUS_SUCCESS : DEBUG_STATUS_FAILURE);
+        DebugFrameworkResponse response = new DebugFrameworkResponse();
+        String resolvedStatus = resolveLifecycleStatus(result.getStatus());
+        response.setStatus(isSuccessfulLifecycleStatus(resolvedStatus) || result.isSuccessful()
+                ? DEBUG_STATUS_SUCCESS : DEBUG_STATUS_FAILURE);
 
         String message = result.getErrorMessage();
         if (message == null) {
@@ -154,10 +158,11 @@ public class DebugResponse {
             data.putAll(result.getResultData());
         }
 
-        // Add framework fields AFTER resultData to prevent user data from overwriting them.
-        data.put("successful", result.isSuccessful());
+        if (resolvedStatus != null) {
+            data.put("status", resolvedStatus);
+        }
+
         data.put("debugId", result.getDebugId());
-        data.put("timestamp", result.getTimestamp());
 
         if (result.getErrorCode() != null) {
             data.put("errorCode", result.getErrorCode());
@@ -242,5 +247,23 @@ public class DebugResponse {
     public boolean isSuccess() {
 
         return DEBUG_STATUS_SUCCESS.equals(status);
+    }
+
+    private static String resolveLifecycleStatus(String status) {
+
+        if (DEBUG_STATUS_FAILURE.equals(status)
+                || DEBUG_STATUS_SUCCESS.equals(status)
+                || DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(status)
+                || DEBUG_STATUS_SUCCESS_COMPLETE.equals(status)) {
+            return status;
+        }
+        return null;
+    }
+
+    private static boolean isSuccessfulLifecycleStatus(String status) {
+
+        return DEBUG_STATUS_SUCCESS.equals(status)
+                || DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(status)
+                || DEBUG_STATUS_SUCCESS_COMPLETE.equals(status);
     }
 }

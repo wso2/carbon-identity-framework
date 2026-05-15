@@ -32,8 +32,8 @@ import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerEx
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
-import org.wso2.carbon.identity.debug.framework.model.DebugRequest;
-import org.wso2.carbon.identity.debug.framework.model.DebugResponse;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
@@ -57,18 +57,18 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * This is the preferred method with type safety.
      * For IDP resource type, the connectionId is required and must be present.
      *
-     * @param debugRequest The debug request with resource information.
-     * @return DebugResponse containing the execution result.
+     * @param debugFrameworkRequest The debug request with resource information.
+     * @return DebugFrameworkResponse containing the execution result.
      * @throws DebugFrameworkClientException If the request has validation errors.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
     @Override
-    public DebugResponse handleDebugRequest(DebugRequest debugRequest)
+    public DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest) //TODO:naming
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        String connectionId = (String) debugRequest.getAdditionalContext()
+        String connectionId = (String) debugFrameworkRequest.getAdditionalContext()
                 .get(IdpDebugConstants.CONNECTION_ID);
-        String resourceType = debugRequest.getResourceType();
+        String resourceType = debugFrameworkRequest.getResourceType();
 
         // Validate that connectionId is provided for IDP debugging.
         if (StringUtils.isEmpty(connectionId)) {
@@ -89,7 +89,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             }
 
             DebugResult debugResult = executor.execute(resolvedContext);
-            return DebugResponse.fromDebugResult(debugResult);
+            return DebugFrameworkResponse.fromDebugResult(debugResult);
 
         } catch (DebugFrameworkClientException e) {
             throw e;
