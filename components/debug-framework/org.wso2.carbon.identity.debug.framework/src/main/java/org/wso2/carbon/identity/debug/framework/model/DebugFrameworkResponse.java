@@ -32,6 +32,7 @@ import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.D
  */
 public class DebugFrameworkResponse {
 
+    private String debugId;
     private String status;
     private String message;
     private String errorCode;
@@ -128,7 +129,8 @@ public class DebugFrameworkResponse {
 
     /**
      * Creates a DebugFrameworkResponse from DebugResult.
-     * Flattens resultData and metadata into the top-level data map.
+     * Sets debugId, status, and message as top-level fields.
+     * The data map contains only protocol-specific metadata.
      *
      * @param result The DebugResult to convert.
      * @return DebugFrameworkResponse instance.
@@ -139,44 +141,63 @@ public class DebugFrameworkResponse {
             return error("Result is null");
         }
 
-        // Set top-level status and message.
         DebugFrameworkResponse response = new DebugFrameworkResponse();
+
+        // Set top-level fields directly.
+        response.setDebugId(result.getDebugId());
+
         String resolvedStatus = resolveLifecycleStatus(result.getStatus());
-        response.setStatus(isSuccessfulLifecycleStatus(resolvedStatus) || result.isSuccessful()
-                ? DEBUG_STATUS_SUCCESS : DEBUG_STATUS_FAILURE);
+        response.setStatus(resolvedStatus != null ? resolvedStatus
+                : (result.isSuccessful() ? DEBUG_STATUS_SUCCESS_COMPLETE : DEBUG_STATUS_FAILURE));
 
-        String message = result.getErrorMessage();
-        if (message == null) {
-            message = result.getStatus();
-        }
-        response.setMessage(message);
+        response.setMessage(result.getErrorMessage() != null ? result.getErrorMessage() : result.getStatus());
 
+        // The data map contains only protocol-specific metadata — no top-level fields.
         Map<String, Object> data = new HashMap<>();
 
-        // Flatten resultData into the map first (user data).
         if (result.getResultData() != null && !result.getResultData().isEmpty()) {
             data.putAll(result.getResultData());
         }
-
-        if (resolvedStatus != null) {
-            data.put("status", resolvedStatus);
-        }
-
-        data.put("debugId", result.getDebugId());
 
         if (result.getErrorCode() != null) {
             data.put("errorCode", result.getErrorCode());
         }
 
-        // Flatten metadata into the top-level map (avoid overwriting existing keys).
+        // Merge metadata without overwriting already present resultData keys.
         if (result.getMetadata() != null && !result.getMetadata().isEmpty()) {
             for (Map.Entry<String, Object> entry : result.getMetadata().entrySet()) {
                 data.putIfAbsent(entry.getKey(), entry.getValue());
             }
         }
 
+        // Remove reserved top-level keys that may have been included in resultData or metadata
+        // by protocol-specific executors. These fields are already promoted to top-level response fields.
+        data.remove("debugId");
+        data.remove("status");
+        data.remove("message");
+
         response.setData(data);
         return response;
+    }
+
+    /**
+     * Gets the debug session ID.
+     *
+     * @return Debug session ID string.
+     */
+    public String getDebugId() {
+
+        return debugId;
+    }
+
+    /**
+     * Sets the debug session ID.
+     *
+     * @param debugId Debug session ID string.
+     */
+    public void setDebugId(String debugId) {
+
+        this.debugId = debugId;
     }
 
     /**
@@ -258,12 +279,5 @@ public class DebugFrameworkResponse {
             return status;
         }
         return null;
-    }
-
-    private static boolean isSuccessfulLifecycleStatus(String status) {
-
-        return DEBUG_STATUS_SUCCESS.equals(status)
-                || DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(status)
-                || DEBUG_STATUS_SUCCESS_COMPLETE.equals(status);
     }
 }

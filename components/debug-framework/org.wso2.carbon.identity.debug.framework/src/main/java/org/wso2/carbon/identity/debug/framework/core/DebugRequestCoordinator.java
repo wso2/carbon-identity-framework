@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -212,11 +211,11 @@ public class DebugRequestCoordinator {
      * This ensures that post-execution listeners (like cleanup) are executed.
      *
      * @param debugId The debug ID to retrieve.
-     * @return The debug result as a typed map.
+     * @return The debug result as a {@link DebugFrameworkResponse}.
      * @throws DebugFrameworkClientException If the session is not found or validation fails.
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
-    public Map<String, Object> getDebugResult(String debugId)
+    public DebugFrameworkResponse getDebugResult(String debugId)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
         if (debugId == null) {
@@ -240,17 +239,19 @@ public class DebugRequestCoordinator {
                         ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
             }
 
+            // Parse stored JSON into metadata map (protocol-specific data only).
             Map<String, Object> resultData = parseResultJson(resultJson, debugId);
 
-            // Create response object for listeners.
-            Map<String, Object> data = new HashMap<>();
-            data.put("result", resultData);
-            DebugFrameworkResponse debugFrameworkResponse = DebugFrameworkResponse.success(data);
+            // Build a structured response: debugId and status at top level, metadata in data.
+            DebugFrameworkResponse debugFrameworkResponse = new DebugFrameworkResponse();
+            debugFrameworkResponse.setDebugId(debugId);
+            debugFrameworkResponse.setStatus(DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE);
+            debugFrameworkResponse.setData(resultData);
 
             // Post-Execute Listeners.
             executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
 
-            return resultData;
+            return debugFrameworkResponse;
 
         } catch (DebugFrameworkClientException e) {
             throw e;
