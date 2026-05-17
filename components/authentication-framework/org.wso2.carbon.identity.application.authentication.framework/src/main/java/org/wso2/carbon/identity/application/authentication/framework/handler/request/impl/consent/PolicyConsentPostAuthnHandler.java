@@ -33,6 +33,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentReceiptUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
@@ -89,18 +90,23 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private static final String POLICY_CONSENT_PROMPTED = "policyConsentPrompted";
     private static final String POLICY_MANDATORY_UNCONSENTED_IDS = "policyMandatoryUnconsentedIds";
+    private static final String POLICY_MANDATORY_NEW_VERSION_IDS = "policyMandatoryNewVersionIds";
     private static final String POLICY_OPTIONAL_UNCONSENTED_IDS = "policyOptionalUnconsentedIds";
+    private static final String POLICY_OPTIONAL_NEW_VERSION_IDS = "policyOptionalNewVersionIds";
     private static final String USER_CONSENT_INPUT = "consent";
     private static final String USER_CONSENT_APPROVE = "approve";
     private static final String LOGIN_ENDPOINT = "login.do";
     private static final String POLICY_CONSENT_ENDPOINT = "policy_consent.do";
     private static final String MANDATORY_PURPOSE_IDS_PARAM = "mandatoryPurposeIds";
+    private static final String MANDATORY_NEW_VERSION_PURPOSE_IDS_PARAM = "mandatoryNewVersionPurposeIds";
     private static final String OPTIONAL_PURPOSE_IDS_PARAM = "optionalPurposeIds";
+    private static final String OPTIONAL_NEW_VERSION_PURPOSE_IDS_PARAM = "optionalNewVersionPurposeIds";
     private static final String OPTIONAL_PURPOSE_ID_PARAM = "optionalPurposeId";
     private static final String PURPOSE_METADATA_PARAM = "purposeMetadata";
     private static final String PURPOSE_ID_SEPARATOR = ",";
     private static final String SYSTEM_APP_ID = "SYSTEM";
     private static final String POLICY_URL_PROPERTY_KEY = "policyUrl";
+    private static final String PROMPT_ON_LOGIN_PROPERTY_KEY = "promptOnLogin";
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
@@ -129,7 +135,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        if (isSystemApplication(context)) {
+        if (isSystemApplication(context)) { // disable for saas apps
             if (LOG.isDebugEnabled()) {
                 LOG.debug("System application detected. Skipping policy consent handling for user: "
                         + authenticatedUser.getAuthenticatedSubjectIdentifier());
@@ -178,23 +184,47 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
 
         List<Purpose> policyPurposes;
         List<String> mandatoryUnconsentedIds;
+        List<String> mandatoryNewVersionIds;
         List<String> optionalUnseenIds;
+        List<String> optionalNewVersionIds;
         try {
             policyPurposes = getPolicyPurposes();
             mandatoryUnconsentedIds = new ArrayList<>();
+            mandatoryNewVersionIds = new ArrayList<>();
             optionalUnseenIds = new ArrayList<>();
-            for (Purpose purpose : policyPurposes) {
-                if (isMandatoryPurpose(purpose)) {
-                    // Check if there are new versions of mandatory policies missing acceptance.
-                    if (missingPolicyConsentWithState(subjectId, purpose, ACTIVE_STATE)) {
-                        mandatoryUnconsentedIds.add(purpose.getUuid());
+            optionalNewVersionIds = new ArrayList<>();
+            try {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subjectId);
+                for (Purpose purpose : policyPurposes) {
+                    PurposeVersion promptOnLoginVersion = getLatestVersionWithPromptOnLogin(purpose);
+                    if (promptOnLoginVersion == null) {
+                        continue;
                     }
-                } else {
-                    // Check if there are new versions of optional policies missing acceptance or has not been rejected.
-                    if (missingPolicyConsentWithState(subjectId, purpose, REJECTED_STATE)) {
-                        optionalUnseenIds.add(purpose.getUuid());
+
+                    if (missingConsentForVersion(subjectId, purpose, promptOnLoginVersion)) {
+                        if (isMandatoryPurpose(purpose)) {
+                            if (hasConsentForAnyVersion(subjectId, purpose)) {
+                                // User previously consented but newer version requires re-acceptance.
+                                mandatoryNewVersionIds.add(purpose.getUuid());
+                            } else {
+                                // User has never consented to this policy.
+                                mandatoryUnconsentedIds.add(purpose.getUuid());
+                            }
+                        } else {
+                            if (hasConsentForAnyVersion(subjectId, purpose)) {
+                                // User previously saw this policy but newer version requires re-acceptance.
+                                optionalNewVersionIds.add(purpose.getUuid());
+                            } else {
+                                // User has never seen this optional policy.
+                                optionalUnseenIds.add(purpose.getUuid());
+                            }
+                        }
                     }
                 }
+            } finally {
+                PrivilegedCarbonContext.endTenantFlow();
             }
         } catch (ConsentManagementException e) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -215,7 +245,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                             subjectId, tenantDomain), e);
         }
 
-        if (mandatoryUnconsentedIds.isEmpty() && optionalUnseenIds.isEmpty()) {
+        if (mandatoryUnconsentedIds.isEmpty() && mandatoryNewVersionIds.isEmpty()
+                && optionalUnseenIds.isEmpty() && optionalNewVersionIds.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("No unconsented policy purposes found for user: %s. "
                         + "Policy consent handling complete.", subjectId));
@@ -224,27 +255,36 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Found %d mandatory and %d optional unconsented policy purpose(s) for user: %s."
-                    + " Redirecting to policy consent page.",
-                    mandatoryUnconsentedIds.size(), optionalUnseenIds.size(), subjectId));
+            LOG.debug(String.format(
+                    "Found %d new mandatory, %d updated mandatory, %d new optional, %d updated optional "
+                            + "unconsented policy purpose(s) for user: %s. Redirecting to policy consent page.",
+                    mandatoryUnconsentedIds.size(), mandatoryNewVersionIds.size(),
+                    optionalUnseenIds.size(), optionalNewVersionIds.size(), subjectId));
         }
 
         context.addParameter(POLICY_MANDATORY_UNCONSENTED_IDS, mandatoryUnconsentedIds);
+        context.addParameter(POLICY_MANDATORY_NEW_VERSION_IDS, mandatoryNewVersionIds);
         context.addParameter(POLICY_OPTIONAL_UNCONSENTED_IDS, optionalUnseenIds);
+        context.addParameter(POLICY_OPTIONAL_NEW_VERSION_IDS, optionalNewVersionIds);
         setPolicyConsentPromptedState(context);
 
         Set<String> mandatoryIdSet = new HashSet<>(mandatoryUnconsentedIds);
+        mandatoryIdSet.addAll(mandatoryNewVersionIds);
+        Set<String> newVersionIdSet = new HashSet<>(mandatoryNewVersionIds);
+        newVersionIdSet.addAll(optionalNewVersionIds);
         List<Purpose> relevantPurposes = new ArrayList<>();
         for (Purpose purpose : policyPurposes) {
             if (mandatoryUnconsentedIds.contains(purpose.getUuid())
-                    || optionalUnseenIds.contains(purpose.getUuid())) {
+                    || mandatoryNewVersionIds.contains(purpose.getUuid())
+                    || optionalUnseenIds.contains(purpose.getUuid())
+                    || optionalNewVersionIds.contains(purpose.getUuid())) {
                 relevantPurposes.add(purpose);
             }
         }
 
         try {
-            redirectToPolicyConsentPage(response, context, mandatoryUnconsentedIds, optionalUnseenIds,
-                    relevantPurposes, mandatoryIdSet);
+            redirectToPolicyConsentPage(response, context, mandatoryUnconsentedIds, mandatoryNewVersionIds,
+                    optionalUnseenIds, optionalNewVersionIds, relevantPurposes, mandatoryIdSet, newVersionIdSet);
         } catch (IOException e) {
             throw new PostAuthenticationFailedException(
                     "Authentication failed. Error while redirecting to policy consent page.",
@@ -298,8 +338,25 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                     "User denied consent to accept the required policies.");
         }
 
-        List<String> mandatoryIds = (List<String>) context.getParameter(POLICY_MANDATORY_UNCONSENTED_IDS);
-        List<String> optionalIds = (List<String>) context.getParameter(POLICY_OPTIONAL_UNCONSENTED_IDS);
+        List<String> mandatoryIds = new ArrayList<>();
+        List<String> m1 = (List<String>) context.getParameter(POLICY_MANDATORY_UNCONSENTED_IDS);
+        List<String> m2 = (List<String>) context.getParameter(POLICY_MANDATORY_NEW_VERSION_IDS);
+        if (m1 != null) {
+            mandatoryIds.addAll(m1);
+        }
+        if (m2 != null) {
+            mandatoryIds.addAll(m2);
+        }
+
+        List<String> optionalIds = new ArrayList<>();
+        List<String> o1 = (List<String>) context.getParameter(POLICY_OPTIONAL_UNCONSENTED_IDS);
+        List<String> o2 = (List<String>) context.getParameter(POLICY_OPTIONAL_NEW_VERSION_IDS);
+        if (o1 != null) {
+            optionalIds.addAll(o1);
+        }
+        if (o2 != null) {
+            optionalIds.addAll(o2);
+        }
 
         // Only checked optional checkboxes are submitted; absent ones are treated as rejected.
         String[] approvedOptionalParam = request.getParameterValues(OPTIONAL_PURPOSE_ID_PARAM);
@@ -308,23 +365,22 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 : Collections.emptySet();
 
         try {
-            if (mandatoryIds != null) {
-                for (String purposeId : mandatoryIds) {
-                    recordPolicyConsent(subjectId, tenantDomain, purposeId, ACTIVE_STATE);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Recorded ACTIVE policy consent for user: %s, purpose: %s.",
-                                subjectId, purposeId));
-                    }
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subjectId);
+            for (String purposeId : mandatoryIds) {
+                recordPolicyConsent(subjectId, tenantDomain, purposeId, ACTIVE_STATE);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Recorded ACTIVE policy consent for user: %s, purpose: %s.",
+                            subjectId, purposeId));
                 }
             }
-            if (optionalIds != null) {
-                for (String purposeId : optionalIds) {
-                    String state = approvedOptionalIds.contains(purposeId) ? ACTIVE_STATE : REJECTED_STATE;
-                    recordPolicyConsent(subjectId, tenantDomain, purposeId, state);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Recorded %s policy consent for user: %s, purpose: %s.",
-                                state, subjectId, purposeId));
-                    }
+            for (String purposeId : optionalIds) {
+                String state = approvedOptionalIds.contains(purposeId) ? ACTIVE_STATE : REJECTED_STATE;
+                recordPolicyConsent(subjectId, tenantDomain, purposeId, state);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Recorded %s policy consent for user: %s, purpose: %s.",
+                            state, subjectId, purposeId));
                 }
             }
         } catch (ConsentManagementException e) {
@@ -338,6 +394,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                     "Authentication failed. Error occurred while processing policy consent.",
                     String.format("Error processing policy consent for user: %s in tenant: %s.",
                             subjectId, tenantDomain), e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
         }
 
         return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
@@ -391,8 +449,10 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
     }
 
     private void redirectToPolicyConsentPage(HttpServletResponse response, AuthenticationContext context,
-                                             List<String> mandatoryIds, List<String> optionalIds,
-                                             List<Purpose> purposes, Set<String> mandatoryIdSet)
+                                             List<String> mandatoryIds, List<String> mandatoryNewVersionIds,
+                                             List<String> optionalIds, List<String> optionalNewVersionIds,
+                                             List<Purpose> purposes, Set<String> mandatoryIdSet,
+                                             Set<String> newVersionIdSet)
             throws IOException, URISyntaxException {
 
         String policyConsentUrl = ConfigurationFacade.getInstance()
@@ -403,14 +463,22 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (!mandatoryIds.isEmpty()) {
             uriBuilder.addParameter(MANDATORY_PURPOSE_IDS_PARAM, joinIds(mandatoryIds));
         }
+        if (!mandatoryNewVersionIds.isEmpty()) {
+            uriBuilder.addParameter(MANDATORY_NEW_VERSION_PURPOSE_IDS_PARAM, joinIds(mandatoryNewVersionIds));
+        }
         if (!optionalIds.isEmpty()) {
             uriBuilder.addParameter(OPTIONAL_PURPOSE_IDS_PARAM, joinIds(optionalIds));
         }
-        uriBuilder.addParameter(PURPOSE_METADATA_PARAM, buildPurposeMetadataJson(purposes, mandatoryIdSet));
+        if (!optionalNewVersionIds.isEmpty()) {
+            uriBuilder.addParameter(OPTIONAL_NEW_VERSION_PURPOSE_IDS_PARAM, joinIds(optionalNewVersionIds));
+        }
+        uriBuilder.addParameter(PURPOSE_METADATA_PARAM,
+                buildPurposeMetadataJson(purposes, mandatoryIdSet, newVersionIdSet));
         response.sendRedirect(uriBuilder.build().toString());
     }
 
-    private String buildPurposeMetadataJson(List<Purpose> purposes, Set<String> mandatoryIdSet) {
+    private String buildPurposeMetadataJson(List<Purpose> purposes, Set<String> mandatoryIdSet,
+                                             Set<String> newVersionIdSet) {
 
         List<Map<String, Object>> metadataList = new ArrayList<>();
         for (Purpose purpose : purposes) {
@@ -418,6 +486,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             metadata.put("purposeId", purpose.getUuid() != null ? purpose.getUuid() : "");
             metadata.put("name", purpose.getName() != null ? purpose.getName() : purpose.getUuid());
             metadata.put("mandatory", mandatoryIdSet.contains(purpose.getUuid()));
+            metadata.put("newVersion", newVersionIdSet.contains(purpose.getUuid()));
 
             PurposeVersion latestVersion = purpose.getLatestVersion();
             String description = "";
@@ -440,6 +509,19 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             metadataList.add(metadata);
         }
         return new Gson().toJson(metadataList);
+    }
+
+    private boolean hasConsentForAnyVersion(String subjectId, Purpose purpose)
+            throws ConsentManagementException {
+
+        List<Receipt> activeReceipts = getConsentManager().listReceipts(subjectId, SYSTEM_APP_ID,
+                ACTIVE_STATE, purpose.getUuid(), null, null, null, 1);
+        if (activeReceipts != null && !activeReceipts.isEmpty()) {
+            return true;
+        }
+        List<Receipt> rejectedReceipts = getConsentManager().listReceipts(subjectId, SYSTEM_APP_ID,
+                REJECTED_STATE, purpose.getUuid(), null, null, null, 1);
+        return rejectedReceipts != null && !rejectedReceipts.isEmpty();
     }
 
     private String joinIds(List<String> ids) {
@@ -490,6 +572,60 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
     private ServiceProvider getServiceProvider(AuthenticationContext context) {
 
         return context.getSequenceConfig().getApplicationConfig().getServiceProvider();
+    }
+
+    private PurposeVersion getLatestVersionWithPromptOnLogin(Purpose purpose) throws ConsentManagementException {
+
+        List<PurposeVersion> allVersions = getConsentManager().listPurposeVersions(purpose.getUuid());
+        if (allVersions == null || allVersions.isEmpty()) {
+            return null;
+        }
+        for (int i = allVersions.size() - 1; i >= 0; i--) {
+            PurposeVersion version = allVersions.get(i);
+            if (shouldPromptOnLogin(version)) {
+                return version;
+            }
+        }
+        return null;
+    }
+
+    private boolean shouldPromptOnLogin(PurposeVersion version) {
+
+        if (version == null || version.getProperties() == null) {
+            return false;
+        }
+        String promptOnLogin = version.getProperties().get(PROMPT_ON_LOGIN_PROPERTY_KEY);
+        return "true".equalsIgnoreCase(promptOnLogin);
+    }
+
+    private boolean missingConsentForVersion(String subjectId, Purpose purpose, PurposeVersion promptOnLoginVersion)
+            throws ConsentManagementException {
+
+        if (promptOnLoginVersion == null) {
+            return true;
+        }
+        List<PurposeVersion> allVersions = getConsentManager().listPurposeVersions(purpose.getUuid());
+        if (allVersions == null || allVersions.isEmpty()) {
+            return true;
+        }
+        int promptOnLoginVersionIndex = -1;
+        for (int i = 0; i < allVersions.size(); i++) {
+            if (promptOnLoginVersion.getUuid().equals(allVersions.get(i).getUuid())) {
+                promptOnLoginVersionIndex = i;
+                break;
+            }
+        }
+        if (promptOnLoginVersionIndex == -1) {
+            return true;
+        }
+        for (int i = promptOnLoginVersionIndex; i < allVersions.size(); i++) {
+            List<Receipt> receipts = getConsentManager().listReceipts(subjectId, SYSTEM_APP_ID,
+                    null, purpose.getUuid(), allVersions.get(i).getUuid(), null, null, 1);
+            if (receipts != null && !receipts.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
