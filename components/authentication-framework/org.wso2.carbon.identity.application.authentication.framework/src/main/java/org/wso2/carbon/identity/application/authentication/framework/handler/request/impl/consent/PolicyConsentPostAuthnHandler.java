@@ -135,7 +135,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        if (isSystemApplication(context)) { // disable for saas apps
+        if (isSystemApplication(context)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("System application detected. Skipping policy consent handling for user: "
                         + authenticatedUser.getAuthenticatedSubjectIdentifier());
