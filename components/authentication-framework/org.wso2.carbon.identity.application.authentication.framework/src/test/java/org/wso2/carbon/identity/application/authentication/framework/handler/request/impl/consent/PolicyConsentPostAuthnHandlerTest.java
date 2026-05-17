@@ -161,10 +161,9 @@ public class PolicyConsentPostAuthnHandlerTest {
         loggerUtilsMock.close();
     }
 
-    // -------------------------------------------------------------------------
-    // handle() — entry point routing
-    // -------------------------------------------------------------------------
-
+    /**
+     * handle() — entry point routing
+     */
     @Test(description = "Returns SUCCESS_COMPLETED when no authenticated user is present in context.")
     public void testHandleReturnsSuccessWhenNoAuthenticatedUser() throws Exception {
 
@@ -215,10 +214,9 @@ public class PolicyConsentPostAuthnHandlerTest {
         assertEquals(handler.getName(), "PolicyConsentPostAuthenticationHandler");
     }
 
-    // -------------------------------------------------------------------------
-    // handlePrePolicyConsent — mandatory purposes
-    // -------------------------------------------------------------------------
-
+    /**
+     * handlePrePolicyConsent — mandatory purposes
+     */
     @Test(description = "Returns SUCCESS_COMPLETED when there are no policy purposes at all.")
     public void testPreConsentSuccessWhenNoPolicyPurposesExist() throws Exception {
 
@@ -230,13 +228,13 @@ public class PolicyConsentPostAuthnHandlerTest {
         verify(response, never()).sendRedirect(anyString());
     }
 
-    @Test(description = "Returns INCOMPLETE and redirects when a mandatory purpose has no ACTIVE receipt.")
+    @Test(description = "Returns INCOMPLETE and redirects for mandatory purpose without receipt (promptOnLogin).")
     public void testPreConsentRedirectsForMandatoryPurposeWithNoActiveReceipt() throws Exception {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
@@ -246,13 +244,13 @@ public class PolicyConsentPostAuthnHandlerTest {
         verify(response).sendRedirect(anyString());
     }
 
-    @Test(description = "Returns SUCCESS_COMPLETED when a mandatory purpose already has an ACTIVE receipt.")
+    @Test(description = "Returns SUCCESS_COMPLETED for mandatory purpose with receipt (promptOnLogin).")
     public void testPreConsentSkipsMandatoryPurposeWithActiveReceipt() throws Exception {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
@@ -283,17 +281,16 @@ public class PolicyConsentPostAuthnHandlerTest {
                         !url.contains("optionalPurposeIds")));
     }
 
-    // -------------------------------------------------------------------------
-    // handlePrePolicyConsent — optional purposes
-    // -------------------------------------------------------------------------
-
-    @Test(description = "Returns INCOMPLETE and redirects when an optional purpose has no REJECTED receipt.")
+    /**
+     * handlePrePolicyConsent — optional purposes
+     */
+    @Test(description = "Returns INCOMPLETE and redirects for optional purpose without receipt (promptOnLogin).")
     public void testPreConsentRedirectsForOptionalPurposeWithNoReceipt() throws Exception {
 
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
@@ -309,8 +306,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
-        // A REJECTED receipt already exists — user saw and skipped this version.
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
@@ -326,7 +322,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
@@ -348,10 +344,10 @@ public class PolicyConsentPostAuthnHandlerTest {
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_2, VERSION_UUID_2);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Arrays.asList(mandatory, optional));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(ACTIVE_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), eq(REJECTED_STATE),
+        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
                 eq(PURPOSE_UUID_2), eq(VERSION_UUID_2), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
@@ -377,10 +373,9 @@ public class PolicyConsentPostAuthnHandlerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // handlePostPolicyConsent — mandatory purposes
-    // -------------------------------------------------------------------------
-
+    /**
+     * handlePostPolicyConsent — mandatory purposes
+     */
     @Test(description = "Throws PostAuthenticationFailedException when user denies consent (mandatory declined).")
     public void testPostConsentThrowsWhenUserDenies() {
 
@@ -432,10 +427,9 @@ public class PolicyConsentPostAuthnHandlerTest {
         verify(consentManager, never()).addConsent(any(ReceiptInput.class));
     }
 
-    // -------------------------------------------------------------------------
-    // handlePostPolicyConsent — optional purposes
-    // -------------------------------------------------------------------------
-
+    /**
+     * handlePostPolicyConsent — optional purposes
+     */
     @Test(description = "Records ACTIVE consent for accepted optional purposes when not in skipped list.")
     @SuppressWarnings("unchecked")
     public void testPostConsentRecordsActiveReceiptForAcceptedOptionalPurpose() throws Exception {
@@ -523,10 +517,9 @@ public class PolicyConsentPostAuthnHandlerTest {
         assertEquals(captor.getAllValues().stream().filter(r -> r.getState() == null).count(), 1L);
     }
 
-    // -------------------------------------------------------------------------
-    // handlePostPolicyConsent — PII category creation
-    // -------------------------------------------------------------------------
-
+    /**
+     * handlePostPolicyConsent — PII category creation
+     */
     @Test(description = "Creates a new PII category when one does not already exist.")
     @SuppressWarnings("unchecked")
     public void testPostConsentCreatesNewPIICategoryWhenAbsent() throws Exception {
@@ -550,11 +543,10 @@ public class PolicyConsentPostAuthnHandlerTest {
         verify(consentManager).addPIICategoryWithUuid(any());
     }
 
-    // -------------------------------------------------------------------------
-    // helpers
-    // -------------------------------------------------------------------------
-
-    private Purpose buildMandatoryPurpose(String purposeUuid, String versionUuid) {
+    /**
+     * helpers
+     */
+    private Purpose buildMandatoryPurpose(String purposeUuid, String versionUuid) throws ConsentManagementException {
 
         PurposePIICategory mandatoryElement = mock(PurposePIICategory.class);
         when(mandatoryElement.getMandatory()).thenReturn(true);
@@ -562,23 +554,212 @@ public class PolicyConsentPostAuthnHandlerTest {
         PurposeVersion version = mock(PurposeVersion.class);
         when(version.getUuid()).thenReturn(versionUuid);
         when(version.getPurposePIICategories()).thenReturn(Collections.singletonList(mandatoryElement));
+        when(version.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
 
         Purpose purpose = mock(Purpose.class);
         when(purpose.getUuid()).thenReturn(purposeUuid);
         when(purpose.getLatestVersion()).thenReturn(version);
+        when(consentManager.listPurposeVersions(purposeUuid))
+                .thenReturn(Collections.singletonList(version));
         return purpose;
     }
 
-    private Purpose buildOptionalPurpose(String purposeUuid, String versionUuid) {
+    private Purpose buildOptionalPurpose(String purposeUuid, String versionUuid) throws ConsentManagementException {
 
         PurposeVersion version = mock(PurposeVersion.class);
         when(version.getUuid()).thenReturn(versionUuid);
         when(version.getPurposePIICategories()).thenReturn(Collections.emptyList());
+        when(version.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
 
         Purpose purpose = mock(Purpose.class);
         when(purpose.getUuid()).thenReturn(purposeUuid);
         when(purpose.getId()).thenReturn(42);
         when(purpose.getLatestVersion()).thenReturn(version);
+        when(consentManager.listPurposeVersions(purposeUuid))
+                .thenReturn(Collections.singletonList(version));
         return purpose;
+    }
+
+    /**
+     * promptOnLogin feature tests
+     */
+    @Test(description = "Policy with promptOnLogin should prompt if user has no consent for that version or later.")
+    public void testPromptOnLoginPolicyWithNoConsent() throws Exception {
+
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentV2APIEnabled()).thenReturn(true);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentPageSkippedForSP(any())).thenReturn(false);
+
+        String versionUuidWithPrompt = "version-uuid-with-prompt";
+        String versionUuidLatest = "version-uuid-latest";
+
+        Purpose purpose = buildOptionalPurpose(PURPOSE_UUID_1, versionUuidLatest);
+
+        PurposeVersion versionWithPrompt = mock(PurposeVersion.class);
+        when(versionWithPrompt.getUuid()).thenReturn(versionUuidWithPrompt);
+        when(versionWithPrompt.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
+        when(versionWithPrompt.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        PurposeVersion latestVersion = mock(PurposeVersion.class);
+        when(latestVersion.getUuid()).thenReturn(versionUuidLatest);
+        when(latestVersion.getProperties()).thenReturn(Collections.emptyMap());
+        when(latestVersion.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        when(purpose.getLatestVersion()).thenReturn(latestVersion);
+        when(consentManager.listPurposes(anyList(), anyInt()))
+                .thenReturn(Collections.singletonList(purpose));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_1))
+                .thenReturn(Arrays.asList(versionWithPrompt, latestVersion));
+        when(consentManager.listReceipts(eq(SUBJECT_ID), anyString(), isNull(), eq(PURPOSE_UUID_1),
+                anyString(), isNull(), isNull(), anyInt()))
+                .thenReturn(Collections.emptyList());
+
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+
+        assertEquals(status, PostAuthnHandlerFlowStatus.INCOMPLETE);
+        ArgumentCaptor<String> redirectUrlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(response).sendRedirect(redirectUrlCaptor.capture());
+        String redirectUrl = redirectUrlCaptor.getValue();
+
+        // Should contain the optional purpose ID since it has promptOnLogin
+        assertEquals(context.getParameter("policyOptionalUnconsentedIds"),
+                Collections.singletonList(PURPOSE_UUID_1));
+    }
+
+    @Test(description = "Policy with promptOnLogin should not prompt if user has consent for that version.")
+    public void testPromptOnLoginPolicyWithConsent() throws Exception {
+
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentV2APIEnabled()).thenReturn(true);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentPageSkippedForSP(any())).thenReturn(false);
+
+        String versionUuidWithPrompt = "version-uuid-with-prompt";
+        String versionUuidLatest = "version-uuid-latest";
+
+        Purpose purpose = buildOptionalPurpose(PURPOSE_UUID_1, versionUuidLatest);
+
+        PurposeVersion versionWithPrompt = mock(PurposeVersion.class);
+        when(versionWithPrompt.getUuid()).thenReturn(versionUuidWithPrompt);
+        when(versionWithPrompt.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
+        when(versionWithPrompt.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        PurposeVersion latestVersion = mock(PurposeVersion.class);
+        when(latestVersion.getUuid()).thenReturn(versionUuidLatest);
+        when(latestVersion.getProperties()).thenReturn(Collections.emptyMap());
+        when(latestVersion.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        when(purpose.getLatestVersion()).thenReturn(latestVersion);
+        when(consentManager.listPurposes(anyList(), anyInt()))
+                .thenReturn(Collections.singletonList(purpose));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_1))
+                .thenReturn(Arrays.asList(versionWithPrompt, latestVersion));
+
+        Receipt mockReceipt = mock(Receipt.class);
+        when(consentManager.listReceipts(eq(SUBJECT_ID), anyString(), isNull(), eq(PURPOSE_UUID_1),
+                eq(versionUuidWithPrompt), isNull(), isNull(), anyInt()))
+                .thenReturn(Collections.singletonList(mockReceipt));
+
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+
+        assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
+        verify(response, never()).sendRedirect(anyString());
+    }
+
+    @Test(description = "Policy with promptOnLogin should not prompt if user has consent for a later version.")
+    public void testPromptOnLoginPolicyWithConsentForLaterVersion() throws Exception {
+
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentV2APIEnabled()).thenReturn(true);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentPageSkippedForSP(any())).thenReturn(false);
+
+        String versionUuidWithPrompt = "version-uuid-with-prompt";
+        String versionUuidLatest = "version-uuid-latest";
+
+        Purpose purpose = buildOptionalPurpose(PURPOSE_UUID_1, versionUuidLatest);
+
+        PurposeVersion versionWithPrompt = mock(PurposeVersion.class);
+        when(versionWithPrompt.getUuid()).thenReturn(versionUuidWithPrompt);
+        when(versionWithPrompt.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
+        when(versionWithPrompt.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        PurposeVersion latestVersion = mock(PurposeVersion.class);
+        when(latestVersion.getUuid()).thenReturn(versionUuidLatest);
+        when(latestVersion.getProperties()).thenReturn(Collections.emptyMap());
+        when(latestVersion.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        when(purpose.getLatestVersion()).thenReturn(latestVersion);
+        when(consentManager.listPurposes(anyList(), anyInt()))
+                .thenReturn(Collections.singletonList(purpose));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_1))
+                .thenReturn(Arrays.asList(versionWithPrompt, latestVersion));
+
+        Receipt mockReceipt = mock(Receipt.class);
+        // User has consent for the LATEST version (which is after the promptOnLogin version)
+        when(consentManager.listReceipts(eq(SUBJECT_ID), anyString(), isNull(), eq(PURPOSE_UUID_1),
+                eq(versionUuidWithPrompt), isNull(), isNull(), anyInt()))
+                .thenReturn(Collections.emptyList());
+        when(consentManager.listReceipts(eq(SUBJECT_ID), anyString(), isNull(), eq(PURPOSE_UUID_1),
+                eq(versionUuidLatest), isNull(), isNull(), anyInt()))
+                .thenReturn(Collections.singletonList(mockReceipt));
+
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+
+        assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
+        verify(response, never()).sendRedirect(anyString());
+    }
+
+    @Test(description = "Policy without promptOnLogin should be skipped regardless of consent status.")
+    public void testPolicyWithoutPromptOnLoginIsSkipped() throws Exception {
+
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentV2APIEnabled()).thenReturn(true);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentPageSkippedForSP(any())).thenReturn(false);
+
+        Purpose purpose = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
+
+        PurposeVersion version = mock(PurposeVersion.class);
+        when(version.getUuid()).thenReturn(VERSION_UUID_1);
+        when(version.getProperties()).thenReturn(Collections.emptyMap());
+        when(version.getPurposePIICategories()).thenReturn(Collections.emptyList());
+
+        when(purpose.getLatestVersion()).thenReturn(version);
+        when(consentManager.listPurposes(anyList(), anyInt()))
+                .thenReturn(Collections.singletonList(purpose));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_1))
+                .thenReturn(Collections.singletonList(version));
+
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+
+        assertEquals(status, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED);
+        verify(response, never()).sendRedirect(anyString());
+    }
+
+    @Test(description = "Mandatory policy with promptOnLogin should block login if user declines.")
+    public void testMandatoryPromptOnLoginPolicyBlocksLogin() throws Exception {
+
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentV2APIEnabled()).thenReturn(true);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentPageSkippedForSP(any())).thenReturn(false);
+
+        String versionUuidWithPrompt = "version-uuid-with-prompt";
+
+        Purpose purpose = buildMandatoryPurpose(PURPOSE_UUID_1, versionUuidWithPrompt);
+
+        PurposeVersion versionWithPrompt = mock(PurposeVersion.class);
+        when(versionWithPrompt.getUuid()).thenReturn(versionUuidWithPrompt);
+        when(versionWithPrompt.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
+        PurposePIICategory mandatoryElement = mock(PurposePIICategory.class);
+        when(mandatoryElement.getMandatory()).thenReturn(true);
+        when(versionWithPrompt.getPurposePIICategories()).thenReturn(Collections.singletonList(mandatoryElement));
+
+        when(purpose.getLatestVersion()).thenReturn(versionWithPrompt);
+        when(consentManager.listPurposes(anyList(), anyInt()))
+                .thenReturn(Collections.singletonList(purpose));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_1))
+                .thenReturn(Collections.singletonList(versionWithPrompt));
+        when(consentManager.listReceipts(eq(SUBJECT_ID), anyString(), isNull(), eq(PURPOSE_UUID_1),
+                anyString(), isNull(), isNull(), anyInt()))
+                .thenReturn(Collections.emptyList());
+
+        PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
+
+        assertEquals(status, PostAuthnHandlerFlowStatus.INCOMPLETE);
+        assertEquals(context.getParameter("policyMandatoryUnconsentedIds"),
+                Collections.singletonList(PURPOSE_UUID_1));
     }
 }
