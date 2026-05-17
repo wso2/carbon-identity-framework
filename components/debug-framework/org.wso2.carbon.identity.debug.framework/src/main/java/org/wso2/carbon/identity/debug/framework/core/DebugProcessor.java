@@ -18,206 +18,184 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
-import org.wso2.carbon.identity.debug.framework.model.DebugContext;
-
 import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Abstract base processor for debug flow callback handling.
- * Implements template method pattern for generic authentication/authorization
- * debug flow processing.
- * Uses DebugContext (protocol-agnostic) instead of WSO2's AuthenticationContext,
- * ensuring the debug framework remains independent of specific authentication implementations.
- *
- * Subclasses MUST implement all abstract methods with their specific logic.
- * Subclasses should NOT make assumptions about protocols or resource types.
- */
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
+import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
+/**
+ * Base processor for handling debug flow callbacks.
+ */
 public abstract class DebugProcessor {
 
     private static final Log LOG = LogFactory.getLog(DebugProcessor.class);
 
     /**
-     * Processes the debug flow callback from external system using DebugContext.
-     * This is the primary method signature (protocol-agnostic).
-     * Template method that orchestrates: validation -> authentication -> data
-     * extraction -> response.
+     * Processes the debug flow callback from an external system.
      *
-     * @param request  HttpServletRequest containing callback parameters.
-     * @param response HttpServletResponse for sending results.
-     * @param debugContext DebugContext (protocol-agnostic) for storing and retrieving debug state.
-     * @throws IOException If processing fails.
+     * @param request      Incoming HTTP request containing callback parameters.
+     * @param response     HTTP response for sending results.
+     * @param debugContext Debug context for storing and retrieving debug state.
+     * @throws DebugFrameworkException If an error occurs while processing the callback.
      */
     public void processCallback(HttpServletRequest request, HttpServletResponse response,
-            DebugContext debugContext) throws IOException {
+            DebugContext debugContext) throws DebugFrameworkException {
 
         String state = null;
         String resourceIdentifier = null;
 
         try {
-            // Extract protocol-specific parameters.
             state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-            if (state == null || state.trim().isEmpty()) {
+            if (StringUtils.isBlank(state)) {
                 state = (String) debugContext.getProperty("DEBUG_STATE");
             }
 
-            // Extract resource identifier.
             resourceIdentifier = extractResourceIdentifier(debugContext);
 
-            // Step 1: Validate callback (protocol/resource-specific).
             if (!validateCallback(request, debugContext, response, state, resourceIdentifier)) {
+                sendDebugResponse(response, state, resourceIdentifier);
                 return;
             }
 
-            // Step 2: Process authentication/authorization (protocol/resource-specific).
             if (!processAuthentication(request, debugContext, response, state, resourceIdentifier)) {
                 sendDebugResponse(response, state, resourceIdentifier);
                 return;
             }
 
-            // Step 3: Extract debug data (protocol/resource-specific).
             Map<String, Object> debugData = extractDebugData(debugContext);
 
-            // Step 4: Validate extracted data (protocol/resource-specific).
             if (!validateDebugData(debugData, debugContext, response, state, resourceIdentifier)) {
                 sendDebugResponse(response, state, resourceIdentifier);
                 return;
             }
 
-            // Step 5: Build and cache final debug result (protocol/resource-specific).
             buildAndCacheDebugResult(debugContext, state);
 
-            // Step 6: Send response to client.
             sendDebugResponse(response, state, resourceIdentifier);
 
         } catch (IOException e) {
-            LOG.error("Unexpected error processing debug callback.", e);
+            LOG.info("Unexpected error processing debug callback.", e);
             handleUnexpectedError(e, debugContext);
 
             // Try to extract state for error response.
-            if (state == null) {
+            if (StringUtils.isBlank(state)) {
                 state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-                if (state == null || state.trim().isEmpty()) {
+                if (StringUtils.isBlank(state)) {
                     state = (String) debugContext.getProperty("DEBUG_STATE");
                 }
+                if (StringUtils.isBlank(state)) {
+                    state = DebugFrameworkConstants.UNKNOWN_DEBUG_STATE;
+                }
             }
-            
+
             try {
                 if (!response.isCommitted()) {
                     sendDebugResponse(response, state, resourceIdentifier);
                 }
             } catch (IOException innerEx) {
-                LOG.error("Error sending debug response after initial failure", innerEx);
+                LOG.info("Error sending debug response after initial failure", innerEx);
                 e.addSuppressed(innerEx);
             }
-            throw e;
+            throw new DebugFrameworkException(
+                    DebugFrameworkConstants.ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                    DebugFrameworkConstants.ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
+                    e.getMessage(),
+                    e);
         }
     }
 
     /**
      * Extracts a resource identifier from the debug context.
-     * Default implementation returns empty string.
-     * Subclasses in resource-specific layers override this with
-     * their own identifier concept.
      *
-     * @param debugContext DebugContext.
-     * @return Resource identifier or empty string if not found.
+     * @param debugContext Debug context.
+     * @return Resource identifier, or empty string if not available.
      */
     protected String extractResourceIdentifier(DebugContext debugContext) {
         return "";
     }
 
     /**
-     * Validates callback parameters.
-     * Subclasses MUST implement with specific validation logic.
+     * Validates the callback parameters.
      *
-     * @param request  HttpServletRequest containing callback parameters.
-     * @param debugContext DebugContext (protocol-agnostic) for storing validation state.
-     * @param response HttpServletResponse for error responses.
-     * @param state State parameter.
-     * @param resourceIdentifier Generic resource identifier.
+     * @param request            Incoming HTTP request.
+     * @param debugContext       Debug context.
+     * @param response           HTTP response.
+     * @param state              State parameter from the callback.
+     * @param resourceIdentifier Resource identifier.
      * @return true if validation passes, false otherwise.
-     * @throws IOException If response cannot be sent.
+     * @throws IOException If an I/O error occurs while sending an error response.
      */
     protected abstract boolean validateCallback(HttpServletRequest request, DebugContext debugContext,
             HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
 
     /**
-     * Processes the authentication/authorization flow.
-     * Subclasses MUST implement with specific authentication logic.
+     * Processes the authentication flow.
      *
-     * @param request  HttpServletRequest containing authentication parameters.
-     * @param debugContext DebugContext (protocol-agnostic) for storing authentication state.
-     * @param response HttpServletResponse for error responses.
-     * @param state State parameter.
-     * @param resourceIdentifier Generic resource identifier.
+     * @param request            Incoming HTTP request.
+     * @param debugContext       Debug context.
+     * @param response           HTTP response.
+     * @param state              State parameter from the callback.
+     * @param resourceIdentifier Resource identifier.
      * @return true if authentication succeeds, false otherwise.
-     * @throws IOException If response cannot be sent.
+     * @throws IOException If an I/O error occurs while sending an error response.
      */
     protected abstract boolean processAuthentication(HttpServletRequest request, DebugContext debugContext,
             HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
 
     /**
      * Extracts debug data from the debug context.
-     * Subclasses MUST implement with specific data extraction logic.
      *
-     * @param debugContext DebugContext containing authentication results.
-     * @return Map of extracted debug data (key-value pairs).
+     * @param debugContext Debug context containing authentication results.
+     * @return Extracted debug data as key-value pairs.
      */
     protected abstract Map<String, Object> extractDebugData(DebugContext debugContext);
 
     /**
      * Validates the extracted debug data.
-     * Subclasses MUST implement with specific validation logic.
      *
-     * @param debugData Map of extracted debug data.
-     * @param debugContext DebugContext (protocol-agnostic).
-     * @param response HttpServletResponse for error responses.
-     * @param state State parameter.
-     * @param resourceIdentifier Generic resource identifier.
+     * @param debugData          Extracted debug data to validate.
+     * @param debugContext       Debug context.
+     * @param response           HTTP response.
+     * @param state              State parameter from the callback.
+     * @param resourceIdentifier Resource identifier.
      * @return true if validation passes, false otherwise.
-     * @throws IOException If response cannot be sent.
+     * @throws IOException If an I/O error occurs while sending an error response.
      */
     protected abstract boolean validateDebugData(Map<String, Object> debugData, DebugContext debugContext,
             HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
 
     /**
      * Builds and caches the final debug result.
-     * Subclasses MUST implement to create and cache appropriate debug result.
-     * Result should be stored in a format that can be retrieved later.
      *
-     * @param debugContext DebugContext containing all debug information and
-     *                     debug identifiers.
-     * @param state        The state parameter for debug identification.
+     * @param debugContext Debug context containing all collected debug information.
+     * @param state        State parameter used for debug identification.
      */
     protected abstract void buildAndCacheDebugResult(DebugContext debugContext, String state);
 
     /**
      * Sends the debug response to the client.
-     * Subclasses MUST implement to send appropriate HTTP response.
      *
-     * @param response           HttpServletResponse for sending the response.
-     * @param state              The state parameter for debug identification.
-     * @param resourceIdentifier The resource identifier.
-     * @throws IOException If response cannot be sent.
+     * @param response           HTTP response.
+     * @param state              State parameter used for debug identification.
+     * @param resourceIdentifier Resource identifier.
+     * @throws IOException If an I/O error occurs while sending the response.
      */
     protected abstract void sendDebugResponse(HttpServletResponse response, String state, String resourceIdentifier)
             throws IOException;
 
     /**
      * Handles unexpected errors during callback processing.
-     * Default implementation logs error and sets error properties in context.
-     * Subclasses MAY override to add custom error handling.
      *
-     * @param e           The exception that occurred.
-     * @param debugContext DebugContext (protocol-agnostic) for storing error information.
+     * @param e            The exception that occurred.
+     * @param debugContext Debug context for storing error information.
      */
     protected void handleUnexpectedError(Exception e, DebugContext debugContext) {
 

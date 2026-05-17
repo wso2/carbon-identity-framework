@@ -691,12 +691,17 @@ public class FrameworkServiceComponent {
     protected void setDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
         FrameworkServiceDataHolder.getInstance().addDebugAuthenticationInterceptor(interceptor);
-        log.info("DebugAuthenticationInterceptor registered: " + interceptor.getClass().getName());
+        if (log.isDebugEnabled()) {
+            log.debug("DebugAuthenticationInterceptor registered: " + interceptor.getClass().getName());
+        }
     }
 
     protected void unsetDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
         FrameworkServiceDataHolder.getInstance().removeDebugAuthenticationInterceptor(interceptor);
+        if (log.isDebugEnabled()) {
+            log.debug("DebugAuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
+        }
     }
 
     @Reference(

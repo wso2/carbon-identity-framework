@@ -62,6 +62,7 @@ public final class DebugFrameworkConstants {
     public static final String CALLBACK_STATE_PARAM = "state";
     public static final String CALLBACK_CODE_PARAM = "code";
     public static final String CALLBACK_ERROR_PARAM = "error";
+    public static final String UNKNOWN_DEBUG_STATE = "unknown";
 
     // Debug Result Context Properties.
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";

@@ -48,19 +48,17 @@ public abstract class DebugExecutor {
     public abstract boolean canExecute(DebugContext context);
 
     /**
-     * Gets the name/type of this executor.
+     * Gets the name of the executor.
      * Used for logging and identification purposes.
      *
-     * @return Executor name string.
+     * @return Executor name.
      */
     public abstract String getExecutorName();
 
     /**
      * Performs any cleanup or resource release.
      * Called when the debug operation completes.
+     * Implementations must explicitly handle cleanup to ensure resources are not leaked.
      */
-    public void cleanup() {
-
-        // Default: no cleanup needed. Override if necessary.
-    }
+    public abstract void cleanup();
 }

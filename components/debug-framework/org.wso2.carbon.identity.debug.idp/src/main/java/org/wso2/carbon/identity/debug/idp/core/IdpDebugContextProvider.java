@@ -48,9 +48,9 @@ public abstract class IdpDebugContextProvider extends DebugContextProvider {
     }
 
     @Override
-    public boolean canResolve(Map<String, Object> params) {
+    public boolean canHandle(Map<String, Object> params) {
         String connectionId = (String) params.get(IdpDebugConstants.CONNECTION_ID);
-        return canResolve(connectionId);
+        return canHandle(connectionId);
     }
 
     /**
@@ -70,5 +70,5 @@ public abstract class IdpDebugContextProvider extends DebugContextProvider {
      * @param connectionId The IdP resource identifier.
      * @return true if resolvable.
      */
-    public abstract boolean canResolve(String connectionId);
+    public abstract boolean canHandle(String connectionId);
 }

@@ -44,30 +44,6 @@ public class CommonAuthenticationHandler {
         ConfigurationFacade.getInstance();
     }
 
-    private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {
-
-        for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
-                .getDebugAuthenticationInterceptors()) {
-            try {
-                if (!interceptor.isDebugRequest(request)) {
-                    continue;
-                }
-                if (interceptor.handleCommonAuthRequest(request, response)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Common auth request handled by debug interceptor: "
-                                + interceptor.getClass().getName());
-                    }
-                    return true;
-                }
-            } catch (Exception e) {
-                log.error("Debug authentication interceptor failed: " + interceptor.getClass().getName()
-                        + ". Debug flow aborted. Proceeding with normal authentication.", e);
-                return false;
-            }
-        }
-        return false;
-    }
-
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doPost(request, response);
@@ -105,5 +81,29 @@ public class CommonAuthenticationHandler {
 
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
+    }
+    
+    private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {
+
+        for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
+                .getDebugAuthenticationInterceptors()) {
+            try {
+                if (!interceptor.isDebugRequest(request)) {
+                    continue;
+                }
+                if (interceptor.handleCommonAuthRequest(request, response)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Common auth request handled by debug interceptor: "
+                                + interceptor.getClass().getName());
+                    }
+                    return true;
+                }
+            } catch (RuntimeException e) {
+                log.error("Debug authentication interceptor failed: " + interceptor.getClass().getName()
+                        + ". Debug flow aborted. Proceeding with normal authentication.", e);
+                return false;
+            }
+        }
+        return false;
     }
 }

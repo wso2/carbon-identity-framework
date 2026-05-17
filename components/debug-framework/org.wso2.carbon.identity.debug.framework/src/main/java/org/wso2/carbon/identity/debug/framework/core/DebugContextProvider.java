@@ -25,15 +25,11 @@ import java.util.Map;
 
 /**
  * Abstract base class for resolving and creating debug context.
- * Extensions should implement specific context resolution logic for different
- * authentication protocols.
  */
 public abstract class DebugContextProvider {
 
     /**
      * Resolves and creates a debug context from a generic parameter map.
-     * Implementations should validate all required parameters and configurations.
-     * The keys and expected values are defined by each concrete implementation.
      *
      * @param params Protocol-specific parameters required for context resolution.
      * @return DebugContext containing resolved debug context data.
@@ -44,10 +40,9 @@ public abstract class DebugContextProvider {
 
     /**
      * Validates if this provider can handle the given parameter set.
-     * Used to determine which provider to use in a chain of responsibility pattern.
      *
      * @param params Protocol-specific parameters to check.
      * @return true if this provider can handle the parameters, false otherwise.
      */
-    public abstract boolean canResolve(Map<String, Object> params);
+    public abstract boolean canHandle(Map<String, Object> params);
 }

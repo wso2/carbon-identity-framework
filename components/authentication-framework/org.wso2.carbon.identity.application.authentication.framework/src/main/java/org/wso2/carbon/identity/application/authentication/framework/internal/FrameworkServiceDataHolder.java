@@ -70,7 +70,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Authentication framework data holder.
@@ -98,7 +97,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
-    private List<DebugAuthenticationInterceptor> debugAuthenticationInterceptors = new CopyOnWriteArrayList<>();
+    private List<DebugAuthenticationInterceptor> debugAuthenticationInterceptors = new ArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -860,19 +859,36 @@ public class FrameworkServiceDataHolder {
         this.organizationDiscoveryHandler = organizationDiscoveryHandler;
     }
 
+    /**
+     * Get the list of debug authentication interceptors.
+     *
+     * @return List of debug authentication interceptors.
+     */
     public List<DebugAuthenticationInterceptor> getDebugAuthenticationInterceptors() {
 
         return debugAuthenticationInterceptors;
     }
 
+    /**
+     * Add a debug authentication interceptor to the list of debug authentication interceptors.
+     *
+     * @param interceptor Debug authentication interceptor to be added.
+     */
     public void addDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
         debugAuthenticationInterceptors.add(interceptor);
     }
 
+    /**
+     * Remove a debug authentication interceptor from the list of debug authentication interceptors.
+     *
+     * @param interceptor Debug authentication interceptor to be removed.
+     */
     public void removeDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
         debugAuthenticationInterceptors.remove(interceptor);
+    }
+
     /**
      * Get {@link OrganizationUserSharingService}.
      *

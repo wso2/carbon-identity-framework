@@ -41,7 +41,7 @@ public interface DebugResourceHandler {
      * Executing the debug flow.
      *
      * @param debugFrameworkRequest The debug request containing resourceId,
-     *                     resource type and other parameters.
+     * resource type and other parameters.
      * @return DebugFrameworkResponse containing the execution result.
      * @throws DebugFrameworkClientException If the request has validation errors.
      * @throws DebugFrameworkServerException If a server-side error occurs.
