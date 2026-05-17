@@ -142,6 +142,7 @@
                             org.wso2.carbon.identity.consent.mgt.internal,
                         </Private-Package>
                         <Import-Package>
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.util;
