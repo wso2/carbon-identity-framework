@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.api.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
@@ -28,11 +29,17 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -62,7 +69,7 @@ public class DefaultActionValidator implements ActionValidator {
     @Override
     public ActionTypes getSupportedActionType() {
 
-         throw new UnsupportedOperationException("This method is not allowed for DefaultActionValidator.");
+        throw new UnsupportedOperationException("This method is not allowed for DefaultActionValidator.");
     }
 
     /**
@@ -82,6 +89,8 @@ public class DefaultActionValidator implements ActionValidator {
         doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
         doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
+        validateActionAttributes(action.getAttributes(),
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         isRulesApplicableForActionVersion(actionVersion, action);
     }
 
@@ -110,6 +119,8 @@ public class DefaultActionValidator implements ActionValidator {
             doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
             doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
         }
+        validateActionAttributes(action.getAttributes(),
+                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         isRulesApplicableForActionVersion(actionVersion, action);
     }
 
@@ -351,5 +362,66 @@ public class DefaultActionValidator implements ActionValidator {
                     "version–specific rule validation is required, it must be handled in the corresponding " +
                     "downstream action component.");
         }
+    }
+
+    /**
+     * Validate and filter the action attributes.
+     * Validates that attributes are in correct format and within max count limit.
+     * System attribute validation happens in the converter layer.
+     *
+     * @param attributes   List of attributes to validate.
+     * @param tenantDomain Tenant domain.
+     * @throws ActionMgtException If attributes are invalid or exceed max count.
+     */
+    public void validateActionAttributes(List<String> attributes, String tenantDomain)
+            throws ActionMgtException {
+
+        if (attributes == null || attributes.isEmpty()) {
+            return;
+        }
+
+        // Validate count
+        if (attributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
+                    attributes.size(),
+                    ActionMgtConstants.MAX_ATTRIBUTES);
+        }
+
+        ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()
+                .getClaimMetadataManagementService();
+
+        Set<String> uniqueAttributes = new LinkedHashSet<>();
+        Set<String> duplicatedAttributes = new HashSet<>();
+
+        // Validate individual attribute format and existence in system claims
+        for (String attribute : attributes) {
+            if (StringUtils.isBlank(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
+                        "Each attribute must be a non-empty string");
+            }
+
+            if (uniqueAttributes.add(attribute)) {
+                try {
+                    if (claimMetadataManagementService == null ||
+                            claimMetadataManagementService.getLocalClaim(attribute, tenantDomain).isEmpty()) {
+                        throw ActionManagementExceptionHandler.handleClientException(
+                                ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
+                    }
+                } catch (ClaimMetadataException e) {
+                    throw ActionManagementExceptionHandler.handleServerException(
+                            ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
+                }
+            } else {
+                duplicatedAttributes.add(attribute);
+            }
+        }
+
+        if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
+            LOG.debug("Ignored duplicated attributes in action configuration : " +
+                    String.join(", ", duplicatedAttributes));
+        }
+
     }
 }
