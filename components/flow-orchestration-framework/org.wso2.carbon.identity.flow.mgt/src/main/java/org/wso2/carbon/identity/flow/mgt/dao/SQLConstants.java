@@ -98,7 +98,7 @@ public class SQLConstants {
         public static final String DB_SCHEMA_ALIAS_FLOW_ID = "FLOW_ID";
         public static final String DB_SCHEMA_ALIAS_NEXT_NODE_ID = "NEXT_NODE_ACTUAL_ID";
 
-        privae SQLPlaceholders() {
+        private SQLPlaceholders() {
 
         }
     }
