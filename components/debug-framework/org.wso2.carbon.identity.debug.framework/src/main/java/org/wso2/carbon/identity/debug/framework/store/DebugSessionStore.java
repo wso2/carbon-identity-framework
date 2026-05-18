@@ -47,27 +47,15 @@ public final class DebugSessionStore {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
-    private DebugSessionDAO debugSessionDAO;
+    private final DebugSessionDAO debugSessionDAO = new DebugSessionDAOImpl();
 
     private DebugSessionStore() {
 
-        this.debugSessionDAO = new DebugSessionDAOImpl();
     }
-
 
     public static DebugSessionStore getInstance() {
 
         return INSTANCE;
-    }
-
-    /**
-     * Sets the DebugSessionDAO implementation.
-     *
-     * @param debugSessionDAO The DebugSessionDAO implementation.
-     */
-    public void setDebugSessionDAO(DebugSessionDAO debugSessionDAO) {
-
-        this.debugSessionDAO = debugSessionDAO;
     }
 
     /**
@@ -84,7 +72,7 @@ public final class DebugSessionStore {
         try {
             DebugSessionData sessionData = new DebugSessionData();
             sessionData.setDebugId(key);
-            sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_PENDING);
+            sessionData.setStatus(DebugSessionData.SessionStatus.PENDING);
             sessionData.setCreatedTime(System.currentTimeMillis());
             sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
 
@@ -196,7 +184,7 @@ public final class DebugSessionStore {
         DebugSessionData sessionData = new DebugSessionData();
         sessionData.setDebugId(key);
         sessionData.setResultJson(result);
-        sessionData.setStatus(DebugFrameworkConstants.SESSION_STATUS_COMPLETED);
+        sessionData.setStatus(DebugSessionData.SessionStatus.COMPLETED);
         sessionData.setCreatedTime(System.currentTimeMillis());
         sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
 

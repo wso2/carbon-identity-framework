@@ -41,7 +41,7 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
     }
 
     @Override
-    public boolean isDebugRequest(HttpServletRequest request) {
+    public boolean canHandle(HttpServletRequest request) {
 
         if (Boolean.parseBoolean(request.getParameter(DebugFrameworkConstants.DEBUG_IDENTIFIER_PARAM))) {
             return true;

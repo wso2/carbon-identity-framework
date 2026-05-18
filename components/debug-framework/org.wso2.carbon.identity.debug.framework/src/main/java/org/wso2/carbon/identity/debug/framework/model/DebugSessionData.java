@@ -28,8 +28,34 @@ public class DebugSessionData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Valid lifecycle states for a debug session.
+     * Transitions are strictly PENDING → COMPLETED; no other state is permitted.
+     */
+    public enum SessionStatus {
+
+        PENDING, COMPLETED;
+
+        /**
+         * Parses a DB-sourced string to a {@code SessionStatus}.
+         *
+         * @param value raw status string from the database.
+         * @return matching {@code SessionStatus}.
+         * @throws IllegalArgumentException if the value does not match a known status.
+         */
+        public static SessionStatus fromString(String value) {
+
+            for (SessionStatus s : values()) {
+                if (s.name().equalsIgnoreCase(value)) {
+                    return s;
+                }
+            }
+            throw new IllegalArgumentException("Unknown session status: " + value);
+        }
+    }
+
     private String debugId;
-    private String status;
+    private SessionStatus status;
     private byte[] sessionData;
     private String resultJson;
     private long createdTime;
@@ -56,13 +82,13 @@ public class DebugSessionData implements Serializable {
     }
 
     /**
-     * Returns the current debug session status.
+     * Returns the current debug session status as a string suitable for DB persistence.
      *
-     * @return Current debug session status.
+     * @return Current debug session status string.
      */
     public String getStatus() {
 
-        return status;
+        return status != null ? status.name() : null;
     }
 
     /**
@@ -70,7 +96,7 @@ public class DebugSessionData implements Serializable {
      *
      * @param status Current debug session status.
      */
-    public void setStatus(String status) {
+    public void setStatus(SessionStatus status) {
 
         this.status = status;
     }

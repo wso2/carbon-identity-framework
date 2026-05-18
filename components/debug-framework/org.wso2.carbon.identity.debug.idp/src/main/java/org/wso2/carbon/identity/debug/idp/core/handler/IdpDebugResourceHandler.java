@@ -63,7 +63,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @throws DebugFrameworkServerException If a server-side error occurs.
      */
     @Override
-    public DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest) //TODO:naming
+    public DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
         String connectionId = (String) debugFrameworkRequest.getAdditionalContext()

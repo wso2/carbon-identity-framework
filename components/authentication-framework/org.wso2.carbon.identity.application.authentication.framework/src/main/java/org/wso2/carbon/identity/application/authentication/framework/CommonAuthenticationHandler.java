@@ -105,7 +105,7 @@ public class CommonAuthenticationHandler {
         for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
                 .getDebugAuthenticationInterceptors()) {
             try {
-                if (!interceptor.isDebugRequest(request)) {
+                if (!interceptor.canHandle(request)) {
                     continue;
                 }
                 if (interceptor.handleCommonAuthRequest(request, response)) {

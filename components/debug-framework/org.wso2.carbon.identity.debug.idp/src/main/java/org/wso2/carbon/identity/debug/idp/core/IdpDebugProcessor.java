@@ -98,9 +98,7 @@ public abstract class IdpDebugProcessor extends DebugProcessor {
             sendDebugResponse(response, state, resourceIdentifier);
 
         } catch (IOException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Unexpected error processing debug callback.", e);
-            }
+            LOG.error("Unexpected I/O error processing debug callback for state: " + state, e);
             handleUnexpectedError(e, debugContext);
 
             if (StringUtils.isBlank(state)) {

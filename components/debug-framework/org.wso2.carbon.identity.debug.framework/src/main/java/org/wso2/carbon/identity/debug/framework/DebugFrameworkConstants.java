@@ -80,10 +80,6 @@ public final class DebugFrameworkConstants {
     public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
     public static final String DEBUG_RESULT_RETRIEVAL = "DEBUG_RESULT_RETRIEVAL";
 
-    // Session Status Constants.
-    public static final String SESSION_STATUS_PENDING = "PENDING";
-    public static final String SESSION_STATUS_COMPLETED = "COMPLETED";
-
     private DebugFrameworkConstants() {
         // Private constructor to prevent instantiation.
     }

@@ -28,15 +28,15 @@ import javax.servlet.http.HttpServletResponse;
 public interface DebugAuthenticationInterceptor {
 
     /**
-     * Checks whether this interceptor should handle the incoming common auth request.
-     * Implementations must provide concrete detection logic (e.g. inspect a request parameter
-     * or session key) to avoid intercepting unrelated requests and disrupting the regular
-     * authentication flow.
+     * Checks whether this interceptor can handle the given debug request.
+     * Implementations must inspect the request (e.g. a specific parameter or session key) to
+     * determine whether they are the correct handler, avoiding unintended interception of
+     * requests meant for other interceptors and disruption of the regular authentication flow.
      *
      * @param request HttpServletRequest.
-     * @return {@code true} if the request is a candidate for debug handling.
+     * @return {@code true} if this interceptor can handle the given debug request.
      */
-    boolean isDebugRequest(HttpServletRequest request);
+    boolean canHandle(HttpServletRequest request);
 
     /**
      * Handles an incoming common auth request.
