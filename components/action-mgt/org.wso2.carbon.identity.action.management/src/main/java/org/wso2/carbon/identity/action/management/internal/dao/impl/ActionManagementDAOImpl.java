@@ -553,13 +553,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return null;
         }
 
-        String tenantDomain;
-        try {
-            tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        } catch (Exception e) {
-            throw new ActionMgtServerException("Error while getting tenant domain for tenant ID: " +
-                    tenantId, e);
-        }
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY).getValue().toString(),
                 tenantDomain);
     }

@@ -26,6 +26,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -77,11 +78,13 @@ public class RequestBuilderUtilTest {
     public void setUp() throws Exception {
 
         closeable = MockitoAnnotations.openMocks(this);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(null);
         closeable.close();
     }
 
@@ -89,7 +92,8 @@ public class RequestBuilderUtilTest {
             expectedExceptionsMessageRegExp = "Realm service is unavailable.")
     public void testGetUserStoreManagerWithNullRealmService() throws ActionExecutionRequestBuilderException {
 
-        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN, null);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(null);
+        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN);
     }
 
     @Test
@@ -97,7 +101,7 @@ public class RequestBuilderUtilTest {
 
         mockRealmServiceToReturnUserStoreManager();
 
-        UniqueIDUserStoreManager result = RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN, realmService);
+        UniqueIDUserStoreManager result = RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN);
         assertNotNull(result);
         assertEquals(result, uniqueIDUserStoreManager);
     }
@@ -110,7 +114,7 @@ public class RequestBuilderUtilTest {
         when(tenantManager.getTenantId(TEST_TENANT_DOMAIN)).thenReturn(TEST_TENANT_ID);
         when(realmService.getTenantUserRealm(TEST_TENANT_ID)).thenReturn(null);
 
-        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN, realmService);
+        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
@@ -124,7 +128,7 @@ public class RequestBuilderUtilTest {
         when(realmService.getTenantUserRealm(TEST_TENANT_ID)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(nonUniqueManager);
 
-        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN, realmService);
+        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
@@ -134,7 +138,7 @@ public class RequestBuilderUtilTest {
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(tenantManager.getTenantId(TEST_TENANT_DOMAIN)).thenThrow(new UserStoreException("Test error"));
 
-        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN, realmService);
+        RequestBuilderUtil.getUserStoreManager(TEST_TENANT_DOMAIN);
     }
 
     @DataProvider(name = "emptyClaimRequestsProvider")
@@ -150,7 +154,7 @@ public class RequestBuilderUtilTest {
     public void testGetClaimValuesWithEmptyOrNullRequestedClaims(List<String> requestedClaims) throws Exception {
 
         Map<String, String> result =
-                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN, realmService);
+                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN);
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
@@ -171,7 +175,7 @@ public class RequestBuilderUtilTest {
                 .thenReturn(mockClaimValues);
 
         Map<String, String> result =
-                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN, realmService);
+                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN);
 
         assertNotNull(result);
         assertEquals(result.size(), 2);
@@ -196,7 +200,7 @@ public class RequestBuilderUtilTest {
                 .thenReturn(mockClaimValues);
 
         Map<String, String> result =
-                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN, realmService);
+                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN);
 
         assertNotNull(result);
         assertEquals(result.size(), 1);
@@ -215,7 +219,7 @@ public class RequestBuilderUtilTest {
                 .thenReturn(null);
 
         Map<String, String> result =
-                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN, realmService);
+                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -236,7 +240,7 @@ public class RequestBuilderUtilTest {
                 .thenReturn(mockClaimValues);
 
         Map<String, String> result =
-                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN, realmService);
+                RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN);
 
         assertNotNull(result);
         assertEquals(result.size(), 1);
@@ -255,7 +259,7 @@ public class RequestBuilderUtilTest {
                 eq(TEST_USER_ID), any(String[].class), eq(UserCoreConstants.DEFAULT_PROFILE)))
                 .thenThrow(new org.wso2.carbon.user.core.UserStoreException("Test error"));
 
-        RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN, realmService);
+        RequestBuilderUtil.getClaimValues(TEST_USER_ID, requestedClaims, TEST_TENANT_DOMAIN);
     }
 
     private void mockRealmServiceToReturnUserStoreManager() throws Exception {

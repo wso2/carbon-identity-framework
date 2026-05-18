@@ -42,7 +42,7 @@ public enum ErrorMessage {
     ERROR_INVALID_RULE_FOR_ACTION_VERSION("600010", "Invalid action rule for the action version.",
             "An unsupported rule has been provided for action version %s."),
     ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED("60011", "Maximum attributes limit exceeded.",
-            "The number of configured attributes: %d exceeds the maximum allowed limit: %d"),
+            "The number of configured attributes: %s exceeds the maximum allowed limit: %s"),
     ERROR_INVALID_ATTRIBUTES("60012", "Invalid attribute provided.",
             "The provided %s attribute is not available in the system."),
 

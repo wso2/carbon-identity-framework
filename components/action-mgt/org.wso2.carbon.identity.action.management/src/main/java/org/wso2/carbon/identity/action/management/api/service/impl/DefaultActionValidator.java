@@ -384,8 +384,8 @@ public class DefaultActionValidator implements ActionValidator {
         if (attributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
             throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
-                    attributes.size(),
-                    ActionMgtConstants.MAX_ATTRIBUTES);
+                    String.valueOf(attributes.size()),
+                    String.valueOf(ActionMgtConstants.MAX_ATTRIBUTES));
         }
 
         ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()

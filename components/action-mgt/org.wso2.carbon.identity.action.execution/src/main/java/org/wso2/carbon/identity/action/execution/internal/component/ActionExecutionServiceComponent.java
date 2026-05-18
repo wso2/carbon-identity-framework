@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionManagementSe
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGI service component for the Action execution.
@@ -252,6 +253,27 @@ public class ActionExecutionServiceComponent {
                 .equals(secretResolveManager)) {
             ActionExecutionServiceComponentHolder.getInstance().setSecretResolveManager(null);
             LOG.debug("SecretResolveManager unset in ActionExecutionServiceComponentHolder bundle.");
+        }
+    }
+
+    @Reference(
+            name = "realm.service",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
+    protected void setRealmService(RealmService realmService) {
+
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
+        LOG.debug("RealmService set in ActionExecutionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        if (ActionExecutionServiceComponentHolder.getInstance().getRealmService().equals(realmService)) {
+            ActionExecutionServiceComponentHolder.getInstance().setRealmService(null);
+            LOG.debug("RealmService unset in ActionExecutionServiceComponentHolder bundle.");
         }
     }
 }

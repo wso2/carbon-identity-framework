@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution.api.util;
 
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
@@ -40,12 +41,11 @@ public class RequestBuilderUtil {
      * @param userId          The user ID for which to retrieve claim values.
      * @param requestedClaims  The list of claim URIs to retrieve.
      * @param tenantDomain    The tenant domain of the user.
-     * @param realmService    The RealmService instance to access user store.
      * @return A map of claim URIs and their corresponding values for the user.
      * @throws ActionExecutionRequestBuilderException If there is an error retrieving claim values.
      */
     public static Map<String, String> getClaimValues(String userId, List<String> requestedClaims,
-                                                     String tenantDomain, RealmService realmService)
+                                                     String tenantDomain)
             throws ActionExecutionRequestBuilderException {
 
         if (requestedClaims == null || requestedClaims.isEmpty()) {
@@ -53,8 +53,7 @@ public class RequestBuilderUtil {
         }
 
         try {
-            Map<String, String> claimValues =
-                    getUserStoreManager(tenantDomain, realmService).getUserClaimValuesWithID(userId,
+            Map<String, String> claimValues = getUserStoreManager(tenantDomain).getUserClaimValuesWithID(userId,
                             requestedClaims.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
 
             // Filter the claim values to include only the requested claims
@@ -76,13 +75,13 @@ public class RequestBuilderUtil {
      * Retrieves the UniqueIDUserStoreManager for the specified tenant domain.
      *
      * @param tenantDomain The tenant domain for which to retrieve the user store manager.
-     * @param realmService The RealmService instance to access user store.
      * @return The UniqueIDUserStoreManager instance for the tenant domain.
      * @throws ActionExecutionRequestBuilderException If there is an error retrieving the user store manager.
      */
-    public static UniqueIDUserStoreManager getUserStoreManager(String tenantDomain, RealmService realmService)
+    public static UniqueIDUserStoreManager getUserStoreManager(String tenantDomain)
             throws ActionExecutionRequestBuilderException {
 
+        RealmService realmService = ActionExecutionServiceComponentHolder.getInstance().getRealmService();
         if (realmService == null) {
             throw new ActionExecutionRequestBuilderException("Realm service is unavailable.");
         }
