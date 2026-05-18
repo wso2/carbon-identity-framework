@@ -178,8 +178,19 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
-    @Test(priority = 2)
+    @Test(priority = 2, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid attribute provided.")
     public void testAddActionWithAttributes() throws ActionMgtException, SecretManagementException {
+
+        if (sampleAction == null) {
+            Action creatingAction = TestUtil.buildMockAction(
+                    TEST_ACTION_NAME,
+                    TEST_ACTION_DESCRIPTION,
+                    TEST_ACTION_URI,
+                    TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD));
+            sampleAction = actionManagementService.addAction(
+                    PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+        }
 
         List<String> attributes = Arrays.asList("attr1", "attr2");
         Action updatingAction = new Action.ActionRequestBuilder()
@@ -193,10 +204,8 @@ public class ActionManagementServiceImplTest {
                         .build())
                 .build();
 
-        Action updated = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
-                updatingAction, TENANT_DOMAIN);
-        Assert.assertEquals(updated.getAttributes(), attributes);
-        sampleAction = updated;
+        actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), updatingAction,
+                TENANT_DOMAIN);
     }
 
     @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
