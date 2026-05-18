@@ -21,12 +21,11 @@ package org.wso2.carbon.identity.debug.framework.model;
 /**
  * Enum for debug resource types.
  * Defines the different types of resources that can be debugged (IdP,
- * Application, Connector, etc.).
+ * Push Notification Connector, etc.).
  */
 public enum DebugResourceType {
 
     IDP,
-    FRAUD_DETECTION,
     CUSTOM;
 
     /**
@@ -42,12 +41,9 @@ public enum DebugResourceType {
             return CUSTOM;
         }
 
-        switch (resourceType.trim().toLowerCase(java.util.Locale.ENGLISH)) {
+        switch (resourceType.trim().toLowerCase(java.util.Locale.ROOT)) {
             case "idp":
                 return IDP;
-
-            case "fraud_detection":
-                return FRAUD_DETECTION;
 
             default:
                 return CUSTOM;
