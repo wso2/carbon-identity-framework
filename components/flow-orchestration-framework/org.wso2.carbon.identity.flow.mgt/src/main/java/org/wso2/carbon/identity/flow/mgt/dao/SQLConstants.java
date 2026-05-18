@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.flow.mgt.dao;
 /**
  * This class holds the database queries and constants for the flow management DAO layer.
  */
-public final class SQLConstants {
+public class SQLConstants {
 
     public static final String DELETE_FLOW =
             "DELETE FROM IDN_FLOW WHERE TENANT_ID = ? AND IS_DEFAULT = ? AND TYPE = ?";
@@ -98,5 +98,8 @@ public final class SQLConstants {
         public static final String DB_SCHEMA_ALIAS_FLOW_ID = "FLOW_ID";
         public static final String DB_SCHEMA_ALIAS_NEXT_NODE_ID = "NEXT_NODE_ACTUAL_ID";
 
+        privae SQLPlaceholders() {
+
+        }
     }
 }

@@ -72,6 +72,4 @@ public class SQLConstants {
                     "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) VALUES " +
                     "(S.DEBUG_ID, S.STATUS, S.SESSION_DATA, S.RESULT_JSON, S.CREATED_TIME, S.EXPIRY_TIME)";
 
-    private SQLConstants() {
-    }
 }
