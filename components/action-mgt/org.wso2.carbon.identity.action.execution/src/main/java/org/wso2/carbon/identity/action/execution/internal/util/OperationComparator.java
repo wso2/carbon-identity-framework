@@ -54,7 +54,8 @@ public class OperationComparator {
 
         for (String allowedPath : allowedOp.getPaths()) {
             if (performableOp.getPath().equals(allowedPath) ||
-                    performableOperationBasePath.equals(allowedPath)) {
+                    performableOperationBasePath.equals(allowedPath) ||
+                    performableOp.getPath().startsWith(allowedPath)) {
                 return true;
             }
         }
