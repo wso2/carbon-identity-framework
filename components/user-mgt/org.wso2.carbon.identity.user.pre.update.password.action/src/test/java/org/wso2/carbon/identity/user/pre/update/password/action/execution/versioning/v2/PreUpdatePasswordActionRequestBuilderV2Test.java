@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -416,6 +417,7 @@ public class PreUpdatePasswordActionRequestBuilderV2Test {
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(null);
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -442,6 +444,7 @@ public class PreUpdatePasswordActionRequestBuilderV2Test {
         when(userRealm.getUserStoreManager()).thenReturn(mock(UserStoreManager.class));
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -467,6 +470,7 @@ public class PreUpdatePasswordActionRequestBuilderV2Test {
         when(userRealm.getUserStoreManager()).thenThrow(new UserStoreException("Error loading user store manager"));
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));

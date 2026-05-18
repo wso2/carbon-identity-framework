@@ -35,11 +35,9 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.util.PreUpdatePasswordRequestBuilderUtil;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.v1.model.PreUpdatePasswordEvent;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -190,10 +188,9 @@ public class PreUpdatePasswordRequestBuilderV1 implements ActionExecutionRequest
             }
         } else {
             String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-            RealmService realmService = PreUpdatePasswordActionServiceComponentHolder.getInstance().getRealmService();
             claimValues = RequestBuilderUtil.getClaimValues(
                     userActionContext.getUserActionRequestDTO().getUserId(),
-                    userClaimsToSetInEvent, tenantDomain, realmService);
+                    userClaimsToSetInEvent, tenantDomain);
         }
 
         setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);

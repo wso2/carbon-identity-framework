@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -362,6 +363,7 @@ public class PreUpdateProfileRequestBuilderTest {
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(null);
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -395,6 +397,7 @@ public class PreUpdateProfileRequestBuilderTest {
         when(userRealm.getUserStoreManager()).thenReturn(mock(UserStoreManager.class));
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -429,6 +432,7 @@ public class PreUpdateProfileRequestBuilderTest {
                 new UserStoreException("Error while loading user store manager"));
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));

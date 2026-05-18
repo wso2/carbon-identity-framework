@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.Pr
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.UpdatingUserClaim;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,8 +96,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         eventBuilder.user(getUser(userActionContext, preUpdateProfileAction));
 
         String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        RealmService realmService = PreUpdateProfileActionServiceComponentHolder.getInstance().getRealmService();
-        UniqueIDUserStoreManager userStoreManager = RequestBuilderUtil.getUserStoreManager(tenantDomain, realmService);
+        UniqueIDUserStoreManager userStoreManager = RequestBuilderUtil.getUserStoreManager(tenantDomain);
         eventBuilder.userStore(getUserStore(userActionContext.getUserActionRequestDTO(), userStoreManager));
         eventBuilder.organization(getOrganization());
 
@@ -196,9 +194,8 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         }
 
         String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        RealmService realmService = PreUpdateProfileActionServiceComponentHolder.getInstance().getRealmService();
         Map<String, String> claimValues = RequestBuilderUtil.getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
-                userClaimsToSetInEvent, tenantDomain, realmService);
+                userClaimsToSetInEvent, tenantDomain);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
         setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
