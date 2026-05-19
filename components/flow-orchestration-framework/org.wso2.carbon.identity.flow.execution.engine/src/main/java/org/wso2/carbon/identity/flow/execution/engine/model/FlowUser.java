@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -46,7 +47,9 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,8 +69,7 @@ public class FlowUser implements Serializable {
     private static final String LOCAL_CREDENTIAL_EXISTS_CLAIM_URI = "http://wso2.org/claims/identity/localCredentialExists";
 
     private final Map<String, String> claims = new HashMap<>();
-    private final Map<String, String> userConsents = new HashMap<>();
-    private final Map<String, String> rejectedUserConsents = new HashMap<>();
+    private List<UserConsent> userConsents = new ArrayList<>();
 
     @JsonProperty("userCredentials")
     @JsonSerialize(using = UserCredentialsSerializer.class)
@@ -106,24 +108,14 @@ public class FlowUser implements Serializable {
         return claims;
     }
 
-    public Map<String, String> getUserConsents() {
+    public List<UserConsent> getUserConsents() {
 
         return userConsents;
     }
 
-    public void addConsent(String key, String value) {
+    public void setUserConsents(List<UserConsent> userConsents) {
 
-        this.userConsents.put(key, value);
-    }
-
-    public Map<String, String> getRejectedUserConsents() {
-
-        return rejectedUserConsents;
-    }
-
-    public void addRejectedConsent(String key, String value) {
-
-        this.rejectedUserConsents.put(key, value);
+        this.userConsents = userConsents;
     }
 
     public void addClaims(Map<String, String> claims) {
@@ -240,6 +232,75 @@ public class FlowUser implements Serializable {
         username = UUID.randomUUID().toString();
         UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
         return username;
+    }
+
+    /**
+     * Holds accepted and rejected user consents for a given purpose type collected during the flow.
+     */
+    public static class UserConsent implements Serializable {
+
+        private static final long serialVersionUID = -4631846306935565799L;
+
+        private String purposeType;
+        private List<String> accepted = new ArrayList<>();
+        private List<String> rejected = new ArrayList<>();
+
+        public UserConsent() {
+
+        }
+
+        public static List<UserConsent> fromJson(String jsonValue) {
+
+            List<UserConsent> consents = new ArrayList<>();
+            try {
+                Map<String, Map<String, List<String>>> consentMap = new ObjectMapper()
+                        .readValue(jsonValue, new TypeReference<>() {});
+                consentMap.forEach((purpose, lists) -> {
+                    UserConsent consent = new UserConsent();
+                    consent.purposeType = purpose;
+                    if (lists.containsKey("accepted")) {
+                        consent.accepted = new ArrayList<>(lists.get("accepted"));
+                    }
+                    if (lists.containsKey("rejected")) {
+                        consent.rejected = new ArrayList<>(lists.get("rejected"));
+                    }
+                    consents.add(consent);
+                });
+            } catch (IOException e) {
+                LOG.error("Error while parsing consent JSON value.", e);
+            }
+            return consents;
+        }
+
+        public String getPurposeType() {
+
+            return purposeType;
+        }
+
+        public void setPurposeType(String purposeType) {
+
+            this.purposeType = purposeType;
+        }
+
+        public List<String> getAccepted() {
+
+            return accepted;
+        }
+
+        public void setAccepted(List<String> accepted) {
+
+            this.accepted = accepted;
+        }
+
+        public List<String> getRejected() {
+
+            return rejected;
+        }
+
+        public void setRejected(List<String> rejected) {
+
+            this.rejected = rejected;
+        }
     }
 
     /**

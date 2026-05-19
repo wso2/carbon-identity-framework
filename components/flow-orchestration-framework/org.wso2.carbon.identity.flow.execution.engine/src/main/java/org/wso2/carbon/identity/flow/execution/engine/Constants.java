@@ -31,8 +31,7 @@ public class Constants {
     public static final String CLAIM_URI_PREFIX = "http://wso2.org/claims/";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String PASSWORD_KEY = "password";
-    public static final String CONSENT_PREFIX = "consent.";
-    public static final String CONSENT_REJECTED_PREFIX = "consent.rejected.";
+    public static final String CONSENT_KEY = "consent";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";

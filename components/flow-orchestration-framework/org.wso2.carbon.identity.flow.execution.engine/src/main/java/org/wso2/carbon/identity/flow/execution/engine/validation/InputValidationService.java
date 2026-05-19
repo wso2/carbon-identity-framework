@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServer
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.mgt.Constants;
@@ -76,8 +77,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.IDENTIFIE
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CONFIG;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_VARIANT;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_PREFIX;
-import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_REJECTED_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
@@ -192,10 +192,8 @@ public class InputValidationService {
                 (key, value) -> {
                     if (key.startsWith(CLAIM_URI_PREFIX)) {
                         context.getFlowUser().addClaim(key, value);
-                    } else if (key.startsWith(CONSENT_REJECTED_PREFIX)) {
-                        context.getFlowUser().addRejectedConsent(key, value);
-                    } else if (key.startsWith(CONSENT_PREFIX)) {
-                        context.getFlowUser().addConsent(key, value);
+                    } else if (CONSENT_KEY.equals(key)) {
+                        context.getFlowUser().setUserConsents(FlowUser.UserConsent.fromJson(value));
                     }
                 }
         );
@@ -204,16 +202,7 @@ public class InputValidationService {
                     context.getUserInputData().remove(key);
                 }
         );
-        context.getFlowUser().getUserConsents().forEach(
-                (key, value) -> {
-                    context.getUserInputData().remove(key);
-                }
-        );
-        context.getFlowUser().getRejectedUserConsents().forEach(
-                (key, value) -> {
-                    context.getUserInputData().remove(key);
-                }
-        );
+        context.getUserInputData().remove(CONSENT_KEY);
     }
 
     /**
@@ -546,8 +535,7 @@ public class InputValidationService {
                         }
                     }
                     if (Constants.ComponentTypes.POLICY.equalsIgnoreCase(child.getType())) {
-                        inputIdentifiers.add(CONSENT_PREFIX + "Policy");
-                        inputIdentifiers.add(CONSENT_REJECTED_PREFIX + "Policy");
+                        inputIdentifiers.add(CONSENT_KEY);
                     }
                     if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(child.getType())) {
                         // If the button has an executor, add the required inputs defined from the executor.
