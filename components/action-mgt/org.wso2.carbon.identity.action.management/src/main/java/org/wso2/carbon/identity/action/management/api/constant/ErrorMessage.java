@@ -45,6 +45,8 @@ public enum ErrorMessage {
             "The number of configured attributes: %s exceeds the maximum allowed limit: %s"),
     ERROR_INVALID_ATTRIBUTES("60012", "Invalid attribute provided.",
             "The provided %s attribute is not available in the system."),
+    ERROR_EMPTY_ATTRIBUTE_VALUE("60013", "Invalid attribute provided.",
+            "Each attribute must be a non-empty string."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",

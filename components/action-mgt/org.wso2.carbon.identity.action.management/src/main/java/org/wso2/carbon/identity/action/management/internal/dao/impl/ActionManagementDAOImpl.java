@@ -552,9 +552,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return null;
         }
 
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY).getValue().toString(),
-                tenantDomain);
+                IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
     /**

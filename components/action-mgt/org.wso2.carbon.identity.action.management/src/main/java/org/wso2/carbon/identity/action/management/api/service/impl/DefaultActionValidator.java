@@ -388,8 +388,7 @@ public class DefaultActionValidator implements ActionValidator {
         for (String attribute : attributes) {
             if (StringUtils.isBlank(attribute)) {
                 throw ActionManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
-                        "Each attribute must be a non-empty string");
+                        ErrorMessage.ERROR_EMPTY_ATTRIBUTE_VALUE);
             }
 
             try {
