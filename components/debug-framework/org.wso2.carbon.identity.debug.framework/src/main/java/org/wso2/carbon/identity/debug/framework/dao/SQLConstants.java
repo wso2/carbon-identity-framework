@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.debug.framework.dao;
 /**
  * SQL constants for debug session persistence.
  */
-public class SQLConstants {
+public final class SQLConstants {
 
     public static final String SQL_INSERT_DEBUG_SESSION = "INSERT INTO IDN_DEBUG_SESSION " +
             "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +

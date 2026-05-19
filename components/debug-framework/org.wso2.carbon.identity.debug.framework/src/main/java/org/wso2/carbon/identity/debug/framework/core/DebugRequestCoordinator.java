@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -290,14 +291,18 @@ public class DebugRequestCoordinator {
         try {
             return handler.handleCallback(request, response);
         } catch (DebugFrameworkException e) {
-            // Attempt to extract debug ID for better logging.
             String debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-
             LOG.warn("Debug callback handler failed during callback processing for session: " + debugId
                     + ". Debug session may be orphaned.", e);
-            // Return false to prevent the request from continuing to regular auth flow.
-            // This ensures that a failed callback doesn't accidentally continue authentication.
-            return false;
+            try {
+                if (!response.isCommitted()) {
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                            "Debug callback processing failed.");
+                }
+            } catch (IOException ioEx) {
+                LOG.error("Error sending error response after debug callback failure.", ioEx);
+            }
+            return true;
         }
     }    
 

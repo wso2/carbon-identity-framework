@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Enum for debug resource types.
  * Defines the different types of resources that can be debugged (IdP,
@@ -27,6 +30,8 @@ public enum DebugResourceType {
 
     IDP,
     CUSTOM;
+
+    private static final Log LOG = LogFactory.getLog(DebugResourceType.class);
 
     /**
      * Converts a string to the corresponding DebugResourceType.
@@ -46,6 +51,7 @@ public enum DebugResourceType {
                 return IDP;
 
             default:
+                LOG.warn("Unrecognized debug resource type: '" + resourceType + "'. Falling back to CUSTOM.");
                 return CUSTOM;
         }
     }

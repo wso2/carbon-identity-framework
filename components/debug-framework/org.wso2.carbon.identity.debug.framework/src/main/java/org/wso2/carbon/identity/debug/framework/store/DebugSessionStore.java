@@ -102,12 +102,7 @@ public final class DebugSessionStore {
         
         // Convert DebugContext to Map for storage.
         Map<String, Object> contextMap = new HashMap<>(context.getProperties());
-        
-        // Add metadata fields.
-        Object connectionId = context.getProperty("connectionId");
-        if (connectionId != null) {
-            contextMap.put("connectionId", connectionId);
-        }
+
         if (context.getResourceType() != null) {
             contextMap.put("resourceType", context.getResourceType());
         }

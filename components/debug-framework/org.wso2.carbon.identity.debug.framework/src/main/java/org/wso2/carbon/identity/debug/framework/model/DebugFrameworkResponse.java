@@ -267,7 +267,9 @@ public class DebugFrameworkResponse {
      */
     public boolean isSuccess() {
 
-        return DEBUG_STATUS_SUCCESS.equals(status);
+        return DEBUG_STATUS_SUCCESS.equals(status)
+                || DEBUG_STATUS_SUCCESS_COMPLETE.equals(status)
+                || DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(status);
     }
 
     private static String resolveLifecycleStatus(String status) {

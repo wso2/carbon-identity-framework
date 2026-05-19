@@ -65,11 +65,13 @@ import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Authentication framework data holder.
@@ -97,7 +99,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
-    private List<DebugAuthenticationInterceptor> debugAuthenticationInterceptors = new ArrayList<>();
+    private List<DebugAuthenticationInterceptor> debugAuthenticationInterceptors = new CopyOnWriteArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -866,7 +868,7 @@ public class FrameworkServiceDataHolder {
      */
     public List<DebugAuthenticationInterceptor> getDebugAuthenticationInterceptors() {
 
-        return debugAuthenticationInterceptors;
+        return Collections.unmodifiableList(debugAuthenticationInterceptors);
     }
 
     /**
