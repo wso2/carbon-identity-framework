@@ -67,7 +67,10 @@ public enum ErrorMessage {
             "Error while retrieving count of Actions per Action Type from the system."),
     ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES("65009",
             "Error while decrypting Action Endpoint Authentication properties",
-            "Error while decrypting Action Endpoint Authentication properties in the system.");
+            "Error while decrypting Action Endpoint Authentication properties in the system."),
+    ERROR_WHILE_RETRIEVING_CLAIM_METADATA("65010",
+            "Error while retrieving claim metadata.",
+            "Error while retrieving claim metadata from the system.");
 
     private final String code;
     private final String message;

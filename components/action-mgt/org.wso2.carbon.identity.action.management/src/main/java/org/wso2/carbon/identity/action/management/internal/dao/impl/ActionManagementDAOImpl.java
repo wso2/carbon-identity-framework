@@ -546,8 +546,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
-    private ActionRule populateRule(Map<String, ActionProperty> propertiesFromDB, Integer tenantId) throws
-            ActionMgtServerException {
+    private ActionRule populateRule(Map<String, ActionProperty> propertiesFromDB, Integer tenantId) {
 
         if (!propertiesFromDB.containsKey(ActionMgtConstants.RULE_PROPERTY)) {
             return null;

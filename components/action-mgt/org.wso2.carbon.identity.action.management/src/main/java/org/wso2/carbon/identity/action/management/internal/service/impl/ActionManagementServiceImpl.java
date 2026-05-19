@@ -79,8 +79,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
-        ActionDTO creatingActionDTO = buildActionDTOForCreation(
-                resolvedActionType, generatedActionId, action, action.getAttributes());
+        ActionDTO creatingActionDTO = buildActionDTOForCreation(resolvedActionType, generatedActionId, action);
 
         DAO_FACADE.addAction(creatingActionDTO, tenantId);
         ActionDTO createdActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, generatedActionId, tenantId);
@@ -162,8 +161,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
                 castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
-        ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action,
-                action.getAttributes());
+        ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
         ActionDTO updatedActionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId, tenantId);
@@ -362,11 +360,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param actionType The type of the action.
      * @param actionId The unique identifier for the action.
      * @param action The action model containing details for the action.
-     * @param attributes The filtered attributes for the action.
      * @return The constructed `ActionDTO` object.
      */
-    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action,
-                                                List<String> attributes)
+    private ActionDTO buildActionDTOForCreation(String actionType, String actionId, Action action)
             throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
@@ -385,7 +381,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .type(resolvedActionType)
                     .status(resolvedStatus)
                     .actionVersion(actionVersion)
-                    .attributes(attributes)
                     .build();
         }
 
@@ -394,7 +389,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .type(resolvedActionType)
                 .status(resolvedStatus)
                 .actionVersion(actionVersion)
-                .attributes(attributes)
                 .build();
     }
 
@@ -406,11 +400,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param actionType The type of the action.
      * @param actionId The unique identifier for the action.
      * @param action The action model containing details for the action.
-     * @param attributes The filtered attributes for the action.
      * @return The constructed `ActionDTO` object.
      */
-    private ActionDTO buildActionDTOForUpdate(String actionType, String actionId, Action action,
-                                              List<String> attributes) {
+    private ActionDTO buildActionDTOForUpdate(String actionType, String actionId, Action action) {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
         String actionVersion = action.getActionVersion();
@@ -424,7 +416,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     .id(actionId)
                     .type(resolvedActionType)
                     .actionVersion(actionVersion)
-                    .attributes(attributes)
                     .build();
         }
 
@@ -432,7 +423,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .id(actionId)
                 .type(resolvedActionType)
                 .actionVersion(actionVersion)
-                .attributes(attributes)
                 .build();
     }
 
@@ -477,7 +467,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
                 .rule(actionDTO.getActionRule())
-                .attributes(actionDTO.getAttributes())
                 .build();
     }
 }

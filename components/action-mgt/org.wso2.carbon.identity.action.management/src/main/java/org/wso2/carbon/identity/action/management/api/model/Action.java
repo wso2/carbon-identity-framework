@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +32,8 @@ import java.util.Set;
  * Action.
  */
 public class Action {
+
+    private static final Log LOG = LogFactory.getLog(Action.class);
 
     /**
      * Action Type.
@@ -372,7 +377,18 @@ public class Action {
                 return this;
             }
 
-            Set<String> uniqueAttributes = new LinkedHashSet<>(attributes);
+            Set<String> uniqueAttributes = new LinkedHashSet<>();
+            Set<String> duplicatedAttributes = new LinkedHashSet<>();
+            for (String attribute : attributes) {
+                if (!uniqueAttributes.add(attribute)) {
+                    duplicatedAttributes.add(attribute);
+                }
+            }
+
+            if (!duplicatedAttributes.isEmpty() && LOG.isDebugEnabled()) {
+                LOG.debug("Ignored duplicated attributes in action configuration : " +
+                        String.join(", ", duplicatedAttributes));
+            }
             this.attributes = List.copyOf(uniqueAttributes);
             return this;
         }
