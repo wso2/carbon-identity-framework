@@ -131,6 +131,8 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(dataHolder.getConsentManager()).thenReturn(consentManager);
 
         frameworkUtilsMock = mockStatic(FrameworkUtils.class);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentV2APIEnabled()).thenReturn(true);
+        frameworkUtilsMock.when(() -> FrameworkUtils.isConsentPageSkippedForSP(any())).thenReturn(false);
         frameworkUtilsMock.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(false);
 
         ConfigurationFacade configurationFacadeInstance = mock(ConfigurationFacade.class);
@@ -250,7 +252,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
+        when(consentManager.listReceipts(anyString(), anyString(), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
@@ -306,7 +308,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         Purpose optional = buildOptionalPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(optional));
-        when(consentManager.listReceipts(anyString(), eq("SYSTEM"), isNull(),
+        when(consentManager.listReceipts(anyString(), anyString(), isNull(),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 

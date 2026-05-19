@@ -96,6 +96,9 @@ public class PolicyConsentFlowExecutionListener extends AbstractFlowExecutionLis
     private void enrichPolicyComponent(ComponentDTO component, FlowExecutionContext context)
             throws FlowEngineException {
 
+        if (component.getConfigs() == null || !component.getConfigs().containsKey(POLICIES_CONFIG)) {
+            return;
+        }
         Object policiesObj = component.getConfigs().get(POLICIES_CONFIG);
         if (!(policiesObj instanceof List)) {
             return;

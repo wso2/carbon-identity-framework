@@ -104,7 +104,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String OPTIONAL_PURPOSE_ID_PARAM = "optionalPurposeId";
     private static final String PURPOSE_METADATA_PARAM = "purposeMetadata";
     private static final String PURPOSE_ID_SEPARATOR = ",";
-    private static final String SYSTEM_APP_ID = "SYSTEM";
+    private static final String SYSTEM_APP_ID = "Resident IDP";
     private static final String POLICY_URL_PROPERTY_KEY = "policyUrl";
     private static final String PROMPT_ON_LOGIN_PROPERTY_KEY = "promptOnLogin";
 
@@ -422,16 +422,6 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             return false;
         }
         return categories.stream().anyMatch(cat -> Boolean.TRUE.equals(cat.getMandatory()));
-    }
-
-    private boolean missingPolicyConsentWithState(String subjectId, Purpose purpose, String state)
-            throws ConsentManagementException {
-
-        PurposeVersion latestVersion = purpose.getLatestVersion();
-        String versionUuid = latestVersion != null ? latestVersion.getUuid() : null;
-        List<Receipt> receipts = getConsentManager().listReceipts(subjectId, SYSTEM_APP_ID,
-                state, purpose.getUuid(), versionUuid, null, null, 1);
-        return receipts == null || receipts.isEmpty();
     }
 
     private void recordPolicyConsent(String subjectId, String tenantDomain, String purposeUuid, String state)
