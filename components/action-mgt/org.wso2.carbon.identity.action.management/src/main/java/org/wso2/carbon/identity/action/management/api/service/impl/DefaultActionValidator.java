@@ -365,13 +365,11 @@ public class DefaultActionValidator implements ActionValidator {
     }
 
     /**
-     * Validate and filter the action attributes.
-     * Validates that attributes are in correct format and within max count limit.
-     * System attribute validation happens in the converter layer.
+     * Validate the action attributes.
      *
-     * @param attributes   List of attributes to validate.
-     * @param tenantDomain Tenant domain.
-     * @throws ActionMgtException If attributes are invalid or exceed max count.
+     * @param attributes   List of attributes to be validated.
+     * @param tenantDomain Tenant domain for which the attributes are being validated.
+     * @throws ActionMgtException If any attribute is invalid or maximum limit is exceeded.
      */
     public void validateActionAttributes(List<String> attributes, String tenantDomain)
             throws ActionMgtException {
@@ -394,7 +392,7 @@ public class DefaultActionValidator implements ActionValidator {
         Set<String> uniqueAttributes = new LinkedHashSet<>();
         Set<String> duplicatedAttributes = new HashSet<>();
 
-        // Validate individual attribute format and existence in system claims
+        // Validate each attribute and identify duplicates
         for (String attribute : attributes) {
             if (StringUtils.isBlank(attribute)) {
                 throw ActionManagementExceptionHandler.handleClientException(
@@ -422,6 +420,5 @@ public class DefaultActionValidator implements ActionValidator {
             LOG.debug("Ignored duplicated attributes in action configuration : " +
                     String.join(", ", duplicatedAttributes));
         }
-
     }
 }

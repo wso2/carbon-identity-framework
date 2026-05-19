@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.action.management.api.model;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Action.
@@ -365,7 +367,13 @@ public class Action {
 
         public ActionRequestBuilder attributes(List<String> attributes) {
 
-            this.attributes = attributes;
+            if (attributes == null || attributes.isEmpty()) {
+                this.attributes = attributes;
+                return this;
+            }
+
+            Set<String> uniqueAttributes = new LinkedHashSet<>(attributes);
+            this.attributes = List.copyOf(uniqueAttributes);
             return this;
         }
 
