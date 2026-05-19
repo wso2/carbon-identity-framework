@@ -291,10 +291,7 @@ public class DebugRequestCoordinator {
             return handler.handleCallback(request, response);
         } catch (DebugFrameworkException e) {
             // Attempt to extract debug ID for better logging.
-            String debugId = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
-            if (debugId == null) {
-                debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-            }
+            String debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
 
             LOG.warn("Debug callback handler failed during callback processing for session: " + debugId
                     + ". Debug session may be orphaned.", e);

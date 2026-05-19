@@ -53,15 +53,6 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
      */
     public boolean canHandle(HttpServletRequest request) {
 
-        if (Boolean.parseBoolean(request.getParameter(DebugFrameworkConstants.DEBUG_IDENTIFIER_PARAM))) {
-            return true;
-        }
-
-        String sessionDataKey = request.getParameter(DebugFrameworkConstants.SESSION_DATA_KEY_PARAM);
-        if (StringUtils.isNotBlank(sessionDataKey) && sessionDataKey.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
-            return true;
-        }
-
         String state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
         return StringUtils.isNotBlank(state) && state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX);
     }

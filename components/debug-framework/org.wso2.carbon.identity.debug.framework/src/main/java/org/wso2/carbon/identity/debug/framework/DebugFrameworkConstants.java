@@ -23,10 +23,6 @@ package org.wso2.carbon.identity.debug.framework;
  */
 public final class DebugFrameworkConstants {
 
-    // Debug Flow Identification Constants.
-    public static final String DEBUG_IDENTIFIER_PARAM = "isDebugFlow";
-    public static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
-
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 5;
 
