@@ -49,9 +49,21 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     private static final Log audit = CarbonConstants.AUDIT_LOG;
 
     @Override
+    public boolean isEnable() {
+
+        if (super.isEnable()) {
+            return !LoggerUtils.isEnableV2AuditLogs();
+        }
+        return false;
+    }
+
+    @Override
     public boolean onAuthenticateFailure(String errorCode, String errorMessage, String userName, Object credential,
             UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.AUTHENTICATION_ACTION, getTargetForAuditLog
                 (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
@@ -63,6 +75,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onAddUserFailure(String errorCode, String errorMessage, String userName, Object credential,
             String[] roleList, Map<String, String> claims, String profile, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(roleList)) {
             dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
@@ -86,6 +101,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateCredentialFailure(String errorCode, String errorMessage, String userName,
             Object newCredential, Object oldCredential, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
@@ -97,6 +115,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateCredentialByAdminFailure(String errorCode, String errorMessage, String userName,
             Object newCredential, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
@@ -108,6 +129,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteUserFailure(String errorCode, String errorMessage, String userName,
             UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
@@ -119,6 +143,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onSetUserClaimValueFailure(String errorCode, String errorMessage, String userName, String claimURI,
             String claimValue, String profileName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (LoggerUtils.isLogMaskingEnable) {
             String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claimURI, claimValue);
@@ -138,6 +165,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onSetUserClaimValuesFailure(String errorCode, String errorMessage, String userName,
             Map<String, String> claims, String profileName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         if (LoggerUtils.isLogMaskingEnable) {
             Map<String, String> maskedClaimsMap = LoggerUtils.getMaskedClaimsMap(claims);
             errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
@@ -156,6 +186,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteUserClaimValuesFailure(String errorCode, String errorMessage, String userName,
             String[] claims, String profileName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONArray data = new JSONArray();
         if (ArrayUtils.isNotEmpty(claims)) {
             data = new JSONArray(claims);
@@ -171,6 +204,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteUserClaimValueFailure(String errorCode, String errorMessage, String userName,
             String claimURI, String profileName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
@@ -185,6 +221,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onAddRoleFailure(String errorCode, String errorMessage, String roleName, String[] userList,
             Permission[] permissions, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
             if (LoggerUtils.isLogMaskingEnable) {
@@ -208,6 +247,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
                                           org.wso2.carbon.user.api.Permission[] permissions,
                                           UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(userList)) {
             if (LoggerUtils.isLogMaskingEnable) {
@@ -230,6 +272,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteRoleFailure(String errorCode, String errorMessage, String roleName,
             UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         audit.warn(createAuditMessage(ListenerUtils.DELETE_ROLE_ACTION,
                 ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), null, errorCode, errorMessage));
         return true;
@@ -239,6 +284,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateRoleNameFailure(String errorCode, String errorMessage, String roleName, String newRoleName,
             UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLE_NAME_ACTION,
                 ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), newRoleName, errorCode,
                 errorMessage));
@@ -249,6 +297,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateUserListOfRoleFailure(String errorCode, String errorMessage, String roleName,
             String[] deletedUsers, String[] newUsers, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(deletedUsers)) {
             dataObject.put(ListenerUtils.DELETED_USERS, new JSONArray(deletedUsers));
@@ -267,6 +318,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateRoleListOfUserFailure(String errorCode, String errorMessage, String userName,
             String[] deletedRoles, String[] newRoles, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(deletedRoles)) {
             dataObject.put(ListenerUtils.DELETED_ROLES, new JSONArray(deletedRoles));
@@ -286,6 +340,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onGetUserClaimValueFailure(String errorCode, String errorMessage, String userName, String claim,
             String profileName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
@@ -301,6 +358,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onGetUserClaimValuesFailure(String errorCode, String errorMessage, String userName, String[] claims,
             String profile, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.PROFILE_FIELD, profile);
         if (ArrayUtils.isNotEmpty(claims)) {
@@ -318,6 +378,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onGetUserListFailure(String errorCode, String errorMessage, String claim, String claimValue,
             String profileName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
         if (LoggerUtils.isLogMaskingEnable) {
@@ -336,6 +399,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdatePermissionsOfRoleFailure(String errorCode, String errorMessage, String roleName,
             Permission[] permissions, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (ArrayUtils.isNotEmpty(permissions)) {
             JSONArray permissionsArray = new JSONArray(permissions);

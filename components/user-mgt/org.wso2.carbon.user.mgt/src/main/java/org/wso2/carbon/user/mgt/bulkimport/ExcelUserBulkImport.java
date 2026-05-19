@@ -29,6 +29,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -108,10 +109,12 @@ public class ExcelUserBulkImport extends UserBulkImport {
         String summeryLog = super.buildBulkImportSummary();
         log.info(summeryLog);
 
-        JSONConverter jsonConverter = new JSONConverter();
-        String importedUsers = jsonConverter.xlsToJSON(sheet);
-        auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser, UserMgtConstants.OPERATION_NAME,
-                userStoreDomain, importedUsers, summeryLog));
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            JSONConverter jsonConverter = new JSONConverter();
+            String importedUsers = jsonConverter.xlsToJSON(sheet);
+            auditLog.info(String.format(UserMgtConstants.AUDIT_LOG_FORMAT, tenantUser, UserMgtConstants.OPERATION_NAME,
+                    userStoreDomain, importedUsers, summeryLog));
+        }
 
         if (fail || isDuplicate) {
             throw new UserAdminException(String.format(UserMgtConstants.ERROR_MESSAGE, successCount, failCount,
