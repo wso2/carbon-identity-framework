@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.debug.framework.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
@@ -42,11 +40,7 @@ import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELE
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION_FOR_UPDATE;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_H2;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_MSSQL_OR_DB2;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_MYSQL;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_ORACLE;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPSERT_DEBUG_SESSION_POSTGRESQL;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPDATE_DEBUG_SESSION;
 
 /**
  * Implementation of the DebugSessionDAO using raw JDBC connections.
@@ -56,14 +50,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionDAOImpl.class);
 
-    private enum UpsertDbType {
-
-        H2,
-        MYSQL,
-        POSTGRESQL,
-        MSSQL_OR_DB2,
-        ORACLE
-    }
 
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
@@ -196,20 +182,34 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            boolean success = false;
-            try (PreparedStatement prepStmt = prepareUpsertStatement(connection)) {
-                setUpsertParameters(prepStmt, storageDebugId, sessionData);
-                prepStmt.executeUpdate();
-                success = true;
+            int affectedRows;
+            try (PreparedStatement updateStmt = connection.prepareStatement(SQL_UPDATE_DEBUG_SESSION)) {
+                updateStmt.setString(1, sessionData.getStatus());
+                setSessionData(updateStmt, 2, sessionData);
+                updateStmt.setString(3, sessionData.getResultJson());
+                updateStmt.setTimestamp(4, new Timestamp(sessionData.getCreatedTime()));
+                updateStmt.setTimestamp(5, new Timestamp(sessionData.getExpiryTime()));
+                updateStmt.setString(6, storageDebugId);
+                affectedRows = updateStmt.executeUpdate();
             }
 
-            if (success) {
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
+            if (affectedRows == 0) {
+                try (PreparedStatement insertStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
+                    insertStmt.setString(1, storageDebugId);
+                    insertStmt.setString(2, sessionData.getStatus());
+                    setSessionData(insertStmt, 3, sessionData);
+                    insertStmt.setString(4, sessionData.getResultJson());
+                    insertStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+                    insertStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
+                    insertStmt.executeUpdate();
                 }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug session upserted successfully: " + normalizedDebugId);
-                }
+            }
+
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug session upserted successfully: " + normalizedDebugId);
             }
         } catch (SQLException e) {
             String errorMsg = "Error while upserting debug session in DB. Debug ID: "
@@ -217,67 +217,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             LOG.error(errorMsg, e);
             throw new DebugFrameworkServerException(errorMsg, e);
         }
-    }
-
-    private PreparedStatement prepareUpsertStatement(Connection connection)
-            throws SQLException, DebugFrameworkServerException {
-
-        UpsertDbType dbType = resolveUpsertDbType(connection);
-        switch (dbType) {
-            case MYSQL:
-                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_MYSQL);
-            case POSTGRESQL:
-                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_POSTGRESQL);
-            case ORACLE:
-                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_ORACLE);
-            case MSSQL_OR_DB2:
-                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_MSSQL_OR_DB2);
-            case H2:
-            default:
-                return connection.prepareStatement(SQL_UPSERT_DEBUG_SESSION_H2);
-        }
-    }
-
-    private UpsertDbType resolveUpsertDbType(Connection connection) throws DebugFrameworkServerException {
-
-        try {
-            if (JdbcUtils.isMySQLDB(JdbcUtils.Database.IDENTITY) || JdbcUtils.isMariaDB(JdbcUtils.Database.IDENTITY)) {
-                return UpsertDbType.MYSQL;
-            }
-            if (JdbcUtils.isPostgreSQLDB(JdbcUtils.Database.IDENTITY)) {
-                return UpsertDbType.POSTGRESQL;
-            }
-            if (JdbcUtils.isOracleDB(JdbcUtils.Database.IDENTITY)) {
-                return UpsertDbType.ORACLE;
-            }
-            if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.IDENTITY) || JdbcUtils.isDB2DB(JdbcUtils.Database.IDENTITY)) {
-                return UpsertDbType.MSSQL_OR_DB2;
-            }
-            if (JdbcUtils.isH2DB(JdbcUtils.Database.IDENTITY)) {
-                return UpsertDbType.H2;
-            }
-        } catch (DataAccessException e) {
-            throw new DebugFrameworkServerException("Error while resolving database type for debug session upsert.", e);
-        }
-
-        try {
-            String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            throw new DebugFrameworkServerException(
-                    "Unsupported database type for debug session upsert: " + databaseProductName);
-        } catch (SQLException e) {
-            throw new DebugFrameworkServerException("Unsupported database type for debug session upsert.", e);
-        }
-    }
-
-    private void setUpsertParameters(PreparedStatement prepStmt, String storageDebugId, DebugSessionData sessionData)
-            throws SQLException {
-
-        prepStmt.setString(1, storageDebugId);
-        prepStmt.setString(2, sessionData.getStatus());
-        setSessionData(prepStmt, 3, sessionData);
-        prepStmt.setString(4, sessionData.getResultJson());
-        prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-        prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
     }
 
     @Override

@@ -150,7 +150,7 @@ public class DebugFrameworkResponse {
         response.setStatus(resolvedStatus != null ? resolvedStatus
                 : (result.isSuccessful() ? DEBUG_STATUS_SUCCESS_COMPLETE : DEBUG_STATUS_FAILURE));
 
-        response.setMessage(result.getErrorMessage() != null ? result.getErrorMessage() : result.getStatus());
+        response.setMessage(result.getErrorMessage());
 
         // The data map contains only protocol-specific metadata — no top-level fields.
         Map<String, Object> data = new HashMap<>();
