@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
@@ -60,6 +62,14 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
+            /*
+             * Child organization tenants do not maintain their own claim metadata. Therefore, the per-tenant
+             * claim configuration initialization for the tenant must NOT run for child organization tenants.
+             */
+            if (isOrganization(tenantId)) {
+                this.tenantId = tenantId;
+                return;
+            }
             ReadWriteClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
             if (!skipClaimMetadataPersistence() && dbBasedClaimMetadataManager.getClaimDialects(tenantId).isEmpty()) {
                 IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO()
@@ -68,8 +78,25 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         } catch (ClaimMetadataException e) {
             log.error("Error while retrieving claim dialects", e);
         }
-
         this.tenantId = tenantId;
+    }
+
+    /**
+     * Checks whether the given tenant corresponds to a child organization under a root organization.
+     *
+     * @param tenantId Tenant id to check.
+     * @return {@code true} if the tenant is a child organization, {@code false} otherwise.
+     */
+    private boolean isOrganization(int tenantId) {
+
+        try {
+            return OrganizationManagementUtil.isOrganization(tenantId);
+        } catch (OrganizationManagementException e) {
+            log.error("Error while checking whether tenant: " + tenantId +
+                    " is a child organization during claim metadata store initialization. " +
+                    "Proceeding with the default claim configuration initialization path.", e);
+            return false;
+        }
     }
 
     @Override
