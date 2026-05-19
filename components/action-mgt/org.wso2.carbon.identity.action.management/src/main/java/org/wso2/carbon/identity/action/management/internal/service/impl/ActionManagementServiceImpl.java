@@ -304,10 +304,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .filter(type -> type.getPathParam().equals(actionType))
                 .map(Action.ActionTypes::getActionType)
                 .findFirst()
-                .orElseThrow(() -> ActionManagementExceptionHandler
-                        .handleClientException(ErrorMessage.ERROR_INVALID_ACTION_TYPE));
+                .orElseThrow(() ->
+                        ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_TYPE));
     }
-
 
     /**
      * Validate the maximum actions per action type.

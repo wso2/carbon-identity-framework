@@ -66,7 +66,7 @@ public class DefaultActionValidator implements ActionValidator {
     @Override
     public ActionTypes getSupportedActionType() {
 
-        throw new UnsupportedOperationException("This method is not allowed for DefaultActionValidator.");
+         throw new UnsupportedOperationException("This method is not allowed for DefaultActionValidator.");
     }
 
     /**
