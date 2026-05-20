@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import com.google.gson.Gson;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
@@ -236,7 +237,9 @@ public final class PolicyConsentUtil {
         if (promptOnLoginVersion == null) {
             return false;
         }
-        return missingConsentForVersion(subjectId, purpose, promptOnLoginVersion, allVersions, consentManager);
+        boolean mandatory = isMandatoryPurpose(purpose);
+        return missingConsentForVersion(subjectId, purpose, promptOnLoginVersion, allVersions, consentManager,
+                mandatory);
     }
 
     private static void startTenantFlow(String subjectId, String tenantDomain) {
@@ -292,7 +295,8 @@ public final class PolicyConsentUtil {
     }
 
     static boolean missingConsentForVersion(String subjectId, Purpose purpose, PurposeVersion promptOnLoginVersion,
-            List<PurposeVersion> allVersions, ConsentManager consentManager) throws ConsentManagementException {
+            List<PurposeVersion> allVersions, ConsentManager consentManager, boolean mandatory)
+            throws ConsentManagementException {
 
         int promptOnLoginVersionIndex = -1;
         for (int i = 0; i < allVersions.size(); i++) {
@@ -304,9 +308,12 @@ public final class PolicyConsentUtil {
         if (promptOnLoginVersionIndex == -1) {
             return true;
         }
+        // Mandatory: only an ACTIVE receipt satisfies consent — revoked/rejected/expired must re-prompt.
+        // Optional: any receipt (any state) satisfies — once explicitly declined, don't re-ask.
+        String state = mandatory ? ConsentConstants.ACTIVE_STATE : null;
         for (int i = promptOnLoginVersionIndex; i < allVersions.size(); i++) {
             List<Receipt> receipts = consentManager.listReceipts(subjectId, RESIDENT_IDP,
-                    null, purpose.getUuid(), allVersions.get(i).getUuid(), null, null, 1);
+                    state, purpose.getUuid(), allVersions.get(i).getUuid(), null, null, 1);
             if (receipts != null && !receipts.isEmpty()) {
                 return false;
             }

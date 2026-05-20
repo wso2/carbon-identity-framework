@@ -282,13 +282,13 @@ public class PolicyConsentPostAuthnHandlerTest {
         verify(response).sendRedirect(anyString());
     }
 
-    @Test(description = "Returns SUCCESS_COMPLETED for mandatory purpose with receipt (promptOnLogin).")
+    @Test(description = "Returns SUCCESS_COMPLETED for mandatory purpose with active receipt (promptOnLogin).")
     public void testPreConsentSkipsMandatoryPurposeWithActiveReceipt() throws Exception {
 
         Purpose mandatory = buildMandatoryPurpose(PURPOSE_UUID_1, VERSION_UUID_1);
         when(consentManager.listPurposes(anyList(), anyInt()))
                 .thenReturn(Collections.singletonList(mandatory));
-        when(consentManager.listReceipts(anyString(), anyString(), isNull(),
+        when(consentManager.listReceipts(anyString(), anyString(), eq(ACTIVE_STATE),
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 

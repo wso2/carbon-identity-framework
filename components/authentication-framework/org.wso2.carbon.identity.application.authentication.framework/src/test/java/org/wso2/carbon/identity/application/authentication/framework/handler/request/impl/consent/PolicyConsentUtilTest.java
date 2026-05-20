@@ -318,8 +318,8 @@ public class PolicyConsentUtilTest {
 
     // ─── missingConsentForVersion ────────────────────────────────────────────────
 
-    @Test(description = "Returns true when no receipts exist for the promptOnLogin version or later.")
-    public void testMissingConsentForVersionReturnsTrueWhenNoReceipts()
+    @Test(description = "Optional: returns true when no receipts exist for the promptOnLogin version or later.")
+    public void testMissingConsentForVersionOptionalReturnsTrueWhenNoReceipts()
             throws ConsentManagementException {
 
         PurposeVersion promptVersion = mock(PurposeVersion.class);
@@ -333,13 +333,13 @@ public class PolicyConsentUtilTest {
 
         boolean result = PolicyConsentUtil.missingConsentForVersion(
                 SUBJECT_ID, purpose, promptVersion,
-                Collections.singletonList(promptVersion), consentManager);
+                Collections.singletonList(promptVersion), consentManager, false);
 
         assertTrue(result);
     }
 
-    @Test(description = "Returns false when a receipt exists for the promptOnLogin version.")
-    public void testMissingConsentForVersionReturnsFalseWhenReceiptExists()
+    @Test(description = "Returns false when any receipt (including revoked) exists — once declined, don't re-ask.")
+    public void testMissingConsentForVersionOptionalReturnsFalseWhenAnyReceiptExists()
             throws ConsentManagementException {
 
         PurposeVersion promptVersion = mock(PurposeVersion.class);
@@ -353,13 +353,13 @@ public class PolicyConsentUtilTest {
 
         boolean result = PolicyConsentUtil.missingConsentForVersion(
                 SUBJECT_ID, purpose, promptVersion,
-                Collections.singletonList(promptVersion), consentManager);
+                Collections.singletonList(promptVersion), consentManager, false);
 
         assertFalse(result);
     }
 
-    @Test(description = "Returns false when receipt exists for a later version (after the promptOnLogin version).")
-    public void testMissingConsentForVersionReturnsFalseWhenReceiptExistsForLaterVersion()
+    @Test(description = "Optional: returns false when receipt exists for a later version.")
+    public void testMissingConsentForVersionOptionalReturnsFalseWhenReceiptExistsForLaterVersion()
             throws ConsentManagementException {
 
         PurposeVersion promptVersion = mock(PurposeVersion.class);
@@ -380,7 +380,7 @@ public class PolicyConsentUtilTest {
 
         boolean result = PolicyConsentUtil.missingConsentForVersion(
                 SUBJECT_ID, purpose, promptVersion,
-                Arrays.asList(promptVersion, laterVersion), consentManager);
+                Arrays.asList(promptVersion, laterVersion), consentManager, false);
 
         assertFalse(result);
     }
@@ -400,11 +400,71 @@ public class PolicyConsentUtilTest {
 
         boolean result = PolicyConsentUtil.missingConsentForVersion(
                 SUBJECT_ID, purpose, promptVersion,
-                Collections.singletonList(otherVersion), consentManager);
+                Collections.singletonList(otherVersion), consentManager, true);
 
         assertTrue(result);
         verify(consentManager, never()).listReceipts(anyString(), anyString(), anyString(),
                 anyString(), anyString(), anyString(), anyString(), anyInt());
+    }
+
+    @Test(description = "Mandatory: returns true when no receipts exist.")
+    public void testMissingConsentForVersionMandatoryReturnsTrueWhenNoReceipts()
+            throws ConsentManagementException {
+
+        PurposeVersion promptVersion = mock(PurposeVersion.class);
+        when(promptVersion.getUuid()).thenReturn(VERSION_UUID_1);
+        Purpose purpose = mock(Purpose.class);
+        when(purpose.getUuid()).thenReturn(PURPOSE_UUID_1);
+
+        when(consentManager.listReceipts(eq(SUBJECT_ID), eq(RESIDENT_IDP), eq("ACTIVE"),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
+                .thenReturn(Collections.emptyList());
+
+        boolean result = PolicyConsentUtil.missingConsentForVersion(
+                SUBJECT_ID, purpose, promptVersion,
+                Collections.singletonList(promptVersion), consentManager, true);
+
+        assertTrue(result);
+    }
+
+    @Test(description = "Mandatory: returns false when an active receipt exists.")
+    public void testMissingConsentForVersionMandatoryReturnsFalseWhenActiveReceiptExists()
+            throws ConsentManagementException {
+
+        PurposeVersion promptVersion = mock(PurposeVersion.class);
+        when(promptVersion.getUuid()).thenReturn(VERSION_UUID_1);
+        Purpose purpose = mock(Purpose.class);
+        when(purpose.getUuid()).thenReturn(PURPOSE_UUID_1);
+
+        when(consentManager.listReceipts(eq(SUBJECT_ID), eq(RESIDENT_IDP), eq("ACTIVE"),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
+                .thenReturn(Collections.singletonList(mock(Receipt.class)));
+
+        boolean result = PolicyConsentUtil.missingConsentForVersion(
+                SUBJECT_ID, purpose, promptVersion,
+                Collections.singletonList(promptVersion), consentManager, true);
+
+        assertFalse(result);
+    }
+
+    @Test(description = "Mandatory: returns true when only revoked/rejected receipts exist — must re-prompt.")
+    public void testMissingConsentForVersionMandatoryReturnsTrueWhenOnlyRevokedReceiptExists()
+            throws ConsentManagementException {
+
+        PurposeVersion promptVersion = mock(PurposeVersion.class);
+        when(promptVersion.getUuid()).thenReturn(VERSION_UUID_1);
+        Purpose purpose = mock(Purpose.class);
+        when(purpose.getUuid()).thenReturn(PURPOSE_UUID_1);
+
+        when(consentManager.listReceipts(eq(SUBJECT_ID), eq(RESIDENT_IDP), eq("ACTIVE"),
+                eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
+                .thenReturn(Collections.emptyList());
+
+        boolean result = PolicyConsentUtil.missingConsentForVersion(
+                SUBJECT_ID, purpose, promptVersion,
+                Collections.singletonList(promptVersion), consentManager, true);
+
+        assertTrue(result);
     }
 
     // ─── hasConsentForAnyVersion ─────────────────────────────────────────────────
