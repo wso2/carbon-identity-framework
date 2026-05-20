@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientE
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
@@ -93,6 +94,16 @@ public class DefaultActionValidator implements ActionValidator {
         isRulesApplicableForActionVersion(actionVersion, action);
     }
 
+    @Override
+    public void doPreAddActionValidations(Action.ActionTypes actionType, String actionVersion, Action action,
+                                          List<ActionDTO> existingActionsOfType) throws ActionMgtException {
+
+        doPreAddActionValidations(actionType, actionVersion, action);
+        if (ActionTypes.FLOW_EXTENSIONS.equals(actionType)) {
+            validateActionNameUniqueness(action.getName(), null, existingActionsOfType);
+        }
+    }
+
     /**
      * Perform pre validations on action model when updating an existing action.
      * This is specifically used during HTTP PATCH operation and only validate non-null and non-empty fields.
@@ -120,6 +131,17 @@ public class DefaultActionValidator implements ActionValidator {
         }
         validateActionAttributes(action.getAttributes());
         isRulesApplicableForActionVersion(actionVersion, action);
+    }
+
+    @Override
+    public void doPreUpdateActionValidations(Action.ActionTypes actionType, String actionVersion, Action action,
+                                             String excludeId, List<ActionDTO> existingActionsOfType)
+            throws ActionMgtException {
+
+        doPreUpdateActionValidations(actionType, actionVersion, action);
+        if (action.getName() != null && ActionTypes.FLOW_EXTENSIONS.equals(actionType)) {
+            validateActionNameUniqueness(action.getName(), excludeId, existingActionsOfType);
+        }
     }
 
     /**
@@ -246,6 +268,27 @@ public class DefaultActionValidator implements ActionValidator {
         boolean hasExcluded = allowedParametersInAction.stream().anyMatch(excludedParamsServerConfig::contains);
         if (hasExcluded) {
             throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_NOT_ALLOWED_PARAMETER);
+        }
+    }
+
+    /**
+     * Validate that the action name is unique within the given list of existing actions.
+     *
+     * @param name       Action name to validate.
+     * @param excludeId  Action ID to exclude (for update). Null for creation.
+     * @param existing   Existing actions of the same type in the tenant.
+     * @throws ActionMgtClientException If a duplicate name is found.
+     */
+    public void validateActionNameUniqueness(String name, String excludeId, List<ActionDTO> existing)
+            throws ActionMgtClientException {
+
+        boolean duplicateExists = existing.stream()
+                .filter(dto -> excludeId == null || !excludeId.equals(dto.getId()))
+                .anyMatch(dto -> name.equalsIgnoreCase(dto.getName()));
+
+        if (duplicateExists) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_ACTION_NAME_ALREADY_EXISTS, name);
         }
     }
 

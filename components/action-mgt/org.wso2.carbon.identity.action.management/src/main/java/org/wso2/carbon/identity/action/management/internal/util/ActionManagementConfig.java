@@ -96,9 +96,9 @@ public class ActionManagementConfig {
             case PRE_ISSUE_ID_TOKEN:
                 return getVersion(
                         ActionTypeConfig.PRE_ISSUE_ID_TOKEN.getLatestVersionProperty(), actionType);
-            case IN_FLOW_EXTENSION:
+            case FLOW_EXTENSIONS:
                 return getVersion(
-                        ActionTypeConfig.IN_FLOW_EXTENSION.getLatestVersionProperty(), actionType);
+                        ActionTypeConfig.FLOW_EXTENSIONS.getLatestVersionProperty(), actionType);
             default:
                 throw new ActionMgtServerException("Unsupported action type: " + actionType);
         }
@@ -145,9 +145,8 @@ public class ActionManagementConfig {
                 "Actions.Types.PreIssueIdToken.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.PreIssueIdToken.Version.Latest"
         ),
-        IN_FLOW_EXTENSION(
+        FLOW_EXTENSIONS(
                 "Actions.Types.InFlowExtension.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.InFlowExtension.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.InFlowExtension.Version.Latest"
         );
 
@@ -160,6 +159,11 @@ public class ActionManagementConfig {
             this.excludedHeadersProperty = excludedHeadersProperty;
             this.excludedParamsProperty = excludedParamsProperty;
             this.latestVersionProperty = latestVersionProperty;
+        }
+
+        ActionTypeConfig(String excludedHeadersProperty, String latestVersionProperty) {
+
+            this(excludedHeadersProperty, null, latestVersionProperty);
         }
 
         public String getExcludedHeadersProperty() {

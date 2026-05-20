@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.action.management.api.service;
 
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+
+import java.util.List;
 
 /**
  * This interface to the validate action in the Action management service layer.
@@ -43,6 +46,22 @@ public interface ActionValidator {
             throws ActionMgtException;
 
     /**
+     * Perform pre validations on action model when creating an action, including tenant-scoped checks.
+     * Overload that receives the pre-fetched list of existing actions for validations such as name uniqueness.
+     * Default delegates to {@link #doPreAddActionValidations(Action.ActionTypes, String, Action)} for
+     * backward compatibility with existing implementations.
+     *
+     * @param action                 Action creation model.
+     * @param existingActionsOfType  Existing actions of the same type in the tenant.
+     * @throws ActionMgtException if action model is invalid.
+     */
+    default void doPreAddActionValidations(Action.ActionTypes actionType, String actionVersion, Action action,
+                                           List<ActionDTO> existingActionsOfType) throws ActionMgtException {
+
+        doPreAddActionValidations(actionType, actionVersion, action);
+    }
+
+    /**
      * Perform pre validations on action model when updating an existing action.
      * This is specifically used during HTTP PATCH operation and only validate non-null and non-empty fields.
      *
@@ -51,4 +70,22 @@ public interface ActionValidator {
      */
     void doPreUpdateActionValidations(Action.ActionTypes actionType, String actionVersion, Action action)
             throws ActionMgtException;
+
+    /**
+     * Perform pre validations on action model when updating an existing action, including tenant-scoped checks.
+     * Overload that receives the pre-fetched list of existing actions for validations such as name uniqueness.
+     * Default delegates to {@link #doPreUpdateActionValidations(Action.ActionTypes, String, Action)} for
+     * backward compatibility.
+     *
+     * @param action                 Action update model.
+     * @param excludeId              Action ID to exclude from uniqueness check.
+     * @param existingActionsOfType  Existing actions of the same type in the tenant.
+     * @throws ActionMgtException if action model is invalid.
+     */
+    default void doPreUpdateActionValidations(Action.ActionTypes actionType, String actionVersion, Action action,
+                                              String excludeId, List<ActionDTO> existingActionsOfType)
+            throws ActionMgtException {
+
+        doPreUpdateActionValidations(actionType, actionVersion, action);
+    }
 }

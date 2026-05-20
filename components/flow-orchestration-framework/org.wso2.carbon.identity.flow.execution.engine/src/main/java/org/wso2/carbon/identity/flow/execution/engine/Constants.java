@@ -167,7 +167,7 @@ public class Constants {
                 "Error occurred during policy consent processing.",
                 "Error occurred while processing policy consent for the %s request of flow id: %s."),
         ERROR_CODE_INFLOW_EXTENSION_ERROR("65034",
-                "%s",
+                "In-Flow Extension error.",
                 "%s"),
 
         // Client errors.
@@ -218,7 +218,10 @@ public class Constants {
                 "The provided username: %s does not meet the configured format requirements."),
         ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED("60016",
                 "Password does not meet the required format.",
-                "The provided password does not meet the configured format requirements.")
+                "The provided password does not meet the configured format requirements."),
+        ERROR_CODE_INFLOW_EXTENSION_FAILURE("60017",
+                "%s",
+                "%s")
         ;
 
         private static final String ERROR_PREFIX = "FE";

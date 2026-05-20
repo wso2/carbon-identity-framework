@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.11.88-SNAPSHOT</version>
+        <version>7.11.94-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -180,7 +180,6 @@
                             !org.wso2.carbon.identity.flow.execution.internal,
                             org.wso2.carbon.identity.flow.execution.engine.util,
                             org.wso2.carbon.identity.flow.execution.engine,
-                            org.wso2.carbon.identity.flow.execution.engine.internal,
                             org.wso2.carbon.identity.flow.execution.engine.core,
                             org.wso2.carbon.identity.flow.execution.engine.cache,
                             org.wso2.carbon.identity.flow.execution.engine.store,

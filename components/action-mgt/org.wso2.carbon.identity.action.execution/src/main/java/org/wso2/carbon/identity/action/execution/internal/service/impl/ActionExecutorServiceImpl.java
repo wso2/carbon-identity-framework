@@ -197,8 +197,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throws ActionExecutionException {
 
         try {
-            return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService().getActionByActionId(
-                    Action.ActionTypes.valueOf(actionType.name()).getPathParam(), actionId, tenantDomain);
+            Action action = ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
+                    .getActionByActionId(Action.ActionTypes.valueOf(actionType.name()).getPathParam(), actionId,
+                            tenantDomain);
+            if (action == null) {
+                throw new ActionExecutionRuntimeException("No action found for action Id: " + actionId);
+            }
+            return action;
         } catch (ActionMgtException e) {
             throw new ActionExecutionException("Error occurred while retrieving action by action Id.", e);
         }

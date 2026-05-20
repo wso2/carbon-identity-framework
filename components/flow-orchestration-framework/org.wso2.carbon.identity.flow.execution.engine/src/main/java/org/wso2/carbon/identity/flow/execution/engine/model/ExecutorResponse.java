@@ -27,6 +27,7 @@ import java.util.Map;
 public class ExecutorResponse {
 
     private String result;
+    private String userId;
     private List<String> requiredData;
     private List<String> optionalData;
     private Map<String, Object> updatedUserClaims;
@@ -53,6 +54,16 @@ public class ExecutorResponse {
     public void setResult(String result) {
 
         this.result = result;
+    }
+
+    public String getUserId() {
+
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+
+        this.userId = userId;
     }
 
     public List<String> getRequiredData() {
