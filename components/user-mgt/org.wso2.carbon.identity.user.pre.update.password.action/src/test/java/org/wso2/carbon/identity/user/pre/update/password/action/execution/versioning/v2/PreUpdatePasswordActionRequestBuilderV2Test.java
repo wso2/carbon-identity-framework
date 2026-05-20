@@ -116,8 +116,7 @@ import static org.wso2.carbon.identity.user.pre.update.password.action.util.Test
  * Unit tests for PreUpdatePasswordActionRequestBuilderV2, verifying request building and related logic.
  */
 @WithCarbonHome
-@WithRealmService(injectToSingletons = {PreUpdatePasswordActionServiceComponentHolder.class},
-        initUserStoreManager = true)
+@WithRealmService(injectToSingletons = {ActionExecutionServiceComponentHolder.class}, initUserStoreManager = true)
 public class PreUpdatePasswordActionRequestBuilderV2Test {
 
     private PreUpdatePasswordAction preUpdatePasswordAction;
@@ -416,7 +415,6 @@ public class PreUpdatePasswordActionRequestBuilderV2Test {
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(null);
 
-        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
         ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
@@ -443,7 +441,6 @@ public class PreUpdatePasswordActionRequestBuilderV2Test {
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(mock(UserStoreManager.class));
 
-        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
         ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
@@ -469,7 +466,6 @@ public class PreUpdatePasswordActionRequestBuilderV2Test {
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenThrow(new UserStoreException("Error loading user store manager"));
 
-        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
         ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()

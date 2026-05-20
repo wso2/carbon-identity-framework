@@ -101,8 +101,7 @@ import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestC
 
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
-@WithRealmService(injectToSingletons = {
-        PreUpdateProfileActionServiceComponentHolder.class}, initUserStoreManager = true)
+@WithRealmService(injectToSingletons = {ActionExecutionServiceComponentHolder.class}, initUserStoreManager = true)
 public class PreUpdateProfileRequestBuilderTest {
 
     private PreUpdateProfileRequestBuilder preUpdateProfileRequestBuilder;
@@ -362,7 +361,6 @@ public class PreUpdateProfileRequestBuilderTest {
         when(realmService.getTenantManager()).thenReturn(tenantManager);
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(null);
 
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
         ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
@@ -396,7 +394,6 @@ public class PreUpdateProfileRequestBuilderTest {
         when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(mock(UserStoreManager.class));
 
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
         ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()
@@ -431,7 +428,6 @@ public class PreUpdateProfileRequestBuilderTest {
         when(userRealm.getUserStoreManager()).thenThrow(
                 new UserStoreException("Error while loading user store manager"));
 
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
         ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
 
         IdentityContext.getThreadLocalIdentityContext()

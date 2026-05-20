@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.managem
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionDTOModelResolver;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionValidator;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
-import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Service component for the Pre Update Password Action.
@@ -145,24 +144,6 @@ public class PreUpdatePasswordActionServiceComponent {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(null);
         LOG.debug("ActionExecutorService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
-    }
-
-    @Reference(
-            name = "realm.service",
-            service = org.wso2.carbon.user.core.service.RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService")
-    protected void setRealmService(RealmService realmService) {
-
-        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(realmService);
-        LOG.debug("RealmService set in PreUpdatePasswordActionServiceComponentHolder bundle.");
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        PreUpdatePasswordActionServiceComponentHolder.getInstance().setRealmService(null);
-        LOG.debug("RealmService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
     }
 
     @Reference(
