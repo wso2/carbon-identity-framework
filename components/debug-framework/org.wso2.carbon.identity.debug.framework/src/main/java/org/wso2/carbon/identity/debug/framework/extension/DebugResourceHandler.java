@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.extension;
 
-import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
@@ -48,27 +46,4 @@ public interface DebugResourceHandler {
      */
     DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException;
-
-    /**
-     * Retrieves the debug processor for a given resource.
-     *
-     * @param resourceId The resource ID associated with the callback.
-     * @return DebugProcessor instance, or null if not available.
-     */
-    default DebugProcessor getProcessor(String resourceId) {
-
-        return null;
-    }
-
-    /**
-     * Retrieves the debug executor for a given resource.
-     *
-     * @param resourceId The resource ID.
-     * @return DebugExecutor instance, or null if not available.
-     */
-    default DebugExecutor getExecutor(String resourceId) {
-
-        return null;
-    }
-
 }

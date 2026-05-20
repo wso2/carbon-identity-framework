@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugExecutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
@@ -177,18 +176,6 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         return contextProvider;
     }
 
-    /**
-     * Retrieves the debug executor for the specified IdP resource.
-     *
-     * @param connectionId The connection ID identifying the IdP resource.
-     * @return DebugExecutor instance, or null if not available.
-     */
-    @Override
-    public DebugExecutor getExecutor(String connectionId) {
-
-        return getExecutor(resolveProtocolProvider(connectionId), connectionId);
-    }
-
     protected DebugExecutor getExecutor(DebugProtocolProvider protocolProvider, String connectionId) {
 
         if (protocolProvider == null) {
@@ -202,19 +189,4 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         return executor;
     }
 
-    /**
-     * Retrieves the debug processor for the specified IdP resource.
-     *
-     * @param connectionId The connection ID identifying the IdP resource.
-     * @return DebugProcessor instance, or null if not available.
-     */
-    @Override
-    public DebugProcessor getProcessor(String connectionId) {
-
-        DebugProtocolProvider protocolProvider = resolveProtocolProvider(connectionId);
-        if (protocolProvider == null) {
-            return null;
-        }
-        return protocolProvider.getProcessor();
-    }
 }
