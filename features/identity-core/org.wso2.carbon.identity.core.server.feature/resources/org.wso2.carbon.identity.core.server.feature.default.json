@@ -1356,7 +1356,8 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [
-    "microsoft-365"
+    "microsoft-365",
+    "agent-application"
   ],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
