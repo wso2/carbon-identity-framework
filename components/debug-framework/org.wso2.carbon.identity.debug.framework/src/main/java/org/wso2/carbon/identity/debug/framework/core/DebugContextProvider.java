@@ -37,12 +37,4 @@ public abstract class DebugContextProvider {
      */
     public abstract DebugContext resolveContext(Map<String, Object> params)
             throws ContextResolutionException;
-
-    /**
-     * Validates if this provider can handle the given parameter set.
-     *
-     * @param params Protocol-specific parameters to check.
-     * @return true if this provider can handle the parameters, false otherwise.
-     */
-    public abstract boolean canHandle(Map<String, Object> params);
 }

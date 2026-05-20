@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.debug.framework.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
@@ -76,8 +75,6 @@ public class DebugRequestCoordinator {
     public DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        validateDebugRequest(debugFrameworkRequest);
-
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Orchestrating debug request for resource type: " + debugFrameworkRequest.getResourceType());
@@ -113,25 +110,6 @@ public class DebugRequestCoordinator {
                 throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
             }
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
-        }
-    }
-
-    /**
-     * Validates the debug request.
-     *
-     * @param debugFrameworkRequest The debug request to validate.
-     * @throws DebugFrameworkClientException If validation fails.
-     */
-    private void validateDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
-            throws DebugFrameworkClientException {
-
-        if (debugFrameworkRequest == null) {
-            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
-        }
-
-        if (!debugFrameworkRequest.isResultRetrieval()
-                && StringUtils.isBlank(debugFrameworkRequest.getResourceType())) {
-            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_RESOURCE_TYPE);
         }
     }
 

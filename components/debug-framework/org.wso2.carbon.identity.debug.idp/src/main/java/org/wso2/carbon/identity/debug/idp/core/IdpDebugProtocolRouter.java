@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Routes IdP debug requests to protocol-specific components.
@@ -66,15 +65,14 @@ public final class IdpDebugProtocolRouter {
             return null;
         }
 
-        String normalizedType = normalizeProtocolType(protocolType);
         DebugProtocolProvider provider = DebugProtocolRegistry.getInstance()
-                .getDebugProtocolProvider(normalizedType);
+                .getDebugProtocolProvider(protocolType);
 
         if (LOG.isDebugEnabled()) {
             if (provider != null) {
-                LOG.debug("Retrieved protocol provider for type: " + normalizedType);
+                LOG.debug("Retrieved protocol provider for type: " + protocolType);
             } else {
-                LOG.debug("Protocol provider not found for type: " + normalizedType);
+                LOG.debug("Protocol provider not found for type: " + protocolType);
             }
         }
         return provider;
@@ -105,13 +103,5 @@ public final class IdpDebugProtocolRouter {
                     + ". Ensure a matching protocol resolver is deployed and active.");
         }
         return null;
-    }
-
-    private static String normalizeProtocolType(String protocolType) {
-
-        if (protocolType == null) {
-            return null;
-        }
-        return protocolType.trim().toLowerCase(Locale.ROOT);
     }
 }

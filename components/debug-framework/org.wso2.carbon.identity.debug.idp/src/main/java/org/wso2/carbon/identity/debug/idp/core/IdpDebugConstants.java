@@ -42,6 +42,6 @@ public final class IdpDebugConstants {
     public static final String PROTOCOL_TYPE_SAML = "SAML";
 
     private IdpDebugConstants() {
-        // Private constructor to prevent instantiation.
+        
     }
 }

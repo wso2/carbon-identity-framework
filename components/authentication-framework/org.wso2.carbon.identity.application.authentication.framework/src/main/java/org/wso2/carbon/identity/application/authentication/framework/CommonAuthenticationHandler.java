@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -59,17 +60,14 @@ public class CommonAuthenticationHandler {
         }
 
         try {
-            if (isDebugRequest(request)) {
-                boolean debugHandled = handleDebugFlow(request, response);
-                if (debugHandled) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Debug request handled by debug interceptor.");
-                    }
-                    return;
-                }
+            List<DebugAuthenticationInterceptor> interceptors = FrameworkServiceDataHolder.getInstance()
+                    .getDebugAuthenticationInterceptors();
+            if (isDebugRequest(request) && !interceptors.isEmpty()
+                    && interceptors.get(0).handleCommonAuthRequest(request, response)) {
+                return;
             }
 
-            // If not a debug flow, proceed with regular WSO2 authentication.
+            // If not a debug flow, proceed with regular authentication.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
 
@@ -91,27 +89,4 @@ public class CommonAuthenticationHandler {
         return state != null && state.startsWith(DEBUG_PREFIX);
     }
 
-    private boolean handleDebugFlow(HttpServletRequest request, HttpServletResponse response) {
-
-        for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
-                .getDebugAuthenticationInterceptors()) {
-            try {
-                if (!interceptor.canHandle(request)) {
-                    continue;
-                }
-                if (interceptor.handleCommonAuthRequest(request, response)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Common auth request handled by debug interceptor: "
-                                + interceptor.getClass().getName());
-                    }
-                    return true;
-                }
-            } catch (RuntimeException e) {
-                log.error("Debug authentication interceptor failed: " + interceptor.getClass().getName()
-                        + ". Debug flow aborted. Proceeding with normal authentication.", e);
-                return false;
-            }
-        }
-        return false;
-    }
 }

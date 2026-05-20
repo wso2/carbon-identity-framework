@@ -43,12 +43,6 @@ public abstract class IdpDebugContextProvider extends DebugContextProvider {
         return resolveContext((String) connectionIdObj, (String) resourceTypeObj);
     }
 
-    @Override
-    public boolean canHandle(Map<String, Object> params) {
-
-        return canHandle((String) params.get(IdpDebugConstants.CONNECTION_ID));
-    }
-
     /**
      * Resolves context using an IdP connection identifier.
      *
@@ -59,12 +53,4 @@ public abstract class IdpDebugContextProvider extends DebugContextProvider {
      */
     public abstract DebugContext resolveContext(String connectionId, String resourceType)
             throws ContextResolutionException;
-
-    /**
-     * Returns whether this provider can resolve the given IdP connection.
-     *
-     * @param connectionId The IdP resource identifier.
-     * @return true if resolvable.
-     */
-    public abstract boolean canHandle(String connectionId);
 }
