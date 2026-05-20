@@ -35,6 +35,9 @@ import java.util.Map;
  */
 public class RequestBuilderUtil {
 
+    private RequestBuilderUtil() {
+    }
+
     /**
      * Retrieves the claim values for the specified user and requested claims.
      *
