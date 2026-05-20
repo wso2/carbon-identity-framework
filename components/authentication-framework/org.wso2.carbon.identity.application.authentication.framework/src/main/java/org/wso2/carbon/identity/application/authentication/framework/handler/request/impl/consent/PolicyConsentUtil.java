@@ -147,11 +147,7 @@ public final class PolicyConsentUtil {
             throws ConsentManagementException {
 
         ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
-        List<Purpose> policyPurposes = getPolicyPurposes(consentManager);
-        if (policyPurposes.isEmpty()) {
-            return emptyResult();
-        }
-
+        List<Purpose> policyPurposes = Collections.emptyList();
         List<String> mandatoryUnconsentedIds = new ArrayList<>();
         List<String> mandatoryNewVersionIds = new ArrayList<>();
         List<String> optionalUnconsentedIds = new ArrayList<>();
@@ -159,8 +155,9 @@ public final class PolicyConsentUtil {
 
         try {
             startTenantFlow(subjectId, tenantDomain);
+            policyPurposes = getPolicyPurposes(consentManager);
             for (Purpose purpose : policyPurposes) {
-                if (!isPolicyConsentMissing(subjectId, purpose, consentManager)) { //  ?
+                if (!isPolicyConsentMissing(subjectId, purpose, consentManager)) {
                     continue;
                 }
                 boolean hasPreviousConsent = hasConsentForAnyVersion(subjectId, purpose, consentManager);
@@ -209,12 +206,9 @@ public final class PolicyConsentUtil {
             throws ConsentManagementException {
 
         ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
-        List<Purpose> policyPurposes = getPolicyPurposes(consentManager);
-        if (policyPurposes.isEmpty()) {
-            return false;
-        }
         try {
             startTenantFlow(subjectId, tenantDomain);
+            List<Purpose> policyPurposes = getPolicyPurposes(consentManager);
             for (Purpose purpose : policyPurposes) {
                 if (isPolicyConsentMissing(subjectId, purpose, consentManager)) {
                     return true;

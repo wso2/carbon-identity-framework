@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -111,7 +112,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (authenticatedUser.isOrganizationUser()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Sub-organization user detected. Skipping policy consent handling for user: "
-                        + authenticatedUser.getAuthenticatedSubjectIdentifier());
+                        + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                                authenticatedUser.getAuthenticatedSubjectIdentifier())
+                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -119,7 +122,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (isSystemApplication(context)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("System application detected. Skipping policy consent handling for user: "
-                        + authenticatedUser.getAuthenticatedSubjectIdentifier());
+                        + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                                authenticatedUser.getAuthenticatedSubjectIdentifier())
+                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -127,7 +132,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (FrameworkUtils.isConsentPageSkippedForSP(getServiceProvider(context))) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Consent page skipped for service provider. Skipping policy consent handling for user: "
-                        + authenticatedUser.getAuthenticatedSubjectIdentifier());
+                        + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                                authenticatedUser.getAuthenticatedSubjectIdentifier())
+                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -135,7 +142,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("API-based authentication flow detected. Skipping policy consent redirect for user: "
-                        + authenticatedUser.getAuthenticatedSubjectIdentifier());
+                        + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                                authenticatedUser.getAuthenticatedSubjectIdentifier())
+                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -248,8 +257,11 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 ? new ArrayList<>(Arrays.asList(optionalParam))
                 : Collections.emptyList();
 
-        // Re-derive the mandatory IDs from the backend to reject tampered form submissions that
-        // dropped mandatory purpose IDs to skip consent.
+        // Re-derive the full allowed ID sets from the backend to reject tampered form submissions
+        // that either dropped mandatory IDs to skip consent or injected extra IDs to persist
+        // consents for purposes the server never presented.
+        Set<String> allowedMandatoryIds;
+        Set<String> allowedOptionalIds;
         try {
             PolicyConsentUtil.ClassifiedPolicies classified =
                     PolicyConsentUtil.classifyUnconsentedPolicies(subjectId, tenantDomain);
@@ -267,6 +279,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                         String.format("User: %s did not consent to all mandatory policies in tenant: %s.",
                                 subjectId, tenantDomain));
             }
+            allowedMandatoryIds = expectedMandatoryIds;
+            allowedOptionalIds = new HashSet<>(classified.getOptionalUnconsentedIds());
+            allowedOptionalIds.addAll(classified.getOptionalNewVersionIds());
         } catch (ConsentManagementException e) {
             if (diagnosticLogBuilder != null) {
                 diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
@@ -279,6 +294,13 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                     String.format("Error validating mandatory policy consent for user: %s in tenant: %s.",
                             subjectId, tenantDomain), e);
         }
+
+        mandatoryIds = mandatoryIds.stream()
+                .filter(allowedMandatoryIds::contains)
+                .collect(Collectors.toList());
+        optionalIds = optionalIds.stream()
+                .filter(allowedOptionalIds::contains)
+                .collect(Collectors.toList());
 
         String[] approvedOptionalParam = request.getParameterValues(OPTIONAL_PURPOSE_ID_PARAM);
         Set<String> approvedOptionalIds = (approvedOptionalParam != null)

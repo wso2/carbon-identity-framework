@@ -58,6 +58,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -78,17 +79,22 @@ public class PolicyConsentUtilTest {
 
     private MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolderMock;
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
+    private AutoCloseable openMocksCloseable;
+    private String originalCarbonHome;
+    private String originalCarbonConfigDirPath;
 
     @BeforeMethod
     public void setUp() {
 
-        openMocks(this);
+        openMocksCloseable = openMocks(this);
 
         FrameworkServiceDataHolder dataHolder = mock(FrameworkServiceDataHolder.class);
         frameworkServiceDataHolderMock = mockStatic(FrameworkServiceDataHolder.class);
         frameworkServiceDataHolderMock.when(FrameworkServiceDataHolder::getInstance).thenReturn(dataHolder);
         when(dataHolder.getConsentManager()).thenReturn(consentManager);
 
+        originalCarbonHome = System.getProperty(CarbonBaseConstants.CARBON_HOME);
+        originalCarbonConfigDirPath = System.getProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH);
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH,
@@ -101,10 +107,22 @@ public class PolicyConsentUtilTest {
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws Exception {
 
         frameworkServiceDataHolderMock.close();
         privilegedCarbonContextMock.close();
+        openMocksCloseable.close();
+
+        if (originalCarbonHome != null) {
+            System.setProperty(CarbonBaseConstants.CARBON_HOME, originalCarbonHome);
+        } else {
+            System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        }
+        if (originalCarbonConfigDirPath != null) {
+            System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, originalCarbonConfigDirPath);
+        } else {
+            System.clearProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH);
+        }
     }
 
     // ─── shouldPromptOnLogin ────────────────────────────────────────────────────
@@ -248,7 +266,7 @@ public class PolicyConsentUtilTest {
         PurposeVersion result = PolicyConsentUtil.getLatestVersionWithPromptOnLogin(
                 purpose, Collections.singletonList(v1), consentManager);
 
-        assertFalse(PolicyConsentUtil.shouldPromptOnLogin(result));
+        assertNull(result);
     }
 
     @Test(description = "Returns the latest version (last in list) that has promptOnLogin=true.")

@@ -115,7 +115,7 @@ public class FlowUser implements Serializable {
 
     public void setUserConsents(List<UserConsent> userConsents) {
 
-        this.userConsents = userConsents;
+        this.userConsents = (userConsents != null) ? userConsents : new ArrayList<>();
     }
 
     public void addClaims(Map<String, String> claims) {

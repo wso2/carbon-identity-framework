@@ -250,9 +250,10 @@ public class PolicyConsentFlowExecutionListenerTest {
 
         Purpose purpose = buildPurpose("Telemetry", null);
         when(mockConsentManager.getPurposeByUuid("purpose-3")).thenReturn(purpose);
+        Map<String, Object> policy = policyMapWithId("purpose-3");
 
-        assertTrue(listener.doPostExecute(stepWithPolicyMap(policyMapWithId("purpose-3")), context));
-        // resolveDescription returns "" when both version and purpose description are null
+        assertTrue(listener.doPostExecute(stepWithPolicyMap(policy), context));
+        assertEquals(policy.get("description"), "");
     }
 
     @Test

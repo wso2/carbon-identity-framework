@@ -62,6 +62,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -105,6 +106,10 @@ public class PolicyConsentPostAuthnHandlerTest {
     private MockedStatic<ConfigurationFacade> configurationFacadeMock;
     private MockedStatic<LoggerUtils> loggerUtilsMock;
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
+    private MockedStatic<PolicyConsentUtil> policyConsentUtilMock;
+
+    private String originalCarbonHome;
+    private String originalCarbonConfigDirPath;
 
     @BeforeMethod
     public void setUp() throws ConsentManagementException {
@@ -150,6 +155,8 @@ public class PolicyConsentPostAuthnHandlerTest {
         loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
 
         // Allow PrivilegedCarbonContext to initialize in a test environment (no OSGi container).
+        originalCarbonHome = System.getProperty(CarbonBaseConstants.CARBON_HOME);
+        originalCarbonConfigDirPath = System.getProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH);
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH,
@@ -158,6 +165,8 @@ public class PolicyConsentPostAuthnHandlerTest {
         privilegedCarbonContextMock = mockStatic(PrivilegedCarbonContext.class);
         privilegedCarbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
                 .thenReturn(carbonContextInstance);
+
+        policyConsentUtilMock = mockStatic(PolicyConsentUtil.class, CALLS_REAL_METHODS);
 
         // Default stubs so ConsentReceiptUtils.buildReceiptInput() can complete without NPE.
         // Tests that need specific Purpose behaviour override these with their own stubs.
@@ -176,6 +185,18 @@ public class PolicyConsentPostAuthnHandlerTest {
         configurationFacadeMock.close();
         loggerUtilsMock.close();
         privilegedCarbonContextMock.close();
+        policyConsentUtilMock.close();
+
+        if (originalCarbonHome != null) {
+            System.setProperty(CarbonBaseConstants.CARBON_HOME, originalCarbonHome);
+        } else {
+            System.clearProperty(CarbonBaseConstants.CARBON_HOME);
+        }
+        if (originalCarbonConfigDirPath != null) {
+            System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, originalCarbonConfigDirPath);
+        } else {
+            System.clearProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH);
+        }
     }
 
     /**
@@ -408,6 +429,11 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(piiCategory.getId()).thenReturn(1);
         when(consentManager.getPIICategoryByName("Policy")).thenReturn(piiCategory);
 
+        policyConsentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+                .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
+                        Arrays.asList(PURPOSE_UUID_1, PURPOSE_UUID_2),
+                        Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), ""));
+
         context.addParameter("policyConsentPrompted", true);
         when(request.getParameterValues("policyMandatoryIds"))
                 .thenReturn(new String[]{PURPOSE_UUID_1, PURPOSE_UUID_2});
@@ -443,6 +469,11 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(piiCategory.getId()).thenReturn(1);
         when(consentManager.getPIICategoryByName("Policy")).thenReturn(piiCategory);
 
+        policyConsentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+                .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
+                        Collections.emptyList(), Collections.emptyList(),
+                        Arrays.asList(PURPOSE_UUID_1), Collections.emptyList(), ""));
+
         context.addParameter("policyConsentPrompted", true);
         when(request.getParameterValues("policyOptionalIds")).thenReturn(new String[]{PURPOSE_UUID_1});
         when(request.getParameter("consent")).thenReturn("approve");
@@ -469,6 +500,11 @@ public class PolicyConsentPostAuthnHandlerTest {
         PurposeCategory defaultCategory = mock(PurposeCategory.class);
         when(defaultCategory.getId()).thenReturn(10);
         when(consentManager.getPurposeCategoryByName("DEFAULT")).thenReturn(defaultCategory);
+
+        policyConsentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+                .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
+                        Collections.emptyList(), Collections.emptyList(),
+                        Arrays.asList(PURPOSE_UUID_1), Collections.emptyList(), ""));
 
         context.addParameter("policyConsentPrompted", true);
         when(request.getParameterValues("policyOptionalIds")).thenReturn(new String[]{PURPOSE_UUID_1});
@@ -500,6 +536,11 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(defaultCategory.getId()).thenReturn(10);
         when(consentManager.getPurposeCategoryByName("DEFAULT")).thenReturn(defaultCategory);
 
+        policyConsentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+                .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
+                        Collections.emptyList(), Collections.emptyList(),
+                        Arrays.asList(PURPOSE_UUID_1, PURPOSE_UUID_2), Collections.emptyList(), ""));
+
         context.addParameter("policyConsentPrompted", true);
         when(request.getParameterValues("policyOptionalIds"))
                 .thenReturn(new String[]{PURPOSE_UUID_1, PURPOSE_UUID_2});
@@ -530,6 +571,11 @@ public class PolicyConsentPostAuthnHandlerTest {
         PIICategory newCategory = mock(PIICategory.class);
         when(newCategory.getId()).thenReturn(2);
         when(consentManager.addPIICategoryWithUuid(any())).thenReturn(newCategory);
+
+        policyConsentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+                .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
+                        Arrays.asList(PURPOSE_UUID_1), Collections.emptyList(),
+                        Collections.emptyList(), Collections.emptyList(), ""));
 
         context.addParameter("policyConsentPrompted", true);
         when(request.getParameterValues("policyMandatoryIds")).thenReturn(new String[]{PURPOSE_UUID_1});
