@@ -101,11 +101,13 @@
                             org.wso2.carbon.identity.debug.idp.resolver.*; version="${project.version}"
                         </Export-Package>
                         <Import-Package>
+                            org.wso2.carbon.identity.debug.framework; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.debug.framework.core.*; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.debug.framework.model.*; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.debug.framework.exception.*; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.debug.framework.extension.*; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.debug.framework.registry.*; version="[7.8.0,8.0.0)",
+                            org.wso2.carbon.identity.debug.framework.util.*; version="[7.8.0,8.0.0)",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}",

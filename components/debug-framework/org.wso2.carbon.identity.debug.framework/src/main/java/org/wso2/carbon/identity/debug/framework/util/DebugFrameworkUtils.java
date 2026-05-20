@@ -18,19 +18,45 @@
 
 package org.wso2.carbon.identity.debug.framework.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 
+import java.util.Map;
+
 /**
- * Utility class for Debug Framework exception handling.
- * Provides methods to create exceptions from ErrorMessages enum.
+ * Utility class for Debug Framework exception handling and shared serialization helpers.
  */
-public class DebugFrameworkUtils {
+public final class DebugFrameworkUtils {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
     private DebugFrameworkUtils() {
         // Private constructor to prevent instantiation.
+    }
+
+    /**
+     * Returns the shared {@link ObjectMapper} used for debug session and result serialization.
+     *
+     * @return Shared ObjectMapper instance.
+     */
+    public static ObjectMapper getObjectMapper() {
+
+        return OBJECT_MAPPER;
+    }
+
+    /**
+     * Returns the canonical {@code Map<String, Object>} type reference used for JSON deserialization.
+     *
+     * @return Map type reference.
+     */
+    public static TypeReference<Map<String, Object>> getMapTypeReference() {
+
+        return MAP_TYPE;
     }
 
     /**

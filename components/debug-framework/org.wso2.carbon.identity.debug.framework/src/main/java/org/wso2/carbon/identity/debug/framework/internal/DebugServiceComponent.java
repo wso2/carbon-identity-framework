@@ -81,10 +81,10 @@ public class DebugServiceComponent {
 
             LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
             LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error during debug framework component activation", e);
         }
-        
+
         LOG.debug("Debug Framework OSGi component activated successfully");
     }
 
@@ -113,7 +113,7 @@ public class DebugServiceComponent {
             }
 
             LOG.debug("Debug Framework OSGi component deactivated");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.error("Error during debug framework component deactivation", e);
         }
     }

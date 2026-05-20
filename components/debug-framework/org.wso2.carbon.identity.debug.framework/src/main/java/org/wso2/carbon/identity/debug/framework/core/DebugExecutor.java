@@ -55,10 +55,4 @@ public abstract class DebugExecutor {
      */
     public abstract String getExecutorName();
 
-    /**
-     * Performs any cleanup or resource release.
-     * Called when the debug operation completes.
-     * Implementations must explicitly handle cleanup to ensure resources are not leaked.
-     */
-    public abstract void cleanup();
 }

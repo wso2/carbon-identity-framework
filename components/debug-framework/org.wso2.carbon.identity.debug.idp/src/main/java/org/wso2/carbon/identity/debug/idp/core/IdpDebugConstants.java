@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.debug.idp.core;
 public final class IdpDebugConstants {
 
     public static final String CONNECTION_ID = "connectionId";
+    public static final String RESOURCE_TYPE_KEY = "resourceType";
     public static final String RESOURCE_TYPE_IDP = "IDP";
 
     // Known implementation names used for protocol detection.

@@ -36,6 +36,11 @@ import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 public class DebugSessionCleanupExecutionListener implements DebugExecutionListener {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionCleanupExecutionListener.class);
+
+    /**
+     * High order so cleanup runs last in the post-execute chain
+     * (lower {@link DebugExecutionListener#getExecutionOrderId()} values execute first).
+     */
     private static final int DEFAULT_ORDER = 1000;
 
     private final DebugSessionDAO debugSessionDAO;
@@ -130,7 +135,7 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             }
         } catch (DebugFrameworkServerException e) {
             // Log the error message. Cleanup should not affect the main flow.
-            LOG.error("Failed to delete debug session record from database for debug ID: " + debugId 
+            LOG.error("Failed to delete debug session record from database for debug ID: " + debugId
                     + ". Error code: " + e.getErrorCode() + ". Cause: " + e.getMessage());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Stack trace for failed debug session deletion: ", e);

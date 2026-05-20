@@ -50,7 +50,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionDAOImpl.class);
 
-
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 

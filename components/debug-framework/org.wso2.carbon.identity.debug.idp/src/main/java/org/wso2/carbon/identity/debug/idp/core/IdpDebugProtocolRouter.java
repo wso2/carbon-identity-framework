@@ -1,9 +1,10 @@
-/*
+/**
  * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -30,9 +31,9 @@ import java.util.Locale;
 /**
  * Routes IdP debug requests to protocol-specific components.
  */
-public class IdpDebugProtocolRouter {
+public final class IdpDebugProtocolRouter {
 
-    protected static final Log LOG = LogFactory.getLog(IdpDebugProtocolRouter.class);
+    private static final Log LOG = LogFactory.getLog(IdpDebugProtocolRouter.class);
 
     private IdpDebugProtocolRouter() {
 
@@ -41,20 +42,17 @@ public class IdpDebugProtocolRouter {
 
     /**
      * Resolves the protocol provider for the specified connection.
-     * This is the main router entry point used by the IdP handler.
      *
      * @param connectionId The connection ID.
      * @return DebugProtocolProvider instance, or null if not available.
      */
     public static DebugProtocolProvider resolveProvider(String connectionId) {
 
-        // Find the protocol type
         String protocolType = resolveProtocolType(connectionId);
         if (StringUtils.isBlank(protocolType)) {
             return null;
         }
-        
-        // Get the provider for the protocol
+
         DebugProtocolProvider provider = getDebugProtocolProvider(protocolType);
         if (provider != null && LOG.isDebugEnabled()) {
             LOG.debug("Resolved protocol provider for resource: " + connectionId);
@@ -62,7 +60,7 @@ public class IdpDebugProtocolRouter {
         return provider;
     }
 
-    protected static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
+    private static DebugProtocolProvider getDebugProtocolProvider(String protocolType) {
 
         if (StringUtils.isEmpty(protocolType)) {
             return null;
@@ -72,21 +70,21 @@ public class IdpDebugProtocolRouter {
         DebugProtocolProvider provider = DebugProtocolRegistry.getInstance()
                 .getDebugProtocolProvider(normalizedType);
 
-        if (provider != null) {
-            if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
+            if (provider != null) {
                 LOG.debug("Retrieved protocol provider for type: " + normalizedType);
+            } else {
+                LOG.debug("Protocol provider not found for type: " + normalizedType);
             }
-        } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Protocol provider not found for type: " + normalizedType);
         }
         return provider;
     }
 
-    protected static String resolveProtocolType(String connectionId) {
+    private static String resolveProtocolType(String connectionId) {
 
         if (StringUtils.isBlank(connectionId)) {
-            LOG.warn("Connection ID is blank — cannot resolve protocol. " +
-                    "Ensure a valid connection ID is provided.");
+            LOG.warn("Connection ID is blank — cannot resolve protocol. "
+                    + "Ensure a valid connection ID is provided.");
             return null;
         }
 
@@ -109,7 +107,7 @@ public class IdpDebugProtocolRouter {
         return null;
     }
 
-    protected static String normalizeProtocolType(String protocolType) {
+    private static String normalizeProtocolType(String protocolType) {
 
         if (protocolType == null) {
             return null;

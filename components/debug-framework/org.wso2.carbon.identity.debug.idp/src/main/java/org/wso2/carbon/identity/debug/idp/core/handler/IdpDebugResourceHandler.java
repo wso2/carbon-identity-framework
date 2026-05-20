@@ -42,7 +42,6 @@ import org.wso2.carbon.identity.debug.idp.core.IdpDebugProtocolRouter;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Handler for debugging Identity Provider (IdP) resources.
  * This is the IDP-specific implementation of the DebugResourceHandler
@@ -50,7 +49,7 @@ import java.util.Map;
  */
 public class IdpDebugResourceHandler implements DebugResourceHandler {
 
-    protected static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
+    private static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
 
     /**
      * Handles a debug request using typed classes.
@@ -125,8 +124,8 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         }
 
         Map<String, Object> params = new HashMap<>();
-        params.put("connectionId", connectionId);
-        params.put("resourceType", resourceType);
+        params.put(IdpDebugConstants.CONNECTION_ID, connectionId);
+        params.put(IdpDebugConstants.RESOURCE_TYPE_KEY, resourceType);
         DebugContext debugContext = contextProvider.resolveContext(params);
         if (debugContext == null) {
             if (LOG.isDebugEnabled()) {

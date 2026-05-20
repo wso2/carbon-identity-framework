@@ -40,9 +40,9 @@ import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
 @Component(name = "identity.debug.idp.component", immediate = true)
 public class IdpDebugServiceComponent {
 
-    protected static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
-    protected static final String IDP_HANDLER_TYPE = "idp";
-    protected ServiceRegistration<DebugProtocolResolver> resolverServiceRegistration;
+    private static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
+    private static final String IDP_HANDLER_TYPE = "idp";
+    private ServiceRegistration<DebugProtocolResolver> resolverServiceRegistration;
 
     /**
      * Activates the IDP debug handler component.

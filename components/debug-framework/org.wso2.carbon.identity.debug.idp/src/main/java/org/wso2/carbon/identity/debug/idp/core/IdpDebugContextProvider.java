@@ -31,26 +31,22 @@ import java.util.Map;
  */
 public abstract class IdpDebugContextProvider extends DebugContextProvider {
 
-    public static final String RESOURCE_TYPE_KEY = "resourceType";
-
     @Override
-    public DebugContext resolveContext(Map<String, Object> params)
-            throws ContextResolutionException {
-        Object rawConnectionId = params.get(IdpDebugConstants.CONNECTION_ID);
-        Object rawResourceType = params.get(RESOURCE_TYPE_KEY);
-        if (!(rawConnectionId instanceof String) || !(rawResourceType instanceof String)) {
+    public DebugContext resolveContext(Map<String, Object> params) throws ContextResolutionException {
+
+        Object connectionIdObj = params.get(IdpDebugConstants.CONNECTION_ID);
+        Object resourceTypeObj = params.get(IdpDebugConstants.RESOURCE_TYPE_KEY);
+        if (!(connectionIdObj instanceof String) || !(resourceTypeObj instanceof String)) {
             throw new ContextResolutionException(
                     "Invalid or missing parameters: connectionId and resourceType must be non-null Strings.");
         }
-        String connectionId = (String) rawConnectionId;
-        String resourceType = (String) rawResourceType;
-        return resolveContext(connectionId, resourceType);
+        return resolveContext((String) connectionIdObj, (String) resourceTypeObj);
     }
 
     @Override
     public boolean canHandle(Map<String, Object> params) {
-        String connectionId = (String) params.get(IdpDebugConstants.CONNECTION_ID);
-        return canHandle(connectionId);
+
+        return canHandle((String) params.get(IdpDebugConstants.CONNECTION_ID));
     }
 
     /**

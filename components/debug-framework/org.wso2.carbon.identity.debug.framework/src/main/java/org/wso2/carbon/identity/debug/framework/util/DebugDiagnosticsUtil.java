@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
@@ -30,58 +30,20 @@ import java.util.stream.Collectors;
 /**
  * Utility class for recording and retrieving diagnostic events.
  */
-public class DebugDiagnosticsUtil {
+public final class DebugDiagnosticsUtil {
 
     private static final DiagnosticsRecorder DIAGNOSTICS_RECORDER = new DiagnosticsRecorder();
 
     private DebugDiagnosticsUtil() {
-    }
 
-    /**
-     * Records a diagnostic event with stage, status, and message for a properties map.
-     *
-     * @param properties The properties map.
-     * @param stage The diagnostic stage.
-     * @param status The diagnostic status.
-     * @param message The diagnostic message.
-     */
-    public static void recordEvent(Map<String, Object> properties, String stage, String status, String message) {
-
-        recordEvent(properties, stage, status, message, null);
-    }
-
-    /**
-     * Records a diagnostic event with details for a properties map.
-     *
-     * @param properties The properties map.
-     * @param stage The diagnostic stage.
-     * @param status The diagnostic status.
-     * @param message The diagnostic message.
-     * @param details Additional event details.
-     */
-    public static void recordEvent(Map<String, Object> properties, String stage, String status, String message,
-                                   Map<String, Object> details) {
-
-        DIAGNOSTICS_RECORDER.record(properties, buildEvent(stage, status, message, details));
-    }
-
-    /**
-     * Records a typed diagnostic event for a properties map.
-     *
-     * @param properties The properties map.
-     * @param event Diagnostic event.
-     */
-    public static void recordEvent(Map<String, Object> properties, DiagnosticEvent event) {
-
-        DIAGNOSTICS_RECORDER.record(properties, event);
     }
 
     /**
      * Records a diagnostic event with stage, status, and message for a debug context.
      *
      * @param context The debug context.
-     * @param stage The diagnostic stage.
-     * @param status The diagnostic status.
+     * @param stage   The diagnostic stage.
+     * @param status  The diagnostic status.
      * @param message The diagnostic message.
      */
     public static void recordEvent(DebugContext context, String stage, String status, String message) {
@@ -93,8 +55,8 @@ public class DebugDiagnosticsUtil {
      * Records a diagnostic event with details for a debug context.
      *
      * @param context The debug context.
-     * @param stage The diagnostic stage.
-     * @param status The diagnostic status.
+     * @param stage   The diagnostic stage.
+     * @param status  The diagnostic status.
      * @param message The diagnostic message.
      * @param details Additional event details.
      */
@@ -108,7 +70,7 @@ public class DebugDiagnosticsUtil {
      * Records a typed diagnostic event for a debug context.
      *
      * @param context The debug context.
-     * @param event Diagnostic event.
+     * @param event   Diagnostic event.
      */
     public static void recordEvent(DebugContext context, DiagnosticEvent event) {
 
@@ -116,10 +78,10 @@ public class DebugDiagnosticsUtil {
     }
 
     /**
-     * Returns diagnostics recorded in the debug context.
+     * Returns diagnostics recorded in the debug context as serialized maps.
      *
      * @param context The debug context.
-     * @return Diagnostic events.
+     * @return Diagnostic events serialized as maps.
      */
     public static List<Map<String, Object>> getDiagnostics(DebugContext context) {
 
@@ -128,49 +90,13 @@ public class DebugDiagnosticsUtil {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    /**
-     * Returns typed diagnostics recorded in the debug context.
-     *
-     * @param context The debug context.
-     * @return Diagnostic events.
-     */
-    public static List<DiagnosticEvent> getDiagnosticEvents(DebugContext context) {
-
-        return DIAGNOSTICS_RECORDER.getDiagnostics(context);
-    }
-
-    /**
-     * Returns diagnostics recorded in the properties map.
-     *
-     * @param properties The properties map.
-     * @return Diagnostic events.
-     */
-    public static List<Map<String, Object>> getDiagnostics(Map<String, Object> properties) {
-
-        return DIAGNOSTICS_RECORDER.getDiagnostics(properties).stream()
-                .map(DiagnosticEvent::toMap)
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    /**
-     * Returns typed diagnostics recorded in the properties map.
-     *
-     * @param properties The properties map.
-     * @return Diagnostic events.
-     */
-    public static List<DiagnosticEvent> getDiagnosticEvents(Map<String, Object> properties) {
-
-        return DIAGNOSTICS_RECORDER.getDiagnostics(properties);
-    }
-
     private static DiagnosticEvent buildEvent(String stage, String status, String message,
-            Map<String, Object> details) {
+                                              Map<String, Object> details) {
 
         DiagnosticEvent event = DiagnosticEvent.builder()
                 .stage(stage)
                 .status(status)
                 .message(message)
-                .timestamp(System.currentTimeMillis())
                 .build();
         if (details != null && !details.isEmpty()) {
             event.setDetails(details);

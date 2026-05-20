@@ -39,8 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 public class CommonAuthenticationHandler {
 
     private static final Log log = LogFactory.getLog(CommonAuthenticationHandler.class);
-    private static final String DEBUG_FLOW_PARAM = "isDebugFlow";
-    private static final String SESSION_DATA_KEY_PARAM = "sessionDataKey";
     private static final String CALLBACK_STATE_PARAM = "state";
     private static final String DEBUG_PREFIX = "debug-";
 
@@ -89,13 +87,6 @@ public class CommonAuthenticationHandler {
     
     private boolean isDebugRequest(HttpServletRequest request) {
 
-        if (Boolean.parseBoolean(request.getParameter(DEBUG_FLOW_PARAM))) {
-            return true;
-        }
-        String sessionDataKey = request.getParameter(SESSION_DATA_KEY_PARAM);
-        if (sessionDataKey != null && sessionDataKey.startsWith(DEBUG_PREFIX)) {
-            return true;
-        }
         String state = request.getParameter(CALLBACK_STATE_PARAM);
         return state != null && state.startsWith(DEBUG_PREFIX);
     }

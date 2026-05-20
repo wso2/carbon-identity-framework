@@ -158,7 +158,7 @@ public class DebugSessionCleanupService {
             try {
                 debugSessionDAO.deleteExpiredDebugSessions();
             } catch (DebugFrameworkServerException e) {
-                LOG.error("Error occurred while performing periodic cleanup of expired debug sessions. Cause: " 
+                LOG.error("Error occurred while performing periodic cleanup of expired debug sessions. Cause: "
                         + e.getMessage());
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Stack trace for expired debug sessions cleanup failure: ", e);

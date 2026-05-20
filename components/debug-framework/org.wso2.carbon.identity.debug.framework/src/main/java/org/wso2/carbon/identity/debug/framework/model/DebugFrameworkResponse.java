@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,95 +38,10 @@ public class DebugFrameworkResponse {
     private String status;
     private String message;
     private String errorCode;
-    private Map<String, Object> data;
+    private Map<String, Object> data = new HashMap<>();
 
-    /**
-     * Constructs an empty DebugFrameworkResponse.
-     */
     public DebugFrameworkResponse() {
 
-        this.data = new HashMap<>();
-    }
-
-    /**
-     * Constructs a successful DebugFrameworkResponse with data.
-     *
-     * @param data The response data.
-     */
-    public DebugFrameworkResponse(Map<String, Object> data) {
-
-        this.status = DEBUG_STATUS_SUCCESS;
-        this.data = data != null ? data : new HashMap<>();
-    }
-
-    /**
-     * Constructs a DebugFrameworkResponse with custom status and message.
-     *
-     * @param status  The response status.
-     * @param message The response message.
-     */
-    public DebugFrameworkResponse(String status, String message) {
-
-        this.status = status;
-        this.message = message;
-        this.data = new HashMap<>();
-    }
-
-    /**
-     * Creates a success response.
-     *
-     * @param data The response data.
-     * @return DebugFrameworkResponse instance with SUCCESS status.
-     */
-    public static DebugFrameworkResponse success(Map<String, Object> data) {
-
-        return new DebugFrameworkResponse(data);
-    }
-
-    /**
-     * Creates an error response.
-     *
-     * @param message The error message.
-     * @return DebugFrameworkResponse instance with FAILURE status.
-     */
-    public static DebugFrameworkResponse error(String message) {
-
-        String fallbackMessage = message != null ? message : "Unknown error occurred during debug execution";
-        return new DebugFrameworkResponse(DEBUG_STATUS_FAILURE, fallbackMessage);
-    }
-
-    /**
-     * Creates an error response with error code.
-     *
-     * @param errorCode The error code.
-     * @param message   The error message.
-     * @return DebugFrameworkResponse instance with FAILURE status and error code.
-     */
-    public static DebugFrameworkResponse error(String errorCode, String message) {
-
-        DebugFrameworkResponse response = new DebugFrameworkResponse(DEBUG_STATUS_FAILURE, message);
-        response.setErrorCode(errorCode);
-        return response;
-    }
-
-    /**
-     * Gets the error code.
-     *
-     * @return Error code string.
-     */
-    public String getErrorCode() {
-
-        return errorCode;
-    }
-
-    /**
-     * Sets the error code.
-     *
-     * @param errorCode Error code string.
-     */
-    public void setErrorCode(String errorCode) {
-
-        this.errorCode = errorCode;
     }
 
     /**
@@ -137,13 +54,13 @@ public class DebugFrameworkResponse {
      */
     public static DebugFrameworkResponse fromDebugResult(DebugResult result) {
 
+        DebugFrameworkResponse response = new DebugFrameworkResponse();
         if (result == null) {
-            return error("Result is null");
+            response.setStatus(DEBUG_STATUS_FAILURE);
+            response.setMessage("Result is null");
+            return response;
         }
 
-        DebugFrameworkResponse response = new DebugFrameworkResponse();
-
-        // Set top-level fields directly.
         response.setDebugId(result.getDebugId());
 
         String resolvedStatus = resolveLifecycleStatus(result.getStatus());
@@ -152,109 +69,74 @@ public class DebugFrameworkResponse {
 
         response.setMessage(result.getErrorMessage());
 
-        // The data map contains only protocol-specific metadata — no top-level fields.
         Map<String, Object> data = new HashMap<>();
-
         if (result.getResultData() != null && !result.getResultData().isEmpty()) {
             data.putAll(result.getResultData());
         }
-
         if (result.getErrorCode() != null) {
-            data.put("errorCode", result.getErrorCode());
+            data.put(DebugFrameworkConstants.RESPONSE_KEY_ERROR_CODE, result.getErrorCode());
         }
-
-        // Merge metadata without overwriting already present resultData keys.
         if (result.getMetadata() != null && !result.getMetadata().isEmpty()) {
             for (Map.Entry<String, Object> entry : result.getMetadata().entrySet()) {
                 data.putIfAbsent(entry.getKey(), entry.getValue());
             }
         }
 
-        // Remove reserved top-level keys that may have been included in resultData or metadata
-        // by protocol-specific executors. These fields are already promoted to top-level response fields.
-        data.remove("debugId");
-        data.remove("status");
-        data.remove("message");
+        // Reserved top-level keys must not leak into the data map; protocol-specific executors
+        // sometimes include them in resultData or metadata.
+        data.remove(DebugFrameworkConstants.RESPONSE_KEY_DEBUG_ID);
+        data.remove(DebugFrameworkConstants.RESPONSE_KEY_STATUS);
+        data.remove(DebugFrameworkConstants.RESPONSE_KEY_MESSAGE);
 
         response.setData(data);
         return response;
     }
 
-    /**
-     * Gets the debug session ID.
-     *
-     * @return Debug session ID string.
-     */
     public String getDebugId() {
 
         return debugId;
     }
 
-    /**
-     * Sets the debug session ID.
-     *
-     * @param debugId Debug session ID string.
-     */
     public void setDebugId(String debugId) {
 
         this.debugId = debugId;
     }
 
-    /**
-     * Sets the response status.
-     *
-     * @param status Status string.
-     */
-    public void setStatus(String status) {
-
-        this.status = status;
-    }
-
-    /**
-     * Gets the response status.
-     *
-     * @return Status string.
-     */
     public String getStatus() {
 
         return status;
     }
 
-    /**
-     * Sets the response message.
-     *
-     * @param message Message string.
-     */
-    public void setMessage(String message) {
+    public void setStatus(String status) {
 
-        this.message = message;
+        this.status = status;
     }
 
-    /**
-     * Gets the response message.
-     *
-     * @return Response message.
-     */
     public String getMessage() {
 
         return message;
     }
 
-    /**
-     * Gets the response data.
-     *
-     * @return Map of response data.
-     */
+    public void setMessage(String message) {
+
+        this.message = message;
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+
+        this.errorCode = errorCode;
+    }
+
     public Map<String, Object> getData() {
 
         return data;
     }
 
-    /**
-     * Sets the response data.
-     *
-     * @param data Map of response data.
-     */
     public void setData(Map<String, Object> data) {
 
         this.data = data != null ? data : new HashMap<>();

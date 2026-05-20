@@ -28,14 +28,13 @@ import java.util.Map;
  */
 public class DebugContext {
 
+    private static final String RESOURCE_TYPE_KEY = "resourceType";
+
     private String resourceType;
     private final Map<String, Object> properties = new HashMap<>();
 
-    /**
-     * Constructs an empty DebugContext.
-     */
     public DebugContext() {
-        // Fields initialized inline.
+
     }
 
     /**
@@ -46,64 +45,38 @@ public class DebugContext {
      */
     public static DebugContext buildFromMap(Map<String, Object> contextMap) {
 
-        if (contextMap == null) {
-            return new DebugContext();
-        }
-
         DebugContext context = new DebugContext();
-        Object resourceType = contextMap.get("resourceType");
-        if (resourceType != null) {
-            context.setResourceType(String.valueOf(resourceType));
+        if (contextMap == null) {
+            return context;
         }
 
-        // Copy all properties.
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
-            String key = entry.getKey();
-            if (!"resourceType".equals(key)) {
-                context.setProperty(key, entry.getValue());
+            if (RESOURCE_TYPE_KEY.equals(entry.getKey())) {
+                if (entry.getValue() != null) {
+                    context.setResourceType(String.valueOf(entry.getValue()));
+                }
+            } else {
+                context.setProperty(entry.getKey(), entry.getValue());
             }
         }
-
         return context;
     }
 
-    /**
-     * Gets the resource type.
-     *
-     * @return Resource type string.
-     */
     public String getResourceType() {
 
         return resourceType;
     }
 
-    /**
-     * Sets the resource type.
-     *
-     * @param resourceType Resource type string.
-     */
     public void setResourceType(String resourceType) {
 
         this.resourceType = resourceType;
     }
 
-    /**
-     * Gets a context property.
-     *
-     * @param key Property key.
-     * @return Property value or null if not found.
-     */
     public Object getProperty(String key) {
 
         return this.properties.get(key);
     }
 
-    /**
-     * Sets a context property.
-     *
-     * @param key   Property key.
-     * @param value Property value.
-     */
     public void setProperty(String key, Object value) {
 
         if (key == null) {
@@ -113,8 +86,7 @@ public class DebugContext {
     }
 
     /**
-     * Gets all properties as a map.
-     * Returns a defensive copy to prevent external modification.
+     * Gets all properties as a map. Returns a defensive copy.
      *
      * @return Map of all properties.
      */

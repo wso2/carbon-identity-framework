@@ -26,15 +26,15 @@ public final class DebugFrameworkConstants {
     // Default Constants.
     public static final int CACHE_EXPIRY_MINUTES = 5;
 
-    // Debug Result Context Properties.
-    public static final String DEBUG_DIAGNOSTICS = "diagnostics";
-
     // Diagnostic event property keys.
+    public static final String DEBUG_DIAGNOSTICS = "diagnostics";
     public static final String DIAGNOSTIC_STAGE = "stage";
     public static final String DIAGNOSTIC_STATUS = "status";
     public static final String DIAGNOSTIC_MESSAGE = "message";
     public static final String DIAGNOSTIC_DETAILS = "details";
     public static final String DIAGNOSTIC_TIMESTAMP = "timestamp";
+    public static final String DIAGNOSTIC_ERROR_CODE = "errorCode";
+    public static final String DIAGNOSTIC_ERROR_DESCRIPTION = "errorDescription";
 
     // Common Parameter Values.
     public static final String DEBUG_PREFIX = "debug-";
@@ -60,21 +60,24 @@ public final class DebugFrameworkConstants {
     public static final String CALLBACK_ERROR_PARAM = "error";
     public static final String UNKNOWN_DEBUG_STATE = "unknown";
 
-    // Debug Result Context Properties.
+    // Debug Context Properties (used by protocol modules).
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
     public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
     public static final String DEBUG_PROTOCOL_CODE = "DEBUG_PROTOCOL_CODE";
     public static final String DEBUG_PROTOCOL_STATE = "DEBUG_PROTOCOL_STATE";
     public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
-    public static final String DEBUG_CALLBACK_TIMESTAMP = "DEBUG_CALLBACK_TIMESTAMP";
-    public static final String DEBUG_CALLBACK_PROCESSED = "DEBUG_CALLBACK_PROCESSED";
 
-    // Debug Flow Type Constants.
+    // Debug Flow Type Constants (used by protocol modules).
     public static final String DEBUG_FLOW_TYPE = "DEBUG_FLOW_TYPE";
     public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
     public static final String DEBUG_CREATION_TIMESTAMP = "DEBUG_CREATION_TIMESTAMP";
     public static final String FLOW_TYPE_CALLBACK = "CALLBACK";
-    public static final String DEBUG_RESULT_RETRIEVAL = "DEBUG_RESULT_RETRIEVAL";
+
+    // Reserved response data keys (promoted to top-level fields in DebugFrameworkResponse).
+    public static final String RESPONSE_KEY_DEBUG_ID = "debugId";
+    public static final String RESPONSE_KEY_STATUS = "status";
+    public static final String RESPONSE_KEY_MESSAGE = "message";
+    public static final String RESPONSE_KEY_ERROR_CODE = "errorCode";
 
     private DebugFrameworkConstants() {
         // Private constructor to prevent instantiation.
@@ -101,9 +104,6 @@ public final class DebugFrameworkConstants {
         ERROR_CODE_EXECUTOR_NOT_FOUND("60005",
                 "Executor not found.",
                 "No debug executor found for the given resource: %s"),
-        ERROR_CODE_PROCESSOR_NOT_FOUND("60010",
-                "Processor not found.",
-                "No debug processor found for the given resource: %s"),
         ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND("60006",
                 "Context provider not found.",
                 "Context provider not available for resource: %s"),
@@ -116,6 +116,9 @@ public final class DebugFrameworkConstants {
         ERROR_CODE_RESULT_NOT_FOUND("60009",
                 "Result not found.",
                 "Result not found for session: %s"),
+        ERROR_CODE_PROCESSOR_NOT_FOUND("60010",
+                "Processor not found.",
+                "No debug processor found for the given resource: %s"),
 
         // Server errors (65xxx).
         ERROR_CODE_SERVER_ERROR("65001",
@@ -137,40 +140,19 @@ public final class DebugFrameworkConstants {
             this.description = description;
         }
 
-        /**
-         * Gets the error code.
-         *
-         * @return Error code string with prefix.
-         */
         public String getCode() {
 
             return code;
         }
 
-        /**
-         * Gets the error message.
-         *
-         * @return Error message string.
-         */
         public String getMessage() {
 
             return message;
         }
 
-        /**
-         * Gets the error description.
-         *
-         * @return Error description string.
-         */
         public String getDescription() {
 
             return description;
-        }
-
-        @Override
-        public String toString() {
-
-            return code + ":" + message;
         }
     }
 }

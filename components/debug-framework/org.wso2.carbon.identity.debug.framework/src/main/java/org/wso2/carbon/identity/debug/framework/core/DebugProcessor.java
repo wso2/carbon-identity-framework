@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
@@ -28,8 +26,6 @@ import org.wso2.carbon.identity.debug.framework.model.DebugContext;
  * Subclasses implement processing logic appropriate to their resource type and flow.
  */
 public abstract class DebugProcessor {
-
-    private static final Log LOG = LogFactory.getLog(DebugProcessor.class);
 
     /**
      * Handles unexpected errors by recording error state into the debug context.

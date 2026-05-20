@@ -19,8 +19,7 @@
 package org.wso2.carbon.identity.debug.framework.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
@@ -56,8 +55,6 @@ import javax.servlet.http.HttpServletResponse;
 public class DebugRequestCoordinator {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
     /**
      * Constructs a DebugRequestCoordinator instance.
@@ -136,16 +133,15 @@ public class DebugRequestCoordinator {
      * @param debugFrameworkRequest The debug request to validate.
      * @throws DebugFrameworkClientException If validation fails.
      */
-    private void validateDebugRequest(DebugFrameworkRequest debugFrameworkRequest) 
+    private void validateDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException {
 
         if (debugFrameworkRequest == null) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
-        if (!debugFrameworkRequest.isResultRetrieval() &&
-                (debugFrameworkRequest.getResourceType() == null || 
-                    debugFrameworkRequest.getResourceType().trim().isEmpty())) {
+        if (!debugFrameworkRequest.isResultRetrieval()
+                && StringUtils.isBlank(debugFrameworkRequest.getResourceType())) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_MISSING_RESOURCE_TYPE);
         }
     }
@@ -200,7 +196,8 @@ public class DebugRequestCoordinator {
             throws DebugFrameworkServerException {
 
         try {
-            return OBJECT_MAPPER.readValue(resultJson, MAP_TYPE);
+            return DebugFrameworkUtils.getObjectMapper()
+                    .readValue(resultJson, DebugFrameworkUtils.getMapTypeReference());
         } catch (JsonProcessingException e) {
             LOG.error("Invalid debug result JSON for debug session: " + debugId + ". Cause: " + e.getMessage());
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
@@ -273,7 +270,7 @@ public class DebugRequestCoordinator {
     /**
      * Handles callback requests from external debug systems.
      * Routes to the appropriate DebugCallbackHandler based on request characteristics.
-     * 
+     *
      * @param request The HTTP request containing callback parameters.
      * @param response The HTTP response for sending results.
      * @return true if callback was successfully handled, false if no handler matched or error occurred.
@@ -304,7 +301,7 @@ public class DebugRequestCoordinator {
             }
             return true;
         }
-    }    
+    }
 
     private DebugCallbackHandler resolveCallbackHandler(HttpServletRequest request) {
 

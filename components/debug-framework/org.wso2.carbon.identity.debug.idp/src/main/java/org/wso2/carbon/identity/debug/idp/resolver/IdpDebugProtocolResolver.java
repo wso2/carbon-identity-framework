@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
@@ -36,7 +36,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
  */
 public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
-    protected static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
+    private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
     private static final String GOOGLE_HOST = "google";
     private static final String FACEBOOK_HOST = "facebook";
     private static final int RESOLVER_ORDER = 10;

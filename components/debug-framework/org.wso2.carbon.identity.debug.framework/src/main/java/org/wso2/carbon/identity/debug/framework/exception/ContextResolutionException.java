@@ -18,11 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.exception;
 
-import org.apache.commons.lang.StringUtils;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Exception thrown when context resolution or creation fails in the debug framework.
  * Used when Identity Provider configurations or context setup encounters errors.
@@ -30,8 +25,6 @@ import java.util.regex.Pattern;
 public class ContextResolutionException extends DebugFrameworkException {
 
     private static final long serialVersionUID = 1L;
-    private static final String DEBUG_ERROR_PREFIX = "DEBUG-";
-    private static final Pattern DIGIT_SUFFIX_PATTERN = Pattern.compile(".*?(\\d{5})$");
 
     /**
      * Constructs a ContextResolutionException with message.
@@ -40,7 +33,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      */
     public ContextResolutionException(String message) {
 
-        this(null, message, null, null);
+        super(null, message, null, null);
     }
 
     /**
@@ -52,7 +45,7 @@ public class ContextResolutionException extends DebugFrameworkException {
      */
     public ContextResolutionException(String errorCode, String message, String description) {
 
-        this(errorCode, message, description, null);
+        super(errorCode, message, description, null);
     }
 
     /**
@@ -65,30 +58,6 @@ public class ContextResolutionException extends DebugFrameworkException {
      */
     public ContextResolutionException(String errorCode, String message, String description, Throwable cause) {
 
-        super(normalizeErrorCode(errorCode), message, description, cause);
-    }
-
-    /**
-     * Normalizes external error code formats to framework standard format.
-     *
-     * @param errorCode Error code to normalize.
-     * @return Normalized error code in DEBUG-xxxxx format where possible.
-     */
-    private static String normalizeErrorCode(String errorCode) {
-
-        if (StringUtils.isBlank(errorCode)) {
-            return errorCode;
-        }
-
-        if (errorCode.startsWith(DEBUG_ERROR_PREFIX)) {
-            return errorCode;
-        }
-
-        Matcher matcher = DIGIT_SUFFIX_PATTERN.matcher(errorCode);
-        if (matcher.matches()) {
-            return DEBUG_ERROR_PREFIX + matcher.group(1);
-        }
-
-        return errorCode;
+        super(errorCode, message, description, cause);
     }
 }

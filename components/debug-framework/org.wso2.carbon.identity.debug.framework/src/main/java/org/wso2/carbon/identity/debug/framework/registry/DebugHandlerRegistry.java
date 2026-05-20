@@ -116,7 +116,7 @@ public class DebugHandlerRegistry {
         if (resourceType == null || resourceType.trim().isEmpty()) {
             return null;
         }
-        return resourceType.trim().toLowerCase(Locale.ENGLISH);
+        return resourceType.trim().toLowerCase(Locale.ROOT);
     }
 
 }

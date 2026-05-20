@@ -29,7 +29,7 @@ public interface DebugProtocolProvider {
 
     /**
      * Gets the protocol type identifier for this provider.
-     * 
+     *
      * Used for logging, identification, and filtering providers.
      *
      * @return Protocol type string (non-null).

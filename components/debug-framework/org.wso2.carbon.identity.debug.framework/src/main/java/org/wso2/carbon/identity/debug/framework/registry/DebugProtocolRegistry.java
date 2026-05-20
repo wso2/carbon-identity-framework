@@ -191,7 +191,7 @@ public class DebugProtocolRegistry {
         if (protocolType == null || protocolType.trim().isEmpty()) {
             return null;
         }
-        return protocolType.trim().toLowerCase(Locale.ENGLISH);
+        return protocolType.trim().toLowerCase(Locale.ROOT);
     }
 
     /**

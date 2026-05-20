@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.store;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
@@ -28,6 +26,7 @@ import org.wso2.carbon.identity.debug.framework.dao.impl.DebugSessionDAOImpl;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
+import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,10 +41,9 @@ import java.util.Map;
 public final class DebugSessionStore {
 
     private static final Log LOG = LogFactory.getLog(DebugSessionStore.class);
+    private static final String SESSION_TTL_MINUTES_PROPERTY = "debug.session.ttl.minutes";
+    private static final long SESSION_TTL_MS = resolveSessionTtlMs();
     private static final DebugSessionStore INSTANCE = new DebugSessionStore();
-    private static final long SESSION_TTL_MS = DebugFrameworkConstants.CACHE_EXPIRY_MINUTES * 60 * 1000L;
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() { };
 
     private final DebugSessionDAO debugSessionDAO = new DebugSessionDAOImpl();
 
@@ -70,14 +68,13 @@ public final class DebugSessionStore {
             return;
         }
         try {
+            long now = System.currentTimeMillis();
             DebugSessionData sessionData = new DebugSessionData();
             sessionData.setDebugId(key);
             sessionData.setStatus(DebugSessionData.SessionStatus.PENDING);
-            sessionData.setCreatedTime(System.currentTimeMillis());
-            sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
-
-            byte[] serializedValue = OBJECT_MAPPER.writeValueAsBytes(value);
-            sessionData.setSessionData(serializedValue);
+            sessionData.setCreatedTime(now);
+            sessionData.setExpiryTime(now + SESSION_TTL_MS);
+            sessionData.setSessionData(DebugFrameworkUtils.getObjectMapper().writeValueAsBytes(value));
 
             debugSessionDAO.createDebugSession(sessionData);
 
@@ -99,10 +96,8 @@ public final class DebugSessionStore {
         if (key == null || context == null) {
             return;
         }
-        
-        // Convert DebugContext to Map for storage.
-        Map<String, Object> contextMap = new HashMap<>(context.getProperties());
 
+        Map<String, Object> contextMap = new HashMap<>(context.getProperties());
         if (context.getResourceType() != null) {
             contextMap.put("resourceType", context.getResourceType());
         }
@@ -124,7 +119,8 @@ public final class DebugSessionStore {
         try {
             DebugSessionData data = debugSessionDAO.getDebugSession(key);
             if (data != null && data.getSessionData() != null) {
-                return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
+                return DebugFrameworkUtils.getObjectMapper()
+                        .readValue(data.getSessionData(), DebugFrameworkUtils.getMapTypeReference());
             }
         } catch (IOException e) {
             String errorMsg = "Error retrieving debug session: " + key + " from DB";
@@ -151,7 +147,8 @@ public final class DebugSessionStore {
         try {
             DebugSessionData data = debugSessionDAO.deleteAndReturnDebugSession(key);
             if (data != null && data.getSessionData() != null) {
-                return OBJECT_MAPPER.readValue(data.getSessionData(), MAP_TYPE);
+                return DebugFrameworkUtils.getObjectMapper()
+                        .readValue(data.getSessionData(), DebugFrameworkUtils.getMapTypeReference());
             }
         } catch (IOException e) {
             String errorMsg = "Error retrieving debug session: " + key + " for removal";
@@ -176,12 +173,13 @@ public final class DebugSessionStore {
             return;
         }
 
+        long now = System.currentTimeMillis();
         DebugSessionData sessionData = new DebugSessionData();
         sessionData.setDebugId(key);
         sessionData.setResultJson(result);
         sessionData.setStatus(DebugSessionData.SessionStatus.COMPLETED);
-        sessionData.setCreatedTime(System.currentTimeMillis());
-        sessionData.setExpiryTime(System.currentTimeMillis() + SESSION_TTL_MS);
+        sessionData.setCreatedTime(now);
+        sessionData.setExpiryTime(now + SESSION_TTL_MS);
 
         debugSessionDAO.upsertDebugSession(sessionData);
     }
@@ -215,5 +213,30 @@ public final class DebugSessionStore {
         if (key != null) {
             debugSessionDAO.deleteDebugSession(key);
         }
+    }
+
+    /**
+     * Resolves the session TTL in milliseconds. Reads {@code debug.session.ttl.minutes} from system
+     * properties or the {@code DEBUG_SESSION_TTL_MINUTES} environment variable, falling back to
+     * {@link DebugFrameworkConstants#CACHE_EXPIRY_MINUTES} when unset or invalid.
+     */
+    private static long resolveSessionTtlMs() {
+
+        String configured = System.getProperty(SESSION_TTL_MINUTES_PROPERTY,
+                System.getenv("DEBUG_SESSION_TTL_MINUTES"));
+        int minutes = DebugFrameworkConstants.CACHE_EXPIRY_MINUTES;
+        if (configured != null && !configured.trim().isEmpty()) {
+            try {
+                int parsed = Integer.parseInt(configured.trim());
+                if (parsed > 0) {
+                    minutes = parsed;
+                } else {
+                    LOG.warn("Invalid debug session TTL configured: " + parsed + ". Using default: " + minutes);
+                }
+            } catch (NumberFormatException e) {
+                LOG.warn("Failed to parse debug session TTL: " + configured + ". Using default: " + minutes);
+            }
+        }
+        return minutes * 60_000L;
     }
 }

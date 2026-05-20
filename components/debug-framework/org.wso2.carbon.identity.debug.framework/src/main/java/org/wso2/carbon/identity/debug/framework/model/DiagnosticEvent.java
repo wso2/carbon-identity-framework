@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
@@ -96,8 +96,8 @@ public class DiagnosticEvent {
         event.setMessage(asString(eventMap.get(DebugFrameworkConstants.DIAGNOSTIC_MESSAGE)));
         event.setTimestamp(asLong(eventMap.get(DebugFrameworkConstants.DIAGNOSTIC_TIMESTAMP),
                 System.currentTimeMillis()));
-        event.setErrorCode(asString(eventMap.get("errorCode")));
-        event.setErrorDescription(asString(eventMap.get("errorDescription")));
+        event.setErrorCode(asString(eventMap.get(DebugFrameworkConstants.DIAGNOSTIC_ERROR_CODE)));
+        event.setErrorDescription(asString(eventMap.get(DebugFrameworkConstants.DIAGNOSTIC_ERROR_DESCRIPTION)));
 
         Object detailsObj = eventMap.get(DebugFrameworkConstants.DIAGNOSTIC_DETAILS);
         if (detailsObj instanceof Map) {
@@ -120,10 +120,10 @@ public class DiagnosticEvent {
         eventMap.put(DebugFrameworkConstants.DIAGNOSTIC_TIMESTAMP, timestamp);
 
         if (isNotBlank(errorCode)) {
-            eventMap.put("errorCode", errorCode);
+            eventMap.put(DebugFrameworkConstants.DIAGNOSTIC_ERROR_CODE, errorCode);
         }
         if (isNotBlank(errorDescription)) {
-            eventMap.put("errorDescription", errorDescription);
+            eventMap.put(DebugFrameworkConstants.DIAGNOSTIC_ERROR_DESCRIPTION, errorDescription);
         }
         if (details != null && !details.isEmpty()) {
             eventMap.put(DebugFrameworkConstants.DIAGNOSTIC_DETAILS, details);

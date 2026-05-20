@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
@@ -39,41 +39,14 @@ public class DiagnosticsRecorder {
      * Record a diagnostic event in the given debug context.
      *
      * @param context Debug context holding flow properties.
-     * @param event Diagnostic event to record.
+     * @param event   Diagnostic event to record.
      */
     public void record(DebugContext context, DiagnosticEvent event) {
 
-        Deque<DiagnosticEvent> diagnostics = getOrCreateDiagnostics(context);
-        diagnostics.addFirst(normalize(event));
-    }
-
-    /**
-     * Record a diagnostic event in the given properties map.
-     *
-     * @param properties Properties map to store diagnostics in.
-     * @param event Diagnostic event to record.
-     */
-    public void record(Map<String, Object> properties, DiagnosticEvent event) {
-
-        if (properties == null) {
+        if (context == null) {
             return;
         }
-        Deque<DiagnosticEvent> diagnostics = getOrCreateDiagnostics(properties);
-        diagnostics.addFirst(normalize(event));
-    }
-
-    /**
-     * Retrieve diagnostics recorded for the given properties map.
-     *
-     * @param properties Properties map holding flow properties.
-     * @return Snapshot list of diagnostics in latest-first order.
-     */
-    public List<DiagnosticEvent> getDiagnostics(Map<String, Object> properties) {
-
-        if (properties == null) {
-            return new ArrayList<>();
-        }
-        return new ArrayList<>(getOrCreateDiagnostics(properties));
+        getOrCreateDiagnostics(context).addFirst(normalize(event));
     }
 
     /**
@@ -93,53 +66,24 @@ public class DiagnosticsRecorder {
     @SuppressWarnings("unchecked")
     private Deque<DiagnosticEvent> getOrCreateDiagnostics(DebugContext context) {
 
-        return getOrCreateDiagnosticsFromProperty(
-                context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS),
-                timeline -> context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline));
-    }
+        Object existing = context.getProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS);
 
-    @SuppressWarnings("unchecked")
-    private Deque<DiagnosticEvent> getOrCreateDiagnostics(Map<String, Object> properties) {
-
-        return getOrCreateDiagnosticsFromProperty(
-                properties.get(DebugFrameworkConstants.DEBUG_DIAGNOSTICS),
-                timeline -> properties.put(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline));
-    }
-
-    /**
-     * Shared logic for retrieving or creating diagnostics from a property value.
-     *
-     * @param diagnosticsProperty The existing property value (may be null, Deque, or Collection).
-     * @param setter Callback to set the timeline back into the context.
-     * @return A properly-typed Deque of DiagnosticEvents.
-     */
-    @SuppressWarnings("unchecked")
-    private Deque<DiagnosticEvent> getOrCreateDiagnosticsFromProperty(Object diagnosticsProperty,
-            java.util.function.Consumer<Deque<DiagnosticEvent>> setter) {
-
-        // If already a typed Deque, return directly without coercion.
-        if (diagnosticsProperty instanceof Deque) {
-            return (Deque<DiagnosticEvent>) diagnosticsProperty;
+        if (existing instanceof Deque) {
+            return (Deque<DiagnosticEvent>) existing;
         }
 
-        // If a generic Collection (e.g., post-deserialization), coerce to typed Deque.
-        if (diagnosticsProperty instanceof Collection) {
-            Deque<DiagnosticEvent> timeline = coerceCollection((Collection<Object>) diagnosticsProperty);
-            setter.accept(timeline);
+        // Post-deserialization the timeline may arrive as a generic Collection of Maps.
+        if (existing instanceof Collection) {
+            Deque<DiagnosticEvent> timeline = coerceCollection((Collection<Object>) existing);
+            context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
             return timeline;
         }
 
-        // Create new empty Deque.
         Deque<DiagnosticEvent> timeline = new ArrayDeque<>();
-        setter.accept(timeline);
+        context.setProperty(DebugFrameworkConstants.DEBUG_DIAGNOSTICS, timeline);
         return timeline;
     }
 
-    /**
-     * Coerces serialized in-context diagnostics into typed events.
-     * This is required because context data may be JSON-serialized/deserialized
-     * between steps and return as generic collections/maps.
-     */
     private Deque<DiagnosticEvent> coerceCollection(Collection<Object> diagnostics) {
 
         Deque<DiagnosticEvent> timeline = new ArrayDeque<>();
