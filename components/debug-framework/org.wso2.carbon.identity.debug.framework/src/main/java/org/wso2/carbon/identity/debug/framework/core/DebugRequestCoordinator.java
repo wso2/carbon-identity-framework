@@ -106,20 +106,9 @@ public class DebugRequestCoordinator {
 
             return debugFrameworkResponse;
 
-        } catch (DebugFrameworkClientException e) {
-            // Re-throw client exceptions.
-            throw e;
-        } catch (DebugFrameworkServerException e) {
-            // DebugFrameworkServerException already has proper error semantics; let it propagate.
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug framework server error in request orchestration: " + e.getMessage());
-            }
+        } catch (DebugFrameworkClientException | DebugFrameworkServerException e) {
             throw e;
         } catch (DebugFrameworkException e) {
-            // Other framework exceptions need to be converted to server exceptions.
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug framework error in request orchestration: " + e.getMessage());
-            }
             if (e.getErrorCode() != null) {
                 throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
             }
@@ -251,18 +240,9 @@ public class DebugRequestCoordinator {
 
             return debugFrameworkResponse;
 
-        } catch (DebugFrameworkClientException e) {
-            throw e;
-        } catch (DebugFrameworkServerException e) {
-            // DebugFrameworkServerException already has proper error semantics; let it propagate.
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug framework server error retrieving result for session: " + e.getMessage());
-            }
+        } catch (DebugFrameworkClientException | DebugFrameworkServerException e) {
             throw e;
         } catch (DebugFrameworkException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug framework error retrieving result for session: " + e.getMessage());
-            }
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
