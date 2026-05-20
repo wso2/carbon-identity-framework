@@ -160,14 +160,6 @@ public class FlowUser implements Serializable {
         this.federatedAssociations.put(idpName, idpSubject);
     }
 
-    public void setFederatedAssociations(Map<String, String> federatedAssociations) {
-
-        this.federatedAssociations.clear();
-        if (federatedAssociations != null) {
-            this.federatedAssociations.putAll(federatedAssociations);
-        }
-    }
-
     /**
      * Check whether the user credentials are managed locally.
      *
