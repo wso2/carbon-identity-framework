@@ -30,11 +30,11 @@ import java.util.Locale;
 /**
  * Routes IdP debug requests to protocol-specific components.
  */
-public class DebugProtocolRouter {
+public class IdpDebugProtocolRouter {
 
-    protected static final Log LOG = LogFactory.getLog(DebugProtocolRouter.class);
+    protected static final Log LOG = LogFactory.getLog(IdpDebugProtocolRouter.class);
 
-    private DebugProtocolRouter() {
+    private IdpDebugProtocolRouter() {
 
         // Utility class.
     }

@@ -36,8 +36,8 @@ import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
-import org.wso2.carbon.identity.debug.idp.core.DebugProtocolRouter;
 import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
+import org.wso2.carbon.identity.debug.idp.core.IdpDebugProtocolRouter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -149,7 +149,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      */
     protected DebugProtocolProvider resolveProtocolProvider(String connectionId) {
 
-        DebugProtocolProvider protocolProvider = DebugProtocolRouter.resolveProvider(connectionId);
+        DebugProtocolProvider protocolProvider = IdpDebugProtocolRouter.resolveProvider(connectionId);
         if (protocolProvider == null && LOG.isDebugEnabled()) {
             LOG.debug("No DebugProtocolProvider found for resource: " + connectionId +
                     ". Ensure a matching protocol resolver and provider are deployed and active.");

@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
 
@@ -67,8 +68,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 prepStmt.setString(2, sessionData.getStatus());
                 setSessionData(prepStmt, 3, sessionData);
                 prepStmt.setString(4, sessionData.getResultJson());
-                prepStmt.setLong(5, sessionData.getCreatedTime());
-                prepStmt.setLong(6, sessionData.getExpiryTime());
+                prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+                prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
                 prepStmt.executeUpdate();
 
                 if (!connection.getAutoCommit()) {
@@ -186,8 +187,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 updateStmt.setString(1, sessionData.getStatus());
                 setSessionData(updateStmt, 2, sessionData);
                 updateStmt.setString(3, sessionData.getResultJson());
-                updateStmt.setLong(4, sessionData.getCreatedTime());
-                updateStmt.setLong(5, sessionData.getExpiryTime());
+                updateStmt.setTimestamp(4, new Timestamp(sessionData.getCreatedTime()));
+                updateStmt.setTimestamp(5, new Timestamp(sessionData.getExpiryTime()));
                 updateStmt.setString(6, storageDebugId);
                 affectedRows = updateStmt.executeUpdate();
             }
@@ -198,8 +199,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                     insertStmt.setString(2, sessionData.getStatus());
                     setSessionData(insertStmt, 3, sessionData);
                     insertStmt.setString(4, sessionData.getResultJson());
-                    insertStmt.setLong(5, sessionData.getCreatedTime());
-                    insertStmt.setLong(6, sessionData.getExpiryTime());
+                    insertStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
+                    insertStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
                     insertStmt.executeUpdate();
                 }
             }
@@ -223,7 +224,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_EXPIRED_DEBUG_SESSIONS)) {
-                prepStmt.setLong(1, System.currentTimeMillis());
+                prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
                 int deletedCount = prepStmt.executeUpdate();
 
                 if (!connection.getAutoCommit()) {
@@ -324,7 +325,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     private long getTimeInMillis(ResultSet resultSet, String columnName) throws SQLException {
 
-        return resultSet.getLong(columnName);
+        Timestamp ts = resultSet.getTimestamp(columnName);
+        return ts != null ? ts.getTime() : 0L;
     }
 
 }
