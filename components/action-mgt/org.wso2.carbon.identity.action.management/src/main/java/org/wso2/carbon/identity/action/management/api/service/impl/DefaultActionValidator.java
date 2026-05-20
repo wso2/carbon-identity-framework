@@ -35,8 +35,11 @@ import org.wso2.carbon.identity.action.management.internal.util.ActionManagement
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -383,23 +386,36 @@ public class DefaultActionValidator implements ActionValidator {
         ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()
                 .getClaimMetadataManagementService();
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        Set<String> localClaimUris = new HashSet<>();
 
-        // Validate each attribute.
+        try {
+            if (claimMetadataManagementService == null) {
+                throw ActionManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_WHILE_RETRIEVING_CLAIM_METADATA,
+                        new IllegalStateException("Claim metadata management service is not available."));
+            }
+            List<LocalClaim> localClaims = claimMetadataManagementService.getLocalClaims(tenantDomain);
+            for (LocalClaim localClaim : localClaims) {
+                localClaimUris.add(localClaim.getClaimURI());
+            }
+        } catch (ClaimMetadataException e) {
+            throw ActionManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_CLAIM_METADATA, e);
+        }
+
+        // Validate each attribute
         for (String attribute : attributes) {
             if (StringUtils.isBlank(attribute)) {
                 throw ActionManagementExceptionHandler.handleClientException(
                         ErrorMessage.ERROR_EMPTY_ATTRIBUTE_VALUE);
             }
-
-            try {
-                if (claimMetadataManagementService == null ||
-                        claimMetadataManagementService.getLocalClaim(attribute, tenantDomain).isEmpty()) {
-                    throw ActionManagementExceptionHandler.handleClientException(
-                            ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
-                }
-            } catch (ClaimMetadataException e) {
-                throw ActionManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_WHILE_RETRIEVING_CLAIM_METADATA, e);
+            if (ActionMgtConstants.ROLE_CLAIM_URI.equals(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_UNSUPPORTED_ATTRIBUTE, attribute);
+            }
+            if (!localClaimUris.contains(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
             }
         }
     }

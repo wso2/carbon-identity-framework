@@ -47,6 +47,8 @@ public enum ErrorMessage {
             "The provided %s attribute is not available in the system."),
     ERROR_EMPTY_ATTRIBUTE_VALUE("60013", "Invalid attribute provided.",
             "Each attribute must be a non-empty string."),
+    ERROR_UNSUPPORTED_ATTRIBUTE("60014", "Unsupported attribute provided.",
+            "The attribute %s is not supported to be shared with the extension."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
