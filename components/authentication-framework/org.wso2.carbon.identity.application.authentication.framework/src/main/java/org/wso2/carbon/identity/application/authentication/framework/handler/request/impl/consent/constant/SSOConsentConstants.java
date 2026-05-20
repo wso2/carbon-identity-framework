@@ -32,4 +32,5 @@ public class SSOConsentConstants {
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String FEDERATED_USER_DOMAIN_PREFIX = "FEDERATED";
     public static final String FEDERATED_USER_DOMAIN_SEPARATOR = ":";
+    public static final String RESIDENT_IDP = "Resident IDP";
 }
