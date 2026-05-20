@@ -163,7 +163,7 @@ public class Constants {
                 "Error while loading claim metadata.",
                 "Error occurred loading the claim metadata for tenant: %s."),
         ERROR_CODE_INFLOW_EXTENSION_ERROR("65033",
-                "%s",
+                "In-Flow Extension error.",
                 "%s"),
 
 
@@ -215,7 +215,10 @@ public class Constants {
                 "The provided username: %s does not meet the configured format requirements."),
         ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED("60016",
                 "Password does not meet the required format.",
-                "The provided password does not meet the configured format requirements.")
+                "The provided password does not meet the configured format requirements."),
+        ERROR_CODE_INFLOW_EXTENSION_FAILURE("60017",
+                "%s",
+                "%s")
         ;
 
         private static final String ERROR_PREFIX = "FE";

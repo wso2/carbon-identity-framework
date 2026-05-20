@@ -180,7 +180,6 @@
                             !org.wso2.carbon.identity.flow.execution.internal,
                             org.wso2.carbon.identity.flow.execution.engine.util,
                             org.wso2.carbon.identity.flow.execution.engine,
-                            org.wso2.carbon.identity.flow.execution.engine.internal,
                             org.wso2.carbon.identity.flow.execution.engine.core,
                             org.wso2.carbon.identity.flow.execution.engine.cache,
                             org.wso2.carbon.identity.flow.execution.engine.store,

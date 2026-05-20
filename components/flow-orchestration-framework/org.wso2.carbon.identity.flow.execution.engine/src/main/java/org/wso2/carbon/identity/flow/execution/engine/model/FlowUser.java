@@ -109,14 +109,6 @@ public class FlowUser implements Serializable {
         this.claims.putAll(claims);
     }
 
-    public void setClaims(Map<String, String> claims) {
-
-        this.claims.clear();
-        if (claims != null) {
-            this.claims.putAll(claims);
-        }
-    }
-
     public Object getClaim(String claimUri) {
 
         return this.claims.get(claimUri);

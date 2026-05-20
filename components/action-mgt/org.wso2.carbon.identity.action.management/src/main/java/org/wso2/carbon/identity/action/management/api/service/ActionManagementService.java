@@ -129,36 +129,4 @@ public interface ActionManagementService {
     Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
                                               String tenantDomain) throws ActionMgtException;
 
-    /**
-     * Check whether the given action name is available (unique) within the specified action type.
-     * When {@code excludeActionId} is {@code null} the check covers all existing actions of that
-     * type (creation scenario). When non-null the action with that ID is excluded from the
-     * uniqueness check (update scenario).
-     *
-     * @param actionType      Action Type path parameter.
-     * @param name            Action name to check.
-     * @param excludeActionId Action ID to exclude from the uniqueness check, or {@code null} for
-     *                        creation scenarios where no action should be excluded.
-     * @param tenantDomain    Tenant domain.
-     * @return {@code true} if the name is not already used by another action of the same type
-     *         (i.e., the caller may safely use this name); {@code false} if the name is already taken.
-     * @throws ActionMgtException If an error occurs while checking name availability.
-     */
-    boolean isActionNameAvailable(String actionType, String name, String excludeActionId, String tenantDomain)
-            throws ActionMgtException;
-
-    /**
-     * Convenience overload for creation scenarios — delegates to
-     * {@link #isActionNameAvailable(String, String, String, String)} with {@code excludeActionId = null}.
-     *
-     * @param actionType   Action Type path parameter.
-     * @param name         Action name to check.
-     * @param tenantDomain Tenant domain.
-     * @return {@code true} if the name is available; {@code false} if already taken.
-     * @throws ActionMgtException If an error occurs while checking name availability.
-     */
-    default boolean isActionNameAvailable(String actionType, String name, String tenantDomain)
-            throws ActionMgtException {
-        return isActionNameAvailable(actionType, name, null, tenantDomain);
-    }
 }

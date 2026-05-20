@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.flow.inflow.extensions.InFlowExtensionConstants;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.util.FlowExecutionEngineUtils;
 import org.wso2.carbon.identity.flow.inflow.extensions.internal.InFlowExtensionDataHolder;
 import org.wso2.carbon.identity.flow.inflow.extensions.model.FlowContextHandoverConfig;
 import org.wso2.carbon.identity.flow.inflow.extensions.util.InFlowExtensionContextFilterUtil;
@@ -76,7 +77,6 @@ public class InFlowExtensionExecutor implements Executor {
 
         String actionId = getMetadataValue(context, InFlowExtensionConstants.ACTION_ID_METADATA_KEY);
         if (actionId == null || actionId.isEmpty()) {
-            LOG.warn("No action ID configured for In-Flow Extension executor. Cannot execute.");
             triggerDiagnosticFailure(null,
                 "In-Flow Extension action execution failed: action ID is not configured.");
             return buildErrorResponse("Extension is not configured.",
@@ -92,14 +92,14 @@ public class InFlowExtensionExecutor implements Executor {
 
         ActionExecutorService actionExecutorService = getActionExecutorService();
         if (actionExecutorService == null) {
-            LOG.error("ActionExecutorService is not available. In-Flow Extension cannot execute. actionId: " + actionId);
             triggerDiagnosticFailure(actionId,
                 "In-Flow Extension action execution failed: ActionExecutorService is unavailable.");
-            throw new FlowEngineException("ActionExecutorService is not available.");
+            throw FlowExecutionEngineUtils.handleServerException(
+                    Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR,
+                    "ActionExecutorService is not available. actionId: " + actionId);
         }
 
         if (!actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)) {
-            LOG.debug("In-Flow Extension action execution is disabled.");
             triggerDiagnosticFailure(actionId,
                 "In-Flow Extension action execution failed: action type is disabled.");
             return buildErrorResponse("Extension execution is disabled.",
@@ -260,6 +260,7 @@ public class InFlowExtensionExecutor implements Executor {
             failureInfo.put(InFlowExtensionConstants.FAILURE_DESCRIPTION_KEY, failure.getFailureDescription());
         }
         response.setAdditionalInfo(failureInfo);
+        response.setErrorCode(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_FAILURE.getCode());
         response.setErrorMessage(buildUserFacingErrorMessage(failure));
     }
 
