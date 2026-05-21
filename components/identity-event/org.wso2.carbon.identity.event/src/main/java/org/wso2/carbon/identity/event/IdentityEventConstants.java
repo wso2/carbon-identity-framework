@@ -522,6 +522,7 @@ public class IdentityEventConstants {
         public static final String EXISTING_TOKEN_USED = "EXISTING_TOKEN_USED";
         public static final String SERVICE_PROVIDER = "SERVICE_PROVIDER";
         public static final String ROOT_TENANT_DOMAIN = "ROOT_TENANT_DOMAIN";
+        public static final String IS_FEDERATED_USER = "IS_FEDERATED_USER";
 
         public static final String CONSUMER_KEYS = "CONSUMER_KEYS";
 
