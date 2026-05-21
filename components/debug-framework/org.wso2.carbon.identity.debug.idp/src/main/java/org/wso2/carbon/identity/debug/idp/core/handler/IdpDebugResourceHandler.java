@@ -36,7 +36,8 @@ import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
-import org.wso2.carbon.identity.debug.idp.core.IdpDebugProtocolRouter;
+import org.wso2.carbon.identity.debug.idp.registry.IdpDebugProviderRegistry;
+import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +50,8 @@ import java.util.Map;
 public class IdpDebugResourceHandler implements DebugResourceHandler {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
+    private static final IdpDebugProtocolResolver RESOLVER = new IdpDebugProtocolResolver();
+
 
     /**
      * Handles a debug request using typed classes.
@@ -139,20 +142,21 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         return debugContext;
     }
 
-    /**
-     * Resolves the protocol provider for the given resource ID.
-     *
-     * @param connectionId Connection ID or name.
-     * @return DebugProtocolProvider for the resource, or null if not available.
-     */
     protected DebugProtocolProvider resolveProtocolProvider(String connectionId) {
 
-        DebugProtocolProvider protocolProvider = IdpDebugProtocolRouter.resolveProvider(connectionId);
-        if (protocolProvider == null && LOG.isDebugEnabled()) {
-            LOG.debug("No DebugProtocolProvider found for resource: " + connectionId +
-                    ". Ensure a matching protocol resolver and provider are deployed and active.");
+        String protocolType = RESOLVER.resolveProtocol(connectionId);
+        if (StringUtils.isBlank(protocolType)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No protocol resolved for connection: " + connectionId);
+            }
+            return null;
         }
-        return protocolProvider;
+
+        DebugProtocolProvider provider = IdpDebugProviderRegistry.getInstance().getProvider(protocolType);
+        if (provider == null && LOG.isDebugEnabled()) {
+            LOG.debug("No provider registered for protocol: " + protocolType);
+        }
+        return provider;
     }
 
     /**
@@ -188,5 +192,4 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         }
         return executor;
     }
-
 }

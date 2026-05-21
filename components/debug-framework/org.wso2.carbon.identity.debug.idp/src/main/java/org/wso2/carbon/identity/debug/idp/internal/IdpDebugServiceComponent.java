@@ -20,75 +20,67 @@ package org.wso2.carbon.identity.debug.idp.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
+import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.idp.core.handler.IdpDebugResourceHandler;
-import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
+import org.wso2.carbon.identity.debug.idp.registry.IdpDebugProviderRegistry;
 
 /**
  * OSGi service component for the IDP debug handler module.
- * Registers the IDP-specific debug resource handler and protocol resolver with the core framework.
- *
- * Protocol providers (e.g., OIDC, Google) are bound by the framework's DebugServiceComponent
- * into DebugFrameworkServiceDataHolder. This component only registers IDP-specific services.
  */
 @Component(name = "identity.debug.idp.component", immediate = true)
 public class IdpDebugServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugServiceComponent.class);
     private static final String IDP_HANDLER_TYPE = "idp";
-    private ServiceRegistration<DebugProtocolResolver> resolverServiceRegistration;
 
-    /**
-     * Activates the IDP debug handler component.
-     * Registers IdpDebugResourceHandler and IdpDebugProtocolResolver with the framework.
-     *
-     * @param context The component context.
-     */
     @Activate
     protected void activate(ComponentContext context) {
 
         LOG.debug("Activating IDP Debug Handler Component.");
-
-        // Register the IDP debug resource handler with the framework.
-        IdpDebugResourceHandler idpHandler = new IdpDebugResourceHandler();
-        DebugHandlerRegistry.getInstance().register(IDP_HANDLER_TYPE, idpHandler);
-
+        DebugHandlerRegistry.getInstance().register(IDP_HANDLER_TYPE, new IdpDebugResourceHandler());
         LOG.debug("Registered IdpDebugResourceHandler with DebugHandlerRegistry.");
-
-        // Register the IDP debug protocol resolver as an OSGi service.
-        // The framework's DebugServiceComponent will pick this up via @Reference.
-        IdpDebugProtocolResolver resolver = new IdpDebugProtocolResolver();
-        resolverServiceRegistration = context.getBundleContext().registerService(
-                DebugProtocolResolver.class, resolver, null);
-
-        LOG.debug("Registered IdpDebugProtocolResolver service.");
     }
 
-    /**
-     * Deactivates the IDP debug handler component.
-     *
-     * @param context The component context.
-     */
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
         LOG.debug("Deactivating IDP Debug Handler Component.");
-
-        // Clear the IDP handler registration.
         DebugHandlerRegistry.getInstance().unregister(IDP_HANDLER_TYPE);
-
-        if (resolverServiceRegistration != null) {
-            resolverServiceRegistration.unregister();
-            resolverServiceRegistration = null;
-        }
-
         LOG.debug("IDP Debug Handler Component deactivated.");
+    }
+
+    @Reference(name = "debug.protocol.provider", service = DebugProtocolProvider.class,
+            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDebugProtocolProvider")
+    protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
+
+        IdpDebugProviderRegistry.getInstance().addProvider(provider);
+        if (provider.getCallbackHandler() != null) {
+            DebugProtocolRegistry.getInstance().addDebugCallbackHandler(provider.getCallbackHandler());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugProtocolProvider registered for protocol: " + provider.getProtocolType());
+        }
+    }
+
+    protected void unsetDebugProtocolProvider(DebugProtocolProvider provider) {
+
+        IdpDebugProviderRegistry.getInstance().removeProvider(provider);
+        if (provider.getCallbackHandler() != null) {
+            DebugProtocolRegistry.getInstance().removeDebugCallbackHandler(provider.getCallbackHandler());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugProtocolProvider unregistered for protocol: " + provider.getProtocolType());
+        }
     }
 
 }

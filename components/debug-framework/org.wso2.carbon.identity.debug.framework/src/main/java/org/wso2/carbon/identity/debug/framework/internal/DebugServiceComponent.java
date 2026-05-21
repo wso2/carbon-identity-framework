@@ -33,8 +33,6 @@ import org.wso2.carbon.identity.application.authentication.framework.DebugAuthen
 import org.wso2.carbon.identity.debug.framework.core.DebugCommonAuthInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
-import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
@@ -118,64 +116,6 @@ public class DebugServiceComponent {
         }
     }
 
-    /**
-     * Sets the DebugProtocolProvider.
-     * Called by OSGi when a protocol module registers a DebugProtocolProvider.
-     * Multiple providers can be registered.
-     *
-     * Uses 0..* cardinality (MULTIPLE is optional by default) so the framework
-     * can activate even if no providers are registered initially. Providers are
-     * discovered dynamically at runtime via OSGi service lookups.
-     *
-     * @param provider the DebugProtocolProvider instance.
-     */
-    @Reference(
-            name = "debug.protocol.provider",
-            service = DebugProtocolProvider.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetDebugProtocolProvider"
-    )
-    protected void setDebugProtocolProvider(DebugProtocolProvider provider) {
-
-        bindProtocolProvider(provider, true);
-    }
-
-    /**
-     * Unsets the DebugProtocolProvider.
-     * Called by OSGi when a protocol module deactivates or unregisters its
-     * provider.
-     *
-     * @param provider the DebugProtocolProvider instance.
-     */
-    protected void unsetDebugProtocolProvider(DebugProtocolProvider provider) {
-
-        bindProtocolProvider(provider, false);
-    }
-
-    /**
-     * Sets a debug protocol resolver.
-     *
-     * @param resolver Debug protocol resolver implementation.
-     */
-    @Reference(name = "debug.protocol.resolver", service = DebugProtocolResolver.class,
-            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetDebugProtocolResolver")
-    protected void setDebugProtocolResolver(DebugProtocolResolver resolver) {
-
-        bindProtocolResolver(resolver, true);
-    }
-
-    /**
-     * Unsets a debug protocol resolver.
-     *
-     * @param resolver Debug protocol resolver implementation.
-     */
-    protected void unsetDebugProtocolResolver(DebugProtocolResolver resolver) {
-
-        bindProtocolResolver(resolver, false);
-    }
-
     @Reference(name = "debug.execution.listener", service = DebugExecutionListener.class,
             cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetDebugExecutionListener")
@@ -200,42 +140,6 @@ public class DebugServiceComponent {
     protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
 
         bindCallbackHandler(handler, false);
-    }
-
-    private void bindProtocolProvider(DebugProtocolProvider provider, boolean isBind) {
-
-        if (provider == null) {
-            return;
-        }
-
-        String protocolType = provider.getProtocolType();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("DebugProtocolProvider " + getLifecycleAction(isBind) + " for protocol: " + protocolType);
-        }
-
-        if (isBind) {
-            DebugProtocolRegistry.getInstance().addDebugProtocolProvider(provider);
-            return;
-        }
-
-        DebugProtocolRegistry.getInstance().removeDebugProtocolProvider(provider);
-    }
-
-    private void bindProtocolResolver(DebugProtocolResolver resolver, boolean isBind) {
-
-        if (resolver == null) {
-            return;
-        }
-
-        if (isBind) {
-            DebugProtocolRegistry.getInstance().addDebugProtocolResolver(resolver);
-        } else {
-            DebugProtocolRegistry.getInstance().removeDebugProtocolResolver(resolver);
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("DebugProtocolResolver " + getLifecycleAction(isBind) + ": " + resolver.getClass().getName());
-        }
     }
 
     private void bindExecutionListener(DebugExecutionListener listener, boolean isBind) {

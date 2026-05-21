@@ -60,7 +60,6 @@ public class DebugRequestCoordinator {
      */
     public DebugRequestCoordinator() {
 
-        // Stateless coordinator.
     }
 
     /**

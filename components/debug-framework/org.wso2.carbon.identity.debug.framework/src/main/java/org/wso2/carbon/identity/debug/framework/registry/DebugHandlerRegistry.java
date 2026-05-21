@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,13 +64,12 @@ public class DebugHandlerRegistry {
      */
     public void register(String resourceType, DebugResourceHandler handler) {
 
-        String normalizedResourceType = normalizeResourceType(resourceType);
-        if (normalizedResourceType == null || handler == null) {
+        if (resourceType == null || handler == null) {
             LOG.warn("Cannot register null resource type or handler");
             return;
         }
 
-        handlers.put(normalizedResourceType, handler);
+        handlers.put(resourceType, handler);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registered debug resource handler for type: " + resourceType);
         }
@@ -85,12 +83,11 @@ public class DebugHandlerRegistry {
      */
     public void unregister(String resourceType) {
 
-        String normalizedResourceType = normalizeResourceType(resourceType);
-        if (normalizedResourceType == null) {
+        if (resourceType == null) {
             return;
         }
 
-        handlers.remove(normalizedResourceType);
+        handlers.remove(resourceType);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Unregistered debug resource handler for type: " + resourceType);
         }
@@ -104,19 +101,9 @@ public class DebugHandlerRegistry {
      */
     public DebugResourceHandler getHandler(String resourceType) {
 
-        String normalizedResourceType = normalizeResourceType(resourceType);
-        if (normalizedResourceType == null) {
+        if (resourceType == null) {
             return null;
         }
-        return handlers.get(normalizedResourceType);
+        return handlers.get(resourceType);
     }
-
-    private String normalizeResourceType(String resourceType) {
-
-        if (resourceType == null || resourceType.trim().isEmpty()) {
-            return null;
-        }
-        return resourceType.trim().toLowerCase(Locale.ROOT);
-    }
-
 }

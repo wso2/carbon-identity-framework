@@ -98,7 +98,8 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.debug.idp.internal,
                             org.wso2.carbon.identity.debug.idp.core.*; version="${project.version}",
-                            org.wso2.carbon.identity.debug.idp.resolver.*; version="${project.version}"
+                            org.wso2.carbon.identity.debug.idp.resolver.*; version="${project.version}",
+                            org.wso2.carbon.identity.debug.idp.registry.*; version="${project.version}"
                         </Export-Package>
                         <Import-Package>
                             org.wso2.carbon.identity.debug.framework; version="[7.8.0,8.0.0)",
