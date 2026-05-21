@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.util;
 
+import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -219,5 +220,103 @@ public class ActionSecretProcessorTest {
 
         actionSecretProcessor.deleteAssociatedSecrets(authentication, PRE_ISSUE_ACCESS_TOKEN_ACTION_ID);
         verify(secretManager, times(1)).deleteSecret(any(), any());
+    }
+
+    @Test
+    public void testDecryptPropertyBySecretReference() throws SecretManagementException {
+
+        // Build a reference whose secret name itself contains ':' characters
+        // (composed as actionId:authType:propertyName), exercising the first-colon-only split.
+        String secretReference = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
+                Authentication.Type.CLIENT_CREDENTIAL, Authentication.Property.CLIENT_ID);
+        String expectedSecretName = PRE_ISSUE_ACCESS_TOKEN_ACTION_ID + ":" +
+                Authentication.Type.CLIENT_CREDENTIAL.getName() + ":" +
+                Authentication.Property.CLIENT_ID.getName();
+
+        AuthProperty authProperty = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.CLIENT_ID.getName())
+                .isConfidential(true)
+                .value(secretReference)
+                .build();
+
+        doReturn(true).when(secretManager).isSecretExist(any(), any());
+        ResolvedSecret resolvedSecret = mock(ResolvedSecret.class);
+        doReturn(TEST_USERNAME).when(resolvedSecret).getResolvedSecretValue();
+        doReturn(resolvedSecret).when(secretResolveManager).getResolvedSecret(any(), any());
+
+        AuthProperty decrypted = actionSecretProcessor.decryptPropertyBySecretReference(authProperty);
+
+        Assert.assertEquals(decrypted.getName(), Authentication.Property.CLIENT_ID.getName());
+        Assert.assertTrue(decrypted.getIsConfidential());
+        Assert.assertEquals(decrypted.getValue(), TEST_USERNAME);
+
+        // Verify the resolver received the secret name with its embedded ':' characters intact.
+        ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
+        verify(secretResolveManager).getResolvedSecret(any(), nameCaptor.capture());
+        Assert.assertEquals(nameCaptor.getValue(), expectedSecretName);
+    }
+
+    @Test
+    public void testDecryptPropertyBySecretReferencePreservesNonConfidentialFlag()
+            throws SecretManagementException {
+
+        String secretReference = TEST_SECRET_TYPE_ID + ":simple-name";
+        AuthProperty authProperty = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.HEADER.getName())
+                .isConfidential(false)
+                .value(secretReference)
+                .build();
+
+        doReturn(true).when(secretManager).isSecretExist(any(), any());
+        ResolvedSecret resolvedSecret = mock(ResolvedSecret.class);
+        doReturn(TEST_API_KEY_HEADER).when(resolvedSecret).getResolvedSecretValue();
+        doReturn(resolvedSecret).when(secretResolveManager).getResolvedSecret(any(), any());
+
+        AuthProperty decrypted = actionSecretProcessor.decryptPropertyBySecretReference(authProperty);
+
+        Assert.assertEquals(decrypted.getName(), Authentication.Property.HEADER.getName());
+        Assert.assertFalse(decrypted.getIsConfidential());
+        Assert.assertEquals(decrypted.getValue(), TEST_API_KEY_HEADER);
+    }
+
+    @Test(expectedExceptions = SecretManagementException.class)
+    public void testDecryptPropertyBySecretReferenceForNonExistingSecret() throws SecretManagementException {
+
+        String secretReference = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
+                Authentication.Type.CLIENT_CREDENTIAL, Authentication.Property.CLIENT_ID);
+        AuthProperty authProperty = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.CLIENT_ID.getName())
+                .isConfidential(true)
+                .value(secretReference)
+                .build();
+
+        doReturn(false).when(secretManager).isSecretExist(any(), any());
+
+        actionSecretProcessor.decryptPropertyBySecretReference(authProperty);
+    }
+
+    @DataProvider(name = "invalidSecretReferences")
+    public Object[][] invalidSecretReferences() {
+
+        return new Object[][]{
+                {null},
+                {""},
+                {"missing-delimiter"},
+                {":missing-secret-type"},
+                {"missing-secret-name:"},
+        };
+    }
+
+    @Test(dataProvider = "invalidSecretReferences", expectedExceptions = SecretManagementException.class)
+    public void testDecryptPropertyBySecretReferenceWithInvalidReference(String secretReference)
+            throws SecretManagementException {
+
+        AuthProperty authProperty = new AuthProperty.AuthPropertyBuilder()
+                .name(Authentication.Property.ACCESS_TOKEN.getName())
+                .isConfidential(true)
+                .value(secretReference)
+                .build();
+
+        actionSecretProcessor.decryptPropertyBySecretReference(authProperty);
     }
 }

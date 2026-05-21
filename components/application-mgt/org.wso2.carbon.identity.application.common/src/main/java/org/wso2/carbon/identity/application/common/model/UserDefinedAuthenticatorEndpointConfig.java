@@ -41,7 +41,7 @@ public class UserDefinedAuthenticatorEndpointConfig {
 
         endpointConfig = builder.endpointConfig;
     }
-    
+
     public EndpointConfig getEndpointConfig() {
 
         return endpointConfig;
@@ -75,10 +75,63 @@ public class UserDefinedAuthenticatorEndpointConfig {
     public Map<String, String> getAuthenticatorEndpointAuthenticationProperties() {
 
         Map<String, String> propertyMap = new HashMap<>();
-        for (AuthProperty prop: endpointConfig.getAuthentication().getProperties()) {
+        for (AuthProperty prop : endpointConfig.getAuthentication().getProperties()) {
             propertyMap.put(prop.getName(), prop.getValue());
         }
         return propertyMap;
+    }
+
+    /**
+     * Get the authentication properties of the authenticator endpoint shaped for the response view.
+     *
+     * @return Authentication properties with decrypted user-visible confidential properties.
+     */
+    public Map<String, Object> getResolvedEndpointAuthenticationProperties() {
+
+        Authentication authentication = endpointConfig.getAuthentication();
+        Map<String, Object> propertyMap = new HashMap<>();
+        switch (authentication.getType()) {
+            case BASIC:
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.USERNAME);
+                break;
+            case API_KEY:
+                addStoredProperty(propertyMap, authentication, Authentication.Property.HEADER);
+                break;
+            case CLIENT_CREDENTIAL:
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.CLIENT_ID);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.TOKEN_ENDPOINT);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.SCOPES);
+                break;
+            case PASSWORD_CREDENTIAL:
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.CLIENT_ID);
+                addDecryptedProperty(propertyMap, authentication, Authentication.Property.USERNAME);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.TOKEN_ENDPOINT);
+                addStoredProperty(propertyMap, authentication, Authentication.Property.SCOPES);
+                break;
+            case BEARER:
+            case NONE:
+            default:
+                break;
+        }
+        return propertyMap;
+    }
+
+    private void addDecryptedProperty(Map<String, Object> propertyMap, Authentication authentication,
+                                      Authentication.Property property) {
+
+        AuthProperty decrypted = authentication.getPropertyWithDecryptedValue(property.getName());
+        if (decrypted != null) {
+            propertyMap.put(property.getName(), decrypted.getValue());
+        }
+    }
+
+    private void addStoredProperty(Map<String, Object> propertyMap, Authentication authentication,
+                                   Authentication.Property property) {
+
+        AuthProperty prop = authentication.getProperty(property);
+        if (prop != null) {
+            propertyMap.put(property.getName(), prop.getValue());
+        }
     }
 
     /**
@@ -114,6 +167,7 @@ public class UserDefinedAuthenticatorEndpointConfig {
         private EndpointConfig endpointConfig;
 
         public UserDefinedAuthenticatorEndpointConfigBuilder() {
+
         }
 
         public UserDefinedAuthenticatorEndpointConfigBuilder uri(String uri) {
@@ -146,7 +200,7 @@ public class UserDefinedAuthenticatorEndpointConfig {
             this.allowedParameters = allowedParameters;
             return this;
         }
-        
+
         public UserDefinedAuthenticatorEndpointConfig build() {
 
             EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
