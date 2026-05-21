@@ -128,4 +128,5 @@ public interface ActionManagementService {
      */
     Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
                                               String tenantDomain) throws ActionMgtException;
+
 }
