@@ -352,7 +352,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         List<PurposePIICategoryBinding> purposeBindings = new ArrayList<>();
         purposeBindings.add(new PurposePIICategoryBinding(purposeUuid, Collections.singletonList(piiCategory)));
         boolean rejected = REJECTED_STATE.equals(state);
-        ReceiptInput receiptInput = ConsentReceiptUtils.buildReceiptInput("", subjectId, tenantDomain,
+        ReceiptInput receiptInput = ConsentReceiptUtils.buildReceiptInput("en", subjectId, tenantDomain,
                 null, rejected, null, null, RESIDENT_IDP, purposeBindings,
                 getConsentManager());
         getConsentManager().addConsent(receiptInput);
