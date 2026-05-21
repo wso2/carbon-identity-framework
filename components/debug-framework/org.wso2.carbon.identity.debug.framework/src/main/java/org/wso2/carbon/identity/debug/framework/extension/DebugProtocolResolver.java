@@ -33,11 +33,4 @@ public interface DebugProtocolResolver {
      */
     String resolveProtocol(String resourceId);
 
-    /**
-     * Gets the order of execution for this resolver.
-     * Resolvers are executed in ascending order of this value.
-     *
-     * @return The order of execution.
-     */
-    int getOrder();
 }

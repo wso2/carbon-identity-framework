@@ -39,7 +39,6 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
     private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
     private static final String GOOGLE_HOST = "google";
     private static final String FACEBOOK_HOST = "facebook";
-    private static final int RESOLVER_ORDER = 10;
 
     @Override
     public String resolveProtocol(String resourceId) {
@@ -65,19 +64,11 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return null;
     }
 
-    @Override
-    public int getOrder() {
-
-        return RESOLVER_ORDER;
-    }
-
     protected IdentityProvider loadResourceConfiguration(IdentityProviderManager idpManager,
             String resourceId, String tenantDomain) throws IdentityProviderManagementException {
 
-        // Try to get by resource ID first (null return means not found).
         IdentityProvider resource = idpManager.getIdPByResourceId(resourceId, tenantDomain, true);
 
-        // Fall back to lookup by name if resource ID lookup returned null.
         if (resource == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resource not found by ID, trying by name: " + resourceId);
@@ -95,16 +86,11 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         }
 
         FederatedAuthenticatorConfig[] configs = resource.getFederatedAuthenticatorConfigs();
-        if (!hasValidAuthenticators(configs)) {
+        if (configs == null || configs.length == 0) {
             return null;
         }
 
         return findProtocolFromEnabledConfigs(resource, configs);
-    }
-
-    protected boolean hasValidAuthenticators(FederatedAuthenticatorConfig[] configs) {
-
-        return configs != null && configs.length > 0;
     }
 
     protected String findProtocolFromEnabledConfigs(IdentityProvider resource,
@@ -128,14 +114,21 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         String implementationName = config.getName();
         String protocolType = resolveProtocolTypeFromImplementation(implementationName);
 
-        if (isGoogleBackedOidcProtocol(resource, config, protocolType)) {
+        // Only apply Google heuristic when the implementation is already OIDC-typed — prevents false
+        // positives like "Google Analytics Integration" being classified as Google OIDC.
+        if (IdpDebugConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
+                && isBackedByProvider(resource, config, IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC, GOOGLE_HOST)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Detected Google-backed OIDC configuration from implementation: " + implementationName);
             }
             return IdpDebugConstants.PROTOCOL_TYPE_GOOGLE;
         }
 
-        if (isFacebookProtocol(resource, config, protocolType)) {
+        // Mirror the Google gate: only apply Facebook heuristic when the implementation is OIDC or Facebook-typed.
+        if (IdpDebugConstants.PROTOCOL_TYPE_FACEBOOK.equalsIgnoreCase(protocolType)
+                || (IdpDebugConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
+                        && isBackedByProvider(resource, config, IdpDebugConstants.IMPLEMENTATION_FACEBOOK,
+                                FACEBOOK_HOST))) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Detected Facebook-backed configuration from implementation: " + implementationName);
             }
@@ -152,22 +145,6 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return null;
     }
 
-    protected boolean isGoogleBackedOidcProtocol(IdentityProvider resource, FederatedAuthenticatorConfig config,
-            String protocolType) {
-
-        // Only apply heuristic if implementation is already identified as OIDC.
-        // This prevents false positives like "Google Analytics Integration" being treated as Google OIDC.
-        return IdpDebugConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
-                && isGoogleBackedOidcAuthenticator(resource, config);
-    }
-
-    protected boolean isFacebookProtocol(IdentityProvider resource, FederatedAuthenticatorConfig config,
-            String protocolType) {
-
-        return IdpDebugConstants.PROTOCOL_TYPE_FACEBOOK.equalsIgnoreCase(protocolType)
-                || isFacebookBackedAuthenticator(resource, config);
-    }
-
     protected boolean isValidAuthenticatorConfig(FederatedAuthenticatorConfig config) {
 
         return config != null && config.isEnabled() && !StringUtils.isEmpty(config.getName());
@@ -179,7 +156,8 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             return null;
         }
 
-        if (matchesOidcImplementation(implementationName)) {
+        if (IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)
+                || IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName)) {
             return IdpDebugConstants.PROTOCOL_TYPE_OIDC;
         }
         if (IdpDebugConstants.IMPLEMENTATION_GITHUB.equalsIgnoreCase(implementationName)) {
@@ -194,27 +172,18 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return null;
     }
 
-    protected boolean matchesOidcImplementation(String implementationName) {
-
-        return IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)
-                || IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName);
-    }
-
     /**
-     * Checks if an OIDC authenticator is backed by Google.
-     *
-     * @param resource Identity provider resource.
-     * @param config Federated authenticator configuration.
-     * @return true if IdP name or properties suggest Google backing, false otherwise.
+     * Checks if an authenticator config is backed by a specific provider by inspecting the implementation
+     * name, IdP name, and property values for the given host indicator.
      */
-    protected boolean isGoogleBackedOidcAuthenticator(IdentityProvider resource,
-            FederatedAuthenticatorConfig config) {
+    protected boolean isBackedByProvider(IdentityProvider resource, FederatedAuthenticatorConfig config,
+            String knownImplementation, String hostIndicator) {
 
-        if (config != null && IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(config.getName())) {
+        if (config != null && knownImplementation.equalsIgnoreCase(config.getName())) {
             return true;
         }
 
-        if (resource != null && containsGoogleIndicator(resource.getIdentityProviderName())) {
+        if (resource != null && StringUtils.containsIgnoreCase(resource.getIdentityProviderName(), hostIndicator)) {
             return true;
         }
 
@@ -227,54 +196,10 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             if (property == null || StringUtils.isBlank(property.getValue())) {
                 continue;
             }
-            if (containsGoogleIndicator(property.getValue())) {
+            if (StringUtils.containsIgnoreCase(property.getValue(), hostIndicator)) {
                 return true;
             }
         }
         return false;
-    }
-
-    /**
-     * Checks if an authenticator is backed by Facebook.
-     *
-     * @param resource Identity provider resource.
-     * @param config Federated authenticator configuration.
-     * @return true if IdP name or properties suggest Facebook backing, false otherwise.
-     */
-    protected boolean isFacebookBackedAuthenticator(IdentityProvider resource,
-            FederatedAuthenticatorConfig config) {
-
-        if (config != null && IdpDebugConstants.IMPLEMENTATION_FACEBOOK.equalsIgnoreCase(config.getName())) {
-            return true;
-        }
-
-        if (resource != null && containsFacebookIndicator(resource.getIdentityProviderName())) {
-            return true;
-        }
-
-        Property[] properties = config != null ? config.getProperties() : null;
-        if (properties == null || properties.length == 0) {
-            return false;
-        }
-
-        for (Property property : properties) {
-            if (property == null || StringUtils.isBlank(property.getValue())) {
-                continue;
-            }
-            if (containsFacebookIndicator(property.getValue())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected boolean containsGoogleIndicator(String value) {
-
-        return StringUtils.contains(StringUtils.lowerCase(value), GOOGLE_HOST);
-    }
-
-    protected boolean containsFacebookIndicator(String value) {
-
-        return StringUtils.contains(StringUtils.lowerCase(value), FACEBOOK_HOST);
     }
 }
