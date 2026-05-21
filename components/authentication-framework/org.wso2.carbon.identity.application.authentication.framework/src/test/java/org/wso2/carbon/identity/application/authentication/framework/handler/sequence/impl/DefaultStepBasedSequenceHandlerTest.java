@@ -1208,7 +1208,7 @@ public class DefaultStepBasedSequenceHandlerTest {
             if (!expectNull) {
                 ImpersonatedUser impersonated = mock(ImpersonatedUser.class);
                 frameworkUtilsMockedStatic.when(
-                        () -> FrameworkUtils.getImpersonatedUser(requestedSubject, "tenant1", "orgA", "orgB",
+                        () -> FrameworkUtils.getImpersonatedUser(requestedSubject, "tenant1", "orgA", "orgA",
                                 applicationConfig)).thenReturn(impersonated);
             }
 
