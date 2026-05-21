@@ -23,6 +23,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
@@ -31,7 +32,6 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionVersioningHandler;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -39,8 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @WithCarbonHome
-@WithRealmService(injectToSingletons = {PreUpdatePasswordActionServiceComponentHolder.class},
-        initUserStoreManager = true)
+@WithRealmService(injectToSingletons = {ActionExecutionServiceComponentHolder.class}, initUserStoreManager = true)
 public class PreUpdatePasswordActionVersioningHandlerTest {
 
     PreUpdatePasswordActionVersioningHandler handler = new PreUpdatePasswordActionVersioningHandler();

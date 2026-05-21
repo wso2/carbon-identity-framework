@@ -407,15 +407,17 @@ public class DefaultActionValidator implements ActionValidator {
         for (String attribute : attributes) {
             if (StringUtils.isBlank(attribute)) {
                 throw ActionManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_EMPTY_ATTRIBUTE_VALUE);
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES, "Each attribute must be a non-empty string.");
             }
             if (ActionMgtConstants.ROLE_CLAIM_URI.equals(attribute)) {
                 throw ActionManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_UNSUPPORTED_ATTRIBUTE, attribute);
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
+                        "The attribute " + attribute + " is not supported to be shared with the extension.");
             }
             if (!localClaimUris.contains(attribute)) {
                 throw ActionManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_INVALID_ATTRIBUTES, attribute);
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
+                        "The provided " + attribute + " attribute is not available in the system.");
             }
         }
     }
