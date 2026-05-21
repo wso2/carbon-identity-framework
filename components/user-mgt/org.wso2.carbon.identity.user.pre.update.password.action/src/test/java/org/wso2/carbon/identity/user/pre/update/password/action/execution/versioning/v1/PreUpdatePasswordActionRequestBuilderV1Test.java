@@ -408,14 +408,7 @@ public class PreUpdatePasswordActionRequestBuilderV1Test {
             expectedExceptionsMessageRegExp = "User realm is not available for tenant: .*")
     public void testRequestBuilderFailureWhenUserRealmLoadingFails() throws Exception {
 
-        RealmService realmService = mock(RealmService.class);
-        TenantManager tenantManager = mock(TenantManager.class);
-
-        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
-        when(realmService.getTenantManager()).thenReturn(tenantManager);
-        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(null);
-
-        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
+        mockRealmServiceWithUserRealm(null);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -432,16 +425,10 @@ public class PreUpdatePasswordActionRequestBuilderV1Test {
     public void testRequestBuilderFailureWhenUserStoreNotInstanceOfUniqueIDUserStoreManager()
             throws Exception {
 
-        RealmService realmService = mock(RealmService.class);
-        TenantManager tenantManager = mock(TenantManager.class);
         UserRealm userRealm = mock(UserRealm.class);
 
-        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
-        when(realmService.getTenantManager()).thenReturn(tenantManager);
-        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(mock(UserStoreManager.class));
-
-        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
+        mockRealmServiceWithUserRealm(userRealm);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -457,16 +444,10 @@ public class PreUpdatePasswordActionRequestBuilderV1Test {
     public void testRequestBuilderFailureWhenUserStoreManagerLoadingFails()
             throws Exception {
 
-        RealmService realmService = mock(RealmService.class);
-        TenantManager tenantManager = mock(TenantManager.class);
         UserRealm userRealm = mock(UserRealm.class);
 
-        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
-        when(realmService.getTenantManager()).thenReturn(tenantManager);
-        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenThrow(new UserStoreException("Error loading user store manager"));
-
-        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
+        mockRealmServiceWithUserRealm(userRealm);
 
         IdentityContext.getThreadLocalIdentityContext()
                 .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
@@ -564,5 +545,15 @@ public class PreUpdatePasswordActionRequestBuilderV1Test {
         when(localClaim.getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY)).thenReturn("false");
 
         return localClaim;
+    }
+
+    private static void mockRealmServiceWithUserRealm(UserRealm userRealm) throws Exception {
+
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(tenantManager.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(realmService.getTenantUserRealm(TENANT_ID)).thenReturn(userRealm);
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
     }
 }
