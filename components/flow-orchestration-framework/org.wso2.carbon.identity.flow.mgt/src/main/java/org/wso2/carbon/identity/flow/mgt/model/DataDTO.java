@@ -57,6 +57,11 @@ public class DataDTO implements Serializable {
         return components;
     }
 
+    public void setComponents(List<ComponentDTO> components) {
+
+        this.components = components;
+    }
+
     public void addComponent(ComponentDTO component) {
 
         if (this.components == null) {

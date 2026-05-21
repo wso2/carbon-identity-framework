@@ -66,6 +66,7 @@ public class AuthenticatedUser extends User {
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
     private String sharedUserId;
     private String userSharedOrganizationId;
+    private boolean isSharedUser;
     private ImpersonatedUser impersonatedUser;
 
     /**
@@ -104,6 +105,8 @@ public class AuthenticatedUser extends User {
         }
         this.accessingOrganization = authenticatedUser.getAccessingOrganization();
         this.userResidentOrganization = authenticatedUser.getUserResidentOrganization();
+        this.isSharedUser = authenticatedUser.isSharedUser();
+        this.sharedUserId = authenticatedUser.getSharedUserId();
         this.impersonatedUser = authenticatedUser.getImpersonatedUser();
     }
 
@@ -591,6 +594,26 @@ public class AuthenticatedUser extends User {
     public void setUserSharedOrganizationId(String sharedUserOrganizationId) {
 
         this.userSharedOrganizationId = sharedUserOrganizationId;
+    }
+
+    /**
+     * Returns whether this user is a shared user in the logging-in tenant.
+     *
+     * @return true if the user is a shared user.
+     */
+    public boolean isSharedUser() {
+
+        return isSharedUser;
+    }
+
+    /**
+     * Sets the flag to indicate whether this user is a shared user in the logging-in tenant.
+     *
+     * @param isSharedUser true if the user is a shared user.
+     */
+    public void setSharedUser(boolean isSharedUser) {
+
+        this.isSharedUser = isSharedUser;
     }
 
     public ImpersonatedUser getImpersonatedUser() {

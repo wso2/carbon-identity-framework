@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.util.List;
@@ -78,4 +79,23 @@ public interface ProvisioningHandler {
 
         throw new FrameworkException("Operation is not supported.");
     }
+
+    /**
+     * Handle provisioning with v2 roles.
+     *
+     * @param roleIdList              List of role ids.
+     * @param subject                 Subject identifier.
+     * @param attributes              Attributes.
+     * @param provisioningUserStoreId Provisioning user store Id.
+     * @param tenantDomain            Tenant domain.
+     * @param context                 Authentication context
+     * @throws FrameworkException If an error occurred while handling provisioning with v2 roles.
+     */
+    default void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
+                                   String provisioningUserStoreId, String tenantDomain, AuthenticationContext context) 
+                                   throws FrameworkException {
+                                    
+        handleWithV2Roles(roleIdList, subject, attributes, provisioningUserStoreId, tenantDomain);
+    }
 }
+

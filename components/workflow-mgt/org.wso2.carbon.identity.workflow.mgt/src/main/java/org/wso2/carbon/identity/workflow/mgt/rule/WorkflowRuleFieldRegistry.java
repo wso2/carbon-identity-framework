@@ -138,6 +138,40 @@ public class WorkflowRuleFieldRegistry {
                     .addFixedValue("false", "false")
                 .build());
 
+        fields.put("group.id", new FieldDefinitionBuilder()
+                .name("group.id")
+                .displayName("group identifier")
+                .operators(OPERATOR_EQUALS, OPERATOR_NOT_EQUALS)
+                .options()
+                    .valueType(Value.ValueType.REFERENCE)
+                    .referenceAttr("id")
+                    .displayAttr("displayName")
+                    .addLink(GROUPS_VALUES_LINK, "GET", "values")
+                    .addLink(GROUPS_FILTER_LINK, "GET", "filter")
+                .build());
+
+        fields.put("group.hasAssignedUsers", new FieldDefinitionBuilder()
+                .name("group.hasAssignedUsers")
+                .displayName("new users added to the group")
+                .operators(OPERATOR_EQUALS)
+                .options()
+                    .valueType(Value.ValueType.STRING)
+                    .addFixedValue("true", "true")
+                    .addFixedValue("false", "false")
+                .build());
+
+        fields.put("group.hasUnassignedUsers", new FieldDefinitionBuilder()
+                .name("group.hasUnassignedUsers")
+                .displayName("users removed from the group")
+                .operators(OPERATOR_EQUALS)
+                .options()
+                    .valueType(Value.ValueType.STRING)
+                    .addFixedValue("true", "true")
+                    .addFixedValue("false", "false")
+                .build());
+
+        
+
         FIELDS = Collections.unmodifiableMap(fields);
     }
 

@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Entity;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
@@ -87,6 +88,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for {@link WorkflowManagementServiceImpl}.
  */
+@WithCarbonHome
 public class WorkflowManagementServiceImplTest {
 
     private static final String TEST_REQUEST_ID_1 = "test_request_id_1";

@@ -120,6 +120,23 @@ public class GrantContext {
                         resolvedGrantProperties.remove(Property.SCOPE.getName());
                     }
                     break;
+                case PASSWORD:
+                    resolvedGrantProperties.put(
+                            Property.CLIENT_ID.getName(), getProperty(Property.CLIENT_ID.getName()));
+                    resolvedGrantProperties.put(
+                            Property.CLIENT_SECRET.getName(), getProperty(Property.CLIENT_SECRET.getName()));
+                    resolvedGrantProperties.put(
+                            Property.USERNAME.getName(), getProperty(Property.USERNAME.getName()));
+                    resolvedGrantProperties.put(
+                            Property.PASSWORD.getName(), getProperty(Property.PASSWORD.getName()));
+                    String passwordGrantScope =
+                            propertyMap != null ? propertyMap.get(Property.SCOPE.getName()) : null;
+                    if (StringUtils.isNotBlank(passwordGrantScope)) {
+                        resolvedGrantProperties.put(Property.SCOPE.getName(), passwordGrantScope);
+                    } else {
+                        resolvedGrantProperties.remove(Property.SCOPE.getName());
+                    }
+                    break;
             }
             return new GrantContext(this);
         }
@@ -143,7 +160,8 @@ public class GrantContext {
      */
     public enum GrantType {
 
-        CLIENT_CREDENTIAL
+        CLIENT_CREDENTIAL,
+        PASSWORD
     }
 
     /**
@@ -153,6 +171,8 @@ public class GrantContext {
 
         CLIENT_ID("client_id"),
         CLIENT_SECRET("client_secret"),
+        USERNAME("username"),
+        PASSWORD("password"),
         SCOPE("scope");
 
         private final String name;

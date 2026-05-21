@@ -53,16 +53,21 @@
             "timestampReference" : "{{compatibility_setting.flow_execution.enable_legacy_password_recovery_flow.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
             "targetValue" : {{compatibility_setting.flow_execution.enable_legacy_password_recovery_flow.target_value | default("true")}},
             "defaultValue" : {{compatibility_setting.flow_execution.enable_legacy_password_recovery_flow.default_value | default("false")}}
+      },
+      "defaultEnableInvitedUserRegistration" : {
+        "timestampReference" : "{{compatibility_setting.flow_execution.default_enable_flow_based_invited_user_registration.timestamp_reference | default('2026-01-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.flow_execution.default_enable_flow_based_invited_user_registration.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.flow_execution.default_enable_flow_based_invited_user_registration.default_value | default("true")}}
       }
   },
   "scim2": {
     "disableBasicAuthForMeEndpoint" : {
-        "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-21T00:00:00Z')}}",
+        "timestampReference" : "{{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.timestamp_reference | default('2026-04-23T00:00:00Z')}}",
         "targetValue" : {{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.scim2.disable_basic_auth_for_me_endpoint.default_value | default("true")}}
     },
     "disablePasswordUpdateInMeEndpoint" : {
-        "timestampReference" : "{{compatibility_setting.scim2.disable_password_update_in_me_endpoint.timestamp_reference | default('2026-04-21T00:00:00Z')}}",
+        "timestampReference" : "{{compatibility_setting.scim2.disable_password_update_in_me_endpoint.timestamp_reference | default('2026-04-23T00:00:00Z')}}",
         "targetValue" : {{compatibility_setting.scim2.disable_password_update_in_me_endpoint.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.scim2.disable_password_update_in_me_endpoint.default_value | default("true")}}
     }

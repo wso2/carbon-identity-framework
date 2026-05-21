@@ -66,6 +66,7 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
     private static final String ROLE_AUDIENCE_ID = "Audience ID";
     private static final String EVENT_TYPE = "eventType";
     private static final String CLAIMS = "Claims";
+    private static final String GROUP_NAME = "Group Name";
 
     private static final String ADD_USER_EVENT = "ADD_USER";
     private static final String SELF_REGISTER_USER_EVENT = "SELF_REGISTER_USER";
@@ -84,7 +85,10 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
         ROLE_AUDIENCE("role.audience"),
         ROLE_PERMISSIONS("role.permissions"),
         ROLE_HAS_ASSIGNED_USERS("role.hasAssignedUsers"),
-        ROLE_HAS_UNASSIGNED_USERS("role.hasUnassignedUsers");
+        ROLE_HAS_UNASSIGNED_USERS("role.hasUnassignedUsers"),
+        GROUP_ID("group.id"),
+        GROUP_HAS_ASSIGNED_USERS("group.hasAssignedUsers"),
+        GROUP_HAS_UNASSIGNED_USERS("group.hasUnassignedUsers");
 
         private final String fieldName;
 
@@ -245,6 +249,15 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
                 break;
             case ROLE_HAS_UNASSIGNED_USERS:
                 resolveRoleHasUnassignedUsersField(fieldValues, field, contextData);
+                break;
+            case GROUP_ID:
+                resolveGroupIdField(fieldValues, field, contextData);
+                break;
+            case GROUP_HAS_ASSIGNED_USERS:
+                resolveGroupHasAssignedUsersField(fieldValues, field, contextData);
+                break;
+            case GROUP_HAS_UNASSIGNED_USERS:
+                resolveGroupHasUnassignedUsersField(fieldValues, field, contextData);
                 break;
             default:
                 throw new RuleEvaluationDataProviderException(
@@ -487,6 +500,77 @@ public class WorkFlowRuleEvaluationDataProvider implements RuleEvaluationDataPro
 
         if (log.isDebugEnabled()) {
             log.debug("Role has unassigned users: " + hasUnassignedUsers + " (users to unassign count: " +
+                    (usersToBeUnassigned != null ? usersToBeUnassigned.size() : 0) + ")");
+        }
+    }
+
+    /**
+     * Resolve group ID field value by fetching from the user store using the group name from context data.
+     *
+     * @param fieldValues  List of field values to add to.
+     * @param field        Field being processed.
+     * @param contextData  Context data from the flow context.
+     * @throws RuleEvaluationDataProviderException If an error occurs while resolving the group ID.
+     */
+    private void resolveGroupIdField(List<FieldValue> fieldValues, Field field, Map<String, Object> contextData)
+            throws RuleEvaluationDataProviderException {
+
+        String groupName = (String) contextData.get(GROUP_NAME);
+        if (StringUtils.isBlank(groupName)) {
+            log.debug("Cannot fetch group ID without Group Name in context. Adding null group ID.");
+            fieldValues.add(new FieldValue(field.getName(), (String) null, ValueType.STRING));
+            return;
+        }
+        try {
+            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext
+                    .getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            String groupId = userStoreManager.getGroupIdByGroupName(groupName);
+            fieldValues.add(new FieldValue(field.getName(),
+                    StringUtils.isNotBlank(groupId) ? groupId : null, ValueType.STRING));
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new RuleEvaluationDataProviderException(
+                    "Error retrieving group ID for group name: " + groupName, e);
+        }
+    }
+
+    /**
+     * Resolve group has assigned users field value from context data.
+     * Checks if the "Users to be Added" list in context data is non-empty.
+     *
+     * @param fieldValues List of field values to add to.
+     * @param field       Field being processed.
+     * @param contextData Context data from the flow context.
+     */
+    private void resolveGroupHasAssignedUsersField(List<FieldValue> fieldValues, Field field,
+                                                    Map<String, Object> contextData) {
+
+        List<?> usersToBeAssigned = (List<?>) contextData.get(USERS_TO_BE_ASSIGNED);
+        boolean hasAssignedUsers = CollectionUtils.isNotEmpty(usersToBeAssigned);
+        fieldValues.add(new FieldValue(field.getName(), String.valueOf(hasAssignedUsers), ValueType.STRING));
+
+        if (log.isDebugEnabled()) {
+            log.debug("Group has assigned users: " + hasAssignedUsers + " (users to assign count: " +
+                    (usersToBeAssigned != null ? usersToBeAssigned.size() : 0) + ")");
+        }
+    }
+
+    /**
+     * Resolve group has unassigned users field value from context data.
+     * Checks if the "Users to be Deleted" list in context data is non-empty.
+     *
+     * @param fieldValues List of field values to add to.
+     * @param field       Field being processed.
+     * @param contextData Context data from the flow context.
+     */
+    private void resolveGroupHasUnassignedUsersField(List<FieldValue> fieldValues, Field field,
+                                                      Map<String, Object> contextData) {
+
+        List<?> usersToBeUnassigned = (List<?>) contextData.get(USERS_TO_BE_UNASSIGNED);
+        boolean hasUnassignedUsers = CollectionUtils.isNotEmpty(usersToBeUnassigned);
+        fieldValues.add(new FieldValue(field.getName(), String.valueOf(hasUnassignedUsers), ValueType.STRING));
+
+        if (log.isDebugEnabled()) {
+            log.debug("Group has unassigned users: " + hasUnassignedUsers + " (users to unassign count: " +
                     (usersToBeUnassigned != null ? usersToBeUnassigned.size() : 0) + ")");
         }
     }

@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.M
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -61,6 +62,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -450,6 +452,69 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (!authenticatedUserAttributes.isEmpty()) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
+
+        /* If the authenticated user is identified as a shared user by the SharedUserIdentifierHandler,
+         * need to enrich the final authenticated user object with the shared user details to be used in subsequent
+         * steps.
+         */
+        enrichSharedUserDetails(context);
+    }
+
+    private void enrichSharedUserDetails(AuthenticationContext context) {
+
+        enrichSequenceConfig(context);
+        enrichAuthenticatedUserForLocalIdp(context);
+    }
+
+    private void enrichSequenceConfig(AuthenticationContext context) {
+
+        if (context.getSequenceConfig().getAuthenticatedUser() == null ||
+                context.getSequenceConfig().getAuthenticatedUser().isSharedUser()) {
+            return;
+        }
+
+        Optional<AuthenticatedUser> sharedUserIdentifiedInSequence =
+                FrameworkUtils.getSharedUserIdentifiedInSequence(context);
+        if (sharedUserIdentifiedInSequence.isPresent()) {
+            AuthenticatedUser authenticatedUser =
+                    getEnrichedAuthenticatedUser(context, sharedUserIdentifiedInSequence.get());
+            context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
+        }
+    }
+
+    private AuthenticatedUser getEnrichedAuthenticatedUser(AuthenticationContext context,
+                                                          AuthenticatedUser sharedUserIdentifiedInSequence) {
+
+        AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+        authenticatedUser.setSharedUser(true);
+        authenticatedUser.setUserResidentOrganization(sharedUserIdentifiedInSequence
+                .getUserResidentOrganization());
+        authenticatedUser.setAccessingOrganization(sharedUserIdentifiedInSequence.getAccessingOrganization());
+        authenticatedUser.setSharedUserId(sharedUserIdentifiedInSequence.getSharedUserId());
+        return authenticatedUser;
+    }
+
+    private void enrichAuthenticatedUserForLocalIdp(AuthenticationContext context) {
+
+        AuthenticatedIdPData localIdPData = context.getCurrentAuthenticatedIdPs()
+                .get(FrameworkConstants.LOCAL_IDP_NAME);
+        if (localIdPData == null || localIdPData.getUser() == null || localIdPData.getUser().isSharedUser()) {
+            return;
+        }
+
+        Optional<AuthenticatedUser> sharedUserIdentifiedInSequence =
+                FrameworkUtils.getSharedUserIdentifiedInSequence(context);
+        if (sharedUserIdentifiedInSequence.isPresent()) {
+            AuthenticatedUser authenticatedIdpUser =
+                    context.getCurrentAuthenticatedIdPs().get(FrameworkConstants.LOCAL_IDP_NAME).getUser();
+            authenticatedIdpUser.setSharedUser(true);
+            authenticatedIdpUser.setUserResidentOrganization(
+                    sharedUserIdentifiedInSequence.get().getUserResidentOrganization());
+            authenticatedIdpUser.setAccessingOrganization(
+                    sharedUserIdentifiedInSequence.get().getAccessingOrganization());
+            authenticatedIdpUser.setSharedUserId(sharedUserIdentifiedInSequence.get().getSharedUserId());
+            context.getCurrentAuthenticatedIdPs().get(FrameworkConstants.LOCAL_IDP_NAME).setUser(authenticatedIdpUser);
+        }
     }
 
     /**
@@ -692,7 +757,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             FrameworkUtils.getProvisioningHandler()
                     .handleWithV2Roles(assignedRoleIdList, subjectIdentifier, extAttributesValueMap, userStoreDomain,
-                            context.getTenantDomain());
+                            context.getTenantDomain(), context);
         } catch (FrameworkException e) {
             if (FrameworkUtils.isAuthenticationFailOnJitFail()) {
                 throw e;

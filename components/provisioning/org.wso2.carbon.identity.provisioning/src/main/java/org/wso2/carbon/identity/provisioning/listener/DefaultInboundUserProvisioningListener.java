@@ -19,9 +19,11 @@
 package org.wso2.carbon.identity.provisioning.listener;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ProvisioningServiceProviderType;
@@ -34,6 +36,7 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
@@ -41,6 +44,7 @@ import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
 import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
 import org.wso2.carbon.identity.provisioning.ProvisioningUtil;
+import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -128,9 +132,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
         // dialect.
         provisioningEntity.setInboundAttributes(inboundAttributes);
 
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        return provisionEntity(provisioningEntity, tenantDomainName);
+        return provisionEntity(provisioningEntity, resolveTenantDomain());
     }
 
     @Override
@@ -175,9 +177,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
         // set the in-bound attribute list.
         provisioningEntity.setInboundAttributes(inboundAttributes);
 
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        return provisionEntity(provisioningEntity, tenantDomainName);
+        return provisionEntity(provisioningEntity, resolveTenantDomain());
     }
 
     @Override
@@ -249,9 +249,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
         // set the in-bound attribute list.
         provisioningEntity.setInboundAttributes(inboundAttributes);
 
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        return provisionEntity(provisioningEntity, tenantDomainName);
+        return provisionEntity(provisioningEntity, resolveTenantDomain());
     }
 
     @Override
@@ -624,5 +622,30 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
         }
 
         return true;
+    }
+
+    /**
+     * Resolves the tenant domain for the current provisioning operation. If the application resident organization ID
+     * is present in the thread local carbon context, it resolves the tenant domain using the organization manager.
+     * Otherwise, it returns the tenant domain from the thread local carbon context.
+     *
+     * @return resolved tenant domain name.
+     * @throws UserStoreException if an exception occurs in the tenant domain resolution process.
+     */
+    private String resolveTenantDomain() throws UserStoreException {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String appResidentOrganizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().
+                getApplicationResidentOrganizationId();
+        if (StringUtils.isNotEmpty(appResidentOrganizationId)) {
+            try {
+                tenantDomain = ProvisioningServiceDataHolder.getInstance().getOrganizationManager().
+                        resolveTenantDomain(appResidentOrganizationId);
+            } catch (OrganizationManagementException e) {
+                throw new UserStoreException("Error occurred while resolving the application resident " +
+                        "tenant domain. ", e);
+            }
+        }
+        return tenantDomain;
     }
 }

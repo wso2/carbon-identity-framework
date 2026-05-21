@@ -60,7 +60,10 @@ public class WorkflowRuleFieldRegistryTest {
             "role.audience",
             "role.permissions",
             "role.hasAssignedUsers",
-            "role.hasUnassignedUsers"
+            "role.hasUnassignedUsers",
+            "group.id",
+            "group.hasAssignedUsers",
+            "group.hasUnassignedUsers"
     );
 
     @Test
@@ -79,10 +82,10 @@ public class WorkflowRuleFieldRegistryTest {
     }
 
     @Test
-    public void testFieldsMapHasExactlyEightEntries() {
+    public void testFieldsMapHasExactlyElevenEntries() {
 
-        assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 8,
-                "FIELDS map should have exactly 8 entries.");
+        assertEquals(WorkflowRuleFieldRegistry.FIELDS.size(), 11,
+                "FIELDS map should have exactly 11 entries.");
     }
 
     @Test
@@ -258,5 +261,34 @@ public class WorkflowRuleFieldRegistryTest {
         assertEquals(refValue.getValueReferenceAttribute(), "id");
         assertEquals(refValue.getValueDisplayAttribute(), "name");
         assertEquals(refValue.getLinks().size(), 2);
+    }
+
+    @Test
+    public void testGroupHasAssignedUsersField_hasFixedTrueFalseOptions() {
+
+        FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("group.hasAssignedUsers");
+        assertNotNull(field);
+        assertTrue(field.getValue() instanceof OptionsInputValue,
+                "group.hasAssignedUsers value should be OptionsInputValue.");
+        OptionsInputValue inputValue = (OptionsInputValue) field.getValue();
+        assertEquals(inputValue.getValueType(), Value.ValueType.STRING);
+        assertEquals(inputValue.getValues().size(), 2);
+        assertEquals(inputValue.getValues().get(0).getName(), "true");
+        assertEquals(inputValue.getValues().get(1).getName(), "false");
+        assertEquals(field.getOperators().size(), 1);
+        assertEquals(field.getOperators().get(0).getName(), "equals");
+    }
+
+    @Test
+    public void testGroupHasUnassignedUsersField_hasFixedTrueFalseOptions() {
+
+        FieldDefinition field = WorkflowRuleFieldRegistry.FIELDS.get("group.hasUnassignedUsers");
+        assertNotNull(field);
+        assertTrue(field.getValue() instanceof OptionsInputValue,
+                "group.hasUnassignedUsers value should be OptionsInputValue.");
+        OptionsInputValue inputValue = (OptionsInputValue) field.getValue();
+        assertEquals(inputValue.getValues().size(), 2);
+        assertEquals(inputValue.getValues().get(0).getName(), "true");
+        assertEquals(inputValue.getValues().get(1).getName(), "false");
     }
 }

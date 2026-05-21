@@ -18,14 +18,18 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.util;
 
+import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.core.FlowExecutionEngine;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.TaskExecutionNode;
+import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
@@ -44,9 +48,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
@@ -73,20 +75,33 @@ public class FlowEngineTest {
     private GraphConfig defaultGraph;
     private List<FlowExecutionListener> listeners = new ArrayList<>();
 
+    @Mock
+    private FlowExecutionEngineDataHolder dataHolderMock;
+
+    @Mock
+    private IdentityEventService identityEventService;
+
+    private AutoCloseable mockAutoCloseable;
+
     @BeforeClass
     public void setup() {
 
+        mockAutoCloseable = MockitoAnnotations.openMocks(this);
         defaultGraph = buildGraphWithDecision();
         listeners.add(new InputProcessingListener());
     }
 
+
     @AfterClass
-    public void tearDown() {
-        // Clean up class-level resources if any
+    public void tearDown() throws Exception {
+        // Clean up class-level resources if any.
         context = null;
         defaultGraph = null;
         listeners = null;
         org.mockito.Mockito.framework().clearInlineMocks();
+        if (mockAutoCloseable != null) {
+            mockAutoCloseable.close();
+        }
     }
 
     @Test
@@ -102,17 +117,25 @@ public class FlowEngineTest {
     @Test(dependsOnMethods = {"testDecisionNodePrompt"})
     public void testDecisionNodeSelectionForPrompt() throws Exception {
 
-        context.setCurrentActionId("button1");
-        FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
-        assertEquals(step.getFlowStatus(), "INCOMPLETE");
-        assertEquals(step.getStepType(), "VIEW");
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class)){
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getIdentityEventService()).thenReturn(identityEventService);
+            doNothing().when(identityEventService).handleEvent(any());
+            context.setCurrentActionId("button1");
+            FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
+            assertEquals(step.getFlowStatus(), "INCOMPLETE");
+            assertEquals(step.getStepType(), "VIEW");
+        }
     }
 
     @Test(dependsOnMethods = {"testDecisionNodeSelectionForPrompt"})
     public void testContinueAfterPrompt() throws Exception {
 
         context.setCurrentActionId("button1");
-        try (MockedConstruction<TaskExecutionNode> mocked =
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
                          NodeResponse nodeResponse = new NodeResponse.Builder()
                                  .status("INCOMPLETE")
@@ -120,6 +143,9 @@ public class FlowEngineTest {
                                  .build();
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
+
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getIdentityEventService()).thenReturn(identityEventService);
 
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);
 
@@ -132,7 +158,9 @@ public class FlowEngineTest {
     @Test(dependsOnMethods = {"testContinueAfterPrompt"})
     public void testContinueTaskExecution() throws Exception {
 
-        try (MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
+        try (MockedStatic<FlowExecutionEngineDataHolder> dataHolderMockedStatic = mockStatic(
+                FlowExecutionEngineDataHolder.class);
+             MockedStatic<FlowExecutionEngineUtils> utilsMockedStatic = mockStatic(
                 FlowExecutionEngineUtils.class);
              MockedConstruction<TaskExecutionNode> mocked =
                      mockConstruction(TaskExecutionNode.class, (mock, context) -> {
@@ -142,6 +170,8 @@ public class FlowEngineTest {
                          when(mock.execute(any(), any())).thenReturn(nodeResponse);
                      })) {
 
+            dataHolderMockedStatic.when(FlowExecutionEngineDataHolder::getInstance).thenReturn(dataHolderMock);
+            when(dataHolderMock.getIdentityEventService()).thenReturn(identityEventService);
             utilsMockedStatic.when(() -> FlowExecutionEngineUtils.resolveCompletionRedirectionUrl(context))
                     .thenReturn("https://localhost:3000/myapp/callback");
             FlowExecutionStep step = FlowExecutionEngine.getInstance().execute(context);

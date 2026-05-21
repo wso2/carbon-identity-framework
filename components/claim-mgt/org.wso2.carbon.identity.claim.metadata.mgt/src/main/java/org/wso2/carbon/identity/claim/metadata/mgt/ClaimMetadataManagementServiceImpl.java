@@ -24,6 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -91,6 +93,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_SERVER_ERROR_GETTING_USER_STORE_MANAGER;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.CANONICAL_VALUES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUB_ATTRIBUTES_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.MANAGED_IN_USER_STORE_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.containsIgnoreCase;
@@ -752,6 +755,28 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 for (String subAttribute : StringUtils.split(value, ' ')) {
                     if (StringUtils.isNotBlank(subAttribute) && subAttribute.length() > MAX_CLAIM_PROPERTY_LENGTH) {
                         throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
+                                String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(),
+                                        property.getKey(), MAX_CLAIM_PROPERTY_LENGTH));
+                    }
+                }
+            } else if (CANONICAL_VALUES_PROPERTY.equals(property.getKey())) {
+                // Validating each canonical value individually as they are stored as separate DB rows.
+                try {
+                    JSONArray canonicalValues = new JSONArray(value);
+                    for (int i = 0; i < canonicalValues.length(); i++) {
+                        String canonicalValue = canonicalValues.getJSONObject(i).toString();
+                        if (canonicalValue.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+                            throw new ClaimMetadataClientException(
+                                    ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
+                                    String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(),
+                                            property.getKey(), MAX_CLAIM_PROPERTY_LENGTH));
+                        }
+                    }
+                } catch (JSONException e) {
+                    log.warn("Failed to parse canonical values as JSON array, validating as single value.");
+                    if (StringUtils.isNotBlank(value) && value.length() > MAX_CLAIM_PROPERTY_LENGTH) {
+                        throw new ClaimMetadataClientException(
+                                ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getCode(),
                                 String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(),
                                         property.getKey(), MAX_CLAIM_PROPERTY_LENGTH));
                     }

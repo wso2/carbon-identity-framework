@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.cla
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.ImpersonatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -73,6 +74,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -1222,5 +1224,93 @@ public class DefaultStepBasedSequenceHandlerTest {
                 assertTrue(result instanceof ImpersonatedUser);
             }
         }
+    }
+
+    @Test(description = "Test enrichSequenceConfig enriches authenticated user with shared user details")
+    public void testEnrichSequenceConfigWithSharedUser() throws Exception {
+
+        AuthenticationContext testContext = new AuthenticationContext();
+        SequenceConfig sequenceConfig = new SequenceConfig();
+
+        // Set the sequence's authenticated user as non-shared.
+        AuthenticatedUser seqUser = new AuthenticatedUser();
+        seqUser.setUserName("testUser");
+        seqUser.setSharedUser(false);
+        sequenceConfig.setAuthenticatedUser(seqUser);
+
+        // Create a step with SharedUserIdentifierExecutor and a shared user.
+        StepConfig sharedStep = new StepConfig();
+        AuthenticatorConfig sharedAuth = new AuthenticatorConfig();
+        sharedAuth.setName(FrameworkConstants.SHARED_USER_IDENTIFIER_HANDLER);
+        sharedStep.setAuthenticatedAutenticator(sharedAuth);
+        AuthenticatedUser sharedUser = new AuthenticatedUser();
+        sharedUser.setSharedUser(true);
+        sharedUser.setUserResidentOrganization("resident-org-id");
+        sharedUser.setAccessingOrganization("accessing-org-id");
+        sharedStep.setAuthenticatedUser(sharedUser);
+
+        Map<Integer, StepConfig> stepMap = new LinkedHashMap<>();
+        stepMap.put(1, sharedStep);
+        sequenceConfig.setStepMap(stepMap);
+        testContext.setSequenceConfig(sequenceConfig);
+
+        Method method = DefaultStepBasedSequenceHandler.class.getDeclaredMethod(
+                "enrichSequenceConfig", AuthenticationContext.class);
+        method.setAccessible(true);
+        method.invoke(stepBasedSequenceHandler, testContext);
+
+        assertTrue(testContext.getSequenceConfig().getAuthenticatedUser().isSharedUser(),
+                "Authenticated user should be marked as shared");
+        assertEquals(testContext.getSequenceConfig().getAuthenticatedUser().getUserResidentOrganization(),
+                "resident-org-id", "User resident organization should be set from shared step");
+        assertEquals(testContext.getSequenceConfig().getAuthenticatedUser().getAccessingOrganization(),
+                "accessing-org-id", "Accessing organization should be set from shared step");
+    }
+
+    @Test(description = "Test enrichAuthenticatedUserForLocalIdp enriches local IDP user with shared user details")
+    public void testEnrichAuthenticatedUserForLocalIdpWithSharedUser() throws Exception {
+
+        AuthenticationContext testContext = new AuthenticationContext();
+        SequenceConfig sequenceConfig = new SequenceConfig();
+
+        // Create a step with SharedUserIdentifierExecutor.
+        StepConfig sharedStep = new StepConfig();
+        AuthenticatorConfig sharedAuth = new AuthenticatorConfig();
+        sharedAuth.setName(FrameworkConstants.SHARED_USER_IDENTIFIER_HANDLER);
+        sharedStep.setAuthenticatedAutenticator(sharedAuth);
+        AuthenticatedUser sharedUser = new AuthenticatedUser();
+        sharedUser.setSharedUser(true);
+        sharedUser.setUserResidentOrganization("resident-org-id");
+        sharedUser.setAccessingOrganization("accessing-org-id");
+        sharedStep.setAuthenticatedUser(sharedUser);
+
+        Map<Integer, StepConfig> stepMap = new LinkedHashMap<>();
+        stepMap.put(1, sharedStep);
+        sequenceConfig.setStepMap(stepMap);
+        sequenceConfig.setAuthenticatedUser(new AuthenticatedUser());
+        testContext.setSequenceConfig(sequenceConfig);
+
+        // Set up local IDP with a non-shared user.
+        AuthenticatedUser localIdpUser = new AuthenticatedUser();
+        localIdpUser.setUserName("localUser");
+        localIdpUser.setSharedUser(false);
+        AuthenticatedIdPData localIdpData = new AuthenticatedIdPData();
+        localIdpData.setUser(localIdpUser);
+        Map<String, AuthenticatedIdPData> idpMap = new HashMap<>();
+        idpMap.put(FrameworkConstants.LOCAL_IDP_NAME, localIdpData);
+        testContext.setCurrentAuthenticatedIdPs(idpMap);
+
+        Method method = DefaultStepBasedSequenceHandler.class.getDeclaredMethod(
+                "enrichAuthenticatedUserForLocalIdp", AuthenticationContext.class);
+        method.setAccessible(true);
+        method.invoke(stepBasedSequenceHandler, testContext);
+
+        AuthenticatedUser enrichedUser =
+                testContext.getCurrentAuthenticatedIdPs().get(FrameworkConstants.LOCAL_IDP_NAME).getUser();
+        assertTrue(enrichedUser.isSharedUser(), "Local IDP user should be marked as shared");
+        assertEquals(enrichedUser.getUserResidentOrganization(), "resident-org-id",
+                "User resident organization should be set");
+        assertEquals(enrichedUser.getAccessingOrganization(), "accessing-org-id",
+                "Accessing organization should be set");
     }
 }

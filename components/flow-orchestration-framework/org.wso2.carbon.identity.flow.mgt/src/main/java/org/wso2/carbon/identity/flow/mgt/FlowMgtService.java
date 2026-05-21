@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.flow.mgt;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -37,6 +39,7 @@ import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
+import org.wso2.carbon.identity.flow.mgt.utils.SystemDefaultFlowProvider;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
@@ -66,6 +69,7 @@ public class FlowMgtService {
 
     private static final FlowMgtService INSTANCE = new FlowMgtService();
     private static final FlowDAO FLOW_DAO = CacheBackedFlowDAOImpl.getInstance();
+    private static final Log LOG = LogFactory.getLog(FlowMgtService.class);
 
     private FlowMgtService() {
 
@@ -85,7 +89,7 @@ public class FlowMgtService {
     public void updateFlow(FlowDTO flowDTO, int tenantID)
             throws FlowMgtFrameworkException {
 
-        clearFlowResolveCache(tenantID);
+        clearFlowResolveCache(flowDTO.getFlowType(), tenantID);
         GraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         FLOW_DAO.updateFlow(flowDTO.getFlowType(), flowConfig, tenantID, DEFAULT_FLOW_NAME);
         AuditLog.AuditLogBuilder auditLogBuilder =
@@ -107,7 +111,10 @@ public class FlowMgtService {
 
         Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
         if (tenantIdWithResource == null) {
-            return null;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No flow found for type: " + flowType + " in tenant hierarchy. Returning system default.");
+            }
+            return SystemDefaultFlowProvider.getInstance().getSystemDefaultFlow(flowType);
         }
         return FLOW_DAO.getFlow(flowType, tenantIdWithResource);
     }
@@ -133,7 +140,7 @@ public class FlowMgtService {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DELETE_FLOW, e,
                     IdentityTenantUtil.getTenantDomain(tenantID));
         }
-        clearFlowResolveCache(tenantID);
+        clearFlowResolveCache(flowType, tenantID);
         FLOW_DAO.deleteFlow(flowType, tenantID);
         AuditLog.AuditLogBuilder auditLogBuilder =
                 new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
@@ -153,7 +160,11 @@ public class FlowMgtService {
         // Since graph config is built from the flow, we can reuse the logic to get the first tenant with the flow.
         Integer tenantIdWithResource = getFirstTenantWithFlow(flowType, tenantID);
         if (tenantIdWithResource == null) {
-            return null;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No graph config found for flow type: " + flowType + " in tenant hierarchy. Returning " +
+                        "system default.");
+            }
+            return SystemDefaultFlowProvider.getInstance().getSystemDefaultGraphConfig(flowType);
         }
         return FLOW_DAO.getGraphConfig(flowType, tenantIdWithResource);
     }
@@ -213,7 +224,7 @@ public class FlowMgtService {
             OrganizationManager orgManager = FlowMgtServiceDataHolder.getInstance().getOrganizationManager();
             String currentOrgId = orgManager.resolveOrganizationId(tenantDomain);
 
-            FlowResolveCacheKey cacheKey = new FlowResolveCacheKey(currentOrgId);
+            FlowResolveCacheKey cacheKey = new FlowResolveCacheKey(currentOrgId, flowType);
             FlowResolveCacheEntry cacheEntry = FlowResolveCache.getInstance().getValueFromCache(cacheKey, tenantID);
             if (cacheEntry != null) {
                 return cacheEntry.getResolvedTenantId();
@@ -245,13 +256,13 @@ public class FlowMgtService {
         return (flowDTO == null || flowDTO.getSteps().isEmpty()) ? Optional.empty() : Optional.of(tenantId);
     }
 
-    private void clearFlowResolveCache(int tenantId) throws FlowMgtServerException {
+    private void clearFlowResolveCache(String flowType, int tenantId) throws FlowMgtServerException {
 
         String currentTenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
             OrganizationManager organizationManager = FlowMgtServiceDataHolder.getInstance().getOrganizationManager();
             String orgId = organizationManager.resolveOrganizationId(currentTenantDomain);
-            FlowResolveCacheKey cacheKey = new FlowResolveCacheKey(orgId);
+            FlowResolveCacheKey cacheKey = new FlowResolveCacheKey(orgId, flowType);
             FlowMgtUtils.clearCache(cacheKey, FlowResolveCache.getInstance(), tenantId);
         } catch (OrganizationManagementException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e, currentTenantDomain);

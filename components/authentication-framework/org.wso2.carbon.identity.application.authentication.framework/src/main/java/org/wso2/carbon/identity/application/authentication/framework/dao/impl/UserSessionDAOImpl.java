@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Appli
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionFilterQueryBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -175,18 +176,26 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         List<UserSession> userSessionsList = new ArrayList<>();
         Map<String, Application> appDetails = new HashMap<>();
         String appIdFilter = "";
-        String sqlOrder = StringUtils.isNotBlank(sortOrder) ? sortOrder : SessionMgtConstants.DESC;
+        if (StringUtils.isNotBlank(sortOrder) && !SessionMgtConstants.ASC.equalsIgnoreCase(sortOrder)
+                && !SessionMgtConstants.DESC.equalsIgnoreCase(sortOrder)) {
+            throw new UserSessionException("Invalid sort order value: " + sortOrder);
+        }
+        String sqlOrder = SessionMgtConstants.ASC.equalsIgnoreCase(sortOrder)
+                ? SessionMgtConstants.ASC : SessionMgtConstants.DESC;
         String sqlQuery;
 
-        Map<SessionMgtConstants.FilterType, String> sqlFilters =
-                SessionMgtUtils.getSQLFiltersFromExpressionNodes(filter);
+        SessionFilterQueryBuilder filterBuilder = SessionMgtUtils.getSQLFilterQueryBuilder(filter);
 
         try {
-            if (StringUtils.isNotEmpty(sqlFilters.get(SessionMgtConstants.FilterType.APPLICATION))) {
-                appDetails = getApplicationsForFilter(String.format("%s AND (TENANT_ID = %s OR IS_SAAS_APP = '1')",
-                        sqlFilters.get(SessionMgtConstants.FilterType.APPLICATION), tenantId));
+            if (StringUtils.isNotEmpty(filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION))) {
+                String appSql = filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.APPLICATION)
+                        + " AND (TENANT_ID = ? OR IS_SAAS_APP = 1)";
+                List<Object> appParams = new ArrayList<>(
+                        filterBuilder.getFilterParams(SessionMgtConstants.FilterType.APPLICATION));
+                appParams.add(tenantId);
+                appDetails = getApplicationsForFilter(appSql, appParams);
                 if (appDetails.isEmpty()) {
-                    return userSessionsList;
+                    return Collections.emptyList();
                 }
                 appIdFilter = String.format("WHERE APP_ID IN (%s)", StringUtils.join(appDetails.keySet(), ","));
             }
@@ -196,43 +205,51 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             "for the tenant with id: %s.", tenantId), e);
         }
 
+        // Resolved once here so the same value is reused in both query-building and param-binding.
+        final boolean isJoinBasedQuery;
         try {
             if (JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)) {
+                isJoinBasedQuery = true;
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_H2,
-                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
-                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
-                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.USER),
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
             } else if (JdbcUtils.isMySQLDB(JdbcUtils.Database.SESSION)) {
+                isJoinBasedQuery = true;
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_MYSQL,
-                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
-                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
-                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.USER),
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
                 sqlQuery = sqlQuery.replaceAll("\\\\", "\\\\\\\\");
             } else if (JdbcUtils.isOracleDB(JdbcUtils.Database.SESSION)) {
+                isJoinBasedQuery = false;
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_ORACLE,
-                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
-                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
-                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.USER),
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
             } else if (JdbcUtils.isMSSqlDB(JdbcUtils.Database.SESSION)) {
+                isJoinBasedQuery = false;
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_MSSQL,
-                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
-                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
-                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.USER),
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
             } else if (JdbcUtils.isPostgreSQLDB(JdbcUtils.Database.SESSION)) {
+                isJoinBasedQuery = false;
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_POSTGRESQL,
-                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
-                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
-                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.USER),
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
             } else if (JdbcUtils.isDB2DB(JdbcUtils.Database.SESSION)) {
+                isJoinBasedQuery = false;
                 sqlQuery = MessageFormat.format(SQLQueries.SQL_LOAD_SESSIONS_DB2,
-                        sqlFilters.get(SessionMgtConstants.FilterType.SESSION),
-                        appIdFilter, sqlFilters.get(SessionMgtConstants.FilterType.USER),
-                        sqlFilters.get(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.SESSION),
+                        appIdFilter, filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.USER),
+                        filterBuilder.getFilterQuery(SessionMgtConstants.FilterType.MAIN), sqlOrder, limit
                 );
             } else {
                 throw new UserSessionException(String.format("Error while loading sessions from DB: Database driver " +
@@ -246,12 +263,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
         try {
             Map<String, Application> finalAppDetails = appDetails;
+            final SessionFilterQueryBuilder finalFilterBuilder = filterBuilder;
             userSessionsList = jdbcTemplate.executeQuery(
                     sqlQuery,
                     ((resultSet, rowNumber) -> SessionMgtUtils.parseSessionSearchResult(resultSet, finalAppDetails)),
                     preparedStatement -> {
-                        preparedStatement.setLong(1, FrameworkUtils.getCurrentStandardNano());
-                        preparedStatement.setInt(2, tenantId);
+                        int idx = 1;
+                        if (isJoinBasedQuery) {
+                            idx = bindFilterParams(preparedStatement, finalFilterBuilder, idx,
+                                    SessionMgtConstants.FilterType.USER);
+                            preparedStatement.setLong(idx++, FrameworkUtils.getCurrentStandardNano());
+                            preparedStatement.setInt(idx++, tenantId);
+                            idx = bindFilterParams(preparedStatement, finalFilterBuilder, idx,
+                                    SessionMgtConstants.FilterType.SESSION);
+                        } else {
+                            preparedStatement.setLong(idx++, FrameworkUtils.getCurrentStandardNano());
+                            preparedStatement.setInt(idx++, tenantId);
+                            idx = bindFilterParams(preparedStatement, finalFilterBuilder, idx,
+                                    SessionMgtConstants.FilterType.SESSION);
+                            idx = bindFilterParams(preparedStatement, finalFilterBuilder, idx,
+                                    SessionMgtConstants.FilterType.USER);
+                        }
+                        bindFilterParams(preparedStatement, finalFilterBuilder, idx,
+                                SessionMgtConstants.FilterType.MAIN);
                     });
 
             /**
@@ -358,13 +392,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         }
 
         Map<String, Application> applications = new HashMap<>();
-        String placeholder = String.join(", ", applicationIds);
+        int[] parsedAppIds = new int[applicationIds.size()];
+        int idx = 0;
+        try {
+            for (String appId : applicationIds) {
+                parsedAppIds[idx++] = Integer.parseInt(appId);
+            }
+        } catch (NumberFormatException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    "Invalid application ID found in session data: " + applicationIds, e);
+        }
+        String placeholder = String.join(", ", Collections.nCopies(parsedAppIds.length, "?"));
         // TODO:: Get applications using application-mgt services and remove component unrelated queries.
         String sql = SQLQueries.SQL_GET_APPLICATION.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
-        List<Application> result = jdbcTemplate.executeQuery(sql, (rs, rowNumber) ->
-                new Application(null, rs.getString("APP_NAME"), rs.getString("ID"), rs.getString("UUID"))
-        );
+        List<Application> result = jdbcTemplate.executeQuery(sql,
+                (rs, rowNumber) -> new Application(null, rs.getString("APP_NAME"), rs.getString("ID"),
+                        rs.getString("UUID")),
+                preparedStatement -> {
+                    for (int i = 0; i < parsedAppIds.length; i++) {
+                        preparedStatement.setInt(i + 1, parsedAppIds[i]);
+                    }
+                });
         for (Application app : result) {
             applications.put(app.getAppId(), app);
         }
@@ -382,16 +432,17 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                 preparedStatement -> preparedStatement.setString(1, sessionId));
     }
 
-    private Map<String, Application> getApplicationsForFilter(String appFilter)
+    private Map<String, Application> getApplicationsForFilter(String appFilterSql, List<Object> params)
             throws DataAccessException {
 
         // TODO:: Get applications using application-mgt services and remove component unrelated queries.
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         List<Application> applicationsList = jdbcTemplate.executeQuery(
-                MessageFormat.format(SQLQueries.SQL_GET_APPLICATIONS_BY_FILTER_AND_TENANT, appFilter),
+                MessageFormat.format(SQLQueries.SQL_GET_APPLICATIONS_BY_FILTER_AND_TENANT, appFilterSql),
                 (resultSet, rowNumber) ->
-                    new Application(null, resultSet.getString("APP_NAME"), resultSet.getString("ID"),
-                            resultSet.getString("UUID")));
+                        new Application(null, resultSet.getString("APP_NAME"),
+                                resultSet.getString("ID"), resultSet.getString("UUID")),
+                preparedStatement -> bindFilterParams(preparedStatement, params, 1));
 
         return applicationsList.stream().collect(Collectors.toMap(Application::getAppId, app -> app));
     }
@@ -402,7 +453,8 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             return null;
         }
         Map<String, String> userIdpMap = new HashMap<>();
-        String placeholder = userIdList.stream().collect(Collectors.joining("', '", "'", "'"));
+        List<String> userIds = new ArrayList<>(userIdList);
+        String placeholder = String.join(", ", Collections.nCopies(userIds.size(), "?"));
         String sql = SQLQueries.SQL_GET_IDP_IDS_BY_USER_ID_LIST.replace(SCOPE_LIST_PLACEHOLDER, placeholder);
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.SESSION);
         List<UserSession> userIdpList = jdbcTemplate.executeQuery(sql,
@@ -411,12 +463,46 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     tempSession.setUserId(resultSet.getString("USER_ID"));
                     tempSession.setIdpId(Integer.toString(resultSet.getInt("IDP_ID")));
                     return tempSession;
-                })
-        );
+                }),
+                preparedStatement -> {
+                    for (int i = 0; i < userIds.size(); i++) {
+                        preparedStatement.setString(i + 1, userIds.get(i));
+                    }
+                });
         for (UserSession userIdpSession : userIdpList) {
             userIdpMap.put(userIdpSession.getUserId(), userIdpSession.getIdpId());
         }
 
         return userIdpMap;
+    }
+
+    /**
+     * Binds a list of parameter values to the PreparedStatement starting at {@code startIndex},
+     * and returns the next available index.
+     */
+    private int bindFilterParams(PreparedStatement ps, List<Object> params,
+                                 int startIndex) throws SQLException {
+
+        int idx = startIndex;
+        for (Object param : params) {
+            if (param instanceof Long) {
+                ps.setLong(idx++, (Long) param);
+            } else if (param instanceof Integer) {
+                ps.setInt(idx++, (Integer) param);
+            } else {
+                ps.setString(idx++, (String) param);
+            }
+        }
+        return idx;
+    }
+
+    /**
+     * Binds the parameter values for a given {@link SessionMgtConstants.FilterType} to the
+     * PreparedStatement starting at {@code startIndex}, and returns the next available index.
+     */
+    private int bindFilterParams(PreparedStatement ps, SessionFilterQueryBuilder builder,
+                                 int startIndex, SessionMgtConstants.FilterType type) throws SQLException {
+
+        return bindFilterParams(ps, builder.getFilterParams(type), startIndex);
     }
 }

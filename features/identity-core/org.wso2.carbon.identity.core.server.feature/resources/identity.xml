@@ -58,6 +58,7 @@
             <UserSessionMapping>
                 <Enable>true</Enable>
             </UserSessionMapping>
+            <BatchInsertChunkSize>250</BatchInsertChunkSize>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>true</Enable>
@@ -878,6 +879,7 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
+        <SAML2ArtifactDoubleEncodingDisabled>true</SAML2ArtifactDoubleEncodingDisabled>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
         <SAMLIDPMetadataEnableSHA256Alg>true</SAMLIDPMetadataEnableSHA256Alg>
@@ -898,6 +900,8 @@
         <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
         <!--Specify whether consent should be prompted for subject claim uri if configured as a requested claim.-->
         <PromptSubjectClaimRequestedConsent>true</PromptSubjectClaimRequestedConsent>
+        <!--Specify whether consent versioning along with the V2 API and related functionalities should be enabled.-->
+        <EnableV2API>true</EnableV2API>
     </Consent>
 
     <SecurityTokenService>
@@ -1546,6 +1550,11 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="128" enable="true"/>
+        <EventListener id="organization_agent_association_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.organization.agent.sharing.listener.SharedAgentOperationEventListener"
+                       orderId="130"
+                       enable="true"/>
         <EventListener id="shared_user_profile_update_governance_listener"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
@@ -2604,6 +2613,14 @@
         </TenantQualifiedUrls>
     </TenantContext>
 
+    <!--
+        SaaS application configurations.
+    -->
+    <SaaS>
+        <EnableAppCreation>false</EnableAppCreation>
+        <EnableCrossTenantOperations>false</EnableCrossTenantOperations>
+    </SaaS>
+
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v1.0/</Context>
@@ -2681,6 +2698,21 @@
             <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewriteInTenantPerspective>
+
+    <OrgResourceContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                    <Path>/api/server/v1/branding-preference/text</Path>
+                    <Path>/api/server/v1/branding-preference/text/resolve</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgResourceContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>
@@ -2991,6 +3023,9 @@
         <EnableLegacySelfRegistrationFlow>false</EnableLegacySelfRegistrationFlow>
         <EnableLegacyPasswordRecoveryFlow>false</EnableLegacyPasswordRecoveryFlow>
         <EnableLegacyInvitedUserRegistrationFlow>false</EnableLegacyInvitedUserRegistrationFlow>
+        <DefaultEnabledFlows>
+            <FlowType>INVITED_USER_REGISTRATION</FlowType>
+        </DefaultEnabledFlows>
         <Registration>
             <DisplayClaimAvailability>false</DisplayClaimAvailability>
         </Registration>
@@ -3012,10 +3047,23 @@
     <WorkflowEngine>
         <MaxApproverNotifications>15</MaxApproverNotifications>
     </WorkflowEngine>
+    <UseResidentUserIdForAuthenticatedSharedUsers>true</UseResidentUserIdForAuthenticatedSharedUsers>
 
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>true</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>
     <!-- Config to allow legacy SCIM enterprise user behaviors -->
     <EnableSCIMLegacyEnterpriseUser>false</EnableSCIMLegacyEnterpriseUser>
+
+    <Analytics>
+        <Moesif>
+            <ProviderURL>https://api.moesif.net/v1/actions</ProviderURL>
+            <AuthType>API_KEY</AuthType>
+            <ApiKeyHeader>X-Moesif-Application-Id</ApiKeyHeader>
+            <StreamName>org.wso2.is.analytics.stream.MoesifData</StreamName>
+            <StreamVersion>1.0.0</StreamVersion>
+            <InlineBody></InlineBody>
+            <Enabled>false</Enabled>
+        </Moesif>
+    </Analytics>
 </Server>

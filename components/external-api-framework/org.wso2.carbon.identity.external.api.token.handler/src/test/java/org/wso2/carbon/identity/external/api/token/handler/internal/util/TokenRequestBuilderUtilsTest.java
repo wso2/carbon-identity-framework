@@ -47,6 +47,8 @@ public class TokenRequestBuilderUtilsTest {
     private static final String TEST_CLIENT_ID = "test-client-id";
     private static final String TEST_CLIENT_SECRET = "test-client-secret";
     private static final String TEST_SCOPE = "test-scope";
+    private static final String TEST_USERNAME = "test-user";
+    private static final String TEST_PASSWORD = "test-password";
     private static final String TEST_TOKEN_ENDPOINT = "https://localhost:9443/oauth2/token";
     private static final String TEST_REFRESH_TOKEN = "test-refresh-token";
     private static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
@@ -55,6 +57,7 @@ public class TokenRequestBuilderUtilsTest {
     private static final String ACCEPT_HEADER_VALUE = "application/json";
 
     private GrantContext clientCredentialGrantContext;
+    private GrantContext passwordGrantContext;
     private Map<String, String> headers;
 
     /**
@@ -71,6 +74,18 @@ public class TokenRequestBuilderUtilsTest {
         clientCredentialGrantContext = new GrantContext.Builder()
                 .grantType(GrantContext.GrantType.CLIENT_CREDENTIAL)
                 .properties(properties)
+                .build();
+
+        Map<String, String> passwordProperties = new HashMap<>();
+        passwordProperties.put(GrantContext.Property.CLIENT_ID.getName(), TEST_CLIENT_ID);
+        passwordProperties.put(GrantContext.Property.CLIENT_SECRET.getName(), TEST_CLIENT_SECRET);
+        passwordProperties.put(GrantContext.Property.USERNAME.getName(), TEST_USERNAME);
+        passwordProperties.put(GrantContext.Property.PASSWORD.getName(), TEST_PASSWORD);
+        passwordProperties.put(GrantContext.Property.SCOPE.getName(), TEST_SCOPE);
+
+        passwordGrantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(passwordProperties)
                 .build();
 
         headers = new HashMap<>();
@@ -272,6 +287,158 @@ public class TokenRequestBuilderUtilsTest {
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put("grant_type", "client_credentials");
         expectedParams.put("scope", "scope:read scope:write");
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
+    }
+
+    /**
+     * Test building APIRequestContext for password grant type.
+     */
+    @Test
+    public void testBuildAPIRequestContextForPasswordGrant() throws Exception {
+
+        TokenRequestContext requestContext = new TokenRequestContext.Builder()
+                .grantContext(passwordGrantContext)
+                .endpointUrl(TEST_TOKEN_ENDPOINT)
+                .headers(headers)
+                .build();
+
+        APIRequestContext apiRequestContext = TokenRequestBuilderUtils.buildAPIRequestContext(requestContext);
+
+        assertNotNull(apiRequestContext, "APIRequestContext should not be null.");
+        assertEquals(apiRequestContext.getHttpMethod(), APIRequestContext.HttpMethod.POST,
+                "HTTP method should be POST.");
+        assertEquals(apiRequestContext.getEndpointUrl(), TEST_TOKEN_ENDPOINT,
+                "Token endpoint URL should match.");
+        assertEquals(apiRequestContext.getHeaders(), headers, "Headers should match.");
+
+        // Verify authentication type — password grant uses BASIC auth with the client credentials.
+        APIAuthentication authentication = apiRequestContext.getApiAuthentication();
+        assertNotNull(authentication, "APIAuthentication should not be null.");
+        assertEquals(authentication.getType(), APIAuthentication.AuthType.BASIC,
+                "Authentication type should be BASIC for password grant.");
+        assertEquals(authentication.getProperty(APIAuthentication.Property.USERNAME).getValue(), TEST_CLIENT_ID,
+                "BASIC auth username should be the client_id.");
+        assertEquals(authentication.getProperty(APIAuthentication.Property.PASSWORD).getValue(), TEST_CLIENT_SECRET,
+                "BASIC auth password should be the client_secret.");
+
+        // Verify payload.
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "password");
+        expectedParams.put("username", TEST_USERNAME);
+        expectedParams.put("password", TEST_PASSWORD);
+        expectedParams.put("scope", TEST_SCOPE);
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
+    }
+
+    /**
+     * Test building APIRequestContext for password grant type without scope.
+     */
+    @Test
+    public void testBuildAPIRequestContextForPasswordGrantWithoutScope() throws Exception {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), TEST_CLIENT_ID);
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), TEST_CLIENT_SECRET);
+        properties.put(GrantContext.Property.USERNAME.getName(), TEST_USERNAME);
+        properties.put(GrantContext.Property.PASSWORD.getName(), TEST_PASSWORD);
+
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(properties)
+                .build();
+
+        TokenRequestContext requestContext = new TokenRequestContext.Builder()
+                .grantContext(grantContext)
+                .endpointUrl(TEST_TOKEN_ENDPOINT)
+                .headers(headers)
+                .build();
+
+        APIRequestContext apiRequestContext = TokenRequestBuilderUtils.buildAPIRequestContext(requestContext);
+
+        assertNotNull(apiRequestContext, "APIRequestContext should not be null.");
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "password");
+        expectedParams.put("username", TEST_USERNAME);
+        expectedParams.put("password", TEST_PASSWORD);
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
+    }
+
+    /**
+     * Test building APIRequestContext for password grant with special characters.
+     */
+    @Test
+    public void testBuildAPIRequestContextForPasswordGrantWithSpecialCharacters() throws Exception {
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(GrantContext.Property.CLIENT_ID.getName(), "client@domain.com");
+        properties.put(GrantContext.Property.CLIENT_SECRET.getName(), "p@ssw0rd!#$%^&*()");
+        properties.put(GrantContext.Property.USERNAME.getName(), "user+tag@example.com");
+        properties.put(GrantContext.Property.PASSWORD.getName(), "p@$$ w0rd!&=");
+        properties.put(GrantContext.Property.SCOPE.getName(), "scope:read scope:write");
+
+        GrantContext grantContext = new GrantContext.Builder()
+                .grantType(GrantContext.GrantType.PASSWORD)
+                .properties(properties)
+                .build();
+
+        TokenRequestContext requestContext = new TokenRequestContext.Builder()
+                .grantContext(grantContext)
+                .endpointUrl(TEST_TOKEN_ENDPOINT)
+                .headers(headers)
+                .build();
+
+        APIRequestContext apiRequestContext = TokenRequestBuilderUtils.buildAPIRequestContext(requestContext);
+
+        assertNotNull(apiRequestContext, "APIRequestContext should not be null.");
+
+        APIAuthentication authentication = apiRequestContext.getApiAuthentication();
+        assertEquals(authentication.getProperty(APIAuthentication.Property.USERNAME).getValue(), "client@domain.com");
+        assertEquals(authentication.getProperty(APIAuthentication.Property.PASSWORD).getValue(), "p@ssw0rd!#$%^&*()");
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "password");
+        expectedParams.put("username", "user+tag@example.com");
+        expectedParams.put("password", "p@$$ w0rd!&=");
+        expectedParams.put("scope", "scope:read scope:write");
+        validatePayload(apiRequestContext.getPayload(), expectedParams);
+    }
+
+    /**
+     * Test building refresh-grant APIRequestContext on a PASSWORD-configured context.
+     * The refresh flow re-uses the same client BASIC auth regardless of the original grant.
+     */
+    @Test
+    public void testBuildAPIRequestContextForRefreshGrantOnPasswordContext() throws Exception {
+
+        TokenRequestContext requestContext = new TokenRequestContext.Builder()
+                .grantContext(passwordGrantContext)
+                .endpointUrl(TEST_TOKEN_ENDPOINT)
+                .headers(headers)
+                .build();
+
+        APIRequestContext apiRequestContext = TokenRequestBuilderUtils
+                .buildAPIRequestContextForRefreshGrant(requestContext, TEST_REFRESH_TOKEN);
+
+        assertNotNull(apiRequestContext, "APIRequestContext should not be null.");
+        assertEquals(apiRequestContext.getHttpMethod(), APIRequestContext.HttpMethod.POST,
+                "HTTP method should be POST.");
+        assertEquals(apiRequestContext.getEndpointUrl(), TEST_TOKEN_ENDPOINT,
+                "Token endpoint URL should match.");
+        assertEquals(apiRequestContext.getHeaders(), headers, "Headers should match.");
+
+        APIAuthentication authentication = apiRequestContext.getApiAuthentication();
+        assertNotNull(authentication, "APIAuthentication should not be null.");
+        assertEquals(authentication.getType(), APIAuthentication.AuthType.BASIC,
+                "Authentication type should remain BASIC for refresh on password context.");
+        assertEquals(authentication.getProperty(APIAuthentication.Property.USERNAME).getValue(), TEST_CLIENT_ID,
+                "BASIC auth username should be the client_id.");
+        assertEquals(authentication.getProperty(APIAuthentication.Property.PASSWORD).getValue(), TEST_CLIENT_SECRET,
+                "BASIC auth password should be the client_secret.");
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put("grant_type", "refresh_token");
+        expectedParams.put("refresh_token", TEST_REFRESH_TOKEN);
         validatePayload(apiRequestContext.getPayload(), expectedParams);
     }
 

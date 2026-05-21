@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,6 +40,9 @@ import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionInv
 import org.wso2.carbon.identity.action.execution.internal.service.impl.ActionVersioningHandlerFactory;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGI service component for the Action execution.
@@ -208,5 +211,69 @@ public class ActionExecutionServiceComponent {
         LOG.debug("Unregistering ActionVersioningHandler: " + actionVersionHandler.getClass().getName() +
                 " in the ActionExecutionServiceComponent.");
         ActionVersioningHandlerFactory.unregisterActionVersioningHandler(actionVersionHandler);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManager"
+    )
+    protected void setSecretManager(SecretManager secretManager) {
+
+        ActionExecutionServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        LOG.debug("SecretManager set in ActionExecutionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetSecretManager(SecretManager secretManager) {
+
+        if (ActionExecutionServiceComponentHolder.getInstance().getSecretManager().equals(secretManager)) {
+            ActionExecutionServiceComponentHolder.getInstance().setSecretManager(null);
+            LOG.debug("SecretManager unset in ActionExecutionServiceComponentHolder bundle.");
+        }
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretResolveManager"
+    )
+    protected void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        ActionExecutionServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        LOG.debug("SecretResolveManager set in ActionExecutionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        if (ActionExecutionServiceComponentHolder.getInstance().getSecretResolveManager()
+                .equals(secretResolveManager)) {
+            ActionExecutionServiceComponentHolder.getInstance().setSecretResolveManager(null);
+            LOG.debug("SecretResolveManager unset in ActionExecutionServiceComponentHolder bundle.");
+        }
+    }
+
+    @Reference(
+            name = "realm.service",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
+    protected void setRealmService(RealmService realmService) {
+
+        ActionExecutionServiceComponentHolder.getInstance().setRealmService(realmService);
+        LOG.debug("RealmService set in ActionExecutionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        if (ActionExecutionServiceComponentHolder.getInstance().getRealmService().equals(realmService)) {
+            ActionExecutionServiceComponentHolder.getInstance().setRealmService(null);
+            LOG.debug("RealmService unset in ActionExecutionServiceComponentHolder bundle.");
+        }
     }
 }

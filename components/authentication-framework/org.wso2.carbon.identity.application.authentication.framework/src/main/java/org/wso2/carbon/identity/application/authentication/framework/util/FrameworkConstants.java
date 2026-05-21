@@ -166,10 +166,13 @@ public abstract class FrameworkConstants {
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
     public static final String ORGANIZATION_IDENTIFIER_HANDLER = "OrganizationIdentifierHandler";
+    public static final String SHARED_USER_IDENTIFIER_HANDLER = "SharedUserIdentifierExecutor";
     public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
     public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";
     public static final String USER_ORGANIZATION_CLAIM = "user_organization";
+    public static final String USER_ORG_CLAIM = "user_org";
+    public static final String ORG_ID_CLAIM = "org_id";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
@@ -451,6 +454,13 @@ public abstract class FrameworkConstants {
          * Configuration to mark the step as completed on interrupt.
          */
         public static final String MARK_STEP_COMPLETED_ON_INTERRUPT = "MarkStepCompletedOnInterrupt";
+
+        /**
+         * Configuration to return resident user id instead of shared user id in token responses when a shared user is
+         * linked to a federated IdP and use local attributes property is set to true.
+         */
+        public static final String USE_RESIDENT_USER_ID_FOR_AUTHENTICATED_SHARED_USERS =
+                "UseResidentUserIdForAuthenticatedSharedUsers";
 
         private Config() {
         }

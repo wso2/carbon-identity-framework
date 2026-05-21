@@ -990,4 +990,8 @@
         <!--<PromptOnLongWait>false</PromptOnLongWait>-->
     </AdaptiveAuth>
 
+    <SaaS>
+        <EnableAppCreation>true</EnableAppCreation>
+    </SaaS>
+
 </Server>

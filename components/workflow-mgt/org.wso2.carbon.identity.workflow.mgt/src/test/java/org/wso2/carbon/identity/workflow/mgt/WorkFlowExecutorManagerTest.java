@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
@@ -60,6 +61,7 @@ import static org.testng.Assert.assertNotNull;
 /**
  * Unit tests for {@link WorkFlowExecutorManager}.
  */
+@WithCarbonHome
 public class WorkFlowExecutorManagerTest {
 
     private static final String TEST_UUID = "test-uuid-123";
