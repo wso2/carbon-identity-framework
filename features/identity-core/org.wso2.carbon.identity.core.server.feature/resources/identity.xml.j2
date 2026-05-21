@@ -2784,6 +2784,11 @@
                        name="org.wso2.carbon.identity.organization.management.application.listener.FragmentApplicationMgtListener"
                        orderId="{{event.default_listener.fragment_app_mgt_listener.priority}}"
                        enable="{{event.default_listener.fragment_app_mgt_listener.enable}}"/>
+        <EventListener id="sub_org_application_mgt_listener"
+                       type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"
+                       name="org.wso2.carbon.identity.organization.management.application.listener.SubOrgApplicationMgtListener"
+                       orderId="{{event.default_listener.sub_org_application_mgt_listener.priority}}"
+                       enable="{{event.default_listener.sub_org_application_mgt_listener.enable}}"/>
 
         <EventListener id="organization_user_operation_listener"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
