@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolResolver;
 import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
@@ -37,8 +36,6 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 public class IdpDebugProtocolResolver implements DebugProtocolResolver {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
-    private static final String GOOGLE_HOST = "google";
-    private static final String FACEBOOK_HOST = "facebook";
 
     @Override
     public String resolveProtocol(String resourceId) {
@@ -90,18 +87,17 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             return null;
         }
 
-        return findProtocolFromEnabledConfigs(resource, configs);
+        return findProtocolFromEnabledConfigs(configs);
     }
 
-    protected String findProtocolFromEnabledConfigs(IdentityProvider resource,
-            FederatedAuthenticatorConfig[] configs) {
+    protected String findProtocolFromEnabledConfigs(FederatedAuthenticatorConfig[] configs) {
 
         for (FederatedAuthenticatorConfig config : configs) {
             if (!isValidAuthenticatorConfig(config)) {
                 continue;
             }
 
-            String protocol = resolveProtocolForConfig(resource, config);
+            String protocol = resolveProtocolForConfig(config);
             if (protocol != null) {
                 return protocol;
             }
@@ -109,40 +105,16 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return null;
     }
 
-    protected String resolveProtocolForConfig(IdentityProvider resource, FederatedAuthenticatorConfig config) {
+    protected String resolveProtocolForConfig(FederatedAuthenticatorConfig config) {
 
         String implementationName = config.getName();
         String protocolType = resolveProtocolTypeFromImplementation(implementationName);
 
-        // Only apply Google heuristic when the implementation is already OIDC-typed — prevents false
-        // positives like "Google Analytics Integration" being classified as Google OIDC.
-        if (IdpDebugConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
-                && isBackedByProvider(resource, config, IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC, GOOGLE_HOST)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Detected Google-backed OIDC configuration from implementation: " + implementationName);
-            }
-            return IdpDebugConstants.PROTOCOL_TYPE_GOOGLE;
+        if (protocolType != null && LOG.isDebugEnabled()) {
+            LOG.debug("Detected protocol type: " + protocolType + " for implementation: " + implementationName);
         }
 
-        // Mirror the Google gate: only apply Facebook heuristic when the implementation is OIDC or Facebook-typed.
-        if (IdpDebugConstants.PROTOCOL_TYPE_FACEBOOK.equalsIgnoreCase(protocolType)
-                || (IdpDebugConstants.PROTOCOL_TYPE_OIDC.equalsIgnoreCase(protocolType)
-                        && isBackedByProvider(resource, config, IdpDebugConstants.IMPLEMENTATION_FACEBOOK,
-                                FACEBOOK_HOST))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Detected Facebook-backed configuration from implementation: " + implementationName);
-            }
-            return IdpDebugConstants.PROTOCOL_TYPE_FACEBOOK;
-        }
-
-        if (protocolType != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Detected protocol type: " + protocolType + " for implementation: " + implementationName);
-            }
-            return protocolType;
-        }
-
-        return null;
+        return protocolType;
     }
 
     protected boolean isValidAuthenticatorConfig(FederatedAuthenticatorConfig config) {
@@ -156,9 +128,11 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
             return null;
         }
 
-        if (IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)
-                || IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName)) {
+        if (IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)) {
             return IdpDebugConstants.PROTOCOL_TYPE_OIDC;
+        }
+        if (IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName)) {
+            return IdpDebugConstants.PROTOCOL_TYPE_GOOGLE;
         }
         if (IdpDebugConstants.IMPLEMENTATION_GITHUB.equalsIgnoreCase(implementationName)) {
             return IdpDebugConstants.PROTOCOL_TYPE_GITHUB;
@@ -172,34 +146,5 @@ public class IdpDebugProtocolResolver implements DebugProtocolResolver {
         return null;
     }
 
-    /**
-     * Checks if an authenticator config is backed by a specific provider by inspecting the implementation
-     * name, IdP name, and property values for the given host indicator.
-     */
-    protected boolean isBackedByProvider(IdentityProvider resource, FederatedAuthenticatorConfig config,
-            String knownImplementation, String hostIndicator) {
-
-        if (config != null && knownImplementation.equalsIgnoreCase(config.getName())) {
-            return true;
-        }
-
-        if (resource != null && StringUtils.containsIgnoreCase(resource.getIdentityProviderName(), hostIndicator)) {
-            return true;
-        }
-
-        Property[] properties = config != null ? config.getProperties() : null;
-        if (properties == null || properties.length == 0) {
-            return false;
-        }
-
-        for (Property property : properties) {
-            if (property == null || StringUtils.isBlank(property.getValue())) {
-                continue;
-            }
-            if (StringUtils.containsIgnoreCase(property.getValue(), hostIndicator)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
+
