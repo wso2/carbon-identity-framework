@@ -80,6 +80,7 @@ public class ApplicationConstants {
             .separator;
     public static final String PURPOSE_GROUP_TYPE_SP = "SP";
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final String PURPOSE_GROUP_TYPE_POLICY = "Policy";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
     public static final String IS_FRAGMENT_APP = "isFragmentApp";
     public static final String IS_AGENT_APP = "isAgentApplication";

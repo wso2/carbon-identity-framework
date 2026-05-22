@@ -214,6 +214,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Consent.ENABLE_V2_API_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
@@ -3726,6 +3727,16 @@ public class FrameworkUtils {
                     + " with id: " + serviceProvider.getApplicationID());
         }
         return isSkipConsent;
+    }
+
+    /**
+     * Check whether the Consent V2 API is enabled via the Consent.EnableV2API configuration property.
+     *
+     * @return true if enabled, false if explicitly disabled or not configured.
+     */
+    public static boolean isConsentV2APIEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_V2_API_PROPERTY));
     }
 
     /**
