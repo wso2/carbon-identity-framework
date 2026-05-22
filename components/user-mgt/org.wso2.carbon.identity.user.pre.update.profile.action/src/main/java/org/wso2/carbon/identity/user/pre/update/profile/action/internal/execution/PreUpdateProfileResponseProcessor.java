@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResp
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
@@ -62,10 +63,10 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private static final String ID_CLAIM_URI = "http://wso2.org/claims/userid";
     private static final String NAME_CLAIM_URI = "http://wso2.org/claims/username";
     private static final String CREATED_CLAIM_URI = "http://wso2.org/claims/created";
-    private static final String FAMILY_NAME_CLAIM_URI = "http://wso2.org/claims/lastname";
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
     private static final String IDENTITY_CLAIM_URI_PREFIX = "http://wso2.org/claims/identity/";
+    private static final String SCIM_SCHEMA_URI_PREFIX = "urn:ietf:params:scim:schemas";
     private static final String URI = "uri";
     private static final String VALUE = "value";
     private static final String USER_CLAIMS_TO_BE_ADDED = "userClaimsToBeAdded";
@@ -84,8 +85,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     }
 
     @Override
-    public ActionExecutionStatus<Success> processSuccessResponse(FlowContext flowContext,
-                                                                 ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext)
+    public ActionExecutionStatus<Success> processSuccessResponse(
+            FlowContext flowContext, ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
         List<PerformableOperation> operationsToPerform = responseContext.getActionInvocationResponse().getOperations();
@@ -162,6 +163,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         validateGroupAndRoleClaims(claimUri);
         validateImmutableClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
+        validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
 
         if (!isMultiValuedClaim(localClaim)) {
             // Extract single claim value from String directly or from value map.
@@ -239,6 +241,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         validateGroupAndRoleClaims(claimUri);
         validateImmutableClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
+        validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
         String separator = FrameworkUtils.getMultiAttributeSeparator();
 
         if (!isMultiValuedClaim(localClaim)) {
@@ -286,6 +289,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateImmutableClaims(claimUri);
+        validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
 
         if (!isMultiValuedClaim(localClaim)) {
             userClaimsToBeRemoved.put(claimUri, "");
@@ -588,8 +592,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
     private void validateImmutableClaims(String claimUri) throws ActionExecutionResponseProcessorException {
 
-        if (claimUri.equals(ID_CLAIM_URI) || claimUri.equals(CREATED_CLAIM_URI) || claimUri.equals(NAME_CLAIM_URI) ||
-                claimUri.equals(FAMILY_NAME_CLAIM_URI) || claimUri.contains(IDENTITY_CLAIM_URI_PREFIX)) {
+        if (claimUri.equals(ID_CLAIM_URI) || claimUri.equals(CREATED_CLAIM_URI) ||
+                claimUri.equals(NAME_CLAIM_URI) || claimUri.contains(IDENTITY_CLAIM_URI_PREFIX)) {
             throw new ActionExecutionResponseProcessorException("Immutable claims cannot be added or modified: " +
                     claimUri);
         }
@@ -609,6 +613,116 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         if (claimUri.equals(GROUP_CLAIM_URI) || claimUri.equals(ROLE_CLAIM_URI)) {
             throw new ActionExecutionResponseProcessorException("Groups/Roles are not allowed to be added: "
                     + claimUri);
+        }
+    }
+
+    private void validateSCIMLevelAttributes(String claimUri, Operation op, Object value)
+            throws ActionExecutionResponseProcessorException {
+
+        List<Claim> scimClaims = convertLocalToSCIMDialect(claimUri);
+        if (scimClaims.isEmpty()) {
+            return;
+        }
+
+        boolean isReadOnly = false;
+        boolean isRequired = false;
+        boolean isSingleValued = false;
+
+        // multiple scim mapping
+        for (Claim scimClaim : scimClaims) {
+            if (Boolean.parseBoolean(scimClaim.getClaimProperty(ClaimConstants.READ_ONLY_PROPERTY))) {
+                isReadOnly = true;
+            }
+            if (Boolean.parseBoolean(scimClaim.getClaimProperty(ClaimConstants.REQUIRED_PROPERTY))) {
+                isRequired = true;
+            }
+            if (!Boolean.parseBoolean(scimClaim.getClaimProperty(ClaimConstants.MULTI_VALUED_PROPERTY))) {
+                isSingleValued = true;
+            }
+        }
+
+        if (isReadOnly) {
+            throw new ActionExecutionResponseProcessorException(
+                    "Cannot modify read-only SCIM attribute mapped to local claim: " + claimUri);
+        }
+
+        if (isRequired) {
+            if (op == Operation.REMOVE) {
+                throw new ActionExecutionResponseProcessorException(
+                        "Cannot remove required SCIM attribute mapped to local claim: " + claimUri);
+            }
+            if (op == Operation.REPLACE || op == Operation.ADD) {
+                boolean isEmpty = false;
+                if (value == null) {
+                    isEmpty = true;
+                } else if (value instanceof String && ((String) value).trim().isEmpty()) {
+                    isEmpty = true;
+                } else if (value instanceof List && ((List<?>) value).isEmpty()) {
+                    isEmpty = true;
+                } else if (value instanceof LinkedHashMap) {
+                    Object val = ((LinkedHashMap<?, ?>) value).get(VALUE);
+                    if (val == null || (val instanceof String && ((String) val).trim().isEmpty()) ||
+                            (val instanceof List && ((List<?>) val).isEmpty())) {
+                        isEmpty = true;
+                    }
+                }
+                if (isEmpty) {
+                    throw new ActionExecutionResponseProcessorException(
+                            "Cannot set empty value to required SCIM attribute mapped to local claim: " + claimUri);
+                }
+            }
+        }
+
+        if (isSingleValued) {
+            boolean hasMultipleValues = false;
+            if (value instanceof List && ((List<?>) value).size() > 1) {
+                hasMultipleValues = true;
+            } else if (value instanceof LinkedHashMap) {
+                Object val = ((LinkedHashMap<?, ?>) value).get(VALUE);
+                if (val instanceof List && ((List<?>) val).size() > 1) {
+                    hasMultipleValues = true;
+                }
+            }
+            if (hasMultipleValues) {
+                throw new ActionExecutionResponseProcessorException(
+                        "Cannot set multiple values to single-valued SCIM attribute mapped to local claim: "
+                                + claimUri);
+            }
+        }
+    }
+
+    /**
+     * Converts claims in local WSO2 dialect to SCIM dialect.
+     *
+     * @param claimUri The local claim URI.
+     * @return A list of SCIM dialect claims.
+     * @throws ActionExecutionResponseProcessorException If an error occurs during the conversion.
+     */
+    private static List<Claim> convertLocalToSCIMDialect(String claimUri) throws
+            ActionExecutionResponseProcessorException {
+
+        if (claimUri == null || claimUri.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        ClaimMetadataManagementService claimMetadataManagementService = PreUpdateProfileActionServiceComponentHolder
+                .getInstance().getClaimManagementService();
+        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
+        try {
+            List<Claim> mappedExternalClaims = claimMetadataManagementService
+                    .getMappedExternalClaimsForLocalClaim(claimUri, tenantDomain);
+            if (mappedExternalClaims == null || mappedExternalClaims.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return mappedExternalClaims.stream()
+                    .filter(claim -> claim.getClaimDialectURI() != null
+                            && claim.getClaimDialectURI().contains(SCIM_SCHEMA_URI_PREFIX))
+                    .collect(Collectors.toList());
+
+        } catch (ClaimMetadataException e) {
+            throw new ActionExecutionResponseProcessorException(
+                    "Error while retrieving mapped external claims for claim uri: " + claimUri, e);
         }
     }
 }
