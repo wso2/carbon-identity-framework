@@ -200,6 +200,12 @@ public class FlowUser implements Serializable {
         return Boolean.parseBoolean(accountDisabled);
     }
 
+    @JsonIgnore
+    public String getAccountLockedReason() {
+
+        return claims.get(FrameworkConstants.ACCOUNT_LOCKED_REASON_CLAIM_URI);
+    }
+
     private String resolveUsername(FlowUser user, String tenantDomain) {
 
         String username = Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse("");
