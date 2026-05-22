@@ -306,11 +306,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         initialTenantDomainFromThreadLocal = IdentityUtil.threadLocalProperties.get().
                                 get(TENANT_NAME_FROM_CONTEXT).toString();
                     }
-                    if ((context.isOrgApplicationLogin() || context.isSharedAppLogin()) &&
+                    if (context != null && (context.isOrgApplicationLogin() || context.isSharedAppLogin()) &&
                             StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().
                                     getOrganizationId())) {
                         isTenantFlowStarted = startCarbonContextForTenantQualifiedOrganizationPaths();
-                    } else if (!(context.isSharedAppLogin() || context.isOrgApplicationLogin()) &&
+                    } else if (context != null && !(context.isSharedAppLogin() || context.isOrgApplicationLogin()) &&
                             StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().
                                     getAccessingOrganizationId())) {
                         isTenantFlowStarted = startCarbonContextForOrganizationQualifiedPaths(context,
