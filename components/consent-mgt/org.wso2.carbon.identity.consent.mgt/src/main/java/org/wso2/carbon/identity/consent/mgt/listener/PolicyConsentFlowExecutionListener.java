@@ -70,6 +70,7 @@ public class PolicyConsentFlowExecutionListener extends AbstractFlowExecutionLis
         if (!FrameworkUtils.isConsentV2APIEnabled()) {
             return false;
         }
+        // This will be removed when B2B support is added
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId() == null;
     }
 
@@ -80,8 +81,7 @@ public class PolicyConsentFlowExecutionListener extends AbstractFlowExecutionLis
             return true;
         }
         for (ComponentDTO component : step.getData().getComponents()) {
-            if (FORM.equals(component.getType())
-                    && component.getComponents() != null) {
+            if (FORM.equals(component.getType()) && component.getComponents() != null) {
                 for (ComponentDTO child : component.getComponents()) {
                     if (POLICY.equals(child.getType())) {
                         enrichPolicyComponent(child, context);

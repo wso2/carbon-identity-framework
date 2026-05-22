@@ -225,7 +225,7 @@ public final class PolicyConsentUtil {
      * recorded consent. Shared by {@link #hasUnconsentedPolicies(String, String)} and
      * {@link #classifyUnconsentedPolicies(String, String)}. Must be called within an active tenant flow.
      */
-    static boolean isPolicyConsentMissing(String subjectId, Purpose purpose, ConsentManager consentManager)
+    private static boolean isPolicyConsentMissing(String subjectId, Purpose purpose, ConsentManager consentManager)
             throws ConsentManagementException {
 
         List<PurposeVersion> allVersions = consentManager.listPurposeVersions(purpose.getUuid());
@@ -248,7 +248,7 @@ public final class PolicyConsentUtil {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(subjectId);
     }
 
-    static List<Purpose> getPolicyPurposes(ConsentManager consentManager) throws ConsentManagementException {
+    private static List<Purpose> getPolicyPurposes(ConsentManager consentManager) throws ConsentManagementException {
 
         ExpressionNode expressionNode = new ExpressionNode();
         expressionNode.setAttributeValue("type");
@@ -259,7 +259,7 @@ public final class PolicyConsentUtil {
         return purposes != null ? purposes : Collections.emptyList();
     }
 
-    static boolean isMandatoryPurpose(Purpose purpose) {
+    private static boolean isMandatoryPurpose(Purpose purpose) {
 
         PurposeVersion latestVersion = purpose.getLatestVersion();
         if (latestVersion == null) {
@@ -272,7 +272,7 @@ public final class PolicyConsentUtil {
         return categories.stream().anyMatch(cat -> Boolean.TRUE.equals(cat.getMandatory()));
     }
 
-    static PurposeVersion getLatestVersionWithPromptOnLogin(Purpose purpose, List<PurposeVersion> allVersions,
+    private static PurposeVersion getLatestVersionWithPromptOnLogin(Purpose purpose, List<PurposeVersion> allVersions,
             ConsentManager consentManager) throws ConsentManagementException {
 
         for (int i = allVersions.size() - 1; i >= 0; i--) {
@@ -285,7 +285,7 @@ public final class PolicyConsentUtil {
         return null;
     }
 
-    static boolean shouldPromptOnLogin(PurposeVersion version) {
+    private static boolean shouldPromptOnLogin(PurposeVersion version) {
 
         if (version == null || version.getProperties() == null) {
             return false;
@@ -294,8 +294,10 @@ public final class PolicyConsentUtil {
         return Boolean.parseBoolean(version.getProperties().get(PROMPT_ON_LOGIN_PROPERTY_KEY));
     }
 
-    static boolean missingConsentForVersion(String subjectId, Purpose purpose, PurposeVersion promptOnLoginVersion,
-            List<PurposeVersion> allVersions, ConsentManager consentManager, boolean mandatory)
+    private static boolean missingConsentForVersion(String subjectId, Purpose purpose,
+                                                    PurposeVersion promptOnLoginVersion,
+                                                    List<PurposeVersion> allVersions,
+                                                    ConsentManager consentManager, boolean mandatory)
             throws ConsentManagementException {
 
         int promptOnLoginVersionIndex = -1;
@@ -321,7 +323,7 @@ public final class PolicyConsentUtil {
         return true;
     }
 
-    static boolean hasConsentForAnyVersion(String subjectId, Purpose purpose, ConsentManager consentManager)
+    private static boolean hasConsentForAnyVersion(String subjectId, Purpose purpose, ConsentManager consentManager)
             throws ConsentManagementException {
 
         // A null state matches any receipt (active or rejected); a single lookup tells us whether the user has
@@ -331,7 +333,7 @@ public final class PolicyConsentUtil {
         return receipts != null && !receipts.isEmpty();
     }
 
-    static String buildPurposeMetadataJson(List<Purpose> purposes, Set<String> mandatoryIdSet,
+    private static String buildPurposeMetadataJson(List<Purpose> purposes, Set<String> mandatoryIdSet,
             Set<String> newVersionIdSet) {
 
         List<Map<String, Object>> metadataList = new ArrayList<>();
