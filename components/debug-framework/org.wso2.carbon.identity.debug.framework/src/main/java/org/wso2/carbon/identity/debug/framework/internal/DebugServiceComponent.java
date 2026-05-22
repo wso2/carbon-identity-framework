@@ -61,13 +61,14 @@ public class DebugServiceComponent {
         try {
             // Register DebugRequestCoordinator as the API-facing debug service.
             DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
+            DebugFrameworkServiceDataHolder.getInstance().setDebugRequestCoordinator(requestCoordinator);
             requestCoordinatorServiceRegistration = bundleContext.registerService(
                     DebugRequestCoordinator.class, requestCoordinator, null);
 
-            // Register a dedicated auth interceptor that delegates callbacks to the coordinator.
+            // Register a dedicated auth interceptor that delegates callbacks to the coordinator via data holder.
             authInterceptorServiceRegistration = bundleContext.registerService(
                     DebugAuthenticationInterceptor.class,
-                    new DebugCommonAuthInterceptor(requestCoordinator), null);
+                    new DebugCommonAuthInterceptor(), null);
 
             // Register the cleanup listener as an OSGi service.
             cleanupListenerServiceRegistration = bundleContext.registerService(
@@ -103,6 +104,9 @@ public class DebugServiceComponent {
             // Unregister cleanup listener service.
             cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
                     "DebugSessionCleanupExecutionListener service unregistered");
+
+            // Clear the coordinator reference from the data holder.
+            DebugFrameworkServiceDataHolder.getInstance().setDebugRequestCoordinator(null);
 
             // Shutdown the cleanup service.
             if (cleanupService != null) {

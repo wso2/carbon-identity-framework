@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.debug.idp.core;
 
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
@@ -40,17 +41,21 @@ public abstract class IdpDebugContextProvider extends DebugContextProvider {
             throw new ContextResolutionException(
                     "Invalid or missing parameters: connectionId and resourceType must be non-null Strings.");
         }
-        return resolveContext((String) connectionIdObj, (String) resourceTypeObj);
+        Object idpObj = params.get(IdpDebugConstants.IDENTITY_PROVIDER);
+        IdentityProvider identityProvider = idpObj instanceof IdentityProvider ? (IdentityProvider) idpObj : null;
+        return resolveContext((String) connectionIdObj, (String) resourceTypeObj, identityProvider);
     }
 
     /**
-     * Resolves context using an IdP connection identifier.
+     * Resolves context using an IdP connection identifier and a pre-loaded IdP object.
+     * The identityProvider may be null if not available from a prior resolution step.
      *
-     * @param connectionId The IdP resource identifier.
-     * @param resourceType The resource type.
+     * @param connectionId     The IdP resource identifier.
+     * @param resourceType     The resource type.
+     * @param identityProvider The already-loaded IdP object, or null.
      * @return Resolved DebugContext.
      * @throws ContextResolutionException If resolution fails.
      */
-    public abstract DebugContext resolveContext(String connectionId, String resourceType)
-            throws ContextResolutionException;
+    public abstract DebugContext resolveContext(String connectionId, String resourceType,
+            IdentityProvider identityProvider) throws ContextResolutionException;
 }

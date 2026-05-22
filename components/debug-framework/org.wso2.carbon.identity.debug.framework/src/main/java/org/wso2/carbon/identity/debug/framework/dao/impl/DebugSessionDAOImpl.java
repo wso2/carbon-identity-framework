@@ -38,7 +38,6 @@ import java.util.UUID;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_EXPIRED_DEBUG_SESSIONS;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION;
-import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION_FOR_UPDATE;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSERT_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPDATE_DEBUG_SESSION;
 
@@ -105,45 +104,6 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
             throw new DebugFrameworkServerException(errorMsg, e);
         }
         return null;
-    }
-
-    @Override
-    public DebugSessionData deleteAndReturnDebugSession(String debugId) throws DebugFrameworkServerException {
-
-        String normalizedDebugId = normalizeDebugId(debugId);
-        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
-        DebugSessionData data = null;
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            // First fetch the data with a lock.
-            try (PreparedStatement prepStmt = connection
-                    .prepareStatement(SQL_GET_DEBUG_SESSION_FOR_UPDATE)) {
-                prepStmt.setString(1, storageDebugId);
-                try (ResultSet resultSet = prepStmt.executeQuery()) {
-                    if (resultSet.next()) {
-                        data = mapResultSetToDebugSessionData(resultSet, debugId);
-                    }
-                }
-            }
-
-            // If data exists, delete it.
-            if (data != null) {
-                try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
-                    prepStmt.setString(1, storageDebugId);
-                    prepStmt.executeUpdate();
-                }
-            }
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-            return data;
-        } catch (SQLException e) {
-            String errorMsg = "Error while performing atomic delete-and-return for debug session from DB. Debug ID: "
-                    + debugId + ", storage key: " + storageDebugId;
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
-        }
     }
 
     @Override

@@ -46,9 +46,6 @@ public class DebugContext {
     public static DebugContext buildFromMap(Map<String, Object> contextMap) {
 
         DebugContext context = new DebugContext();
-        if (contextMap == null) {
-            return context;
-        }
 
         for (Map.Entry<String, Object> entry : contextMap.entrySet()) {
             if (RESOURCE_TYPE_KEY.equals(entry.getKey())) {

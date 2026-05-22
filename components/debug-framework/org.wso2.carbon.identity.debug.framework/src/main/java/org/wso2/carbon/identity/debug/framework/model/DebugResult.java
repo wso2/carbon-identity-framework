@@ -35,7 +35,6 @@ public class DebugResult {
     private String errorCode;
     private String errorMessage;
     private Map<String, Object> resultData;
-    private Map<String, Object> metadata;
 
     /**
      * Constructs an empty DebugResult.
@@ -43,7 +42,6 @@ public class DebugResult {
     public DebugResult() {
 
         this.resultData = new HashMap<>();
-        this.metadata = new HashMap<>();
         this.timestamp = System.currentTimeMillis();
     }
 
@@ -196,40 +194,6 @@ public class DebugResult {
     public void addResultData(String key, Object value) {
 
         this.resultData.put(key, value);
-    }
-
-    /**
-     * Gets the metadata map.
-     *
-     * @return Map containing metadata.
-     */
-    public Map<String, Object> getMetadata() {
-
-        return metadata;
-    }
-
-    /**
-     * Sets the metadata map.
-     *
-     * @param metadata Map containing metadata.
-     */
-    public void setMetadata(Map<String, Object> metadata) {
-
-        this.metadata = metadata != null ? metadata : new HashMap<>();
-    }
-
-    /**
-     * Adds a key-value pair to the metadata map.
-     *
-     * @param key   The key for the metadata.
-     * @param value The value to store.
-     */
-    public void addMetadata(String key, Object value) {
-
-        if (this.metadata == null) {
-            this.metadata = new HashMap<>();
-        }
-        this.metadata.put(key, value);
     }
 
     @Override

@@ -54,20 +54,16 @@ public class DebugFrameworkResponse {
      */
     public static DebugFrameworkResponse fromDebugResult(DebugResult result) {
 
-        DebugFrameworkResponse response = new DebugFrameworkResponse();
         if (result == null) {
-            response.setStatus(DEBUG_STATUS_FAILURE);
-            response.setMessage("Result is null");
-            return response;
+            return new DebugFrameworkResponseBuilder()
+                    .status(DEBUG_STATUS_FAILURE)
+                    .message("Result is null")
+                    .build();
         }
 
-        response.setDebugId(result.getDebugId());
-
         String resolvedStatus = resolveLifecycleStatus(result.getStatus());
-        response.setStatus(resolvedStatus != null ? resolvedStatus
-                : (result.isSuccessful() ? DEBUG_STATUS_SUCCESS_COMPLETE : DEBUG_STATUS_FAILURE));
-
-        response.setMessage(result.getErrorMessage());
+        String status = resolvedStatus != null ? resolvedStatus
+                : (result.isSuccessful() ? DEBUG_STATUS_SUCCESS_COMPLETE : DEBUG_STATUS_FAILURE);
 
         Map<String, Object> data = new HashMap<>();
         if (result.getResultData() != null && !result.getResultData().isEmpty()) {
@@ -76,11 +72,6 @@ public class DebugFrameworkResponse {
         if (result.getErrorCode() != null) {
             data.put(DebugFrameworkConstants.RESPONSE_KEY_ERROR_CODE, result.getErrorCode());
         }
-        if (result.getMetadata() != null && !result.getMetadata().isEmpty()) {
-            for (Map.Entry<String, Object> entry : result.getMetadata().entrySet()) {
-                data.putIfAbsent(entry.getKey(), entry.getValue());
-            }
-        }
 
         // Reserved top-level keys must not leak into the data map; protocol-specific executors
         // sometimes include them in resultData or metadata.
@@ -88,8 +79,12 @@ public class DebugFrameworkResponse {
         data.remove(DebugFrameworkConstants.RESPONSE_KEY_STATUS);
         data.remove(DebugFrameworkConstants.RESPONSE_KEY_MESSAGE);
 
-        response.setData(data);
-        return response;
+        return new DebugFrameworkResponseBuilder()
+                .debugId(result.getDebugId())
+                .status(status)
+                .message(result.getErrorMessage())
+                .data(data)
+                .build();
     }
 
     public String getDebugId() {

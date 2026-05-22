@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,17 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 public class DebugCommonAuthInterceptor implements DebugAuthenticationInterceptor {
 
     private static final Log LOG = LogFactory.getLog(DebugCommonAuthInterceptor.class);
-    private final DebugRequestCoordinator debugRequestCoordinator;
-
-    /**
-     * Creates a debug common auth interceptor.
-     *
-     * @param debugRequestCoordinator Debug request coordinator.
-     */
-    public DebugCommonAuthInterceptor(DebugRequestCoordinator debugRequestCoordinator) {
-
-        this.debugRequestCoordinator = debugRequestCoordinator;
-    }
 
     /**
      * Checks whether the request is a debug flow callback request.
@@ -51,6 +41,7 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
      * @param request Http servlet request.
      * @return {@code true} if the request should be handled by the debug flow.
      */
+    @Override
     public boolean canHandle(HttpServletRequest request) {
 
         String state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
@@ -67,6 +58,12 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
     @Override
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
 
-        return debugRequestCoordinator.handleCallbackRequest(request, response);
+        DebugRequestCoordinator coordinator =
+                DebugFrameworkServiceDataHolder.getInstance().getDebugRequestCoordinator();
+        if (coordinator == null) {
+            LOG.warn("DebugRequestCoordinator is not available. Skipping debug callback handling.");
+            return false;
+        }
+        return coordinator.handleCallbackRequest(request, response);
     }
 }

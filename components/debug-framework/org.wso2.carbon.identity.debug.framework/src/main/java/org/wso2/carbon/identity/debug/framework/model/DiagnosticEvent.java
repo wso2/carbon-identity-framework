@@ -310,95 +310,95 @@ public class DiagnosticEvent {
         private String errorDescription;
         private Map<String, Object> details;
 
-    /**
-     * Set the stage value.
-     *
-     * @param stage Stage name.
-     * @return This builder instance.
-     */
+        /**
+         * Set the stage value.
+         *
+         * @param stage Stage name.
+         * @return This builder instance.
+         */
         public Builder stage(String stage) {
 
             this.stage = stage;
             return this;
         }
 
-    /**
-     * Set the status value.
-     *
-     * @param status Status value.
-     * @return This builder instance.
-     */
+        /**
+         * Set the status value.
+         *
+         * @param status Status value.
+         * @return This builder instance.
+         */
         public Builder status(String status) {
 
             this.status = status;
             return this;
         }
 
-    /**
-     * Set the message value.
-     *
-     * @param message Event message.
-     * @return This builder instance.
-     */
+        /**
+         * Set the message value.
+         *
+         * @param message Event message.
+         * @return This builder instance.
+         */
         public Builder message(String message) {
 
             this.message = message;
             return this;
         }
 
-    /**
-     * Set the timestamp value.
-     *
-     * @param timestamp Timestamp in milliseconds.
-     * @return This builder instance.
-     */
+        /**
+         * Set the timestamp value.
+         *
+         * @param timestamp Timestamp in milliseconds.
+         * @return This builder instance.
+         */
         public Builder timestamp(long timestamp) {
 
             this.timestamp = timestamp;
             return this;
         }
 
-    /**
-     * Set the error code value.
-     *
-     * @param errorCode Error code.
-     * @return This builder instance.
-     */
+        /**
+         * Set the error code value.
+         *
+         * @param errorCode Error code.
+         * @return This builder instance.
+         */
         public Builder errorCode(String errorCode) {
 
             this.errorCode = errorCode;
             return this;
         }
 
-    /**
-     * Set the error description value.
-     *
-     * @param errorDescription Error description.
-     * @return This builder instance.
-     */
+        /**
+         * Set the error description value.
+         *
+         * @param errorDescription Error description.
+         * @return This builder instance.
+         */
         public Builder errorDescription(String errorDescription) {
 
             this.errorDescription = errorDescription;
             return this;
         }
 
-    /**
-     * Set structured details.
-     *
-     * @param details Structured details map.
-     * @return This builder instance.
-     */
+        /**
+         * Set structured details.
+         *
+         * @param details Structured details map.
+         * @return This builder instance.
+         */
         public Builder details(Map<String, Object> details) {
 
             this.details = details;
             return this;
         }
 
-    /**
-     * Build the diagnostic event.
-     *
-     * @return Built diagnostic event.
-     */
+        /**
+         * Build the diagnostic event.
+         *
+         * @return Built diagnostic event.
+         */
         public DiagnosticEvent build() {
 
             return new DiagnosticEvent(stage, status, message, timestamp, errorCode,

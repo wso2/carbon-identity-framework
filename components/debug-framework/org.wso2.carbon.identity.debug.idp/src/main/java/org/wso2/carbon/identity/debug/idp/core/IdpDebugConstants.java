@@ -25,7 +25,7 @@ public final class IdpDebugConstants {
 
     public static final String CONNECTION_ID = "connectionId";
     public static final String RESOURCE_TYPE_KEY = "resourceType";
-    public static final String RESOURCE_TYPE_IDP = "IDP";
+    public static final String IDENTITY_PROVIDER = "identityProvider";
 
     // Known implementation names used for protocol detection.
     public static final String IMPLEMENTATION_OPENID_CONNECT = "OpenIDConnectAuthenticator";
@@ -34,14 +34,14 @@ public final class IdpDebugConstants {
     public static final String IMPLEMENTATION_GITHUB = "GitHubAuthenticator";
     public static final String IMPLEMENTATION_SAML_SSO = "SAMLSSOAuthenticator";
 
-    // Canonical protocol type keys.
-    public static final String PROTOCOL_TYPE_OIDC = "OIDC";
-    public static final String PROTOCOL_TYPE_GOOGLE = "Google";
-    public static final String PROTOCOL_TYPE_FACEBOOK = "Facebook";
-    public static final String PROTOCOL_TYPE_GITHUB = "GitHub";
-    public static final String PROTOCOL_TYPE_SAML = "SAML";
+    // Canonical IdP type keys.
+    public static final String IDP_TYPE_OIDC = "OIDC";
+    public static final String IDP_TYPE_GOOGLE = "Google";
+    public static final String IDP_TYPE_FACEBOOK = "Facebook";
+    public static final String IDP_TYPE_GITHUB = "GitHub";
+    public static final String IDP_TYPE_SAML = "SAML";
 
     private IdpDebugConstants() {
-        
+
     }
 }

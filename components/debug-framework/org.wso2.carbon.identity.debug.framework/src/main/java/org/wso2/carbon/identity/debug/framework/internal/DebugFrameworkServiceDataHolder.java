@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.debug.framework.internal;
 
+import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 
 import java.util.ArrayList;
@@ -30,10 +31,8 @@ import java.util.List;
  */
 public class DebugFrameworkServiceDataHolder {
 
-    /**
-     * List of registered debug execution listeners.
-     */
     private final List<DebugExecutionListener> debugExecutionListeners = new ArrayList<>();
+    private DebugRequestCoordinator debugRequestCoordinator;
 
     /**
      * Private constructor to prevent instantiation.
@@ -100,6 +99,26 @@ public class DebugFrameworkServiceDataHolder {
                 this.debugExecutionListeners.remove(listener);
             }
         }
+    }
+
+    /**
+     * Gets the debug request coordinator.
+     *
+     * @return The debug request coordinator.
+     */
+    public DebugRequestCoordinator getDebugRequestCoordinator() {
+
+        return debugRequestCoordinator;
+    }
+
+    /**
+     * Sets the debug request coordinator.
+     *
+     * @param debugRequestCoordinator The debug request coordinator.
+     */
+    public void setDebugRequestCoordinator(DebugRequestCoordinator debugRequestCoordinator) {
+
+        this.debugRequestCoordinator = debugRequestCoordinator;
     }
 
 }

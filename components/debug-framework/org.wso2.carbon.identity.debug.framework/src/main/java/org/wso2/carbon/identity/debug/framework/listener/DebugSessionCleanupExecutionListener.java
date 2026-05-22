@@ -77,19 +77,6 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
     }
 
     /**
-     * No-op for pre-execution. Cleanup only happens after execution.
-     *
-     * @param debugFrameworkRequest The debug request about to be executed.
-     * @return true to allow execution to proceed.
-     * @throws DebugFrameworkException If an error occurs.
-     */
-    @Override
-    public boolean doPreExecute(DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException {
-
-        return true;
-    }
-
-    /**
      * Post-execute cleanup: deletes the debug session record from the database
      * after a successful response has been retrieved.
      *

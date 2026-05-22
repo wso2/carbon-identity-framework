@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.debug.idp.registry;
 
 import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,40 +43,25 @@ public class IdpDebugProviderRegistry {
 
     public void addProvider(DebugProtocolProvider provider) {
 
-        if (provider == null) {
+        if (provider == null || provider.getProtocolType() == null) {
             return;
         }
-        String key = normalize(provider.getProtocolType());
-        if (key != null) {
-            providers.put(key, provider);
-        }
+        providers.put(provider.getProtocolType(), provider);
     }
 
     public void removeProvider(DebugProtocolProvider provider) {
 
-        if (provider == null) {
+        if (provider == null || provider.getProtocolType() == null) {
             return;
         }
-        String key = normalize(provider.getProtocolType());
-        if (key != null) {
-            providers.remove(key);
-        }
+        providers.remove(provider.getProtocolType());
     }
 
     public DebugProtocolProvider getProvider(String protocolType) {
 
-        String key = normalize(protocolType);
-        if (key == null) {
+        if (protocolType == null) {
             return null;
         }
-        return providers.get(key);
-    }
-
-    private String normalize(String protocolType) {
-
-        if (protocolType == null || protocolType.trim().isEmpty()) {
-            return null;
-        }
-        return protocolType.trim().toLowerCase(Locale.ROOT);
+        return providers.get(protocolType);
     }
 }

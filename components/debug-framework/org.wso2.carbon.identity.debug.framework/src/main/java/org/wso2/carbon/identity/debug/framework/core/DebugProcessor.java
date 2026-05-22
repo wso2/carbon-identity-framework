@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.debug.framework.core;
 
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
 /**
@@ -28,16 +27,16 @@ import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 public abstract class DebugProcessor {
 
     /**
-     * Handles unexpected errors by recording error state into the debug context.
+     * Hook invoked when an unexpected error occurs while processing a debug callback.
+     * The base implementation is a no-op; the error is surfaced to the caller, which sends the
+     * debug response and rethrows. Subclasses may override to record protocol-specific error state
+     * into the context.
      *
      * @param e            The exception that occurred.
-     * @param debugContext Debug context for storing error information.
+     * @param debugContext Debug context for the current debug session.
      */
     protected void handleUnexpectedError(Exception e, DebugContext debugContext) {
 
-        debugContext.setProperty(DebugFrameworkConstants.DEBUG_PROTOCOL_CODE, null);
-        debugContext.setProperty(DebugFrameworkConstants.DEBUG_PROTOCOL_STATE, null);
-        debugContext.setProperty(DebugFrameworkConstants.DEBUG_AUTH_ERROR, "Unexpected error: " + e.getMessage());
-        debugContext.setProperty(DebugFrameworkConstants.DEBUG_AUTH_SUCCESS, DebugFrameworkConstants.FALSE_VALUE);
+        // No-op by default. Subclasses may override to record protocol-specific error state.
     }
 }

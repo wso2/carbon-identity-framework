@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.debug.framework.extension;
 
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
-import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 
 /**
  * Service interface for protocol-specific debug implementations.
@@ -51,14 +50,6 @@ public interface DebugProtocolProvider {
      * @return DebugExecutor implementation for this protocol (may be null for synchronous protocols).
      */
     DebugExecutor getExecutor();
-
-    /**
-     * Gets the processor for this protocol.
-     * The processor handles OAuth/OIDC callbacks and token exchange.
-     *
-     * @return DebugProcessor implementation for this protocol (may be null for non-callback-based protocols).
-     */
-    DebugProcessor getProcessor();
 
     /**
      * Gets the callback handler for this protocol.

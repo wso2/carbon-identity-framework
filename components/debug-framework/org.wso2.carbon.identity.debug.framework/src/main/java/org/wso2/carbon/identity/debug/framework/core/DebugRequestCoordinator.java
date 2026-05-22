@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDa
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
-import org.wso2.carbon.identity.debug.framework.model.DebugResourceType;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponseBuilder;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -79,15 +78,9 @@ public class DebugRequestCoordinator {
                 LOG.debug("Orchestrating debug request for resource type: " + debugFrameworkRequest.getResourceType());
             }
 
-            // Pre-execute listeners.
-            executePreListeners(debugFrameworkRequest);
-
-            // Route by resource type.
-            DebugResourceType type = DebugResourceType.fromString(debugFrameworkRequest.getResourceType());
-
-            // Get the handler for this resource type from the registry.
-            DebugResourceHandler handler = DebugHandlerRegistry.getInstance()
-                    .getHandler(type.name().toLowerCase(Locale.ROOT));
+            // Route by resource type. Handlers are registered under the lowercase resource-type key.
+            String resourceType = debugFrameworkRequest.getResourceType();
+            DebugResourceHandler handler = DebugHandlerRegistry.getInstance().getHandler(resourceType);
 
             if (handler == null) {
                 throw DebugFrameworkUtils.handleClientException(
@@ -109,24 +102,6 @@ public class DebugRequestCoordinator {
                 throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
             }
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
-        }
-    }
-
-    /**
-     * Executes pre-execute listeners.
-     *
-     * @param debugFrameworkRequest The debug request.
-     * @throws DebugFrameworkClientException If a listener aborts the request.
-     * @throws DebugFrameworkException If a listener throws an exception.
-     */
-    private void executePreListeners(DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException {
-
-        for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
-                .getDebugExecutionListeners()) {
-            if (listener.isEnabled() && !listener.doPreExecute(debugFrameworkRequest)) {
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "pre-execute");
-            }
         }
     }
 
@@ -165,7 +140,6 @@ public class DebugRequestCoordinator {
             return DebugFrameworkUtils.getObjectMapper()
                     .readValue(resultJson, DebugFrameworkUtils.getMapTypeReference());
         } catch (JsonProcessingException e) {
-            LOG.error("Invalid debug result JSON for debug session: " + debugId + ". Cause: " + e.getMessage());
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
@@ -192,9 +166,6 @@ public class DebugRequestCoordinator {
         debugFrameworkRequest.setResultRetrieval(true);
 
         try {
-            // Pre-execute Listeners.
-            executePreListeners(debugFrameworkRequest);
-
             // Execution: Get from store.
             String resultJson = DebugSessionStore.getInstance().getResult(debugId);
 
@@ -207,10 +178,11 @@ public class DebugRequestCoordinator {
             Map<String, Object> resultData = parseResultJson(resultJson, debugId);
 
             // Build a structured response: debugId and status at top level, metadata in data.
-            DebugFrameworkResponse debugFrameworkResponse = new DebugFrameworkResponse();
-            debugFrameworkResponse.setDebugId(debugId);
-            debugFrameworkResponse.setStatus(DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE);
-            debugFrameworkResponse.setData(resultData);
+            DebugFrameworkResponse debugFrameworkResponse = new DebugFrameworkResponseBuilder()
+                    .debugId(debugId)
+                    .status(DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE)
+                    .data(resultData)
+                    .build();
 
             // Post-Execute Listeners.
             executePostListeners(debugFrameworkResponse, debugFrameworkRequest);

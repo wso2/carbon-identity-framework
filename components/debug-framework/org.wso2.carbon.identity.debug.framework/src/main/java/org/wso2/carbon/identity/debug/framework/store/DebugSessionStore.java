@@ -131,34 +131,6 @@ public final class DebugSessionStore {
     }
 
     /**
-     * Atomically removes a debug context from the session store.
-     * Fetches the record first, then deletes. If deletion fails, the fetched value
-     * is not returned to prevent state inconsistency. This ensures that if the caller
-     * receives data, it has been deleted from the store.
-     *
-     * @param key Store key.
-     * @return Previously cached context map or empty map if not found or deletion failed.
-     */
-    public Map<String, Object> remove(String key) throws DebugFrameworkServerException {
-
-        if (key == null) {
-            return new HashMap<>();
-        }
-        try {
-            DebugSessionData data = debugSessionDAO.deleteAndReturnDebugSession(key);
-            if (data != null && data.getSessionData() != null) {
-                return DebugFrameworkUtils.getObjectMapper()
-                        .readValue(data.getSessionData(), DebugFrameworkUtils.getMapTypeReference());
-            }
-        } catch (IOException e) {
-            String errorMsg = "Error retrieving debug session: " + key + " for removal";
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
-        }
-        return new HashMap<>();
-    }
-
-    /**
      * Stores a debug result as JSON string for final results.
      *
      * @param key    Store key (typically state parameter).
@@ -201,18 +173,6 @@ public final class DebugSessionStore {
             return data.getResultJson();
         }
         return null;
-    }
-
-    /**
-     * Removes a stored debug result.
-     *
-     * @param key Store key.
-     */
-    public void removeResult(String key) throws DebugFrameworkServerException {
-
-        if (key != null) {
-            debugSessionDAO.deleteDebugSession(key);
-        }
     }
 
     /**

@@ -45,15 +45,6 @@ public interface DebugExecutionListener {
     boolean isEnabled();
 
     /**
-     * Pre-execute method called before the debug request is processed.
-     *
-     * @param debugFrameworkRequest The debug request about to be executed.
-     * @return true if execution should proceed, false to abort.
-     * @throws DebugFrameworkException If an error occurs during pre-execution.
-     */
-    boolean doPreExecute(DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException;
-
-    /**
      * Post-execute method called after the debug request is processed.
      *
      * @param debugFrameworkResponse The debug response from execution.

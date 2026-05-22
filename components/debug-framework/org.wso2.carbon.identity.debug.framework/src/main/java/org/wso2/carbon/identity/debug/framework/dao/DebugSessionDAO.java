@@ -68,13 +68,4 @@ public interface DebugSessionDAO {
      * @throws DebugFrameworkServerException If an error occurs during deletion.
      */
     void deleteExpiredDebugSessions() throws DebugFrameworkServerException;
-
-    /**
-     * Deletes a debug session and returns its data.
-     *
-     * @param debugId Debug ID.
-     * @return The deleted DebugSessionData or null if not found.
-     * @throws DebugFrameworkServerException If an error occurs.
-     */
-    DebugSessionData deleteAndReturnDebugSession(String debugId) throws DebugFrameworkServerException;
 }

@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -40,8 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 public class CommonAuthenticationHandler {
 
     private static final Log log = LogFactory.getLog(CommonAuthenticationHandler.class);
-    private static final String CALLBACK_STATE_PARAM = "state";
-    private static final String DEBUG_PREFIX = "debug-";
 
     public CommonAuthenticationHandler() {
         ConfigurationFacade.getInstance();
@@ -60,11 +57,13 @@ public class CommonAuthenticationHandler {
         }
 
         try {
-            List<DebugAuthenticationInterceptor> interceptors = FrameworkServiceDataHolder.getInstance()
-                    .getDebugAuthenticationInterceptors();
-            if (isDebugRequest(request) && !interceptors.isEmpty()
-                    && interceptors.get(0).handleCommonAuthRequest(request, response)) {
-                return;
+            // Give each registered debug interceptor a chance to claim the request. The first one
+            // that can handle it and reports the request as fully handled short-circuits the flow.
+            for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
+                    .getDebugAuthenticationInterceptors()) {
+                if (interceptor.canHandle(request) && interceptor.handleCommonAuthRequest(request, response)) {
+                    return;
+                }
             }
 
             // If not a debug flow, proceed with regular authentication.
@@ -82,11 +81,4 @@ public class CommonAuthenticationHandler {
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         }
     }
-    
-    private boolean isDebugRequest(HttpServletRequest request) {
-
-        String state = request.getParameter(CALLBACK_STATE_PARAM);
-        return state != null && state.startsWith(DEBUG_PREFIX);
-    }
-
 }

@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.debug.idp.core.handler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
-import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugExecutionException;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkClientException;
@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
 import org.wso2.carbon.identity.debug.idp.registry.IdpDebugProviderRegistry;
 import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver;
+import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugProtocolResolver.ProtocolResolutionResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,8 +51,6 @@ import java.util.Map;
 public class IdpDebugResourceHandler implements DebugResourceHandler {
 
     private static final Log LOG = LogFactory.getLog(IdpDebugResourceHandler.class);
-    private static final IdpDebugProtocolResolver RESOLVER = new IdpDebugProtocolResolver();
-
 
     /**
      * Handles a debug request using typed classes.
@@ -81,23 +80,19 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         }
 
         try {
-            DebugProtocolProvider protocolProvider = resolveProtocolProvider(connectionId);
-            DebugContext resolvedContext = resolveDebugContext(connectionId, resourceType, protocolProvider);
-            DebugExecutor executor = getExecutor(protocolProvider, connectionId);
-            if (executor == null) {
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);
-            }
+            ProtocolResolutionResult resolutionResult = resolveProtocol(connectionId);
+            DebugProtocolProvider protocolProvider = resolveProtocolProvider(resolutionResult, connectionId);
+            DebugContext resolvedContext = resolveDebugContext(connectionId, resourceType,
+                    resolutionResult.getIdentityProvider(), protocolProvider);
 
-            DebugResult debugResult = executor.execute(resolvedContext);
+            DebugResult debugResult = protocolProvider.getExecutor().execute(resolvedContext);
             return DebugFrameworkResponse.fromDebugResult(debugResult);
 
-        } catch (DebugFrameworkClientException e) {
-            throw e;
         } catch (ContextResolutionException e) {
-            throw new DebugFrameworkClientException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED, e,
+                    connectionId);
         } catch (DebugExecutionException e) {
-            LOG.error("Error in IdP debug handler for resource: " + connectionId);
+                        LOG.error("Error in IdP debug handler for resource: " + connectionId);
             throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
@@ -108,88 +103,52 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
      * @param connectionId The connection ID.
      * @param resourceType The resource type.
      * @return DebugContext containing the resolved context.
-     * @throws ContextResolutionException    If context resolution fails.
-     * @throws DebugFrameworkClientException If context provider is not available.
+     * @throws ContextResolutionException   If context resolution fails.
+     * @throws DebugFrameworkServerException If context provider is not available.
      */
     protected DebugContext resolveDebugContext(String connectionId, String resourceType,
-            DebugProtocolProvider protocolProvider)
-            throws ContextResolutionException, DebugFrameworkClientException {
+            IdentityProvider identityProvider, DebugProtocolProvider protocolProvider)
+            throws ContextResolutionException, DebugFrameworkServerException {
 
-        DebugContextProvider contextProvider = getContextProvider(protocolProvider, connectionId);
+        DebugContextProvider contextProvider = protocolProvider.getContextProvider();
 
         if (contextProvider == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Context provider not available for resource: " + connectionId);
             }
-            throw DebugFrameworkUtils.handleClientException(
-                    ErrorMessages.ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND, connectionId);
+            throw new DebugFrameworkServerException(
+                    ErrorMessages.ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND.getCode(),
+                    ErrorMessages.ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND.getMessage(),
+                    String.format(ErrorMessages.ERROR_CODE_CONTEXT_PROVIDER_NOT_FOUND.getDescription(), connectionId));
         }
 
         Map<String, Object> params = new HashMap<>();
         params.put(IdpDebugConstants.CONNECTION_ID, connectionId);
         params.put(IdpDebugConstants.RESOURCE_TYPE_KEY, resourceType);
-        DebugContext debugContext = contextProvider.resolveContext(params);
-        if (debugContext == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug context is null for resource: " + connectionId);
-            }
-            throw new ContextResolutionException(
-                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getCode(),
-                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getMessage(),
-                    String.format(ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED
-                        .getDescription(), connectionId));
-        }
-        return debugContext;
+        params.put(IdpDebugConstants.IDENTITY_PROVIDER, identityProvider);
+        return contextProvider.resolveContext(params);
     }
 
-    protected DebugProtocolProvider resolveProtocolProvider(String connectionId) {
+    protected ProtocolResolutionResult resolveProtocol(String connectionId)
+            throws DebugFrameworkClientException {
 
-        String protocolType = RESOLVER.resolveProtocol(connectionId);
-        if (StringUtils.isBlank(protocolType)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No protocol resolved for connection: " + connectionId);
-            }
-            return null;
+        ProtocolResolutionResult result = IdpDebugProtocolResolver.resolveProtocol(connectionId);
+        if (result == null) {
+            throw DebugFrameworkUtils.handleClientException(
+                    ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);
         }
+        return result;
+    }
 
-        DebugProtocolProvider provider = IdpDebugProviderRegistry.getInstance().getProvider(protocolType);
-        if (provider == null && LOG.isDebugEnabled()) {
-            LOG.debug("No provider registered for protocol: " + protocolType);
+    protected DebugProtocolProvider resolveProtocolProvider(ProtocolResolutionResult resolutionResult,
+            String connectionId) throws DebugFrameworkClientException {
+
+        DebugProtocolProvider provider = IdpDebugProviderRegistry.getInstance()
+                .getProvider(resolutionResult.getProtocolKey());
+        if (provider == null) {
+            throw DebugFrameworkUtils.handleClientException(
+                    ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);
         }
         return provider;
-    }
-
-    /**
-     * Retrieves the protocol-specific context provider from the resolved protocol provider.
-     *
-     * @param protocolProvider The resolved protocol provider.
-     * @param connectionId The connection ID identifying the IdP resource.
-     * @return DebugContextProvider instance, or null if not available.
-     */
-    protected DebugContextProvider getContextProvider(DebugProtocolProvider protocolProvider, String connectionId) {
-
-        if (protocolProvider == null) {
-            return null;
-        }
-
-        DebugContextProvider contextProvider = protocolProvider.getContextProvider();
-        if (contextProvider == null && LOG.isDebugEnabled()) {
-            LOG.debug("No DebugContextProvider found for resource: " + connectionId +
-                    ". Ensure the protocol module is deployed and active.");
-        }
-        return contextProvider;
-    }
-
-    protected DebugExecutor getExecutor(DebugProtocolProvider protocolProvider, String connectionId) {
-
-        if (protocolProvider == null) {
-            return null;
-        }
-
-        DebugExecutor executor = protocolProvider.getExecutor();
-        if (executor == null && LOG.isDebugEnabled()) {
-            LOG.debug("No DebugExecutor found for resource: " + connectionId);
-        }
-        return executor;
     }
 }
