@@ -163,7 +163,9 @@ public class Constants {
         ERROR_CODE_GET_CLAIM_META_DATA_FAILURE("65032",
                 "Error while loading claim metadata.",
                 "Error occurred loading the claim metadata for tenant: %s."),
-
+        ERROR_CODE_POLICY_CONSENT_FAILURE("65033",
+                "Error occurred during policy consent processing.",
+                "Error occurred while processing policy consent for the %s request of flow id: %s."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -213,10 +215,7 @@ public class Constants {
                 "The provided username: %s does not meet the configured format requirements."),
         ERROR_CODE_PASSWORD_FORMAT_VALIDATION_FAILED("60016",
                 "Password does not meet the required format.",
-                "The provided password does not meet the configured format requirements."),
-        ERROR_CODE_POLICY_CONSENT_FAILURE("65033",
-                "Error occurred during policy consent processing.",
-                "Error occurred while processing policy consent for the %s request of flow id: %s.")
+                "The provided password does not meet the configured format requirements.")
         ;
 
         private static final String ERROR_PREFIX = "FE";

@@ -54,7 +54,6 @@ public final class PolicyConsentUtil {
 
     private static final String POLICY_URL_PROPERTY_KEY = "policyUrl";
     private static final String PROMPT_ON_LOGIN_PROPERTY_KEY = "promptOnLogin";
-    private static final int MAX_POLICY_PURPOSES_COUNT = 200;
 
     private PolicyConsentUtil() {
     }
@@ -256,7 +255,7 @@ public final class PolicyConsentUtil {
         expressionNode.setOperation("eq");
         expressionNode.setValue(PURPOSE_GROUP_TYPE_POLICY);
         List<Purpose> purposes = consentManager.listPurposes(
-                Collections.singletonList(expressionNode), MAX_POLICY_PURPOSES_COUNT);
+                Collections.singletonList(expressionNode), 0);
         return purposes != null ? purposes : Collections.emptyList();
     }
 
@@ -291,7 +290,8 @@ public final class PolicyConsentUtil {
         if (version == null || version.getProperties() == null) {
             return false;
         }
-        return "true".equalsIgnoreCase(version.getProperties().get(PROMPT_ON_LOGIN_PROPERTY_KEY));
+
+        return Boolean.parseBoolean(version.getProperties().get(PROMPT_ON_LOGIN_PROPERTY_KEY));
     }
 
     static boolean missingConsentForVersion(String subjectId, Purpose purpose, PurposeVersion promptOnLoginVersion,

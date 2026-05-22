@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
@@ -186,7 +187,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             throw new PostAuthenticationFailedException(
-                    "Authentication failed. Error occurred while retrieving unconsented policy purposes.",
+                    ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
                     String.format("Error retrieving unconsented policy purposes for user: %s in tenant: %s.",
                             subjectId, tenantDomain), e);
         }
@@ -194,7 +195,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (!hasUnconsentedPolicies) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("No unconsented policy purposes found for user: %s. "
-                        + "Policy consent handling complete.", subjectId));
+                        + "Policy consent handling complete.", LoggerUtils.isLogMaskingEnable ?
+                        LoggerUtils.getMaskedContent(subjectId) : subjectId));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -204,8 +206,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             redirectToPolicyConsentPage(response, context);
         } catch (IOException | URISyntaxException e) {
             throw new PostAuthenticationFailedException(
-                    "Authentication failed. Error while redirecting to policy consent page.",
-                    "Error while redirecting to policy consent page.", e);
+                    ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
+                    "Error while redirecting to the policy consent page.", e);
         }
         return PostAuthnHandlerFlowStatus.INCOMPLETE;
     }
@@ -243,8 +245,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new PostAuthenticationFailedException(
-                    "Authentication failed. User denied policy consent.",
-                    "User denied consent to accept the required policies.");
+                    ErrorMessages.USER_DENIED_MANDATORY_POLICY_CONSENT.getCode(),
+                    ErrorMessages.USER_DENIED_MANDATORY_POLICY_CONSENT.getMessage());
         }
 
         String[] mandatoryParam = request.getParameterValues(POLICY_MANDATORY_IDS_PARAM);
@@ -275,7 +277,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 throw new PostAuthenticationFailedException(
-                        "Authentication failed. Mandatory policy consent is incomplete.",
+                        ErrorMessages.USER_DENIED_MANDATORY_POLICY_CONSENT.getCode(),
                         String.format("User: %s did not consent to all mandatory policies in tenant: %s.",
                                 subjectId, tenantDomain));
             }
@@ -290,7 +292,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new PostAuthenticationFailedException(
-                    "Authentication failed. Error occurred while validating mandatory policy consent.",
+                    ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
                     String.format("Error validating mandatory policy consent for user: %s in tenant: %s.",
                             subjectId, tenantDomain), e);
         }
@@ -315,7 +317,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 recordPolicyConsent(subjectId, tenantDomain, purposeId, ACTIVE_STATE);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Recorded ACTIVE policy consent for user: %s, purpose: %s.",
-                            subjectId, purposeId));
+                            LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(subjectId) : subjectId,
+                            purposeId));
                 }
             }
             for (String purposeId : optionalIds) {
@@ -323,7 +326,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 recordPolicyConsent(subjectId, tenantDomain, purposeId, state);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Recorded %s policy consent for user: %s, purpose: %s.",
-                            state, subjectId, purposeId));
+                            state,
+                            LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(subjectId) : subjectId,
+                            purposeId));
                 }
             }
         } catch (ConsentManagementException e) {
@@ -334,8 +339,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new PostAuthenticationFailedException(
-                    "Authentication failed. Error occurred while processing policy consent.",
-                    String.format("Error processing policy consent for user: %s in tenant: %s.",
+                    ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
+                    String.format("Error recording policy consent for user: %s in tenant: %s.",
                             subjectId, tenantDomain), e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();

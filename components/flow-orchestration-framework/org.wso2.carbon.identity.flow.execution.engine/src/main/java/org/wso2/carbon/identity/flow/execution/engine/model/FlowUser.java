@@ -267,7 +267,7 @@ public class FlowUser implements Serializable {
                     consents.add(consent);
                 });
             } catch (IOException e) {
-                LOG.error("Error while parsing consent JSON value.", e);
+                throw new IllegalArgumentException("Invalid consent payload.", e);
             }
             return consents;
         }
@@ -277,29 +277,14 @@ public class FlowUser implements Serializable {
             return purposeType;
         }
 
-        public void setPurposeType(String purposeType) {
-
-            this.purposeType = purposeType;
-        }
-
         public List<String> getAccepted() {
 
             return accepted;
         }
 
-        public void setAccepted(List<String> accepted) {
-
-            this.accepted = accepted;
-        }
-
         public List<String> getRejected() {
 
             return rejected;
-        }
-
-        public void setRejected(List<String> rejected) {
-
-            this.rejected = rejected;
         }
     }
 

@@ -3736,11 +3736,7 @@ public class FrameworkUtils {
      */
     public static boolean isConsentV2APIEnabled() {
 
-        String value = IdentityUtil.getProperty(ENABLE_V2_API_PROPERTY);
-        if (StringUtils.isBlank(value)) {
-            return false;
-        }
-        return Boolean.parseBoolean(value);
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_V2_API_PROPERTY));
     }
 
     /**
