@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -527,7 +528,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionResponseProcessorException {
 
         String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        RealmService realmService = PreUpdateProfileActionServiceComponentHolder.getInstance().getRealmService();
+        RealmService realmService = ActionExecutionServiceComponentHolder.getInstance().getRealmService();
 
         if (realmService == null) {
             throw new ActionExecutionResponseProcessorException("Realm service is unavailable.");
