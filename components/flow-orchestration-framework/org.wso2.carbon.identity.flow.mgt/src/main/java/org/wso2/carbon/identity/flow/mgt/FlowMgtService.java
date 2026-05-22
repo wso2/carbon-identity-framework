@@ -33,9 +33,11 @@ import org.wso2.carbon.identity.flow.mgt.dao.FlowDAO;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtFrameworkException;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.internal.FlowMgtServiceDataHolder;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowConfigDTO;
 import org.wso2.carbon.identity.flow.mgt.model.FlowDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils;
 import org.wso2.carbon.identity.flow.mgt.utils.GraphBuilder;
@@ -47,7 +49,11 @@ import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
 import org.wso2.carbon.utils.AuditLog;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
@@ -96,7 +102,8 @@ public class FlowMgtService {
                 new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                         flowConfig.getId(),
                         LoggerUtils.Target.Flow.name(),
-                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()));
+                        String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW, flowDTO.getFlowType()))
+                        .data(buildExecutorAuditData(flowConfig));
         triggerAuditLogEvent(auditLogBuilder, true);
     }
 
@@ -212,7 +219,8 @@ public class FlowMgtService {
                         flowConfigDTO.getFlowType(),
                         LoggerUtils.Target.Flow.name(),
                         String.format("%s%s", LogConstants.FlowManagement.UPDATE_FLOW_CONFIG,
-                                flowConfigDTO.getFlowType()));
+                                flowConfigDTO.getFlowType()))
+                        .data(buildFlowConfigAuditData(updatedFlowConfigDTO));
         triggerAuditLogEvent(auditLogBuilder, true);
         return updatedFlowConfigDTO;
     }
@@ -238,7 +246,8 @@ public class FlowMgtService {
                     new FirstFoundAggregationStrategy<>());
 
             if (resolvedTenantId != null) {
-                FlowResolveCache.getInstance().addToCache(cacheKey, new FlowResolveCacheEntry(resolvedTenantId), tenantID);
+                FlowResolveCache.getInstance().addToCache(cacheKey, new FlowResolveCacheEntry(resolvedTenantId),
+                        tenantID);
             }
             return resolvedTenantId;
         } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
@@ -267,5 +276,34 @@ public class FlowMgtService {
         } catch (OrganizationManagementException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_CLEAR_CACHE_FAILED, e, currentTenantDomain);
         }
+    }
+
+    private Map<String, Object> buildFlowConfigAuditData(FlowConfigDTO flowConfigDTO) {
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("isEnabled", flowConfigDTO.getIsEnabled());
+        Map<String, String> completionConfigs = flowConfigDTO.getAllFlowCompletionConfigs();
+        if (completionConfigs != null && !completionConfigs.isEmpty()) {
+            data.put("flowCompletionConfigs", completionConfigs);
+        }
+        return data;
+    }
+
+    private Map<String, Object> buildExecutorAuditData(GraphConfig graphConfig) {
+
+        List<Map<String, Object>> executors = new ArrayList<>();
+        for (NodeConfig node : graphConfig.getNodeConfigs().values()) {
+            ExecutorDTO executor = node.getExecutorConfig();
+            if (executor == null) {
+                continue;
+            }
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("executor", executor.getName());
+            if (executor.getMetadata() != null && !executor.getMetadata().isEmpty()) {
+                entry.put("metadata", executor.getMetadata());
+            }
+            executors.add(entry);
+        }
+        return Collections.singletonMap("executors", executors);
     }
 }
