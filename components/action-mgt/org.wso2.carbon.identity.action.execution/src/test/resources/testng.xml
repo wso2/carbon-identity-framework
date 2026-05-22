@@ -29,6 +29,7 @@
             <class name="org.wso2.carbon.identity.action.execution.util.PerformableOperationBuilderTest"/>
             <class name="org.wso2.carbon.identity.action.execution.util.ActionSecretProcessorTest"/>
             <class name="org.wso2.carbon.identity.action.execution.util.TokenManagerTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.util.RequestBuilderUtilTest"/>
         </classes>
     </test>
     <test name="action-execution-configuration-test">

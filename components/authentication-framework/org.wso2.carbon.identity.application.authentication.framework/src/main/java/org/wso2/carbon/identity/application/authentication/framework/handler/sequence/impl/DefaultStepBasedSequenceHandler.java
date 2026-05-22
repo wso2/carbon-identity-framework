@@ -587,6 +587,13 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             String userResidentOrganization = impersonatingActor.getUserResidentOrganization();
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
 
+            // Impersonating actor is a shared user logging in through a shared app.
+            if (StringUtils.isNotBlank(accessingOrganization) &&
+                    StringUtils.isNotBlank(userResidentOrganization) &&
+                    !accessingOrganization.equals(userResidentOrganization)) {
+                userResidentOrganization = accessingOrganization;
+            }
+
             try {
                 // Create an impersonated user object using the requested subject.
                 return new ImpersonatedUser(

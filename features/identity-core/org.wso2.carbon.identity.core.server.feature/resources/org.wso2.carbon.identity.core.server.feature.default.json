@@ -728,6 +728,8 @@
   "event.default_listener.outbound_provisioning_error_handler.enable": true,
   "event.default_listener.fragment_app_mgt_listener.priority": "50",
   "event.default_listener.fragment_app_mgt_listener.enable": true,
+  "event.default_listener.sub_org_application_mgt_listener.priority": "375",
+  "event.default_listener.sub_org_application_mgt_listener.enable": true,
   "event.default_listener.organization_user_operation_listener.priority": "115",
   "event.default_listener.organization_user_operation_listener.enable": true,
   "event.default_listener.organization_discovery_user_operation_listener.priority": "114",
@@ -1409,7 +1411,8 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [
-    "microsoft-365"
+    "microsoft-365",
+    "agent-application"
   ],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],

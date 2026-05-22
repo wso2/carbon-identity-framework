@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
+import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
@@ -188,9 +189,10 @@ public class PreUpdatePasswordRequestBuilderV2 implements ActionExecutionRequest
                 }
             }
         } else {
-            claimValues = PreUpdatePasswordRequestBuilderUtil.getClaimValues(
+            String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
+            claimValues = RequestBuilderUtil.getClaimValues(
                     userActionContext.getUserActionRequestDTO().getUserId(),
-                    userClaimsToSetInEvent);
+                    userClaimsToSetInEvent, tenantDomain);
         }
 
         setClaimsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);

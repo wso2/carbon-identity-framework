@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.api.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
@@ -28,11 +29,17 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.service.ActionValidator;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementConfig;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -82,6 +89,7 @@ public class DefaultActionValidator implements ActionValidator {
         doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
         doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
+        validateActionAttributes(action.getAttributes());
         isRulesApplicableForActionVersion(actionVersion, action);
     }
 
@@ -110,6 +118,7 @@ public class DefaultActionValidator implements ActionValidator {
             doValidateAllowedHeaders(action.getEndpoint().getAllowedHeaders());
             doValidateAllowedParams(action.getEndpoint().getAllowedParameters());
         }
+        validateActionAttributes(action.getAttributes());
         isRulesApplicableForActionVersion(actionVersion, action);
     }
 
@@ -350,6 +359,66 @@ public class DefaultActionValidator implements ActionValidator {
             LOG.debug("Skipping rule revalidation as rules are already validated for the action type. If action " +
                     "version–specific rule validation is required, it must be handled in the corresponding " +
                     "downstream action component.");
+        }
+    }
+
+    /**
+     * Validate the action attributes.
+     *
+     * @param attributes   List of attributes to be validated.
+     * @throws ActionMgtException If any attribute is invalid or maximum limit is exceeded.
+     */
+    public void validateActionAttributes(List<String> attributes)
+            throws ActionMgtException {
+
+        if (attributes == null || attributes.isEmpty()) {
+            return;
+        }
+
+        // Validate count
+        if (attributes.size() > ActionMgtConstants.MAX_ATTRIBUTES) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED,
+                    String.valueOf(attributes.size()),
+                    String.valueOf(ActionMgtConstants.MAX_ATTRIBUTES));
+        }
+
+        ClaimMetadataManagementService claimMetadataManagementService = ActionMgtServiceComponentHolder.getInstance()
+                .getClaimMetadataManagementService();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        Set<String> localClaimUris = new HashSet<>();
+
+        try {
+            if (claimMetadataManagementService == null) {
+                throw ActionManagementExceptionHandler.handleServerException(
+                        ErrorMessage.ERROR_WHILE_RETRIEVING_CLAIM_METADATA,
+                        new IllegalStateException("Claim metadata management service is not available."));
+            }
+            List<LocalClaim> localClaims = claimMetadataManagementService.getLocalClaims(tenantDomain);
+            for (LocalClaim localClaim : localClaims) {
+                localClaimUris.add(localClaim.getClaimURI());
+            }
+        } catch (ClaimMetadataException e) {
+            throw ActionManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_CLAIM_METADATA, e);
+        }
+
+        // Validate each attribute
+        for (String attribute : attributes) {
+            if (StringUtils.isBlank(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES, "Each attribute must be a non-empty string.");
+            }
+            if (ActionMgtConstants.ROLE_CLAIM_URI.equals(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
+                        "The attribute " + attribute + " is not supported to be shared with the extension.");
+            }
+            if (!localClaimUris.contains(attribute)) {
+                throw ActionManagementExceptionHandler.handleClientException(
+                        ErrorMessage.ERROR_INVALID_ATTRIBUTES,
+                        "The provided " + attribute + " attribute is not available in the system.");
+            }
         }
     }
 }

@@ -22,6 +22,7 @@
   "identity_mgt.inactive_account_suspension.suspend_when_inactive_for": "identity_mgt.events.schemes.'suspension.notification'.properties.'account.disable.delay'",
   "identity_mgt.inactive_account_suspension.notify_when_inactive_for": "identity_mgt.events.schemes.'suspension.notification'.properties.delays",
   "identity_mgt.inactive_account_suspension.trigger_notifications_at": "identity_mgt.events.schemes.'suspension.notification'.properties.'trigger.time'",
+  "identity_mgt.inactive_account_suspension.date_format": "identity_mgt.events.schemes.'suspension.notification'.properties.'date.format'",
 
   "identity_mgt.analytics_login_data_publisher.subscriptions": "identity_mgt.events.schemes.analyticsLoginDataPublisher.subscriptions",
   "identity_mgt.analytics_login_data_publisher.enable": "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enable",

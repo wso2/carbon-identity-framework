@@ -167,4 +167,35 @@ public class PreUpdateProfileActionRuleEvaluationDataProviderTest {
         IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
+
+    @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
+    public void testGetEvaluationDataWithNullFlow() throws RuleEvaluationDataProviderException {
+
+        Field flowField = new Field("flow", ValueType.STRING);
+        doReturn(Collections.singletonList(flowField)).when(ruleEvaluationContext).getFields();
+        dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
+    }
+
+    @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
+    public void testGetEvaluationDataWithNullFlowAttributes() throws RuleEvaluationDataProviderException {
+
+        Field flowField = new Field("flow", ValueType.STRING);
+        doReturn(Collections.singletonList(flowField)).when(ruleEvaluationContext).getFields();
+        doReturn(null).when(flow).getName();
+        doReturn(null).when(flow).getInitiatingPersona();
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
+        dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
+    }
+
+    @Test(expectedExceptions = RuleEvaluationDataProviderException.class)
+    public void testGetEvaluationDataWithInvalidUserActionContextType() throws RuleEvaluationDataProviderException {
+
+        Field claimField = new Field("claim", ValueType.REFERENCE);
+        doReturn(Collections.singletonList(claimField)).when(ruleEvaluationContext).getFields();
+        Map<String, Object> contextMap = new HashMap<>();
+        contextMap.put(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY, "invalidType");
+        doReturn(contextMap).when(flowContext).getContextData();
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(flow);
+        dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
+    }
 }
