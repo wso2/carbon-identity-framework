@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.flow.extensions.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.wso2.carbon.identity.action.execution.api.model.User;
 
 /**
  * Models the {@code flow} object nested inside the In-Flow Extension Event.
@@ -29,7 +28,7 @@ public class InFlowExtensionFlow {
 
     private final String flowType;
     private final String flowId;
-    private final User user;
+    private final InFlowUser user;
 
     private InFlowExtensionFlow(Builder builder) {
 
@@ -54,7 +53,7 @@ public class InFlowExtensionFlow {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public User getUser() {
+    public InFlowUser getUser() {
 
         return user;
     }
@@ -63,7 +62,7 @@ public class InFlowExtensionFlow {
 
         private String flowType;
         private String flowId;
-        private User user;
+        private InFlowUser user;
 
         public Builder flowType(String flowType) {
 
@@ -77,7 +76,7 @@ public class InFlowExtensionFlow {
             return this;
         }
 
-        public Builder user(User user) {
+        public Builder user(InFlowUser user) {
 
             this.user = user;
             return this;
