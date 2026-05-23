@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
-import org.wso2.carbon.identity.action.execution.api.model.Header;
 import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
@@ -105,7 +104,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         InFlowExtensionEvent event = buildEvent(execCtx, exposeResolution.getEffectiveExposePaths(),
                 accessConfig, certificatePEM);
-        return buildRequestPayload(execCtx, event, allowedOperations);
+        return buildRequestPayload(event, allowedOperations);
     }
 
     /**
@@ -158,49 +157,17 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             throws ActionExecutionRequestBuilderException {
 
         InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
-        eventBuilder.request(buildRequest());
+        InFlowExtensionFlow.Builder flowBuilder = new InFlowExtensionFlow.Builder();
 
         applyTenant(eventBuilder, context, expose);
         applyOrganization(eventBuilder);
         applyApplication(eventBuilder, context, expose);
-        applyUserAndUserStore(eventBuilder, context, expose, accessConfig, certificatePEM);
-        applyFlowMetadata(eventBuilder, context, expose);
+        applyUserAndUserStore(flowBuilder, context, expose, accessConfig, certificatePEM);
+        applyFlowMetadata(flowBuilder, eventBuilder, context, expose);
         applyFlowProperties(eventBuilder, context, expose, accessConfig, certificatePEM);
 
+        eventBuilder.flow(flowBuilder.build());
         return eventBuilder.build();
-    }
-
-    /**
-     * Build the {@link InFlowExtensionRequest} carrying the inbound HTTP request's additional
-     * headers. Headers are sourced from the {@link IdentityContext} thread-local populated by
-     * {@code IdentityContextCreatorValve}. The action framework filters these against the
-     * action's allowed-headers list before dispatching.
-     *
-     * @return Populated request (empty headers list if no inbound request is available).
-     */
-    private InFlowExtensionRequest buildRequest() {
-
-        InFlowExtensionRequest request = new InFlowExtensionRequest();
-
-        org.wso2.carbon.identity.core.context.model.Request inboundRequest =
-                IdentityContext.getThreadLocalIdentityContext().getRequest();
-        if (inboundRequest == null) {
-            return request;
-        }
-
-        List<Header> headers = new ArrayList<>();
-        for (org.wso2.carbon.identity.core.context.model.Header coreHeader : inboundRequest.getHeaders()) {
-            if (coreHeader.getName() == null) {
-                continue;
-            }
-            List<String> values = coreHeader.getValue();
-            String[] valueArray = values != null
-                    ? values.toArray(new String[0]) : new String[0];
-            headers.add(new Header(coreHeader.getName(), valueArray));
-        }
-        request.setAdditionalHeaders(headers);
-
-        return request;
     }
 
     /**
@@ -321,17 +288,18 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         triggerFallbackDiagnostic(execCtx);
 
         InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
-                .flowId(execCtx.getContextIdentifier())
+                .flow(new InFlowExtensionFlow.Builder()
+                        .flowId(execCtx.getContextIdentifier())
+                        .build())
                 .build();
-        return buildRequestPayload(execCtx, event, allowedOperations);
+        return buildRequestPayload(event, allowedOperations);
     }
 
-    private ActionExecutionRequest buildRequestPayload(FlowExecutionContext execCtx, InFlowExtensionEvent event,
+    private ActionExecutionRequest buildRequestPayload(InFlowExtensionEvent event,
                                                        List<AllowedOperation> allowedOperations) {
 
         return new ActionExecutionRequest.Builder()
                 .actionType(ActionType.FLOW_EXTENSIONS)
-                .flowId(execCtx.getContextIdentifier())
                 .event(event)
                 .allowedOperations(allowedOperations)
                 .build();
@@ -528,7 +496,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         eventBuilder.application(new Application(appId != null ? appId : "", null));
     }
 
-    private void applyUserAndUserStore(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+    private void applyUserAndUserStore(InFlowExtensionFlow.Builder flowBuilder, FlowExecutionContext context,
                                        List<String> expose, AccessConfig accessConfig,
                                        String certificatePEM) throws ActionExecutionRequestBuilderException {
 
@@ -541,17 +509,18 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             return;
         }
 
-        eventBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
+        flowBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
     }
 
-    private void applyFlowMetadata(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
-                                   List<String> expose) {
+    private void applyFlowMetadata(InFlowExtensionFlow.Builder flowBuilder,
+                                   InFlowExtensionEvent.Builder eventBuilder,
+                                   FlowExecutionContext context, List<String> expose) {
 
         if (isLeafExposed(InFlowExtensionConstants.FLOW_TYPE_PATH, expose)) {
-            eventBuilder.flowType(context.getFlowType() != null ? context.getFlowType() : "");
+            flowBuilder.flowType(context.getFlowType() != null ? context.getFlowType() : "");
         }
 
-        eventBuilder.flowId(context.getContextIdentifier());
+        flowBuilder.flowId(context.getContextIdentifier());
 
         if (isLeafExposed(InFlowExtensionConstants.FLOW_CALLBACK_URL_PATH, expose)) {
             eventBuilder.callbackUrl(context.getCallbackUrl() != null ? context.getCallbackUrl() : "");

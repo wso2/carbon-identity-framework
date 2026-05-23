@@ -130,7 +130,7 @@ public class InFlowExtensionRequestBuilderTest {
         // With empty expose, no context areas should be included in the event.
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         assertNotNull(event);
-        assertNull(event.getFlowType());
+        assertNull(event.getFlow().getFlowType());
         // flowProperties defaults to emptyMap() in the builder — verify it is empty.
         assertTrue(event.getFlowProperties().isEmpty());
     }
@@ -200,9 +200,10 @@ public class InFlowExtensionRequestBuilderTest {
 
                 InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
                 assertNotNull(event);
-                assertEquals(event.getFlowId(), execCtx.getContextIdentifier());
-                assertNull(event.getUser());
-                assertNull(event.getFlowType());
+                assertNotNull(event.getFlow());
+                assertEquals(event.getFlow().getFlowId(), execCtx.getContextIdentifier());
+                assertNull(event.getFlow().getUser());
+                assertNull(event.getFlow().getFlowType());
         }
 
     @Test
@@ -450,9 +451,9 @@ public class InFlowExtensionRequestBuilderTest {
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         // User should NOT be in the event since /user/ is not exposed.
-        assertNull(event.getUser());
+        assertNull(event.getFlow().getUser());
         // Flow type should be present.
-        assertNotNull(event.getFlowType());
+        assertNotNull(event.getFlow().getFlowType());
         // Tenant should be present.
         assertNotNull(event.getTenant());
     }
@@ -536,9 +537,9 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getUser());
+        assertNotNull(event.getFlow().getUser());
         // Only the email claim should be present, not the country claim.
-        List<?> claims = event.getUser().getClaims();
+        List<?> claims = event.getFlow().getUser().getClaims();
         assertEquals(claims.size(), 1);
     }
 
@@ -603,7 +604,7 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertEquals(event.getFlowType(), "",
+        assertEquals(event.getFlow().getFlowType(), "",
                 "Exposed flowType must be '' when context value is null");
     }
 
@@ -672,8 +673,8 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getUser());
-        assertEquals(event.getUser().getId(), "",
+        assertNotNull(event.getFlow().getUser());
+        assertEquals(event.getFlow().getUser().getId(), "",
                 "User id must be '' when userId is null and path is exposed");
     }
 
@@ -694,10 +695,10 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getUser(), "User must be present when /user/userStoreDomain is exposed");
-        assertNotNull(event.getUser().getUserStoreDomain(),
+        assertNotNull(event.getFlow().getUser(), "User must be present when /user/userStoreDomain is exposed");
+        assertNotNull(event.getFlow().getUser().getUserStoreDomain(),
                 "UserStore must be present when /user/userStoreDomain is exposed");
-        assertEquals(event.getUser().getUserStoreDomain().getName(), "",
+        assertEquals(event.getFlow().getUser().getUserStoreDomain().getName(), "",
                 "UserStore name must be '' when userStoreDomain is null");
     }
 
@@ -718,8 +719,8 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        assertNotNull(event.getUser());
-        List<?> claims = event.getUser().getClaims();
+        assertNotNull(event.getFlow().getUser());
+        List<?> claims = event.getFlow().getUser().getClaims();
         assertEquals(claims.size(), 1);
         org.wso2.carbon.identity.action.execution.api.model.UserClaim mobileClaim =
                 (org.wso2.carbon.identity.action.execution.api.model.UserClaim) claims.get(0);
@@ -769,7 +770,7 @@ public class InFlowExtensionRequestBuilderTest {
                 flowContext, mockReqCtx(accessConfig, null));
 
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-        List<?> claims = event.getUser().getClaims();
+        List<?> claims = event.getFlow().getUser().getClaims();
         assertEquals(claims.size(), 1);
         org.wso2.carbon.identity.action.execution.api.model.UserClaim emailClaim =
                 (org.wso2.carbon.identity.action.execution.api.model.UserClaim) claims.get(0);
@@ -847,8 +848,8 @@ public class InFlowExtensionRequestBuilderTest {
                     flowContext, mockReqCtx(accessConfig, encryption));
 
             InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-            assertNotNull(event.getUser());
-            List<?> claims = event.getUser().getClaims();
+            assertNotNull(event.getFlow().getUser());
+            List<?> claims = event.getFlow().getUser().getClaims();
             assertEquals(claims.size(), 2);
 
             org.wso2.carbon.identity.action.execution.api.model.UserClaim emailClaim = null;
@@ -902,8 +903,8 @@ public class InFlowExtensionRequestBuilderTest {
                     flowContext, mockReqCtx(accessConfig, encryption));
 
             InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
-            assertNotNull(event.getUser());
-            Map<String, char[]> eventCreds = event.getUser().getUserCredentials();
+            assertNotNull(event.getFlow().getUser());
+            Map<String, char[]> eventCreds = event.getFlow().getUser().getUserCredentials();
             assertNotNull(eventCreds);
             assertTrue(eventCreds.containsKey("password"));
             String credValue = new String(eventCreds.get("password"));

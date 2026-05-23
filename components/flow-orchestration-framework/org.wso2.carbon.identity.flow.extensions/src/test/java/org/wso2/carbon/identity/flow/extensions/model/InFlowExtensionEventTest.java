@@ -39,16 +39,21 @@ public class InFlowExtensionEventTest {
         Map<String, Object> flowProperties = new HashMap<>();
         flowProperties.put("riskScore", 85);
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+        InFlowExtensionFlow flow = new InFlowExtensionFlow.Builder()
                 .flowType("REGISTRATION")
                 .flowId("flow-id-123")
+                .build();
+
+        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+                .flow(flow)
                 .callbackUrl("https://example.com/callback")
                 .portalUrl("https://example.com/portal")
                 .flowProperties(flowProperties)
                 .build();
 
-        assertEquals(event.getFlowType(), "REGISTRATION");
-        assertEquals(event.getFlowId(), "flow-id-123");
+        assertNotNull(event.getFlow());
+        assertEquals(event.getFlow().getFlowType(), "REGISTRATION");
+        assertEquals(event.getFlow().getFlowId(), "flow-id-123");
         assertEquals(event.getCallbackUrl(), "https://example.com/callback");
         assertEquals(event.getPortalUrl(), "https://example.com/portal");
         assertEquals(event.getFlowProperties().get("riskScore"), 85);
@@ -57,14 +62,19 @@ public class InFlowExtensionEventTest {
     @Test
     public void testOptionalFieldsDefaultToNull() {
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+        InFlowExtensionFlow flow = new InFlowExtensionFlow.Builder()
                 .flowType("LOGIN")
                 .flowId("flow-id-456")
+                .build();
+
+        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+                .flow(flow)
                 .flowProperties(null)
                 .build();
 
-        assertEquals(event.getFlowType(), "LOGIN");
-        assertEquals(event.getFlowId(), "flow-id-456");
+        assertNotNull(event.getFlow());
+        assertEquals(event.getFlow().getFlowType(), "LOGIN");
+        assertEquals(event.getFlow().getFlowId(), "flow-id-456");
         assertNull(event.getCallbackUrl());
         assertNull(event.getPortalUrl());
         assertNotNull(event.getFlowProperties());

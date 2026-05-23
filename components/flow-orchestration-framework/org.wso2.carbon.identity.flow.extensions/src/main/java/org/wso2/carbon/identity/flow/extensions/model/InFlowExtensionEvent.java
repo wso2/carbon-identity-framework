@@ -22,9 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
-import org.wso2.carbon.identity.action.execution.api.model.Request;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
-import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 
 import java.util.Collections;
@@ -37,49 +35,33 @@ import java.util.Map;
  */
 public class InFlowExtensionEvent extends Event {
 
-    private final String flowType;
-    private final String flowId;
+    private final InFlowExtensionFlow flow;
     private final String callbackUrl;
     private final String portalUrl;
     private final Map<String, Object> flowProperties;
 
     private InFlowExtensionEvent(Builder builder) {
 
-        this.request = builder.request;
         this.tenant = builder.tenant;
         this.organization = builder.organization;
-        this.user = builder.user;
         this.userStore = builder.userStore;
         this.application = builder.application;
-        this.flowType = builder.flowType;
-        this.flowId = builder.flowId;
+        this.flow = builder.flow;
         this.callbackUrl = builder.callbackUrl;
         this.portalUrl = builder.portalUrl;
-        this.flowProperties = builder.flowProperties != null ? 
+        this.flowProperties = builder.flowProperties != null ?
                 Collections.unmodifiableMap(new HashMap<>(builder.flowProperties)) : Collections.emptyMap();
     }
 
     /**
-     * Get the flow type.
-     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an exposed flowType with no
-     * context value is serialized as {@code ""} rather than omitted.
+     * Get the flow context (type, ID, and user).
      *
-     * @return The flow type (e.g., "REGISTRATION", "PASSWORD_RESET").
+     * @return The flow context object, or {@code null} if not set.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public String getFlowType() {
+    public InFlowExtensionFlow getFlow() {
 
-        return flowType;
-    }
-
-    /**
-     * Get the flow identifier (context identifier of the executing flow).
-     *
-     * @return The flow identifier.
-     */
-    public String getFlowId() {
-
-        return flowId;
+        return flow;
     }
 
     /**
@@ -123,21 +105,18 @@ public class InFlowExtensionEvent extends Event {
      */
     public static class Builder {
 
-        private Request request;
+        private InFlowExtensionFlow flow;
         private Tenant tenant;
         private Organization organization;
-        private User user;
         private UserStore userStore;
         private Application application;
-        private String flowType;
-        private String flowId;
         private String callbackUrl;
         private String portalUrl;
         private Map<String, Object> flowProperties;
 
-        public Builder request(Request request) {
+        public Builder flow(InFlowExtensionFlow flow) {
 
-            this.request = request;
+            this.flow = flow;
             return this;
         }
 
@@ -153,12 +132,6 @@ public class InFlowExtensionEvent extends Event {
             return this;
         }
 
-        public Builder user(User user) {
-
-            this.user = user;
-            return this;
-        }
-
         public Builder userStore(UserStore userStore) {
 
             this.userStore = userStore;
@@ -168,18 +141,6 @@ public class InFlowExtensionEvent extends Event {
         public Builder application(Application application) {
 
             this.application = application;
-            return this;
-        }
-
-        public Builder flowType(String flowType) {
-
-            this.flowType = flowType;
-            return this;
-        }
-
-        public Builder flowId(String flowId) {
-
-            this.flowId = flowId;
             return this;
         }
 
