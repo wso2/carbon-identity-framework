@@ -160,7 +160,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         InFlowExtensionFlow.Builder flowBuilder = new InFlowExtensionFlow.Builder();
 
         applyTenant(eventBuilder, context, expose);
-        applyOrganization(eventBuilder);
+        applyOrganization(eventBuilder, expose);
         applyApplication(eventBuilder, context, expose);
         applyUserAndUserStore(flowBuilder, context, expose, accessConfig, certificatePEM);
         applyFlowMetadata(flowBuilder, eventBuilder, context, expose);
@@ -469,7 +469,11 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
     }
 
-    private void applyOrganization(InFlowExtensionEvent.Builder eventBuilder) {
+    private void applyOrganization(InFlowExtensionEvent.Builder eventBuilder, List<String> expose) {
+
+        if (!isAreaExposed(InFlowExtensionConstants.ORGANIZATION_PREFIX, expose)) {
+            return;
+        }
 
         org.wso2.carbon.identity.core.context.model.Organization coreOrg =
                 IdentityContext.getThreadLocalIdentityContext().getOrganization();
@@ -477,12 +481,22 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             return;
         }
 
-        eventBuilder.organization(new Organization.Builder()
-                .id(coreOrg.getId())
-                .name(coreOrg.getName())
-                .orgHandle(coreOrg.getOrganizationHandle())
-                .depth(coreOrg.getDepth())
-                .build());
+        Organization.Builder orgBuilder = new Organization.Builder();
+
+        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_ID_PATH, expose)) {
+            orgBuilder.id(coreOrg.getId());
+        }
+        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_NAME_PATH, expose)) {
+            orgBuilder.name(coreOrg.getName());
+        }
+        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_HANDLE_PATH, expose)) {
+            orgBuilder.orgHandle(coreOrg.getOrganizationHandle());
+        }
+        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_DEPTH_PATH, expose)) {
+            orgBuilder.depth(coreOrg.getDepth());
+        }
+
+        eventBuilder.organization(orgBuilder.build());
     }
 
     private void applyApplication(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,

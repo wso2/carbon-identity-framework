@@ -66,6 +66,11 @@ public class InFlowExtensionConstants {
     public static final String FLOW_TYPE_PATH               = "/flow/flowType";
     public static final String FLOW_CALLBACK_URL_PATH       = "/flow/callbackUrl";
     public static final String FLOW_PORTAL_URL_PATH         = "/flow/portalUrl";
+    public static final String ORGANIZATION_PREFIX          = "/organization/";
+    public static final String ORGANIZATION_ID_PATH         = "/organization/id";
+    public static final String ORGANIZATION_NAME_PATH       = "/organization/name";
+    public static final String ORGANIZATION_HANDLE_PATH     = "/organization/orgHandle";
+    public static final String ORGANIZATION_DEPTH_PATH      = "/organization/depth";
 
     // ---- Miscellaneous ----
     public static final String ACTION_ID_METADATA_KEY       = "actionId";
