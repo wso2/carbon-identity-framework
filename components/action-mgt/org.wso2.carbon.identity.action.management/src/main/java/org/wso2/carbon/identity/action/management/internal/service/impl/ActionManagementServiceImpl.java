@@ -440,6 +440,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .actionVersion(actionDTO.getActionVersion())
                 .createdAt(actionDTO.getCreatedAt())
                 .updatedAt(actionDTO.getUpdatedAt())
+                .attributes(actionDTO.getAttributes())
                 .build();
     }
 
@@ -465,6 +466,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .createdAt(actionDTO.getCreatedAt())
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
+                .attributes(actionDTO.getAttributes())
                 .rule(actionDTO.getActionRule())
                 .build();
     }
