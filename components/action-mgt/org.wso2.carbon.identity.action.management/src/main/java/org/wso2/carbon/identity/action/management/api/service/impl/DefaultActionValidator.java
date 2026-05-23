@@ -99,7 +99,7 @@ public class DefaultActionValidator implements ActionValidator {
                                           List<ActionDTO> existingActionsOfType) throws ActionMgtException {
 
         doPreAddActionValidations(actionType, actionVersion, action);
-        if (ActionTypes.IN_FLOW_EXTENSION.equals(actionType)) {
+        if (ActionTypes.FLOW_EXTENSIONS.equals(actionType)) {
             validateActionNameUniqueness(action.getName(), null, existingActionsOfType);
         }
     }
@@ -139,7 +139,7 @@ public class DefaultActionValidator implements ActionValidator {
             throws ActionMgtException {
 
         doPreUpdateActionValidations(actionType, actionVersion, action);
-        if (action.getName() != null && ActionTypes.IN_FLOW_EXTENSION.equals(actionType)) {
+        if (action.getName() != null && ActionTypes.FLOW_EXTENSIONS.equals(actionType)) {
             validateActionNameUniqueness(action.getName(), excludeId, existingActionsOfType);
         }
     }

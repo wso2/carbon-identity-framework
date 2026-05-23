@@ -157,7 +157,7 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(false);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(false);
 
         ExecutorResponse response = executor.execute(context);
 
@@ -176,12 +176,12 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         ActionExecutionStatus<Success> successStatus = mock(ActionExecutionStatus.class);
         when(successStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.SUCCESS);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(successStatus);
 
@@ -200,14 +200,14 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         Failure failure = new Failure("risk_detected", "Risk score exceeds threshold");
         ActionExecutionStatus<Failure> failedStatus = mock(ActionExecutionStatus.class);
         when(failedStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.FAILED);
         when(failedStatus.getResponse()).thenReturn(failure);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(failedStatus);
 
@@ -228,14 +228,14 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         Failure failure = new Failure("risk_detected", null);
         ActionExecutionStatus<Failure> failedStatus = mock(ActionExecutionStatus.class);
         when(failedStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.FAILED);
         when(failedStatus.getResponse()).thenReturn(failure);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(failedStatus);
 
@@ -254,14 +254,14 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         Failure failure = new Failure(null, null);
         ActionExecutionStatus<Failure> failedStatus = mock(ActionExecutionStatus.class);
         when(failedStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.FAILED);
         when(failedStatus.getResponse()).thenReturn(failure);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(failedStatus);
 
@@ -282,14 +282,14 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         Error error = new Error("internal_error", "DB connection failed");
         ActionExecutionStatus<Error> errorStatus = mock(ActionExecutionStatus.class);
         when(errorStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.ERROR);
         when(errorStatus.getResponse()).thenReturn(error);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(errorStatus);
 
@@ -311,14 +311,14 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         Error error = new Error("internal_error", null);
         ActionExecutionStatus<Error> errorStatus = mock(ActionExecutionStatus.class);
         when(errorStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.ERROR);
         when(errorStatus.getResponse()).thenReturn(error);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(errorStatus);
 
@@ -339,14 +339,14 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         Error error = new Error(null, null);
         ActionExecutionStatus<Error> errorStatus = mock(ActionExecutionStatus.class);
         when(errorStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.ERROR);
         when(errorStatus.getResponse()).thenReturn(error);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(errorStatus);
 
@@ -373,12 +373,12 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
         when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(incompleteStatus);
 
@@ -399,7 +399,7 @@ public class InFlowExtensionExecutorTest {
         // Set a context identifier so the OTFI collision-guard has something to compare against.
         context.setContextIdentifier("original-flow-id");
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
         when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
@@ -407,7 +407,7 @@ public class InFlowExtensionExecutorTest {
         // Simulate the response processor stashing the redirect URL into the FlowContext
         // during the actionExecutorService.execute call.
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
@@ -449,13 +449,13 @@ public class InFlowExtensionExecutorTest {
         FlowExecutionContext context = createContextWithMetadata(metadata);
         context.setContextIdentifier("original-flow-id");
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
         when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
 
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
@@ -483,13 +483,13 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
 
         ActionExecutionStatus<?> incompleteStatus = mock(ActionExecutionStatus.class);
         when(incompleteStatus.getStatus()).thenReturn(ActionExecutionStatus.Status.INCOMPLETE);
 
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
@@ -514,9 +514,9 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenReturn(null);
 
@@ -534,9 +534,9 @@ public class InFlowExtensionExecutorTest {
         metadata.put("actionId", "test-action-001");
         FlowExecutionContext context = createContextWithMetadata(metadata);
 
-        when(actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)).thenReturn(true);
+        when(actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)).thenReturn(true);
         when(actionExecutorService.execute(
-                eq(ActionType.IN_FLOW_EXTENSION), eq("test-action-001"),
+                eq(ActionType.FLOW_EXTENSIONS), eq("test-action-001"),
                 any(FlowContext.class), eq("carbon.super")))
                 .thenThrow(new ActionExecutionException("Connection timeout"));
 

@@ -87,8 +87,8 @@ public class ActionExecutorConfig {
                 return isActionTypeEnabled(ActionTypeConfig.PRE_UPDATE_PROFILE.getActionTypeEnableProperty());
             case PRE_ISSUE_ID_TOKEN:
                 return isActionTypeEnabled(ActionTypeConfig.PRE_ISSUE_ID_TOKEN.getActionTypeEnableProperty());
-            case IN_FLOW_EXTENSION:
-                return isActionTypeEnabled(ActionTypeConfig.IN_FLOW_EXTENSION.getActionTypeEnableProperty());
+            case FLOW_EXTENSIONS:
+                return isActionTypeEnabled(ActionTypeConfig.FLOW_EXTENSIONS.getActionTypeEnableProperty());
             default:
                 return false;
         }
@@ -335,8 +335,8 @@ public class ActionExecutorConfig {
                 return getVersion(ActionTypeConfig.PRE_UPDATE_PROFILE.getRetiredUpToVersionProperty());
             case PRE_ISSUE_ID_TOKEN:
                 return getVersion(ActionTypeConfig.PRE_ISSUE_ID_TOKEN.getRetiredUpToVersionProperty());
-            case IN_FLOW_EXTENSION:
-                return getVersion(ActionTypeConfig.IN_FLOW_EXTENSION.getRetiredUpToVersionProperty());
+            case FLOW_EXTENSIONS:
+                return getVersion(ActionTypeConfig.FLOW_EXTENSIONS.getRetiredUpToVersionProperty());
             default:
                 return null;
         }
@@ -422,7 +422,7 @@ public class ActionExecutorConfig {
                 "Actions.Types.PreIssueIdToken.ActionRequest.AllowedHeaders.Header",
                 "Actions.Types.PreIssueIdToken.ActionRequest.AllowedParameters.Parameter",
                 "Actions.Types.PreIssueIdToken.Version.RetiredUpTo"),
-        IN_FLOW_EXTENSION("Actions.Types.InFlowExtension.Enable",
+        FLOW_EXTENSIONS("Actions.Types.InFlowExtension.Enable",
                 "Actions.Types.InFlowExtension.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.InFlowExtension.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.InFlowExtension.ActionRequest.AllowedHeaders.Header",

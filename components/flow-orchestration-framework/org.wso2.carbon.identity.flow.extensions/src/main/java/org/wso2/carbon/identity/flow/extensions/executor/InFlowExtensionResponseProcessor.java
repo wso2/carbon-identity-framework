@@ -91,7 +91,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     @Override
     public ActionType getSupportedActionType() {
 
-        return ActionType.IN_FLOW_EXTENSION;
+        return ActionType.FLOW_EXTENSIONS;
     }
 
     @Override
@@ -504,7 +504,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                     .resultMessage(
                             "INCOMPLETE response from In-Flow Extension is missing a REDIRECT operation.")
-                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSIONS.getDisplayName())
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED));
         }
@@ -545,7 +545,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                     .resultMessage(
                             "In-Flow Extension INCOMPLETE response processed. Redirect URL stored in flow context.")
-                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSIONS.getDisplayName())
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
         }
@@ -717,7 +717,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                         InFlowExtensionConstants.Log.COMPONENT_ID,
                         InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                         .resultMessage("Failed to decrypt inbound JWE value for modify path.")
-                        .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                        .configParam("actionType", ActionType.FLOW_EXTENSIONS.getDisplayName())
                         .inputParam("path", operation.getPath())
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
@@ -740,7 +740,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     InFlowExtensionConstants.Log.COMPONENT_ID,
                     InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                     .resultMessage(reason)
-                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSIONS.getDisplayName())
                     .inputParam("path", path)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED));

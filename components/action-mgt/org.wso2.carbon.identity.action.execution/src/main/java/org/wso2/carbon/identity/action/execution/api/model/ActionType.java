@@ -30,7 +30,7 @@ public enum ActionType {
     PRE_UPDATE_PROFILE,
     AUTHENTICATION,
     PRE_ISSUE_ID_TOKEN,
-    IN_FLOW_EXTENSION;
+    FLOW_EXTENSIONS;
 
     public String getDisplayName() {
 

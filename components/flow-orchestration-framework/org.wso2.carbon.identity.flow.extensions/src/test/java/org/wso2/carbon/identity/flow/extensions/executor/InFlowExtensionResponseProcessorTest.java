@@ -100,7 +100,7 @@ public class InFlowExtensionResponseProcessorTest {
     @Test
     public void testGetSupportedActionType() {
 
-        assertEquals(responseProcessor.getSupportedActionType(), ActionType.IN_FLOW_EXTENSION);
+        assertEquals(responseProcessor.getSupportedActionType(), ActionType.FLOW_EXTENSIONS);
     }
 
     // ========================= processSuccessResponse — Property REPLACE =========================

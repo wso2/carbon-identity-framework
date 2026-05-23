@@ -87,7 +87,7 @@ public class InFlowExtensionRequestBuilderTest {
     @Test
     public void testGetSupportedActionType() {
 
-        assertEquals(requestBuilder.getSupportedActionType(), ActionType.IN_FLOW_EXTENSION);
+        assertEquals(requestBuilder.getSupportedActionType(), ActionType.FLOW_EXTENSIONS);
     }
 
     // ========================= buildActionExecutionRequest — basics =========================
@@ -112,7 +112,7 @@ public class InFlowExtensionRequestBuilderTest {
         ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
         assertNotNull(request);
-        assertEquals(request.getActionType(), ActionType.IN_FLOW_EXTENSION);
+        assertEquals(request.getActionType(), ActionType.FLOW_EXTENSIONS);
         assertNotNull(request.getEvent());
     }
 
@@ -194,7 +194,7 @@ public class InFlowExtensionRequestBuilderTest {
                 ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(flowContext, reqCtx);
 
                 assertNotNull(request);
-                assertEquals(request.getActionType(), ActionType.IN_FLOW_EXTENSION);
+                assertEquals(request.getActionType(), ActionType.FLOW_EXTENSIONS);
                 assertEquals(request.getAllowedOperations().size(), 1);
                 assertEquals(request.getAllowedOperations().get(0).getOp(), Operation.REDIRECT);
 

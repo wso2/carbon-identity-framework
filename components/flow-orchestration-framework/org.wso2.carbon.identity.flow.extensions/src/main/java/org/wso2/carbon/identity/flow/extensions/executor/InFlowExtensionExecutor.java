@@ -99,7 +99,7 @@ public class InFlowExtensionExecutor implements Executor {
                     "ActionExecutorService is not available. actionId: " + actionId);
         }
 
-        if (!actionExecutorService.isExecutionEnabled(ActionType.IN_FLOW_EXTENSION)) {
+        if (!actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSIONS)) {
             triggerDiagnosticFailure(actionId,
                 "In-Flow Extension action execution failed: action type is disabled.");
             return buildErrorResponse("Extension execution is disabled.",
@@ -116,7 +116,7 @@ public class InFlowExtensionExecutor implements Executor {
                     .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, filteredContext);
 
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
-                    ActionType.IN_FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
+                    ActionType.FLOW_EXTENSIONS, actionId, flowContext, context.getTenantDomain());
 
             ExecutorResponse executionResponse = mapExecutionStatus(executionStatus, flowContext, context);
 
@@ -381,7 +381,7 @@ public class InFlowExtensionExecutor implements Executor {
         DiagnosticLog.DiagnosticLogBuilder builder = new DiagnosticLog.DiagnosticLogBuilder(
             InFlowExtensionConstants.Log.COMPONENT_ID, diagnosticActionId)
                 .resultMessage(resultMessage)
-                .configParam(CONFIG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam(CONFIG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSIONS.getDisplayName())
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
 
@@ -401,7 +401,7 @@ public class InFlowExtensionExecutor implements Executor {
         DiagnosticLog.DiagnosticLogBuilder builder = new DiagnosticLog.DiagnosticLogBuilder(
             InFlowExtensionConstants.Log.COMPONENT_ID, diagnosticActionId)
                 .resultMessage(resultMessage)
-                .configParam(CONFIG_PARAM_ACTION_TYPE, ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam(CONFIG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSIONS.getDisplayName())
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                 .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
 

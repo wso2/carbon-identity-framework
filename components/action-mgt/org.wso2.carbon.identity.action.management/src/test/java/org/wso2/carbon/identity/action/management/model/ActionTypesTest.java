@@ -53,7 +53,7 @@ public class ActionTypesTest {
                         "Pre Issue ID Token",
                         "Configure an extension point for modifying ID token via a custom service.",
                         Action.ActionTypes.Category.PRE_POST},
-                {Action.ActionTypes.IN_FLOW_EXTENSION, "inFlowExtension", "IN_FLOW_EXTENSION",
+                {Action.ActionTypes.FLOW_EXTENSIONS, "inFlowExtension", "FLOW_EXTENSIONS",
                         "In-Flow Extension",
                         "Configure an extension point within any flow via a custom service.",
                         Action.ActionTypes.Category.IN_FLOW_EXTENSION}
@@ -82,7 +82,7 @@ public class ActionTypesTest {
                                 Action.ActionTypes.PRE_REGISTRATION, Action.ActionTypes.PRE_ISSUE_ID_TOKEN}},
                 {Action.ActionTypes.Category.IN_FLOW, new Action.ActionTypes[]{Action.ActionTypes.AUTHENTICATION}},
                 {Action.ActionTypes.Category.IN_FLOW_EXTENSION,
-                        new Action.ActionTypes[]{Action.ActionTypes.IN_FLOW_EXTENSION}}
+                        new Action.ActionTypes[]{Action.ActionTypes.FLOW_EXTENSIONS}}
         };
     }
 

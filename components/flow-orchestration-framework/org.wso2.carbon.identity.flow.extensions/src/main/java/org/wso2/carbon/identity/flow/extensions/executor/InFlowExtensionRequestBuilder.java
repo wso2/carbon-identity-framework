@@ -74,7 +74,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     @Override
     public ActionType getSupportedActionType() {
 
-        return ActionType.IN_FLOW_EXTENSION;
+        return ActionType.FLOW_EXTENSIONS;
     }
 
     @Override
@@ -330,7 +330,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                                                        List<AllowedOperation> allowedOperations) {
 
         return new ActionExecutionRequest.Builder()
-                .actionType(ActionType.IN_FLOW_EXTENSION)
+                .actionType(ActionType.FLOW_EXTENSIONS)
                 .flowId(execCtx.getContextIdentifier())
                 .event(event)
                 .allowedOperations(allowedOperations)
@@ -349,7 +349,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                 ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                 ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
                 .resultMessage("Building request for In-Flow Extension action.")
-                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam("actionType", ActionType.FLOW_EXTENSIONS.getDisplayName())
                 .configParam("flowType", execCtx.getFlowType())
                 .configParam("exposePaths", exposePaths.size())
                 .configParam("modifyPaths", modifyPaths.size())
@@ -397,7 +397,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                 ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                 ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
                 .resultMessage("No InFlowExtensionAction resolved. Built minimal fallback request.")
-                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam("actionType", ActionType.FLOW_EXTENSIONS.getDisplayName())
                 .configParam("flowType", execCtx.getFlowType())
                 .configParam(DIAGNOSTIC_REASON, REASON_UNSUPPORTED_ACTION)
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -414,7 +414,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                 ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                 ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
                 .resultMessage("Omitted encrypted expose paths because outbound certificate is not configured.")
-                .configParam("actionType", ActionType.IN_FLOW_EXTENSION.getDisplayName())
+                .configParam("actionType", ActionType.FLOW_EXTENSIONS.getDisplayName())
                 .configParam(DIAGNOSTIC_REASON, REASON_OMITTED_ENCRYPTED_EXPOSE_PATHS)
                 .inputParam("omittedEncryptedExposePaths", limitForDiagnostic(omittedEncryptedExposePaths))
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
