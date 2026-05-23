@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -18,11 +18,17 @@
 
 package org.wso2.carbon.identity.mgt.policy.password;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.mgt.policy.AbstractPasswordPolicyEnforcer;
 
 import java.util.Map;
 
 public class DefaultPasswordNamePolicy extends AbstractPasswordPolicyEnforcer {
+
+    private static final String EQUAL_MODE = "equal";
+    private static final String CONTAIN_MODE = "contain";
+
+    private String usernameCheckMode = EQUAL_MODE;
 
     @Override
     public boolean enforce(Object... args) {
@@ -32,11 +38,20 @@ public class DefaultPasswordNamePolicy extends AbstractPasswordPolicyEnforcer {
             String password = args[0].toString();
             String username = args[1].toString();
 
-            if (password.equalsIgnoreCase(username)) {
-                errorMessage = "Cannot use the username as the password";
-                return false;
+            if (CONTAIN_MODE.equalsIgnoreCase(usernameCheckMode)) {
+                if (password.toLowerCase().contains(username.toLowerCase())) {
+                    errorMessage = "Password cannot contain the username";
+                    return false;
+                } else {
+                    return true;
+                }
             } else {
-                return true;
+                if (password.equalsIgnoreCase(username)) {
+                    errorMessage = "Cannot use the username as the password";
+                    return false;
+                } else {
+                    return true;
+                }
             }
         } else {
             return true;
@@ -45,8 +60,11 @@ public class DefaultPasswordNamePolicy extends AbstractPasswordPolicyEnforcer {
 
     @Override
     public void init(Map<String, String> params) {
-        // Nothing to init
 
+        // Initialize the configuration with the parameters defined in config file.
+        if (!MapUtils.isEmpty(params)) {
+            usernameCheckMode = params.get("username.check.mode");
+        }
     }
 
 }
