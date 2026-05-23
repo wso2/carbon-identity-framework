@@ -28,9 +28,13 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
@@ -62,7 +66,10 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -987,5 +994,264 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             assertEquals(context.getContextIdIncludedQueryParams(), expectedQueryParams);
             assertEquals(context.getQueryParams(), expectedQueryParams);
         }
+    }
+
+    /**
+     * Regression test for issue #27506. After the session-cookie restore puts {@code OrganizationAuthenticator}
+     * back into the effective sequence's stepMap, the helper must also re-sync the authentication graph's
+     * start-node {@link StepConfig} so that {@code GraphBasedSequenceHandler} does not later overwrite the
+     * restored stepMap with a stale graph-node StepConfig that had the authenticator stripped.
+     */
+    @Test
+    public void testSyncAuthenticationGraphStartNodeWithStepMap_graphNodeSyncedAfterSessionRestore()
+            throws Exception {
+
+        // Graph-node StepConfig was mutated by removeOrganizationSsoStepsForPortalApps and has only BasicAuthenticator.
+        StepConfig graphStepConfig = buildStepConfig(1, "BasicAuthenticator");
+        StepConfigGraphNode startNode = new StepConfigGraphNode(graphStepConfig);
+        AuthenticationGraph graph = new AuthenticationGraph();
+        graph.setStartNode(startNode);
+
+        // StepMap is what the session-cookie restore re-populated — OrganizationAuthenticator is present again.
+        StepConfig restoredStepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        Map<Integer, StepConfig> restoredStepMap = new HashMap<>();
+        restoredStepMap.put(1, restoredStepConfig);
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        effectiveSequence.setStepMap(restoredStepMap);
+        effectiveSequence.setAuthenticationGraph(graph);
+
+        invokeSyncAuthenticationGraphStartNodeWithStepMap(effectiveSequence);
+
+        // After the fix, the graph-node StepConfig must contain OrganizationAuthenticator again.
+        List<String> graphAuthenticators = authenticatorNames(
+                ((StepConfigGraphNode) graph.getStartNode()).getStepConfig().getAuthenticatorList());
+        assertTrue(graphAuthenticators.contains(ORGANIZATION_AUTHENTICATOR),
+                "Graph node StepConfig should contain OrganizationAuthenticator after sync. Got: "
+                        + graphAuthenticators);
+        assertEquals(graphAuthenticators, Arrays.asList(ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator"));
+
+        // StepMap must be untouched — it was already correct.
+        List<String> stepMapAuthenticators = authenticatorNames(
+                effectiveSequence.getStepMap().get(1).getAuthenticatorList());
+        assertEquals(stepMapAuthenticators, Arrays.asList(ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator"));
+    }
+
+    /**
+     * Sync helper must be a no-op when the effective sequence has no authentication graph (non-scripted flow).
+     */
+    @Test
+    public void testSyncAuthenticationGraphStartNodeWithStepMap_noAuthenticationGraph() throws Exception {
+
+        StepConfig stepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepConfig);
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        effectiveSequence.setStepMap(stepMap);
+        // No authentication graph.
+
+        invokeSyncAuthenticationGraphStartNodeWithStepMap(effectiveSequence);
+
+        // StepMap is unchanged; no exception raised.
+        List<String> stepMapAuthenticators = authenticatorNames(
+                effectiveSequence.getStepMap().get(1).getAuthenticatorList());
+        assertEquals(stepMapAuthenticators, Arrays.asList(ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator"));
+    }
+
+    /**
+     * Sync helper must leave the graph untouched when the start node is not a {@link StepConfigGraphNode}.
+     */
+    @Test
+    public void testSyncAuthenticationGraphStartNodeWithStepMap_startNodeNotStepConfigGraphNode() throws Exception {
+
+        AuthGraphNode nonStepNode = mock(ShowPromptNode.class);
+        AuthenticationGraph graph = new AuthenticationGraph();
+        graph.setStartNode(nonStepNode);
+
+        StepConfig stepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepConfig);
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        effectiveSequence.setStepMap(stepMap);
+        effectiveSequence.setAuthenticationGraph(graph);
+
+        invokeSyncAuthenticationGraphStartNodeWithStepMap(effectiveSequence);
+
+        // Start node is unchanged.
+        assertEquals(graph.getStartNode(), nonStepNode);
+    }
+
+    /**
+     * Sync helper must be a no-op when the stepMap has no entry for the graph node's step order — e.g. a
+     * malformed state where the restore did not repopulate step 1. The graph-node StepConfig must be kept as-is.
+     */
+    @Test
+    public void testSyncAuthenticationGraphStartNodeWithStepMap_stepMapMissingOrder() throws Exception {
+
+        StepConfig graphStepConfig = buildStepConfig(1, "BasicAuthenticator");
+        StepConfigGraphNode startNode = new StepConfigGraphNode(graphStepConfig);
+        AuthenticationGraph graph = new AuthenticationGraph();
+        graph.setStartNode(startNode);
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        effectiveSequence.setStepMap(new HashMap<>()); // Empty — no step 1.
+        effectiveSequence.setAuthenticationGraph(graph);
+
+        invokeSyncAuthenticationGraphStartNodeWithStepMap(effectiveSequence);
+
+        // Graph node preserves its existing authenticator list.
+        List<String> graphAuthenticators = authenticatorNames(
+                ((StepConfigGraphNode) graph.getStartNode()).getStepConfig().getAuthenticatorList());
+        assertEquals(graphAuthenticators, Collections.singletonList("BasicAuthenticator"));
+    }
+
+    /**
+     * removeOrganizationSsoStepsForPortalApps baseline: strips OrganizationAuthenticator from the stepMap
+     * step and from the authentication graph's start-node StepConfig. This test locks in the pre-session-restore
+     * filtering behaviour that the new sync helper sits on top of.
+     */
+    @Test
+    public void testRemoveOrganizationSsoStepsForPortalApps_stripsFromStepMapAndGraphNode() throws Exception {
+
+        StepConfig graphStepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        StepConfigGraphNode startNode = new StepConfigGraphNode(graphStepConfig);
+        AuthenticationGraph graph = new AuthenticationGraph();
+        graph.setStartNode(startNode);
+
+        StepConfig stepMapStepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepMapStepConfig);
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        effectiveSequence.setStepMap(stepMap);
+        effectiveSequence.setAuthenticationGraph(graph);
+
+        invokeRemoveOrganizationSsoStepsForPortalApps(effectiveSequence);
+
+        assertEquals(authenticatorNames(effectiveSequence.getStepMap().get(1).getAuthenticatorList()),
+                Collections.singletonList("BasicAuthenticator"));
+        assertEquals(authenticatorNames(
+                        ((StepConfigGraphNode) graph.getStartNode()).getStepConfig().getAuthenticatorList()),
+                Collections.singletonList("BasicAuthenticator"));
+    }
+
+    /**
+     * Full bug-scenario regression for issue #27506. Simulates the sequence of operations inside
+     * {@code DefaultRequestCoordinator.populateContextWithPreviousSession} for a portal app with an adaptive
+     * script when a session cookie is replaying the existing SSO identity:
+     *
+     * <ol>
+     *   <li>{@code removeOrganizationSsoStepsForPortalApps} strips OrganizationAuthenticator from both the
+     *       stepMap and the graph-node StepConfig.</li>
+     *   <li>The previous-authenticated-session restore replaces the stepMap with the previous sequence's
+     *       stepMap (which still has OrganizationAuthenticator).</li>
+     *   <li>{@code syncAuthenticationGraphStartNodeWithStepMap} re-syncs the graph node from the restored
+     *       stepMap so that a subsequent {@code GraphBasedSequenceHandler.handleAuthenticationStep} call,
+     *       which writes the graph-node StepConfig back into the stepMap, does not strip
+     *       OrganizationAuthenticator a second time.</li>
+     * </ol>
+     *
+     * Before the fix, the graph node's StepConfig (only BasicAuthenticator) would overwrite the restored
+     * stepMap, bouncing sub-org users to the root-tenant login page. After the fix, the graph node must
+     * contain OrganizationAuthenticator after the sync.
+     */
+    @Test
+    public void testPortalAppAdaptiveScriptSessionRestore_graphNodeSyncedWithStepMap() throws Exception {
+
+        // Initial effective sequence: step 1 has [OrganizationAuthenticator, BasicAuthenticator] in both places.
+        StepConfig graphStepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        StepConfigGraphNode startNode = new StepConfigGraphNode(graphStepConfig);
+        AuthenticationGraph graph = new AuthenticationGraph();
+        graph.setStartNode(startNode);
+
+        StepConfig stepMapStepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepMapStepConfig);
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        effectiveSequence.setStepMap(stepMap);
+        effectiveSequence.setAuthenticationGraph(graph);
+
+        // Previous authenticated sequence (what the session cookie carried) — step 1 still has both authenticators.
+        StepConfig previousStepConfig = buildStepConfig(1, ORGANIZATION_AUTHENTICATOR, "BasicAuthenticator");
+        Map<Integer, StepConfig> previousStepMap = new HashMap<>();
+        previousStepMap.put(1, previousStepConfig);
+        SequenceConfig previousAuthenticatedSeq = new SequenceConfig();
+        previousAuthenticatedSeq.setStepMap(previousStepMap);
+
+        // Step 1: portal-app filtering strips OrganizationAuthenticator from both stepMap and graph-node.
+        invokeRemoveOrganizationSsoStepsForPortalApps(effectiveSequence);
+        assertEquals(authenticatorNames(effectiveSequence.getStepMap().get(1).getAuthenticatorList()),
+                Collections.singletonList("BasicAuthenticator"));
+        assertEquals(authenticatorNames(
+                        ((StepConfigGraphNode) graph.getStartNode()).getStepConfig().getAuthenticatorList()),
+                Collections.singletonList("BasicAuthenticator"));
+
+        // Step 2: session-cookie restore replaces the stepMap — graph-node stays out-of-sync without the fix.
+        effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
+        invokeSyncAuthenticationGraphStartNodeWithStepMap(effectiveSequence);
+
+        // Step 3: post-fix, graph-node StepConfig has OrganizationAuthenticator again. If
+        // GraphBasedSequenceHandler.handleAuthenticationStep now writes the graph-node StepConfig back
+        // into the stepMap (`context.getSequenceConfig().getStepMap().put(stepNumber, stepConfig)`),
+        // the stepMap still has OrganizationAuthenticator available for silent re-authentication.
+        List<String> graphAuthenticators = authenticatorNames(
+                ((StepConfigGraphNode) graph.getStartNode()).getStepConfig().getAuthenticatorList());
+        assertTrue(graphAuthenticators.contains(ORGANIZATION_AUTHENTICATOR),
+                "Graph node StepConfig must contain OrganizationAuthenticator after session restore + sync. "
+                        + "Got: " + graphAuthenticators);
+
+        // Simulate GraphBasedSequenceHandler writing the graph-node StepConfig back into the stepMap.
+        effectiveSequence.getStepMap().put(1,
+                ((StepConfigGraphNode) graph.getStartNode()).getStepConfig());
+        List<String> finalStepMapAuthenticators = authenticatorNames(
+                effectiveSequence.getStepMap().get(1).getAuthenticatorList());
+        assertTrue(finalStepMapAuthenticators.contains(ORGANIZATION_AUTHENTICATOR),
+                "StepMap must still contain OrganizationAuthenticator after GraphBasedSequenceHandler "
+                        + "writes back the graph-node StepConfig. Got: " + finalStepMapAuthenticators);
+    }
+
+    private static StepConfig buildStepConfig(int order, String... authenticatorNames) {
+
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setOrder(order);
+        List<AuthenticatorConfig> authenticators = new ArrayList<>();
+        for (String name : authenticatorNames) {
+            AuthenticatorConfig authenticator = new AuthenticatorConfig();
+            authenticator.setName(name);
+            authenticators.add(authenticator);
+        }
+        stepConfig.setAuthenticatorList(authenticators);
+        return stepConfig;
+    }
+
+    private static List<String> authenticatorNames(List<AuthenticatorConfig> authenticators) {
+
+        List<String> names = new ArrayList<>();
+        if (authenticators != null) {
+            for (AuthenticatorConfig authenticator : authenticators) {
+                names.add(authenticator.getName());
+            }
+        }
+        return names;
+    }
+
+    private void invokeSyncAuthenticationGraphStartNodeWithStepMap(SequenceConfig effectiveSequence)
+            throws Exception {
+
+        Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                "syncAuthenticationGraphStartNodeWithStepMap", SequenceConfig.class);
+        method.setAccessible(true);
+        method.invoke(requestCoordinator, effectiveSequence);
+    }
+
+    private void invokeRemoveOrganizationSsoStepsForPortalApps(SequenceConfig effectiveSequence) throws Exception {
+
+        Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                "removeOrganizationSsoStepsForPortalApps", SequenceConfig.class);
+        method.setAccessible(true);
+        method.invoke(requestCoordinator, effectiveSequence);
     }
 }

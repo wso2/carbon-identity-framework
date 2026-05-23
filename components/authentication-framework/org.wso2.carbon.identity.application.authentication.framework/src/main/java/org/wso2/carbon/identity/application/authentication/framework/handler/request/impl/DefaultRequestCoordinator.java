@@ -1522,6 +1522,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             context.setPreviousSessionFound(true);
 
             effectiveSequence.setStepMap(new HashMap<>(previousAuthenticatedSeq.getStepMap()));
+            // prepareSequenceConfig may have filtered OrganizationAuthenticator out of the authentication graph's
+            // start-node StepConfig for portal apps. GraphBasedSequenceHandler writes that graph-node StepConfig
+            // back into the stepMap, which would otherwise override the authenticators just restored from the
+            // previous session and break silent re-authentication for scripted portal apps.
+            syncAuthenticationGraphStartNodeWithStepMap(effectiveSequence);
             effectiveSequence.setReqPathAuthenticators(
                     new ArrayList<>(previousAuthenticatedSeq.getReqPathAuthenticators()));
             effectiveSequence.setAuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
@@ -1885,6 +1890,34 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
             graphNode.getStepConfig().setAuthenticatorList(authenticatorList);
         }
+    }
+
+    /**
+     * Re-sync the authentication graph's start-node StepConfig with the effective sequence's stepMap after the
+     * stepMap has been restored from a previously authenticated session. For portal apps with an adaptive script,
+     * {@link #removeOrganizationSsoStepsForPortalApps(SequenceConfig)} mutates the graph-node StepConfig
+     * independently of the stepMap. Restoring the stepMap alone would leave the graph node out-of-sync, and the
+     * GraphBasedSequenceHandler would later overwrite the restored stepMap with the stale graph-node StepConfig.
+     */
+    private void syncAuthenticationGraphStartNodeWithStepMap(SequenceConfig effectiveSequence) {
+
+        AuthenticationGraph authenticationGraph = effectiveSequence.getAuthenticationGraph();
+        if (authenticationGraph == null) {
+            return;
+        }
+        AuthGraphNode startNode = authenticationGraph.getStartNode();
+        if (!(startNode instanceof StepConfigGraphNode)) {
+            return;
+        }
+        StepConfig graphStepConfig = ((StepConfigGraphNode) startNode).getStepConfig();
+        if (graphStepConfig == null) {
+            return;
+        }
+        StepConfig restoredStepConfig = effectiveSequence.getStepMap().get(graphStepConfig.getOrder());
+        if (restoredStepConfig == null || restoredStepConfig.getAuthenticatorList() == null) {
+            return;
+        }
+        graphStepConfig.setAuthenticatorList(new ArrayList<>(restoredStepConfig.getAuthenticatorList()));
     }
 
     private boolean isStepHasMultiOption(AuthenticationContext context) {
