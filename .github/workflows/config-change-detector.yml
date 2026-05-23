@@ -1,0 +1,15 @@
+name: Config change detector
+on:
+  pull_request:
+    paths:
+      - '**/*.json'
+      - '**/*.j2'
+      - '**/*.xml'
+      - '!pom.xml'
+      - '!**/pom.xml'
+jobs:
+  do-something:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Whatever action you need
+        run: echo "These template/config files changed – running my action!"
