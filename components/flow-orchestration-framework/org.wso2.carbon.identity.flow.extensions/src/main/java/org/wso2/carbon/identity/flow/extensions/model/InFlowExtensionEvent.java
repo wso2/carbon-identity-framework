@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.extensions.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
@@ -60,9 +61,12 @@ public class InFlowExtensionEvent extends Event {
 
     /**
      * Get the flow type.
+     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an exposed flowType with no
+     * context value is serialized as {@code ""} rather than omitted.
      *
      * @return The flow type (e.g., "REGISTRATION", "PASSWORD_RESET").
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getFlowType() {
 
         return flowType;
@@ -80,9 +84,12 @@ public class InFlowExtensionEvent extends Event {
 
     /**
      * Get the callback URL for the flow, if exposed.
+     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an exposed callbackUrl with no
+     * context value is serialized as {@code ""} rather than omitted.
      *
-     * @return The callback URL, or null if not exposed.
+     * @return The callback URL, or {@code null} if not exposed.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getCallbackUrl() {
 
         return callbackUrl;
@@ -90,9 +97,12 @@ public class InFlowExtensionEvent extends Event {
 
     /**
      * Get the portal URL for the flow, if exposed.
+     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an exposed portalUrl with no
+     * context value is serialized as {@code ""} rather than omitted.
      *
-     * @return The portal URL, or null if not exposed.
+     * @return The portal URL, or {@code null} if not exposed.
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getPortalUrl() {
 
         return portalUrl;

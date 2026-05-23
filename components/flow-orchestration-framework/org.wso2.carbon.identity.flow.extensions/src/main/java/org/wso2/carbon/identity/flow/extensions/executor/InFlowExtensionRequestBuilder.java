@@ -229,42 +229,12 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             userBuilder.userCredentials(filteredCredentials);
         }
 
+        if (isLeafExposed(InFlowExtensionConstants.USER_STORE_DOMAIN_PATH, expose)) {
+            String userStoreDomain = flowUser.getUserStoreDomain();
+            userBuilder.userStoreDomain(new UserStore(userStoreDomain != null ? userStoreDomain : ""));
+        }
+
         return userBuilder.build();
-    }
-
-    /**
-     * Filter a map to only include entries whose paths are exposed.
-     * Values for expose paths marked as encrypted are JWE-encrypted.
-     *
-     * @param map            The source map.
-     * @param areaPrefix     The area prefix (e.g. "/properties/").
-     * @param expose         The expose prefix list.
-     * @param accessConfig   The access config with encryption flags (may be null).
-     * @param certificatePEM The certificate PEM for JWE encryption (may be null).
-     * @param <T>            The value type.
-     * @return A new map containing only exposed entries, with encrypted values where configured.
-     */
-    @SuppressWarnings("unchecked")
-    private <T> Map<String, T> filterMap(Map<String, T> map, String areaPrefix, List<String> expose,
-                                         AccessConfig accessConfig, String certificatePEM)
-            throws ActionExecutionRequestBuilderException {
-
-        if (map == null) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, T> filtered = new HashMap<>();
-        for (Map.Entry<String, T> entry : map.entrySet()) {
-            String fullPath = areaPrefix + entry.getKey();
-            if (isLeafExposed(fullPath, expose)) {
-                T value = entry.getValue();
-                if (value != null && shouldEncrypt(fullPath, accessConfig, certificatePEM)) {
-                    value = (T) encryptValue(String.valueOf(value), certificatePEM);
-                }
-                filtered.put(entry.getKey(), value);
-            }
-        }
-        return filtered;
     }
 
     private FlowExecutionContext getFlowExecutionContextOrThrow(FlowContext flowContext)
@@ -477,7 +447,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                     if (annotation != null) {
                         pathTypeAnnotations.put(cleanPath, annotation);
                     }
-                    cleanPaths.add(cleanPath);
+                    cleanPaths.add(toExternalPath(cleanPath));
                 } else {
                     LOG.warn("Annotation for path " + cleanPath
                             + " exceeds maximum attribute limit. Skipping path.");
@@ -526,6 +496,8 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         if (tenantDomain != null) {
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             eventBuilder.tenant(new Tenant(String.valueOf(tenantId), tenantDomain));
+        } else {
+            eventBuilder.tenant(new Tenant("", ""));
         }
     }
 
@@ -553,9 +525,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
 
         String appId = context.getApplicationId();
-        if (appId != null) {
-            eventBuilder.application(new Application(appId, null));
-        }
+        eventBuilder.application(new Application(appId != null ? appId : "", null));
     }
 
     private void applyUserAndUserStore(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
@@ -572,29 +542,23 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
 
         eventBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
-        if (isLeafExposed(InFlowExtensionConstants.USER_STORE_DOMAIN_PATH, expose)
-                && flowUser.getUserStoreDomain() != null) {
-            eventBuilder.userStore(new UserStore(flowUser.getUserStoreDomain()));
-        }
     }
 
     private void applyFlowMetadata(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
                                    List<String> expose) {
 
         if (isLeafExposed(InFlowExtensionConstants.FLOW_TYPE_PATH, expose)) {
-            eventBuilder.flowType(context.getFlowType());
+            eventBuilder.flowType(context.getFlowType() != null ? context.getFlowType() : "");
         }
 
         eventBuilder.flowId(context.getContextIdentifier());
 
-        if (isLeafExposed(InFlowExtensionConstants.FLOW_CALLBACK_URL_PATH, expose)
-                && context.getCallbackUrl() != null) {
-            eventBuilder.callbackUrl(context.getCallbackUrl());
+        if (isLeafExposed(InFlowExtensionConstants.FLOW_CALLBACK_URL_PATH, expose)) {
+            eventBuilder.callbackUrl(context.getCallbackUrl() != null ? context.getCallbackUrl() : "");
         }
 
-        if (isLeafExposed(InFlowExtensionConstants.FLOW_PORTAL_URL_PATH, expose)
-                && context.getPortalUrl() != null) {
-            eventBuilder.portalUrl(context.getPortalUrl());
+        if (isLeafExposed(InFlowExtensionConstants.FLOW_PORTAL_URL_PATH, expose)) {
+            eventBuilder.portalUrl(context.getPortalUrl() != null ? context.getPortalUrl() : "");
         }
     }
 
@@ -607,17 +571,28 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
 
         Map<String, Object> properties = context.getProperties();
-        if (properties != null && !properties.isEmpty()) {
-            eventBuilder.flowProperties(
-                    filterMap(properties, InFlowExtensionConstants.PROPERTIES_PATH_PREFIX,
-                            expose, accessConfig, certificatePEM));
+        Map<String, Object> filteredProperties = new HashMap<>();
+
+        for (String exposePath : expose) {
+            if (!exposePath.startsWith(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX)) {
+                continue;
+            }
+            String propKey = exposePath.substring(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX.length());
+            Object value = properties != null ? properties.get(propKey) : null;
+            if (value != null && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
+                value = encryptValue(String.valueOf(value), certificatePEM);
+            }
+            filteredProperties.put(propKey, value != null ? value : "");
         }
+
+        eventBuilder.flowProperties(filteredProperties);
     }
 
     private String resolveUserId(FlowUser flowUser, List<String> expose) {
 
         if (isLeafExposed(InFlowExtensionConstants.USER_ID_PATH, expose)) {
-            return flowUser.getUserId();
+            String userId = flowUser.getUserId();
+            return userId != null ? userId : "";
         }
         return null;
     }
@@ -631,20 +606,19 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
 
         Map<String, String> claims = flowUser.getClaims();
-        if (claims == null || claims.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         List<UserClaim> userClaims = new ArrayList<>();
-        for (Map.Entry<String, String> claim : claims.entrySet()) {
-            String claimPath = InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX + claim.getKey();
-            if (isLeafExposed(claimPath, expose)) {
-                String claimValue = claim.getValue();
-                if (claimValue != null && shouldEncrypt(claimPath, accessConfig, certificatePEM)) {
-                    claimValue = encryptValue(claimValue, certificatePEM);
-                }
-                userClaims.add(new UserClaim(claim.getKey(), claimValue));
+
+        for (String exposePath : expose) {
+            if (!exposePath.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
+                continue;
             }
+            String claimKey = exposePath.substring(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX.length());
+            String claimValue = claims != null ? claims.get(claimKey) : null;
+            claimValue = claimValue != null ? claimValue : "";
+            if (!claimValue.isEmpty() && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
+                claimValue = encryptValue(claimValue, certificatePEM);
+            }
+            userClaims.add(new UserClaim(claimKey, claimValue));
         }
         return userClaims;
     }
@@ -658,20 +632,22 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
 
         Map<String, char[]> credentials = flowUser.getUserCredentials();
-        if (credentials == null || credentials.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
         Map<String, char[]> filteredCredentials = new HashMap<>();
-        for (Map.Entry<String, char[]> entry : credentials.entrySet()) {
-            String credentialPath = InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX + entry.getKey();
-            if (isLeafExposed(credentialPath, expose)) {
-                char[] credentialValue = entry.getValue();
-                String plaintext = new String(credentialValue);
-                java.util.Arrays.fill(credentialValue, '\0');
 
-                filteredCredentials.put(entry.getKey(),
-                        toEncryptedOrPlainCredentialChars(plaintext, credentialPath, accessConfig, certificatePEM));
+        for (String exposePath : expose) {
+            if (!exposePath.startsWith(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX)) {
+                continue;
+            }
+            String credKey = exposePath.substring(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX.length());
+            char[] credValue = credentials != null ? credentials.get(credKey) : null;
+
+            if (credValue != null) {
+                String plaintext = new String(credValue);
+                java.util.Arrays.fill(credValue, '\0');
+                filteredCredentials.put(credKey,
+                        toEncryptedOrPlainCredentialChars(plaintext, exposePath, accessConfig, certificatePEM));
+            } else {
+                filteredCredentials.put(credKey, new char[0]);
             }
         }
         return filteredCredentials;
@@ -766,6 +742,23 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
             return skippedPaths;
         }
+    }
+
+    /**
+     * Convert an internal path to its external (API-facing) form.
+     * User-claim paths stored internally as {@code /user/claims/<uri>} are emitted
+     * externally as {@code /user/claims[uri=<uri>]}. All other paths are unchanged.
+     */
+    private static String toExternalPath(String internalPath) {
+
+        if (internalPath != null
+                && internalPath.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
+            String claimUri = internalPath.substring(
+                    InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX.length());
+            return InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX + claimUri
+                    + InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX;
+        }
+        return internalPath;
     }
 
     /**

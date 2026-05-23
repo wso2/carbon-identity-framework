@@ -56,6 +56,8 @@ public class InFlowExtensionConstants {
     public static final String USER_ID_PATH                 = "/user/userId";
     public static final String USER_STORE_DOMAIN_PATH       = "/user/userStoreDomain";
     public static final String USER_CLAIMS_PATH_PREFIX      = "/user/claims/";
+    public static final String USER_CLAIMS_SELECTOR_PREFIX  = "/user/claims[uri=";
+    public static final String USER_CLAIMS_SELECTOR_SUFFIX  = "]";
     public static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
     public static final String PROPERTIES_PATH_PREFIX       = "/properties/";
     public static final String FLOW_PREFIX                  = "/flow/";

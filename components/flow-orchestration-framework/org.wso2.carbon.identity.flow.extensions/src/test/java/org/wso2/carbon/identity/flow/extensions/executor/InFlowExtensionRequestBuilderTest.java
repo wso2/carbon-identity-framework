@@ -542,6 +542,241 @@ public class InFlowExtensionRequestBuilderTest {
         assertEquals(claims.size(), 1);
     }
 
+    // ========================= Null-to-empty-string: consistent contract =========================
+
+    @Test
+    public void testExposedCallbackUrlNullYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        // callbackUrl is NOT set — context returns null.
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/callbackUrl", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertEquals(event.getCallbackUrl(), "",
+                "Exposed callbackUrl must be '' when context value is null");
+    }
+
+    @Test
+    public void testExposedPortalUrlNullYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        // portalUrl is NOT set — context returns null.
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/portalUrl", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertEquals(event.getPortalUrl(), "",
+                "Exposed portalUrl must be '' when context value is null");
+    }
+
+    @Test
+    public void testExposedFlowTypeNullYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
+        // flowType is not set in the minimal context.
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/flowType", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertEquals(event.getFlowType(), "",
+                "Exposed flowType must be '' when context value is null");
+    }
+
+    @Test
+    public void testExposedTenantDomainNullYieldsEmptyStrings()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
+        execCtx.setTenantDomain(null);
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/tenantDomain", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getTenant(),
+                "Tenant must be present when /flow/tenantDomain is exposed");
+        assertEquals(event.getTenant().getId(), "",
+                "Tenant id must be '' when tenantDomain is null");
+        assertEquals(event.getTenant().getName(), "",
+                "Tenant name must be '' when tenantDomain is null");
+    }
+
+    @Test
+    public void testExposedApplicationIdNullYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createMinimalFlowExecutionContext();
+        // applicationId is not set in the minimal context.
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/flow/applicationId", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getApplication(),
+                "Application must be present when /flow/applicationId is exposed");
+        assertEquals(event.getApplication().getId(), "",
+                "Application id must be '' when applicationId is null");
+    }
+
+    @Test
+    public void testExposedUserIdNullYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        execCtx.getFlowUser().setUserId(null);
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/user/userId", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getUser());
+        assertEquals(event.getUser().getId(), "",
+                "User id must be '' when userId is null and path is exposed");
+    }
+
+    @Test
+    public void testExposedUserStoreDomainNullYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        execCtx.getFlowUser().setUserStoreDomain(null);
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/user/userStoreDomain", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getUser(), "User must be present when /user/userStoreDomain is exposed");
+        assertNotNull(event.getUser().getUserStoreDomain(),
+                "UserStore must be present when /user/userStoreDomain is exposed");
+        assertEquals(event.getUser().getUserStoreDomain().getName(), "",
+                "UserStore name must be '' when userStoreDomain is null");
+    }
+
+    @Test
+    public void testExposedClaimAbsentFromClaimsMapYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        // Expose a claim URI that is NOT present in the flowUser's claims map.
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/user/claims/http://wso2.org/claims/mobile", false),
+                new ContextPath("/user/userId", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getUser());
+        List<?> claims = event.getUser().getClaims();
+        assertEquals(claims.size(), 1);
+        org.wso2.carbon.identity.action.execution.api.model.UserClaim mobileClaim =
+                (org.wso2.carbon.identity.action.execution.api.model.UserClaim) claims.get(0);
+        assertEquals(mobileClaim.getUri(), "http://wso2.org/claims/mobile");
+        assertEquals(mobileClaim.getValue(), "",
+                "Exposed claim absent from claims map must yield ''");
+    }
+
+    @Test
+    public void testExposedPropertyAbsentFromPropertiesMapYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        // Expose a property key that is NOT present in the context properties map.
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/properties/riskScore", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        assertNotNull(event.getFlowProperties());
+        assertTrue(event.getFlowProperties().containsKey("riskScore"),
+                "Exposed property absent from properties map must still appear");
+        assertEquals(event.getFlowProperties().get("riskScore"), "",
+                "Exposed property absent from properties map must yield ''");
+    }
+
+    @Test
+    public void testExposedClaimWithNullValueYieldsEmptyString()
+            throws ActionExecutionRequestBuilderException {
+
+        FlowExecutionContext execCtx = createFullFlowExecutionContext();
+        // Overwrite existing claim with null value.
+        execCtx.getFlowUser().getClaims().put("http://wso2.org/claims/email", null);
+
+        AccessConfig accessConfig = new AccessConfig(Arrays.asList(
+                new ContextPath("/user/claims/http://wso2.org/claims/email", false)), null);
+
+        FlowContext flowContext = FlowContext.create()
+                .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
+
+        ActionExecutionRequest request = requestBuilder.buildActionExecutionRequest(
+                flowContext, mockReqCtx(accessConfig, null));
+
+        InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
+        List<?> claims = event.getUser().getClaims();
+        assertEquals(claims.size(), 1);
+        org.wso2.carbon.identity.action.execution.api.model.UserClaim emailClaim =
+                (org.wso2.carbon.identity.action.execution.api.model.UserClaim) claims.get(0);
+        assertEquals(emailClaim.getValue(), "",
+                "Claim value must be '' when source value is null");
+    }
+
     // ========================= Outbound encryption of properties and inputs =========================
 
     @Test

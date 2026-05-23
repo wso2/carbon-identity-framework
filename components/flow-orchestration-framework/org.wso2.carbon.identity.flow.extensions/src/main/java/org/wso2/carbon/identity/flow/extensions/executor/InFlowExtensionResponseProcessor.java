@@ -203,7 +203,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         // Route to appropriate handler based on path prefix.
         if (path.startsWith(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX)) {
             return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
-        } else if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
+        } else if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX)) {
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
@@ -211,7 +211,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                 "Unknown path prefix. Supported: " + InFlowExtensionConstants.PROPERTIES_PATH_PREFIX +
-                        ", " + InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX +
+                        ", " + InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX + "<uri>" +
+                        InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX +
                         ", " + InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX);
     }
 
@@ -286,8 +287,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private OperationExecutionResult handleUserClaimOperation(PerformableOperation operation,
             Map<String, Object> pendingClaims, String tenantDomain) {
 
-        String claimUri = extractNameFromPath(operation.getPath(),
-                InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX);
+        String claimUri = extractClaimUriFromPath(operation.getPath());
 
         if (claimUri == null || claimUri.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
@@ -401,6 +401,43 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         return remaining;
+    }
+
+    /**
+     * Extract the claim URI from an external-format claim path.
+     * Accepts the selector form {@code /user/claims[uri=<claimUri>]}.
+     * Returns {@code null} if the path is null or does not match the expected format.
+     */
+    private String extractClaimUriFromPath(String path) {
+
+        if (path == null) {
+            return null;
+        }
+        if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX)
+                && path.endsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX)) {
+            return path.substring(
+                    InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX.length(),
+                    path.length() - InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX.length());
+        }
+        return null;
+    }
+
+    /**
+     * Normalize an external-format claim path to the internal format for encryption checks.
+     * Converts {@code /user/claims[uri=<claimUri>]} to {@code /user/claims/<claimUri>}.
+     * All other paths are returned unchanged.
+     */
+    private static String normalizeToInternalPath(String externalPath) {
+
+        if (externalPath != null
+                && externalPath.startsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX)
+                && externalPath.endsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX)) {
+            String claimUri = externalPath.substring(
+                    InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX.length(),
+                    externalPath.length() - InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX.length());
+            return InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX + claimUri;
+        }
+        return externalPath;
     }
 
     @Override
@@ -635,8 +672,9 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             return operation;
         }
 
-        // Check if this operation path has encryption enabled via modify paths in AccessConfig.
-        if (!accessConfig.isModifyPathEncrypted(operation.getPath())) {
+        // Normalize external claim path to internal format before checking encryption flags.
+        String internalPath = normalizeToInternalPath(operation.getPath());
+        if (!accessConfig.isModifyPathEncrypted(internalPath)) {
             return operation;
         }
 

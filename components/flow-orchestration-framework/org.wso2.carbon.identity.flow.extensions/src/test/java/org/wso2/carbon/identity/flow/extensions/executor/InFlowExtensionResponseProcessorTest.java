@@ -342,7 +342,7 @@ public class InFlowExtensionResponseProcessorTest {
         execCtx.getFlowUser().addClaim("http://wso2.org/claims/email", "old@example.com");
 
         PerformableOperation claimOp = createOperation(
-                Operation.REPLACE, "/user/claims/http://wso2.org/claims/email", "new@example.com");
+                Operation.REPLACE, "/user/claims[uri=http://wso2.org/claims/email]", "new@example.com");
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
         Map<String, Object> pendingClaims =
@@ -357,7 +357,7 @@ public class InFlowExtensionResponseProcessorTest {
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
         PerformableOperation claimOp = createOperation(
-                Operation.REPLACE, "/user/claims/http://wso2.org/claims/country", "US");
+                Operation.REPLACE, "/user/claims[uri=http://wso2.org/claims/country]", "US");
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
         Map<String, Object> pendingClaims =
@@ -373,7 +373,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         // Numeric value should be stringified.
         PerformableOperation claimOp = createOperation(
-                Operation.REPLACE, "/user/claims/http://wso2.org/claims/country", 42);
+                Operation.REPLACE, "/user/claims[uri=http://wso2.org/claims/country]", 42);
         executeSuccessResponse(execCtx, claimOp, Collections.emptyMap());
 
         Map<String, Object> pendingClaims =
@@ -390,7 +390,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         // Identity claim should be rejected by the identity-claim prefix guard.
         PerformableOperation claimOp = createOperation(
-                Operation.REPLACE, "/user/claims/http://wso2.org/claims/identity/accountLocked", "true");
+                Operation.REPLACE, "/user/claims[uri=http://wso2.org/claims/identity/accountLocked]", "true");
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
@@ -414,7 +414,7 @@ public class InFlowExtensionResponseProcessorTest {
         // Claim not registered in the system should be rejected.
         PerformableOperation claimOp = createOperation(
                 Operation.REPLACE,
-                "/user/claims/http://wso2.org/claims/nonexistent", "value");
+                "/user/claims[uri=http://wso2.org/claims/nonexistent]", "value");
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
@@ -432,7 +432,7 @@ public class InFlowExtensionResponseProcessorTest {
         // Non-local dialect claim should be rejected by the local-dialect prefix guard.
         PerformableOperation claimOp = createOperation(
                 Operation.REPLACE,
-                "/user/claims/urn:ietf:params:scim:schemas:core:2.0:User:name.givenName", "John");
+                "/user/claims[uri=urn:ietf:params:scim:schemas:core:2.0:User:name.givenName]", "John");
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
@@ -447,7 +447,7 @@ public class InFlowExtensionResponseProcessorTest {
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
         PerformableOperation claimOp = createOperation(
-                Operation.REPLACE, "/user/claims/http://wso2.org/claims/email", null);
+                Operation.REPLACE, "/user/claims[uri=http://wso2.org/claims/email]", null);
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
@@ -461,7 +461,7 @@ public class InFlowExtensionResponseProcessorTest {
 
         FlowExecutionContext execCtx = createFlowExecutionContext();
 
-        PerformableOperation claimOp = createOperation(Operation.REPLACE, "/user/claims/", "value");
+        PerformableOperation claimOp = createOperation(Operation.REPLACE, "/user/claims[uri=]", "value");
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
@@ -476,7 +476,7 @@ public class InFlowExtensionResponseProcessorTest {
         execCtx.setFlowUser(null);
 
         PerformableOperation claimOp = createOperation(
-                Operation.REPLACE, "/user/claims/http://wso2.org/claims/email", "test@email.com");
+                Operation.REPLACE, "/user/claims[uri=http://wso2.org/claims/email]", "test@email.com");
         ActionExecutionStatus<Success> status = executeSuccessResponse(
                 execCtx, claimOp, Collections.emptyMap());
 
