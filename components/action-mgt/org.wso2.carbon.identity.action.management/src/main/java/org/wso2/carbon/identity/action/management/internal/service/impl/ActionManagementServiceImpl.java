@@ -370,11 +370,13 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
-        // PRE_POST actions start INACTIVE (require explicit activation).
-        // IN_FLOW and IN_FLOW_EXTENSION category actions (e.g., AUTHENTICATION, FLOW_EXTENSION)
-        // start ACTIVE and can be used immediately.
-        Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.PRE_POST ?
-                Action.Status.INACTIVE : Action.Status.ACTIVE;
+        // Only IN_FLOW and IN_FLOW_EXTENSION category actions (e.g., AUTHENTICATION, FLOW_EXTENSION)
+        // start ACTIVE and can be used immediately. All other categories (e.g., PRE_POST) start
+        // INACTIVE and require explicit activation.
+        Action.ActionTypes.Category category = resolvedActionType.getCategory();
+        Action.Status resolvedStatus = (category == Action.ActionTypes.Category.IN_FLOW
+                || category == Action.ActionTypes.Category.IN_FLOW_EXTENSION)
+                ? Action.Status.ACTIVE : Action.Status.INACTIVE;
 
         String actionVersion = ActionManagementConfig.getInstance().getLatestVersion(resolvedActionType);
 
