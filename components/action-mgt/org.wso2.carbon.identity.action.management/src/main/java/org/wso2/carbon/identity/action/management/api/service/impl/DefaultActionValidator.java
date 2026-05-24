@@ -249,7 +249,6 @@ public class DefaultActionValidator implements ActionValidator {
         }
     }
 
-
     /**
      * Validate whether required fields exist.
      *
