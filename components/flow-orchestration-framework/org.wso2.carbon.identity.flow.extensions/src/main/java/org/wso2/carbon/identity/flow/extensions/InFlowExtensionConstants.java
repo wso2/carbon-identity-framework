@@ -53,7 +53,7 @@ public class InFlowExtensionConstants {
 
     // ---- Context path prefixes ----
     public static final String USER_PREFIX                  = "/user/";
-    public static final String USER_ID_PATH                 = "/user/userId";
+    public static final String USER_ID_PATH                 = "/user/id";
     public static final String USER_STORE_DOMAIN_PATH       = "/user/userStoreDomain";
     public static final String USER_CLAIMS_PATH_PREFIX      = "/user/claims/";
     public static final String USER_CLAIMS_SELECTOR_PREFIX  = "/user/claims[uri=";
@@ -169,7 +169,7 @@ public class InFlowExtensionConstants {
          */
         public static final Set<String> INCLUDED_USER_ATTRIBUTES = Collections.unmodifiableSet(
                 new HashSet<>(Arrays.asList(
-                        "userId",
+                        "id",
                         "username",
                         "userStoreDomain",
                         "claims",

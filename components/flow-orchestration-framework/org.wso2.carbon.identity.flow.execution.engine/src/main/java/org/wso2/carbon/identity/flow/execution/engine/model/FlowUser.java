@@ -81,7 +81,7 @@ public class FlowUser implements Serializable {
     @JsonProperty("username")
     private String username;
 
-    private String userId;
+    private String id;
     private String userStoreDomain;
 
     @JsonIgnore
@@ -153,14 +153,14 @@ public class FlowUser implements Serializable {
         this.userCredentials.putAll(credentials);
     }
 
-    public String getUserId() {
+    public String getId() {
 
-        return userId;
+        return id;
     }
 
-    public void setUserId(String userId) {
+    public void setId(String id) {
 
-        this.userId = userId;
+        this.id = id;
     }
 
     public String getUserStoreDomain() {

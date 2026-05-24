@@ -208,7 +208,7 @@ public class TaskExecutionNode implements Node {
 
         FlowUser user = context.getFlowUser();
         if (response.getUserId() != null) {
-            user.setUserId(response.getUserId());
+            user.setId(response.getUserId());
         }
         if (response.getUpdatedUserClaims() != null) {
             response.getUpdatedUserClaims().forEach((key, value) -> user.addClaim(key, String.valueOf(value)));
@@ -216,7 +216,7 @@ public class TaskExecutionNode implements Node {
         if (response.getUserCredentials() != null) {
             user.getUserCredentials().putAll(response.getUserCredentials());
         }
-        if (user.getUserId() == null) {
+        if (user.getId() == null) {
             resolveUserIdFromUserStore(user, context.getTenantDomain());
         }
 
@@ -239,7 +239,7 @@ public class TaskExecutionNode implements Node {
                             .getTenantUserRealm(tenantId).getUserStoreManager();
             String userId = userStoreManager.getUserIDFromUserName(username);
             if (StringUtils.isNotBlank(userId)) {
-                user.setUserId(userId);
+                user.setId(userId);
             }
         } catch (Exception e) {
             LOG.warn("Failed to resolve userId for user '" + username + "' from user store.", e);

@@ -38,7 +38,7 @@ public final class InFlowExtensionTestUtils {
             "properties", "contextIdentifier"));
 
     public static final Set<String> ALL_USER_ATTRS = new HashSet<>(Arrays.asList(
-            "username", "userId", "userStoreDomain", "claims", "userCredentials"));
+            "username", "id", "userStoreDomain", "claims", "userCredentials"));
 
     private InFlowExtensionTestUtils() {
 

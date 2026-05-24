@@ -121,7 +121,7 @@ public class InFlowExtensionContextTreeBuilder {
      *
      * <p>Strategy:
      * <ul>
-     *   <li><b>Read-only fields</b> (userId, username, userStoreDomain): only emitted when the
+     *   <li><b>Read-only fields</b> (id, username, userStoreDomain): only emitted when the
      *       attribute is in the allow-list (or full-passthrough is active). They support EXPOSE
      *       only, so excluding them when restricted is the correct behaviour.</li>
      *   <li><b>Modifiable fields</b> (claims, credentials): always emitted because modifications
@@ -139,11 +139,11 @@ public class InFlowExtensionContextTreeBuilder {
         List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
 
         // ── Read-only fields: emit only when exposed ────────────────────────────────────────
-        if (fullPassthrough || userAttrs.contains("userId")) {
+        if (fullPassthrough || userAttrs.contains("id")) {
             children.add(InFlowExtensionContextTreeNode.builder()
-                    .key("userId")
+                    .key("id")
                     .title("User ID")
-                    .path("/user/userId")
+                    .path("/user/id")
                     .dataType(DATA_TYPE_STRING)
                     .nodeType(NODE_LEAF)
                     .allowedOperations(Collections.singletonList(OP_EXPOSE))

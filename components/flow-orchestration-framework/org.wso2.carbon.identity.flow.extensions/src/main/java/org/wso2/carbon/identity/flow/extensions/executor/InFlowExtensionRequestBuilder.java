@@ -180,7 +180,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      * @param certificatePEM The certificate PEM for JWE encryption (may be null).
      * @return The filtered User model with encrypted values where configured.
      */
-    private InFlowUser buildUser(FlowUser flowUser, List<String> expose,
+    private User buildUser(FlowUser flowUser, List<String> expose,
                            AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
@@ -201,7 +201,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             userBuilder.userStoreDomain(new UserStore(userStoreDomain != null ? userStoreDomain : ""));
         }
 
-        return new InFlowUser(userBuilder);
+        return userBuilder.build();
     }
 
     private FlowExecutionContext getFlowExecutionContextOrThrow(FlowContext flowContext)
@@ -574,7 +574,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     private String resolveUserId(FlowUser flowUser, List<String> expose) {
 
         if (isLeafExposed(InFlowExtensionConstants.USER_ID_PATH, expose)) {
-            String userId = flowUser.getUserId();
+            String userId = flowUser.getId();
             return userId != null ? userId : "";
         }
         return null;

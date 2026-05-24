@@ -322,7 +322,7 @@ public class FlowEngineUtilsTest {
 
         FlowUser flowUser = new FlowUser();
         flowUser.setUsername(testUsername);
-        flowUser.setUserId(testUserId);
+        flowUser.setId(testUserId);
         mockContext.setFlowUser(flowUser);
 
 
@@ -354,7 +354,7 @@ public class FlowEngineUtilsTest {
 
         FlowUser flowUser = new FlowUser();
         flowUser.setUsername("testuser");
-        flowUser.setUserId("user123");
+        flowUser.setId("user123");
         mockContext.setFlowUser(flowUser);
         String expectedAssertion = "minimal.jwt.token";
 

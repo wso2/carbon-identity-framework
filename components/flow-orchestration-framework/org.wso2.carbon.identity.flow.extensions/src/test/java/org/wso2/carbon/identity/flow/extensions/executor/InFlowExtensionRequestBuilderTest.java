@@ -528,7 +528,7 @@ public class InFlowExtensionRequestBuilderTest {
         // Only expose a specific claim.
         AccessConfig accessConfig = new AccessConfig(Arrays.asList(
                 new ContextPath("/user/claims/http://wso2.org/claims/email", false),
-                new ContextPath("/user/userId", false)), null);
+                new ContextPath("/user/id", false)), null);
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
@@ -661,10 +661,10 @@ public class InFlowExtensionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
-        execCtx.getFlowUser().setUserId(null);
+        execCtx.getFlowUser().setId(null);
 
         AccessConfig accessConfig = new AccessConfig(Arrays.asList(
-                new ContextPath("/user/userId", false)), null);
+                new ContextPath("/user/id", false)), null);
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
@@ -675,7 +675,7 @@ public class InFlowExtensionRequestBuilderTest {
         InFlowExtensionEvent event = (InFlowExtensionEvent) request.getEvent();
         assertNotNull(event.getFlow().getUser());
         assertEquals(event.getFlow().getUser().getId(), "",
-                "User id must be '' when userId is null and path is exposed");
+                "User id must be '' when id is null and path is exposed");
     }
 
     @Test
@@ -710,7 +710,7 @@ public class InFlowExtensionRequestBuilderTest {
         // Expose a claim URI that is NOT present in the flowUser's claims map.
         AccessConfig accessConfig = new AccessConfig(Arrays.asList(
                 new ContextPath("/user/claims/http://wso2.org/claims/mobile", false),
-                new ContextPath("/user/userId", false)), null);
+                new ContextPath("/user/id", false)), null);
 
         FlowContext flowContext = FlowContext.create()
                 .add(InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, execCtx);
@@ -1030,7 +1030,7 @@ public class InFlowExtensionRequestBuilderTest {
         context.setCurrentNode(node);
 
         FlowUser flowUser = new FlowUser();
-        flowUser.setUserId("user-456");
+        flowUser.setId("user-456");
         flowUser.setUsername("testuser");
         flowUser.setUserStoreDomain("PRIMARY");
         flowUser.addClaim("http://wso2.org/claims/email", "test@example.com");

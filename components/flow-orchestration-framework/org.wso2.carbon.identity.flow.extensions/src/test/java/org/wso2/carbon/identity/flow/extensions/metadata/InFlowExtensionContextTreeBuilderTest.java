@@ -182,7 +182,7 @@ public class InFlowExtensionContextTreeBuilderTest {
         List<InFlowExtensionContextTreeNode> children = userNode.getChildren();
 
         // Read-only user fields absent when not configured.
-        assertFalse(hasChildKey(children, "userId"),          "userId must not appear");
+        assertFalse(hasChildKey(children, "id"),          "userId must not appear");
         assertFalse(hasChildKey(children, "username"),        "username must not appear");
         assertFalse(hasChildKey(children, "userStoreDomain"), "userStoreDomain must not appear");
 
@@ -213,7 +213,7 @@ public class InFlowExtensionContextTreeBuilderTest {
         assertTrue(claimsNode.getAllowedOperations().contains("MODIFY"), "claims must have MODIFY");
 
         // Read-only fields not configured → absent.
-        assertFalse(hasChildKey(children, "userId"),          "userId not in allow-list");
+        assertFalse(hasChildKey(children, "id"),          "userId not in allow-list");
         assertFalse(hasChildKey(children, "userStoreDomain"),  "userStoreDomain not in allow-list");
 
         // credentials not configured but always present → MODIFY only, no EXPOSE.
@@ -237,7 +237,7 @@ public class InFlowExtensionContextTreeBuilderTest {
         assertNotNull(userNode, "user node should be present with full passthrough");
 
         List<InFlowExtensionContextTreeNode> children = userNode.getChildren();
-        assertTrue(hasChildKey(children, "userId"),         "userId must appear in passthrough");
+        assertTrue(hasChildKey(children, "id"),         "userId must appear in passthrough");
         assertTrue(hasChildKey(children, "username"),       "username must appear in passthrough");
         assertTrue(hasChildKey(children, "userStoreDomain"),"userStoreDomain must appear in passthrough");
         assertTrue(hasChildKey(children, "claims"),         "claims must appear in passthrough");

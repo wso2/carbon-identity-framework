@@ -843,7 +843,7 @@ public class InFlowExtensionResponseProcessorTest {
         context.setContextIdentifier("test-id");
 
         FlowUser flowUser = new FlowUser();
-        flowUser.setUserId("user-1");
+        flowUser.setId("user-1");
         flowUser.setUsername("testuser");
         context.setFlowUser(flowUser);
 
