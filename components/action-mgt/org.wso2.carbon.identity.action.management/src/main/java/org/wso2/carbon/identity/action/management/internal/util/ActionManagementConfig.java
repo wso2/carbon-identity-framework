@@ -147,6 +147,7 @@ public class ActionManagementConfig {
         ),
         FLOW_EXTENSION(
                 "Actions.Types.FlowExtension.ActionRequest.ExcludedHeaders.Header",
+                null,
                 "Actions.Types.FlowExtension.Version.Latest"
         );
 
@@ -159,11 +160,6 @@ public class ActionManagementConfig {
             this.excludedHeadersProperty = excludedHeadersProperty;
             this.excludedParamsProperty = excludedParamsProperty;
             this.latestVersionProperty = latestVersionProperty;
-        }
-
-        ActionTypeConfig(String excludedHeadersProperty, String latestVersionProperty) {
-
-            this(excludedHeadersProperty, null, latestVersionProperty);
         }
 
         public String getExcludedHeadersProperty() {
