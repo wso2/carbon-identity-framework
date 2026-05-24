@@ -76,9 +76,9 @@ public class Action {
                 "Pre Issue ID Token",
                 "Configure an extension point for modifying ID token via a custom service.",
                 Category.PRE_POST),
-        FLOW_EXTENSIONS(
+        FLOW_EXTENSION(
                 "inFlowExtension",
-                "FLOW_EXTENSIONS",
+                "FLOW_EXTENSION",
                 "In-Flow Extension",
                 "Configure an extension point within any flow via a custom service.",
                 Category.IN_FLOW_EXTENSION);

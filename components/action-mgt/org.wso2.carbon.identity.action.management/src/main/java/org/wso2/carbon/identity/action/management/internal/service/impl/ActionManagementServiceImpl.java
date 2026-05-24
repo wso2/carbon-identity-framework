@@ -76,7 +76,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
-        List<ActionDTO> existingActions = ActionTypes.FLOW_EXTENSIONS.equals(castedActionType)
+        List<ActionDTO> existingActions = ActionTypes.FLOW_EXTENSION.equals(castedActionType)
                 ? DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId)
                 : Collections.emptyList();
         ActionValidatorFactory.getActionValidator(castedActionType).doPreAddActionValidations(
@@ -165,7 +165,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String resolvedActionType = getActionTypeFromPath(actionType);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
-        List<ActionDTO> existingActions = ActionTypes.FLOW_EXTENSIONS.equals(castedActionType)
+        List<ActionDTO> existingActions = ActionTypes.FLOW_EXTENSION.equals(castedActionType)
                 ? DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId)
                 : Collections.emptyList();
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
@@ -378,7 +378,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
         // PRE_POST actions start INACTIVE (require explicit activation).
-        // IN_FLOW and IN_FLOW_EXTENSION category actions (e.g., AUTHENTICATION, FLOW_EXTENSIONS)
+        // IN_FLOW and IN_FLOW_EXTENSION category actions (e.g., AUTHENTICATION, FLOW_EXTENSION)
         // start ACTIVE and can be used immediately.
         Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.PRE_POST ?
                 Action.Status.INACTIVE : Action.Status.ACTIVE;
