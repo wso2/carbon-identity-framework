@@ -42,7 +42,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -76,12 +75,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
-        List<ActionDTO> existingActions = ActionTypes.FLOW_EXTENSION.equals(castedActionType)
-                ? DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId)
-                : Collections.emptyList();
         ActionValidatorFactory.getActionValidator(castedActionType).doPreAddActionValidations(
-                castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action,
-                existingActions);
+                castedActionType, ActionManagementConfig.getInstance().getLatestVersion(castedActionType), action);
+        validateActionNameUniqueness(action.getName(), null, castedActionType, tenantId);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
@@ -165,12 +161,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String resolvedActionType = getActionTypeFromPath(actionType);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         Action.ActionTypes castedActionType = Action.ActionTypes.valueOf(resolvedActionType);
-        List<ActionDTO> existingActions = ActionTypes.FLOW_EXTENSION.equals(castedActionType)
-                ? DAO_FACADE.getActionsByActionType(resolvedActionType, tenantId)
-                : Collections.emptyList();
         ActionValidatorFactory.getActionValidator(castedActionType).doPreUpdateActionValidations(
-                castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action, actionId,
-                existingActions);
+                castedActionType, resolveActionVersionAtUpdating(action, existingActionDTO), action);
+        validateActionNameUniqueness(action.getName(), actionId, castedActionType, tenantId);
         ActionDTO updatingActionDTO = buildActionDTOForUpdate(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, tenantId);
@@ -484,5 +477,22 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .attributes(actionDTO.getAttributes())
                 .rule(actionDTO.getActionRule())
                 .build();
+    }
+
+    private void validateActionNameUniqueness(String name, String excludeId, ActionTypes actionType, int tenantId)
+            throws ActionMgtException {
+
+        if (name == null || !ActionTypes.FLOW_EXTENSION.equals(actionType)) {
+            return;
+        }
+        List<ActionDTO> existingActions = DAO_FACADE.getActionsByActionType(actionType.getActionType(), tenantId);
+        boolean duplicateExists = existingActions.stream()
+                .filter(dto -> excludeId == null || !excludeId.equals(dto.getId()))
+                .anyMatch(dto -> name.equalsIgnoreCase(dto.getName()));
+
+        if (duplicateExists) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_ACTION_NAME_ALREADY_EXISTS, name);
+        }
     }
 }
