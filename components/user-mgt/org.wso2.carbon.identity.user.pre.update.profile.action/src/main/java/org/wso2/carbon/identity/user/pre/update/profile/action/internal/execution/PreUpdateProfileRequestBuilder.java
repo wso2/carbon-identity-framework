@@ -30,9 +30,10 @@ import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
-import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
+import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -48,15 +49,21 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.componen
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileRequest;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.UpdatingUserClaim;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Pre Update Profile Action Request Builder.
@@ -65,7 +72,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
-    public static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
+    public static final String USER_CLAIMS_PATH_PREFIX = "/user/claims[uri={clam_uri}]";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -123,10 +130,9 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         eventBuilder.action(PreUpdateProfileEvent.Action.UPDATE);
         eventBuilder.request(getPreUpdateProfileRequest(userActionContext));
         eventBuilder.tenant(getTenant());
-        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction));
 
-        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        UniqueIDUserStoreManager userStoreManager = RequestBuilderUtil.getUserStoreManager(tenantDomain);
+        UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
+        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager));
         eventBuilder.userStore(getUserStore(userActionContext.getUserActionRequestDTO(), userStoreManager));
         eventBuilder.organization(getOrganization());
 
@@ -210,8 +216,8 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
                 .build();
     }
 
-    private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction)
-            throws ActionExecutionRequestBuilderException {
+    private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction,
+                         UniqueIDUserStoreManager userStoreManager) throws ActionExecutionRequestBuilderException {
 
         UserActionRequestDTO userActionRequestDTO = userActionContext.getUserActionRequestDTO();
         List<String> userClaimsToSetInEvent = preUpdateProfileAction.getAttributes();
@@ -223,15 +229,31 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             return userBuilder.build();
         }
 
-        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        Map<String, String> claimValues = RequestBuilderUtil.getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
-                userClaimsToSetInEvent, tenantDomain);
+        Map<String, String> claimValues = getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
+                userClaimsToSetInEvent, userStoreManager);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
         setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
         setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
 
         return userBuilder.build();
+    }
+
+    private Map<String, String> getClaimValues(String userId, List<String> requestedClaims,
+                                               UniqueIDUserStoreManager userStoreManager)
+            throws ActionExecutionRequestBuilderException {
+
+        try {
+            Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(userId,
+                    requestedClaims.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
+
+            // Filter out the extra claims that are not requested.
+            return requestedClaims.stream()
+                    .filter(claimValues::containsKey)
+                    .collect(Collectors.toMap(Function.identity(), claimValues::get));
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new ActionExecutionRequestBuilderException("Failed to retrieve user claims from user store.", e);
+        }
     }
 
     private void setClaimsInUserBuilder(User.Builder userBuilder, Map<String, String> claimValues,
@@ -345,6 +367,38 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         }
 
         return new UserStore(userStoreDomain);
+    }
+
+    private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionRequestBuilderException {
+
+        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
+        RealmService realmService = ActionExecutionServiceComponentHolder.getInstance().getRealmService();
+
+        if (realmService == null) {
+            throw new ActionExecutionRequestBuilderException("Realm service is unavailable.");
+        }
+
+        try {
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
+
+            if (userRealm == null) {
+                throw new ActionExecutionRequestBuilderException(
+                        "User realm is not available for tenant: " + tenantDomain);
+            }
+
+            UserStoreManager userStoreManager = userRealm.getUserStoreManager();
+            if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
+                throw new ActionExecutionRequestBuilderException(
+                        "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
+                                tenantDomain);
+            }
+
+            return (UniqueIDUserStoreManager) userStoreManager;
+        } catch (UserStoreException e) {
+            throw new ActionExecutionRequestBuilderException(
+                    "Error while loading user store manager for tenant: " + tenantDomain, e);
+        }
     }
 
     private boolean isMultiValuedClaim(String claimUri) throws ActionExecutionRequestBuilderException {

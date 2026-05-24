@@ -61,12 +61,8 @@ import java.util.stream.Collectors;
  */
 public class PreUpdateProfileResponseProcessor implements ActionExecutionResponseProcessor {
 
-    private static final String ID_CLAIM_URI = "http://wso2.org/claims/userid";
-    private static final String NAME_CLAIM_URI = "http://wso2.org/claims/username";
-    private static final String CREATED_CLAIM_URI = "http://wso2.org/claims/created";
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
-    private static final String IDENTITY_CLAIM_URI_PREFIX = "http://wso2.org/claims/identity/";
     private static final String SCIM_SCHEMA_URI_PREFIX = "urn:ietf:params:scim:schemas";
     private static final String URI = "uri";
     private static final String VALUE = "value";
@@ -76,6 +72,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private static final String MULTI_VALUED_CLAIMS_TO_BE_ADDED = "multiValuedClaimsToBeAdded";
     private static final String MULTI_VALUED_CLAIMS_TO_BE_REMOVED = "multiValuedClaimsToBeRemoved";
     private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
+    private static final String USER_CLAIMS_FILTER_PATH_PREFIX = "/user/claims[";
     private static final String VALUE_PATH_SEGMENT = "/value/";
     private static final String  ARRAY_APPEND_PATH_SEGMENT = "/-";
 
@@ -145,8 +142,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String path = operation.getPath();
 
         // Determine claim URI: from path (path-based format) or from value map.
-        if (path != null && path.startsWith(USER_CLAIMS_PATH_PREFIX) &&
-                path.length() > USER_CLAIMS_PATH_PREFIX.length()) {
+        if (path != null && isClaimPathFormat(path)) {
             claimUri = getClaimUriFromPath(path);
         } else if (operation.getValue() instanceof LinkedHashMap) {
             LinkedHashMap<?, ?> valueMap = (LinkedHashMap<?, ?>) operation.getValue();
@@ -162,7 +158,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
         validateGroupAndRoleClaims(claimUri);
-        validateImmutableClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
 
@@ -210,7 +205,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                     throw new ActionExecutionResponseProcessorException(
                             "Missing or wrong format for multi valued claim in operation");
                 }
-                @SuppressWarnings("unchecked")
                 List<String> typedList = (List<String>) operation.getValue();
                 claimValue = typedList;
             } else {
@@ -240,7 +234,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
         validateGroupAndRoleClaims(claimUri);
-        validateImmutableClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
         String separator = FrameworkUtils.getMultiAttributeSeparator();
@@ -289,13 +282,16 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
         validateGroupAndRoleClaims(claimUri);
-        validateImmutableClaims(claimUri);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
 
         if (!isMultiValuedClaim(localClaim)) {
             userClaimsToBeRemoved.put(claimUri, "");
             userClaimsToBeModified.remove(claimUri);
         } else {
+            if (operation.getValue() != null) {
+                throw new ActionExecutionResponseProcessorException(
+                        "Remove specific value from a multivalued claim is not supported.");
+            }
             populateMultiValuedClaimsForRemoveOperation(initiatorType, claimUri, valueToRemove, userClaimsToBeRemoved,
                     simpleMultiValuedClaimsToBeRemoved);
         }
@@ -501,6 +497,30 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             return remainder;
         }
 
+        if (path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX)) {
+            int uriKeyStart = path.indexOf("[uri=");
+            if (uriKeyStart == -1) {
+                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+            }
+
+            int valueStart = uriKeyStart + "[uri=".length();
+            if (valueStart >= path.length()) {
+                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+            }
+
+            char quoteChar = path.charAt(valueStart);
+            if (quoteChar != '\'' && quoteChar != '"') {
+                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+            }
+
+            int valueEnd = path.indexOf(quoteChar, valueStart + 1);
+            if (valueEnd == -1 || valueEnd + 1 >= path.length() || path.charAt(valueEnd + 1) != ']') {
+                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+            }
+
+            return path.substring(valueStart + 1, valueEnd);
+        }
+
         throw new ActionExecutionResponseProcessorException("Invalid path format: " + path);
     }
 
@@ -522,7 +542,24 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                 return remainder.substring(valueIndex + VALUE_PATH_SEGMENT.length());
             }
         }
+
+        if (path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX)) {
+            int closingFilterIndex = path.indexOf(']');
+            if (closingFilterIndex != -1) {
+                int valueStartIndex = path.indexOf(VALUE_PATH_SEGMENT, closingFilterIndex);
+                if (valueStartIndex != -1) {
+                    return path.substring(valueStartIndex + VALUE_PATH_SEGMENT.length());
+                }
+            }
+        }
+
         return null;
+    }
+
+    private boolean isClaimPathFormat(String path) {
+
+        return (path.startsWith(USER_CLAIMS_PATH_PREFIX) && path.length() > USER_CLAIMS_PATH_PREFIX.length()) ||
+                path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX);
     }
 
     private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionResponseProcessorException {
@@ -589,15 +626,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                 .filter(s -> !s.isEmpty())
                 .distinct()
                 .toArray(String[]::new);
-    }
-
-    private void validateImmutableClaims(String claimUri) throws ActionExecutionResponseProcessorException {
-
-        if (claimUri.equals(ID_CLAIM_URI) || claimUri.equals(CREATED_CLAIM_URI) ||
-                claimUri.equals(NAME_CLAIM_URI) || claimUri.contains(IDENTITY_CLAIM_URI_PREFIX)) {
-            throw new ActionExecutionResponseProcessorException("Immutable claims cannot be added or modified: " +
-                    claimUri);
-        }
     }
 
     private void validateFlowInitiatorClaims(String claimUri, Optional<LocalClaim> localClaim)
