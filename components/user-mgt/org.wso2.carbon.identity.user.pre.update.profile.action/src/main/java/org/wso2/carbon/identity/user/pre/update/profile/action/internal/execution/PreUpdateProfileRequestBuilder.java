@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
-import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
@@ -72,7 +71,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
-    public static final String USER_CLAIMS_PATH_PREFIX = "/user/claims[uri={clam_uri}]";
+    public static final String USER_CLAIMS_FILTERED_PATH_TEMPLATE = "/user/claims[uri={claim_uri}]";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -99,17 +98,14 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
     private List<AllowedOperation> getAllowedOperations(Event event) throws ActionExecutionRequestBuilderException {
 
-        List<String> addOrReplacePaths = new ArrayList<>();
-        List<String> removePaths = new ArrayList<>();
-
-        addOrReplacePaths.add(USER_CLAIMS_PATH_PREFIX);
-        removePaths.add(USER_CLAIMS_PATH_PREFIX);
+        List<String> allowedPaths = new ArrayList<>();
+        allowedPaths.add(USER_CLAIMS_FILTERED_PATH_TEMPLATE);
 
         List<AllowedOperation> allowedOperations = new ArrayList<>();
 
-        allowedOperations.add(createAllowedOperation(Operation.ADD, addOrReplacePaths));
-        allowedOperations.add(createAllowedOperation(Operation.REMOVE, removePaths));
-        allowedOperations.add(createAllowedOperation(Operation.REPLACE, addOrReplacePaths));
+        allowedOperations.add(createAllowedOperation(Operation.ADD, allowedPaths));
+        allowedOperations.add(createAllowedOperation(Operation.REMOVE, allowedPaths));
+        allowedOperations.add(createAllowedOperation(Operation.REPLACE, allowedPaths));
 
         return allowedOperations;
     }

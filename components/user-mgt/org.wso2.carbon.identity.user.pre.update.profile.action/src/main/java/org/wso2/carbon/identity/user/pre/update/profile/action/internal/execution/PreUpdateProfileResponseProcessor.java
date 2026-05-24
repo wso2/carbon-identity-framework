@@ -71,10 +71,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private static final String USER_CLAIMS_TO_BE_REMOVED = "userClaimsToBeRemoved";
     private static final String MULTI_VALUED_CLAIMS_TO_BE_ADDED = "multiValuedClaimsToBeAdded";
     private static final String MULTI_VALUED_CLAIMS_TO_BE_REMOVED = "multiValuedClaimsToBeRemoved";
-    private static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
     private static final String USER_CLAIMS_FILTER_PATH_PREFIX = "/user/claims[";
-    private static final String VALUE_PATH_SEGMENT = "/value/";
-    private static final String  ARRAY_APPEND_PATH_SEGMENT = "/-";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -278,7 +275,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         // Extract the claim URI and optionally the specific value to remove for
         // multivalued claims.
         String claimUri = getClaimUriFromPath(path);
-        String valueToRemove = getValueToRemoveFromPath(path);
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
         validateGroupAndRoleClaims(claimUri);
@@ -292,7 +288,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                 throw new ActionExecutionResponseProcessorException(
                         "Remove specific value from a multivalued claim is not supported.");
             }
-            populateMultiValuedClaimsForRemoveOperation(initiatorType, claimUri, valueToRemove, userClaimsToBeRemoved,
+            populateMultiValuedClaimsForRemoveOperation(initiatorType, claimUri, userClaimsToBeRemoved,
                     simpleMultiValuedClaimsToBeRemoved);
         }
     }
@@ -442,15 +438,9 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private void populateMultiValuedClaimsForRemoveOperation(
             PreUpdateProfileEvent.FlowInitiatorType initiatorType,
             String claimUri,
-            String valueToRemove,
             Map<String, String> userClaimsToBeRemoved,
             Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved)
             throws ActionExecutionResponseProcessorException {
-
-        if (valueToRemove != null) {
-            throw new ActionExecutionResponseProcessorException(
-                    "Removing a specific value from a multivalued claim is not supported.");
-        }
 
         userClaimsToBeRemoved.put(claimUri, "");
     }
@@ -481,22 +471,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private String getClaimUriFromPath(String path)
             throws ActionExecutionResponseProcessorException {
 
-        if (path.startsWith(USER_CLAIMS_PATH_PREFIX)) {
-
-            String remainder = path.substring(USER_CLAIMS_PATH_PREFIX.length());
-            // Handle SCIM array append syntax: /claimUri/-
-            if (remainder.endsWith(ARRAY_APPEND_PATH_SEGMENT)) {
-                return remainder.substring(0, remainder.length() - 2);
-            }
-
-            int valueIndex = remainder.indexOf(VALUE_PATH_SEGMENT);
-            if (valueIndex != -1) {
-                return remainder.substring(0, valueIndex);
-            }
-
-            return remainder;
-        }
-
         if (path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX)) {
             int uriKeyStart = path.indexOf("[uri=");
             if (uriKeyStart == -1) {
@@ -509,57 +483,33 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             }
 
             char quoteChar = path.charAt(valueStart);
-            if (quoteChar != '\'' && quoteChar != '"') {
-                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+            if (quoteChar == '\'' || quoteChar == '"') {
+                int valueEnd = path.indexOf(quoteChar, valueStart + 1);
+                if (valueEnd == -1 || valueEnd + 1 >= path.length() || path.charAt(valueEnd + 1) != ']') {
+                    throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+                }
+                if (valueEnd + 2 != path.length()) {
+                    throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+                }
+                return path.substring(valueStart + 1, valueEnd);
             }
 
-            int valueEnd = path.indexOf(quoteChar, valueStart + 1);
-            if (valueEnd == -1 || valueEnd + 1 >= path.length() || path.charAt(valueEnd + 1) != ']') {
+            int valueEnd = path.indexOf(']', valueStart);
+            if (valueEnd == -1) {
                 throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
             }
-
-            return path.substring(valueStart + 1, valueEnd);
+            if (valueEnd + 1 != path.length()) {
+                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
+            }
+            return path.substring(valueStart, valueEnd);
         }
 
         throw new ActionExecutionResponseProcessorException("Invalid path format: " + path);
     }
 
-    /**
-     * Extract the specific value to remove from a multivalued claim path.
-     *
-     * Path format: /user/claims/{claimURI}/value/{valueToRemove}
-     * e.g., /user/claims/http://wso2.org/claims/emails/value/bob@example.com
-     *
-     * @param path The operation path.
-     * @return The value to remove, or null if path doesn't contain a value segment.
-     */
-    private String getValueToRemoveFromPath(String path) {
-
-        if (path.startsWith(USER_CLAIMS_PATH_PREFIX)) {
-            String remainder = path.substring(USER_CLAIMS_PATH_PREFIX.length());
-            int valueIndex = remainder.indexOf(VALUE_PATH_SEGMENT);
-            if (valueIndex != -1) {
-                return remainder.substring(valueIndex + VALUE_PATH_SEGMENT.length());
-            }
-        }
-
-        if (path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX)) {
-            int closingFilterIndex = path.indexOf(']');
-            if (closingFilterIndex != -1) {
-                int valueStartIndex = path.indexOf(VALUE_PATH_SEGMENT, closingFilterIndex);
-                if (valueStartIndex != -1) {
-                    return path.substring(valueStartIndex + VALUE_PATH_SEGMENT.length());
-                }
-            }
-        }
-
-        return null;
-    }
-
     private boolean isClaimPathFormat(String path) {
 
-        return (path.startsWith(USER_CLAIMS_PATH_PREFIX) && path.length() > USER_CLAIMS_PATH_PREFIX.length()) ||
-                path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX);
+        return path != null && path.startsWith(USER_CLAIMS_FILTER_PATH_PREFIX);
     }
 
     private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionResponseProcessorException {
