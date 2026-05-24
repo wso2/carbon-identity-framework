@@ -77,11 +77,11 @@ public class Action {
                 "Configure an extension point for modifying ID token via a custom service.",
                 Category.PRE_POST),
         FLOW_EXTENSION(
-                "inFlowExtension",
+                "flowExtension",
                 "FLOW_EXTENSION",
-                "In-Flow Extension",
+                "Flow Extension",
                 "Configure an extension point within any flow via a custom service.",
-                Category.IN_FLOW_EXTENSION);
+                Category.FLOW_EXTENSION);
 
         private final String pathParam;
         private final String actionType;
@@ -138,7 +138,7 @@ public class Action {
         public enum Category {
             PRE_POST,
             IN_FLOW,
-            IN_FLOW_EXTENSION
+            FLOW_EXTENSION
         }
     }
 

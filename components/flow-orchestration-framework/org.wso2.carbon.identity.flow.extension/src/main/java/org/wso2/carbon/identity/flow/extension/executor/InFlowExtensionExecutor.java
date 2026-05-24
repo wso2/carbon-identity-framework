@@ -235,7 +235,7 @@ public class InFlowExtensionExecutor implements Executor {
             additionalInfo = new HashMap<>();
         }
         additionalInfo.put(InFlowExtensionConstants.FAILURE_TYPE_KEY,
-                InFlowExtensionConstants.IN_FLOW_EXTENSION_FAILURE_TYPE);
+                InFlowExtensionConstants.FLOW_EXTENSION_FAILURE_TYPE);
         response.setAdditionalInfo(additionalInfo);
 
         if (LOG.isDebugEnabled()) {

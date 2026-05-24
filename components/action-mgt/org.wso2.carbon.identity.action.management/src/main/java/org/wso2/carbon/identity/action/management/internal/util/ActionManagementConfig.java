@@ -146,8 +146,8 @@ public class ActionManagementConfig {
                 "Actions.Types.PreIssueIdToken.Version.Latest"
         ),
         FLOW_EXTENSION(
-                "Actions.Types.InFlowExtension.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.InFlowExtension.Version.Latest"
+                "Actions.Types.FlowExtension.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.FlowExtension.Version.Latest"
         );
 
         private final String excludedHeadersProperty;

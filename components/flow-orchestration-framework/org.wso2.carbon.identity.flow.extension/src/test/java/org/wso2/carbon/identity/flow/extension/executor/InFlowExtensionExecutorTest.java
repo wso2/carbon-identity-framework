@@ -217,7 +217,7 @@ public class InFlowExtensionExecutorTest {
         assertEquals(response.getErrorMessage(), "Risk score exceeds threshold");
         // Verify failureType metadata is set for RETRY.
         assertNotNull(response.getAdditionalInfo());
-        assertEquals(response.getAdditionalInfo().get("failureType"), "IN_FLOW_EXTENSION_FAILURE");
+        assertEquals(response.getAdditionalInfo().get("failureType"), "FLOW_EXTENSION_FAILURE");
     }
 
     @Test

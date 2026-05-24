@@ -47,7 +47,7 @@ public class InFlowExtensionConstants {
 
     // ---- Response info keys (FAILED path) ----
     public static final String FAILURE_TYPE_KEY              = "failureType";
-    public static final String IN_FLOW_EXTENSION_FAILURE_TYPE = "IN_FLOW_EXTENSION_FAILURE";
+    public static final String FLOW_EXTENSION_FAILURE_TYPE = "FLOW_EXTENSION_FAILURE";
     public static final String FAILURE_MESSAGE_KEY           = "failureMessage";
     public static final String FAILURE_DESCRIPTION_KEY       = "failureDescription";
 

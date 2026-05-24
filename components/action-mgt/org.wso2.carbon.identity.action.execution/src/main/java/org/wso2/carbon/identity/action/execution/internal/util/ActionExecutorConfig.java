@@ -422,12 +422,12 @@ public class ActionExecutorConfig {
                 "Actions.Types.PreIssueIdToken.ActionRequest.AllowedHeaders.Header",
                 "Actions.Types.PreIssueIdToken.ActionRequest.AllowedParameters.Parameter",
                 "Actions.Types.PreIssueIdToken.Version.RetiredUpTo"),
-        FLOW_EXTENSION("Actions.Types.InFlowExtension.Enable",
-                "Actions.Types.InFlowExtension.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.InFlowExtension.ActionRequest.ExcludedParameters.Parameter",
-                "Actions.Types.InFlowExtension.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.InFlowExtension.ActionRequest.AllowedParameters.Parameter",
-                "Actions.Types.InFlowExtension.Version.RetiredUpTo");
+        FLOW_EXTENSION("Actions.Types.FlowExtension.Enable",
+                "Actions.Types.FlowExtension.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.FlowExtension.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.FlowExtension.ActionRequest.AllowedHeaders.Header",
+                "Actions.Types.FlowExtension.ActionRequest.AllowedParameters.Parameter",
+                "Actions.Types.FlowExtension.Version.RetiredUpTo");
 
         private final String actionTypeEnableProperty;
         private final String excludedHeadersProperty;

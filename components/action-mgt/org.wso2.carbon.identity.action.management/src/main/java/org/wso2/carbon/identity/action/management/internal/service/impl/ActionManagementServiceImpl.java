@@ -323,7 +323,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         // In-flow and extension actions are not limited by the maximum actions per action type.
         Action.ActionTypes.Category category = Action.ActionTypes.valueOf(actionType).getCategory();
         if (Action.ActionTypes.Category.IN_FLOW.equals(category)
-                || Action.ActionTypes.Category.IN_FLOW_EXTENSION.equals(category)) {
+                || Action.ActionTypes.Category.FLOW_EXTENSION.equals(category)) {
             return;
         }
         Map<String, Integer> actionsCountPerType = getActionsCountPerType(tenantDomain);
@@ -370,12 +370,12 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             throws ActionMgtServerException {
 
         Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
-        // Only IN_FLOW and IN_FLOW_EXTENSION category actions (e.g., AUTHENTICATION, FLOW_EXTENSION)
+        // Only IN_FLOW and FLOW_EXTENSION category actions (e.g., AUTHENTICATION, FLOW_EXTENSION)
         // start ACTIVE and can be used immediately. All other categories (e.g., PRE_POST) start
         // INACTIVE and require explicit activation.
         Action.ActionTypes.Category category = resolvedActionType.getCategory();
         Action.Status resolvedStatus = (category == Action.ActionTypes.Category.IN_FLOW
-                || category == Action.ActionTypes.Category.IN_FLOW_EXTENSION)
+                || category == Action.ActionTypes.Category.FLOW_EXTENSION)
                 ? Action.Status.ACTIVE : Action.Status.INACTIVE;
 
         String actionVersion = ActionManagementConfig.getInstance().getLatestVersion(resolvedActionType);
