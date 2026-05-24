@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.execution.internal.component;
 
-import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
@@ -37,7 +36,6 @@ public class ActionExecutionServiceComponentHolder {
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
     private RealmService realmService;
-    private ActionExecutorService actionExecutorService;
 
     private ActionExecutionServiceComponentHolder() {
 
@@ -116,25 +114,5 @@ public class ActionExecutionServiceComponentHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
-    }
-
-    /**
-     * Get the ActionExecutorService instance.
-     *
-     * @return ActionExecutorService instance.
-     */
-    public ActionExecutorService getActionExecutorService() {
-
-        return actionExecutorService;
-    }
-
-    /**
-     * Set the ActionExecutorService instance.
-     *
-     * @param actionExecutorService ActionExecutorService instance.
-     */
-    public void setActionExecutorService(ActionExecutorService actionExecutorService) {
-
-        this.actionExecutorService = actionExecutorService;
     }
 }

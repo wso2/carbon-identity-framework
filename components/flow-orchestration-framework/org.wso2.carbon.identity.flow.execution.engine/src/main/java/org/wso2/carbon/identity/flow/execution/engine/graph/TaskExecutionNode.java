@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
@@ -242,7 +243,8 @@ public class TaskExecutionNode implements Node {
                 user.setId(userId);
             }
         } catch (Exception e) {
-            LOG.warn("Failed to resolve userId for user '" + username + "' from user store.", e);
+            LOG.debug("Failed to resolve userId for user '" +
+                    LoggerUtils.getMaskedContent(username) + "' from user store.", e);
         }
     }
 }
