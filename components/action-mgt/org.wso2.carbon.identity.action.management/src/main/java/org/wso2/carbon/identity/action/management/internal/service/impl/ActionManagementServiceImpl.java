@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.action.management.internal.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensaml.xacml.ctx.ActionType;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;

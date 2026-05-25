@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.flow.extension.management;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -54,6 +56,7 @@ import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.Act
  */
 public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolver {
 
+    private static final Log LOG = LogFactory.getLog(FlowExtensionActionDTOModelResolver.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final TypeReference<List<ContextPath>> CONTEXT_PATH_LIST_TYPE_REF =
             new TypeReference<List<ContextPath>>() { };
@@ -79,13 +82,13 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
 
         Object exposeValue = actionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         if (exposeValue != null) {
-            List<ContextPath> validatedExpose = validateExpose(exposeValue);
+            List<ContextPath> validatedExpose = validateAccessConfig(exposeValue);
             properties.put(ACCESS_CONFIG_EXPOSE, createBlobProperty(validatedExpose));
         }
 
         Object modifyValue = actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         if (modifyValue != null) {
-            List<ContextPath> validatedModify = validateExpose(modifyValue);
+            List<ContextPath> validatedModify = validateAccessConfig(modifyValue);
             properties.put(ACCESS_CONFIG_MODIFY, createBlobProperty(validatedModify));
         }
 
@@ -190,7 +193,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
-            return validateExpose(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
+            return validateAccessConfig(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_EXPOSE);
         }
@@ -203,7 +206,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
-            return validateExpose(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
+            return validateAccessConfig(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         }
@@ -211,7 +214,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
     }
 
     @SuppressWarnings("unchecked")
-    private List<ContextPath> validateExpose(Object exposeValue) throws ActionDTOModelResolverException {
+    private List<ContextPath> validateAccessConfig(Object exposeValue) throws ActionDTOModelResolverException {
 
         if (!(exposeValue instanceof List<?>)) {
             throw new ActionDTOModelResolverClientException("Invalid expose format.",
@@ -261,9 +264,9 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
                         String.format("Expose path '%s' must not end with a trailing '/'.", path));
             }
             if (!seen.add(path)) {
-                throw new ActionDTOModelResolverClientException("Duplicate expose path.",
-                        String.format("The expose path '%s' is duplicated.", path));
+                LOG.debug(String.format("Ignoring duplicate expose path '%s'.", path));
             }
+            //Todo: validate user/claims format
         }
     }
 
