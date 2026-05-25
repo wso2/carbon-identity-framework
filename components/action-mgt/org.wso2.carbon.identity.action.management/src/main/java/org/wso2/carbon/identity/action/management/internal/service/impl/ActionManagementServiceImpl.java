@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.internal.service.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opensaml.xacml.ctx.ActionType;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
@@ -484,13 +485,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private void validateActionNameUniqueness(String name, String excludeId, ActionTypes actionType, int tenantId)
             throws ActionMgtException {
 
-        if (!ActionTypes.FLOW_EXTENSION.equals(actionType)) {
+        if (StringUtils.isBlank(name) || !ActionTypes.Category.FLOW_EXTENSION.equals(actionType.getCategory())) {
             return;
         }
-        if (StringUtils.isBlank(name)) {
-            throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_ACTION_NAME_BLANK);
-        }
+
         List<ActionDTO> existingActions = DAO_FACADE.getActionsByActionType(actionType.getActionType(), tenantId);
         boolean duplicateExists = existingActions.stream()
                 .filter(dto -> excludeId == null || !excludeId.equals(dto.getId()))

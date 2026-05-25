@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.flow.extension</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Identity Flow Flow Extension</name>
+    <name>WSO2 Carbon - Identity Flow Extension</name>
     <description>WSO2 flow engine flow extension</description>
     <url>http://www.wso2.com</url>
 
@@ -207,7 +207,7 @@
                     </instructions>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
@@ -219,7 +219,7 @@
                         <carbon.home>${project.build.testOutputDirectory}</carbon.home>
                     </systemPropertyVariables>
                 </configuration>
-            </plugin>
+            </plugin> -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>

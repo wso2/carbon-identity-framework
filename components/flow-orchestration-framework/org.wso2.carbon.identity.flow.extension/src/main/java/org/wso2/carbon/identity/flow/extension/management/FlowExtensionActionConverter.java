@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.extension.management;
 
+import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
@@ -26,6 +27,8 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
+
+import com.ctc.wstx.util.StringUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +103,7 @@ public class FlowExtensionActionConverter implements ActionConverter {
             return;
         }
         String content = certificate.getCertificateContent();
-        if (content != null && !content.isEmpty()) {
+        if (StringUtils.isBlank(content)) {
             properties.put(CERTIFICATE,
                     new ActionProperty.BuilderForService(certificate).build());
         } else {
