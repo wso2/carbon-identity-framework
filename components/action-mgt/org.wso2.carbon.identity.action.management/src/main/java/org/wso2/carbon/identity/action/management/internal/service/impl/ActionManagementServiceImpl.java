@@ -484,8 +484,12 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private void validateActionNameUniqueness(String name, String excludeId, ActionTypes actionType, int tenantId)
             throws ActionMgtException {
 
-        if (name == null || !ActionTypes.FLOW_EXTENSION.equals(actionType)) {
+        if (!ActionTypes.FLOW_EXTENSION.equals(actionType)) {
             return;
+        }
+        if (StringUtils.isBlank(name)) {
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_ACTION_NAME_BLANK);
         }
         List<ActionDTO> existingActions = DAO_FACADE.getActionsByActionType(actionType.getActionType(), tenantId);
         boolean duplicateExists = existingActions.stream()
@@ -494,7 +498,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         if (duplicateExists) {
             throw ActionManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_ACTION_NAME_ALREADY_EXISTS, name);
+                    ErrorMessage.ERROR_ACTION_NAME_ALREADY_EXISTS, name, actionType.getActionType());
         }
     }
 }

@@ -20,32 +20,16 @@ package org.wso2.carbon.identity.flow.extension.model;
 
 import org.wso2.carbon.identity.flow.extension.executor.PathTypeAnnotationUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Access Configuration for In-Flow Extension actions.
- * <p>
- * Defines which parts of the flow context are exposed to the external service
- * and which paths the service is allowed to modify.
- * </p>
- *
- * <ul>
- *   <li>{@code expose} – structured list of {@link ContextPath} entries, each with a hierarchical
- *       path prefix and an {@code encrypted} flag controlling outbound JWE encryption.</li>
- *   <li>{@code modify} – structured list of {@link ContextPath} entries defining which paths the
- *       external service can change. All modifications map to REPLACE operations internally.
- *       The {@code encrypted} flag on modify paths controls inbound JWE encryption (the external
- *       service encrypts values, IS decrypts with its private key).</li>
- * </ul>
- *
- * <p>Expose and modify are independent: expose controls what data is sent to the external service,
- * while modify controls what data the external service is allowed to change. A path can appear
- * in both lists with independent encryption flags.</p>
- *
- * <p><b>Note:</b> The external service's certificate for outbound encryption is held in the
- * separate {@link Encryption} model, not in AccessConfig.</p>
+ * Configures flow context access for external services.
+ * * - expose: Paths sent to the service; 'encrypted' flag toggles outbound JWE.
+ * - modify: Paths the service can REPLACE; 'encrypted' flag toggles inbound JWE.
+ * * Note: External certificates are managed on {@link FlowExtensionAction#getCertificate()}, not here.
  */
 public class AccessConfig {
 
@@ -60,8 +44,8 @@ public class AccessConfig {
      */
     public AccessConfig(List<ContextPath> expose, List<ContextPath> modify) {
 
-        this.expose = expose != null ? Collections.unmodifiableList(expose) : null;
-        this.modify = modify != null ? Collections.unmodifiableList(modify) : null;
+        this.expose = expose != null ? Collections.unmodifiableList(new ArrayList<>(expose)) : null;
+        this.modify = modify != null ? Collections.unmodifiableList(new ArrayList<>(modify)) : null;
     }
 
     /**

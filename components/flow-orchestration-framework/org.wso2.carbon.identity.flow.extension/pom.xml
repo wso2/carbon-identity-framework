@@ -27,8 +27,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.flow.extension</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Identity Flow In-Flow Extensions</name>
-    <description>WSO2 flow engine in-flow extensions</description>
+    <name>WSO2 Carbon - Identity Flow Flow Extension</name>
+    <description>WSO2 flow engine flow extension</description>
     <url>http://www.wso2.com</url>
 
     <dependencies>
@@ -240,7 +240,7 @@
                 <version>${jacoco.version}</version>
                 <configuration>
                     <excludes>
-                        <exclude>org/wso2/carbon/identity/flow/extensions/internal/**</exclude>
+                        <exclude>org/wso2/carbon/identity/flow/extension/internal/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
