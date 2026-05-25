@@ -728,6 +728,8 @@
   "event.default_listener.outbound_provisioning_error_handler.enable": true,
   "event.default_listener.fragment_app_mgt_listener.priority": "50",
   "event.default_listener.fragment_app_mgt_listener.enable": true,
+  "event.default_listener.sub_org_application_mgt_listener.priority": "375",
+  "event.default_listener.sub_org_application_mgt_listener.enable": true,
   "event.default_listener.organization_user_operation_listener.priority": "115",
   "event.default_listener.organization_user_operation_listener.enable": true,
   "event.default_listener.organization_discovery_user_operation_listener.priority": "114",
@@ -1409,7 +1411,8 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [
-    "microsoft-365"
+    "microsoft-365",
+    "agent-application"
   ],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
@@ -1640,7 +1643,7 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
-  "console.consents.enabled": false,
+  "console.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
   "console.consents.scopes.feature": ["console:consents"],
   "console.consents.disabled_features": [],
   "console.consents.scopes.create": [
@@ -2142,6 +2145,8 @@
   "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
+  "myaccount.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
+  "myaccount.consents.disabled_features": [],
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
   "myaccount.operations.scopes.update": [],

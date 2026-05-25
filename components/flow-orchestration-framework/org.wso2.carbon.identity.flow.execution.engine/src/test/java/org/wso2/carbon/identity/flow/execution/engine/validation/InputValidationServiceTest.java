@@ -67,6 +67,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.DEFAULT_ACTION;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_META_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_CLAIM_REGEX_VALIDATION_FAILED;
@@ -220,6 +221,99 @@ public class InputValidationServiceTest {
         Assert.assertEquals(FlowExecutionContext.getFlowUser().getClaims().get(CLAIM_URI_PREFIX + "input1"),
                 "value1");
         Assert.assertEquals(FlowExecutionContext.getUserInputData().get("input2"), "value2");
+    }
+
+    @Test
+    public void testHandleUserInputsWithAcceptedConsent() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CONSENT_KEY,
+                "{\"Policy\":{\"accepted\":[\"policy-id-1\",\"policy-id-2\"],\"rejected\":[]}}");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        List<org.wso2.carbon.identity.flow.execution.engine.model.FlowUser.UserConsent> consents =
+                FlowExecutionContext.getFlowUser().getUserConsents();
+        Assert.assertEquals(consents.size(), 1);
+        Assert.assertEquals(consents.get(0).getPurposeType(), "Policy");
+        Assert.assertEquals(consents.get(0).getAccepted().size(), 2);
+        Assert.assertTrue(consents.get(0).getAccepted().contains("policy-id-1"));
+        Assert.assertTrue(consents.get(0).getAccepted().contains("policy-id-2"));
+        Assert.assertTrue(consents.get(0).getRejected().isEmpty());
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testHandleUserInputsWithRejectedConsent() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CONSENT_KEY,
+                "{\"Policy\":{\"accepted\":[],\"rejected\":[\"policy-id-3\"]}}");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        List<org.wso2.carbon.identity.flow.execution.engine.model.FlowUser.UserConsent> consents =
+                FlowExecutionContext.getFlowUser().getUserConsents();
+        Assert.assertEquals(consents.size(), 1);
+        Assert.assertEquals(consents.get(0).getPurposeType(), "Policy");
+        Assert.assertEquals(consents.get(0).getRejected().size(), 1);
+        Assert.assertTrue(consents.get(0).getRejected().contains("policy-id-3"));
+        Assert.assertTrue(consents.get(0).getAccepted().isEmpty());
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testHandleUserInputsWithMultiplePurposeTypes() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CONSENT_KEY,
+                "{\"Policy\":{\"accepted\":[\"policy-id-1\"],\"rejected\":[]}," +
+                        "\"Terms\":{\"accepted\":[],\"rejected\":[\"terms-id-1\"]}}");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        List<org.wso2.carbon.identity.flow.execution.engine.model.FlowUser.UserConsent> consents =
+                FlowExecutionContext.getFlowUser().getUserConsents();
+        Assert.assertEquals(consents.size(), 2);
+        Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
+    }
+
+    @Test
+    public void testHandleUserInputsWithMixedConsentAndClaims() {
+
+        FlowExecutionContext = initiateFlowContext();
+        Map<String, String> userInputData = new HashMap<>();
+        userInputData.put(CLAIM_URI_PREFIX + "email", "user@example.com");
+        userInputData.put(CONSENT_KEY,
+                "{\"Policy\":{\"accepted\":[\"policy-id-1\"],\"rejected\":[\"policy-id-2\"]}}");
+        userInputData.put("nonClaimInput", "someValue");
+        FlowExecutionContext.getUserInputData().putAll(userInputData);
+        inputValidationService.handleUserInputs(FlowExecutionContext);
+
+        // Claims routed to FlowUser claims.
+        Assert.assertEquals(FlowExecutionContext.getFlowUser().getClaims().size(), 1);
+        Assert.assertEquals(
+                FlowExecutionContext.getFlowUser().getClaims().get(CLAIM_URI_PREFIX + "email"),
+                "user@example.com");
+
+        List<org.wso2.carbon.identity.flow.execution.engine.model.FlowUser.UserConsent> consents =
+                FlowExecutionContext.getFlowUser().getUserConsents();
+        Assert.assertEquals(consents.size(), 1);
+
+        // Accepted consents routed to accepted list.
+        Assert.assertEquals(consents.get(0).getAccepted().size(), 1);
+        Assert.assertTrue(consents.get(0).getAccepted().contains("policy-id-1"));
+
+        // Rejected consents routed to rejected list.
+        Assert.assertEquals(consents.get(0).getRejected().size(), 1);
+        Assert.assertTrue(consents.get(0).getRejected().contains("policy-id-2"));
+
+        // Non-claim input remains in userInputData.
+        Assert.assertEquals(FlowExecutionContext.getUserInputData().size(), 1);
+        Assert.assertEquals(FlowExecutionContext.getUserInputData().get("nonClaimInput"), "someValue");
     }
 
     @Test

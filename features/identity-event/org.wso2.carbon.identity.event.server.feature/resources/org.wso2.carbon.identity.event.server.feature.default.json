@@ -84,6 +84,7 @@
   "identity_mgt.events.schemes.'suspension.notification'.properties.'account.disable.delay'": "90d",
   "identity_mgt.events.schemes.'suspension.notification'.properties.'trigger.time'": "20:00:00",
   "identity_mgt.events.schemes.'suspension.notification'.properties.delays": "30,45,60,75",
+  "identity_mgt.events.schemes.'suspension.notification'.properties.'date.format'": "dd-MM-yyyy",
   "identity_mgt.events.schemes.handleRequestObject.module_index": "11",
   "identity_mgt.events.schemes.handleRequestObject.subscriptions": [
     "POST_REVOKE_ACESS_TOKEN",

@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.executio
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionConverter;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionDTOModelResolver;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.rule.PreUpdateProfileActionRuleEvaluationDataProvider;
-import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGI Service component for the Pre Update Profile Action.
@@ -106,24 +105,6 @@ public class PreUpdateProfileActionServiceComponent {
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setActionExecutorService(null);
         LOG.debug("ActionExecutorService unset in PreUpdateProfileActionServiceComponentHolder bundle.");
-    }
-
-    @Reference(
-            name = "realm.service",
-            service = org.wso2.carbon.user.core.service.RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService")
-    protected void setRealmService(RealmService realmService) {
-
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(realmService);
-        LOG.debug("RealmService set in PreUpdateProfileActionServiceComponentHolder bundle.");
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setRealmService(null);
-        LOG.debug("RealmService unset in PreUpdateProfileActionServiceComponentHolder bundle.");
     }
 
     @Reference(

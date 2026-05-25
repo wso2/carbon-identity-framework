@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorServi
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
-import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Service component Holder for the Pre Update Password Action Service.
@@ -31,7 +30,6 @@ public class PreUpdatePasswordActionServiceComponentHolder {
 
     private CertificateManagementService certificateManagementService;
     private ActionExecutorService actionExecutorService;
-    private RealmService realmService;
     private ClaimMetadataManagementService claimManagementService;
     private OrganizationManager organizationManager;
 
@@ -90,26 +88,6 @@ public class PreUpdatePasswordActionServiceComponentHolder {
     public void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         this.actionExecutorService = actionExecutorService;
-    }
-
-    /**
-     * Get the RealmService.
-     *
-     * @return RealmService instance.
-     */
-    public RealmService getRealmService() {
-
-        return realmService;
-    }
-
-    /**
-     * Set the RealmService.
-     *
-     * @param realmService RealmService instance.
-     */
-    public void setRealmService(RealmService realmService) {
-
-        this.realmService = realmService;
     }
 
     /**

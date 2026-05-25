@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.action.management.internal.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
  */
 public class ActionManagementDAOImpl implements ActionManagementDAO {
 
+    private static final Log LOG = LogFactory.getLog(ActionManagementDAOImpl.class);
     private static final String V1 = "1.0.0";
 
     private static final ActionManagementDAOUtil actionMgtDAOUtil = new ActionManagementDAOUtil();
@@ -70,6 +73,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         addEndpoint(actionDTO, tenantId);
         // Add action rule reference.
         addRuleReference(actionDTO, tenantId);
+        // Add action attributes.
+        addAttributes(actionDTO, tenantId);
         // Add action properties.
         addProperties(actionDTO, tenantId);
     }
@@ -102,6 +107,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                             .actionVersion(rs.getString(ActionMgtSQLConstants.Column.ACTION_VERSION))
                             .endpoint(populateEndpoint(properties))
                             .rule(populateRule(properties, tenantId))
+                            .attributes(populateAttributes(properties))
                             .properties(properties.entrySet().stream()
                                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
                             .build();
@@ -129,6 +135,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         Map<String, ActionProperty> actionProperties = getActionPropertiesFromDB(actionId, tenantId);
         actionBuilder.endpoint(populateEndpoint(actionProperties));
         actionBuilder.rule(populateRule(actionProperties, tenantId));
+        actionBuilder.attributes(populateAttributes(actionProperties));
         actionBuilder.properties(actionProperties.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         return actionBuilder.build();
@@ -144,6 +151,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         updateEndpoint(updatingActionDTO, existingActionDTO, tenantId);
         // Update Rule Reference.
         updateRuleReference(updatingActionDTO, existingActionDTO, tenantId);
+        // Update Action Attributes.
+        updateAttributes(updatingActionDTO, existingActionDTO, tenantId);
         // Update Action Properties.
         updateProperties(updatingActionDTO, existingActionDTO, tenantId);
     }
@@ -545,6 +554,86 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY).getValue().toString(),
                 IdentityTenantUtil.getTenantDomain(tenantId));
+    }
+
+    /**
+     * Add Action attributes to the Database.
+     *
+     * @param actionDTO ActionDTO object with attributes.
+     * @param tenantId  Tenant ID.
+     * @throws ActionMgtException If an error occurs while adding action attributes.
+     */
+    private void addAttributes(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
+
+        List<String> attributes = actionDTO.getAttributes();
+        if (attributes == null || attributes.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No attributes to add for action with ID: " + actionDTO.getId());
+            }
+            return;
+        }
+
+        try {
+            Map<String, ActionProperty> attributeProperties = Collections.singletonMap(
+                    ActionMgtConstants.ATTRIBUTES_PROPERTY,
+                    actionMgtDAOUtil.buildActionPropertyFromList(attributes));
+            addActionPropertiesToDB(actionDTO.getId(), attributeProperties, tenantId);
+        } catch (TransactionException e) {
+            throw new ActionMgtServerException("Error while adding action attributes in the system.", e);
+        }
+    }
+
+    /**
+     * Populate attributes from the database properties map.
+     * This method reads and removes the attributes property from the given map.
+     *
+     * @param propertiesFromDB Map of properties read from the database.
+     * @return List of attribute strings, or null if no attributes are stored.
+     * @throws ActionMgtException If an error occurs while reading the attributes.
+     */
+    private List<String> populateAttributes(Map<String, ActionProperty> propertiesFromDB) throws ActionMgtException {
+
+        List<String> attributes = actionMgtDAOUtil.readDBListProperty(propertiesFromDB,
+                ActionMgtConstants.ATTRIBUTES_PROPERTY);
+        return attributes.isEmpty() ? null : attributes;
+    }
+
+    /**
+     * Update Action attributes.
+     * If attributes are provided in the updating DTO, they replace the existing
+     * ones.
+     * If not provided, existing attributes are preserved.
+     *
+     * @param updatingActionDTO Updating ActionDTO object with attributes.
+     * @param existingActionDTO Existing ActionDTO object with attributes.
+     * @param tenantId          Tenant ID.
+     * @throws ActionMgtException If an error occurs while updating action
+     *                            attributes.
+     */
+    private void updateAttributes(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
+            throws ActionMgtException {
+
+        List<String> updatingAttributes = updatingActionDTO.getAttributes();
+        List<String> existingAttributes = existingActionDTO.getAttributes();
+
+        if (updatingAttributes != null) {
+            try {
+                // Delete existing attributes property if present.
+                if (existingAttributes != null && !existingAttributes.isEmpty()) {
+                    deleteActionPropertiesInDB(updatingActionDTO.getId(),
+                            Collections.singletonList(ActionMgtConstants.ATTRIBUTES_PROPERTY), tenantId);
+                }
+
+                if (!updatingAttributes.isEmpty()) {
+                    Map<String, ActionProperty> attributeProperties = Collections.singletonMap(
+                            ActionMgtConstants.ATTRIBUTES_PROPERTY,
+                            actionMgtDAOUtil.buildActionPropertyFromList(updatingAttributes));
+                    addActionPropertiesToDB(updatingActionDTO.getId(), attributeProperties, tenantId);
+                }
+            } catch (TransactionException e) {
+                throw new ActionMgtServerException("Error while updating action attributes in the system.", e);
+            }
+        }
     }
 
     /**

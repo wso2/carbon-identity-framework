@@ -18,13 +18,22 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Action.
  */
 public class Action {
+
+    private static final Log LOG = LogFactory.getLog(Action.class);
 
     /**
      * Action Type.
@@ -145,6 +154,7 @@ public class Action {
     private Timestamp updatedAt;
     private EndpointConfig endpointConfig;
     private ActionRule rule;
+    private List<String> attributes;
 
     public Action(ActionResponseBuilder actionResponseBuilder) {
 
@@ -158,6 +168,7 @@ public class Action {
         this.updatedAt = actionResponseBuilder.updatedAt;
         this.endpointConfig = actionResponseBuilder.endpointConfig;
         this.rule = actionResponseBuilder.rule;
+        this.attributes = actionResponseBuilder.attributes;
     }
 
     public Action(ActionRequestBuilder actionRequestBuilder) {
@@ -167,6 +178,7 @@ public class Action {
         this.description = actionRequestBuilder.description;
         this.endpointConfig = actionRequestBuilder.endpointConfig;
         this.rule = actionRequestBuilder.rule;
+        this.attributes = actionRequestBuilder.attributes;
     }
 
     public String getId() {
@@ -219,6 +231,14 @@ public class Action {
         return rule;
     }
 
+    public List<String> getAttributes() {
+
+        if (attributes == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(attributes);
+    }
+
     /**
      * ActionResponseBuilder.
      */
@@ -234,6 +254,7 @@ public class Action {
         private Timestamp updatedAt;
         private EndpointConfig endpointConfig;
         private ActionRule rule;
+        private List<String> attributes;
 
         public ActionResponseBuilder id(String id) {
 
@@ -295,6 +316,12 @@ public class Action {
             return this;
         }
 
+        public ActionResponseBuilder attributes(List<String> attributes) {
+
+            this.attributes = attributes;
+            return this;
+        }
+
         public Action build() {
 
             return new Action(this);
@@ -311,6 +338,7 @@ public class Action {
         private String actionVersion;
         private EndpointConfig endpointConfig;
         private ActionRule rule;
+        private List<String> attributes;
 
         public ActionRequestBuilder name(String name) {
 
@@ -339,6 +367,29 @@ public class Action {
         public ActionRequestBuilder rule(ActionRule rule) {
 
             this.rule = rule;
+            return this;
+        }
+
+        public ActionRequestBuilder attributes(List<String> attributes) {
+
+            if (attributes == null || attributes.isEmpty()) {
+                this.attributes = attributes;
+                return this;
+            }
+
+            Set<String> uniqueAttributes = new LinkedHashSet<>();
+            Set<String> duplicatedAttributes = new LinkedHashSet<>();
+            for (String attribute : attributes) {
+                if (!uniqueAttributes.add(attribute)) {
+                    duplicatedAttributes.add(attribute);
+                }
+            }
+
+            if (!duplicatedAttributes.isEmpty() && LOG.isDebugEnabled()) {
+                LOG.debug("Ignored duplicated attributes in action configuration : " +
+                        String.join(", ", duplicatedAttributes));
+            }
+            this.attributes = List.copyOf(uniqueAttributes);
             return this;
         }
 
