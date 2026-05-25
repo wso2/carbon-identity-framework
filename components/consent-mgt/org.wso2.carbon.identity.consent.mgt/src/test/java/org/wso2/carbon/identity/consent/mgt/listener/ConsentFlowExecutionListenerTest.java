@@ -48,9 +48,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.MARKETING;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.POLICY;
 
-public class PolicyConsentFlowExecutionListenerTest {
+public class ConsentFlowExecutionListenerTest {
 
     @Mock
     private IdentityConsentDataHolder mockDataHolder;
@@ -60,7 +61,7 @@ public class PolicyConsentFlowExecutionListenerTest {
 
     private MockedStatic<IdentityConsentDataHolder> identityConsentDataHolder;
 
-    private PolicyConsentFlowExecutionListener listener;
+    private ConsentFlowExecutionListener listener;
 
     private FlowExecutionContext context;
 
@@ -71,7 +72,7 @@ public class PolicyConsentFlowExecutionListenerTest {
         identityConsentDataHolder = mockStatic(IdentityConsentDataHolder.class);
         identityConsentDataHolder.when(IdentityConsentDataHolder::getInstance).thenReturn(mockDataHolder);
         when(mockDataHolder.getConsentManager()).thenReturn(mockConsentManager);
-        listener = new PolicyConsentFlowExecutionListener();
+        listener = new ConsentFlowExecutionListener();
         context = mock(FlowExecutionContext.class);
         when(context.getFlowType()).thenReturn("REGISTRATION");
         when(context.getContextIdentifier()).thenReturn("ctx-123");
@@ -311,6 +312,118 @@ public class PolicyConsentFlowExecutionListenerTest {
         assertEquals(eligible.get("name"), "Legal");
     }
 
+    // ---- Marketing component enrichment ----
+
+    @Test
+    public void testEnrichMarketingComponent_FullEnrichment_WithAttributes() throws Exception {
+
+        PurposeVersion version = new PurposeVersion();
+        version.setDescription("Marketing desc");
+        PurposePIICategory category1 = new PurposePIICategory(1, Boolean.FALSE);
+        category1.setName("Email");
+        category1.setDisplayName("Email Address");
+        PurposePIICategory category2 = new PurposePIICategory(2, Boolean.FALSE);
+        category2.setName("Phone");
+        version.setPurposePIICategories(Arrays.asList(category1, category2));
+
+        Purpose purpose = buildPurpose("Marketing", "Purpose desc");
+        purpose.setLatestVersion(version);
+
+        when(mockConsentManager.getPurposeByUuid("purpose-marketing")).thenReturn(purpose);
+        Map<String, Object> marketingEntry = new HashMap<>();
+        marketingEntry.put("purposeId", "purpose-marketing");
+
+        ComponentDTO marketingComp = marketingComponentWithPurposesObject(Collections.singletonList(marketingEntry));
+        FlowExecutionStep step = stepWithMarketingComponent(marketingComp);
+
+        assertTrue(listener.doPostExecute(step, context));
+        assertEquals(marketingEntry.get("name"), "Marketing");
+        assertEquals(marketingEntry.get("description"), "Marketing desc");
+        List<Map<String, Object>> attributes = (List<Map<String, Object>>) marketingEntry.get("attributes");
+        assertEquals(attributes.size(), 2);
+        assertEquals(attributes.get(0).get("name"), "Email");
+        assertEquals(attributes.get(0).get("displayName"), "Email Address");
+        assertEquals(attributes.get(1).get("name"), "Phone");
+        assertEquals(attributes.get(1).get("displayName"), "Phone");
+    }
+
+    @Test
+    public void testEnrichMarketingComponent_NullConfigs_SkipsGracefully() throws Exception {
+
+        ComponentDTO marketingComp = new ComponentDTO.Builder().type(MARKETING).configs(null).build();
+        FlowExecutionStep step = stepWithMarketingComponent(marketingComp);
+        assertTrue(listener.doPostExecute(step, context));
+    }
+
+    @Test
+    public void testEnrichMarketingComponent_MissingPurposesKey_SkipsGracefully() throws Exception {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("otherKey", "value");
+        ComponentDTO marketingComp = new ComponentDTO.Builder().type(MARKETING).configs(configs).build();
+        FlowExecutionStep step = stepWithMarketingComponent(marketingComp);
+        assertTrue(listener.doPostExecute(step, context));
+    }
+
+    @Test
+    public void testEnrichMarketingComponent_BlankPurposeId_SkipsEntry() throws Exception {
+
+        Map<String, Object> purpose = new HashMap<>();
+        purpose.put("purposeId", "");
+        FlowExecutionStep step = stepWithMarketingMap(purpose);
+        assertTrue(listener.doPostExecute(step, context));
+    }
+
+    @Test
+    public void testEnrichMarketingComponent_NameAlreadyPresent_SkipsEntry() throws Exception {
+
+        Map<String, Object> purpose = new HashMap<>();
+        purpose.put("purposeId", "purpose-uuid-1");
+        purpose.put("name", "Existing Name");
+        FlowExecutionStep step = stepWithMarketingMap(purpose);
+        assertTrue(listener.doPostExecute(step, context));
+        assertEquals(purpose.get("name"), "Existing Name");
+    }
+
+    @Test
+    public void testEnrichMarketingComponent_NoAttributes_ReturnsEmptyList() throws Exception {
+
+        Purpose purpose = buildPurpose("Analytics", "Analytics desc");
+        when(mockConsentManager.getPurposeByUuid("purpose-analytics")).thenReturn(purpose);
+        Map<String, Object> marketingEntry = new HashMap<>();
+        marketingEntry.put("purposeId", "purpose-analytics");
+
+        assertTrue(listener.doPostExecute(stepWithMarketingMap(marketingEntry), context));
+        List<Map<String, Object>> attributes = (List<Map<String, Object>>) marketingEntry.get("attributes");
+        assertEquals(attributes.size(), 0);
+    }
+
+    @Test
+    public void testDoPostExecute_BothPolicyAndMarketingComponents_BothEnriched() throws Exception {
+
+        Purpose policyPurpose = buildPurpose("Privacy Policy", "Privacy desc");
+        Purpose marketingPurpose = buildPurpose("Marketing", "Marketing desc");
+
+        when(mockConsentManager.getPurposeByUuid("policy-uuid")).thenReturn(policyPurpose);
+        when(mockConsentManager.getPurposeByUuid("marketing-uuid")).thenReturn(marketingPurpose);
+
+        Map<String, Object> policy = new HashMap<>();
+        policy.put("purposeId", "policy-uuid");
+
+        Map<String, Object> marketing = new HashMap<>();
+        marketing.put("purposeId", "marketing-uuid");
+
+        ComponentDTO policyComp = policyComponentWithPoliciesObject(Collections.singletonList(policy));
+        ComponentDTO marketingComp = marketingComponentWithPurposesObject(Collections.singletonList(marketing));
+        ComponentDTO form = new ComponentDTO.Builder().type(FORM)
+                .components(Arrays.asList(policyComp, marketingComp)).build();
+        FlowExecutionStep step = stepWithTopLevelComponents(Collections.singletonList(form));
+
+        assertTrue(listener.doPostExecute(step, context));
+        assertEquals(policy.get("name"), "Privacy Policy");
+        assertEquals(marketing.get("name"), "Marketing");
+    }
+
     // ---- Listener metadata ----
 
     @Test
@@ -337,7 +450,7 @@ public class PolicyConsentFlowExecutionListenerTest {
     private ComponentDTO policyComponentWithPoliciesObject(Object policiesValue) {
 
         Map<String, Object> configs = new HashMap<>();
-        configs.put("policies", policiesValue);
+        configs.put("purposes", policiesValue);
         return new ComponentDTO.Builder().type(POLICY).configs(configs).build();
     }
 
@@ -362,5 +475,24 @@ public class PolicyConsentFlowExecutionListenerTest {
     private Purpose buildPurpose(String name, String description) {
 
         return new Purpose(1, name, description, "GROUP", "SYSTEM", -1234);
+    }
+
+    private ComponentDTO marketingComponentWithPurposesObject(Object purposesValue) {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("purposes", purposesValue);
+        return new ComponentDTO.Builder().type(MARKETING).configs(configs).build();
+    }
+
+    private FlowExecutionStep stepWithMarketingComponent(ComponentDTO marketingComp) {
+
+        ComponentDTO form = new ComponentDTO.Builder().type(FORM)
+                .components(Collections.singletonList(marketingComp)).build();
+        return stepWithTopLevelComponents(Collections.singletonList(form));
+    }
+
+    private FlowExecutionStep stepWithMarketingMap(Map<String, Object> marketing) {
+
+        return stepWithMarketingComponent(marketingComponentWithPurposesObject(Collections.singletonList(marketing)));
     }
 }

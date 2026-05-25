@@ -22,9 +22,9 @@
             <class name="org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListenerTest"/>
         </classes>
     </test>
-    <test name="PolicyConsentFlowExecutionListenerTest" preserve-order="true" parallel="false">
+    <test name="ConsentFlowExecutionListenerTest" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.consent.mgt.listener.PolicyConsentFlowExecutionListenerTest"/>
+            <class name="org.wso2.carbon.identity.consent.mgt.listener.ConsentFlowExecutionListenerTest"/>
         </classes>
     </test>
 </suite>

@@ -32,6 +32,7 @@ public class Constants {
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String PASSWORD_KEY = "password";
     public static final String CONSENT_KEY = "consent";
+    public static final String MARKETING_KEY = "marketing";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";

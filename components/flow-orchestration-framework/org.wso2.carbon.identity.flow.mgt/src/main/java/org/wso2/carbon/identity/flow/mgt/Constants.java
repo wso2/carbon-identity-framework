@@ -221,6 +221,7 @@ public class Constants {
         public static final String INPUT = "INPUT";
         public static final String CAPTCHA = "CAPTCHA";
         public static final String POLICY = "POLICY";
+        public static final String MARKETING = "MARKETING";
 
         private ComponentTypes() {
 
