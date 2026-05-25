@@ -20,53 +20,18 @@ package org.wso2.carbon.identity.debug.framework.exception;
 
 /**
  * Exception thrown when server-side errors occur in the Debug Framework.
- * Represents internal processing errors.
+ * Represents internal processing errors. This is the supertype for all server-side debug
+ * exceptions, including {@link ContextResolutionException} and {@link DebugExecutionException}.
  */
 public class DebugFrameworkServerException extends DebugFrameworkException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Constructs a DebugFrameworkServerException with message.
-     *
-     * @param message Error message.
-     */
-    public DebugFrameworkServerException(String message) {
-
-        this(message, null);
-    }
-
-    /**
-     * Constructs a DebugFrameworkServerException with message and cause.
-     *
-     * @param message Error message.
-     * @param cause   Root cause exception.
-     */
-    public DebugFrameworkServerException(String message, Throwable cause) {
-
-        this(null, message, null, cause);
-    }
-
-    /**
-     * Constructs a DebugFrameworkServerException with error code, message, and description.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     */
     public DebugFrameworkServerException(String errorCode, String message, String description) {
 
-        this(errorCode, message, description, null);
+        super(errorCode, message, description, null);
     }
 
-    /**
-     * Constructs a DebugFrameworkServerException with error code, message, description, and cause.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     * @param cause       Root cause exception.
-     */
     public DebugFrameworkServerException(String errorCode, String message, String description, Throwable cause) {
 
         super(errorCode, message, description, cause);

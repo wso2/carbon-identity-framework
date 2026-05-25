@@ -32,12 +32,12 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
  * Debug protocol resolver for Identity Providers.
  * Resolves the protocol based on the configured authenticators in the IdP.
  */
-public class IdpDebugProtocolResolver {
+public class IdpDebugTypeResolver {
 
-    private static final Log LOG = LogFactory.getLog(IdpDebugProtocolResolver.class);
+    private static final Log LOG = LogFactory.getLog(IdpDebugTypeResolver.class);
     private static final IdentityProviderManager IDP_MANAGER = IdentityProviderManager.getInstance();
 
-    private IdpDebugProtocolResolver() {
+    private IdpDebugTypeResolver() {
 
     }
 

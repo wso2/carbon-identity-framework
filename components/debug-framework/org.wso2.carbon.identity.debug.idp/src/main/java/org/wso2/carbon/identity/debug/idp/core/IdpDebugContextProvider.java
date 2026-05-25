@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.debug.idp.core;
 
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.exception.ContextResolutionException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
@@ -39,6 +40,8 @@ public abstract class IdpDebugContextProvider extends DebugContextProvider {
         Object resourceTypeObj = params.get(IdpDebugConstants.RESOURCE_TYPE_KEY);
         if (!(connectionIdObj instanceof String) || !(resourceTypeObj instanceof String)) {
             throw new ContextResolutionException(
+                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getCode(),
+                    ErrorMessages.ERROR_CODE_CONTEXT_RESOLUTION_FAILED.getMessage(),
                     "Invalid or missing parameters: connectionId and resourceType must be non-null Strings.");
         }
         Object idpObj = params.get(IdpDebugConstants.IDENTITY_PROVIDER);

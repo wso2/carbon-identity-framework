@@ -158,9 +158,7 @@ public class DebugSessionCleanupService {
             try {
                 debugSessionDAO.deleteExpiredDebugSessions();
             } catch (DebugFrameworkServerException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Stack trace for expired debug sessions cleanup failure: ", e);
-                }
+                LOG.warn("Failed to delete expired debug sessions. Error code: " + e.getErrorCode(), e);
             }
         }
     }

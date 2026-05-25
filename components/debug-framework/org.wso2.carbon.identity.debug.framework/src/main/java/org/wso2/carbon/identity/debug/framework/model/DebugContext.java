@@ -76,9 +76,6 @@ public class DebugContext {
 
     public void setProperty(String key, Object value) {
 
-        if (key == null) {
-            return;
-        }
         this.properties.put(key, value);
     }
 

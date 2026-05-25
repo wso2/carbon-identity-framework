@@ -77,24 +77,15 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
     }
 
     /**
-     * Post-execute cleanup: deletes the debug session record from the database
-     * after a successful response has been retrieved.
-     *
-     * @param debugFrameworkResponse The debug response from execution.
-     * @param debugFrameworkRequest  The original debug request.
-     * @return true to allow execution to proceed.
-     * @throws DebugFrameworkException If an error occurs.
+     * Post-execute cleanup: deletes the debug session record from the database after a successful
+     * result retrieval. Cleanup failures are logged but never abort the response — the user has
+     * already received their result.
      */
     @Override
     public boolean doPostExecute(DebugFrameworkResponse debugFrameworkResponse,
             DebugFrameworkRequest debugFrameworkRequest) throws DebugFrameworkException {
 
-        if (debugFrameworkResponse == null || !debugFrameworkResponse.isSuccess()) {
-            return true;
-        }
-
-        // Only clean up if this is a result retrieval request (not a debug flow initiation).
-        if (debugFrameworkRequest == null || !debugFrameworkRequest.isResultRetrieval()) {
+        if (!debugFrameworkResponse.isSuccess() || !debugFrameworkRequest.isResultRetrieval()) {
             return true;
         }
 
@@ -104,29 +95,15 @@ public class DebugSessionCleanupExecutionListener implements DebugExecutionListe
             return true;
         }
 
-        deleteSessionRecord(debugId);
-        return true;
-    }
-
-    /**
-     * Deletes the debug session record from the database.
-     *
-     * @param debugId The debug ID to delete.
-     */
-    private void deleteSessionRecord(String debugId) {
-
         try {
             debugSessionDAO.deleteDebugSession(debugId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Successfully deleted debug session record from database: " + debugId);
             }
         } catch (DebugFrameworkServerException e) {
-            // Log the error message. Cleanup should not affect the main flow.
             LOG.error("Failed to delete debug session record from database for debug ID: " + debugId
-                    + ". Error code: " + e.getErrorCode() + ". Cause: " + e.getMessage());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Stack trace for failed debug session deletion: ", e);
-            }
+                    + ". Error code: " + e.getErrorCode(), e);
         }
+        return true;
     }
 }

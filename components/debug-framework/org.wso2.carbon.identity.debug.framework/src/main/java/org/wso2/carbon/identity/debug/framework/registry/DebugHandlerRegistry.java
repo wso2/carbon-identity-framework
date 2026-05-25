@@ -27,47 +27,23 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Registry for dynamic registration and lookup of debug resource handlers.
- * This is a singleton registry that manages resource handlers for different
- * resource types.
- *
- * This provides a public API for handler registration, accessible by other bundles.
  */
 public class DebugHandlerRegistry {
 
     private static final Log LOG = LogFactory.getLog(DebugHandlerRegistry.class);
-    private static final DebugHandlerRegistry instance = new DebugHandlerRegistry();
+    private static final DebugHandlerRegistry INSTANCE = new DebugHandlerRegistry();
     private final Map<String, DebugResourceHandler> handlers = new ConcurrentHashMap<>();
 
-    /**
-     * Private constructor to enforce singleton pattern.
-     */
     private DebugHandlerRegistry() {
 
     }
 
-    /**
-     * Gets the singleton instance of DebugHandlerRegistry.
-     *
-     * @return The singleton DebugHandlerRegistry instance.
-     */
     public static DebugHandlerRegistry getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 
-    /**
-     * Registers a debug resource handler.
-     * Called by OSGi components at startup to register handlers dynamically.
-     *
-     * @param resourceType The resource type identifier.
-     * @param handler      The DebugResourceHandler implementation.
-     */
     public void register(String resourceType, DebugResourceHandler handler) {
-
-        if (resourceType == null || handler == null) {
-            LOG.warn("Cannot register null resource type or handler");
-            return;
-        }
 
         handlers.put(resourceType, handler);
         if (LOG.isDebugEnabled()) {
@@ -75,17 +51,7 @@ public class DebugHandlerRegistry {
         }
     }
 
-    /**
-     * Unregisters a debug resource handler.
-     * Called when OSGi components are being deactivated.
-     *
-     * @param resourceType The resource type identifier.
-     */
     public void unregister(String resourceType) {
-
-        if (resourceType == null) {
-            return;
-        }
 
         handlers.remove(resourceType);
         if (LOG.isDebugEnabled()) {
@@ -93,17 +59,8 @@ public class DebugHandlerRegistry {
         }
     }
 
-    /**
-     * Gets a registered resource handler by resource type.
-     *
-     * @param resourceType The resource type identifier.
-     * @return The DebugResourceHandler, or null if not found.
-     */
     public DebugResourceHandler getHandler(String resourceType) {
 
-        if (resourceType == null) {
-            return null;
-        }
         return handlers.get(resourceType);
     }
 }

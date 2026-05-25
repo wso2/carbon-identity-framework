@@ -43,9 +43,6 @@ public class DiagnosticsRecorder {
      */
     public void record(DebugContext context, DiagnosticEvent event) {
 
-        if (context == null) {
-            return;
-        }
         getOrCreateDiagnostics(context).addFirst(normalize(event));
     }
 
@@ -57,9 +54,6 @@ public class DiagnosticsRecorder {
      */
     public List<DiagnosticEvent> getDiagnostics(DebugContext context) {
 
-        if (context == null) {
-            return new ArrayList<>();
-        }
         return new ArrayList<>(getOrCreateDiagnostics(context));
     }
 
@@ -109,10 +103,6 @@ public class DiagnosticsRecorder {
     }
 
     private DiagnosticEvent normalize(DiagnosticEvent event) {
-
-        if (event == null) {
-            return DiagnosticEvent.builder().timestamp(System.currentTimeMillis()).build();
-        }
 
         DiagnosticEvent normalizedEvent = DiagnosticEvent.builder()
                 .stage(event.getStage())

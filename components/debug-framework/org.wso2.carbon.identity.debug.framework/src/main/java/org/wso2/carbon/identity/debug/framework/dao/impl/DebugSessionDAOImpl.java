@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
@@ -52,13 +53,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
-        String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
-        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
-
-        if (storageDebugId == null) {
-            throw new DebugFrameworkServerException(
-                    "Cannot create debug session: invalid debug ID: " + sessionData.getDebugId());
-        }
+        String storageDebugId = resolveStorageDebugId(sessionData.getDebugId());
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
@@ -75,18 +70,15 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while inserting debug session into DB. Debug ID: "
-                    + sessionData.getDebugId() + ", storage key: " + storageDebugId;
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw serverError("Error inserting debug session into DB. Debug ID: "
+                    + sessionData.getDebugId() + ", storage key: " + storageDebugId, e);
         }
     }
 
     @Override
     public DebugSessionData getDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String normalizedDebugId = normalizeDebugId(debugId);
-        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(debugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
@@ -98,10 +90,8 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while retrieving debug session from DB. Debug ID: "
-                    + debugId + ", storage key: " + storageDebugId;
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw serverError("Error retrieving debug session from DB. Debug ID: "
+                    + debugId + ", storage key: " + storageDebugId, e);
         }
         return null;
     }
@@ -109,8 +99,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     @Override
     public void deleteDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String normalizedDebugId = normalizeDebugId(debugId);
-        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
+        String storageDebugId = resolveStorageDebugId(debugId);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
@@ -122,23 +111,15 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while deleting debug session from DB. Debug ID: "
-                    + debugId + ", storage key: " + storageDebugId;
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw serverError("Error deleting debug session from DB. Debug ID: "
+                    + debugId + ", storage key: " + storageDebugId, e);
         }
     }
 
     @Override
     public void upsertDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
-        String normalizedDebugId = normalizeDebugId(sessionData.getDebugId());
-        String storageDebugId = resolveStorageDebugId(normalizedDebugId);
-
-        if (storageDebugId == null) {
-            throw new DebugFrameworkServerException(
-                    "Cannot upsert debug session: invalid debug ID: " + sessionData.getDebugId());
-        }
+        String storageDebugId = resolveStorageDebugId(sessionData.getDebugId());
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             int affectedRows;
@@ -168,13 +149,11 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 connection.commit();
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug session upserted successfully: " + normalizedDebugId);
+                LOG.debug("Debug session upserted successfully: " + sessionData.getDebugId());
             }
         } catch (SQLException e) {
-            String errorMsg = "Error while upserting debug session in DB. Debug ID: "
-                    + sessionData.getDebugId() + ", storage key: " + storageDebugId;
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw serverError("Error upserting debug session in DB. Debug ID: "
+                    + sessionData.getDebugId() + ", storage key: " + storageDebugId, e);
         }
     }
 
@@ -195,19 +174,10 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
                 }
             }
         } catch (SQLException e) {
-            String errorMsg = "Unexpected error while deleting expired debug sessions";
-            LOG.error(errorMsg + ". Cause: " + e.getMessage());
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw serverError("Error deleting expired debug sessions", e);
         }
     }
-    /**
-     * Maps a ResultSet row to a DebugSessionData object.
-     *
-     * @param resultSet The result set.
-     * @param debugId The debug ID (original value, without tenant prefix).
-     * @return The debug session data.
-     * @throws SQLException If a SQL error occurs.
-     */
+
     private DebugSessionData mapResultSetToDebugSessionData(ResultSet resultSet, String debugId)
             throws SQLException {
 
@@ -215,13 +185,7 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         sessionData.setDebugId(debugId);
         sessionData.setStatus(DebugSessionData.SessionStatus.fromString(
                 resultSet.getString(DebugFrameworkConstants.DB_COLUMN_STATUS)));
-        try {
-            sessionData.setSessionData(resultSet.getBytes(DebugFrameworkConstants.DB_COLUMN_SESSION_DATA));
-        } catch (SQLException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Error reading session data stream for debug ID: " + debugId, e);
-            }
-        }
+        sessionData.setSessionData(resultSet.getBytes(DebugFrameworkConstants.DB_COLUMN_SESSION_DATA));
         sessionData.setResultJson(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_RESULT_JSON));
         sessionData.setCreatedTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_CREATED_TIME));
         sessionData.setExpiryTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_EXPIRY_TIME));
@@ -230,10 +194,10 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
 
     /**
      * Normalizes the debug ID by removing hyphens from the UUID part.
-     * Validates that the UUID portion is a well-formed UUID before normalizing
-     * to reject arbitrary strings that merely start with the debug prefix.
+     * Validates that the UUID portion is a well-formed UUID before normalizing to reject arbitrary
+     * strings that merely start with the debug prefix. Returns the original value when the prefix
+     * is absent (e.g. tests / direct keys).
      *
-     * @param debugId The debug ID to normalize.
      * @return Normalized debug ID, or {@code null} if the UUID part is malformed.
      */
     private String normalizeDebugId(String debugId) {
@@ -253,20 +217,23 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     }
 
     /**
-     * Resolves the storage debug ID and validates tenant domain.
-     *
-     * @param normalizedDebugId The normalized debug ID.
-     * @return The storage key with tenant prefix.
-     * @throws DebugFrameworkServerException If tenant domain cannot be resolved.
+     * Resolves the storage debug ID by prefixing the tenant domain. Rejects malformed debug IDs
+     * and missing tenant domains as server errors so callers do not silently no-op on bad state.
      */
-    private String resolveStorageDebugId(String normalizedDebugId) throws DebugFrameworkServerException {
+    private String resolveStorageDebugId(String debugId) throws DebugFrameworkServerException {
 
+        String normalizedDebugId = normalizeDebugId(debugId);
         if (normalizedDebugId == null) {
-            return null;
+            throw new DebugFrameworkServerException(
+                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
+                    "Invalid debug ID: " + debugId);
         }
         String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
         if (tenantDomain == null || tenantDomain.trim().isEmpty()) {
             throw new DebugFrameworkServerException(
+                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
                     "Tenant domain could not be resolved for debug session storage ID: " + normalizedDebugId);
         }
         return tenantDomain + ":" + normalizedDebugId;
@@ -288,4 +255,11 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
         return ts != null ? ts.getTime() : 0L;
     }
 
+    private DebugFrameworkServerException serverError(String message, Throwable cause) {
+
+        return new DebugFrameworkServerException(
+                ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
+                message, cause);
+    }
 }

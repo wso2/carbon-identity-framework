@@ -49,17 +49,10 @@ public class DebugFrameworkResponse {
      * Sets debugId, status, and message as top-level fields.
      * The data map contains only protocol-specific metadata.
      *
-     * @param result The DebugResult to convert.
+     * @param result The DebugResult to convert (non-null — executors must produce one).
      * @return DebugFrameworkResponse instance.
      */
     public static DebugFrameworkResponse fromDebugResult(DebugResult result) {
-
-        if (result == null) {
-            return new DebugFrameworkResponseBuilder()
-                    .status(DEBUG_STATUS_FAILURE)
-                    .message("Result is null")
-                    .build();
-        }
 
         String resolvedStatus = resolveLifecycleStatus(result.getStatus());
         String status = resolvedStatus != null ? resolvedStatus

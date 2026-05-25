@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 /**
  * Service interface for protocol-specific debug implementations.
  */
-public interface DebugProtocolProvider {
+public interface DebugTypeProvider {
 
     /**
      * Gets the protocol type identifier for this provider.

@@ -26,36 +26,11 @@ public class DebugFrameworkClientException extends DebugFrameworkException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Constructs a DebugFrameworkClientException with message.
-     *
-     * @param message Error message.
-     */
-    public DebugFrameworkClientException(String message) {
-
-        this(null, message, null, null);
-    }
-
-    /**
-     * Constructs a DebugFrameworkClientException with error code, message, and description.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     */
     public DebugFrameworkClientException(String errorCode, String message, String description) {
 
-        this(errorCode, message, description, null);
+        super(errorCode, message, description, null);
     }
 
-    /**
-     * Constructs a DebugFrameworkClientException with error code, message, description, and cause.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     * @param cause       Root cause exception.
-     */
     public DebugFrameworkClientException(String errorCode, String message, String description, Throwable cause) {
 
         super(errorCode, message, description, cause);

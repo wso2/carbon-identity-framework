@@ -64,9 +64,6 @@ public final class DebugSessionStore {
      */
     public void put(String key, Map<String, Object> value) throws DebugFrameworkServerException {
 
-        if (key == null || value == null) {
-            return;
-        }
         try {
             long now = System.currentTimeMillis();
             DebugSessionData sessionData = new DebugSessionData();
@@ -79,9 +76,10 @@ public final class DebugSessionStore {
             debugSessionDAO.createDebugSession(sessionData);
 
         } catch (IOException e) {
-            String errorMsg = "Error persisting debug session: " + key + " to DB";
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw new DebugFrameworkServerException(
+                    DebugFrameworkConstants.ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                    DebugFrameworkConstants.ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
+                    "Error persisting debug session: " + key + " to DB", e);
         }
     }
 
@@ -93,15 +91,10 @@ public final class DebugSessionStore {
      */
     public void put(String key, DebugContext context) throws DebugFrameworkServerException {
 
-        if (key == null || context == null) {
-            return;
-        }
-
         Map<String, Object> contextMap = new HashMap<>(context.getProperties());
         if (context.getResourceType() != null) {
             contextMap.put("resourceType", context.getResourceType());
         }
-
         put(key, contextMap);
     }
 
@@ -113,9 +106,6 @@ public final class DebugSessionStore {
      */
     public Map<String, Object> get(String key) throws DebugFrameworkServerException {
 
-        if (key == null) {
-            return new HashMap<>();
-        }
         try {
             DebugSessionData data = debugSessionDAO.getDebugSession(key);
             if (data != null && data.getSessionData() != null) {
@@ -123,9 +113,10 @@ public final class DebugSessionStore {
                         .readValue(data.getSessionData(), DebugFrameworkUtils.getMapTypeReference());
             }
         } catch (IOException e) {
-            String errorMsg = "Error retrieving debug session: " + key + " from DB";
-            LOG.error(errorMsg, e);
-            throw new DebugFrameworkServerException(errorMsg, e);
+            throw new DebugFrameworkServerException(
+                    DebugFrameworkConstants.ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
+                    DebugFrameworkConstants.ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
+                    "Error retrieving debug session: " + key + " from DB", e);
         }
         return new HashMap<>();
     }
@@ -137,13 +128,6 @@ public final class DebugSessionStore {
      * @param result JSON-serialized result to persist.
      */
     public void putResult(String key, String result) throws DebugFrameworkServerException {
-
-        if (key == null || result == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Store.putResult: key and result cannot be null");
-            }
-            return;
-        }
 
         long now = System.currentTimeMillis();
         DebugSessionData sessionData = new DebugSessionData();
@@ -165,14 +149,8 @@ public final class DebugSessionStore {
      */
     public String getResult(String key) throws DebugFrameworkServerException {
 
-        if (key == null) {
-            return null;
-        }
         DebugSessionData data = debugSessionDAO.getDebugSession(key);
-        if (data != null && data.getResultJson() != null) {
-            return data.getResultJson();
-        }
-        return null;
+        return data != null ? data.getResultJson() : null;
     }
 
     /**

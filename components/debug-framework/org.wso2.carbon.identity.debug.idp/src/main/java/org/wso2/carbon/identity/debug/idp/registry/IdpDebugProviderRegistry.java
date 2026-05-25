@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.debug.idp.registry;
 
-import org.wso2.carbon.identity.debug.framework.extension.DebugProtocolProvider;
+import org.wso2.carbon.identity.debug.framework.extension.DebugTypeProvider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +30,7 @@ public class IdpDebugProviderRegistry {
 
     private static final IdpDebugProviderRegistry INSTANCE = new IdpDebugProviderRegistry();
 
-    private final Map<String, DebugProtocolProvider> providers = new ConcurrentHashMap<>();
+    private final Map<String, DebugTypeProvider> providers = new ConcurrentHashMap<>();
 
     private IdpDebugProviderRegistry() {
 
@@ -41,27 +41,18 @@ public class IdpDebugProviderRegistry {
         return INSTANCE;
     }
 
-    public void addProvider(DebugProtocolProvider provider) {
+    public void addProvider(DebugTypeProvider provider) {
 
-        if (provider == null || provider.getProtocolType() == null) {
-            return;
-        }
         providers.put(provider.getProtocolType(), provider);
     }
 
-    public void removeProvider(DebugProtocolProvider provider) {
+    public void removeProvider(DebugTypeProvider provider) {
 
-        if (provider == null || provider.getProtocolType() == null) {
-            return;
-        }
         providers.remove(provider.getProtocolType());
     }
 
-    public DebugProtocolProvider getProvider(String protocolType) {
+    public DebugTypeProvider getProvider(String protocolType) {
 
-        if (protocolType == null) {
-            return null;
-        }
         return providers.get(protocolType);
     }
 }

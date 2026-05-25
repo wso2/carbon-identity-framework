@@ -22,40 +22,24 @@ package org.wso2.carbon.identity.debug.framework.exception;
  * Exception thrown when context resolution or creation fails in the debug framework.
  * Used when Identity Provider configurations or context setup encounters errors.
  */
-public class ContextResolutionException extends DebugFrameworkException {
+public class ContextResolutionException extends DebugFrameworkServerException {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a ContextResolutionException with message.
-     *
-     * @param message Error message.
+     * Convenience constructor for legacy call sites without an error code. New code should prefer
+     * the {@link #ContextResolutionException(String, String, String)} form.
      */
     public ContextResolutionException(String message) {
 
-        super(null, message, null, null);
+        super(null, message, null);
     }
 
-    /**
-     * Constructs a ContextResolutionException with error code, message, and description.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     */
     public ContextResolutionException(String errorCode, String message, String description) {
 
-        super(errorCode, message, description, null);
+        super(errorCode, message, description);
     }
 
-    /**
-     * Constructs a ContextResolutionException with error code, message, description, and cause.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     * @param cause       Root cause exception.
-     */
     public ContextResolutionException(String errorCode, String message, String description, Throwable cause) {
 
         super(errorCode, message, description, cause);

@@ -34,12 +34,11 @@ import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponseBuilder;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
-import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
+import org.wso2.carbon.identity.debug.framework.registry.DebugTypeRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,16 +53,12 @@ public class DebugRequestCoordinator {
 
     private static final Log LOG = LogFactory.getLog(DebugRequestCoordinator.class);
 
-    /**
-     * Constructs a DebugRequestCoordinator instance.
-     */
     public DebugRequestCoordinator() {
 
     }
 
     /**
-     * Handles debug requests for any resource type using typed classes.
-     * This is the preferred method with type safety.
+     * Handles debug requests for any resource type.
      *
      * @param debugFrameworkRequest The debug request with resource information.
      * @return DebugFrameworkResponse containing debug result data.
@@ -73,75 +68,19 @@ public class DebugRequestCoordinator {
     public DebugFrameworkResponse handleDebugRequest(DebugFrameworkRequest debugFrameworkRequest)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Orchestrating debug request for resource type: " + debugFrameworkRequest.getResourceType());
-            }
-
-            // Route by resource type. Handlers are registered under the lowercase resource-type key.
-            String resourceType = debugFrameworkRequest.getResourceType();
-            DebugResourceHandler handler = DebugHandlerRegistry.getInstance().getHandler(resourceType);
-
-            if (handler == null) {
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, debugFrameworkRequest.getResourceType());
-            }
-
-            // Delegate to handler with typed objects.
-            DebugFrameworkResponse debugFrameworkResponse = handler.handleDebugRequest(debugFrameworkRequest);
-
-            // Post-execute listeners.
-            executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
-
-            return debugFrameworkResponse;
-
-        } catch (DebugFrameworkClientException | DebugFrameworkServerException e) {
-            throw e;
-        } catch (DebugFrameworkException e) {
-            if (e.getErrorCode() != null) {
-                throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
-            }
-            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Orchestrating debug request for resource type: " + debugFrameworkRequest.getResourceType());
         }
-    }
 
-    /**
-     * Executes post-execute listeners.
-     *
-     * @param debugFrameworkResponse The debug response.
-     * @param debugFrameworkRequest The debug request.
-     * @throws DebugFrameworkClientException If a listener aborts the request.
-     * @throws DebugFrameworkException  If a listener throws an exception.
-     */
-    private void executePostListeners(DebugFrameworkResponse debugFrameworkResponse,
-            DebugFrameworkRequest debugFrameworkRequest)
-            throws DebugFrameworkException {
-
-        for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
-                .getDebugExecutionListeners()) {
-            if (listener.isEnabled() && !listener.doPostExecute(debugFrameworkResponse, debugFrameworkRequest)) {
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "post-execute");
-            }
+        String resourceType = debugFrameworkRequest.getResourceType();
+        DebugResourceHandler handler = DebugHandlerRegistry.getInstance().getHandler(resourceType);
+        if (handler == null) {
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, resourceType);
         }
-    }
 
-    /**
-     * Parses a JSON result string into a typed map.
-     *
-     * @param resultJson The JSON string to parse.
-     * @return The parsed result as a typed map.
-     * @throws DebugFrameworkServerException If parsing fails.
-     */
-    private Map<String, Object> parseResultJson(String resultJson, String debugId)
-            throws DebugFrameworkServerException {
-
-        try {
-            return DebugFrameworkUtils.getObjectMapper()
-                    .readValue(resultJson, DebugFrameworkUtils.getMapTypeReference());
-        } catch (JsonProcessingException e) {
-            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
-        }
+        DebugFrameworkResponse debugFrameworkResponse = handler.handleDebugRequest(debugFrameworkRequest);
+        executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
+        return debugFrameworkResponse;
     }
 
     /**
@@ -160,49 +99,34 @@ public class DebugRequestCoordinator {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
         }
 
-        // Create a minimal request context for the listeners.
         DebugFrameworkRequest debugFrameworkRequest = new DebugFrameworkRequest();
         debugFrameworkRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
         debugFrameworkRequest.setResultRetrieval(true);
 
-        try {
-            // Execution: Get from store.
-            String resultJson = DebugSessionStore.getInstance().getResult(debugId);
-
-            if (resultJson == null) {
-                throw DebugFrameworkUtils.handleClientException(
-                        ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
-            }
-
-            // Parse stored JSON into metadata map (protocol-specific data only).
-            Map<String, Object> resultData = parseResultJson(resultJson, debugId);
-
-            // Build a structured response: debugId and status at top level, metadata in data.
-            DebugFrameworkResponse debugFrameworkResponse = new DebugFrameworkResponseBuilder()
-                    .debugId(debugId)
-                    .status(DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE)
-                    .data(resultData)
-                    .build();
-
-            // Post-Execute Listeners.
-            executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
-
-            return debugFrameworkResponse;
-
-        } catch (DebugFrameworkClientException | DebugFrameworkServerException e) {
-            throw e;
-        } catch (DebugFrameworkException e) {
-            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
+        String resultJson = DebugSessionStore.getInstance().getResult(debugId);
+        if (resultJson == null) {
+            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
         }
+
+        Map<String, Object> resultData = parseResultJson(resultJson);
+
+        DebugFrameworkResponse debugFrameworkResponse = new DebugFrameworkResponseBuilder()
+                .debugId(debugId)
+                .status(DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE)
+                .data(resultData)
+                .build();
+
+        executePostListeners(debugFrameworkResponse, debugFrameworkRequest);
+        return debugFrameworkResponse;
     }
 
     /**
      * Handles callback requests from external debug systems.
      * Routes to the appropriate DebugCallbackHandler based on request characteristics.
      *
-     * @param request The HTTP request containing callback parameters.
+     * @param request  The HTTP request containing callback parameters.
      * @param response The HTTP response for sending results.
-     * @return true if callback was successfully handled, false if no handler matched or error occurred.
+     * @return true if a callback handler claimed the request (success or failure); false if no handler matched.
      */
     public boolean handleCallbackRequest(HttpServletRequest request, HttpServletResponse response) {
 
@@ -218,30 +142,64 @@ public class DebugRequestCoordinator {
             return handler.handleCallback(request, response);
         } catch (DebugFrameworkException e) {
             String debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-            LOG.warn("Debug callback handler failed during callback processing for session: " + debugId
-                    + ". Debug session may be orphaned.", e);
-            try {
-                if (!response.isCommitted()) {
-                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                            "Debug callback processing failed.");
-                }
-            } catch (IOException ioEx) {
-                LOG.error("Error sending error response after debug callback failure.", ioEx);
-            }
+            LOG.error("Debug callback handler failed for session: " + debugId
+                    + ". Error code: " + e.getErrorCode(), e);
+            sendInternalErrorIfUncommitted(response);
             return true;
+        }
+    }
+
+    private void executePostListeners(DebugFrameworkResponse debugFrameworkResponse,
+            DebugFrameworkRequest debugFrameworkRequest)
+            throws DebugFrameworkClientException, DebugFrameworkServerException {
+
+        for (DebugExecutionListener listener : DebugFrameworkServiceDataHolder.getInstance()
+                .getDebugExecutionListeners()) {
+            if (!listener.isEnabled()) {
+                continue;
+            }
+            try {
+                if (!listener.doPostExecute(debugFrameworkResponse, debugFrameworkRequest)) {
+                    throw DebugFrameworkUtils.handleClientException(
+                            ErrorMessages.ERROR_CODE_LISTENER_ABORTED, "post-execute");
+                }
+            } catch (DebugFrameworkClientException | DebugFrameworkServerException e) {
+                throw e;
+            } catch (DebugFrameworkException e) {
+                throw new DebugFrameworkServerException(e.getErrorCode(), e.getMessage(), e.getDescription(), e);
+            }
+        }
+    }
+
+    private Map<String, Object> parseResultJson(String resultJson) throws DebugFrameworkServerException {
+
+        try {
+            return DebugFrameworkUtils.getObjectMapper()
+                    .readValue(resultJson, DebugFrameworkUtils.getMapTypeReference());
+        } catch (JsonProcessingException e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e);
         }
     }
 
     private DebugCallbackHandler resolveCallbackHandler(HttpServletRequest request) {
 
-        List<DebugCallbackHandler> handlers = DebugProtocolRegistry.getInstance().getDebugCallbackHandlers();
-
-        for (DebugCallbackHandler handler : handlers) {
-            if (handler != null && handler.canHandle(request)) {
+        for (DebugCallbackHandler handler : DebugTypeRegistry.getInstance().getDebugCallbackHandlers()) {
+            if (handler.canHandle(request)) {
                 return handler;
             }
         }
-
         return null;
+    }
+
+    private void sendInternalErrorIfUncommitted(HttpServletResponse response) {
+
+        if (response.isCommitted()) {
+            return;
+        }
+        try {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Debug callback processing failed.");
+        } catch (IOException ioEx) {
+            LOG.error("Error sending error response after debug callback failure.", ioEx);
+        }
     }
 }

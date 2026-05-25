@@ -22,52 +22,35 @@ package org.wso2.carbon.identity.debug.framework.exception;
  * Exception thrown when execution of debug operations fails.
  * Used for errors in URL generation, token exchange, claim extraction, etc.
  */
-public class DebugExecutionException extends DebugFrameworkException {
+public class DebugExecutionException extends DebugFrameworkServerException {
 
     private static final long serialVersionUID = 1L;
-    private static final String EMPTY_DESCRIPTION = "";
 
     /**
-     * Constructs an DebugExecutionException with error code and message.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     */
-    public DebugExecutionException(String errorCode, String message) {
-
-        this(errorCode, message, null);
-    }
-
-    /**
-     * Constructs an DebugExecutionException with error code, message, and cause.
-     *
-     * @param errorCode Error code for categorization.
-     * @param message   Error message.
-     * @param cause     Root cause exception.
-     */
-    public DebugExecutionException(String errorCode, String message, Throwable cause) {
-
-        super(errorCode, message, EMPTY_DESCRIPTION, cause);
-    }
-
-    /**
-     * Constructs an DebugExecutionException with message.
-     *
-     * @param message Error message.
+     * Convenience constructor for legacy call sites without an error code. New code should prefer
+     * the {@link #DebugExecutionException(String, String, String)} form.
      */
     public DebugExecutionException(String message) {
 
-        super(message, null);
+        super(null, message, null);
     }
 
     /**
-     * Constructs an DebugExecutionException with message and cause.
-     *
-     * @param message Error message.
-     * @param cause   Root cause exception.
+     * Convenience constructor for legacy call sites without an error code. New code should prefer
+     * the {@link #DebugExecutionException(String, String, String, Throwable)} form.
      */
     public DebugExecutionException(String message, Throwable cause) {
 
-        super(message, cause);
+        super(null, message, null, cause);
+    }
+
+    public DebugExecutionException(String errorCode, String message, String description) {
+
+        super(errorCode, message, description);
+    }
+
+    public DebugExecutionException(String errorCode, String message, String description, Throwable cause) {
+
+        super(errorCode, message, description, cause);
     }
 }

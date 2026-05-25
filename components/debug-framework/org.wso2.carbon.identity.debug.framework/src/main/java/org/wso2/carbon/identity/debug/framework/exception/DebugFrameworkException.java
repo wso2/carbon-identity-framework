@@ -20,46 +20,15 @@ package org.wso2.carbon.identity.debug.framework.exception;
 
 /**
  * Base exception class for the Debug Framework.
- * All framework-specific exceptions should extend this class.
+ * Concrete callers should throw either {@link DebugFrameworkClientException} or
+ * {@link DebugFrameworkServerException}; this class exists only as the common supertype.
  */
-public class DebugFrameworkException extends Exception {
+public abstract class DebugFrameworkException extends Exception {
 
     private static final long serialVersionUID = 1L;
-    private String errorCode;
-    private String description;
 
-    /**
-     * Constructs a DebugFrameworkException with message.
-     *
-     * @param message Error message.
-     */
-    public DebugFrameworkException(String message) {
-
-        this(null, message, null, null);
-    }
-
-    /**
-     * Constructs a DebugFrameworkException with message and cause.
-     *
-     * @param message Error message.
-     * @param cause   Root cause exception.
-     */
-    public DebugFrameworkException(String message, Throwable cause) {
-
-        this(null, message, null, cause);
-    }
-
-    /**
-     * Constructs a DebugFrameworkException with error code, message, and description.
-     *
-     * @param errorCode   Error code for categorization.
-     * @param message     Error message.
-     * @param description Detailed error description.
-     */
-    public DebugFrameworkException(String errorCode, String message, String description) {
-
-        this(errorCode, message, description, null);
-    }
+    private final String errorCode;
+    private final String description;
 
     /**
      * Constructs a DebugFrameworkException with error code, message, description, and cause.
@@ -67,52 +36,22 @@ public class DebugFrameworkException extends Exception {
      * @param errorCode   Error code for categorization.
      * @param message     Error message.
      * @param description Detailed error description.
-     * @param cause       Root cause exception.
+     * @param cause       Root cause exception, may be null.
      */
-    public DebugFrameworkException(String errorCode, String message, String description, Throwable cause) {
+    protected DebugFrameworkException(String errorCode, String message, String description, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;
         this.description = description;
     }
 
-    /**
-     * Gets the error code.
-     *
-     * @return Error code string.
-     */
     public String getErrorCode() {
 
         return errorCode;
     }
 
-    /**
-     * Sets the error code.
-     *
-     * @param errorCode Error code string.
-     */
-    public void setErrorCode(String errorCode) {
-
-        this.errorCode = errorCode;
-    }
-
-    /**
-     * Gets the error description.
-     *
-     * @return Error description string.
-     */
     public String getDescription() {
 
         return description;
-    }
-
-    /**
-     * Sets the error description.
-     *
-     * @param description Error description string.
-     */
-    public void setDescription(String description) {
-
-        this.description = description;
     }
 }

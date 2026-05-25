@@ -27,26 +27,23 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Registry for debug callback handlers.
  */
-public class DebugProtocolRegistry {
+public class DebugTypeRegistry {
 
-    private static final DebugProtocolRegistry INSTANCE = new DebugProtocolRegistry();
+    private static final DebugTypeRegistry INSTANCE = new DebugTypeRegistry();
 
     private final List<DebugCallbackHandler> debugCallbackHandlers = new CopyOnWriteArrayList<>();
 
-    private DebugProtocolRegistry() {
+    private DebugTypeRegistry() {
 
     }
 
-    public static DebugProtocolRegistry getInstance() {
+    public static DebugTypeRegistry getInstance() {
 
         return INSTANCE;
     }
 
     public void addDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (handler == null) {
-            return;
-        }
         if (!debugCallbackHandlers.contains(handler)) {
             debugCallbackHandlers.add(handler);
         }
@@ -54,9 +51,6 @@ public class DebugProtocolRegistry {
 
     public void removeDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (handler == null) {
-            return;
-        }
         debugCallbackHandlers.remove(handler);
     }
 

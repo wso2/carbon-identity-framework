@@ -35,13 +35,13 @@ import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
-import org.wso2.carbon.identity.debug.framework.registry.DebugProtocolRegistry;
+import org.wso2.carbon.identity.debug.framework.registry.DebugTypeRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionCleanupService;
 
 /**
  * OSGi service component for Debug Framework.
  * This component provides the framework infrastructure for debug operations.
-*/
+ */
 @Component(name = "identity.debug.service.component", immediate = true)
 public class DebugServiceComponent {
 
@@ -55,69 +55,40 @@ public class DebugServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        LOG.debug("Debug Framework OSGi component activating");
         BundleContext bundleContext = context.getBundleContext();
 
-        try {
-            // Register DebugRequestCoordinator as the API-facing debug service.
-            DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
-            DebugFrameworkServiceDataHolder.getInstance().setDebugRequestCoordinator(requestCoordinator);
-            requestCoordinatorServiceRegistration = bundleContext.registerService(
-                    DebugRequestCoordinator.class, requestCoordinator, null);
+        DebugRequestCoordinator requestCoordinator = new DebugRequestCoordinator();
+        DebugFrameworkServiceDataHolder.getInstance().setDebugRequestCoordinator(requestCoordinator);
+        requestCoordinatorServiceRegistration = bundleContext.registerService(
+                DebugRequestCoordinator.class, requestCoordinator, null);
 
-            // Register a dedicated auth interceptor that delegates callbacks to the coordinator via data holder.
-            authInterceptorServiceRegistration = bundleContext.registerService(
-                    DebugAuthenticationInterceptor.class,
-                    new DebugCommonAuthInterceptor(), null);
+        authInterceptorServiceRegistration = bundleContext.registerService(
+                DebugAuthenticationInterceptor.class, new DebugCommonAuthInterceptor(), null);
 
-            // Register the cleanup listener as an OSGi service.
-            cleanupListenerServiceRegistration = bundleContext.registerService(
-                    DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
+        cleanupListenerServiceRegistration = bundleContext.registerService(
+                DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);
 
-            // Start the periodic cleanup service for expired sessions.
-            cleanupService = new DebugSessionCleanupService();
-            cleanupService.activate();
+        cleanupService = new DebugSessionCleanupService();
+        cleanupService.activate();
 
-            LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
-            LOG.debug("DebugRequestCoordinator and DebugCommonAuthInterceptor services registered");
-        } catch (Exception e) {
-            LOG.error("Error during debug framework component activation", e);
-        }
-
-        LOG.debug("Debug Framework OSGi component activated successfully");
+        LOG.info("Debug Framework initialized. Waiting for protocol providers to register...");
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        LOG.debug("Debug Framework OSGi component deactivating");
+        requestCoordinatorServiceRegistration = unregisterService(requestCoordinatorServiceRegistration);
+        authInterceptorServiceRegistration = unregisterService(authInterceptorServiceRegistration);
+        cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration);
 
-        try {
-            // Unregister request coordinator service.
-            requestCoordinatorServiceRegistration = unregisterService(requestCoordinatorServiceRegistration,
-                    "DebugRequestCoordinator service unregistered");
+        DebugFrameworkServiceDataHolder.getInstance().setDebugRequestCoordinator(null);
 
-            // Unregister auth interceptor service.
-            authInterceptorServiceRegistration = unregisterService(authInterceptorServiceRegistration,
-                    "DebugAuthenticationInterceptor service unregistered");
-
-            // Unregister cleanup listener service.
-            cleanupListenerServiceRegistration = unregisterService(cleanupListenerServiceRegistration,
-                    "DebugSessionCleanupExecutionListener service unregistered");
-
-            // Clear the coordinator reference from the data holder.
-            DebugFrameworkServiceDataHolder.getInstance().setDebugRequestCoordinator(null);
-
-            // Shutdown the cleanup service.
-            if (cleanupService != null) {
-                cleanupService.deactivate();
-                cleanupService = null;
-            }
-
-            LOG.debug("Debug Framework OSGi component deactivated");
-        } catch (Exception e) {
-            LOG.error("Error during debug framework component deactivation", e);
+        if (cleanupService != null) {
+            cleanupService.deactivate();
+            cleanupService = null;
         }
+
+        LOG.debug("Debug Framework OSGi component deactivated");
     }
 
     @Reference(name = "debug.execution.listener", service = DebugExecutionListener.class,
@@ -125,12 +96,18 @@ public class DebugServiceComponent {
             unbind = "unsetDebugExecutionListener")
     protected void setDebugExecutionListener(DebugExecutionListener listener) {
 
-        bindExecutionListener(listener, true);
+        DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(listener);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugExecutionListener registered: " + listener.getClass().getName());
+        }
     }
 
     protected void unsetDebugExecutionListener(DebugExecutionListener listener) {
 
-        bindExecutionListener(listener, false);
+        DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugExecutionListener unregistered: " + listener.getClass().getName());
+        }
     }
 
     @Reference(name = "debug.callback.handler", service = DebugCallbackHandler.class,
@@ -138,61 +115,25 @@ public class DebugServiceComponent {
             unbind = "unsetDebugCallbackHandler")
     protected void setDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        bindCallbackHandler(handler, true);
+        DebugTypeRegistry.getInstance().addDebugCallbackHandler(handler);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("DebugCallbackHandler registered: " + handler.getClass().getName());
+        }
     }
 
     protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        bindCallbackHandler(handler, false);
-    }
-
-    private void bindExecutionListener(DebugExecutionListener listener, boolean isBind) {
-
-        if (listener == null) {
-            return;
-        }
-
-        if (isBind) {
-            DebugFrameworkServiceDataHolder.getInstance().addDebugExecutionListener(listener);
-        } else {
-            DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
-        }
-
+        DebugTypeRegistry.getInstance().removeDebugCallbackHandler(handler);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("DebugExecutionListener " + getLifecycleAction(isBind) + ": " + listener.getClass().getName());
+            LOG.debug("DebugCallbackHandler unregistered: " + handler.getClass().getName());
         }
     }
 
-    private void bindCallbackHandler(DebugCallbackHandler handler, boolean isBind) {
+    private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration) {
 
-        if (handler == null) {
-            return;
+        if (registration != null) {
+            registration.unregister();
         }
-
-        if (isBind) {
-            DebugProtocolRegistry.getInstance().addDebugCallbackHandler(handler);
-        } else {
-            DebugProtocolRegistry.getInstance().removeDebugCallbackHandler(handler);
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("DebugCallbackHandler " + getLifecycleAction(isBind) + ": " + handler.getClass().getName());
-        }
-    }
-
-    private <T> ServiceRegistration<T> unregisterService(ServiceRegistration<T> registration, String debugMessage) {
-
-        if (registration == null) {
-            return null;
-        }
-
-        registration.unregister();
-        LOG.debug(debugMessage);
         return null;
-    }
-
-    private String getLifecycleAction(boolean isBind) {
-
-        return isBind ? "registered" : "unregistered";
     }
 }
