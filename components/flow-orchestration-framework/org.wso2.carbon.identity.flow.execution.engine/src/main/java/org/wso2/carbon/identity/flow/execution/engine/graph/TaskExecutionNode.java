@@ -19,11 +19,8 @@
 package org.wso2.carbon.identity.flow.execution.engine.graph;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.internal.FlowExecutionEngineDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
@@ -31,7 +28,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_FAILURE;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
@@ -208,43 +204,16 @@ public class TaskExecutionNode implements Node {
         }
 
         FlowUser user = context.getFlowUser();
-        if (response.getUserId() != null) {
-            user.setId(response.getUserId());
-        }
         if (response.getUpdatedUserClaims() != null) {
             response.getUpdatedUserClaims().forEach((key, value) -> user.addClaim(key, String.valueOf(value)));
         }
         if (response.getUserCredentials() != null) {
             user.getUserCredentials().putAll(response.getUserCredentials());
         }
-        if (user.getId() == null) {
-            resolveUserIdFromUserStore(user, context.getTenantDomain());
-        }
 
         if (CollectionUtils.isNotEmpty(configs.getEdges())) {
             configs.setNextNodeId(configs.getEdges().get(0).getTargetNodeId());
         }
         return new NodeResponse.Builder().status(STATUS_COMPLETE).build();
-    }
-
-    private void resolveUserIdFromUserStore(FlowUser user, String tenantDomain) {
-
-        String username = user.getUsername();
-        if (StringUtils.isBlank(username)) {
-            return;
-        }
-        try {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)
-                    FlowExecutionEngineDataHolder.getInstance().getRealmService()
-                            .getTenantUserRealm(tenantId).getUserStoreManager();
-            String userId = userStoreManager.getUserIDFromUserName(username);
-            if (StringUtils.isNotBlank(userId)) {
-                user.setId(userId);
-            }
-        } catch (Exception e) {
-            LOG.debug("Failed to resolve userId for user '" +
-                    LoggerUtils.getMaskedContent(username) + "' from user store.", e);
-        }
     }
 }

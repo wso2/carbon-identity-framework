@@ -574,7 +574,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     private String resolveUserId(FlowUser flowUser, List<String> expose) {
 
         if (isLeafExposed(InFlowExtensionConstants.USER_ID_PATH, expose)) {
-            String userId = flowUser.getId();
+            String userId = flowUser.getUserId();
             return userId != null ? userId : "";
         }
         return null;

@@ -102,7 +102,7 @@ public class AuthenticationAssertionUtilsTest {
         when(mockContext.getContextIdentifier()).thenReturn(TEST_CONTEXT_IDENTIFIER);
         when(mockContext.getFlowUser()).thenReturn(mockFlowUser);
         when(mockFlowUser.getUsername()).thenReturn(TEST_USERNAME);
-        when(mockFlowUser.getId()).thenReturn(TEST_USER_ID);
+        when(mockFlowUser.getUserId()).thenReturn(TEST_USER_ID);
         when(mockFlowUser.getUserStoreDomain()).thenReturn("PRIMARY");
     }
 
@@ -338,7 +338,7 @@ public class AuthenticationAssertionUtilsTest {
         when(mockContext.getContextIdentifier()).thenReturn(TEST_CONTEXT_IDENTIFIER);
         when(mockContext.getFlowUser()).thenReturn(mockFlowUser);
         when(mockFlowUser.getUsername()).thenReturn(TEST_USERNAME);
-        when(mockFlowUser.getId()).thenReturn(TEST_USER_ID);
+        when(mockFlowUser.getUserId()).thenReturn(TEST_USER_ID);
     }
 
     private void setupBasicMocks(MockedStatic<FlowExecutionEngineDataHolder> dataHolderMock,

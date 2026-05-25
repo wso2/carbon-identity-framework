@@ -661,7 +661,7 @@ public class InFlowExtensionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = createFullFlowExecutionContext();
-        execCtx.getFlowUser().setId(null);
+        execCtx.getFlowUser().setUserId(null);
 
         AccessConfig accessConfig = new AccessConfig(Arrays.asList(
                 new ContextPath("/user/id", false)), null);
@@ -1030,7 +1030,7 @@ public class InFlowExtensionRequestBuilderTest {
         context.setCurrentNode(node);
 
         FlowUser flowUser = new FlowUser();
-        flowUser.setId("user-456");
+        flowUser.setUserId("user-456");
         flowUser.setUsername("testuser");
         flowUser.setUserStoreDomain("PRIMARY");
         flowUser.addClaim("http://wso2.org/claims/email", "test@example.com");

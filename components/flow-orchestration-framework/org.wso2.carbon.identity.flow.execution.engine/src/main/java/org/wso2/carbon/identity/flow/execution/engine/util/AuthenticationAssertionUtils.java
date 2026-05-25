@@ -88,7 +88,7 @@ public class AuthenticationAssertionUtils {
             Date expirationTime = calculateUserAssertionExpiryTime(now);
             String serverURL = ServiceURLBuilder.create().build(IdentityUtil.getHostName()).getAbsolutePublicURL();
             String username = context.getFlowUser().getUsername();
-            String userId = context.getFlowUser().getId();
+            String userId = context.getFlowUser().getUserId();
 
             List<String> amrValues = context.getCompletedNodes().stream()
                     .map(node -> node.getExecutorConfig().getName())
