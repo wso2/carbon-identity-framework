@@ -239,18 +239,8 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             }
         }
 
-        validateExposeCount(result);
         validateContextPathFormat(result);
         return result;
-    }
-
-    private void validateExposeCount(List<ContextPath> expose) throws ActionDTOModelResolverClientException {
-
-        if (expose.size() > MAX_EXPOSE_PATHS) {
-            throw new ActionDTOModelResolverClientException("Maximum expose paths limit exceeded.",
-                    String.format("The number of configured expose paths: %d exceeds the maximum allowed limit: %d.",
-                            expose.size(), MAX_EXPOSE_PATHS));
-        }
     }
 
     private void validateContextPathFormat(List<ContextPath> expose) throws ActionDTOModelResolverClientException {
