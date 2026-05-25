@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
-import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
+import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -39,11 +39,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.component.PreUpdateProfileActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -515,30 +512,9 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
     private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionResponseProcessorException {
 
         String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        RealmService realmService = ActionExecutionServiceComponentHolder.getInstance().getRealmService();
-
-        if (realmService == null) {
-            throw new ActionExecutionResponseProcessorException("Realm service is unavailable.");
-        }
-
         try {
-            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
-
-            if (userRealm == null) {
-                throw new ActionExecutionResponseProcessorException(
-                        "User realm is not available for tenant: " + tenantDomain);
-            }
-
-            UserStoreManager userStoreManager = userRealm.getUserStoreManager();
-            if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
-                throw new ActionExecutionResponseProcessorException(
-                        "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
-                                tenantDomain);
-            }
-
-            return (UniqueIDUserStoreManager) userStoreManager;
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            return RequestBuilderUtil.getUserStoreManager(tenantDomain);
+        } catch (org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException e) {
             throw new ActionExecutionResponseProcessorException(
                     "Error while loading user store manager for tenant: " + tenantDomain, e);
         }

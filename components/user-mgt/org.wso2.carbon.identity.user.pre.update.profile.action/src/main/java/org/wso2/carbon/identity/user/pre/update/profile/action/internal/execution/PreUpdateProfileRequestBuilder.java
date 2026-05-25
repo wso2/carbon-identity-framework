@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
-import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
+import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -48,12 +48,8 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.componen
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileRequest;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.UpdatingUserClaim;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -368,33 +364,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
     private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionRequestBuilderException {
 
         String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        RealmService realmService = ActionExecutionServiceComponentHolder.getInstance().getRealmService();
-
-        if (realmService == null) {
-            throw new ActionExecutionRequestBuilderException("Realm service is unavailable.");
-        }
-
-        try {
-            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
-
-            if (userRealm == null) {
-                throw new ActionExecutionRequestBuilderException(
-                        "User realm is not available for tenant: " + tenantDomain);
-            }
-
-            UserStoreManager userStoreManager = userRealm.getUserStoreManager();
-            if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
-                throw new ActionExecutionRequestBuilderException(
-                        "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
-                                tenantDomain);
-            }
-
-            return (UniqueIDUserStoreManager) userStoreManager;
-        } catch (UserStoreException e) {
-            throw new ActionExecutionRequestBuilderException(
-                    "Error while loading user store manager for tenant: " + tenantDomain, e);
-        }
+        return RequestBuilderUtil.getUserStoreManager(tenantDomain);
     }
 
     private boolean isMultiValuedClaim(String claimUri) throws ActionExecutionRequestBuilderException {
