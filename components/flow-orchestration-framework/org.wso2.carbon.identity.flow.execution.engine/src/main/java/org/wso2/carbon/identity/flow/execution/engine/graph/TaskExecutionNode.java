@@ -142,6 +142,7 @@ public class TaskExecutionNode implements Node {
                         .type(VIEW)
                         .requiredData(response.getRequiredData())
                         .optionalData(response.getOptionalData())
+                        .additionalInfo(response.getAdditionalInfo())
                         .error(response.getErrorMessage())
                         .build();
             case STATUS_USER_INPUT_REQUIRED:

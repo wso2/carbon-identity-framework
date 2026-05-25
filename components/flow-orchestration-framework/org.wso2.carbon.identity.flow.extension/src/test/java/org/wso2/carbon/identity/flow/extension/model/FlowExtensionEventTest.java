@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.flow.extension.model;
+
+import org.testng.annotations.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
+/**
+ * Unit tests for {@link FlowExtensionEvent}.
+ */
+public class FlowExtensionEventTest {
+
+    @Test
+    public void testBuilderWithAllFields() {
+
+        Map<String, Object> flowProperties = new HashMap<>();
+        flowProperties.put("riskScore", 85);
+
+        FlowExtensionFlow flow = new FlowExtensionFlow.Builder()
+                .flowType("REGISTRATION")
+                .flowId("flow-id-123")
+                .build();
+
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
+                .flow(flow)
+                .callbackUrl("https://example.com/callback")
+                .portalUrl("https://example.com/portal")
+                .flowProperties(flowProperties)
+                .build();
+
+        assertNotNull(event.getFlow());
+        assertEquals(event.getFlow().getFlowType(), "REGISTRATION");
+        assertEquals(event.getFlow().getFlowId(), "flow-id-123");
+        assertEquals(event.getCallbackUrl(), "https://example.com/callback");
+        assertEquals(event.getPortalUrl(), "https://example.com/portal");
+        assertEquals(event.getFlowProperties().get("riskScore"), 85);
+    }
+
+    @Test
+    public void testOptionalFieldsDefaultToNull() {
+
+        FlowExtensionFlow flow = new FlowExtensionFlow.Builder()
+                .flowType("LOGIN")
+                .flowId("flow-id-456")
+                .build();
+
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
+                .flow(flow)
+                .flowProperties(null)
+                .build();
+
+        assertNotNull(event.getFlow());
+        assertEquals(event.getFlow().getFlowType(), "LOGIN");
+        assertEquals(event.getFlow().getFlowId(), "flow-id-456");
+        assertNull(event.getCallbackUrl());
+        assertNull(event.getPortalUrl());
+        assertNotNull(event.getFlowProperties());
+        assertTrue(event.getFlowProperties().isEmpty());
+    }
+
+    @Test
+    public void testFlowPropertiesAreUnmodifiable() {
+
+        Map<String, Object> flowProperties = new HashMap<>();
+        flowProperties.put("key", "value");
+
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
+                .flowProperties(flowProperties)
+                .build();
+
+        try {
+            event.getFlowProperties().put("hack", "value");
+            assertTrue(false, "Expected UnsupportedOperationException");
+        } catch (UnsupportedOperationException e) {
+            // Expected — map is unmodifiable
+        }
+    }
+
+    @Test
+    public void testBuilderDoesNotShareMapReferences() {
+
+        Map<String, Object> flowProperties = new HashMap<>();
+        flowProperties.put("score", "original");
+
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
+                .flowProperties(flowProperties)
+                .build();
+
+        // Mutating the original map should not affect the event
+        flowProperties.put("score", "modified");
+        assertEquals(event.getFlowProperties().get("score"), "original");
+    }
+}

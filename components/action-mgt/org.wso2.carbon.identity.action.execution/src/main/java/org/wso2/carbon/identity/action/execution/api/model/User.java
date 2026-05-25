@@ -18,9 +18,18 @@
 
 package org.wso2.carbon.identity.action.execution.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class models the User.
@@ -30,9 +39,11 @@ public class User {
 
     private final String id;
     private final List<UserClaim> claims =  new ArrayList<>();
+    private final Map<String, char[]> userCredentials = new HashMap<>();
     private final List<String> groups = new ArrayList<>();
     private final List<String> roles = new ArrayList<>();
     private Organization organization;
+    private UserStore userStoreDomain;
     /**
      * Represents the user id when the user is shared across sub-organizations.
      * This field differs from the regular user id ({@link #id}) in scenarios where a user is accessed in the context
@@ -65,6 +76,7 @@ public class User {
 
         this.id = builder.id;
         this.claims.addAll(builder.claims);
+        this.userCredentials.putAll(builder.userCredentials);
         this.groups.addAll(builder.groups);
         this.roles.addAll(builder.roles);
         this.organization = builder.organization;
@@ -72,8 +84,10 @@ public class User {
         this.userType = builder.userType;
         this.federatedIdP = builder.federatedIdP;
         this.accessingOrganization = builder.accessingOrganization;
+        this.userStoreDomain = builder.userStoreDomain;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getId() {
 
         return id;
@@ -82,6 +96,11 @@ public class User {
     public List<UserClaim> getClaims() {
 
         return Collections.unmodifiableList(claims);
+    }
+
+    public Map<String, char[]> getUserCredentials() {
+
+        return Collections.unmodifiableMap(userCredentials);
     }
 
     public List<String> getGroups() {
@@ -97,6 +116,13 @@ public class User {
     public Organization getOrganization() {
 
         return organization;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonSerialize(using = UserStoreNameSerializer.class)
+    public UserStore getUserStoreDomain() {
+
+        return userStoreDomain;
     }
 
     public String getSharedUserId() {
@@ -126,9 +152,11 @@ public class User {
 
         private final String id;
         private final List<UserClaim> claims = new ArrayList<>();
+        private final Map<String, char[]> userCredentials = new HashMap<>();
         private final List<String> groups = new ArrayList<>();
         private final List<String> roles = new ArrayList<>();
         private Organization organization;
+        private UserStore userStoreDomain;
         private String sharedUserId;
         private String userType;
         private String federatedIdP;
@@ -163,6 +191,12 @@ public class User {
             return this;
         }
 
+        public Builder userStoreDomain(UserStore userStoreDomain) {
+
+            this.userStoreDomain = userStoreDomain;
+            return this;
+        }
+
         public Builder sharedUserId(String sharedUserId) {
 
             this.sharedUserId = sharedUserId;
@@ -187,9 +221,24 @@ public class User {
             return this;
         }
 
+        public Builder userCredentials(Map<String, char[]> userCredentials) {
+
+            this.userCredentials.putAll(userCredentials);
+            return this;
+        }
+
         public User build() {
 
             return new User(this);
+        }
+    }
+
+    private static class UserStoreNameSerializer extends JsonSerializer<UserStore> {
+
+        @Override
+        public void serialize(UserStore value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+
+            gen.writeString(value.getName() != null ? value.getName() : "");
         }
     }
 }
