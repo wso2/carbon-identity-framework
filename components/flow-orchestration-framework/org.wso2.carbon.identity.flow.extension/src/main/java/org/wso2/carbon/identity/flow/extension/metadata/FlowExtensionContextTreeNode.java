@@ -26,7 +26,7 @@ import java.util.List;
  * Mirrors the shape of {@code default-flow-context-tree.json} on the Console side so the
  * existing tree component can render this without translation.
  */
-public class InFlowExtensionContextTreeNode {
+public class FlowExtensionContextTreeNode {
 
     private final String key;
     private final String title;
@@ -38,9 +38,9 @@ public class InFlowExtensionContextTreeNode {
     private final boolean replaceable;
     private final boolean dynamicEntryAllowed;
     private final String dynamicEntryType;
-    private final List<InFlowExtensionContextTreeNode> children;
+    private final List<FlowExtensionContextTreeNode> children;
 
-    private InFlowExtensionContextTreeNode(Builder b) {
+    private FlowExtensionContextTreeNode(Builder b) {
 
         this.key = b.key;
         this.title = b.title;
@@ -107,7 +107,7 @@ public class InFlowExtensionContextTreeNode {
         return dynamicEntryType;
     }
 
-    public List<InFlowExtensionContextTreeNode> getChildren() {
+    public List<FlowExtensionContextTreeNode> getChildren() {
 
         return children;
     }
@@ -129,7 +129,7 @@ public class InFlowExtensionContextTreeNode {
         private boolean replaceable;
         private boolean dynamicEntryAllowed;
         private String dynamicEntryType;
-        private List<InFlowExtensionContextTreeNode> children;
+        private List<FlowExtensionContextTreeNode> children;
 
         public Builder key(String v) {
 
@@ -191,15 +191,15 @@ public class InFlowExtensionContextTreeNode {
             return this;
         }
 
-        public Builder children(List<InFlowExtensionContextTreeNode> v) {
+        public Builder children(List<FlowExtensionContextTreeNode> v) {
 
             this.children = v;
             return this;
         }
 
-        public InFlowExtensionContextTreeNode build() {
+        public FlowExtensionContextTreeNode build() {
 
-            return new InFlowExtensionContextTreeNode(this);
+            return new FlowExtensionContextTreeNode(this);
         }
     }
 }

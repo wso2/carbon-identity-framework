@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.flow.extension.model;
 
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
-import org.wso2.carbon.identity.certificate.management.model.Certificate;
 
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Flow Extension Action.
@@ -34,14 +36,18 @@ import java.sql.Timestamp;
 public class FlowExtensionAction extends Action {
 
     private final AccessConfig accessConfig;
-    private final Certificate certificate;
+    private final Encryption encryption;
+    private final Map<String, AccessConfig> flowTypeOverrides;
     private final String iconUrl;
 
     public FlowExtensionAction(ResponseBuilder responseBuilder) {
 
         super(responseBuilder);
         this.accessConfig = responseBuilder.accessConfig;
-        this.certificate = responseBuilder.certificate;
+        this.encryption = responseBuilder.encryption;
+        this.flowTypeOverrides = responseBuilder.flowTypeOverrides != null
+                ? Collections.unmodifiableMap(new HashMap<>(responseBuilder.flowTypeOverrides))
+                : Collections.emptyMap();
         this.iconUrl = responseBuilder.iconUrl;
     }
 
@@ -49,12 +55,15 @@ public class FlowExtensionAction extends Action {
 
         super(requestBuilder);
         this.accessConfig = requestBuilder.accessConfig;
-        this.certificate = requestBuilder.certificate;
+        this.encryption = requestBuilder.encryption;
+        this.flowTypeOverrides = requestBuilder.flowTypeOverrides != null
+                ? Collections.unmodifiableMap(new HashMap<>(requestBuilder.flowTypeOverrides))
+                : Collections.emptyMap();
         this.iconUrl = requestBuilder.iconUrl;
     }
 
     /**
-     * Returns the default access configuration for this In-Flow Extension action.
+     * Returns the default access configuration for this Flow Extension action.
      *
      * @return The access config, or {@code null} if not configured.
      */
@@ -64,18 +73,17 @@ public class FlowExtensionAction extends Action {
     }
 
     /**
-     * Returns the external service's X.509 public certificate used for outbound JWE encryption
-     * of expose-path values marked {@code encrypted: true}.
+     * Returns the encryption configuration holding the external service's certificate.
      *
-     * @return The certificate, or {@code null} if not configured.
+     * @return The encryption config, or {@code null} if not configured.
      */
-    public Certificate getCertificate() {
+    public Encryption getEncryption() {
 
-        return certificate;
+        return encryption;
     }
 
     /**
-     * Returns the icon URL for this In-Flow Extension action.
+     * Returns the icon URL for this Flow Extension action.
      *
      * @return The icon URL, or {@code null} if not configured.
      */
@@ -85,13 +93,40 @@ public class FlowExtensionAction extends Action {
     }
 
     /**
+     * Returns the per-flow-type access config overrides.
+     * Keys are flow type strings (e.g., "REGISTRATION", "LOGIN").
+     *
+     * @return Unmodifiable map of flow type to AccessConfig overrides.
+     */
+    public Map<String, AccessConfig> getFlowTypeOverrides() {
+
+        return flowTypeOverrides;
+    }
+
+    /**
+     * Resolves the effective access config for the given flow type.
+     * Returns the flow-type-specific override if present, otherwise falls back to the default access config.
+     *
+     * @param flowType The flow type (e.g., "REGISTRATION").
+     * @return The resolved AccessConfig, or {@code null} if neither override nor default is configured.
+     */
+    public AccessConfig resolveAccessConfig(String flowType) {
+
+        if (flowType != null && flowTypeOverrides.containsKey(flowType)) {
+            return flowTypeOverrides.get(flowType);
+        }
+        return accessConfig;
+    }
+
+    /**
      * Response Builder for FlowExtensionAction.
      * Used when building from persisted data (DAO → service layer).
      */
     public static class ResponseBuilder extends ActionResponseBuilder {
 
         private AccessConfig accessConfig;
-        private Certificate certificate;
+        private Encryption encryption;
+        private Map<String, AccessConfig> flowTypeOverrides;
         private String iconUrl;
 
         @Override
@@ -170,9 +205,15 @@ public class FlowExtensionAction extends Action {
             return this;
         }
 
-        public ResponseBuilder certificate(Certificate certificate) {
+        public ResponseBuilder encryption(Encryption encryption) {
 
-            this.certificate = certificate;
+            this.encryption = encryption;
+            return this;
+        }
+
+        public ResponseBuilder flowTypeOverrides(Map<String, AccessConfig> flowTypeOverrides) {
+
+            this.flowTypeOverrides = flowTypeOverrides;
             return this;
         }
 
@@ -196,7 +237,8 @@ public class FlowExtensionAction extends Action {
     public static class RequestBuilder extends ActionRequestBuilder {
 
         private AccessConfig accessConfig;
-        private Certificate certificate;
+        private Encryption encryption;
+        private Map<String, AccessConfig> flowTypeOverrides;
         private String iconUrl;
 
         public RequestBuilder(Action action) {
@@ -235,9 +277,15 @@ public class FlowExtensionAction extends Action {
             return this;
         }
 
-        public RequestBuilder certificate(Certificate certificate) {
+        public RequestBuilder encryption(Encryption encryption) {
 
-            this.certificate = certificate;
+            this.encryption = encryption;
+            return this;
+        }
+
+        public RequestBuilder flowTypeOverrides(Map<String, AccessConfig> flowTypeOverrides) {
+
+            this.flowTypeOverrides = flowTypeOverrides;
             return this;
         }
 

@@ -33,14 +33,14 @@ import java.util.Map;
  * This class models the In-Flow Extension Event.
  * It represents the event sent to the In-Flow Extension action over the Action Execution Request.
  */
-public class InFlowExtensionEvent extends Event {
+public class FlowExtensionEvent extends Event {
 
-    private final InFlowExtensionFlow flow;
+    private final FlowExtensionFlow flow;
     private final String callbackUrl;
     private final String portalUrl;
     private final Map<String, Object> flowProperties;
 
-    private InFlowExtensionEvent(Builder builder) {
+    private FlowExtensionEvent(Builder builder) {
 
         this.tenant = builder.tenant;
         this.organization = builder.organization;
@@ -59,7 +59,7 @@ public class InFlowExtensionEvent extends Event {
      * @return The flow context object, or {@code null} if not set.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public InFlowExtensionFlow getFlow() {
+    public FlowExtensionFlow getFlow() {
 
         return flow;
     }
@@ -101,11 +101,11 @@ public class InFlowExtensionEvent extends Event {
     }
 
     /**
-     * Builder for the InFlowExtensionEvent.
+     * Builder for the FlowExtensionEvent.
      */
     public static class Builder {
 
-        private InFlowExtensionFlow flow;
+        private FlowExtensionFlow flow;
         private Tenant tenant;
         private Organization organization;
         private UserStore userStore;
@@ -114,7 +114,7 @@ public class InFlowExtensionEvent extends Event {
         private String portalUrl;
         private Map<String, Object> flowProperties;
 
-        public Builder flow(InFlowExtensionFlow flow) {
+        public Builder flow(FlowExtensionFlow flow) {
 
             this.flow = flow;
             return this;
@@ -162,9 +162,9 @@ public class InFlowExtensionEvent extends Event {
             return this;
         }
 
-        public InFlowExtensionEvent build() {
+        public FlowExtensionEvent build() {
 
-            return new InFlowExtensionEvent(this);
+            return new FlowExtensionEvent(this);
         }
     }
 }

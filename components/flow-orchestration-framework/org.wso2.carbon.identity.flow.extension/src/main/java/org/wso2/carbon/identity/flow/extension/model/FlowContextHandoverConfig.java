@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.flow.extension.model;
 
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 
 import java.util.Collections;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
  * handed over to the action framework during an in-flow extension execution.
  *
  * <p>The default policy is sourced from compile-time constants in
- * {@link InFlowExtensionConstants.HandoverPolicy}. When the dynamic toml-based
+ * {@link FlowExtensionConstants.HandoverPolicy}. When the dynamic toml-based
  * configuration PR is merged, these constants will serve as the documented defaults.</p>
  */
 public final class FlowContextHandoverConfig {
@@ -48,7 +48,7 @@ public final class FlowContextHandoverConfig {
 
     /**
      * Construct a config from explicit attribute sets.
-     * {@code fullUserPassthrough} is true when {@link InFlowExtensionConstants.HandoverPolicy#ATTR_FLOW_USER}
+     * {@code fullUserPassthrough} is true when {@link FlowExtensionConstants.HandoverPolicy#ATTR_FLOW_USER}
      * is present in {@code attrs}, meaning the entire FlowUser passes through without per-field filtering.
      *
      * @param attrs     top-level context attributes to include; null is treated as empty.
@@ -60,25 +60,25 @@ public final class FlowContextHandoverConfig {
         Set<String> resolvedAttrs = (attrs != null) ? attrs : Collections.emptySet();
         Set<String> resolvedUserAttrs = (userAttrs != null) ? userAttrs : Collections.emptySet();
         boolean fullPassthrough = resolvedAttrs.contains(
-                InFlowExtensionConstants.HandoverPolicy.ATTR_FLOW_USER);
+                FlowExtensionConstants.HandoverPolicy.ATTR_FLOW_USER);
         return new FlowContextHandoverConfig(resolvedAttrs, resolvedUserAttrs, fullPassthrough);
     }
 
     /**
      * Returns the default handover policy built from compile-time constants defined in
-     * {@link InFlowExtensionConstants.HandoverPolicy}.
+     * {@link FlowExtensionConstants.HandoverPolicy}.
      *
      * <p>This is the factory method called at runtime by the executor and the context tree
      * service. To change the effective policy, update the constants in
-     * {@link InFlowExtensionConstants.HandoverPolicy}.</p>
+     * {@link FlowExtensionConstants.HandoverPolicy}.</p>
      *
      * @return a new {@link FlowContextHandoverConfig} reflecting the default policy.
      */
     public static FlowContextHandoverConfig defaultPolicy() {
 
         return of(
-                InFlowExtensionConstants.HandoverPolicy.INCLUDED_ATTRIBUTES,
-                InFlowExtensionConstants.HandoverPolicy.INCLUDED_USER_ATTRIBUTES
+                FlowExtensionConstants.HandoverPolicy.INCLUDED_ATTRIBUTES,
+                FlowExtensionConstants.HandoverPolicy.INCLUDED_USER_ATTRIBUTES
         );
     }
 
@@ -105,7 +105,7 @@ public final class FlowContextHandoverConfig {
     }
 
     /**
-     * Returns true when {@link InFlowExtensionConstants.HandoverPolicy#ATTR_FLOW_USER} is
+     * Returns true when {@link FlowExtensionConstants.HandoverPolicy#ATTR_FLOW_USER} is
      * present in {@link #getIncludedAttributes()}, meaning the entire {@code FlowUser} object
      * is passed through without per-field inspection.
      *

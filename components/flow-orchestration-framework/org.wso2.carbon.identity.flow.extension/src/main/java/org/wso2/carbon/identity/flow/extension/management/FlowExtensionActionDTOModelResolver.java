@@ -43,7 +43,9 @@ import java.util.Set;
 
 import static java.util.Collections.emptyList;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE_PREFIX;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY_PREFIX;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.CERTIFICATE;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.CERTIFICATE_NAME_PREFIX;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ICON_URL;
@@ -96,9 +98,33 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             properties.put(ICON_URL, new ActionProperty.BuilderForDAO(iconUrlStr).build());
         }
 
+        resolveAddOverrideProperties(actionDTO, properties);
+
         return new ActionDTO.Builder(actionDTO)
                 .properties(properties)
                 .build();
+    }
+
+    private void resolveAddOverrideProperties(ActionDTO actionDTO, Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        if (actionDTO.getProperties() == null) {
+            return;
+        }
+        for (Map.Entry<String, ActionProperty> entry : actionDTO.getProperties().entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
+                Object overrideExpose = actionDTO.getPropertyValue(key);
+                if (overrideExpose != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideExpose)));
+                }
+            } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                Object overrideModify = actionDTO.getPropertyValue(key);
+                if (overrideModify != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideModify)));
+                }
+            }
+        }
     }
 
     @Override
@@ -122,6 +148,18 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
         Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
         if (iconUrlValue != null) {
             properties.put(ICON_URL, new ActionProperty.BuilderForService(iconUrlValue.toString()).build());
+        }
+
+        // Deserialize per-flow-type override properties (prefixed keys).
+        if (actionDTO.getProperties() != null) {
+            for (Map.Entry<String, ActionProperty> entry : actionDTO.getProperties().entrySet()) {
+                String key = entry.getKey();
+                if ((key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX) || key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX))
+                        && actionDTO.getPropertyValue(key) != null) {
+                    properties.put(key, deserializeExposeProperty(
+                            ((BinaryObject) actionDTO.getPropertyValue(key)).getJSONString()));
+                }
+            }
         }
 
         return new ActionDTO.Builder(actionDTO)
@@ -159,6 +197,8 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
 
         handleCertificateUpdate(updatingActionDTO, existingActionDTO, properties, tenantDomain);
         resolveUpdateIconUrl(updatingActionDTO, existingActionDTO, properties);
+        carryForwardExistingOverrides(existingActionDTO, properties);
+        overlayUpdatedOverrides(updatingActionDTO, properties);
 
         return new ActionDTO.Builder(updatingActionDTO)
                 .properties(properties)
@@ -175,6 +215,43 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
         } else if (existingActionDTO.getPropertyValue(ICON_URL) != null) {
             properties.put(ICON_URL, new ActionProperty.BuilderForDAO(
                     existingActionDTO.getPropertyValue(ICON_URL).toString()).build());
+        }
+    }
+
+    private void carryForwardExistingOverrides(ActionDTO existingActionDTO,
+                                               Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        if (existingActionDTO.getProperties() == null) {
+            return;
+        }
+        for (Map.Entry<String, ActionProperty> entry : existingActionDTO.getProperties().entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX) || key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                properties.put(key, createBlobProperty(existingActionDTO.getPropertyValue(key)));
+            }
+        }
+    }
+
+    private void overlayUpdatedOverrides(ActionDTO updatingActionDTO, Map<String, ActionProperty> properties)
+            throws ActionDTOModelResolverException {
+
+        if (updatingActionDTO.getProperties() == null) {
+            return;
+        }
+        for (Map.Entry<String, ActionProperty> entry : updatingActionDTO.getProperties().entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
+                Object overrideExpose = updatingActionDTO.getPropertyValue(key);
+                if (overrideExpose != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideExpose)));
+                }
+            } else if (key.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                Object overrideModify = updatingActionDTO.getPropertyValue(key);
+                if (overrideModify != null) {
+                    properties.put(key, createBlobProperty(validateExpose(overrideModify)));
+                }
+            }
         }
     }
 

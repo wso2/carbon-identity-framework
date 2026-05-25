@@ -18,16 +18,16 @@
 
 package org.wso2.carbon.identity.flow.extension.util;
 
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 
 import java.util.List;
 
 /**
  * Path-matching utilities for In-Flow Extension access control.
  */
-public final class InFlowExtensionPathUtil {
+public final class FlowExtensionPathUtil {
 
-    private InFlowExtensionPathUtil() {
+    private FlowExtensionPathUtil() {
 
     }
 
@@ -39,7 +39,7 @@ public final class InFlowExtensionPathUtil {
         if (path == null) {
             return false;
         }
-        return path.startsWith(InFlowExtensionConstants.FLOW_PREFIX);
+        return path.startsWith(FlowExtensionConstants.FlowContextPaths.FLOW_PREFIX);
     }
 
     /**

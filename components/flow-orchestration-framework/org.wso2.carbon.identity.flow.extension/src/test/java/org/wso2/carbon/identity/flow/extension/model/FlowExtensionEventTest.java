@@ -29,9 +29,9 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Unit tests for {@link InFlowExtensionEvent}.
+ * Unit tests for {@link FlowExtensionEvent}.
  */
-public class InFlowExtensionEventTest {
+public class FlowExtensionEventTest {
 
     @Test
     public void testBuilderWithAllFields() {
@@ -39,12 +39,12 @@ public class InFlowExtensionEventTest {
         Map<String, Object> flowProperties = new HashMap<>();
         flowProperties.put("riskScore", 85);
 
-        InFlowExtensionFlow flow = new InFlowExtensionFlow.Builder()
+        FlowExtensionFlow flow = new FlowExtensionFlow.Builder()
                 .flowType("REGISTRATION")
                 .flowId("flow-id-123")
                 .build();
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
                 .flow(flow)
                 .callbackUrl("https://example.com/callback")
                 .portalUrl("https://example.com/portal")
@@ -62,12 +62,12 @@ public class InFlowExtensionEventTest {
     @Test
     public void testOptionalFieldsDefaultToNull() {
 
-        InFlowExtensionFlow flow = new InFlowExtensionFlow.Builder()
+        FlowExtensionFlow flow = new FlowExtensionFlow.Builder()
                 .flowType("LOGIN")
                 .flowId("flow-id-456")
                 .build();
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
                 .flow(flow)
                 .flowProperties(null)
                 .build();
@@ -87,7 +87,7 @@ public class InFlowExtensionEventTest {
         Map<String, Object> flowProperties = new HashMap<>();
         flowProperties.put("key", "value");
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
                 .flowProperties(flowProperties)
                 .build();
 
@@ -105,7 +105,7 @@ public class InFlowExtensionEventTest {
         Map<String, Object> flowProperties = new HashMap<>();
         flowProperties.put("score", "original");
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
                 .flowProperties(flowProperties)
                 .build();
 

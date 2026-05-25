@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.flow.extension.metadata;
 
 import org.wso2.carbon.identity.flow.extension.model.FlowContextHandoverConfig;
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionTestUtils;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionTestUtils;
 
 import java.util.Set;
 
 /**
- * Test-only helper that delegates to {@link InFlowExtensionTestUtils#configOf} to
+ * Test-only helper that delegates to {@link FlowExtensionTestUtils#configOf} to
  * instantiate {@link FlowContextHandoverConfig} with explicit allow-lists.
  */
 final class FlowContextHandoverConfigTestHelper {
@@ -35,6 +35,6 @@ final class FlowContextHandoverConfigTestHelper {
 
     static FlowContextHandoverConfig of(Set<String> attrs, Set<String> userAttrs) {
 
-        return InFlowExtensionTestUtils.configOf(attrs, userAttrs);
+        return FlowExtensionTestUtils.configOf(attrs, userAttrs);
     }
 }

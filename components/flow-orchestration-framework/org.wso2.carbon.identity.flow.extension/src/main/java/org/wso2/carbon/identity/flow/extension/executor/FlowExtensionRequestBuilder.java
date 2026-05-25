@@ -41,8 +41,8 @@ import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequ
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionConstants;
-import org.wso2.carbon.identity.flow.extension.util.InFlowExtensionPathUtil;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionPathUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 
@@ -59,12 +59,12 @@ import java.util.Map;
  * <p><b>Responsibility</b>: expose-based filtering and request construction.
  * It receives a {@link FlowContext} containing the full {@link FlowExecutionContext}, the expose
  * list, and the access config. It filters the {@link FlowExecutionContext} data according
- * to the expose configuration and maps the result into the {@link InFlowExtensionEvent} model.
+ * to the expose configuration and maps the result into the {@link FlowExtensionEvent} model.
  * Modify paths from the access config are converted to a single REPLACE {@link AllowedOperation}.</p>
  */
-public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuilder {
+public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilder {
 
-    private static final Log LOG = LogFactory.getLog(InFlowExtensionRequestBuilder.class);
+    private static final Log LOG = LogFactory.getLog(FlowExtensionRequestBuilder.class);
     private static final int MAX_DIAGNOSTIC_PATHS = 20;
     private static final String DIAGNOSTIC_REASON = "reason";
     private static final String REASON_UNSUPPORTED_ACTION = "unsupported-action-model";
@@ -92,7 +92,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
         List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
-        flowContext.add(InFlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
+        flowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
         List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, flowContext);
         String certificatePEM = resolveOutboundCertificate(accessConfig, encryption);
@@ -102,7 +102,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         triggerRequestBuildDiagnostic(execCtx, exposeResolution.getEffectiveExposePaths(),
                 modifyPaths, encryption, exposeResolution.getOmittedEncryptedExposePaths());
 
-        InFlowExtensionEvent event = buildEvent(execCtx, exposeResolution.getEffectiveExposePaths(),
+        FlowExtensionEvent event = buildEvent(execCtx, exposeResolution.getEffectiveExposePaths(),
                 accessConfig, certificatePEM);
         return buildRequestPayload(event, allowedOperations);
     }
@@ -112,7 +112,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      * includes a REDIRECT operation so the extension may signal external redirection. A
      * REPLACE operation is added only when the access config defines modify paths. Path
      * type annotations (e.g. {@code []} or {@code [schema]}) are stripped and stored in
-     * the {@link FlowContext} under {@link InFlowExtensionConstants#PATH_TYPE_ANNOTATIONS_KEY}
+     * the {@link FlowContext} under {@link FlowExtensionConstants#PATH_TYPE_ANNOTATIONS_KEY}
      * for the response processor.
      *
      * @param accessConfig The access config containing modify paths (may be null).
@@ -141,7 +141,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     }
 
     /**
-     * Build the {@link InFlowExtensionEvent} from the {@link FlowExecutionContext},
+     * Build the {@link FlowExtensionEvent} from the {@link FlowExecutionContext},
      * filtering data according to the expose configuration.
      * Values for expose paths with {@code encrypted: true} are JWE-encrypted using the
      * external service's certificate before being included in the event.
@@ -150,14 +150,14 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      * @param expose         The expose prefix list controlling which data is included.
      * @param accessConfig   The access config (may be null if no encryption).
      * @param certificatePEM The external service's certificate PEM for JWE encryption (may be null).
-     * @return The InFlowExtensionEvent.
+     * @return The FlowExtensionEvent.
      */
-    private InFlowExtensionEvent buildEvent(FlowExecutionContext context, List<String> expose,
+    private FlowExtensionEvent buildEvent(FlowExecutionContext context, List<String> expose,
                                             AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        InFlowExtensionEvent.Builder eventBuilder = new InFlowExtensionEvent.Builder();
-        InFlowExtensionFlow.Builder flowBuilder = new InFlowExtensionFlow.Builder();
+        FlowExtensionEvent.Builder eventBuilder = new FlowExtensionEvent.Builder();
+        FlowExtensionFlow.Builder flowBuilder = new FlowExtensionFlow.Builder();
 
         applyTenant(eventBuilder, context, expose);
         applyOrganization(eventBuilder, expose);
@@ -196,7 +196,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             userBuilder.userCredentials(filteredCredentials);
         }
 
-        if (isLeafExposed(InFlowExtensionConstants.USER_STORE_DOMAIN_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.USER_STORE_DOMAIN_PATH, expose)) {
             String userStoreDomain = flowUser.getUserStoreDomain();
             userBuilder.userStoreDomain(new UserStore(userStoreDomain != null ? userStoreDomain : ""));
         }
@@ -208,7 +208,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = flowContext.getValue(
-                InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+                FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
         if (execCtx == null) {
             throw new ActionExecutionRequestBuilderException("FlowExecutionContext not found in FlowContext.");
         }
@@ -219,13 +219,13 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                                                      String flowType) {
 
         Action rawAction = actionExecutionContext.getAction();
-        if (rawAction instanceof InFlowExtensionAction) {
-            InFlowExtensionAction ext = (InFlowExtensionAction) rawAction;
+        if (rawAction instanceof FlowExtensionAction) {
+            FlowExtensionAction ext = (FlowExtensionAction) rawAction;
             return new ResolvedActionConfig(ext.resolveAccessConfig(flowType), ext.getEncryption(), false);
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("No InFlowExtensionAction resolved. Falling back to an empty request body.");
+            LOG.debug("No FlowExtensionAction resolved. Falling back to an empty request body.");
         }
         return new ResolvedActionConfig(null, null, true);
     }
@@ -283,19 +283,19 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
     private ActionExecutionRequest buildFallbackRequest(FlowContext flowContext, FlowExecutionContext execCtx) {
 
-        flowContext.add(InFlowExtensionConstants.MODIFY_PATHS_KEY, Collections.emptyList());
+        flowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, Collections.emptyList());
         List<AllowedOperation> allowedOperations = buildAllowedOperations(null, flowContext);
         triggerFallbackDiagnostic(execCtx);
 
-        InFlowExtensionEvent event = new InFlowExtensionEvent.Builder()
-                .flow(new InFlowExtensionFlow.Builder()
+        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
+                .flow(new FlowExtensionFlow.Builder()
                         .flowId(execCtx.getContextIdentifier())
                         .build())
                 .build();
         return buildRequestPayload(event, allowedOperations);
     }
 
-    private ActionExecutionRequest buildRequestPayload(InFlowExtensionEvent event,
+    private ActionExecutionRequest buildRequestPayload(FlowExtensionEvent event,
                                                        List<AllowedOperation> allowedOperations) {
 
         return new ActionExecutionRequest.Builder()
@@ -364,7 +364,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                 ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                 ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
-                .resultMessage("No InFlowExtensionAction resolved. Built minimal fallback request.")
+                .resultMessage("No FlowExtensionAction resolved. Built minimal fallback request.")
                 .configParam("actionType", ActionType.FLOW_EXTENSION.getDisplayName())
                 .configParam("flowType", execCtx.getFlowType())
                 .configParam(DIAGNOSTIC_REASON, REASON_UNSUPPORTED_ACTION)
@@ -442,7 +442,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     private void storeAnnotationsIfAny(FlowContext flowContext, Map<String, String> pathTypeAnnotations) {
 
         if (!pathTypeAnnotations.isEmpty()) {
-            flowContext.add(InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+            flowContext.add(FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
         }
     }
 
@@ -453,10 +453,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         allowedOperations.add(redirectOp);
     }
 
-    private void applyTenant(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+    private void applyTenant(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
                              List<String> expose) {
 
-        if (!isLeafExposed(InFlowExtensionConstants.FLOW_TENANT_PATH, expose)) {
+        if (!isLeafExposed(FlowExtensionConstants.FlowContextPaths.FLOW_TENANT_PATH, expose)) {
             return;
         }
 
@@ -469,9 +469,9 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         }
     }
 
-    private void applyOrganization(InFlowExtensionEvent.Builder eventBuilder, List<String> expose) {
+    private void applyOrganization(FlowExtensionEvent.Builder eventBuilder, List<String> expose) {
 
-        if (!isAreaExposed(InFlowExtensionConstants.ORGANIZATION_PREFIX, expose)) {
+        if (!isAreaExposed(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_PREFIX, expose)) {
             return;
         }
 
@@ -483,26 +483,26 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
         Organization.Builder orgBuilder = new Organization.Builder();
 
-        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_ID_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_ID_PATH, expose)) {
             orgBuilder.id(coreOrg.getId());
         }
-        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_NAME_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_NAME_PATH, expose)) {
             orgBuilder.name(coreOrg.getName());
         }
-        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_HANDLE_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_HANDLE_PATH, expose)) {
             orgBuilder.orgHandle(coreOrg.getOrganizationHandle());
         }
-        if (isLeafExposed(InFlowExtensionConstants.ORGANIZATION_DEPTH_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.ORGANIZATION_DEPTH_PATH, expose)) {
             orgBuilder.depth(coreOrg.getDepth());
         }
 
         eventBuilder.organization(orgBuilder.build());
     }
 
-    private void applyApplication(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+    private void applyApplication(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
                                   List<String> expose) {
 
-        if (!isLeafExposed(InFlowExtensionConstants.FLOW_APP_ID_PATH, expose)) {
+        if (!isLeafExposed(FlowExtensionConstants.FlowContextPaths.FLOW_APP_ID_PATH, expose)) {
             return;
         }
 
@@ -510,11 +510,11 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         eventBuilder.application(new Application(appId != null ? appId : "", null));
     }
 
-    private void applyUserAndUserStore(InFlowExtensionFlow.Builder flowBuilder, FlowExecutionContext context,
+    private void applyUserAndUserStore(FlowExtensionFlow.Builder flowBuilder, FlowExecutionContext context,
                                        List<String> expose, AccessConfig accessConfig,
                                        String certificatePEM) throws ActionExecutionRequestBuilderException {
 
-        if (!isAreaExposed(InFlowExtensionConstants.USER_PREFIX, expose)) {
+        if (!isAreaExposed(FlowExtensionConstants.FlowContextPaths.USER_PREFIX, expose)) {
             return;
         }
 
@@ -526,30 +526,30 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         flowBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
     }
 
-    private void applyFlowMetadata(InFlowExtensionFlow.Builder flowBuilder,
-                                   InFlowExtensionEvent.Builder eventBuilder,
+    private void applyFlowMetadata(FlowExtensionFlow.Builder flowBuilder,
+                                   FlowExtensionEvent.Builder eventBuilder,
                                    FlowExecutionContext context, List<String> expose) {
 
-        if (isLeafExposed(InFlowExtensionConstants.FLOW_TYPE_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.FLOW_TYPE_PATH, expose)) {
             flowBuilder.flowType(context.getFlowType() != null ? context.getFlowType() : "");
         }
 
         flowBuilder.flowId(context.getContextIdentifier());
 
-        if (isLeafExposed(InFlowExtensionConstants.FLOW_CALLBACK_URL_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.FLOW_CALLBACK_URL_PATH, expose)) {
             eventBuilder.callbackUrl(context.getCallbackUrl() != null ? context.getCallbackUrl() : "");
         }
 
-        if (isLeafExposed(InFlowExtensionConstants.FLOW_PORTAL_URL_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.FLOW_PORTAL_URL_PATH, expose)) {
             eventBuilder.portalUrl(context.getPortalUrl() != null ? context.getPortalUrl() : "");
         }
     }
 
-    private void applyFlowProperties(InFlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
+    private void applyFlowProperties(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
                                      List<String> expose, AccessConfig accessConfig,
                                      String certificatePEM) throws ActionExecutionRequestBuilderException {
 
-        if (!isAreaExposed(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX, expose)) {
+        if (!isAreaExposed(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX, expose)) {
             return;
         }
 
@@ -557,10 +557,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         Map<String, Object> filteredProperties = new HashMap<>();
 
         for (String exposePath : expose) {
-            if (!exposePath.startsWith(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX)) {
+            if (!exposePath.startsWith(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
                 continue;
             }
-            String propKey = exposePath.substring(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX.length());
+            String propKey = exposePath.substring(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX.length());
             Object value = properties != null ? properties.get(propKey) : null;
             if (value != null && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
                 value = encryptValue(String.valueOf(value), certificatePEM);
@@ -573,7 +573,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
 
     private String resolveUserId(FlowUser flowUser, List<String> expose) {
 
-        if (isLeafExposed(InFlowExtensionConstants.USER_ID_PATH, expose)) {
+        if (isLeafExposed(FlowExtensionConstants.FlowContextPaths.USER_ID_PATH, expose)) {
             String userId = flowUser.getUserId();
             return userId != null ? userId : "";
         }
@@ -584,7 +584,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                                                 AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        if (!isAreaExposed(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX, expose)) {
+        if (!isAreaExposed(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX, expose)) {
             return Collections.emptyList();
         }
 
@@ -592,10 +592,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         List<UserClaim> userClaims = new ArrayList<>();
 
         for (String exposePath : expose) {
-            if (!exposePath.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
+            if (!exposePath.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX)) {
                 continue;
             }
-            String claimKey = exposePath.substring(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX.length());
+            String claimKey = exposePath.substring(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX.length());
             String claimValue = claims != null ? claims.get(claimKey) : null;
             claimValue = claimValue != null ? claimValue : "";
             if (!claimValue.isEmpty() && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
@@ -610,7 +610,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
                                                          AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        if (!isAreaExposed(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX, expose)) {
+        if (!isAreaExposed(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX, expose)) {
             return Collections.emptyMap();
         }
 
@@ -618,10 +618,10 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
         Map<String, char[]> filteredCredentials = new HashMap<>();
 
         for (String exposePath : expose) {
-            if (!exposePath.startsWith(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX)) {
+            if (!exposePath.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
                 continue;
             }
-            String credKey = exposePath.substring(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX.length());
+            String credKey = exposePath.substring(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX.length());
             char[] credValue = credentials != null ? credentials.get(credKey) : null;
 
             if (credValue != null) {
@@ -735,11 +735,11 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
     private static String toExternalPath(String internalPath) {
 
         if (internalPath != null
-                && internalPath.startsWith(InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX)) {
+                && internalPath.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX)) {
             String claimUri = internalPath.substring(
-                    InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX.length());
-            return InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX + claimUri
-                    + InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX;
+                    FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX.length());
+            return FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX + claimUri
+                    + FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX;
         }
         return internalPath;
     }
@@ -750,7 +750,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      */
     private boolean isAreaExposed(String areaPrefix, List<String> expose) {
 
-        return InFlowExtensionPathUtil.anyExposedUnder(areaPrefix, expose);
+        return FlowExtensionPathUtil.anyExposedUnder(areaPrefix, expose);
     }
 
     /**
@@ -759,7 +759,7 @@ public class InFlowExtensionRequestBuilder implements ActionExecutionRequestBuil
      */
     private boolean isLeafExposed(String leafPath, List<String> expose) {
 
-        return InFlowExtensionPathUtil.isExposedPath(leafPath, expose);
+        return FlowExtensionPathUtil.isExposedPath(leafPath, expose);
     }
 
     /**

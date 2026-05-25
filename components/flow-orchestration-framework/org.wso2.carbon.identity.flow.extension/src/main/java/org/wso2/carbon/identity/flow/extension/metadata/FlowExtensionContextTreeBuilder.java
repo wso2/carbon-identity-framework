@@ -33,7 +33,7 @@ import java.util.Set;
  * requires no change. Nodes are pruned when the corresponding attribute is absent from the
  * allow-list.
  */
-public class InFlowExtensionContextTreeBuilder {
+public class FlowExtensionContextTreeBuilder {
 
     // Flow type identifiers — must match the values produced by FlowTypes.getType().
     private static final String FLOW_REGISTRATION = "REGISTRATION";
@@ -56,7 +56,7 @@ public class InFlowExtensionContextTreeBuilder {
 
     private final FlowContextHandoverConfig handoverConfig;
 
-    public InFlowExtensionContextTreeBuilder(FlowContextHandoverConfig handoverConfig) {
+    public FlowExtensionContextTreeBuilder(FlowContextHandoverConfig handoverConfig) {
 
         this.handoverConfig = handoverConfig;
     }
@@ -67,26 +67,26 @@ public class InFlowExtensionContextTreeBuilder {
      * @param flowType the flow type (null → default tree).
      * @return a fully populated metadata DTO.
      */
-    public InFlowExtensionContextTreeMetadata build(String flowType) {
+    public FlowExtensionContextTreeMetadata build(String flowType) {
 
         Set<String> attrs = handoverConfig.getIncludedAttributes();
         Set<String> userAttrs = handoverConfig.isFullUserPassthrough()
                 ? null   // null → all user children shown
                 : handoverConfig.getIncludedUserAttributes();
 
-        List<InFlowExtensionContextTreeNode> tree = new ArrayList<>();
+        List<FlowExtensionContextTreeNode> tree = new ArrayList<>();
 
         // User and properties nodes are always non-null (always construct and return a node).
         tree.add(buildUserNode(userAttrs));
         tree.add(buildPropertiesNode(attrs));
 
         // Flow node is conditionally non-null (returns null if no flow attributes are configured).
-        InFlowExtensionContextTreeNode flowNode = buildFlowNode(attrs);
+        FlowExtensionContextTreeNode flowNode = buildFlowNode(attrs);
         if (flowNode != null) {
             tree.add(flowNode);
         }
 
-        return new InFlowExtensionContextTreeMetadata(
+        return new FlowExtensionContextTreeMetadata(
                 flowType,
                 tree,
                 true,   // redirection is unconditionally enabled
@@ -131,16 +131,16 @@ public class InFlowExtensionContextTreeBuilder {
      *
      * <p>{@code userAttrs == null} signals full-passthrough (show and expose everything).
      */
-    private InFlowExtensionContextTreeNode buildUserNode(Set<String> userAttrs) {
+    private FlowExtensionContextTreeNode buildUserNode(Set<String> userAttrs) {
 
         // userAttrs == null → full passthrough set by the caller (build()).
         boolean fullPassthrough = (userAttrs == null);
 
-        List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
 
         // ── Read-only fields: emit only when exposed ────────────────────────────────────────
         if (fullPassthrough || userAttrs.contains("id")) {
-            children.add(InFlowExtensionContextTreeNode.builder()
+            children.add(FlowExtensionContextTreeNode.builder()
                     .key("id")
                     .title("User ID")
                     .path("/user/id")
@@ -151,7 +151,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .build());
         }
         if (fullPassthrough || userAttrs.contains("username")) {
-            children.add(InFlowExtensionContextTreeNode.builder()
+            children.add(FlowExtensionContextTreeNode.builder()
                     .key("username")
                     .title("Username")
                     .path("/user/username")
@@ -162,7 +162,7 @@ public class InFlowExtensionContextTreeBuilder {
                     .build());
         }
         if (fullPassthrough || userAttrs.contains("userStoreDomain")) {
-            children.add(InFlowExtensionContextTreeNode.builder()
+            children.add(FlowExtensionContextTreeNode.builder()
                     .key("userStoreDomain")
                     .title("User Store Domain")
                     .path("/user/userStoreDomain")
@@ -177,7 +177,7 @@ public class InFlowExtensionContextTreeBuilder {
         List<String> claimsOps = (fullPassthrough || userAttrs.contains("claims"))
                 ? Arrays.asList(OP_EXPOSE, OP_MODIFY)
                 : Collections.singletonList(OP_MODIFY);
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("claims")
                 .title("Claims")
                 .path("/user/claims/")
@@ -192,7 +192,7 @@ public class InFlowExtensionContextTreeBuilder {
         List<String> credOps = (fullPassthrough || userAttrs.contains("userCredentials"))
                 ? Arrays.asList(OP_EXPOSE, OP_MODIFY)
                 : Collections.singletonList(OP_MODIFY);
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("credentials")
                 .title("Credentials")
                 .path("/user/credentials/")
@@ -205,7 +205,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .build());
 
         // User node is always returned (claims + credentials are always present).
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key("user")
                 .title("User")
                 .path("/user/")
@@ -219,9 +219,9 @@ public class InFlowExtensionContextTreeBuilder {
     /**
      * Build the "flow" subtree from top-level context attributes that map to the flow branch.
      */
-    private InFlowExtensionContextTreeNode buildFlowNode(Set<String> attrs) {
+    private FlowExtensionContextTreeNode buildFlowNode(Set<String> attrs) {
 
-        List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
         for (String attr : FLOW_BRANCH_ATTRS) {
             if (attrs.contains(attr)) {
                 String title = attrTitle(attr);
@@ -231,7 +231,7 @@ public class InFlowExtensionContextTreeBuilder {
         if (children.isEmpty()) {
             return null;
         }
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key("flow")
                 .title("Flow")
                 .path("/flow/")
@@ -243,9 +243,9 @@ public class InFlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private InFlowExtensionContextTreeNode flowLeaf(String key, String title, String path) {
+    private FlowExtensionContextTreeNode flowLeaf(String key, String title, String path) {
 
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key(key)
                 .title(title)
                 .path(path)
@@ -263,12 +263,12 @@ public class InFlowExtensionContextTreeBuilder {
      * travel through the executor response and are applied by the task execution node).
      * EXPOSE is included only when {@code "properties"} is in the allow-list.
      */
-    private InFlowExtensionContextTreeNode buildPropertiesNode(Set<String> attrs) {
+    private FlowExtensionContextTreeNode buildPropertiesNode(Set<String> attrs) {
 
         List<String> ops = attrs.contains("properties")
                 ? Arrays.asList(OP_EXPOSE, OP_MODIFY)
                 : Collections.singletonList(OP_MODIFY);
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key("properties")
                 .title("Properties")
                 .path("/properties/")

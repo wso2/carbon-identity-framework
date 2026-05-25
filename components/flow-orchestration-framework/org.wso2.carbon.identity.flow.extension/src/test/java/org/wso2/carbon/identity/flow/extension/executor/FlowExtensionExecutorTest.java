@@ -34,9 +34,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus;
-import org.wso2.carbon.identity.flow.extension.internal.InFlowExtensionDataHolder;
+import org.wso2.carbon.identity.flow.extension.internal.FlowExtensionDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
@@ -62,7 +62,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for {@link FlowExtensionExecutor}.
  */
-public class InFlowExtensionExecutorTest {
+public class FlowExtensionExecutorTest {
 
     private FlowExtensionExecutor executor;
 
@@ -70,7 +70,7 @@ public class InFlowExtensionExecutorTest {
     private ActionExecutorService actionExecutorService;
 
     private AutoCloseable mocks;
-    private MockedStatic<InFlowExtensionDataHolder> holderMock;
+    private MockedStatic<FlowExtensionDataHolder> holderMock;
     private MockedStatic<LoggerUtils> loggerUtilsMock;
 
     @BeforeMethod
@@ -79,11 +79,11 @@ public class InFlowExtensionExecutorTest {
         mocks = MockitoAnnotations.openMocks(this);
         executor = new FlowExtensionExecutor();
 
-        // Stub InFlowExtensionDataHolder for action executor service.
-        InFlowExtensionDataHolder holderInstance = mock(InFlowExtensionDataHolder.class);
+        // Stub FlowExtensionDataHolder for action executor service.
+        FlowExtensionDataHolder holderInstance = mock(FlowExtensionDataHolder.class);
         when(holderInstance.getActionExecutorService()).thenReturn(actionExecutorService);
-        holderMock = mockStatic(InFlowExtensionDataHolder.class);
-        holderMock.when(InFlowExtensionDataHolder::getInstance).thenReturn(holderInstance);
+        holderMock = mockStatic(FlowExtensionDataHolder.class);
+        holderMock.when(FlowExtensionDataHolder::getInstance).thenReturn(holderInstance);
 
         loggerUtilsMock = mockStatic(LoggerUtils.class);
         loggerUtilsMock.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
@@ -411,7 +411,7 @@ public class InFlowExtensionExecutorTest {
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
-                    fc.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY,
+                    fc.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY,
                             "https://example.com/step-up");
                     return incompleteStatus;
                 });
@@ -460,7 +460,7 @@ public class InFlowExtensionExecutorTest {
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
                     // URL already has a query string — the executor must use & not ?.
-                    fc.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY,
+                    fc.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY,
                             "https://example.com/step-up?ref=abc");
                     return incompleteStatus;
                 });
@@ -493,7 +493,7 @@ public class InFlowExtensionExecutorTest {
                 any(FlowContext.class), eq("carbon.super")))
                 .thenAnswer(invocation -> {
                     FlowContext fc = invocation.getArgument(2);
-                    fc.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, "");
+                    fc.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, "");
                     return incompleteStatus;
                 });
 
@@ -555,11 +555,11 @@ public class InFlowExtensionExecutorTest {
         // Override holder mock to return null service.
         holderMock.close();
 
-        InFlowExtensionDataHolder holderInstance = mock(InFlowExtensionDataHolder.class);
+        FlowExtensionDataHolder holderInstance = mock(FlowExtensionDataHolder.class);
         when(holderInstance.getActionExecutorService()).thenReturn(null);
 
-        holderMock = mockStatic(InFlowExtensionDataHolder.class);
-        holderMock.when(InFlowExtensionDataHolder::getInstance).thenReturn(holderInstance);
+        holderMock = mockStatic(FlowExtensionDataHolder.class);
+        holderMock.when(FlowExtensionDataHolder::getInstance).thenReturn(holderInstance);
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("actionId", "test-action-001");

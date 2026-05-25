@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.extension.model.Encryption;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 
 import java.util.HashMap;
@@ -32,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_EXPOSE_PREFIX;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY;
+import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ACCESS_CONFIG_MODIFY_PREFIX;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.CERTIFICATE;
 import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ActionManagement.ICON_URL;
 
@@ -40,8 +43,8 @@ import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.Act
  * ActionConverter implementation for Flow Extension actions.
  * <p>
  * Handles the conversion between {@link FlowExtensionAction} (domain model) and
- * {@link ActionDTO} (data transfer object) by mapping the {@link AccessConfig} fields
- * to/from action properties.
+ * {@link ActionDTO} (data transfer object) by mapping the {@link AccessConfig} fields,
+ * encryption configuration, and per-flow-type overrides to/from action properties.
  * </p>
  */
 public class FlowExtensionActionConverter implements ActionConverter {
@@ -53,8 +56,9 @@ public class FlowExtensionActionConverter implements ActionConverter {
     }
 
     /**
-     * Converts an {@link FlowExtensionAction} to an {@link ActionDTO} for persistence.
-     * Maps the access config fields (expose, modify) into the DTO's properties map.
+     * Converts a {@link FlowExtensionAction} to an {@link ActionDTO} for persistence.
+     * Maps the access config fields (expose, modify) and flow type overrides
+     * into the DTO's properties map using prefixed keys.
      *
      * @param action The FlowExtensionAction to convert.
      * @return ActionDTO with access config properties.
@@ -68,11 +72,12 @@ public class FlowExtensionActionConverter implements ActionConverter {
 
         Map<String, ActionProperty> properties = new HashMap<>();
         putDefaultAccessConfigProperties(properties, flowExtensionAction.getAccessConfig());
-        putCertificateProperty(properties, flowExtensionAction.getCertificate());
+        putEncryptionProperty(properties, flowExtensionAction.getEncryption());
         if (flowExtensionAction.getIconUrl() != null) {
             properties.put(ICON_URL,
                     new ActionProperty.BuilderForService(flowExtensionAction.getIconUrl()).build());
         }
+        putFlowTypeOverrideProperties(properties, flowExtensionAction.getFlowTypeOverrides());
 
         return new ActionDTO.Builder(flowExtensionAction)
                 .properties(properties)
@@ -94,28 +99,47 @@ public class FlowExtensionActionConverter implements ActionConverter {
         }
     }
 
-    private void putCertificateProperty(Map<String, ActionProperty> properties, Certificate certificate) {
+    private void putEncryptionProperty(Map<String, ActionProperty> properties, Encryption encryption) {
 
-        if (certificate == null) {
+        if (encryption == null) {
             return;
         }
-        String content = certificate.getCertificateContent();
-        if (content != null && !content.isEmpty()) {
+        if (encryption.getCertificate() != null) {
             properties.put(CERTIFICATE,
-                    new ActionProperty.BuilderForService(certificate).build());
+                    new ActionProperty.BuilderForService(encryption.getCertificate()).build());
         } else {
-            // Certificate with no content — signals explicit removal at the resolver layer.
+            // Encryption object present but no certificate — signals explicit removal.
             properties.put(CERTIFICATE,
                     new ActionProperty.BuilderForService("").build());
         }
     }
 
+    private void putFlowTypeOverrideProperties(Map<String, ActionProperty> properties,
+                                               Map<String, AccessConfig> overrides) {
+
+        if (overrides == null) {
+            return;
+        }
+        for (Map.Entry<String, AccessConfig> entry : overrides.entrySet()) {
+            String flowType = entry.getKey();
+            AccessConfig overrideConfig = entry.getValue();
+            if (overrideConfig.getExpose() != null) {
+                properties.put(ACCESS_CONFIG_EXPOSE_PREFIX + flowType,
+                        new ActionProperty.BuilderForService(overrideConfig.getExpose()).build());
+            }
+            if (overrideConfig.getModify() != null) {
+                properties.put(ACCESS_CONFIG_MODIFY_PREFIX + flowType,
+                        new ActionProperty.BuilderForService(overrideConfig.getModify()).build());
+            }
+        }
+    }
+
     /**
-     * Converts an {@link ActionDTO} back to an {@link FlowExtensionAction}.
-     * Reconstructs the default {@link AccessConfig} from the DTO's properties map.
+     * Converts an {@link ActionDTO} back to a {@link FlowExtensionAction}.
+     * Reconstructs the default {@link AccessConfig} and per-flow-type overrides from the DTO's properties map.
      *
      * @param actionDTO The ActionDTO to convert.
-     * @return FlowExtensionAction with access config populated.
+     * @return FlowExtensionAction with access config and overrides populated.
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -131,11 +155,11 @@ public class FlowExtensionActionConverter implements ActionConverter {
             accessConfig = new AccessConfig(expose, modify);
         }
 
-        // External service certificate (separate from access config).
-        Certificate certificate = null;
+        // Encryption certificate (separate from access config).
+        Encryption encryption = null;
         Object certValue = actionDTO.getPropertyValue(CERTIFICATE);
-        if (certValue instanceof Certificate cert) {
-            certificate = cert;
+        if (certValue instanceof Certificate certificate) {
+            encryption = new Encryption(certificate);
         }
 
         // Icon URL.
@@ -143,6 +167,28 @@ public class FlowExtensionActionConverter implements ActionConverter {
         Object iconUrlValue = actionDTO.getPropertyValue(ICON_URL);
         if (iconUrlValue instanceof String iconUrlStr) {
             iconUrl = iconUrlStr;
+        }
+
+        // Reconstruct per-flow-type overrides from prefixed keys.
+        Map<String, AccessConfig> flowTypeOverrides = new HashMap<>();
+        if (actionDTO.getProperties() != null) {
+            for (String propertyKey : actionDTO.getProperties().keySet()) {
+                if (propertyKey.startsWith(ACCESS_CONFIG_EXPOSE_PREFIX)) {
+                    String flowType = propertyKey.substring(ACCESS_CONFIG_EXPOSE_PREFIX.length());
+                    AccessConfig existing = flowTypeOverrides.getOrDefault(flowType,
+                            new AccessConfig(null, null));
+                    flowTypeOverrides.put(flowType, new AccessConfig(
+                            (List<ContextPath>) actionDTO.getPropertyValue(propertyKey),
+                            existing.getModify()));
+                } else if (propertyKey.startsWith(ACCESS_CONFIG_MODIFY_PREFIX)) {
+                    String flowType = propertyKey.substring(ACCESS_CONFIG_MODIFY_PREFIX.length());
+                    AccessConfig existing = flowTypeOverrides.getOrDefault(flowType,
+                            new AccessConfig(null, null));
+                    flowTypeOverrides.put(flowType, new AccessConfig(
+                            existing.getExpose(),
+                            (List<ContextPath>) actionDTO.getPropertyValue(propertyKey)));
+                }
+            }
         }
 
         return new FlowExtensionAction.ResponseBuilder()
@@ -156,8 +202,9 @@ public class FlowExtensionActionConverter implements ActionConverter {
                 .updatedAt(actionDTO.getUpdatedAt())
                 .endpoint(actionDTO.getEndpoint())
                 .accessConfig(accessConfig)
-                .certificate(certificate)
+                .encryption(encryption)
                 .iconUrl(iconUrl)
+                .flowTypeOverrides(flowTypeOverrides)
                 .rule(actionDTO.getActionRule())
                 .build();
     }

@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionConstants.HandoverPolicy;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.HandoverPolicy;
 import org.wso2.carbon.identity.flow.extension.model.FlowContextHandoverConfig;
 
 import java.beans.IntrospectionException;
@@ -54,9 +54,9 @@ import java.util.Set;
  * {@code userCredentials} field receives a per-entry {@code char[]} clone so that the
  * request builder's post-extraction wipe zeroes the copy, not the source.</p>
  */
-public final class InFlowExtensionContextFilterUtil {
+public final class FlowExtensionContextFilterUtil {
 
-    private static final Log LOG = LogFactory.getLog(InFlowExtensionContextFilterUtil.class);
+    private static final Log LOG = LogFactory.getLog(FlowExtensionContextFilterUtil.class);
 
     private static final Map<String, PropertyDescriptor> CONTEXT_PROPERTIES;
     private static final Map<String, PropertyDescriptor> USER_PROPERTIES;
@@ -66,7 +66,7 @@ public final class InFlowExtensionContextFilterUtil {
         USER_PROPERTIES = Collections.unmodifiableMap(introspect(FlowUser.class));
     }
 
-    private InFlowExtensionContextFilterUtil() {
+    private FlowExtensionContextFilterUtil() {
 
     }
 

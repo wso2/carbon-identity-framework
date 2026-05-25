@@ -21,13 +21,13 @@ package org.wso2.carbon.identity.flow.extension.model;
 import org.wso2.carbon.identity.action.execution.api.model.Request;
 
 /**
- * Request payload carried inside an {@link InFlowExtensionEvent}. Holds the inbound HTTP
+ * Request payload carried inside an {@link FlowExtensionEvent}. Holds the inbound HTTP
  * request's additional headers and parameters (filtered downstream by the action framework
  * against the action's allowed-headers / allowed-parameters configuration).
  */
-public class InFlowExtensionRequest extends Request {
+public class FlowExtensionRequest extends Request {
 
-    public InFlowExtensionRequest() {
+    public FlowExtensionRequest() {
 
         super();
     }

@@ -51,6 +51,9 @@ public class FlowExtensionConstants {
 
         public static final String ACCESS_CONFIG_EXPOSE = "ACCESS_CONFIG_EXPOSE";
         public static final String ACCESS_CONFIG_MODIFY = "ACCESS_CONFIG_MODIFY";
+        public static final String OVERRIDE_KEY_SEPARATOR = ":";
+        public static final String ACCESS_CONFIG_EXPOSE_PREFIX = ACCESS_CONFIG_EXPOSE + OVERRIDE_KEY_SEPARATOR;
+        public static final String ACCESS_CONFIG_MODIFY_PREFIX = ACCESS_CONFIG_MODIFY + OVERRIDE_KEY_SEPARATOR;
         public static final int MAX_EXPOSE_PATHS = 50;
         public static final String ICON_URL = "ICON_URL";
         public static final String CERTIFICATE = "CERTIFICATE";

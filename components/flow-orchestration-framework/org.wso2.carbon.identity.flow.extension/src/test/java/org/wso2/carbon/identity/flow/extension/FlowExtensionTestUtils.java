@@ -28,7 +28,7 @@ import java.util.Set;
  * Test-only helper that builds {@link FlowContextHandoverConfig} instances using the
  * inflow module's own factory method — no reflection, no engine class dependencies.
  */
-public final class InFlowExtensionTestUtils {
+public final class FlowExtensionTestUtils {
 
     /**
      * Commonly used attribute sets that cover all fields exposed by the filter.
@@ -40,7 +40,7 @@ public final class InFlowExtensionTestUtils {
     public static final Set<String> ALL_USER_ATTRS = new HashSet<>(Arrays.asList(
             "username", "id", "userStoreDomain", "claims", "userCredentials"));
 
-    private InFlowExtensionTestUtils() {
+    private FlowExtensionTestUtils() {
 
     }
 

@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
-import org.wso2.carbon.identity.flow.extension.internal.InFlowExtensionDataHolder;
+import org.wso2.carbon.identity.flow.extension.internal.FlowExtensionDataHolder;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
@@ -48,9 +48,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.flow.extension.InFlowExtensionConstants;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
-import org.wso2.carbon.identity.flow.extension.util.InFlowExtensionPathUtil;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionPathUtil;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.OperationExecutionResult;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
@@ -78,9 +78,9 @@ import java.util.Map;
  *   <li><b>Read-only areas</b>: No modifications allowed to {@code /flow/} paths.</li>
  * </ul>
  */
-public class InFlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
+public class FlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
 
-    private static final Log LOG = LogFactory.getLog(InFlowExtensionResponseProcessor.class);
+    private static final Log LOG = LogFactory.getLog(FlowExtensionResponseProcessor.class);
 
     /** Shared error message for null-value REPLACE operations. */
     private static final String ERROR_VALUE_REQUIRED_FOR_REPLACE = "Value is required for REPLACE operation.";
@@ -101,13 +101,13 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             throws ActionExecutionResponseProcessorException {
 
         FlowExecutionContext execCtx = flowContext.getValue(
-                InFlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+                FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
         String tenantDomain = execCtx != null ? execCtx.getTenantDomain() : null;
 
         // Read path type annotations set by the request builder.
         // Maps clean paths to annotation content.
         Map<String, String> pathTypeAnnotations = flowContext.getValue(
-                InFlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
+                FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
         if (pathTypeAnnotations == null) {
             pathTypeAnnotations = Collections.emptyMap();
         }
@@ -115,7 +115,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         // Reconstruct AccessConfig from the resolved modify paths stored by the request builder.
         // This reuses AccessConfig.isModifyPathEncrypted() for canonical prefix-based encryption checking.
         List<ContextPath> modifyPaths = flowContext.getValue(
-                InFlowExtensionConstants.MODIFY_PATHS_KEY, List.class);
+                FlowExtensionConstants.MODIFY_PATHS_KEY, List.class);
         AccessConfig accessConfig = modifyPaths != null ? new AccessConfig(null, modifyPaths) : null;
 
         // Accumulate pending updates — applied by TaskExecutionNode via ExecutorResponse fields.
@@ -143,19 +143,19 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         // Store non-empty pending maps in FlowContext for the executor to forward to TaskExecutionNode.
         if (!pendingClaims.isEmpty()) {
-            flowContext.add(InFlowExtensionConstants.PENDING_CLAIMS_KEY, pendingClaims);
+            flowContext.add(FlowExtensionConstants.PENDING_CLAIMS_KEY, pendingClaims);
         }
         if (!pendingCredentials.isEmpty()) {
-            flowContext.add(InFlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
+            flowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
         }
         if (!pendingProperties.isEmpty()) {
-            flowContext.add(InFlowExtensionConstants.PENDING_PROPERTIES_KEY, pendingProperties);
+            flowContext.add(FlowExtensionConstants.PENDING_PROPERTIES_KEY, pendingProperties);
         }
 
         logOperationExecutionResults(results);
 
         return new SuccessStatus.Builder()
-                .setSuccess(new InFlowExtensionSuccess())
+                .setSuccess(new FlowExtensionSuccess())
                 .setResponseContext(Collections.emptyMap())
                 .build();
     }
@@ -195,25 +195,25 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         }
 
         // Check if operation is on a read-only area.
-        if (InFlowExtensionPathUtil.isReadOnly(path)) {
+        if (FlowExtensionPathUtil.isReadOnly(path)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Path is in a read-only area. Modifications not allowed: " + path);
         }
 
         // Route to appropriate handler based on path prefix.
-        if (path.startsWith(InFlowExtensionConstants.PROPERTIES_PATH_PREFIX)) {
+        if (path.startsWith(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
             return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
-        } else if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX)) {
+        } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
-        } else if (path.startsWith(InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX)) {
+        } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                "Unknown path prefix. Supported: " + InFlowExtensionConstants.PROPERTIES_PATH_PREFIX +
-                        ", " + InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX + "<uri>" +
-                        InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX +
-                        ", " + InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX);
+                "Unknown path prefix. Supported: " + FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX +
+                        ", " + FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX + "<uri>" +
+                        FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX +
+                        ", " + FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX);
     }
 
     /**
@@ -231,7 +231,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             Map<String, String> pathTypeAnnotations, Map<String, Object> pendingProperties) {
 
         String propertyName = extractNameFromPath(operation.getPath(),
-                InFlowExtensionConstants.PROPERTIES_PATH_PREFIX);
+                FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX);
 
         if (propertyName == null || propertyName.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
@@ -334,7 +334,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private String validateLocalClaimExists(String claimUri, String tenantDomain) {
 
         org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService claimService =
-                InFlowExtensionDataHolder.getInstance().getClaimMetadataManagementService();
+                FlowExtensionDataHolder.getInstance().getClaimMetadataManagementService();
         if (claimService == null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("ClaimMetadataManagementService is unavailable. Skipping claim existence check for: "
@@ -368,7 +368,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
             Map<String, char[]> pendingCredentials) {
 
         String credentialKey = extractNameFromPath(operation.getPath(),
-                InFlowExtensionConstants.USER_CREDENTIALS_PATH_PREFIX);
+                FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX);
 
         if (credentialKey == null || credentialKey.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
@@ -413,11 +413,11 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         if (path == null) {
             return null;
         }
-        if (path.startsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX)
-                && path.endsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX)) {
+        if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)
+                && path.endsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX)) {
             return path.substring(
-                    InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX.length(),
-                    path.length() - InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX.length());
+                    FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX.length(),
+                    path.length() - FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX.length());
         }
         return null;
     }
@@ -430,12 +430,12 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     private static String normalizeToInternalPath(String externalPath) {
 
         if (externalPath != null
-                && externalPath.startsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX)
-                && externalPath.endsWith(InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX)) {
+                && externalPath.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)
+                && externalPath.endsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX)) {
             String claimUri = externalPath.substring(
-                    InFlowExtensionConstants.USER_CLAIMS_SELECTOR_PREFIX.length(),
-                    externalPath.length() - InFlowExtensionConstants.USER_CLAIMS_SELECTOR_SUFFIX.length());
-            return InFlowExtensionConstants.USER_CLAIMS_PATH_PREFIX + claimUri;
+                    FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX.length(),
+                    externalPath.length() - FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX.length());
+            return FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX + claimUri;
         }
         return externalPath;
     }
@@ -454,7 +454,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         validateRedirectPresent(scan.redirectUrl);
         logIgnoredIncompleteOps(scan.ignoredOpCount);
 
-        flowContext.add(InFlowExtensionConstants.PENDING_REDIRECT_URL_KEY, scan.redirectUrl);
+        flowContext.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, scan.redirectUrl);
         debugLogRedirectHost(scan.redirectUrl);
         logIncompleteSuccess();
 
@@ -500,8 +500,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
         LOG.warn("In-Flow Extension INCOMPLETE response is missing a REDIRECT operation.");
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    InFlowExtensionConstants.Log.COMPONENT_ID,
-                    InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    FlowExtensionConstants.Log.COMPONENT_ID,
+                    FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                     .resultMessage(
                             "INCOMPLETE response from In-Flow Extension is missing a REDIRECT operation.")
                     .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
@@ -541,8 +541,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    InFlowExtensionConstants.Log.COMPONENT_ID,
-                    InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    FlowExtensionConstants.Log.COMPONENT_ID,
+                    FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                     .resultMessage(
                             "In-Flow Extension INCOMPLETE response processed. Redirect URL stored in flow context.")
                     .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
@@ -646,7 +646,7 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
     /**
      * Inner class representing a successful In-Flow Extension execution result.
      */
-    public static class InFlowExtensionSuccess implements Success {
+    public static class FlowExtensionSuccess implements Success {
 
         // Marker class for successful execution.
     }
@@ -714,8 +714,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
                     + "', tenant: " + tenantDomain, e);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        InFlowExtensionConstants.Log.COMPONENT_ID,
-                        InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                        FlowExtensionConstants.Log.COMPONENT_ID,
+                        FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                         .resultMessage("Failed to decrypt inbound JWE value for modify path.")
                         .configParam("actionType", ActionType.FLOW_EXTENSION.getDisplayName())
                         .inputParam("path", operation.getPath())
@@ -737,8 +737,8 @@ public class InFlowExtensionResponseProcessor implements ActionExecutionResponse
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    InFlowExtensionConstants.Log.COMPONENT_ID,
-                    InFlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    FlowExtensionConstants.Log.COMPONENT_ID,
+                    FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
                     .resultMessage(reason)
                     .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
                     .inputParam("path", path)
