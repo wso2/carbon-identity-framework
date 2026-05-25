@@ -60,11 +60,11 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Unit tests for {@link InFlowExtensionExecutor}.
+ * Unit tests for {@link FlowExtensionExecutor}.
  */
 public class InFlowExtensionExecutorTest {
 
-    private InFlowExtensionExecutor executor;
+    private FlowExtensionExecutor executor;
 
     @Mock
     private ActionExecutorService actionExecutorService;
@@ -77,7 +77,7 @@ public class InFlowExtensionExecutorTest {
     public void setUp() {
 
         mocks = MockitoAnnotations.openMocks(this);
-        executor = new InFlowExtensionExecutor();
+        executor = new FlowExtensionExecutor();
 
         // Stub InFlowExtensionDataHolder for action executor service.
         InFlowExtensionDataHolder holderInstance = mock(InFlowExtensionDataHolder.class);
@@ -102,7 +102,7 @@ public class InFlowExtensionExecutorTest {
     @Test
     public void testGetName() {
 
-        assertEquals(executor.getName(), "InFlowExtensionExecutor");
+        assertEquals(executor.getName(), "FlowExtensionExecutor");
     }
 
     // ========================= getInitiationData =========================
@@ -605,7 +605,7 @@ public class InFlowExtensionExecutorTest {
         FlowExecutionContext context = new FlowExecutionContext();
         context.setTenantDomain("carbon.super");
 
-        ExecutorDTO executorDTO = new ExecutorDTO("InFlowExtensionExecutor", metadata);
+        ExecutorDTO executorDTO = new ExecutorDTO("FlowExtensionExecutor", metadata);
         NodeConfig nodeConfig = new NodeConfig.Builder()
                 .executorConfig(executorDTO)
                 .build();

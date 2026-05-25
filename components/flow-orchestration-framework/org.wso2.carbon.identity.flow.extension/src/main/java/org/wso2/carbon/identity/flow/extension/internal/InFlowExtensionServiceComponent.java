@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionManagementSe
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
-import org.wso2.carbon.identity.flow.extension.executor.InFlowExtensionExecutor;
+import org.wso2.carbon.identity.flow.extension.executor.FlowExtensionExecutor;
 import org.wso2.carbon.identity.flow.extension.executor.InFlowExtensionRequestBuilder;
 import org.wso2.carbon.identity.flow.extension.executor.InFlowExtensionResponseProcessor;
 import org.wso2.carbon.identity.flow.extension.management.InFlowExtensionActionConverter;
@@ -59,7 +59,7 @@ public class InFlowExtensionServiceComponent {
         try {
             BundleContext bundleContext = context.getBundleContext();
 
-            bundleContext.registerService(Executor.class.getName(), new InFlowExtensionExecutor(), null);
+            bundleContext.registerService(Executor.class.getName(), new FlowExtensionExecutor(), null);
             bundleContext.registerService(ActionExecutionRequestBuilder.class.getName(),
                     new InFlowExtensionRequestBuilder(), null);
             bundleContext.registerService(ActionExecutionResponseProcessor.class.getName(),
