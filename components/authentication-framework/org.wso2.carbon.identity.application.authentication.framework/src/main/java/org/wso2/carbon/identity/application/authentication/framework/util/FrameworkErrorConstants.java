@@ -84,6 +84,8 @@ public class FrameworkErrorConstants {
                 "Multiple matching local accounts found during account lookup."),
         ERROR_INVALID_USER_ASSERTION("80038", "Invalid user assertion."),
         ERROR_INVALID_AUTHENTICATOR("80039", "Invalid authenticator: %s"),
+        ERROR_WHILE_PROCESSING_POLICY_CONSENT("80040", "Error while processing policy consent."),
+        USER_DENIED_MANDATORY_POLICY_CONSENT("80041", "User denied mandatory policy consent."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");

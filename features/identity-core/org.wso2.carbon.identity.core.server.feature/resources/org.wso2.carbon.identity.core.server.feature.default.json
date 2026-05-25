@@ -1643,7 +1643,7 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
-  "console.consents.enabled": false,
+  "console.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
   "console.consents.scopes.feature": ["console:consents"],
   "console.consents.disabled_features": [],
   "console.consents.scopes.create": [
@@ -2145,6 +2145,8 @@
   "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
+  "myaccount.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
+  "myaccount.consents.disabled_features": [],
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
   "myaccount.operations.scopes.update": [],
