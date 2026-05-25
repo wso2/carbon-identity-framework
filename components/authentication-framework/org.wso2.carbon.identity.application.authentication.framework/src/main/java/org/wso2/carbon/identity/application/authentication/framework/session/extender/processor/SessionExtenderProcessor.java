@@ -118,42 +118,20 @@ public class SessionExtenderProcessor extends IdentityProcessor {
         return responseBuilder;
     }
 
-    private String getSessionKey(SessionExtenderRequest sessionExtenderRequest) throws SessionExtenderClientException {
+    private String getSessionKey(SessionExtenderRequest sessionExtenderRequest)
+        throws SessionExtenderClientException {
 
-        String sessionKeyFromParam = getSessionKeyFromParameters(sessionExtenderRequest);
-        String sessionKeyFromCookie = getSessionKeyFromCookie(sessionExtenderRequest);
-
-        // When both the cookie and parameter are present, check whether they match.
-        if (sessionKeyFromParam != null && sessionKeyFromCookie != null) {
-            if (!sessionKeyFromParam.equals(sessionKeyFromCookie)) {
-                throw new SessionExtenderClientException(SessionExtenderConstants.Error.CONFLICT.getCode(),
-                        SessionExtenderConstants.Error.CONFLICT.getMessage(),
-                        "Session key mismatch between cookie and parameter values.");
-            }
-        }
-
-        if (sessionKeyFromParam != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("SessionExtenderProcessor proceeding with the sessionKey in the request. Identified session: "
-                        + sessionKeyFromParam);
-            }
-            return sessionKeyFromParam;
-        } else if (sessionKeyFromCookie != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("SessionExtenderProcessor proceeding with the sessionCookie in the request. Identified " +
-                        "session: " + sessionKeyFromCookie);
-            }
-            return sessionKeyFromCookie;
-        } else {
-            throw new SessionExtenderClientException(SessionExtenderConstants.Error.INVALID_REQUEST.getCode(),
+        String sessionKey = getSessionKeyFromCookie(sessionExtenderRequest);
+        if (sessionKey == null) {
+            throw new SessionExtenderClientException(
+                    SessionExtenderConstants.Error.INVALID_REQUEST.getCode(),
                     SessionExtenderConstants.Error.INVALID_REQUEST.getMessage(),
-                    "No session key or cookie available for processing.");
+                    "No session cookie available for processing.");
         }
-    }
-
-    private String getSessionKeyFromParameters(SessionExtenderRequest sessionExtenderRequest) {
-
-        return sessionExtenderRequest.getSessionKey();
+        if (log.isDebugEnabled()) {
+            log.debug("SessionExtenderProcessor proceeding with session from cookie.");
+        }
+        return sessionKey;
     }
 
     private String getSessionKeyFromCookie(SessionExtenderRequest sessionExtenderRequest) {
