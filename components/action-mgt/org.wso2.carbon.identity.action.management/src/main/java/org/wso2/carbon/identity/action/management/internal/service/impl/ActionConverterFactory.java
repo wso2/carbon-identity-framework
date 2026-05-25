@@ -39,15 +39,7 @@ public class ActionConverterFactory {
 
     public static ActionConverter getActionConverter(Action.ActionTypes actionType) {
 
-        switch (actionType) {
-            case PRE_UPDATE_PROFILE:
-                return actionConverters.get(Action.ActionTypes.PRE_UPDATE_PROFILE);
-            case PRE_UPDATE_PASSWORD:
-                return actionConverters.get(Action.ActionTypes.PRE_UPDATE_PASSWORD);
-            case PRE_ISSUE_ACCESS_TOKEN:
-            default:
-                return null;
-        }
+        return actionConverters.get(actionType);
     }
 
     public static void registerActionConverter(ActionConverter actionConverter) {

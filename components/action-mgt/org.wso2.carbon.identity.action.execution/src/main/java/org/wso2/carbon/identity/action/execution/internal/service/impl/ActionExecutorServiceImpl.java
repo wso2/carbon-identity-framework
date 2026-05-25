@@ -154,6 +154,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing action for action type: " + actionType.name(), e);
             // Skip executing actions when no action available is considered as action execution being successful.
+            Action.ActionTypes.Category category = Action.ActionTypes.valueOf(actionType.toString()).getCategory();
+            if (Action.ActionTypes.Category.FLOW_EXTENSION.equals(category)) {
+                throw new ActionExecutionException(
+                        "Failed to execute flow extension action with id: " + actionId
+                                + " for action type: " + actionType.name(), e);
+            }
             return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
         }
     }
