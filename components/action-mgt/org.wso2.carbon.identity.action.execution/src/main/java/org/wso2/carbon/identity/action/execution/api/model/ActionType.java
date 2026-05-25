@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution.api.model;
 
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action.ActionTypes.Category;
 
 /**
  * This class models the Action Type.
@@ -29,10 +30,16 @@ public enum ActionType {
     PRE_UPDATE_PASSWORD,
     PRE_UPDATE_PROFILE,
     AUTHENTICATION,
-    PRE_ISSUE_ID_TOKEN;
+    PRE_ISSUE_ID_TOKEN,
+    FLOW_EXTENSION;
 
     public String getDisplayName() {
 
         return Action.ActionTypes.valueOf(this.name()).getDisplayName();
+    }
+
+    public Category getCategory() {
+
+        return Action.ActionTypes.valueOf(this.name()).getCategory();
     }
 }
