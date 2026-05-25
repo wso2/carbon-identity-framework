@@ -481,14 +481,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
             char quoteChar = path.charAt(valueStart);
             if (quoteChar == '\'' || quoteChar == '"') {
-                int valueEnd = path.indexOf(quoteChar, valueStart + 1);
-                if (valueEnd == -1 || valueEnd + 1 >= path.length() || path.charAt(valueEnd + 1) != ']') {
-                    throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
-                }
-                if (valueEnd + 2 != path.length()) {
-                    throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
-                }
-                return path.substring(valueStart + 1, valueEnd);
+                throw new ActionExecutionResponseProcessorException("Invalid filter path format: " + path);
             }
 
             int valueEnd = path.indexOf(']', valueStart);

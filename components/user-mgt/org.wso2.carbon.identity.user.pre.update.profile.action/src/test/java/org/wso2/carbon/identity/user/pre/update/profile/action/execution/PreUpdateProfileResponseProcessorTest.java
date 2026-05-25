@@ -37,9 +37,13 @@ import org.wso2.carbon.identity.action.execution.api.model.Success;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution.PreUpdateProfileResponseProcessor;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * User Pre Update Password Action Response Processor Test.
@@ -127,5 +131,35 @@ public class PreUpdateProfileResponseProcessorTest {
         assertNotNull(resultStatus.getResponse());
         assertEquals(resultStatus.getResponse().getErrorMessage(), errorResponse.getErrorMessage());
         assertEquals(resultStatus.getResponse().getErrorDescription(), errorResponse.getErrorDescription());
+    }
+
+    @Test
+    public void testGetClaimUriFromPathAllowsUnquotedUri() throws Exception {
+
+        String path = "/user/claims[uri=http://wso2.org/claims/country]";
+        String claimUri = invokeGetClaimUriFromPath(path);
+        assertEquals(claimUri, "http://wso2.org/claims/country");
+    }
+
+    @Test
+    public void testGetClaimUriFromPathRejectsQuotedUri() throws Exception {
+
+        String path = "/user/claims[uri='http://wso2.org/claims/country']";
+        try {
+            invokeGetClaimUriFromPath(path);
+        } catch (InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof ActionExecutionResponseProcessorException);
+            assertTrue(e.getCause().getMessage().contains("Invalid filter path format"));
+            return;
+        }
+        throw new AssertionError("Expected ActionExecutionResponseProcessorException for quoted URI path");
+    }
+
+    private String invokeGetClaimUriFromPath(String path) throws Exception {
+
+        Method method = PreUpdateProfileResponseProcessor.class.getDeclaredMethod("getClaimUriFromPath",
+                String.class);
+        method.setAccessible(true);
+        return (String) method.invoke(preUpdateProfileResponseProcessor, path);
     }
 }

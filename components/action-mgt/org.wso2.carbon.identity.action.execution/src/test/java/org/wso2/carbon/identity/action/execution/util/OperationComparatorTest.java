@@ -112,7 +112,7 @@ public class OperationComparatorTest {
 
         PerformableOperation performableOp = new PerformableOperation();
         performableOp.setOp(Operation.ADD);
-        performableOp.setPath("/user/claims[uri='http://wso2.org/claims/country']");
+        performableOp.setPath("/user/claims[uri=http://wso2.org/claims/country]");
         performableOp.setValue("Sri Lanka");
 
         assertTrue(OperationComparator.compare(allowedOp, performableOp));
