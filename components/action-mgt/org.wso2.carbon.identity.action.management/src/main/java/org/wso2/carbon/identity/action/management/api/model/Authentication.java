@@ -201,7 +201,7 @@ public class Authentication {
                     return secretProcessor.decryptProperty(authProperty, this.getType().name(), actionId);
                 } catch (SecretManagementException e) {
                     LOG.warn(String.format("Error while decrypting authentication property '%s' for action '%s'.",
-                            propertyName, actionId), e);
+                            propertyName, actionId));
                     return null;
                 }
             }
@@ -227,7 +227,7 @@ public class Authentication {
                     return secretProcessor.decryptPropertyBySecretReference(authProperty);
                 } catch (SecretManagementException e) {
                     LOG.warn(String.format("Error while decrypting authentication property '%s' for action.",
-                            propertyName), e);
+                            propertyName));
                     return null;
                 }
             }
@@ -247,7 +247,7 @@ public class Authentication {
                 } catch (SecretManagementException e) {
                     LOG.warn(String.format(
                             "Error while decrypting internal authentication property '%s' for action '%s'.",
-                            propertyName, actionId), e);
+                            propertyName, actionId));
                     return null;
                 }
             }
@@ -390,10 +390,10 @@ public class Authentication {
                         .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
             }
             this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
-                    .name(Property.INTERNAL_ACCESS_TOKEN.getName()).value(null).isConfidential(true)
+                    .name(Property.INTERNAL_ACCESS_TOKEN.getName()).isConfidential(true)
                     .build());
             this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
-                    .name(Property.INTERNAL_REFRESH_TOKEN.getName()).value(null).isConfidential(true)
+                    .name(Property.INTERNAL_REFRESH_TOKEN.getName()).isConfidential(true)
                     .build());
         }
 
