@@ -148,14 +148,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throw new ActionExecutionException("Action Id cannot be blank.");
         }
 
-        try {
-            Action action = getActionByActionId(actionType, actionId, tenantDomain);
-            return execute(action, flowContext, tenantDomain);
-        } catch (ActionExecutionRuntimeException e) {
-            LOG.debug("Skip executing action for action type: " + actionType.name(), e);
-            // Skip executing actions when no action available is considered as action execution being successful.
+        Action action = getActionByActionId(actionType, actionId, tenantDomain);
+        if (action == null) {
+            LOG.debug("No action found for action Id: " + actionId + ". Skipping action execution.");
             return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
         }
+        return execute(action, flowContext, tenantDomain);
     }
 
     private ActionExecutionStatus<?> execute(Action action, FlowContext flowContext, String tenantDomain)

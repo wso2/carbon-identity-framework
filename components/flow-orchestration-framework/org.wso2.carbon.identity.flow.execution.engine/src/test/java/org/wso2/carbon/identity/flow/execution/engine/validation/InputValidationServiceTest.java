@@ -880,7 +880,7 @@ public class InputValidationServiceTest {
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES)).thenReturn(true);
             claimValidationUtilMock.when(() -> ClaimValidationUtil.isClaimDuplicated(anyString(), anyString()))
                     .thenReturn(true);
-            // Duplicate claim validation failure should result in RETRY status.
+            // Duplicate claim validation failure should result in STATUS_RETRY status.
             ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
             Assert.assertEquals(response.getResult(), STATUS_RETRY);
         }
@@ -931,7 +931,7 @@ public class InputValidationServiceTest {
 
         when(mockClaimService.getLocalClaim(anyString(), anyString()))
                 .thenThrow(new ClaimMetadataException("Test server error"));
-        // Server errors during input validation result in RETRY status from resolveInputValidationResponse.
+        // Server errors during input validation result in STATUS_RETRY status from resolveInputValidationResponse.
         ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
         Assert.assertEquals(response.getResult(), STATUS_RETRY);
     }
@@ -1519,7 +1519,7 @@ public class InputValidationServiceTest {
         when(mockInputValidationService.getInputValidationConfiguration(anyString()))
                 .thenThrow(new InputValidationMgtException("65000", "Server error", "Server error"));
 
-        // Server errors during password validation result in RETRY status from resolveInputValidationResponse.
+        // Server errors during password validation result in STATUS_RETRY status from resolveInputValidationResponse.
         ExecutorResponse response = inputValidationService.resolveInputValidationResponse(FlowExecutionContext);
         Assert.assertEquals(response.getResult(), STATUS_RETRY);
         Assert.assertNotNull(response.getErrorCode());

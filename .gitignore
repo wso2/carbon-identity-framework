@@ -23,3 +23,6 @@ hs_err_pid*
 
 # Ignore everything in this directory
 target
+
+# Maven versions plugin backup files
+*.versionsBackup
