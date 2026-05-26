@@ -29,25 +29,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * General-purpose utilities for the Flow Extension module.
+ * Utilities for the Flow Extension module.
  *
- * <p>Currently hosts {@link #filterContext(FlowExecutionContext)}, which builds a filtered
- * defensive copy of a {@link FlowExecutionContext} containing only the attributes whitelisted
- * by {@link HandoverPolicy#INCLUDED_ATTRIBUTES} and {@link HandoverPolicy#INCLUDED_USER_ATTRIBUTES}.
- * The whitelist is governed at the code level, in {@code FlowExtensionConstants.HandoverPolicy}.</p>
- *
- * <p>The filtering implementation mirrors the engine's {@code FlowExecutionContextFilter} but
- * lives in the flow-extension module to avoid a cross-bundle dependency on
- * {@code engine.config.*}. When the toml-based dynamic configuration PR is merged, the filter
- * helper can be removed and the engine's filter used directly.</p>
- *
- * <p>Attributes are copied via explicit per-field mappings in
- * {@link #copyFlowContext(FlowExecutionContext, FlowExecutionContext)} and
- * {@link #copyFlowUser(FlowUser, FlowUser)}. The original context is never mutated;
- * non-permitted attributes are left null/empty on the copy.</p>
- *
- * <p>The {@code userCredentials} field receives a per-entry {@code char[]} clone so that the
- * request builder's post-extraction wipe zeroes the copy, not the source.</p>
+ * <p>Provides {@link #filterContext}, which creates a whitelisted, defensive copy of
+ * {@link FlowExecutionContext} based on {@link HandoverPolicy}. This implementation
+ * avoids cross-bundle engine dependencies and ensures the original context remains
+ * immutable by using explicit field mapping and credential cloning.</p>
  */
 public final class FlowExtensionUtil {
 
