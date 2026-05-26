@@ -190,7 +190,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
                                                       Map<String, Object> pendingProperties,
-                                                      String tenantDomain) {
+                                                      String tenantDomain)
+            throws ActionExecutionResponseProcessorException {
 
         String path = operation.getPath();
         if (path == null || path.isEmpty()) {
@@ -280,10 +281,11 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * <ol>
      *   <li>Claim URI must be in the WSO2 local claim dialect ({@code http://wso2.org/claims/}).</li>
      *   <li>Identity-system claims ({@code http://wso2.org/claims/identity/}) are rejected.</li>
-     *   <li>If {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
-     *       is available, the claim URI must correspond to a registered local claim; unknown
-     *       claims are rejected. When the service is unavailable the check is skipped
-     *       (fail-open).</li>
+     *   <li>The claim URI must correspond to a registered local claim in the tenant; unknown
+     *       claims are rejected per-operation. If the
+     *       {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
+     *       is unavailable or the lookup throws, the whole response aborts via
+     *       {@link ActionExecutionResponseProcessorException}.</li>
      * </ol>
      * The value is always stringified via {@code String.valueOf()}.
      *
@@ -292,7 +294,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * @param tenantDomain  Tenant domain for claim existence lookup.
      */
     private OperationExecutionResult handleUserClaimOperation(PerformableOperation operation,
-                                                              Map<String, Object> pendingClaims, String tenantDomain) {
+                                                              Map<String, Object> pendingClaims, String tenantDomain)
+            throws ActionExecutionResponseProcessorException {
 
         String claimUri = extractClaimUriFromPath(operation.getPath());
 
@@ -316,10 +319,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Identity-system claims cannot be modified by In-Flow Extensions: " + claimUri);
         }
 
-        String claimValidationFailure = validateLocalClaimExists(claimUri, tenantDomain);
-        if (claimValidationFailure != null) {
+        if (!validateLocalClaimExists(claimUri, tenantDomain)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    claimValidationFailure);
+                    "Unknown local claim URI: " + claimUri);
         }
 
         pendingClaims.put(claimUri, String.valueOf(operation.getValue()));
@@ -329,32 +331,33 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
     /**
      * Validate that the given claim URI corresponds to a registered local claim in the tenant.
-     * Fail-closed: if the claim metadata service is unavailable or lookup throws, the operation
-     * is rejected rather than allowed through unchecked. Per the class-level failure-handling
-     * policy this is a per-operation failure — the rest of the response still applies.
+     * Infrastructure failures (claim metadata service unavailable, or the lookup itself throwing)
+     * are treated as contract-level: this method throws
+     * {@link ActionExecutionResponseProcessorException} and the whole response aborts. A clean
+     * "claim does not exist" result is returned as {@code false} so the caller can drop the
+     * single offending operation per the per-operation failure policy.
      *
      * @param claimUri     Local claim URI to check.
      * @param tenantDomain Tenant domain for the lookup.
-     * @return Failure reason string, or {@code null} when the claim is valid.
+     * @return {@code true} if the claim is registered in the tenant, {@code false} otherwise.
+     * @throws ActionExecutionResponseProcessorException if the claim metadata service is
+     *         unavailable or the lookup throws.
      */
-    private String validateLocalClaimExists(String claimUri, String tenantDomain) {
+    private boolean validateLocalClaimExists(String claimUri, String tenantDomain)
+            throws ActionExecutionResponseProcessorException {
 
         org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService claimService =
                 FlowExtensionDataHolder.getInstance().getClaimMetadataManagementService();
         if (claimService == null) {
-            LOG.warn("ClaimMetadataManagementService is unavailable. Rejecting claim REPLACE for: " + claimUri);
-            return "Claim metadata service is unavailable; cannot validate claim URI: " + claimUri;
+            throw new ActionExecutionResponseProcessorException(
+                    "ClaimMetadataManagementService is unavailable; cannot validate claim URI: " + claimUri);
         }
         try {
             java.util.Optional<LocalClaim> localClaim = claimService.getLocalClaim(claimUri, tenantDomain);
-            if (!localClaim.isPresent()) {
-                return "Unknown local claim URI. Claim is not registered in the system: " + claimUri;
-            }
-            return null;
+            return localClaim.isPresent();
         } catch (ClaimMetadataException e) {
-            LOG.warn("Failed to look up claim URI '" + claimUri + "' in tenant '" + tenantDomain
-                    + "'. Rejecting claim REPLACE.", e);
-            return "Claim metadata lookup failed; cannot validate claim URI: " + claimUri;
+            throw new ActionExecutionResponseProcessorException(
+                    "Failed to look up local claim '" + claimUri + "' in tenant '" + tenantDomain + "'.", e);
         }
     }
 
