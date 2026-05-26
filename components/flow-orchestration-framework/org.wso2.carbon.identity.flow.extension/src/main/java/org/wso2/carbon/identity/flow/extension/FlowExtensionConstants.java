@@ -157,11 +157,14 @@ public class FlowExtensionConstants {
         public static final String PROPERTIES_PATH_PREFIX = "/properties/";
 
         public static final String FLOW_PREFIX = "/flow/";
-        public static final String FLOW_TENANT_PATH = "/flow/tenantDomain";
-        public static final String FLOW_APP_ID_PATH = "/flow/applicationId";
         public static final String FLOW_TYPE_PATH = "/flow/flowType";
-        public static final String FLOW_CALLBACK_URL_PATH = "/flow/callbackUrl";
         public static final String FLOW_PORTAL_URL_PATH = "/flow/portalUrl";
+
+        public static final String TENANT_PREFIX = "/tenant/";
+        public static final String TENANT_DOMAIN_PATH = "/tenant/domain";
+
+        public static final String APPLICATION_PREFIX = "/application/";
+        public static final String APPLICATION_ID_PATH = "/application/id";
 
         public static final String ORGANIZATION_PREFIX = "/organization/";
         public static final String ORGANIZATION_ID_PATH = "/organization/id";

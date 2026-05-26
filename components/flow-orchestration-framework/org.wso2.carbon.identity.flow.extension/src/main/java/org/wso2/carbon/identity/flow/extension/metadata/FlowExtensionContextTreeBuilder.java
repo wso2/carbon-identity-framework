@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.flow.extension.metadata;
 
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.ContextTree;
+import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +35,7 @@ public class FlowExtensionContextTreeBuilder {
 
     // Flow context attributes that appear under the "flow" branch of the tree.
     private static final List<String> FLOW_BRANCH_ATTRS =
-            Arrays.asList("tenantDomain", "applicationId", "flowType", "callbackUrl", "portalUrl");
+            Arrays.asList("flowType", "portalUrl");
 
     /**
      * Build the metadata response for the given flow type.
@@ -47,6 +48,9 @@ public class FlowExtensionContextTreeBuilder {
         List<FlowExtensionContextTreeNode> tree = new ArrayList<>();
         tree.add(buildUserNode());
         tree.add(buildPropertiesNode());
+        tree.add(buildTenantNode());
+        tree.add(buildApplicationNode());
+        tree.add(buildOrganizationNode());
         tree.add(buildFlowNode());
 
         return new FlowExtensionContextTreeMetadata(
@@ -150,12 +154,12 @@ public class FlowExtensionContextTreeBuilder {
 
         List<FlowExtensionContextTreeNode> children = new ArrayList<>();
         for (String attr : FLOW_BRANCH_ATTRS) {
-            children.add(flowLeaf(attr, attrTitle(attr), "/flow/" + attr));
+            children.add(readOnlyLeaf(attr, attrTitle(attr), FlowContextPaths.FLOW_PREFIX + attr));
         }
         return FlowExtensionContextTreeNode.builder()
                 .key("flow")
                 .title("Flow")
-                .path("/flow/")
+                .path(FlowContextPaths.FLOW_PREFIX)
                 .dataType("")
                 .nodeType(ContextTree.NODE_OBJECT)
                 .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
@@ -164,7 +168,58 @@ public class FlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private FlowExtensionContextTreeNode flowLeaf(String key, String title, String path) {
+    private FlowExtensionContextTreeNode buildTenantNode() {
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(readOnlyLeaf("domain", "Tenant Domain", FlowContextPaths.TENANT_DOMAIN_PATH));
+        return FlowExtensionContextTreeNode.builder()
+                .key("tenant")
+                .title("Tenant")
+                .path(FlowContextPaths.TENANT_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .children(children)
+                .build();
+    }
+
+    private FlowExtensionContextTreeNode buildApplicationNode() {
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(readOnlyLeaf("id", "Application ID", FlowContextPaths.APPLICATION_ID_PATH));
+        return FlowExtensionContextTreeNode.builder()
+                .key("application")
+                .title("Application")
+                .path(FlowContextPaths.APPLICATION_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .children(children)
+                .build();
+    }
+
+    private FlowExtensionContextTreeNode buildOrganizationNode() {
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(readOnlyLeaf("id", "Organization ID", FlowContextPaths.ORGANIZATION_ID_PATH));
+        children.add(readOnlyLeaf("name", "Organization Name", FlowContextPaths.ORGANIZATION_NAME_PATH));
+        children.add(readOnlyLeaf("orgHandle", "Organization Handle", FlowContextPaths.ORGANIZATION_HANDLE_PATH));
+        children.add(readOnlyLeaf("depth", "Organization Depth", FlowContextPaths.ORGANIZATION_DEPTH_PATH));
+        return FlowExtensionContextTreeNode.builder()
+                .key("organization")
+                .title("Organization")
+                .path(FlowContextPaths.ORGANIZATION_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .children(children)
+                .build();
+    }
+
+    private FlowExtensionContextTreeNode readOnlyLeaf(String key, String title, String path) {
 
         return FlowExtensionContextTreeNode.builder()
                 .key(key)
@@ -195,10 +250,7 @@ public class FlowExtensionContextTreeBuilder {
     private static String attrTitle(String attr) {
 
         switch (attr) {
-            case "tenantDomain":   return "Tenant Domain";
-            case "applicationId":  return "Application ID";
             case "flowType":       return "Flow Type";
-            case "callbackUrl":    return "Callback URL";
             case "portalUrl":      return "Portal URL";
             default:               return attr;
         }
