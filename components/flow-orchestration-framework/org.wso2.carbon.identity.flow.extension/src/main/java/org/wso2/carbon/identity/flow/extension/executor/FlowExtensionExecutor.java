@@ -88,12 +88,7 @@ public class FlowExtensionExecutor implements Executor {
                     + ", tenant: " + context.getTenantDomain());
         }
 
-        ActionExecutorService actionExecutorService = getActionExecutorService();
-        if (actionExecutorService == null) {
-            throw FlowExecutionEngineUtils.handleServerException(
-                    Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR,
-                    "ActionExecutorService is not available. actionId: " + actionId);
-        }
+        ActionExecutorService actionExecutorService = getActionExecutorService(actionId);
 
         if (!actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSION)) {
             triggerDiagnosticFailure(actionId,
@@ -161,7 +156,7 @@ public class FlowExtensionExecutor implements Executor {
         if (executionStatus == null) {
             response.setResult(ExecutorStatus.STATUS_ERROR);
             response.setErrorCode(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getCode());
-            response.setErrorMessage("Extension did not return a response.");
+            response.setErrorMessage(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getMessage());
             response.setErrorDescription("The Flow Extension action did not return a status. Please try again.");
             return response;
         }
@@ -322,7 +317,7 @@ public class FlowExtensionExecutor implements Executor {
         LOG.warn("Unknown execution status: " + executionStatus.getStatus());
         response.setResult(ExecutorStatus.STATUS_ERROR);
         response.setErrorCode(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getCode());
-        response.setErrorMessage("Extension returned an unexpected response.");
+        response.setErrorMessage(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getMessage());
         response.setErrorDescription("The Flow Extension returned an unrecognised status. Please try again.");
         return response;
     }
@@ -417,9 +412,16 @@ public class FlowExtensionExecutor implements Executor {
         LoggerUtils.triggerDiagnosticLogEvent(builder);
     }
 
-    private ActionExecutorService getActionExecutorService() {
+    private ActionExecutorService getActionExecutorService(String actionId) throws FlowEngineException {
 
-        return FlowExtensionDataHolder.getInstance().getActionExecutorService();
+        ActionExecutorService actionExecutorService =
+                FlowExtensionDataHolder.getInstance().getActionExecutorService();
+        if (actionExecutorService == null) {
+            throw FlowExecutionEngineUtils.handleServerException(
+                    Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR,
+                    "ActionExecutorService is not available. actionId: " + actionId);
+        }
+        return actionExecutorService;
     }
 
     /**
