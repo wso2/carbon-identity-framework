@@ -85,10 +85,10 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = requireFlowExecutionContext(flowContext);
-        ResolvedActionConfig resolvedActionConfig = resolveActionConfig(actionExecutionContext);
+        FlowExtensionAction flowExtensionAction = getFlowExtensionAction(actionExecutionContext);
 
-        AccessConfig accessConfig = resolvedActionConfig.getAccessConfig();
-        Certificate certificate = resolvedActionConfig.getCertificate();
+        AccessConfig accessConfig = flowExtensionAction.getAccessConfig();
+        Certificate certificate = flowExtensionAction.getCertificate();
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
         List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
@@ -204,7 +204,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return execCtx;
     }
 
-    private ResolvedActionConfig resolveActionConfig(ActionExecutionRequestContext actionExecutionContext)
+    private FlowExtensionAction getFlowExtensionAction(ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
         Action rawAction = actionExecutionContext.getAction();
@@ -213,8 +213,8 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                     "Expected a FlowExtensionAction but received: "
                             + (rawAction == null ? "null" : rawAction.getClass().getName()));
         }
-        FlowExtensionAction ext = (FlowExtensionAction) rawAction;
-        return new ResolvedActionConfig(ext.getAccessConfig(), ext.getCertificate());
+
+        return (FlowExtensionAction) rawAction;
     }
 
     private List<String> resolveExposePaths(AccessConfig accessConfig) {
@@ -562,28 +562,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             userClaims.add(new UserClaim(claimKey, claimValue));
         }
         return userClaims;
-    }
-
-    private static class ResolvedActionConfig {
-
-        private final AccessConfig accessConfig;
-        private final Certificate certificate;
-
-        private ResolvedActionConfig(AccessConfig accessConfig, Certificate certificate) {
-
-            this.accessConfig = accessConfig;
-            this.certificate = certificate;
-        }
-
-        private AccessConfig getAccessConfig() {
-
-            return accessConfig;
-        }
-
-        private Certificate getCertificate() {
-
-            return certificate;
-        }
     }
 
     private static class ExposeResolution {
