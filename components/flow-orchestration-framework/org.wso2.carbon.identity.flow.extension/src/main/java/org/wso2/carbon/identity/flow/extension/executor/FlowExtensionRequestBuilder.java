@@ -84,7 +84,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                                                               ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-        FlowExecutionContext execCtx = getFlowExecutionContextOrThrow(flowContext);
+        FlowExecutionContext execCtx = requireFlowExecutionContext(flowContext);
         ResolvedActionConfig resolvedActionConfig = resolveActionConfig(actionExecutionContext);
 
         AccessConfig accessConfig = resolvedActionConfig.getAccessConfig();
@@ -193,7 +193,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return userBuilder.build();
     }
 
-    private FlowExecutionContext getFlowExecutionContextOrThrow(FlowContext flowContext)
+    private FlowExecutionContext requireFlowExecutionContext(FlowContext flowContext)
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = flowContext.getValue(

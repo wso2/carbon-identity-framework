@@ -95,9 +95,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                                                                  ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
-        FlowExecutionContext execCtx = flowContext.getValue(
-                FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
-        String tenantDomain = execCtx != null ? execCtx.getTenantDomain() : null;
+        FlowExecutionContext execCtx = getFlowExecutionContext(flowContext);
+        String tenantDomain = execCtx.getTenantDomain();
 
         Map<String, String> pathTypeAnnotations = flowContext.getValue(
                 FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
@@ -712,6 +711,18 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED));
         }
+    }
+
+    private FlowExecutionContext getFlowExecutionContext(FlowContext flowContext)
+            throws ActionExecutionResponseProcessorException {
+
+        FlowExecutionContext execCtx = flowContext.getValue(
+                FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
+        if (execCtx == null) {
+            throw new ActionExecutionResponseProcessorException(
+                    "FlowExecutionContext not found in FlowContext.");
+        }
+        return execCtx;
     }
 
 }
