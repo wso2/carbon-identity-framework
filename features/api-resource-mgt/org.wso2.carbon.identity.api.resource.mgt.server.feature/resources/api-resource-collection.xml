@@ -2191,16 +2191,16 @@
                 <Scope name="console:flowExtensions_edit"/>
             </Feature>
             <Update>
-                <Scope name="internal_flow_extensions_update"/>
+                <Scope name="internal_flow_extension_update"/>
             </Update>
             <Delete>
-                <Scope name="internal_flow_extensions_delete"/>
+                <Scope name="internal_flow_extension_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_flow_extensions_create"/>
+                <Scope name="internal_flow_extension_create"/>
             </Create>
             <Read>
-                <Scope name="internal_flow_extensions_view"/>
+                <Scope name="internal_flow_extension_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -2212,16 +2212,16 @@
                 <Scope name="console:org:flowExtensions_edit"/>
             </Feature>
             <Update>
-                <Scope name="internal_org_flow_extensions_update"/>
+                <Scope name="internal_org_flow_extension_update"/>
             </Update>
             <Delete>
-                <Scope name="internal_org_flow_extensions_delete"/>
+                <Scope name="internal_org_flow_extension_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_org_flow_extensions_create"/>
+                <Scope name="internal_org_flow_extension_create"/>
             </Create>
             <Read>
-                <Scope name="internal_org_flow_extensions_view"/>
+                <Scope name="internal_org_flow_extension_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
