@@ -25,13 +25,13 @@ import org.wso2.carbon.identity.action.execution.api.model.User;
  * Models the {@code flow} object nested inside the In-Flow Extension Event.
  * Groups flow-scoped context: the flow type, flow identifier, and the acting user.
  */
-public class InFlowExtensionFlow {
+public class FlowExtensionFlow {
 
     private final String flowType;
     private final String flowId;
     private final User user;
 
-    private InFlowExtensionFlow(Builder builder) {
+    private FlowExtensionFlow(Builder builder) {
 
         this.flowType = builder.flowType;
         this.flowId = builder.flowId;
@@ -83,9 +83,9 @@ public class InFlowExtensionFlow {
             return this;
         }
 
-        public InFlowExtensionFlow build() {
+        public FlowExtensionFlow build() {
 
-            return new InFlowExtensionFlow(this);
+            return new FlowExtensionFlow(this);
         }
     }
 }
