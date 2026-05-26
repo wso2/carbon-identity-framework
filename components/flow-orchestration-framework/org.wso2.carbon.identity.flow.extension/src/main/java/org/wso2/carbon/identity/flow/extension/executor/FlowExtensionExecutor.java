@@ -48,7 +48,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Executes In-Flow Extension actions during flow execution by delegating to
@@ -139,12 +138,13 @@ public class FlowExtensionExecutor implements Executor {
 
     /**
      * Map the {@link ActionExecutionStatus} to an {@link ExecutorResponse}.
-     * Performs status translation and (for INCOMPLETE/redirect) generates the OTFI used by
-     * {@code FlowExecutionService} to swap caches on resume — same pattern as {@code MagicLinkExecutor}.
+     * For INCOMPLETE/redirect the extension's redirect URL is forwarded as-is; correlation on
+     * resume is the extension integration layer's responsibility (typically via a mapping it
+     * maintains between its own redirect-side identifier and the IS flow context).
      *
      * @param executionStatus The status returned by ActionExecutorService.
      * @param flowContext     The action {@link FlowContext} where the response processor stashed the redirect URL.
-     * @param context         The engine {@link FlowExecutionContext} (used for OTFI collision-guard).
+     * @param context         The engine {@link FlowExecutionContext}.
      * @param actionId        The action ID for logging retry metadata.
      * @return The ExecutorResponse for the flow execution engine.
      */
@@ -290,14 +290,8 @@ public class FlowExtensionExecutor implements Executor {
                 FlowExtensionConstants.ErrorMessages.INCOMPLETE_NO_REDIRECT_DESCRIPTION);
         }
 
-        String otfi = generateUniqueOtfi(context.getContextIdentifier());
-        Map<String, Object> redirectProps = new HashMap<>();
-        redirectProps.put(Constants.OTFI, otfi);
-        response.setContextProperty(redirectProps);
-
-        String urlWithFlowId = appendFlowId(redirectUrl, otfi);
         Map<String, String> redirectInfo = new HashMap<>();
-        redirectInfo.put(Constants.REDIRECT_URL, urlWithFlowId);
+        redirectInfo.put(Constants.REDIRECT_URL, redirectUrl);
         response.setAdditionalInfo(redirectInfo);
 
         response.setResult(ExecutorStatus.STATUS_EXTERNAL_REDIRECTION);
@@ -305,7 +299,7 @@ public class FlowExtensionExecutor implements Executor {
                 "Flow Extension returned INCOMPLETE with a redirect URL.");
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Flow Extension returned INCOMPLETE. Redirect initiated and flowId (OTFI) generated.");
+            LOG.debug("Flow Extension returned INCOMPLETE. Redirect initiated.");
         }
 
         return response;
@@ -320,22 +314,6 @@ public class FlowExtensionExecutor implements Executor {
         response.setErrorMessage(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getMessage());
         response.setErrorDescription("The Flow Extension returned an unrecognised status. Please try again.");
         return response;
-    }
-
-    private String generateUniqueOtfi(String currentContextIdentifier) {
-
-        // Avoid accidental collision with the current context identifier.
-        String otfi = UUID.randomUUID().toString();
-        while (otfi.equals(currentContextIdentifier)) {
-            otfi = UUID.randomUUID().toString();
-        }
-        return otfi;
-    }
-
-    private String appendFlowId(String redirectUrl, String otfi) {
-
-        String separator = redirectUrl.contains("?") ? "&" : "?";
-        return redirectUrl + separator + "flowId=" + otfi;
     }
 
     @SuppressWarnings("unchecked")
