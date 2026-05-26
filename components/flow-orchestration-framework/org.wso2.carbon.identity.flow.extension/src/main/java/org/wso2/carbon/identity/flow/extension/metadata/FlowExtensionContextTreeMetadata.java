@@ -26,17 +26,17 @@ import java.util.List;
  * Carries the controlled context tree (filtered by {@code FlowContextHandoverPolicy}) plus
  * per-flow-type policy flags that the Console UI uses to gate the access-config editor.
  */
-public class InFlowExtensionContextTreeMetadata {
+public class FlowExtensionContextTreeMetadata {
 
     private final String flowType;
-    private final List<InFlowExtensionContextTreeNode> contextTree;
+    private final List<FlowExtensionContextTreeNode> contextTree;
     private final boolean redirectionEnabled;
     private final boolean allowReadOnlyClaimsModification;
 
-    public InFlowExtensionContextTreeMetadata(String flowType,
-                                              List<InFlowExtensionContextTreeNode> contextTree,
-                                              boolean redirectionEnabled,
-                                              boolean allowReadOnlyClaimsModification) {
+    public FlowExtensionContextTreeMetadata(String flowType,
+                                            List<FlowExtensionContextTreeNode> contextTree,
+                                            boolean redirectionEnabled,
+                                            boolean allowReadOnlyClaimsModification) {
 
         this.flowType = flowType;
         this.contextTree = contextTree != null ? Collections.unmodifiableList(contextTree)
@@ -53,7 +53,7 @@ public class InFlowExtensionContextTreeMetadata {
         return flowType;
     }
 
-    public List<InFlowExtensionContextTreeNode> getContextTree() {
+    public List<FlowExtensionContextTreeNode> getContextTree() {
 
         return contextTree;
     }

@@ -25,17 +25,17 @@ package org.wso2.carbon.identity.flow.extension.metadata;
  * the engine's {@code internal} package.
  *
  * <p>The exposed attribute set is governed at code level by
- * {@link InFlowExtensionContextTreeBuilder}.</p>
+ * {@link FlowExtensionContextTreeBuilder}.</p>
  */
-public final class InFlowExtensionContextTreeService {
+public final class FlowExtensionContextTreeService {
 
-    private static final InFlowExtensionContextTreeService INSTANCE = new InFlowExtensionContextTreeService();
+    private static final FlowExtensionContextTreeService INSTANCE = new FlowExtensionContextTreeService();
 
-    private InFlowExtensionContextTreeService() {
+    private FlowExtensionContextTreeService() {
 
     }
 
-    public static InFlowExtensionContextTreeService getInstance() {
+    public static FlowExtensionContextTreeService getInstance() {
 
         return INSTANCE;
     }
@@ -46,8 +46,8 @@ public final class InFlowExtensionContextTreeService {
      * @param flowType the flow type, or null for the default tree.
      * @return the metadata DTO carrying the pruned tree + per-flow-type policy flags.
      */
-    public InFlowExtensionContextTreeMetadata buildContextTree(String flowType) {
+    public FlowExtensionContextTreeMetadata buildContextTree(String flowType) {
 
-        return new InFlowExtensionContextTreeBuilder().build(flowType);
+        return new FlowExtensionContextTreeBuilder().build(flowType);
     }
 }

@@ -30,7 +30,7 @@ import java.util.List;
  * The set of exposed attributes is governed at code level by this builder so the frontend
  * receives the user/flow/properties tree shape the Console UI expects.
  */
-public class InFlowExtensionContextTreeBuilder {
+public class FlowExtensionContextTreeBuilder {
 
     // Flow context attributes that appear under the "flow" branch of the tree.
     private static final List<String> FLOW_BRANCH_ATTRS =
@@ -42,18 +42,18 @@ public class InFlowExtensionContextTreeBuilder {
      * @param flowType the flow type (null → default tree).
      * @return a fully populated metadata DTO.
      */
-    public InFlowExtensionContextTreeMetadata build(String flowType) {
+    public FlowExtensionContextTreeMetadata build(String flowType) {
 
-        List<InFlowExtensionContextTreeNode> tree = new ArrayList<>();
+        List<FlowExtensionContextTreeNode> tree = new ArrayList<>();
         tree.add(buildUserNode());
         tree.add(buildPropertiesNode());
         tree.add(buildFlowNode());
 
-        return new InFlowExtensionContextTreeMetadata(
+        return new FlowExtensionContextTreeMetadata(
                 flowType,
                 tree,
-                true,   // redirection is unconditionally enabled
-                resolveAllowReadOnlyClaimsModification(flowType));
+                true,
+                allowReadOnlyClaimsModification(flowType));
     }
 
     /**
@@ -65,7 +65,7 @@ public class InFlowExtensionContextTreeBuilder {
      * connection-level access-config editor which doesn't yet know which flow the action
      * will be wired into.</p>
      */
-    static boolean resolveAllowReadOnlyClaimsModification(String flowType) {
+    static boolean allowReadOnlyClaimsModification(String flowType) {
 
         if (flowType == null) {
             return true;
@@ -79,11 +79,11 @@ public class InFlowExtensionContextTreeBuilder {
         }
     }
 
-    private InFlowExtensionContextTreeNode buildUserNode() {
+    private FlowExtensionContextTreeNode buildUserNode() {
 
-        List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
 
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("id")
                 .title("User ID")
                 .path("/user/id")
@@ -92,7 +92,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
                 .replaceable(false)
                 .build());
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("username")
                 .title("Username")
                 .path("/user/username")
@@ -101,7 +101,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
                 .replaceable(false)
                 .build());
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("userStoreDomain")
                 .title("User Store Domain")
                 .path("/user/userStoreDomain")
@@ -111,7 +111,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .replaceable(false)
                 .build());
 
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("claims")
                 .title("Claims")
                 .path("/user/claims/")
@@ -123,7 +123,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .children(Collections.emptyList())
                 .build());
 
-        children.add(InFlowExtensionContextTreeNode.builder()
+        children.add(FlowExtensionContextTreeNode.builder()
                 .key("credentials")
                 .title("Credentials")
                 .path("/user/credentials/")
@@ -135,7 +135,7 @@ public class InFlowExtensionContextTreeBuilder {
                 .children(Collections.emptyList())
                 .build());
 
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key("user")
                 .title("User")
                 .path("/user/")
@@ -146,13 +146,13 @@ public class InFlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private InFlowExtensionContextTreeNode buildFlowNode() {
+    private FlowExtensionContextTreeNode buildFlowNode() {
 
-        List<InFlowExtensionContextTreeNode> children = new ArrayList<>();
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
         for (String attr : FLOW_BRANCH_ATTRS) {
             children.add(flowLeaf(attr, attrTitle(attr), "/flow/" + attr));
         }
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key("flow")
                 .title("Flow")
                 .path("/flow/")
@@ -164,9 +164,9 @@ public class InFlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private InFlowExtensionContextTreeNode flowLeaf(String key, String title, String path) {
+    private FlowExtensionContextTreeNode flowLeaf(String key, String title, String path) {
 
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key(key)
                 .title(title)
                 .path(path)
@@ -177,9 +177,9 @@ public class InFlowExtensionContextTreeBuilder {
                 .build();
     }
 
-    private InFlowExtensionContextTreeNode buildPropertiesNode() {
+    private FlowExtensionContextTreeNode buildPropertiesNode() {
 
-        return InFlowExtensionContextTreeNode.builder()
+        return FlowExtensionContextTreeNode.builder()
                 .key("properties")
                 .title("Properties")
                 .path("/properties/")
