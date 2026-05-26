@@ -116,7 +116,7 @@ public class FlowExtensionServiceComponent {
     protected void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         LOG.debug("Setting the ActionExecutorService in the In-Flow Extension component.");
-        InFlowExtensionDataHolder.getInstance().setActionExecutorService(actionExecutorService);
+        FlowExtensionDataHolder.getInstance().setActionExecutorService(actionExecutorService);
     }
 
     protected void unsetActionExecutorService(ActionExecutorService actionExecutorService) {
