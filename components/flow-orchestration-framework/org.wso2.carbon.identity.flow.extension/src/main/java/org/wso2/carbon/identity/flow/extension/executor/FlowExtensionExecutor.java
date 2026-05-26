@@ -61,9 +61,6 @@ public class FlowExtensionExecutor implements Executor {
     private static final String EXECUTOR_NAME = "FlowExtensionExecutor";
     private static final String CONFIG_PARAM_ACTION_TYPE = "actionType";
     private static final String CONFIG_PARAM_ACTION_ID = "actionId";
-
-
-
     @Override
     public String getName() {
 
