@@ -116,6 +116,32 @@ public class FlowExtensionConstants {
     }
 
     /**
+     * Constants used when building the controlled In-Flow Extension context tree returned
+     * by the metadata endpoint.
+     */
+    public static final class ContextTree {
+
+        // Flow type identifiers — must match the values produced by FlowTypes.getType().
+        public static final String FLOW_REGISTRATION = "REGISTRATION";
+        public static final String FLOW_INVITED_USER_REGISTRATION = "INVITED_USER_REGISTRATION";
+        public static final String FLOW_PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
+
+        // Node-type sentinels matching the tree component's NodeType enum on the Console side.
+        public static final String NODE_OBJECT = "OBJECT";
+        public static final String NODE_LEAF = "LEAF";
+        public static final String NODE_MAP = "MAP";
+        public static final String NODE_COMPLEX_MAP = "COMPLEX_MAP";
+
+        public static final String OP_EXPOSE = "EXPOSE";
+        public static final String OP_MODIFY = "MODIFY";
+        public static final String DATA_TYPE_STRING = "String";
+
+        private ContextTree() {
+
+        }
+    }
+
+    /**
      * JSON-pointer-style path constants for the In-Flow Extension context tree.
      */
     public static final class FlowContextPaths {
