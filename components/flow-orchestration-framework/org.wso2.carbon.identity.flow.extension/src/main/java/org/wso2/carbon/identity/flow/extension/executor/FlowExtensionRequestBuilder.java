@@ -434,6 +434,10 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         org.wso2.carbon.identity.core.context.model.Organization coreOrg =
                 IdentityContext.getThreadLocalIdentityContext().getOrganization();
         if (coreOrg == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Organization is not available in the IdentityContext. "
+                        + "Skipping organization details in the request.");
+            }
             return;
         }
 
@@ -490,6 +494,8 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             flowBuilder.flowType(context.getFlowType() != null ? context.getFlowType() : "");
         }
 
+        // flowId is always sent (not expose-gated): the external service needs it to correlate
+        // its response with the originating flow.
         flowBuilder.flowId(context.getContextIdentifier());
 
         if (isLeafExposed(FlowContextPaths.FLOW_PORTAL_URL_PATH, expose)) {
