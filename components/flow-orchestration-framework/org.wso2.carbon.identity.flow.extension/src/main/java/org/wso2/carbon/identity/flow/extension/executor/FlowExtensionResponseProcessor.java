@@ -63,42 +63,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is responsible for processing the response from In-Flow Extension actions.
+ * Processes responses from In-Flow Extension actions, applying {@code REPLACE} operations on
+ * flow properties, user claims, and user credentials. Updates are collected into pending maps on
+ * {@link FlowContext} for the executor to forward via
+ * {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse}.
  *
- * <p><b>Responsibility</b>: operation processing and collecting context updates into pending maps
- * that are stored in {@link FlowContext} for the executor to forward to {@code TaskExecutionNode}
- * via {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse} fields.
- * It processes {@code REPLACE} operations on flow properties, user claims, and user credentials.</p>
+ * <p>Only {@code REPLACE} is supported; gating is done upstream via {@code allowedOperations}
+ * (enforced by {@code ActionExecutorServiceImpl}). {@code /flow/} paths are read-only.</p>
  *
- * <p>Only {@code REPLACE} operations are supported. The {@code allowedOperations} list
- * (derived from modify paths and sent to the external service in the request, enforced
- * upstream by {@code ActionExecutorServiceImpl}) is the sole mechanism for gating which
- * operations are permitted. This processor performs additional validations:</p>
- * <ul>
- *   <li><b>Read-only areas</b>: No modifications allowed to {@code /flow/} paths.</li>
- * </ul>
- *
- * <p><b>Failure handling.</b> Failures are split into two tiers with deliberately different
- * policies:</p>
- * <ul>
- *   <li><b>Contract-level failures</b> (e.g. non-String value on an encrypted path, missing
- *       JWE envelope, JWE decryption failure in {@link #decryptOperationValueIfNeeded}) indicate
- *       the external service is not honouring the agreed wire protocol. The entire response is
- *       considered untrustworthy and the call aborts via
- *       {@link ActionExecutionResponseProcessorException}.</li>
- *   <li><b>Per-operation validation failures</b> (unknown path, read-only path, missing value,
- *       unknown claim URI, unknown credential key, etc.) are treated as best-effort: the
- *       offending operation is dropped, remaining operations are still applied, and the overall
- *       status is {@link SuccessStatus}.
- *       A single bad operation from an external service must not be able to break a flow.</li>
- * </ul>
- *
- * <p>Per-operation failures are surfaced to the caller through the
- * {@link org.wso2.carbon.identity.action.execution.api.model.SuccessStatus} response context
- * under {@link FlowExtensionConstants.ResponseContext#FAILED_OPERATIONS_KEY} (a list of maps with
- * {@code op}/{@code path}/{@code message}), along with
- * {@link FlowExtensionConstants.ResponseContext#TOTAL_OPERATIONS_KEY}. Callers wanting strict
- * semantics can inspect this and treat any non-empty list as a flow-level failure.</p>
+ * <p><b>Failure handling.</b> Contract-level failures (non-String on an encrypted path, missing
+ * JWE envelope, JWE decryption failure) abort the call via
+ * {@link ActionExecutionResponseProcessorException}. Per-operation validation failures (unknown
+ * path, read-only path, missing value, unknown claim URI, unknown credential key) drop the
+ * offending op, keep the rest, and return {@link SuccessStatus} — surfaced under
+ * {@link FlowExtensionConstants.ResponseContext#FAILED_OPERATIONS_KEY} alongside
+ * {@link FlowExtensionConstants.ResponseContext#TOTAL_OPERATIONS_KEY} for callers wanting strict
+ * semantics.</p>
  */
 public class FlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
 
