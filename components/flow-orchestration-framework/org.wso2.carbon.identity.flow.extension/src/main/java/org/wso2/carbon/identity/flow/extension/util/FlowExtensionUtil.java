@@ -24,12 +24,6 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.HandoverPolicy;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,26 +41,17 @@ import java.util.Map;
  * {@code engine.config.*}. When the toml-based dynamic configuration PR is merged, the filter
  * helper can be removed and the engine's filter used directly.</p>
  *
- * <p>Implementation reflects over the JavaBean property descriptors of
- * {@link FlowExecutionContext} and {@link FlowUser}. Descriptors are cached on class load.
- * The original context is never mutated; non-permitted attributes are left null/empty on
- * the copy.</p>
+ * <p>Attributes are copied via explicit per-field mappings in
+ * {@link #copyFlowContext(FlowExecutionContext, FlowExecutionContext)} and
+ * {@link #copyFlowUser(FlowUser, FlowUser)}. The original context is never mutated;
+ * non-permitted attributes are left null/empty on the copy.</p>
  *
- * <p>Map fields receive a defensive shallow {@link HashMap} copy. The
- * {@code userCredentials} field receives a per-entry {@code char[]} clone so that the
+ * <p>The {@code userCredentials} field receives a per-entry {@code char[]} clone so that the
  * request builder's post-extraction wipe zeroes the copy, not the source.</p>
  */
 public final class FlowExtensionUtil {
 
     private static final Log LOG = LogFactory.getLog(FlowExtensionUtil.class);
-
-    private static final Map<String, PropertyDescriptor> CONTEXT_PROPERTIES;
-    private static final Map<String, PropertyDescriptor> USER_PROPERTIES;
-
-    static {
-        CONTEXT_PROPERTIES = Collections.unmodifiableMap(introspect(FlowExecutionContext.class));
-        USER_PROPERTIES = Collections.unmodifiableMap(introspect(FlowUser.class));
-    }
 
     private FlowExtensionUtil() {
 
@@ -91,14 +76,7 @@ public final class FlowExtensionUtil {
         // contextIdentifier is engine-internal and always propagated regardless of policy.
         copy.setContextIdentifier(original.getContextIdentifier());
 
-        // Top-level attributes (flowUser and contextIdentifier are handled separately).
-        for (String name : HandoverPolicy.INCLUDED_ATTRIBUTES) {
-            if (HandoverPolicy.ATTR_FLOW_USER.equals(name)
-                    || HandoverPolicy.ATTR_CONTEXT_IDENTIFIER.equals(name)) {
-                continue;
-            }
-            copyProperty(CONTEXT_PROPERTIES, name, original, copy);
-        }
+        copyFlowContext(original, copy);
 
         // User attributes — a fresh non-null FlowUser is always set on the copy so that
         // request builders / response processors don't need to null-guard the user object.
@@ -106,72 +84,90 @@ public final class FlowExtensionUtil {
         copy.setFlowUser(dstUser);
         FlowUser srcUser = original.getFlowUser();
         if (srcUser != null) {
-            for (String name : HandoverPolicy.INCLUDED_USER_ATTRIBUTES) {
-                copyProperty(USER_PROPERTIES, name, srcUser, dstUser);
-            }
+            copyFlowUser(srcUser, dstUser);
         }
 
         return copy;
     }
 
-    private static <T> void copyProperty(Map<String, PropertyDescriptor> descriptors, String name,
-                                         T source, T destination) {
+    /**
+     * Copy the whitelisted top-level {@link FlowExecutionContext} fields from {@code src} to
+     * {@code dst}. {@code contextIdentifier} and {@code flowUser} are skipped here because
+     * they are handled by {@link #filterContext(FlowExecutionContext)} directly —
+     * {@code contextIdentifier} is propagated unconditionally and {@code flowUser} is copied
+     * via {@link #copyFlowUser(FlowUser, FlowUser)} so the destination always has a non-null
+     * user.
+     */
+    private static void copyFlowContext(FlowExecutionContext src, FlowExecutionContext dst) {
 
-        PropertyDescriptor pd = descriptors.get(name);
-        if (pd == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Skipping unknown handover attribute: " + name);
+        for (String name : HandoverPolicy.INCLUDED_ATTRIBUTES) {
+            switch (name) {
+                case "contextIdentifier":
+                case "flowUser":
+                    break;
+                case "tenantDomain":
+                    dst.setTenantDomain(src.getTenantDomain());
+                    break;
+                case "applicationId":
+                    dst.setApplicationId(src.getApplicationId());
+                    break;
+                case "flowType":
+                    dst.setFlowType(src.getFlowType());
+                    break;
+                case "callbackUrl":
+                    dst.setCallbackUrl(src.getCallbackUrl());
+                    break;
+                case "portalUrl":
+                    dst.setPortalUrl(src.getPortalUrl());
+                    break;
+                default:
+                    LOG.warn("Skipping unmapped handover context attribute: " + name
+                            + ". Add a case in FlowExtensionUtil.copyFlowContext to handle it.");
             }
-            return;
-        }
-        Method reader = pd.getReadMethod();
-        Method writer = pd.getWriteMethod();
-        if (reader == null || writer == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Skipping handover attribute without readable+writable accessors: " + name);
-            }
-            return;
-        }
-        try {
-            Object value = reader.invoke(source);
-            value = defensivelyCopy(name, value);
-            writer.invoke(destination, value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            LOG.warn("Failed to copy handover attribute '" + name + "': " + e.getMessage());
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static Object defensivelyCopy(String name, Object value) {
+    /**
+     * Copy the whitelisted {@link FlowUser} fields from {@code src} to {@code dst}. Explicit
+     * per-field mapping is used instead of JavaBean reflection because {@code FlowUser}'s
+     * accessors do not all follow the standard getter/setter naming required by
+     * {@link java.beans.Introspector} (notably {@code claims} is read-only and {@code userId}
+     * does not match a whitelist entry of {@code "id"}).
+     *
+     * <p>The {@link HandoverPolicy#INCLUDED_USER_ATTRIBUTES} whitelist remains the source of
+     * truth: only names listed there are copied, and an unrecognised entry is logged at WARN
+     * so the missing mapping is visible.</p>
+     */
+    private static void copyFlowUser(FlowUser src, FlowUser dst) {
 
-        if (!(value instanceof Map)) {
-            return value;
-        }
-        if (HandoverPolicy.ATTR_USER_CREDENTIALS.equals(name)) {
-            Map<String, char[]> src = (Map<String, char[]>) value;
-            Map<String, char[]> out = new LinkedHashMap<>();
-            for (Map.Entry<String, char[]> entry : src.entrySet()) {
-                char[] v = entry.getValue();
-                out.put(entry.getKey(), v == null ? null : v.clone());
+        for (String name : HandoverPolicy.INCLUDED_USER_ATTRIBUTES) {
+            switch (name) {
+                case "id":
+                    dst.setUserId(src.getUserId());
+                    break;
+                case "username":
+                    dst.setUsername(src.getUsername());
+                    break;
+                case "userStoreDomain":
+                    dst.setUserStoreDomain(src.getUserStoreDomain());
+                    break;
+                case "claims":
+                    dst.addClaims(new HashMap<>(src.getClaims()));
+                    break;
+                case "userCredentials":
+                    Map<String, char[]> srcCreds = src.getUserCredentials();
+                    Map<String, char[]> clonedCreds = new LinkedHashMap<>();
+                    for (Map.Entry<String, char[]> entry : srcCreds.entrySet()) {
+                        char[] v = entry.getValue();
+                        clonedCreds.put(entry.getKey(), v == null ? null : v.clone());
+                    }
+                    dst.setUserCredentials(clonedCreds);
+                    break;
+                default:
+                    LOG.warn("Skipping unmapped handover user attribute: " + name
+                            + ". Add a case in FlowExtensionUtil.copyFlowUser to handle it.");
             }
-            return out;
         }
-        return new HashMap<>((Map<?, ?>) value);
     }
 
-    private static Map<String, PropertyDescriptor> introspect(Class<?> beanClass) {
-
-        Map<String, PropertyDescriptor> result = new HashMap<>();
-        try {
-            for (PropertyDescriptor pd :
-                    Introspector.getBeanInfo(beanClass, Object.class).getPropertyDescriptors()) {
-                if (pd.getReadMethod() != null && pd.getWriteMethod() != null) {
-                    result.put(pd.getName(), pd);
-                }
-            }
-        } catch (IntrospectionException e) {
-            LOG.error("Failed to introspect " + beanClass.getName() + " for handover filtering.", e);
-        }
-        return result;
-    }
 }

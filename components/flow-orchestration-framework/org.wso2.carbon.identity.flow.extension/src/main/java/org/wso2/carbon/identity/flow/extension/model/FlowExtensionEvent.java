@@ -37,7 +37,6 @@ public class FlowExtensionEvent extends Event {
 
     private final FlowExtensionFlow flow;
     private final String callbackUrl;
-    private final String portalUrl;
     private final Map<String, Object> flowProperties;
 
     private FlowExtensionEvent(Builder builder) {
@@ -48,7 +47,6 @@ public class FlowExtensionEvent extends Event {
         this.application = builder.application;
         this.flow = builder.flow;
         this.callbackUrl = builder.callbackUrl;
-        this.portalUrl = builder.portalUrl;
         this.flowProperties = builder.flowProperties != null ?
                 Collections.unmodifiableMap(new HashMap<>(builder.flowProperties)) : Collections.emptyMap();
     }
@@ -78,19 +76,6 @@ public class FlowExtensionEvent extends Event {
     }
 
     /**
-     * Get the portal URL for the flow, if exposed.
-     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an exposed portalUrl with no
-     * context value is serialized as {@code ""} rather than omitted.
-     *
-     * @return The portal URL, or {@code null} if not exposed.
-     */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public String getPortalUrl() {
-
-        return portalUrl;
-    }
-
-    /**
      * Get the flow properties/context data.
      *
      * @return Unmodifiable map of flow properties.
@@ -111,7 +96,6 @@ public class FlowExtensionEvent extends Event {
         private UserStore userStore;
         private Application application;
         private String callbackUrl;
-        private String portalUrl;
         private Map<String, Object> flowProperties;
 
         public Builder flow(FlowExtensionFlow flow) {
@@ -147,12 +131,6 @@ public class FlowExtensionEvent extends Event {
         public Builder callbackUrl(String callbackUrl) {
 
             this.callbackUrl = callbackUrl;
-            return this;
-        }
-
-        public Builder portalUrl(String portalUrl) {
-
-            this.portalUrl = portalUrl;
             return this;
         }
 

@@ -163,7 +163,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         applyOrganization(eventBuilder, expose);
         applyApplication(eventBuilder, context, expose);
         applyUserAndUserStore(flowBuilder, context, expose, accessConfig, certificatePEM);
-        applyFlowMetadata(flowBuilder, eventBuilder, context, expose);
+        applyFlowMetadata(flowBuilder, context, expose);
         applyFlowProperties(eventBuilder, context, expose, accessConfig, certificatePEM);
 
         eventBuilder.flow(flowBuilder.build());
@@ -486,9 +486,8 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         flowBuilder.user(buildUser(flowUser, expose, accessConfig, certificatePEM));
     }
 
-    private void applyFlowMetadata(FlowExtensionFlow.Builder flowBuilder,
-                                   FlowExtensionEvent.Builder eventBuilder,
-                                   FlowExecutionContext context, List<String> expose) {
+    private void applyFlowMetadata(FlowExtensionFlow.Builder flowBuilder, FlowExecutionContext context,
+                                   List<String> expose) {
 
         if (isLeafExposed(FlowContextPaths.FLOW_TYPE_PATH, expose)) {
             flowBuilder.flowType(context.getFlowType() != null ? context.getFlowType() : "");
@@ -499,7 +498,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         flowBuilder.flowId(context.getContextIdentifier());
 
         if (isLeafExposed(FlowContextPaths.FLOW_PORTAL_URL_PATH, expose)) {
-            eventBuilder.portalUrl(context.getPortalUrl() != null ? context.getPortalUrl() : "");
+            flowBuilder.portalUrl(context.getPortalUrl() != null ? context.getPortalUrl() : "");
         }
     }
 

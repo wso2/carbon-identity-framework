@@ -29,12 +29,14 @@ public class FlowExtensionFlow {
 
     private final String flowType;
     private final String flowId;
+    private final String portalUrl;
     private final User user;
 
     private FlowExtensionFlow(Builder builder) {
 
         this.flowType = builder.flowType;
         this.flowId = builder.flowId;
+        this.portalUrl = builder.portalUrl;
         this.user = builder.user;
     }
 
@@ -53,6 +55,16 @@ public class FlowExtensionFlow {
         return flowId;
     }
 
+    /**
+     * NON_NULL overrides the ObjectMapper-level NON_EMPTY so that an exposed portalUrl with no
+     * context value is serialized as {@code ""} rather than omitted.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getPortalUrl() {
+
+        return portalUrl;
+    }
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public User getUser() {
 
@@ -63,6 +75,7 @@ public class FlowExtensionFlow {
 
         private String flowType;
         private String flowId;
+        private String portalUrl;
         private User user;
 
         public Builder flowType(String flowType) {
@@ -74,6 +87,12 @@ public class FlowExtensionFlow {
         public Builder flowId(String flowId) {
 
             this.flowId = flowId;
+            return this;
+        }
+
+        public Builder portalUrl(String portalUrl) {
+
+            this.portalUrl = portalUrl;
             return this;
         }
 
