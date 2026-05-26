@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.flow.extension;
 
+import org.wso2.carbon.identity.flow.extension.executor.FlowExtensionResponseProcessor;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,6 +48,26 @@ public class FlowExtensionConstants {
     public static final String FAILURE_DESCRIPTION_KEY = "failureDescription";
 
     public static final String ACTION_ID_METADATA_KEY = "actionId";
+
+    /**
+     * Keys under which {@link FlowExtensionResponseProcessor} populates
+     * {@link org.wso2.carbon.identity.action.execution.api.model.SuccessStatus} response context.
+     * See the class javadoc on {@code FlowExtensionResponseProcessor} for the failure-handling
+     * policy these keys surface.
+     */
+    public static final class ResponseContext {
+
+        public static final String FAILED_OPERATIONS_KEY = "failedOperations";
+        public static final String TOTAL_OPERATIONS_KEY = "totalOperations";
+
+        public static final String OP_PATH_KEY = "path";
+        public static final String OP_TYPE_KEY = "op";
+        public static final String OP_MESSAGE_KEY = "message";
+
+        private ResponseContext() {
+
+        }
+    }
 
     /**
      * User-facing error message / description pairs returned via {@code ExecutorResponse}

@@ -76,6 +76,28 @@ import java.util.Map;
  * <ul>
  *   <li><b>Read-only areas</b>: No modifications allowed to {@code /flow/} paths.</li>
  * </ul>
+ *
+ * <p><b>Failure handling.</b> Failures are split into two tiers with deliberately different
+ * policies:</p>
+ * <ul>
+ *   <li><b>Contract-level failures</b> (e.g. non-String value on an encrypted path, missing
+ *       JWE envelope, JWE decryption failure in {@link #decryptOperationValueIfNeeded}) indicate
+ *       the external service is not honouring the agreed wire protocol. The entire response is
+ *       considered untrustworthy and the call aborts via
+ *       {@link ActionExecutionResponseProcessorException}.</li>
+ *   <li><b>Per-operation validation failures</b> (unknown path, read-only path, missing value,
+ *       unknown claim URI, unknown credential key, etc.) are treated as best-effort: the
+ *       offending operation is dropped, remaining operations are still applied, and the overall
+ *       status is {@link SuccessStatus}.
+ *       A single bad operation from an external service must not be able to break a flow.</li>
+ * </ul>
+ *
+ * <p>Per-operation failures are surfaced to the caller through the
+ * {@link org.wso2.carbon.identity.action.execution.api.model.SuccessStatus} response context
+ * under {@link FlowExtensionConstants.ResponseContext#FAILED_OPERATIONS_KEY} (a list of maps with
+ * {@code op}/{@code path}/{@code message}), along with
+ * {@link FlowExtensionConstants.ResponseContext#TOTAL_OPERATIONS_KEY}. Callers wanting strict
+ * semantics can inspect this and treat any non-empty list as a flow-level failure.</p>
  */
 public class FlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
 
@@ -145,7 +167,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         return new SuccessStatus.Builder()
                 .setSuccess(new Success() {
                 })
-                .setResponseContext(Collections.emptyMap())
+                .setResponseContext(buildSuccessResponseContext(results))
                 .build();
     }
 
@@ -723,6 +745,39 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "FlowExecutionContext not found in FlowContext.");
         }
         return execCtx;
+    }
+
+    /**
+     * Build the SuccessStatus response context, surfacing any per-operation failures so
+     * callers can inspect them. See class javadoc for the failure-handling policy.
+     * Also emits a WARN log when any operation failed so operators see partial failures
+     * without needing to read the response context programmatically.
+     */
+    private Map<String, Object> buildSuccessResponseContext(List<OperationExecutionResult> results) {
+
+        List<Map<String, String>> failed = new ArrayList<>();
+        for (OperationExecutionResult result : results) {
+            if (result.getStatus() == OperationExecutionResult.Status.FAILURE) {
+                Map<String, String> entry = new HashMap<>();
+                entry.put(FlowExtensionConstants.ResponseContext.OP_TYPE_KEY,
+                        String.valueOf(result.getOperation().getOp()));
+                entry.put(FlowExtensionConstants.ResponseContext.OP_PATH_KEY,
+                        result.getOperation().getPath());
+                entry.put(FlowExtensionConstants.ResponseContext.OP_MESSAGE_KEY, result.getMessage());
+                failed.add(entry);
+            }
+        }
+
+        if (!failed.isEmpty()) {
+            LOG.warn(failed.size() + " of " + results.size()
+                    + " operations in the Flow Extension response failed validation and were dropped. "
+                    + "See diagnostic logs for per-operation details.");
+        }
+
+        Map<String, Object> ctx = new HashMap<>();
+        ctx.put(FlowExtensionConstants.ResponseContext.TOTAL_OPERATIONS_KEY, results.size());
+        ctx.put(FlowExtensionConstants.ResponseContext.FAILED_OPERATIONS_KEY, failed);
+        return ctx;
     }
 
 }
