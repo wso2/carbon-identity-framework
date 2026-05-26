@@ -96,6 +96,9 @@ public class SessionExtenderRequestFactory extends HttpIdentityRequestFactory {
 
         Cookie commonAuthCookie = FrameworkUtils.getAuthCookie(request);
         if (commonAuthCookie != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session cookie found in request for session extension.");
+            }
             builder.setSessionCookie(commonAuthCookie);
         } else {
             throw new SessionExtenderClientException(

@@ -123,6 +123,7 @@ public class SessionExtenderProcessor extends IdentityProcessor {
 
         String sessionKey = getSessionKeyFromCookie(sessionExtenderRequest);
         if (sessionKey == null) {
+            log.warn("No session cookie found in the request for session extension.");
             throw new SessionExtenderClientException(
                     SessionExtenderConstants.Error.INVALID_REQUEST.getCode(),
                     SessionExtenderConstants.Error.INVALID_REQUEST.getMessage(),
