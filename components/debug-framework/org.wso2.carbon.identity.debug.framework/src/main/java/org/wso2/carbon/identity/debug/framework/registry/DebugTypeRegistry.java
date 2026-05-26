@@ -53,9 +53,6 @@ public class DebugTypeRegistry {
 
     public DebugCallbackHandler getHandler(String protocol) {
 
-        if (protocol == null) {
-            return null;
-        }
         return handlersByProtocol.get(protocol.toLowerCase(Locale.ROOT));
     }
 }

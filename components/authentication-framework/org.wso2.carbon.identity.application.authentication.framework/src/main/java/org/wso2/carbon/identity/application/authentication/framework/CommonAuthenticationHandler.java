@@ -57,13 +57,11 @@ public class CommonAuthenticationHandler {
         }
 
         try {
-            // Give each registered debug interceptor a chance to claim the request. The first one
-            // that can handle it and reports the request as fully handled short-circuits the flow.
-            for (DebugAuthenticationInterceptor interceptor : FrameworkServiceDataHolder.getInstance()
-                    .getDebugAuthenticationInterceptors()) {
-                if (interceptor.canHandle(request) && interceptor.handleCommonAuthRequest(request, response)) {
-                    return;
-                }
+            DebugAuthenticationInterceptor debugInterceptor =
+                    FrameworkServiceDataHolder.getInstance().getDebugAuthenticationInterceptor();
+            if (debugInterceptor != null && debugInterceptor.canHandle(request)
+                    && debugInterceptor.handleCommonAuthRequest(request, response)) {
+                return;
             }
 
             // If not a debug flow, proceed with regular authentication.

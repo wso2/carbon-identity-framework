@@ -65,13 +65,13 @@ import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
-import java.util.Collections;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+
 
 /**
  * Authentication framework data holder.
@@ -99,7 +99,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
-    private List<DebugAuthenticationInterceptor> debugAuthenticationInterceptors = new CopyOnWriteArrayList<>();
+    private DebugAuthenticationInterceptor debugAuthenticationInterceptor;
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -862,33 +862,31 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Get the list of debug authentication interceptors.
+     * Get the debug authentication interceptor.
      *
-     * @return List of debug authentication interceptors.
+     * @return Debug authentication interceptor, or null if not registered.
      */
-    public List<DebugAuthenticationInterceptor> getDebugAuthenticationInterceptors() {
+    public DebugAuthenticationInterceptor getDebugAuthenticationInterceptor() {
 
-        return Collections.unmodifiableList(debugAuthenticationInterceptors);
+        return debugAuthenticationInterceptor;
     }
 
     /**
-     * Add a debug authentication interceptor to the list of debug authentication interceptors.
+     * Set the debug authentication interceptor.
      *
-     * @param interceptor Debug authentication interceptor to be added.
+     * @param interceptor Debug authentication interceptor to be set.
      */
-    public void addDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+    public void setDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
-        debugAuthenticationInterceptors.add(interceptor);
+        this.debugAuthenticationInterceptor = interceptor;
     }
 
     /**
-     * Remove a debug authentication interceptor from the list of debug authentication interceptors.
-     *
-     * @param interceptor Debug authentication interceptor to be removed.
+     * Unset the debug authentication interceptor.
      */
-    public void removeDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+    public void unsetDebugAuthenticationInterceptor() {
 
-        debugAuthenticationInterceptors.remove(interceptor);
+        this.debugAuthenticationInterceptor = null;
     }
 
     /**

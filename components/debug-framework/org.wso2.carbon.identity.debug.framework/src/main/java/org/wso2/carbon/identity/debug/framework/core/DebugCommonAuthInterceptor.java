@@ -47,10 +47,7 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
 
         DebugRequestCoordinator coordinator =
                 DebugFrameworkServiceDataHolder.getInstance().getDebugRequestCoordinator();
-        if (coordinator == null) {
-            LOG.warn("DebugRequestCoordinator is not available. Skipping debug callback handling.");
-            return false;
-        }
+                
         return coordinator.handleCallbackRequest(request, response);
     }
 }

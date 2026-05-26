@@ -684,13 +684,13 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "debug.authentication.interceptor",
             service = DebugAuthenticationInterceptor.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
+            cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetDebugAuthenticationInterceptor"
     )
     protected void setDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
-        FrameworkServiceDataHolder.getInstance().addDebugAuthenticationInterceptor(interceptor);
+        FrameworkServiceDataHolder.getInstance().setDebugAuthenticationInterceptor(interceptor);
         if (log.isDebugEnabled()) {
             log.debug("DebugAuthenticationInterceptor registered: " + interceptor.getClass().getName());
         }
@@ -698,7 +698,7 @@ public class FrameworkServiceComponent {
 
     protected void unsetDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
 
-        FrameworkServiceDataHolder.getInstance().removeDebugAuthenticationInterceptor(interceptor);
+        FrameworkServiceDataHolder.getInstance().unsetDebugAuthenticationInterceptor();
         if (log.isDebugEnabled()) {
             log.debug("DebugAuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
         }

@@ -22,12 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.core.DebugProcessor;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 
-import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,60 +41,38 @@ public abstract class IdpDebugProcessor extends DebugProcessor {
 
     /**
      * Processes the debug flow callback from an external IdP.
-     * Drives the redirect-based callback lifecycle: validate, authenticate,
-     * extract data, validate data, build result, send response.
+     * Drives the redirect-based callback lifecycle: authenticate, extract data, build result, send response.
      *
      * @param request      Incoming HTTP request containing callback parameters.
      * @param response     HTTP response for sending results.
      * @param debugContext Debug context for storing and retrieving debug state.
-     * @throws DebugFrameworkServerException If an I/O error occurs while processing the callback.
+     * @throws DebugFrameworkServerException If a server-side error occurs while processing the callback.
      */
     public void processCallback(HttpServletRequest request, HttpServletResponse response,
             DebugContext debugContext) throws DebugFrameworkServerException {
 
         String state = resolveState(request, debugContext);
-        String resourceIdentifier = extractResourceIdentifier(debugContext);
+        String connectionId = extractConnectionId(debugContext);
 
-        try {
-            if (!validateCallback(request, debugContext, response, state, resourceIdentifier)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Callback validation failed for state: " + state + ". Sending debug response.");
-                }
-                sendDebugResponse(response, state, resourceIdentifier);
-                return;
+        if (!processAuthentication(request, debugContext, response, state, connectionId)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Authentication processing failed for state: " + state + ". Sending debug response.");
             }
-
-            if (!processAuthentication(request, debugContext, response, state, resourceIdentifier)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Authentication processing failed for state: " + state + ". Sending debug response.");
-                }
-                sendDebugResponse(response, state, resourceIdentifier);
-                return;
-            }
-
-            Map<String, Object> debugData = extractDebugData(debugContext);
-
-            if (!validateDebugData(debugData, debugContext, response, state, resourceIdentifier)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Debug data validation failed for state: " + state + ". Sending debug response.");
-                }
-                sendDebugResponse(response, state, resourceIdentifier);
-                return;
-            }
-
-            buildAndCacheDebugResult(debugContext, state);
-            sendDebugResponse(response, state, resourceIdentifier);
-
-        } catch (IOException e) {
-            LOG.error("I/O error processing debug callback for state: " + state, e);
-            handleUnexpectedError(e, debugContext);
-            sendDebugResponseIfUncommitted(response, state, resourceIdentifier, e);
-            throw new DebugFrameworkServerException(
-                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
-                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
-                    e.getMessage(),
-                    e);
+            sendDebugResponse(response, state, connectionId);
+            return;
         }
+
+        Map<String, Object> debugData = extractDebugData(debugContext, state);
+        if (debugData == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Data extraction failed for state: " + state + ". Sending debug response.");
+            }
+            sendDebugResponse(response, state, connectionId);
+            return;
+        }
+
+        buildAndCacheDebugResult(debugContext, state);
+        sendDebugResponse(response, state, connectionId);
     }
 
     private String resolveState(HttpServletRequest request, DebugContext debugContext) {
@@ -111,42 +87,22 @@ public abstract class IdpDebugProcessor extends DebugProcessor {
         return state;
     }
 
-    private void sendDebugResponseIfUncommitted(HttpServletResponse response, String state, String resourceIdentifier,
-            IOException originalError) {
-
-        if (response.isCommitted()) {
-            return;
-        }
-        try {
-            sendDebugResponse(response, state, resourceIdentifier);
-        } catch (IOException ioEx) {
-            LOG.error("Error sending debug response after initial failure.", ioEx);
-            originalError.addSuppressed(ioEx);
-        }
-    }
-
     /**
      * Extracts the connection ID from the debug context as the resource identifier.
      */
-    protected String extractResourceIdentifier(DebugContext debugContext) {
+    protected String extractConnectionId(DebugContext debugContext) {
 
         String connectionId = (String) debugContext.getProperty(IdpDebugConstants.CONNECTION_ID);
         return connectionId != null ? connectionId : "";
     }
 
-    protected abstract boolean validateCallback(HttpServletRequest request, DebugContext debugContext,
-            HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
-
     protected abstract boolean processAuthentication(HttpServletRequest request, DebugContext debugContext,
-            HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
+            HttpServletResponse response, String state, String resourceIdentifier) throws DebugFrameworkServerException;
 
-    protected abstract Map<String, Object> extractDebugData(DebugContext debugContext);
-
-    protected abstract boolean validateDebugData(Map<String, Object> debugData, DebugContext debugContext,
-            HttpServletResponse response, String state, String resourceIdentifier) throws IOException;
+    protected abstract Map<String, Object> extractDebugData(DebugContext debugContext, String state);
 
     protected abstract void buildAndCacheDebugResult(DebugContext debugContext, String state);
 
     protected abstract void sendDebugResponse(HttpServletResponse response, String state,
-            String resourceIdentifier) throws IOException;
+            String resourceIdentifier) throws DebugFrameworkServerException;
 }

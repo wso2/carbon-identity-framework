@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public abstract class DebugContextProvider {
 
-    /**
+    /**DebugCallbackHandler
      * Resolves and creates a debug context from a generic parameter map.
      *
      * @param params Protocol-specific parameters required for context resolution.

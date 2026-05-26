@@ -94,10 +94,6 @@ public class DebugRequestCoordinator {
     public DebugFrameworkResponse getDebugResult(String debugId)
             throws DebugFrameworkClientException, DebugFrameworkServerException {
 
-        if (debugId == null) {
-            throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_REQUEST);
-        }
-
         DebugFrameworkRequest debugFrameworkRequest = new DebugFrameworkRequest();
         debugFrameworkRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
         debugFrameworkRequest.setResultRetrieval(true);
@@ -144,18 +140,8 @@ public class DebugRequestCoordinator {
             LOG.debug("Handling debug callback request for state: " + state);
         }
         Map<String, Object> sessionData = loadSessionData(state);
-        if (sessionData == null) {
-            return false;
-        }
         String protocol = extractProtocol(sessionData);
-        if (protocol == null) {
-            return false;
-        }
-
         DebugCallbackHandler handler = DebugTypeRegistry.getInstance().getHandler(protocol);
-        if (handler == null) {
-            return false;
-        }
 
         try {
             return handler.handleCallback(request, response, sessionData);
