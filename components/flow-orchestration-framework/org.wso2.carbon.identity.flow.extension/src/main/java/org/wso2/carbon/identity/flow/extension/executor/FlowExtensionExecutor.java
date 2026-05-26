@@ -75,7 +75,7 @@ public class FlowExtensionExecutor implements Executor {
 
         String actionId = getMetadataValue(context, FlowExtensionConstants.ACTION_ID_METADATA_KEY);
         if (actionId == null || actionId.isEmpty()) {
-            triggerDiagnosticFailure(null,
+            triggerDiagnosticFailure(FlowExtensionConstants.Log.ActionIDs.EXECUTE, null,
                 "Flow Extension action execution failed: action ID is not configured.");
             return buildErrorResponse(FlowExtensionConstants.ErrorMessages.NOT_CONFIGURED_MESSAGE,
                 FlowExtensionConstants.ErrorMessages.NOT_CONFIGURED_DESCRIPTION);
@@ -90,7 +90,7 @@ public class FlowExtensionExecutor implements Executor {
         ActionExecutorService actionExecutorService = getActionExecutorService(actionId);
 
         if (!actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSION)) {
-            triggerDiagnosticFailure(actionId,
+            triggerDiagnosticFailure(FlowExtensionConstants.Log.ActionIDs.EXECUTE, actionId,
                 "Flow Extension action execution failed: action type is disabled.");
             return buildErrorResponse(FlowExtensionConstants.ErrorMessages.EXECUTION_DISABLED_MESSAGE,
                 FlowExtensionConstants.ErrorMessages.EXECUTION_DISABLED_DESCRIPTION);
@@ -343,11 +343,6 @@ public class FlowExtensionExecutor implements Executor {
                     + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0)
                     + ", pendingProperties: " + (pendingProperties != null ? pendingProperties.size() : 0));
         }
-    }
-
-    private void triggerDiagnosticFailure(String actionId, String resultMessage) {
-
-        triggerDiagnosticFailure(FlowExtensionConstants.Log.ActionIDs.EXECUTE, actionId, resultMessage);
     }
 
     private void triggerDiagnosticFailure(String diagnosticActionId, String actionId, String resultMessage) {
