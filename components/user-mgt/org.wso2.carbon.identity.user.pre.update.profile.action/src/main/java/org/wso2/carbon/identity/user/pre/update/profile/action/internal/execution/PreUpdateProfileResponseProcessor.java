@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
@@ -42,6 +44,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.component.PreUpdateProfileActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
+import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.ProfileOperationExecutionResult;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.DiagnosticLog;
@@ -62,10 +65,9 @@ import java.util.stream.Collectors;
  */
 public class PreUpdateProfileResponseProcessor implements ActionExecutionResponseProcessor {
 
+    private static final Log LOG = LogFactory.getLog(PreUpdateProfileResponseProcessor.class);
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
-    private static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
-    private static final String USERID_CLAIM_URI = "http://wso2.org/claims/userid";
     private static final String SCIM_SCHEMA_URI_PREFIX = "urn:ietf:params:scim:schemas";
     private static final String URI = "uri";
     private static final String VALUE = "value";
@@ -93,28 +95,33 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         Map<String, String> userClaimsToBeRemoved = new HashMap<>();
         Map<String, List<String>> simpleMultiValuedClaimsToBeAdded = new HashMap<>();
         Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved = new HashMap<>();
+        List<ProfileOperationExecutionResult> operationExecutionResultList = new ArrayList<>();
 
         if (operationsToPerform != null && !operationsToPerform.isEmpty()) {
             UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
             for (PerformableOperation operation : operationsToPerform) {
                 switch (operation.getOp()) {
                     case ADD:
-                        populateAddOperationResult(operation, responseContext, userClaimsToBeAdded,
-                                userClaimsToBeModified, simpleMultiValuedClaimsToBeAdded, userStoreManager);
+                        operationExecutionResultList.add(handleAddOperation(operation, responseContext,
+                                userClaimsToBeAdded, userClaimsToBeModified, simpleMultiValuedClaimsToBeAdded,
+                                userStoreManager));
                         break;
                     case REPLACE:
-                        populateModifyOperationResult(operation, responseContext, userClaimsToBeModified,
-                                simpleMultiValuedClaimsToBeRemoved, simpleMultiValuedClaimsToBeAdded, userStoreManager);
+                        operationExecutionResultList.add(handleReplaceOperation(operation, responseContext,
+                                userClaimsToBeModified, simpleMultiValuedClaimsToBeRemoved,
+                                simpleMultiValuedClaimsToBeAdded, userStoreManager));
                         break;
                     case REMOVE:
-                        populateRemoveOperationResult(operation, responseContext, userClaimsToBeModified,
-                                userClaimsToBeRemoved, simpleMultiValuedClaimsToBeRemoved);
+                        operationExecutionResultList.add(handleRemoveOperation(operation, responseContext,
+                                userClaimsToBeModified, userClaimsToBeRemoved, simpleMultiValuedClaimsToBeRemoved));
                         break;
                     default:
                         break;
                 }
             }
         }
+
+        logOperationExecutionResults(getSupportedActionType(), operationExecutionResultList);
 
         flowContext.add(USER_CLAIMS_TO_BE_ADDED, userClaimsToBeAdded);
         flowContext.add(USER_CLAIMS_TO_BE_MODIFIED, userClaimsToBeModified);
@@ -123,6 +130,62 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         flowContext.add(MULTI_VALUED_CLAIMS_TO_BE_REMOVED, simpleMultiValuedClaimsToBeRemoved);
 
         return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
+    }
+
+    private ProfileOperationExecutionResult handleAddOperation(
+            PerformableOperation operation,
+            ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext,
+            Map<String, String> userClaimsToBeAdded,
+            Map<String, String> userClaimsToBeModified,
+            Map<String, List<String>> simpleMultiValuedClaimsToBeAdded,
+            UniqueIDUserStoreManager userStoreManager) {
+
+        try {
+            populateAddOperationResult(operation, responseContext, userClaimsToBeAdded, userClaimsToBeModified,
+                    simpleMultiValuedClaimsToBeAdded, userStoreManager);
+            return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.SUCCESS,
+                    "Operation applied.");
+        } catch (ActionExecutionResponseProcessorException e) {
+            return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.FAILURE,
+                    e.getMessage());
+        }
+    }
+
+    private ProfileOperationExecutionResult handleReplaceOperation(
+            PerformableOperation operation,
+            ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext,
+            Map<String, String> userClaimsToBeModified,
+            Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved,
+            Map<String, List<String>> simpleMultiValuedClaimsToBeAdded,
+            UniqueIDUserStoreManager userStoreManager) {
+
+        try {
+            populateModifyOperationResult(operation, responseContext, userClaimsToBeModified,
+                    simpleMultiValuedClaimsToBeRemoved, simpleMultiValuedClaimsToBeAdded, userStoreManager);
+            return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.SUCCESS,
+                    "Operation applied.");
+        } catch (ActionExecutionResponseProcessorException e) {
+            return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.FAILURE,
+                    e.getMessage());
+        }
+    }
+
+    private ProfileOperationExecutionResult handleRemoveOperation(
+            PerformableOperation operation,
+            ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext,
+            Map<String, String> userClaimsToBeModified,
+            Map<String, String> userClaimsToBeRemoved,
+            Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved) {
+
+        try {
+            populateRemoveOperationResult(operation, responseContext, userClaimsToBeModified, userClaimsToBeRemoved,
+                    simpleMultiValuedClaimsToBeRemoved);
+            return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.SUCCESS,
+                    "Operation applied.");
+        } catch (ActionExecutionResponseProcessorException e) {
+            return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.FAILURE,
+                    e.getMessage());
+        }
     }
 
     private void populateAddOperationResult(PerformableOperation operation,
@@ -157,7 +220,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
-        validateImmutableClaims(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
@@ -234,7 +296,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String claimUri = getClaimUriFromPath(path);
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
-        validateImmutableClaims(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
@@ -282,7 +343,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String claimUri = getClaimUriFromPath(path);
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
-        validateImmutableClaims(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
 
@@ -560,8 +620,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         if (localClaim.get().getFlowInitiator()) {
-            logRejectedClaimUpdate(claimUri, "flow_initiator", claimUri +
-                    " is not allowed to modified.");
             throw new ActionExecutionResponseProcessorException(claimUri + " is not allowed to modified.");
         }
     }
@@ -570,20 +628,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         if (claimUri.equals(GROUP_CLAIM_URI) || claimUri.equals(ROLE_CLAIM_URI)) {
-            logRejectedClaimUpdate(claimUri, "group_or_role",
-                    "Groups/Roles are not allowed to be modified: " + claimUri);
             throw new ActionExecutionResponseProcessorException("Groups/Roles are not allowed to modified: "
                     + claimUri);
-        }
-    }
-
-    private void validateImmutableClaims(String claimUri) throws ActionExecutionResponseProcessorException {
-
-        if (USERNAME_CLAIM_URI.equals(claimUri) || USERID_CLAIM_URI.equals(claimUri)) {
-            logRejectedClaimUpdate(claimUri, "immutable_claim",
-                    "Immutable claim cannot be modified through profile update: " + claimUri);
-            throw new ActionExecutionResponseProcessorException(
-                    "Immutable claim cannot be modified through profile update: " + claimUri);
         }
     }
 
@@ -697,21 +743,47 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
     }
 
-    private void logRejectedClaimUpdate(String claimUri, String reason, String resultMessage) {
+    private void logOperationExecutionResults(ActionType actionType,
+                                              List<ProfileOperationExecutionResult> operationExecutionResultList) {
 
-        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
-            return;
+        if (isDiagnosticLoggingEnabled()) {
+            List<Map<String, String>> operationDetailsList = new ArrayList<>();
+            operationExecutionResultList.forEach(
+                    performedOperation -> operationDetailsList.add(Map.of(
+                            "operation", performedOperation.getOperation().getOp() + " path: "
+                                    + performedOperation.getOperation().getPath(),
+                            "status", performedOperation.getStatus().toString(),
+                            "message", performedOperation.getMessage()
+                    )));
+
+            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                    ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE);
+            diagLogBuilder
+                    .inputParam("executedOperations",
+                            operationDetailsList.isEmpty() ? "empty" : operationDetailsList)
+                    .resultMessage("Allowed operations are executed for " + actionType.getDisplayName() + " action.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .build();
+            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
         }
 
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
-                ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE)
-                .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                .resultMessage(resultMessage)
-                .inputParam("actionType", ActionType.PRE_UPDATE_PROFILE.getDisplayName())
-                .inputParam("claimUri", claimUri)
-                .inputParam("reason", reason)
-                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
-        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Processed response for action type: %s. Results of operations performed: %s",
+                    actionType, operationExecutionResultList));
+        }
+    }
+
+    private boolean isDiagnosticLoggingEnabled() {
+
+        try {
+            return LoggerUtils.isDiagnosticLogsEnabled();
+        } catch (Throwable t) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Skipping diagnostic log due to runtime context unavailability.", t);
+            }
+            return false;
+        }
     }
 }
