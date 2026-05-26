@@ -2223,6 +2223,7 @@
             </Create>
             <Read>
                 <Scope name="internal_org_flow_extension_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
