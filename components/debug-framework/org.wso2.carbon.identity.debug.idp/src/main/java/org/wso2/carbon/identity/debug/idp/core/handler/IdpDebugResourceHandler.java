@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.debug.framework.extension.DebugTypeProvider;
 import org.wso2.carbon.identity.debug.framework.model.DebugContext;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
+import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponseBuilder;
 import org.wso2.carbon.identity.debug.framework.model.DebugResult;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
@@ -70,7 +71,7 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
                 resolutionResult.getIdentityProvider(), protocolProvider);
 
         DebugResult debugResult = protocolProvider.getExecutor().execute(resolvedContext);
-        return DebugFrameworkResponse.fromDebugResult(debugResult);
+        return new DebugFrameworkResponseBuilder().populateFromExecutorResult(debugResult).build();
     }
 
     protected DebugContext resolveDebugContext(String connectionId, String resourceType,

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
+import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +67,39 @@ public class DebugFrameworkResponseBuilder {
     public DebugFrameworkResponseBuilder addData(String key, Object value) {
 
         this.data.put(key, value);
+        return this;
+    }
+
+    /**
+     * Populates this builder from a {@link DebugResult} produced by an executor.
+     * The result's status must be one of the three valid constants; null or unrecognized
+     * values indicate an executor bug and will throw {@link IllegalArgumentException}.
+     */
+    public DebugFrameworkResponseBuilder populateFromExecutorResult(DebugResult result) {
+
+        String resolvedStatus = result.getStatus();
+        if (!DebugFrameworkConstants.DEBUG_STATUS_FAILURE.equals(resolvedStatus)
+                && !DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(resolvedStatus)
+                && !DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE.equals(resolvedStatus)) {
+            throw new IllegalArgumentException("Executor produced an invalid status: " + resolvedStatus);
+        }
+
+        Map<String, Object> resultData = new HashMap<>();
+        if (result.getResultData() != null && !result.getResultData().isEmpty()) {
+            resultData.putAll(result.getResultData());
+        }
+        if (result.getErrorCode() != null) {
+            resultData.put(DebugFrameworkConstants.RESPONSE_KEY_ERROR_CODE, result.getErrorCode());
+        }
+        // Reserved top-level keys must not leak into the data map.
+        resultData.remove(DebugFrameworkConstants.RESPONSE_KEY_DEBUG_ID);
+        resultData.remove(DebugFrameworkConstants.RESPONSE_KEY_STATUS);
+        resultData.remove(DebugFrameworkConstants.RESPONSE_KEY_MESSAGE);
+
+        this.debugId = result.getDebugId();
+        this.status = resolvedStatus;
+        this.message = result.getErrorMessage();
+        this.data = resultData;
         return this;
     }
 

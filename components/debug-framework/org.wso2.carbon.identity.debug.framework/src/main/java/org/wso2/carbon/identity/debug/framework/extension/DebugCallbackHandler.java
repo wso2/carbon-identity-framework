@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.debug.framework.extension;
 
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkException;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -29,21 +31,22 @@ import javax.servlet.http.HttpServletResponse;
 public interface DebugCallbackHandler {
 
     /**
-     * Checks whether this handler can process the incoming callback request.
+     * Returns the protocol key this handler is responsible for (e.g., "oidc", "saml").
+     * Used by the interceptor to route directly to the correct handler without scanning.
      *
-     * @param request The HTTP servlet request.
-     * @return true if this handler can process the request.
+     * @return The protocol key in lowercase.
      */
-    boolean canHandle(HttpServletRequest request);
+    String getSupportedProtocol();
 
     /**
      * Processes the debug callback request.
      *
-     * @param request  The HTTP servlet request.
-     * @param response The HTTP servlet response.
+     * @param request     The HTTP servlet request.
+     * @param response    The HTTP servlet response.
+     * @param sessionData The already-loaded session map for this debug session (keyed by state).
      * @return true if the callback is handled and the normal flow should be skipped.
      * @throws DebugFrameworkException If callback processing fails.
      */
-    boolean handleCallback(HttpServletRequest request, HttpServletResponse response)
-            throws DebugFrameworkException;
+    boolean handleCallback(HttpServletRequest request, HttpServletResponse response,
+            Map<String, Object> sessionData) throws DebugFrameworkException;
 }

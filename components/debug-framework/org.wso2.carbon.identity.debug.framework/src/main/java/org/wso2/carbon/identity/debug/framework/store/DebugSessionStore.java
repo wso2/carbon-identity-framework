@@ -154,6 +154,19 @@ public final class DebugSessionStore {
     }
 
     /**
+     * Retrieves the full session record for a debug ID.
+     * Callers can inspect the status to distinguish "session pending" from "session not found".
+     *
+     * @param key Store key.
+     * @return {@link DebugSessionData}, or {@code null} if no session exists for the key.
+     * @throws DebugFrameworkServerException If database access fails.
+     */
+    public DebugSessionData getSession(String key) throws DebugFrameworkServerException {
+
+        return debugSessionDAO.getDebugSession(key);
+    }
+
+    /**
      * Resolves the session TTL in milliseconds. Reads {@code debug.session.ttl.minutes} from system
      * properties or the {@code DEBUG_SESSION_TTL_MINUTES} environment variable, falling back to
      * {@link DebugFrameworkConstants#CACHE_EXPIRY_MINUTES} when unset or invalid.

@@ -149,6 +149,10 @@ public class IdpDebugTypeResolver {
      * Returns {@code null} for unrecognized implementations. Note that SAML resolves to a key
      * for which no debug provider is registered yet; such requests fail later with a clear
      * "executor not found" error rather than being silently dropped here.
+     *
+     * OIDC-family authenticators (plain OIDC, Google) all map to IDP_TYPE_OIDC because they share
+     * the same debug components. GitHub maps to its own key because it has a custom processor that
+     * calls the userinfo endpoint instead of parsing an ID token. Facebook has its own executor.
      */
     protected static String resolveIdpType(String implementationName) {
 
@@ -156,11 +160,8 @@ public class IdpDebugTypeResolver {
             return null;
         }
 
-        if (IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)) {
+        if (isOidcFamilyImplementation(implementationName)) {
             return IdpDebugConstants.IDP_TYPE_OIDC;
-        }
-        if (IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName)) {
-            return IdpDebugConstants.IDP_TYPE_GOOGLE;
         }
         if (IdpDebugConstants.IMPLEMENTATION_GITHUB.equalsIgnoreCase(implementationName)) {
             return IdpDebugConstants.IDP_TYPE_GITHUB;
@@ -172,5 +173,11 @@ public class IdpDebugTypeResolver {
             return IdpDebugConstants.IDP_TYPE_SAML;
         }
         return null;
+    }
+
+    private static boolean isOidcFamilyImplementation(String implementationName) {
+
+        return IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)
+                || IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName);
     }
 }

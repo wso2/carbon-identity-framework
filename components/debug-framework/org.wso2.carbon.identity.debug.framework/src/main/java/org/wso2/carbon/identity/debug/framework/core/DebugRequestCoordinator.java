@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponseBuilder;
+import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
 import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugTypeRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
@@ -45,9 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Routes incoming authentication requests to appropriate handlers.
- * Handles protocol-specific callback requests (/commonauth) via registered
- * DebugCallbackHandler implementations.
+ * Routes debug API requests to the appropriate resource handler and manages post-execution listeners.
  */
 public class DebugRequestCoordinator {
 
@@ -103,9 +102,19 @@ public class DebugRequestCoordinator {
         debugFrameworkRequest.addContextProperty(DebugFrameworkConstants.DEBUG_SESSION_DATA_KEY, debugId);
         debugFrameworkRequest.setResultRetrieval(true);
 
-        String resultJson = DebugSessionStore.getInstance().getResult(debugId);
-        if (resultJson == null) {
+        DebugSessionData sessionData = DebugSessionStore.getInstance().getSession(debugId);
+        if (sessionData == null) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_RESULT_NOT_FOUND, debugId);
+        }
+
+        String resultJson = sessionData.getResultJson();
+        if (resultJson == null) {
+            // Session exists but the IDP callback has not yet written the result — still in progress.
+            return new DebugFrameworkResponseBuilder()
+                    .debugId(debugId)
+                    .status(DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_INCOMPLETE)
+                    .message("Debug session is still in progress. Please retry.")
+                    .build();
         }
 
         Map<String, Object> resultData = parseResultJson(resultJson);
@@ -121,32 +130,62 @@ public class DebugRequestCoordinator {
     }
 
     /**
-     * Handles callback requests from external debug systems.
-     * Routes to the appropriate DebugCallbackHandler based on request characteristics.
+     * Handles a debug callback request from /commonauth.
+     * Resolves the protocol from the session, routes to the registered handler directly.
      *
      * @param request  The HTTP request containing callback parameters.
      * @param response The HTTP response for sending results.
-     * @return true if a callback handler claimed the request (success or failure); false if no handler matched.
+     * @return true if the callback was handled; false if no handler matched.
      */
     public boolean handleCallbackRequest(HttpServletRequest request, HttpServletResponse response) {
 
-        DebugCallbackHandler handler = resolveCallbackHandler(request);
+        String state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Handling debug callback request for state: " + state);
+        }
+        Map<String, Object> sessionData = loadSessionData(state);
+        if (sessionData == null) {
+            return false;
+        }
+        String protocol = extractProtocol(sessionData);
+        if (protocol == null) {
+            return false;
+        }
+
+        DebugCallbackHandler handler = DebugTypeRegistry.getInstance().getHandler(protocol);
         if (handler == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No debug callback handler matched the request. Skipping debug handling.");
-            }
             return false;
         }
 
         try {
-            return handler.handleCallback(request, response);
+            return handler.handleCallback(request, response, sessionData);
         } catch (DebugFrameworkException e) {
-            String debugId = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-            LOG.error("Debug callback handler failed for session: " + debugId
-                    + ". Error code: " + e.getErrorCode(), e);
-            sendInternalErrorIfUncommitted(response);
+            if (!response.isCommitted()) {
+                try {
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                            "Debug callback processing failed.");
+                } catch (IOException ioEx) {
+                    LOG.warn("Error sending error response after debug callback failure.", ioEx);
+                }
+            }
             return true;
         }
+    }
+
+    private Map<String, Object> loadSessionData(String state) {
+
+        try {
+            Map<String, Object> sessionData = DebugSessionStore.getInstance().get(state);
+            return (sessionData == null || sessionData.isEmpty()) ? null : sessionData;
+        } catch (DebugFrameworkException e) {
+            return null;
+        }
+    }
+
+    private String extractProtocol(Map<String, Object> sessionData) {
+
+        Object protocol = sessionData.get(DebugFrameworkConstants.CONTEXT_PROTOCOL_KEY);
+        return protocol != null ? protocol.toString() : null;
     }
 
     private void executePostListeners(DebugFrameworkResponse debugFrameworkResponse,
@@ -181,25 +220,5 @@ public class DebugRequestCoordinator {
         }
     }
 
-    private DebugCallbackHandler resolveCallbackHandler(HttpServletRequest request) {
-
-        for (DebugCallbackHandler handler : DebugTypeRegistry.getInstance().getDebugCallbackHandlers()) {
-            if (handler.canHandle(request)) {
-                return handler;
-            }
-        }
-        return null;
-    }
-
-    private void sendInternalErrorIfUncommitted(HttpServletResponse response) {
-
-        if (response.isCommitted()) {
-            return;
-        }
-        try {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Debug callback processing failed.");
-        } catch (IOException ioEx) {
-            LOG.error("Error sending error response after debug callback failure.", ioEx);
-        }
-    }
 }
+

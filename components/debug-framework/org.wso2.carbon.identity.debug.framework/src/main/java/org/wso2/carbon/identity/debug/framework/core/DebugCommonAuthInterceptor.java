@@ -29,18 +29,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Intercepts common auth requests and delegates debug callback handling to the coordinator.
+ * Intercepts /commonauth requests and delegates debug callbacks to the coordinator.
  */
 public class DebugCommonAuthInterceptor implements DebugAuthenticationInterceptor {
 
     private static final Log LOG = LogFactory.getLog(DebugCommonAuthInterceptor.class);
 
-    /**
-     * Checks whether the request is a debug flow callback request.
-     *
-     * @param request Http servlet request.
-     * @return {@code true} if the request should be handled by the debug flow.
-     */
     @Override
     public boolean canHandle(HttpServletRequest request) {
 
@@ -48,13 +42,6 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
         return StringUtils.isNotBlank(state) && state.startsWith(DebugFrameworkConstants.DEBUG_PREFIX);
     }
 
-    /**
-     * Handles the common auth request for debug flow callbacks.
-     *
-     * @param request Http servlet request.
-     * @param response Http servlet response.
-     * @return {@code true} if the request was handled.
-     */
     @Override
     public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
 

@@ -28,9 +28,7 @@ import java.util.Map;
  */
 public class DebugResult {
 
-    private boolean successful;
     private String debugId;
-    private long timestamp;
     private String status;
     private String errorCode;
     private String errorMessage;
@@ -42,27 +40,6 @@ public class DebugResult {
     public DebugResult() {
 
         this.resultData = new HashMap<>();
-        this.timestamp = System.currentTimeMillis();
-    }
-
-    /**
-     * Gets whether the debug operation was successful.
-     *
-     * @return true if successful, false otherwise.
-     */
-    public boolean isSuccessful() {
-
-        return successful;
-    }
-
-    /**
-     * Sets whether the debug operation was successful.
-     *
-     * @param successful true if successful, false otherwise.
-     */
-    public void setSuccessful(boolean successful) {
-
-        this.successful = successful;
     }
 
     /**
@@ -83,26 +60,6 @@ public class DebugResult {
     public void setDebugId(String debugId) {
 
         this.debugId = debugId;
-    }
-
-    /**
-     * Gets the timestamp of result creation.
-     *
-     * @return Timestamp in milliseconds.
-     */
-    public long getTimestamp() {
-
-        return timestamp;
-    }
-
-    /**
-     * Sets the timestamp.
-     *
-     * @param timestamp Timestamp in milliseconds.
-     */
-    public void setTimestamp(long timestamp) {
-
-        this.timestamp = timestamp;
     }
 
     /**
@@ -200,9 +157,7 @@ public class DebugResult {
     public String toString() {
 
         StringBuilder sb = new StringBuilder("DebugResult{");
-        sb.append("successful=").append(successful);
-        sb.append(", debugId='").append(debugId).append('\'');
-        sb.append(", timestamp=").append(timestamp);
+        sb.append("debugId='").append(debugId).append('\'');
         sb.append(", status='").append(status).append('\'');
         sb.append(", errorCode='").append(errorCode).append('\'');
         sb.append('}');

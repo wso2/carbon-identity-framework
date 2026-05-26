@@ -38,21 +38,4 @@ public abstract class DebugExecutor {
      */
     public abstract DebugResult execute(DebugContext context) throws DebugExecutionException;
 
-    /**
-     * Validates if this executor can handle the given context.
-     * Used to determine which executor to use for a specific resource configuration.
-     *
-     * @param context DebugContext to validate against.
-     * @return true if this executor can handle the context, false otherwise.
-     */
-    public abstract boolean canExecute(DebugContext context);
-
-    /**
-     * Gets the name of the executor.
-     * Used for logging and identification purposes.
-     *
-     * @return Executor name.
-     */
-    public abstract String getExecutorName();
-
 }

@@ -50,7 +50,6 @@ public final class DebugFrameworkConstants {
 
     // Debug Status Constants.
     public static final String DEBUG_STATUS_FAILURE = "FAILURE";
-    public static final String DEBUG_STATUS_SUCCESS = "SUCCESS";
     public static final String DEBUG_STATUS_SUCCESS_INCOMPLETE = "SUCCESS_INCOMPLETE";
     public static final String DEBUG_STATUS_SUCCESS_COMPLETE = "SUCCESS_COMPLETE";
 
@@ -59,6 +58,8 @@ public final class DebugFrameworkConstants {
     public static final String CALLBACK_CODE_PARAM = "code";
     public static final String CALLBACK_ERROR_PARAM = "error";
     public static final String UNKNOWN_DEBUG_STATE = "unknown";
+
+    public static final String CONTEXT_PROTOCOL_KEY = "protocol";
 
     // Debug Context Properties (used by protocol modules).
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
@@ -97,7 +98,7 @@ public final class DebugFrameworkConstants {
                 "The resource type must be provided in the debug request."),
         ERROR_CODE_MISSING_RESOURCE_ID("60003",
                 "Resource ID is required.",
-                "The resource ID must be provided in the debug request."),
+                "The connection ID must be provided in the debug request."),
         ERROR_CODE_HANDLER_NOT_FOUND("60004",
                 "Handler not found.",
                 "No handler available for resource type: %s"),

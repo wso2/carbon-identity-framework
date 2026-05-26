@@ -32,10 +32,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugCommonAuthInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
-import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
 import org.wso2.carbon.identity.debug.framework.listener.DebugSessionCleanupExecutionListener;
-import org.wso2.carbon.identity.debug.framework.registry.DebugTypeRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionCleanupService;
 
 /**
@@ -107,25 +105,6 @@ public class DebugServiceComponent {
         DebugFrameworkServiceDataHolder.getInstance().removeDebugExecutionListener(listener);
         if (LOG.isDebugEnabled()) {
             LOG.debug("DebugExecutionListener unregistered: " + listener.getClass().getName());
-        }
-    }
-
-    @Reference(name = "debug.callback.handler", service = DebugCallbackHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetDebugCallbackHandler")
-    protected void setDebugCallbackHandler(DebugCallbackHandler handler) {
-
-        DebugTypeRegistry.getInstance().addDebugCallbackHandler(handler);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("DebugCallbackHandler registered: " + handler.getClass().getName());
-        }
-    }
-
-    protected void unsetDebugCallbackHandler(DebugCallbackHandler handler) {
-
-        DebugTypeRegistry.getInstance().removeDebugCallbackHandler(handler);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("DebugCallbackHandler unregistered: " + handler.getClass().getName());
         }
     }
 

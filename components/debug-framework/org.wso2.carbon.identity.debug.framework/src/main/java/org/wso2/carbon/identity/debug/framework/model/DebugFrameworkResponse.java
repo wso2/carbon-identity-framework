@@ -18,13 +18,9 @@
 
 package org.wso2.carbon.identity.debug.framework.model;
 
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_FAILURE;
-import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS;
 import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_COMPLETE;
 import static org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.DEBUG_STATUS_SUCCESS_INCOMPLETE;
 
@@ -42,42 +38,6 @@ public class DebugFrameworkResponse {
 
     public DebugFrameworkResponse() {
 
-    }
-
-    /**
-     * Creates a DebugFrameworkResponse from DebugResult.
-     * Sets debugId, status, and message as top-level fields.
-     * The data map contains only protocol-specific metadata.
-     *
-     * @param result The DebugResult to convert (non-null — executors must produce one).
-     * @return DebugFrameworkResponse instance.
-     */
-    public static DebugFrameworkResponse fromDebugResult(DebugResult result) {
-
-        String resolvedStatus = resolveLifecycleStatus(result.getStatus());
-        String status = resolvedStatus != null ? resolvedStatus
-                : (result.isSuccessful() ? DEBUG_STATUS_SUCCESS_COMPLETE : DEBUG_STATUS_FAILURE);
-
-        Map<String, Object> data = new HashMap<>();
-        if (result.getResultData() != null && !result.getResultData().isEmpty()) {
-            data.putAll(result.getResultData());
-        }
-        if (result.getErrorCode() != null) {
-            data.put(DebugFrameworkConstants.RESPONSE_KEY_ERROR_CODE, result.getErrorCode());
-        }
-
-        // Reserved top-level keys must not leak into the data map; protocol-specific executors
-        // sometimes include them in resultData or metadata.
-        data.remove(DebugFrameworkConstants.RESPONSE_KEY_DEBUG_ID);
-        data.remove(DebugFrameworkConstants.RESPONSE_KEY_STATUS);
-        data.remove(DebugFrameworkConstants.RESPONSE_KEY_MESSAGE);
-
-        return new DebugFrameworkResponseBuilder()
-                .debugId(result.getDebugId())
-                .status(status)
-                .message(result.getErrorMessage())
-                .data(data)
-                .build();
     }
 
     public String getDebugId() {
@@ -131,25 +91,13 @@ public class DebugFrameworkResponse {
     }
 
     /**
-     * Checks if the response indicates success.
+     * Checks if the response indicates success (complete or incomplete).
      *
-     * @return true if status is SUCCESS, false otherwise.
+     * @return true if status is SUCCESS_COMPLETE or SUCCESS_INCOMPLETE, false otherwise.
      */
     public boolean isSuccess() {
 
-        return DEBUG_STATUS_SUCCESS.equals(status)
-                || DEBUG_STATUS_SUCCESS_COMPLETE.equals(status)
+        return DEBUG_STATUS_SUCCESS_COMPLETE.equals(status)
                 || DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(status);
-    }
-
-    private static String resolveLifecycleStatus(String status) {
-
-        if (DEBUG_STATUS_FAILURE.equals(status)
-                || DEBUG_STATUS_SUCCESS.equals(status)
-                || DEBUG_STATUS_SUCCESS_INCOMPLETE.equals(status)
-                || DEBUG_STATUS_SUCCESS_COMPLETE.equals(status)) {
-            return status;
-        }
-        return null;
     }
 }

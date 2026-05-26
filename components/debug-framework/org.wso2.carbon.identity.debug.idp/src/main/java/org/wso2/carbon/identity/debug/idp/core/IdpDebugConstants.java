@@ -36,7 +36,6 @@ public final class IdpDebugConstants {
 
     // Canonical IdP type keys.
     public static final String IDP_TYPE_OIDC = "OIDC";
-    public static final String IDP_TYPE_GOOGLE = "Google";
     public static final String IDP_TYPE_FACEBOOK = "Facebook";
     public static final String IDP_TYPE_GITHUB = "GitHub";
     public static final String IDP_TYPE_SAML = "SAML";

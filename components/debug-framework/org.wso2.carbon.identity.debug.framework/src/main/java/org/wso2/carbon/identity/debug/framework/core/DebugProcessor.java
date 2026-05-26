@@ -37,6 +37,5 @@ public abstract class DebugProcessor {
      */
     protected void handleUnexpectedError(Exception e, DebugContext debugContext) {
 
-        // No-op by default. Subclasses may override to record protocol-specific error state.
     }
 }

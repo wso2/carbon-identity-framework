@@ -20,18 +20,17 @@ package org.wso2.carbon.identity.debug.framework.registry;
 
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Registry for debug callback handlers.
+ * Registry for debug callback handlers, keyed by protocol.
  */
 public class DebugTypeRegistry {
 
     private static final DebugTypeRegistry INSTANCE = new DebugTypeRegistry();
 
-    private final List<DebugCallbackHandler> debugCallbackHandlers = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<String, DebugCallbackHandler> handlersByProtocol = new ConcurrentHashMap<>();
 
     private DebugTypeRegistry() {
 
@@ -44,18 +43,19 @@ public class DebugTypeRegistry {
 
     public void addDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        if (!debugCallbackHandlers.contains(handler)) {
-            debugCallbackHandlers.add(handler);
-        }
+        handlersByProtocol.put(handler.getSupportedProtocol().toLowerCase(Locale.ROOT), handler);
     }
 
     public void removeDebugCallbackHandler(DebugCallbackHandler handler) {
 
-        debugCallbackHandlers.remove(handler);
+        handlersByProtocol.remove(handler.getSupportedProtocol().toLowerCase(Locale.ROOT));
     }
 
-    public List<DebugCallbackHandler> getDebugCallbackHandlers() {
+    public DebugCallbackHandler getHandler(String protocol) {
 
-        return new ArrayList<>(debugCallbackHandlers);
+        if (protocol == null) {
+            return null;
+        }
+        return handlersByProtocol.get(protocol.toLowerCase(Locale.ROOT));
     }
 }
