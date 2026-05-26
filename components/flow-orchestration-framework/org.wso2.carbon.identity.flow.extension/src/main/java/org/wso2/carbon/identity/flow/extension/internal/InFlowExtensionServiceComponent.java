@@ -38,10 +38,10 @@ import org.wso2.carbon.identity.certificate.management.service.CertificateManage
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.extension.executor.FlowExtensionExecutor;
-import org.wso2.carbon.identity.flow.extension.executor.InFlowExtensionRequestBuilder;
-import org.wso2.carbon.identity.flow.extension.executor.InFlowExtensionResponseProcessor;
-import org.wso2.carbon.identity.flow.extension.management.InFlowExtensionActionConverter;
-import org.wso2.carbon.identity.flow.extension.management.InFlowExtensionActionDTOModelResolver;
+import org.wso2.carbon.identity.flow.extension.executor.FlowExtensionRequestBuilder;
+import org.wso2.carbon.identity.flow.extension.executor.FlowExtensionResponseProcessor;
+import org.wso2.carbon.identity.flow.extension.management.FlowExtensionActionConverter;
+import org.wso2.carbon.identity.flow.extension.management.FlowExtensionActionDTOModelResolver;
 
 /**
  * OSGi declarative services component which registers the In-Flow Extension services.

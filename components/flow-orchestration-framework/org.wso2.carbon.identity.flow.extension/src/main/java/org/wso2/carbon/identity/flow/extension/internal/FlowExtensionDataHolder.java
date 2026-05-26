@@ -29,20 +29,20 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
  * <p>This singleton is used by DS bind/unbind methods to expose dynamic OSGi references
  * to classes outside the component lifecycle methods.</p>
  */
-public final class InFlowExtensionDataHolder {
+public final class FlowExtensionDataHolder {
 
-    private static final InFlowExtensionDataHolder instance = new InFlowExtensionDataHolder();
+    private static final FlowExtensionDataHolder instance = new FlowExtensionDataHolder();
 
     private ActionExecutorService actionExecutorService;
     private ActionManagementService actionManagementService;
     private CertificateManagementService certificateManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
 
-    private InFlowExtensionDataHolder() {
+    private FlowExtensionDataHolder() {
 
     }
 
-    public static InFlowExtensionDataHolder getInstance() {
+    public static FlowExtensionDataHolder getInstance() {
 
         return instance;
     }
