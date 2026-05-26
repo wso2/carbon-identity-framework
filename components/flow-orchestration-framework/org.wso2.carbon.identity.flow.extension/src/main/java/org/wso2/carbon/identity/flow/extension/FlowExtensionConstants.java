@@ -47,6 +47,37 @@ public class FlowExtensionConstants {
 
     public static final String ACTION_ID_METADATA_KEY = "actionId";
 
+    /**
+     * User-facing error message / description pairs returned via {@code ExecutorResponse}
+     * when In-Flow Extension execution fails or is unavailable.
+     */
+    public static final class ErrorMessages {
+
+        public static final String NOT_CONFIGURED_MESSAGE = "Extension is not configured.";
+        public static final String NOT_CONFIGURED_DESCRIPTION =
+                "The Flow Extension action is missing required configuration. " +
+                        "Contact your administrator.";
+
+        public static final String EXECUTION_DISABLED_MESSAGE = "Extension execution is disabled.";
+        public static final String EXECUTION_DISABLED_DESCRIPTION =
+                "The Flow Extension action type is currently disabled on this server.";
+
+        public static final String EXECUTION_FAILED_MESSAGE =
+                "An error occurred while processing the extension. Please try again.";
+        public static final String EXECUTION_FAILED_DESCRIPTION =
+                "The external extension service could not complete the request. " +
+                        "If the problem persists, contact your administrator.";
+
+        public static final String INCOMPLETE_NO_REDIRECT_MESSAGE =
+                "Extension returned INCOMPLETE without a redirect URL.";
+        public static final String INCOMPLETE_NO_REDIRECT_DESCRIPTION =
+                "The external extension returned an incomplete response. Please try again.";
+
+        private ErrorMessages() {
+
+        }
+    }
+
     public static final class ActionManagement {
 
         public static final String ACCESS_CONFIG_EXPOSE = "ACCESS_CONFIG_EXPOSE";
