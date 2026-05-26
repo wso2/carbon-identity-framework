@@ -49,9 +49,9 @@ import org.wso2.carbon.identity.flow.extension.management.FlowExtensionActionDTO
 @Component(
         name = "flow.extension.component",
         immediate = true)
-public class InFlowExtensionServiceComponent {
+public class FlowExtensionServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(InFlowExtensionServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(FlowExtensionServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -61,15 +61,15 @@ public class InFlowExtensionServiceComponent {
 
             bundleContext.registerService(Executor.class.getName(), new FlowExtensionExecutor(), null);
             bundleContext.registerService(ActionExecutionRequestBuilder.class.getName(),
-                    new InFlowExtensionRequestBuilder(), null);
+                    new FlowExtensionRequestBuilder(), null);
             bundleContext.registerService(ActionExecutionResponseProcessor.class.getName(),
-                    new InFlowExtensionResponseProcessor(), null);
+                    new FlowExtensionResponseProcessor(), null);
 
             bundleContext.registerService(ActionConverter.class.getName(),
-                    new InFlowExtensionActionConverter(), null);
+                    new FlowExtensionActionConverter(), null);
             bundleContext.registerService(ActionDTOModelResolver.class.getName(),
-                    new InFlowExtensionActionDTOModelResolver(
-                            InFlowExtensionDataHolder.getInstance().getCertificateManagementService()),
+                    new FlowExtensionActionDTOModelResolver(
+                            FlowExtensionDataHolder.getInstance().getCertificateManagementService()),
                     null);
 
             LOG.debug("In-Flow Extension service successfully activated.");
@@ -94,7 +94,7 @@ public class InFlowExtensionServiceComponent {
     protected void setActionManagementService(ActionManagementService actionManagementService) {
 
         LOG.debug("Setting the ActionManagementService in the In-Flow Extension component.");
-        InFlowExtensionDataHolder.getInstance().setActionManagementService(actionManagementService);
+        FlowExtensionDataHolder.getInstance().setActionManagementService(actionManagementService);
     }
 
     protected void unsetActionManagementService(ActionManagementService actionManagementService) {
@@ -103,7 +103,7 @@ public class InFlowExtensionServiceComponent {
             LOG.debug("Unsetting the ActionManagementService in the In-Flow Extension component. Service: "
                     + actionManagementService);
         }
-        InFlowExtensionDataHolder.getInstance().setActionManagementService(null);
+        FlowExtensionDataHolder.getInstance().setActionManagementService(null);
     }
 
     @Reference(
@@ -125,7 +125,7 @@ public class InFlowExtensionServiceComponent {
             LOG.debug("Unsetting the ActionExecutorService in the In-Flow Extension component. Service: "
                     + actionExecutorService);
         }
-        InFlowExtensionDataHolder.getInstance().setActionExecutorService(null);
+        FlowExtensionDataHolder.getInstance().setActionExecutorService(null);
     }
 
     @Reference(
@@ -138,7 +138,7 @@ public class InFlowExtensionServiceComponent {
     protected void setCertificateManagementService(CertificateManagementService certificateManagementService) {
 
         LOG.debug("Setting the CertificateManagementService in the In-Flow Extension component.");
-        InFlowExtensionDataHolder.getInstance()
+        FlowExtensionDataHolder.getInstance()
                 .setCertificateManagementService(certificateManagementService);
     }
 
@@ -149,7 +149,7 @@ public class InFlowExtensionServiceComponent {
             LOG.debug("Unsetting the CertificateManagementService in the In-Flow Extension component. Service: "
                     + certificateManagementService);
         }
-        InFlowExtensionDataHolder.getInstance().setCertificateManagementService(null);
+        FlowExtensionDataHolder.getInstance().setCertificateManagementService(null);
     }
 
     @Reference(
@@ -163,7 +163,7 @@ public class InFlowExtensionServiceComponent {
             ClaimMetadataManagementService claimMetadataManagementService) {
 
         LOG.debug("Setting the ClaimMetadataManagementService in the In-Flow Extension component.");
-        InFlowExtensionDataHolder.getInstance()
+        FlowExtensionDataHolder.getInstance()
                 .setClaimMetadataManagementService(claimMetadataManagementService);
     }
 
@@ -174,6 +174,6 @@ public class InFlowExtensionServiceComponent {
             LOG.debug("Unsetting the ClaimMetadataManagementService in the In-Flow Extension component. Service: "
                     + claimMetadataManagementService);
         }
-        InFlowExtensionDataHolder.getInstance().setClaimMetadataManagementService(null);
+        FlowExtensionDataHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }
