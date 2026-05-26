@@ -2125,6 +2125,32 @@
                    description="Manage edits of flows from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Flow Extensions Feature" identifier="console:flowExtensions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flow Extensions Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Flow Extensions Feature" name="console:flowExtensions"
+                   description="Manage flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions View Feature" name="console:flowExtensions_view"
+                   description="Manage views of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Edit Feature" name="console:flowExtensions_edit"
+                   description="Manage edits of flow extensions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extensions Feature" identifier="console:org:flowExtensions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flow Extensions Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Flow Extensions Feature" name="console:org:flowExtensions"
+                   description="Manage flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions View Feature" name="console:org:flowExtensions_view"
+                   description="Manage views of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Edit Feature" name="console:org:flowExtensions_edit"
+                   description="Manage edits of flow extensions from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">
@@ -2227,6 +2253,34 @@
                    description="Update flow in the organization"/>
             <Scope displayName="Delete Flow" name="internal_org_flow_delete"
                    description="Delete flow in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extensions Management API" identifier="/api/server/v1/flow/flow-extension"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Extensions Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Flow Extension" name="internal_flow_extensions_view"
+                   description="View flow extensions"/>
+            <Scope displayName="Create Flow Extension" name="internal_flow_extensions_create"
+                   description="Create flow extensions"/>
+            <Scope displayName="Update Flow Extension" name="internal_flow_extensions_update"
+                   description="Update flow extensions"/>
+            <Scope displayName="Delete Flow Extension" name="internal_flow_extensions_delete"
+                   description="Delete flow extensions"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extensions Management API" identifier="/o/api/server/v1/flow/flow-extension"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Extensions Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Flow Extension" name="internal_org_flow_extensions_view"
+                   description="View flow extensions in the organization"/>
+            <Scope displayName="Create Flow Extension" name="internal_org_flow_extensions_create"
+                   description="Create flow extensions in the organization"/>
+            <Scope displayName="Update Flow Extension" name="internal_org_flow_extensions_update"
+                   description="Update flow extensions in the organization"/>
+            <Scope displayName="Delete Flow Extension" name="internal_org_flow_extensions_delete"
+                   description="Delete flow extensions in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/o/api/server/v1/async-operations"
