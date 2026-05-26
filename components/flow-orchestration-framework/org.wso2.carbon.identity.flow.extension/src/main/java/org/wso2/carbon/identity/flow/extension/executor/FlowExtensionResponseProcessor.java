@@ -599,6 +599,10 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
     /**
      * Log operation execution results for diagnostics and debugging.
+     * Only op / path / status / message are ever logged. The operation {@code value} is
+     * intentionally omitted: by this point in the pipeline encrypted values have been
+     * decrypted in place and credential REPLACE operations carry plaintext secrets, so
+     * serialising the full operation would leak sensitive data into log aggregators.
      */
     private void logOperationExecutionResults(List<OperationExecutionResult> results) {
 
@@ -606,17 +610,17 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return;
         }
 
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            List<Map<String, String>> operationDetailsList = new ArrayList<>();
-            results.forEach(result -> {
-                Map<String, String> details = new HashMap<>();
-                details.put("operation", result.getOperation().getOp() + " path: " +
-                        result.getOperation().getPath());
-                details.put("status", result.getStatus().toString());
-                details.put("message", result.getMessage());
-                operationDetailsList.add(details);
-            });
+        List<Map<String, String>> operationDetailsList = new ArrayList<>();
+        results.forEach(result -> {
+            Map<String, String> details = new HashMap<>();
+            details.put("operation", result.getOperation().getOp() + " path: " +
+                    result.getOperation().getPath());
+            details.put("status", result.getStatus().toString());
+            details.put("message", result.getMessage());
+            operationDetailsList.add(details);
+        });
 
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                     ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE);
@@ -635,7 +639,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
             try {
-                String summary = mapper.writeValueAsString(results);
+                String summary = mapper.writeValueAsString(operationDetailsList);
                 LOG.debug(String.format("Processed response for action type: %s. Results: %s",
                         getSupportedActionType(), summary));
             } catch (JsonProcessingException e) {
