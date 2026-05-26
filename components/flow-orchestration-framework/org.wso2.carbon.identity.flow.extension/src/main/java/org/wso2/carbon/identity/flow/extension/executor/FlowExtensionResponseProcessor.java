@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.extension.executor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
@@ -141,7 +142,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         if (operations != null && !operations.isEmpty()) {
             for (PerformableOperation operation : operations) {
-                operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
+                if (operation.getOp() == Operation.REPLACE) {
+                    operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
+                }
                 results.add(processOperation(
                         operation, pathTypeAnnotations, pendingClaims, pendingCredentials,
                         pendingProperties, tenantDomain));
@@ -164,11 +167,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         logOperationExecutionResults(results);
 
-        return new SuccessStatus.Builder()
-                .setSuccess(new Success() {
-                })
-                .setResponseContext(buildSuccessResponseContext(results))
-                .build();
+        return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
     }
 
 
@@ -194,7 +193,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             throws ActionExecutionResponseProcessorException {
 
         String path = operation.getPath();
-        if (path == null || path.isEmpty()) {
+        if (StringUtils.isBlank(path)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Operation path is null or empty.");
         }
@@ -206,7 +205,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         if (AccessConfig.isReadOnly(path)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Path is in a read-only area. Modifications not allowed: " + path);
+                    "Modifications are not allowed for the read-only paths" );
         }
 
         if (path.startsWith(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
@@ -218,10 +217,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                "Unknown path prefix. Supported: " + FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX +
-                        ", " + FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX + "<uri>" +
-                        FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX +
-                        ", " + FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX);
+                "Unknown path");
     }
 
     /**
@@ -241,7 +237,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         String propertyName = extractNameFromPath(operation.getPath(),
                 FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX);
 
-        if (propertyName == null || propertyName.isEmpty()) {
+        if (StringUtils.isBlank(propertyName)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Invalid property path. Property name is required.");
         }
@@ -266,7 +262,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         if (!PathTypeAnnotationUtil.enforceArrayItemLimit(
                 operation.getPath(), coercedValue, pathTypeAnnotations)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Array value exceeds maximum item limit for path: " + operation.getPath());
+                    "Array value exceeds maximum item limit for path.");
         }
 
         pendingProperties.put(propertyName, coercedValue);
@@ -299,7 +295,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         String claimUri = extractClaimUriFromPath(operation.getPath());
 
-        if (claimUri == null || claimUri.isEmpty()) {
+        if (StringUtils.isBlank(claimUri)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Invalid claim path. Claim URI is required.");
         }
@@ -376,7 +372,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         String credentialKey = extractNameFromPath(operation.getPath(),
                 FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX);
 
-        if (credentialKey == null || credentialKey.isEmpty()) {
+        if (StringUtils.isBlank(credentialKey)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Invalid credential path. Credential key is required.");
         }
@@ -453,119 +449,54 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         List<PerformableOperation> operations =
                 responseContext.getActionInvocationResponse().getOperations();
-        IncompleteOpScan scan = scanIncompleteOperations(operations);
+        validateOperationForIncompleteStatus(operations);
 
-        validateRedirectPresent(scan.redirectUrl);
-        logIgnoredIncompleteOps(scan.ignoredOpCount);
-
-        flowContext.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, scan.redirectUrl);
-        debugLogRedirectHost(scan.redirectUrl);
-        logIncompleteSuccess();
+        String redirectUrl = operations.get(0).getUrl();
+        flowContext.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, redirectUrl);
 
         return new IncompleteStatus.Builder()
-                .responseContext(Collections.emptyMap())
+                .responseContext(flowContext.getContextData())
                 .build();
     }
 
     /**
-     * Scan the operation list from an INCOMPLETE response to extract the redirect URL and count
-     * non-REDIRECT operations that will be ignored.
-     *
-     * @param operations List of operations from the INCOMPLETE response (may be null).
-     * @return Scan result holding the redirect URL and ignored-op count.
+     * Strictly validate the operations list on an INCOMPLETE response: it must contain exactly one
+     * REDIRECT operation with a non-empty URL. Any deviation aborts the response.
      */
-    private IncompleteOpScan scanIncompleteOperations(List<PerformableOperation> operations) {
-
-        if (operations == null) {
-            return new IncompleteOpScan(null, 0);
-        }
-        String redirectUrl = null;
-        int ignoredOpCount = 0;
-        for (PerformableOperation op : operations) {
-            if (op.getOp() == Operation.REDIRECT) {
-                redirectUrl = op.getUrl();
-            } else {
-                ignoredOpCount++;
-            }
-        }
-        return new IncompleteOpScan(redirectUrl, ignoredOpCount);
-    }
-
-    /**
-     * Assert that a redirect URL was found in the INCOMPLETE response; throw and emit diagnostics
-     * if it is absent.
-     */
-    private void validateRedirectPresent(String redirectUrl)
+    private void validateOperationForIncompleteStatus(List<PerformableOperation> operations)
             throws ActionExecutionResponseProcessorException {
 
-        if (redirectUrl != null && !redirectUrl.isEmpty()) {
-            return;
+        if (operations == null || operations.isEmpty()) {
+            throwIncompleteValidationError(
+                    "INCOMPLETE response from Flow Extension must contain a REDIRECT operation.");
         }
-        LOG.warn("In-Flow Extension INCOMPLETE response is missing a REDIRECT operation.");
+        if (operations.size() != 1) {
+            throwIncompleteValidationError(
+                    "INCOMPLETE response from Flow Extension must contain exactly one operation.");
+        }
+        if (operations.get(0).getOp() != Operation.REDIRECT) {
+            throwIncompleteValidationError(
+                    "The operation in an INCOMPLETE response from Flow Extension must be a REDIRECT operation.");
+        }
+        String url = operations.get(0).getUrl();
+        if (url == null || url.isEmpty()) {
+            throwIncompleteValidationError(
+                    "The REDIRECT operation in an INCOMPLETE response from Flow Extension must have a valid URL.");
+        }
+    }
+
+    private void throwIncompleteValidationError(String message) throws ActionExecutionResponseProcessorException {
+
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                     FlowExtensionConstants.Log.COMPONENT_ID,
                     FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
-                    .resultMessage(
-                            "INCOMPLETE response from In-Flow Extension is missing a REDIRECT operation.")
+                    .resultMessage(message)
                     .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.FAILED));
         }
-        throw new ActionExecutionResponseProcessorException(
-                "INCOMPLETE response from In-Flow Extension must contain a REDIRECT operation.");
-    }
-
-    /** Log the number of non-REDIRECT ops discarded in an INCOMPLETE response, if any. */
-    private void logIgnoredIncompleteOps(int ignoredOpCount) {
-
-        if (ignoredOpCount > 0 && LOG.isDebugEnabled()) {
-            LOG.debug("Ignored " + ignoredOpCount + " non-REDIRECT operation(s) on INCOMPLETE response. "
-                    + "REPLACE ops are by-contract dropped — the extension is expected to resend "
-                    + "them on the resume call after callback.");
-        }
-    }
-
-    /** Log the redirect URL host at DEBUG level after parsing the URI. */
-    private void debugLogRedirectHost(String redirectUrl) {
-
-        if (!LOG.isDebugEnabled()) {
-            return;
-        }
-        try {
-            String host = new java.net.URI(redirectUrl).getHost();
-            LOG.debug("In-Flow Extension INCOMPLETE: redirect URL host resolved: " + host);
-        } catch (java.net.URISyntaxException ignored) {
-            LOG.debug("In-Flow Extension INCOMPLETE: redirect URL stored in flow context.");
-        }
-    }
-
-    /** Emit a diagnostic success event after a valid INCOMPLETE response is processed. */
-    private void logIncompleteSuccess() {
-
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FlowExtensionConstants.Log.COMPONENT_ID,
-                    FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
-                    .resultMessage(
-                            "In-Flow Extension INCOMPLETE response processed. Redirect URL stored in flow context.")
-                    .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-        }
-    }
-
-    /** Lightweight value holder for the result of scanning INCOMPLETE response operations. */
-    private static final class IncompleteOpScan {
-
-        private final String redirectUrl;
-        private final int ignoredOpCount;
-
-        private IncompleteOpScan(String redirectUrl, int ignoredOpCount) {
-
-            this.redirectUrl = redirectUrl;
-            this.ignoredOpCount = ignoredOpCount;
-        }
+        throw new ActionExecutionResponseProcessorException(message);
     }
 
     @Override
@@ -705,8 +636,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             }
             return decryptedOp;
         } catch (Exception e) {
-            LOG.error("Failed to decrypt inbound JWE value for path '" + operation.getPath()
-                    + "', tenant: " + tenantDomain, e);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                         FlowExtensionConstants.Log.COMPONENT_ID,
@@ -751,38 +680,4 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
         return execCtx;
     }
-
-    /**
-     * Build the SuccessStatus response context, surfacing any per-operation failures so
-     * callers can inspect them. See class javadoc for the failure-handling policy.
-     * Also emits a WARN log when any operation failed so operators see partial failures
-     * without needing to read the response context programmatically.
-     */
-    private Map<String, Object> buildSuccessResponseContext(List<OperationExecutionResult> results) {
-
-        List<Map<String, String>> failed = new ArrayList<>();
-        for (OperationExecutionResult result : results) {
-            if (result.getStatus() == OperationExecutionResult.Status.FAILURE) {
-                Map<String, String> entry = new HashMap<>();
-                entry.put(FlowExtensionConstants.ResponseContext.OP_TYPE_KEY,
-                        String.valueOf(result.getOperation().getOp()));
-                entry.put(FlowExtensionConstants.ResponseContext.OP_PATH_KEY,
-                        result.getOperation().getPath());
-                entry.put(FlowExtensionConstants.ResponseContext.OP_MESSAGE_KEY, result.getMessage());
-                failed.add(entry);
-            }
-        }
-
-        if (!failed.isEmpty()) {
-            LOG.warn(failed.size() + " of " + results.size()
-                    + " operations in the Flow Extension response failed validation and were dropped. "
-                    + "See diagnostic logs for per-operation details.");
-        }
-
-        Map<String, Object> ctx = new HashMap<>();
-        ctx.put(FlowExtensionConstants.ResponseContext.TOTAL_OPERATIONS_KEY, results.size());
-        ctx.put(FlowExtensionConstants.ResponseContext.FAILED_OPERATIONS_KEY, failed);
-        return ctx;
-    }
-
 }
