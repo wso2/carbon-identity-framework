@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.flow.extension;
 
-import org.wso2.carbon.identity.flow.extension.executor.FlowExtensionResponseProcessor;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -50,10 +48,8 @@ public class FlowExtensionConstants {
     public static final String ACTION_ID_METADATA_KEY = "actionId";
 
     /**
-     * Keys under which {@link FlowExtensionResponseProcessor} populates
-     * {@link org.wso2.carbon.identity.action.execution.api.model.SuccessStatus} response context.
-     * See the class javadoc on {@code FlowExtensionResponseProcessor} for the failure-handling
-     * policy these keys surface.
+     * Centralized constants for the Flow Extension framework, covering execution keys,
+     * error messages, handover policies, and JSON pointer style context paths.
      */
     public static final class ResponseContext {
 
