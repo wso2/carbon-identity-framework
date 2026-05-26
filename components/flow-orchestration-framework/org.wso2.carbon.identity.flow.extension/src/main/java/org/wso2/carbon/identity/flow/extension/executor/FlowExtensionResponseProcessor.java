@@ -329,23 +329,21 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
     /**
      * Validate that the given claim URI corresponds to a registered local claim in the tenant.
-     * Returns {@code null} if the claim is valid or if the service is unavailable (fail-open).
-     * Returns a descriptive failure message if validation fails.
+     * Fail-closed: if the claim metadata service is unavailable or lookup throws, the operation
+     * is rejected rather than allowed through unchecked. Per the class-level failure-handling
+     * policy this is a per-operation failure — the rest of the response still applies.
      *
      * @param claimUri     Local claim URI to check.
      * @param tenantDomain Tenant domain for the lookup.
-     * @return Failure reason string, or {@code null} when validation passes or is skipped.
+     * @return Failure reason string, or {@code null} when the claim is valid.
      */
     private String validateLocalClaimExists(String claimUri, String tenantDomain) {
 
         org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService claimService =
                 FlowExtensionDataHolder.getInstance().getClaimMetadataManagementService();
         if (claimService == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("ClaimMetadataManagementService is unavailable. Skipping claim existence check for: "
-                        + claimUri);
-            }
-            return null;
+            LOG.warn("ClaimMetadataManagementService is unavailable. Rejecting claim REPLACE for: " + claimUri);
+            return "Claim metadata service is unavailable; cannot validate claim URI: " + claimUri;
         }
         try {
             java.util.Optional<LocalClaim> localClaim = claimService.getLocalClaim(claimUri, tenantDomain);
@@ -354,9 +352,9 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             }
             return null;
         } catch (ClaimMetadataException e) {
-            LOG.warn("Failed to look up claim URI '" + claimUri + "' in tenant '" + tenantDomain +
-                    "'. Skipping claim existence check.", e);
-            return null;
+            LOG.warn("Failed to look up claim URI '" + claimUri + "' in tenant '" + tenantDomain
+                    + "'. Rejecting claim REPLACE.", e);
+            return "Claim metadata lookup failed; cannot validate claim URI: " + claimUri;
         }
     }
 
