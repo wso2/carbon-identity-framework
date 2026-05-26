@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+  ~ Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -25,28 +25,16 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.flow.orchestration.framework.feature</artifactId>
+    <artifactId>org.wso2.carbon.identity.flow.extension.server.feature</artifactId>
     <packaging>pom</packaging>
-    <name>Flow orchestration Framework Feature</name>
-    <url>http://wso2.org</url>
-    <description>This feature contains the bundles required for flow orchestration framework aggregated functionality
-    </description>
+    <name>Flow Extensions Feature</name>
+    <url>https://wso2.com</url>
+    <description>This feature contains the bundles required for flow extension support in the flow engine.</description>
 
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.flow.mgt.server.feature</artifactId>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.flow.execution.engine.server.feature</artifactId>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.flow.extension.server.feature</artifactId>
-            <type>zip</type>
+            <artifactId>org.wso2.carbon.identity.flow.extension</artifactId>
         </dependency>
     </dependencies>
 
@@ -64,18 +52,18 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.identity.flow.orchestration.framework</id>
+                            <id>org.wso2.carbon.identity.flow.extension.server</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
-                            <includedFeatures>
-                                <includedFeatureDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.mgt.server.feature
-                                </includedFeatureDef>
-                                <includedFeatureDef>
-                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.execution.engine.server.feature
-                                </includedFeatureDef>
-                                <includedFeatureDef>
-                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.extension.server.feature
-                                </includedFeatureDef>
-                            </includedFeatures>
+                            <adviceFile>
+                                <properties>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+                                </properties>
+                            </adviceFile>
+                            <bundles>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.extension
+                                </bundleDef>
+                            </bundles>
                         </configuration>
                     </execution>
                 </executions>
