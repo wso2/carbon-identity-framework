@@ -23,7 +23,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.flow.extension.model.*;
+import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
+import org.wso2.carbon.identity.flow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlow;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
@@ -36,9 +40,9 @@ import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
-import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
@@ -67,7 +71,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
     private static final Log LOG = LogFactory.getLog(FlowExtensionRequestBuilder.class);
     private static final int MAX_DIAGNOSTIC_PATHS = 20;
     private static final String DIAGNOSTIC_REASON = "reason";
-    private static final String REASON_UNSUPPORTED_ACTION = "unsupported-action-model";
     private static final String REASON_OMITTED_ENCRYPTED_EXPOSE_PATHS = "omitted-encrypted-expose-paths";
 
     @Override
@@ -82,25 +85,22 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             throws ActionExecutionRequestBuilderException {
 
         FlowExecutionContext execCtx = getFlowExecutionContextOrThrow(flowContext);
-        ResolvedActionConfig resolvedActionConfig = resolveActionConfig(actionExecutionContext, execCtx.getFlowType());
-        if (resolvedActionConfig.isFallback()) {
-            return buildFallbackRequest(flowContext, execCtx);
-        }
+        ResolvedActionConfig resolvedActionConfig = resolveActionConfig(actionExecutionContext);
 
         AccessConfig accessConfig = resolvedActionConfig.getAccessConfig();
-        Encryption encryption = resolvedActionConfig.getEncryption();
+        Certificate certificate = resolvedActionConfig.getCertificate();
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
         List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
         flowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
         List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, flowContext);
-        String certificatePEM = resolveOutboundCertificate(accessConfig, encryption);
+        String certificatePEM = resolveOutboundCertificate(accessConfig, certificate);
         ExposeResolution exposeResolution = pruneEncryptedExposePathsWithoutCertificate(
                 exposePaths, accessConfig, certificatePEM);
 
         triggerRequestBuildDiagnostic(execCtx, exposeResolution.getEffectiveExposePaths(),
-                modifyPaths, encryption, exposeResolution.getOmittedEncryptedExposePaths());
+                modifyPaths, certificate, exposeResolution.getOmittedEncryptedExposePaths());
 
         FlowExtensionEvent event = buildEvent(execCtx, exposeResolution.getEffectiveExposePaths(),
                 accessConfig, certificatePEM);
@@ -190,17 +190,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             userBuilder.claims(userClaims);
         }
 
-        Map<String, char[]> filteredCredentials =
-                buildFilteredCredentials(flowUser, expose, accessConfig, certificatePEM);
-        if (!filteredCredentials.isEmpty()) {
-            userBuilder.userCredentials(filteredCredentials);
-        }
-
-        if (isLeafExposed(FlowContextPaths.USER_STORE_DOMAIN_PATH, expose)) {
-            String userStoreDomain = flowUser.getUserStoreDomain();
-            userBuilder.userStoreDomain(new UserStore(userStoreDomain != null ? userStoreDomain : ""));
-        }
-
         return userBuilder.build();
     }
 
@@ -215,19 +204,17 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return execCtx;
     }
 
-    private ResolvedActionConfig resolveActionConfig(ActionExecutionRequestContext actionExecutionContext,
-                                                     String flowType) {
+    private ResolvedActionConfig resolveActionConfig(ActionExecutionRequestContext actionExecutionContext)
+            throws ActionExecutionRequestBuilderException {
 
         Action rawAction = actionExecutionContext.getAction();
-        if (rawAction instanceof FlowExtensionAction) {
-            FlowExtensionAction ext = (FlowExtensionAction) rawAction;
-            return new ResolvedActionConfig(ext.resolveAccessConfig(flowType), ext.getEncryption(), false);
+        if (!(rawAction instanceof FlowExtensionAction)) {
+            throw new ActionExecutionRequestBuilderException(
+                    "Expected a FlowExtensionAction but received: "
+                            + (rawAction == null ? "null" : rawAction.getClass().getName()));
         }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("No InFlowExtensionAction resolved. Falling back to an empty request body.");
-        }
-        return new ResolvedActionConfig(null, null, true);
+        FlowExtensionAction ext = (FlowExtensionAction) rawAction;
+        return new ResolvedActionConfig(ext.getAccessConfig(), ext.getCertificate());
     }
 
     private List<String> resolveExposePaths(AccessConfig accessConfig) {
@@ -246,12 +233,12 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return accessConfig.getModify();
     }
 
-    private String resolveOutboundCertificate(AccessConfig accessConfig, Encryption encryption) {
+    private String resolveOutboundCertificate(AccessConfig accessConfig, Certificate certificate) {
 
-        if (accessConfig == null || encryption == null || encryption.getCertificate() == null) {
+        if (accessConfig == null || certificate == null) {
             return null;
         }
-        return encryption.getCertificate().getCertificateContent();
+        return certificate.getCertificateContent();
     }
 
     private ExposeResolution pruneEncryptedExposePathsWithoutCertificate(List<String> exposePaths,
@@ -281,20 +268,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return new ExposeResolution(effectiveExposePaths, omittedEncryptedExposePaths);
     }
 
-    private ActionExecutionRequest buildFallbackRequest(FlowContext flowContext, FlowExecutionContext execCtx) {
-
-        flowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, Collections.emptyList());
-        List<AllowedOperation> allowedOperations = buildAllowedOperations(null, flowContext);
-        triggerFallbackDiagnostic(execCtx);
-
-        FlowExtensionEvent event = new FlowExtensionEvent.Builder()
-                .flow(new FlowExtensionFlow.Builder()
-                        .flowId(execCtx.getContextIdentifier())
-                        .build())
-                .build();
-        return buildRequestPayload(event, allowedOperations);
-    }
-
     private ActionExecutionRequest buildRequestPayload(FlowExtensionEvent event,
                                                        List<AllowedOperation> allowedOperations) {
 
@@ -306,7 +279,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
     }
 
     private void triggerRequestBuildDiagnostic(FlowExecutionContext execCtx, List<String> exposePaths,
-                                               List<ContextPath> modifyPaths, Encryption encryption,
+                                               List<ContextPath> modifyPaths, Certificate certificate,
                                                List<String> omittedEncryptedExposePaths) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -321,7 +294,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                 .configParam("flowType", execCtx.getFlowType())
                 .configParam("exposePaths", exposePaths.size())
                 .configParam("modifyPaths", modifyPaths.size())
-                .configParam("outboundEncryption", encryption != null)
+                .configParam("outboundEncryption", certificate != null)
                 .inputParam("exposePathKeys", limitForDiagnostic(exposePaths))
                 .inputParam("modifyPathKeys", limitForDiagnostic(extractModifyPathKeys(modifyPaths)))
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -353,23 +326,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             return values;
         }
         return new ArrayList<>(values.subList(0, MAX_DIAGNOSTIC_PATHS));
-    }
-
-    private void triggerFallbackDiagnostic(FlowExecutionContext execCtx) {
-
-        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
-            return;
-        }
-
-        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
-                ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST)
-                .resultMessage("No InFlowExtensionAction resolved. Built minimal fallback request.")
-                .configParam("actionType", ActionType.FLOW_EXTENSION.getDisplayName())
-                .configParam("flowType", execCtx.getFlowType())
-                .configParam(DIAGNOSTIC_REASON, REASON_UNSUPPORTED_ACTION)
-                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
     }
 
     private void triggerOmittedExposeDiagnostic(List<String> omittedEncryptedExposePaths) {
@@ -602,57 +558,15 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         return userClaims;
     }
 
-    private Map<String, char[]> buildFilteredCredentials(FlowUser flowUser, List<String> expose,
-                                                         AccessConfig accessConfig, String certificatePEM)
-            throws ActionExecutionRequestBuilderException {
-
-        if (!isAreaExposed(FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX, expose)) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, char[]> credentials = flowUser.getUserCredentials();
-        Map<String, char[]> filteredCredentials = new HashMap<>();
-
-        for (String exposePath : expose) {
-            if (!exposePath.startsWith(FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
-                continue;
-            }
-            String credKey = exposePath.substring(FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX.length());
-            char[] credValue = credentials != null ? credentials.get(credKey) : null;
-
-            if (credValue != null) {
-                String plaintext = new String(credValue);
-                java.util.Arrays.fill(credValue, '\0');
-                filteredCredentials.put(credKey,
-                        toEncryptedOrPlainCredentialChars(plaintext, exposePath, accessConfig, certificatePEM));
-            } else {
-                filteredCredentials.put(credKey, new char[0]);
-            }
-        }
-        return filteredCredentials;
-    }
-
-    private char[] toEncryptedOrPlainCredentialChars(String plaintext, String credentialPath,
-                                                     AccessConfig accessConfig, String certificatePEM)
-            throws ActionExecutionRequestBuilderException {
-
-        if (shouldEncrypt(credentialPath, accessConfig, certificatePEM)) {
-            return encryptValue(plaintext, certificatePEM).toCharArray();
-        }
-        return plaintext.toCharArray();
-    }
-
     private static class ResolvedActionConfig {
 
         private final AccessConfig accessConfig;
-        private final Encryption encryption;
-        private final boolean fallback;
+        private final Certificate certificate;
 
-        private ResolvedActionConfig(AccessConfig accessConfig, Encryption encryption, boolean fallback) {
+        private ResolvedActionConfig(AccessConfig accessConfig, Certificate certificate) {
 
             this.accessConfig = accessConfig;
-            this.encryption = encryption;
-            this.fallback = fallback;
+            this.certificate = certificate;
         }
 
         private AccessConfig getAccessConfig() {
@@ -660,14 +574,9 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             return accessConfig;
         }
 
-        private Encryption getEncryption() {
+        private Certificate getCertificate() {
 
-            return encryption;
-        }
-
-        private boolean isFallback() {
-
-            return fallback;
+            return certificate;
         }
     }
 
