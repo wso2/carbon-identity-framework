@@ -94,20 +94,14 @@ public class SessionExtenderRequestFactory extends HttpIdentityRequestFactory {
                 SessionExtenderRequestBuilder(request, response);
         super.create(builder, request, response);
 
-        String sessionKeyValue = request.getParameter(SESSION_ID_PARAM_NAME);
-        if (sessionKeyValue != null) {
-            builder.setSessionKey(sessionKeyValue);
-        }
-
         Cookie commonAuthCookie = FrameworkUtils.getAuthCookie(request);
         if (commonAuthCookie != null) {
             builder.setSessionCookie(commonAuthCookie);
-        }
-
-        if (sessionKeyValue == null && commonAuthCookie == null) {
-            throw new SessionExtenderClientException(SessionExtenderConstants.Error.INVALID_REQUEST.getCode(),
+        } else {
+            throw new SessionExtenderClientException(
+                    SessionExtenderConstants.Error.INVALID_REQUEST.getCode(),
                     SessionExtenderConstants.Error.INVALID_REQUEST.getMessage(),
-                    "No session identifier parameter or cookie present in request.");
+                    "No session cookie present in request.");
         }
 
         return builder;
