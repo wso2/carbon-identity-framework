@@ -2204,32 +2204,32 @@
                    description="Delete flow in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Flow Extensions Management API" identifier="/api/server/v1/flow/flow-extension"
+    <APIResource name="Flow Extension Management API" identifier="/api/server/v1/flow/flow-extension"
                  requiresAuthorization="true"
-                 description="API representation of the Flow Extensions Management API" type="TENANT">
+                 description="API representation of the Flow Extension Management API" type="TENANT">
         <Scopes>
             <Scope displayName="View Flow Extension" name="internal_flow_extension_view"
-                   description="View flow extensions"/>
+                   description="View flow extension in the organization (root)"/>
             <Scope displayName="Create Flow Extension" name="internal_flow_extension_create"
-                   description="Create flow extensions"/>
+                   description="Create flow extension in the organization (root)"/>
             <Scope displayName="Update Flow Extension" name="internal_flow_extension_update"
-                   description="Update flow extensions"/>
+                   description="Update flow extension in the organization (root)"/>
             <Scope displayName="Delete Flow Extension" name="internal_flow_extension_delete"
-                   description="Delete flow extensions"/>
+                   description="Delete flow extension in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Flow Extensions Management API" identifier="/o/api/server/v1/flow/flow-extension"
+    <APIResource name="Flow Extension Management API" identifier="/o/api/server/v1/flow/flow-extension"
                  requiresAuthorization="true"
-                 description="API representation of the Flow Extensions Management API" type="ORGANIZATION">
+                 description="API representation of the Flow Extension Management API" type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Flow Extension" name="internal_org_flow_extension_view"
-                   description="View flow extensions in the organization"/>
+                   description="View flow extension in the organization"/>
             <Scope displayName="Create Flow Extension" name="internal_org_flow_extension_create"
-                   description="Create flow extensions in the organization"/>
+                   description="Create flow extension in the organization"/>
             <Scope displayName="Update Flow Extension" name="internal_org_flow_extension_update"
-                   description="Update flow extensions in the organization"/>
+                   description="Update flow extension in the organization"/>
             <Scope displayName="Delete Flow Extension" name="internal_org_flow_extension_delete"
-                   description="Delete flow extensions in the organization"/>
+                   description="Delete flow extension in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/api/server/v1/async-operations"

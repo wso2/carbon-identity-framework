@@ -1670,7 +1670,7 @@
   "console.flow_extensions.scopes.feature": ["console:flowExtensions"],
   "console.flow_extensions.disabled_features": [],
   "console.flow_extensions.scopes.create": ["internal_flow_extension_create"],
-  "console.flow_extensions.scopes.read": ["internal_flow_extension_view"],
+  "console.flow_extensions.scopes.read": ["internal_flow_extension_view", "internal_claim_meta_view"],
   "console.flow_extensions.scopes.update": ["internal_flow_extension_update"],
   "console.flow_extensions.scopes.delete": ["internal_flow_extension_delete"],
   "console.certificates.enabled": true,
