@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.pre.update.profile.action.internal.execution;
 
+import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
@@ -31,6 +33,7 @@ import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.api.util.RequestBuilderUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
@@ -41,6 +44,7 @@ import org.wso2.carbon.identity.user.pre.update.profile.action.internal.componen
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.model.PreUpdateProfileEvent;
 import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,6 +64,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
 
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
+    private static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
+    private static final String USERID_CLAIM_URI = "http://wso2.org/claims/userid";
     private static final String SCIM_SCHEMA_URI_PREFIX = "urn:ietf:params:scim:schemas";
     private static final String URI = "uri";
     private static final String VALUE = "value";
@@ -151,6 +157,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
+        validateImmutableClaims(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
@@ -227,6 +234,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String claimUri = getClaimUriFromPath(path);
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
+        validateImmutableClaims(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateFlowInitiatorClaims(claimUri, localClaim);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
@@ -274,6 +282,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String claimUri = getClaimUriFromPath(path);
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
+        validateImmutableClaims(claimUri);
         validateGroupAndRoleClaims(claimUri);
         validateSCIMLevelAttributes(claimUri, operation.getOp(), operation.getValue());
 
@@ -507,7 +516,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
         try {
             return RequestBuilderUtil.getUserStoreManager(tenantDomain);
-        } catch (org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException e) {
+        } catch (ActionExecutionRequestBuilderException e) {
             throw new ActionExecutionResponseProcessorException(
                     "Error while loading user store manager for tenant: " + tenantDomain, e);
         }
@@ -551,7 +560,9 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         if (localClaim.get().getFlowInitiator()) {
-            throw new ActionExecutionResponseProcessorException(claimUri + " is not allowed to be added.");
+            logRejectedClaimUpdate(claimUri, "flow_initiator", claimUri +
+                    " is not allowed to modified.");
+            throw new ActionExecutionResponseProcessorException(claimUri + " is not allowed to modified.");
         }
     }
 
@@ -559,8 +570,20 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throws ActionExecutionResponseProcessorException {
 
         if (claimUri.equals(GROUP_CLAIM_URI) || claimUri.equals(ROLE_CLAIM_URI)) {
-            throw new ActionExecutionResponseProcessorException("Groups/Roles are not allowed to be added: "
+            logRejectedClaimUpdate(claimUri, "group_or_role",
+                    "Groups/Roles are not allowed to be modified: " + claimUri);
+            throw new ActionExecutionResponseProcessorException("Groups/Roles are not allowed to modified: "
                     + claimUri);
+        }
+    }
+
+    private void validateImmutableClaims(String claimUri) throws ActionExecutionResponseProcessorException {
+
+        if (USERNAME_CLAIM_URI.equals(claimUri) || USERID_CLAIM_URI.equals(claimUri)) {
+            logRejectedClaimUpdate(claimUri, "immutable_claim",
+                    "Immutable claim cannot be modified through profile update: " + claimUri);
+            throw new ActionExecutionResponseProcessorException(
+                    "Immutable claim cannot be modified through profile update: " + claimUri);
         }
     }
 
@@ -672,5 +695,23 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             throw new ActionExecutionResponseProcessorException(
                     "Error while retrieving mapped external claims for claim uri: " + claimUri, e);
         }
+    }
+
+    private void logRejectedClaimUpdate(String claimUri, String reason, String resultMessage) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE)
+                .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                .resultMessage(resultMessage)
+                .inputParam("actionType", ActionType.PRE_UPDATE_PROFILE.getDisplayName())
+                .inputParam("claimUri", claimUri)
+                .inputParam("reason", reason)
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
     }
 }
