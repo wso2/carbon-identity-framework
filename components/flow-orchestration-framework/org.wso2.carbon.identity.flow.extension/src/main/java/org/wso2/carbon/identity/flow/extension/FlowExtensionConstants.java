@@ -58,10 +58,6 @@ public class FlowExtensionConstants {
                 "The Flow Extension action is missing required configuration. " +
                         "Contact your administrator.";
 
-        public static final String EXECUTION_DISABLED_MESSAGE = "Extension execution is disabled.";
-        public static final String EXECUTION_DISABLED_DESCRIPTION =
-                "The Flow Extension action type is currently disabled on this server.";
-
         public static final String EXECUTION_FAILED_MESSAGE =
                 "An error occurred while processing the extension. Please try again.";
         public static final String EXECUTION_FAILED_DESCRIPTION =

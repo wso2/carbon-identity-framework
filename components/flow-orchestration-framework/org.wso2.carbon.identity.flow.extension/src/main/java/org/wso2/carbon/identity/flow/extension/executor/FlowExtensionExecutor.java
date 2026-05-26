@@ -90,10 +90,12 @@ public class FlowExtensionExecutor implements Executor {
         ActionExecutorService actionExecutorService = getActionExecutorService(actionId);
 
         if (!actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSION)) {
-            triggerDiagnosticFailure(FlowExtensionConstants.Log.ActionIDs.EXECUTE, actionId,
-                "Flow Extension action execution failed: action type is disabled.");
-            return buildErrorResponse(FlowExtensionConstants.ErrorMessages.EXECUTION_DISABLED_MESSAGE,
-                FlowExtensionConstants.ErrorMessages.EXECUTION_DISABLED_DESCRIPTION);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Skipping Flow Extension action — action type is disabled. actionId: " + actionId);
+            }
+            ExecutorResponse skip = new ExecutorResponse();
+            skip.setResult(ExecutorStatus.STATUS_COMPLETE);
+            return skip;
         }
 
         try {
