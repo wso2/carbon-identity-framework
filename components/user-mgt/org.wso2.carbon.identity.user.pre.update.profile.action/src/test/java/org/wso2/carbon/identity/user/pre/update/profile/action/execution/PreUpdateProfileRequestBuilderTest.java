@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRe
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.internal.component.ActionExecutionServiceComponentHolder;
@@ -64,6 +66,8 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -316,6 +320,163 @@ public class PreUpdateProfileRequestBuilderTest {
         assertEquals(event.getUser().getRoles().size(), 0);
     }
 
+    @Test
+    public void testBuildActionExecutionRequestContainsAllowedOperations() throws Exception {
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
+                getMockUserActionContextWithoutUpdatingClaims());
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(getMockPreUpdateProfileActionWithNoClaimsConfiguredToShare());
+
+        ActionExecutionRequest request = preUpdateProfileRequestBuilder.buildActionExecutionRequest(
+                flowContext, actionExecutionRequestContext);
+
+        assertNotNull(request.getAllowedOperations());
+        assertEquals(request.getAllowedOperations().size(), 3);
+
+        assertAllowedOperationExists(request, Operation.ADD);
+        assertAllowedOperationExists(request, Operation.REMOVE);
+        assertAllowedOperationExists(request, Operation.REPLACE);
+    }
+
+    @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "Unknown flow\\.")
+    public void testBuildActionExecutionRequestFailureWhenFlowIsNotPresent() throws Exception {
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
+                getMockUserActionContextWithoutUpdatingClaims());
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(getMockPreUpdateProfileActionWithNoClaimsConfiguredToShare());
+
+        preUpdateProfileRequestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
+    }
+
+    @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "Root organization information is not available in Identity Context\\.")
+    public void testBuildActionExecutionRequestFailureWhenRootOrganizationIsNotPresent() throws Exception {
+
+        IdentityContext.destroyCurrentContext();
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(
+                buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
+                getMockUserActionContextWithoutUpdatingClaims());
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(getMockPreUpdateProfileActionWithNoClaimsConfiguredToShare());
+
+        preUpdateProfileRequestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
+    }
+
+    @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "Unknown user claim value format\\. Only String and String\\[] " +
+                    "types expected\\.")
+    public void testBuildActionExecutionRequestFailureWhenUpdatingClaimHasUnsupportedType() throws Exception {
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        UserActionRequestDTO userActionRequestDTO = mock(UserActionRequestDTO.class);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(CLAIM1.getClaimURI(), 10);
+        when(userActionRequestDTO.getUserId()).thenReturn(USER_ID);
+        when(userActionRequestDTO.getUserStoreDomain()).thenReturn(USER_STORE_DOMAIN);
+        when(userActionRequestDTO.getClaims()).thenReturn(claims);
+        when(userActionRequestDTO.getResidentOrganization()).thenReturn(userResidentOrganization);
+        UserActionContext userActionContext = mock(UserActionContext.class);
+        when(userActionContext.getUserActionRequestDTO()).thenReturn(userActionRequestDTO);
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY, userActionContext);
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(getMockPreUpdateProfileActionWithNoClaimsConfiguredToShare());
+
+        preUpdateProfileRequestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
+    }
+
+    @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "Invalid claim value format for multi-valued claim: .*")
+    public void testBuildActionExecutionRequestFailureWhenMultiValuedClaimHasInvalidUpdatingType() throws Exception {
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY, new UserActionContext(
+                new UserActionRequestDTO.Builder()
+                        .userId(USER_ID)
+                        .userStoreDomain(USER_STORE_DOMAIN)
+                        .addClaim(CLAIM2.getClaimURI(), "not-an-array")
+                        .residentOrganization(userResidentOrganization)
+                        .build()));
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(new PreUpdateProfileAction.ResponseBuilder()
+                        .attributes(Arrays.asList(CLAIM2.getClaimURI()))
+                        .build());
+
+        preUpdateProfileRequestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
+    }
+
+    @Test(expectedExceptions = ActionExecutionRequestBuilderException.class,
+            expectedExceptionsMessageRegExp = "Claim not found for claim URI: .*")
+    public void testBuildActionExecutionRequestFailureWhenClaimMetadataNotFound() throws Exception {
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        String missingClaim = "http://wso2.org/claims/missingClaim";
+        when(claimMetadataManagementService.getLocalClaim(missingClaim, TENANT_DOMAIN))
+                .thenReturn(Optional.empty());
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY, new UserActionContext(
+                new UserActionRequestDTO.Builder()
+                        .userId(USER_ID)
+                        .userStoreDomain(USER_STORE_DOMAIN)
+                        .addClaim(missingClaim, new String[] {"value1"})
+                        .residentOrganization(userResidentOrganization)
+                        .build()));
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(new PreUpdateProfileAction.ResponseBuilder()
+                        .attributes(Arrays.asList(missingClaim))
+                        .build());
+
+        preUpdateProfileRequestBuilder.buildActionExecutionRequest(flowContext, actionExecutionRequestContext);
+    }
+
+    @Test
+    public void testBuildActionExecutionRequestWhenUserStoreDomainNotProvidedInRequest()
+            throws ActionExecutionRequestBuilderException {
+
+        IdentityContext.getThreadLocalIdentityContext()
+                .enterFlow(buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER));
+
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY,
+                getMockUserActionContextWithoutUserStoreDomain());
+
+        ActionExecutionRequestContext actionExecutionRequestContext =
+                ActionExecutionRequestContext.create(getMockPreUpdateProfileActionWithNoClaimsConfiguredToShare());
+
+        ActionExecutionRequest request = preUpdateProfileRequestBuilder.buildActionExecutionRequest(
+                flowContext, actionExecutionRequestContext);
+
+        assertNotNull(request);
+        PreUpdateProfileEvent event = (PreUpdateProfileEvent) request.getEvent();
+        assertEquals(event.getUserStore().getName(), USER_STORE_DOMAIN);
+    }
+
     // Failure tests.
     // These tests are updates PreUpdateProfileActionServiceComponentHolder with corrupted mock services.
     // Thus, these tests are always expected to execute after success tests and they are dependent on each other.
@@ -526,6 +687,27 @@ public class PreUpdateProfileRequestBuilderTest {
                 .userId(USER_ID)
                 .userStoreDomain(USER_STORE_DOMAIN)
                 .build());
+    }
+
+    private static UserActionContext getMockUserActionContextWithoutUserStoreDomain() {
+
+        return new UserActionContext(new UserActionRequestDTO.Builder()
+                .userId(USER_ID)
+                .build());
+    }
+
+    private static void assertAllowedOperationExists(ActionExecutionRequest request, Operation expectedOperation) {
+
+        boolean isFound = false;
+        for (AllowedOperation allowedOperation : request.getAllowedOperations()) {
+            if (expectedOperation.equals(allowedOperation.getOp())) {
+                isFound = true;
+                assertEquals(allowedOperation.getPaths().size(), 1);
+                assertEquals(allowedOperation.getPaths().get(0),
+                        PreUpdateProfileRequestBuilder.USER_CLAIMS_FILTERED_PATH_TEMPLATE);
+            }
+        }
+        assertTrue(isFound, "Allowed operation not found for: " + expectedOperation);
     }
 
     private static PreUpdateProfileAction getMockPreUpdateProfileActionWithClaimsConfiguredToShare() {
