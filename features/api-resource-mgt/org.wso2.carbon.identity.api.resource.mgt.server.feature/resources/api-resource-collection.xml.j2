@@ -1731,6 +1731,30 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_consents" displayName="Consent Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:consents"/>
+                <Scope name="console:org:consents_view"/>
+                <Scope name="console:org:consents_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_consent_mgt_purpose_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_consent_mgt_element_delete"/>
+                <Scope name="internal_org_consent_mgt_purpose_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_consent_mgt_element_create"/>
+                <Scope name="internal_org_consent_mgt_purpose_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_consent_mgt_element_view"/>
+                <Scope name="internal_org_consent_mgt_purpose_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     {% endif %}
     <APIResourceCollection name="userCredentialManagement" displayName="User Credential Management" type="tenant">
         <Scopes>
