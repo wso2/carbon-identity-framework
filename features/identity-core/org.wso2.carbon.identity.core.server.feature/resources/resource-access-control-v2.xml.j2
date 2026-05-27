@@ -1981,7 +1981,7 @@
         <Resource context="(.*)/o/api/server/v1/flow/extension" secured="true" http-method="POST">
             <Scopes>internal_org_flow_extension_create</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_org_flow_extension_update</Scopes>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="DELETE">
@@ -1995,7 +1995,7 @@
         <Resource context="(.*)/api/server/v1/flow/extension" secured="true" http-method="POST">
             <Scopes>internal_flow_extension_create</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT, PATCH">
             <Scopes>internal_flow_extension_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="DELETE">
