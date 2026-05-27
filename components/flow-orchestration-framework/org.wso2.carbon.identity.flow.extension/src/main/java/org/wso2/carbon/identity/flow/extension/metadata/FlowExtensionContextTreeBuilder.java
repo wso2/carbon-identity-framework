@@ -127,26 +127,26 @@ public class FlowExtensionContextTreeBuilder {
                 .children(Collections.emptyList())
                 .build());
 
-        List<FlowExtensionContextTreeNode> credentialsChildren = new ArrayList<>();
-        credentialsChildren.add(FlowExtensionContextTreeNode.builder()
-                .key("password")
-                .title("Password")
-                .path("/user/credentials/password")
-                .dataType("char[]")
-                .nodeType(ContextTree.NODE_LEAF)
-                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
-                .build());
-
-        children.add(FlowExtensionContextTreeNode.builder()
-                .key("credentials")
-                .title("Credentials")
-                .path("/user/credentials/")
-                .dataType("Map<String, char[]>")
-                .nodeType(ContextTree.NODE_MAP)
-                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
-                .dynamicEntryAllowed(false)
-                .children(credentialsChildren)
-                .build());
+//        List<FlowExtensionContextTreeNode> credentialsChildren = new ArrayList<>();
+//        credentialsChildren.add(FlowExtensionContextTreeNode.builder()
+//                .key("password")
+//                .title("Password")
+//                .path("/user/credentials/password")
+//                .dataType("char[]")
+//                .nodeType(ContextTree.NODE_LEAF)
+//                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
+//                .build());
+//
+//        children.add(FlowExtensionContextTreeNode.builder()
+//                .key("credentials")
+//                .title("Credentials")
+//                .path("/user/credentials/")
+//                .dataType("Map<String, char[]>")
+//                .nodeType(ContextTree.NODE_MAP)
+//                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
+//                .dynamicEntryAllowed(false)
+//                .children(credentialsChildren)
+//                .build());
 
         return FlowExtensionContextTreeNode.builder()
                 .key("user")
