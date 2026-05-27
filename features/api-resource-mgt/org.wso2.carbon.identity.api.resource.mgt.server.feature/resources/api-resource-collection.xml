@@ -1598,6 +1598,28 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="flowExtensions" displayName="Flow Extensions" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:flowExtensions"/>
+                <Scope name="console:flowExtensions_view"/>
+                <Scope name="console:flowExtensions_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_flow_extension_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_flow_extension_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_flow_extension_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_flow_extension_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="consents" displayName="Consent Management" type="tenant">
         <Scopes>
             <Feature>
@@ -2180,6 +2202,28 @@
             <Read>
                 <Scope name="internal_org_flow_view"/>
                 <Scope name="internal_org_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_flowExtensions" displayName="Flow Extensions" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:flowExtensions"/>
+                <Scope name="console:org:flowExtensions_view"/>
+                <Scope name="console:org:flowExtensions_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_flow_extension_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_flow_extension_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_flow_extension_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_flow_extension_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
