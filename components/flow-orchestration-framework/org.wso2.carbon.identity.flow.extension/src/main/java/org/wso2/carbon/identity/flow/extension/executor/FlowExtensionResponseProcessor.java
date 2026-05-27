@@ -405,21 +405,14 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     }
 
     /**
-     * Normalize an external-format claim path to the internal format for encryption checks.
-     * Converts {@code /user/claims[uri=<claimUri>]} to {@code /user/claims/<claimUri>}.
-     * All other paths are returned unchanged.
+     * Normalize a claim path for encryption checks.
+     * Internal and external formats now both use the selector form
+     * {@code /user/claims[uri=<claimUri>]}, so no conversion is needed.
+     * All paths are returned unchanged.
      */
-    private static String normalizeToInternalPath(String externalPath) {
+    private static String normalizeToInternalPath(String path) {
 
-        if (externalPath != null
-                && externalPath.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)
-                && externalPath.endsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX)) {
-            String claimUri = externalPath.substring(
-                    FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX.length(),
-                    externalPath.length() - FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX.length());
-            return FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_PATH_PREFIX + claimUri;
-        }
-        return externalPath;
+        return path;
     }
 
     @Override
