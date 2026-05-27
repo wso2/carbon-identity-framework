@@ -460,39 +460,6 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                         .collect(Collectors.joining(separator));
                 userClaimsToBeModified.put(claimUri, modifyingClaimValue);
             }
-        } else {
-            // Replacing a specific value in the array
-            if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.ADMIN ||
-                    initiatorType == PreUpdateProfileEvent.FlowInitiatorType.APPLICATION) {
-                Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri, userStoreManager);
-                List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claimUri,
-                        claimValue, separator);
-
-                if (!filteredClaims.isEmpty()) {
-                    simpleMultiValuedClaimsToBeRemoved.put(claimUri, Arrays.asList(oldValueName));
-                    List<String> trimmedFilteredClaims = filteredClaims.stream()
-                            .map(String::trim)
-                            .collect(Collectors.toList());
-                    simpleMultiValuedClaimsToBeAdded.put(claimUri, trimmedFilteredClaims);
-                }
-            } else if (initiatorType == PreUpdateProfileEvent.FlowInitiatorType.USER) {
-                Map<String, String> userClaimValues = getUserClaimValues(userId, claimUri, userStoreManager);
-                List<String> filteredClaims = getFilteredModifyingClaimValues(userClaimValues, claimUri,
-                        claimValue, separator);
-
-                List<String> existingValues = new ArrayList<>();
-                if (userClaimValues.get(claimUri) != null && !userClaimValues.get(claimUri).isEmpty()) {
-                    existingValues.addAll(Arrays.asList(userClaimValues.get(claimUri).split(Pattern.quote(separator))));
-                }
-
-                existingValues.remove(oldValueName);
-                existingValues.addAll(filteredClaims);
-                String modifyingClaimValue = existingValues.stream()
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.joining(separator));
-                userClaimsToBeModified.put(claimUri, modifyingClaimValue);
-            }
         }
     }
 
