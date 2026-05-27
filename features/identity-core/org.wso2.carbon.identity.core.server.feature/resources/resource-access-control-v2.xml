@@ -1792,30 +1792,30 @@
     </Resource>
 
     <!-- [Organization] Flow Extension Management API -->
-    <Resource context="(.*)/o/api/server/v1/flow/flow-extension" secured="true" http-method="POST">
+    <Resource context="(.*)/o/api/server/v1/flow/extension" secured="true" http-method="POST">
         <Scopes>internal_org_flow_extension_create</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v1/flow/flow-extension/(.*)" secured="true" http-method="PUT">
+    <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT">
         <Scopes>internal_org_flow_extension_update</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v1/flow/flow-extension/(.*)" secured="true" http-method="DELETE">
+    <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_flow_extension_delete</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v1/flow/flow-extension(.*)" secured="true" http-method="GET">
+    <Resource context="(.*)/o/api/server/v1/flow/extension(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_flow_extension_view</Scopes>
     </Resource>
 
     <!-- Flow Extension Management API -->
-    <Resource context="(.*)/api/server/v1/flow/flow-extension" secured="true" http-method="POST">
+    <Resource context="(.*)/api/server/v1/flow/extension" secured="true" http-method="POST">
         <Scopes>internal_flow_extension_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/flow/flow-extension/(.*)" secured="true" http-method="PUT">
+    <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT">
         <Scopes>internal_flow_extension_update</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/flow/flow-extension/(.*)" secured="true" http-method="DELETE">
+    <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_flow_extension_delete</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/flow/flow-extension(.*)" secured="true" http-method="GET">
+    <Resource context="(.*)/api/server/v1/flow/extension(.*)" secured="true" http-method="GET">
         <Scopes>internal_flow_extension_view</Scopes>
     </Resource>
 
