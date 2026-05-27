@@ -30,6 +30,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentReceiptUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
@@ -44,6 +45,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -110,9 +112,19 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        if (authenticatedUser.isOrganizationUser()) {
+        if (authenticatedUser.isFederatedUser()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Sub-organization user detected. Skipping policy consent handling for user: "
+                LOG.debug("Federated user detected. Skipping policy consent "
+                        + "handling for user: " + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+                                authenticatedUser.getAuthenticatedSubjectIdentifier())
+                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
+            }
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        if (isSuperTenantConsoleApp(context)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Super tenant Console application detected. Skipping policy consent handling for user: "
                         + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
                                 authenticatedUser.getAuthenticatedSubjectIdentifier())
                                 : authenticatedUser.getAuthenticatedSubjectIdentifier()));
@@ -120,9 +132,9 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        if (isSystemApplication(context)) {
+        if (getServiceProvider(context).isSaasApp()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("System application detected. Skipping policy consent handling for user: "
+                LOG.debug("SaaS application detected. Skipping policy consent handling for user: "
                         + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
                                 authenticatedUser.getAuthenticatedSubjectIdentifier())
                                 : authenticatedUser.getAuthenticatedSubjectIdentifier()));
@@ -382,15 +394,17 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         context.addParameter(POLICY_CONSENT_PROMPTED, true);
     }
 
-    private boolean isSystemApplication(AuthenticationContext context) {
+    private boolean isSuperTenantConsoleApp(AuthenticationContext context) {
 
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(context.getTenantDomain())) {
+            return false;
+        }
         String applicationName = context.getServiceProviderName();
         if (applicationName == null && context.getSequenceConfig() != null
                 && context.getSequenceConfig().getApplicationConfig() != null) {
             applicationName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
         }
-        return FrameworkConstants.Application.CONSOLE_APP.equalsIgnoreCase(applicationName)
-                || FrameworkConstants.Application.MY_ACCOUNT_APP.equalsIgnoreCase(applicationName);
+        return FrameworkConstants.Application.CONSOLE_APP.equalsIgnoreCase(applicationName);
     }
 
     private boolean isPolicyConsentPrompted(AuthenticationContext context) {
