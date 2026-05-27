@@ -47,6 +47,51 @@ public class FlowExtensionConstants {
 
     public static final String ACTION_ID_METADATA_KEY = "actionId";
 
+    /**
+     * Centralized constants for the Flow Extension framework, covering execution keys,
+     * error messages, handover policies, and JSON pointer style context paths.
+     */
+    public static final class ResponseContext {
+
+        public static final String FAILED_OPERATIONS_KEY = "failedOperations";
+        public static final String TOTAL_OPERATIONS_KEY = "totalOperations";
+
+        public static final String OP_PATH_KEY = "path";
+        public static final String OP_TYPE_KEY = "op";
+        public static final String OP_MESSAGE_KEY = "message";
+
+        private ResponseContext() {
+
+        }
+    }
+
+    /**
+     * User-facing error message / description pairs returned via {@code ExecutorResponse}
+     * when In-Flow Extension execution fails or is unavailable.
+     */
+    public static final class ErrorMessages {
+
+        public static final String NOT_CONFIGURED_MESSAGE = "Extension is not configured.";
+        public static final String NOT_CONFIGURED_DESCRIPTION =
+                "The Flow Extension action is missing required configuration. " +
+                        "Contact your administrator.";
+
+        public static final String EXECUTION_FAILED_MESSAGE =
+                "An error occurred while processing the extension. Please try again.";
+        public static final String EXECUTION_FAILED_DESCRIPTION =
+                "The external extension service could not complete the request. " +
+                        "If the problem persists, contact your administrator.";
+
+        public static final String INCOMPLETE_NO_REDIRECT_MESSAGE =
+                "Extension returned INCOMPLETE without a redirect URL.";
+        public static final String INCOMPLETE_NO_REDIRECT_DESCRIPTION =
+                "The external extension returned an incomplete response. Please try again.";
+
+        private ErrorMessages() {
+
+        }
+    }
+
     public static final class ActionManagement {
 
         public static final String ACCESS_CONFIG_EXPOSE = "ACCESS_CONFIG_EXPOSE";
@@ -116,6 +161,32 @@ public class FlowExtensionConstants {
     }
 
     /**
+     * Constants used when building the controlled In-Flow Extension context tree returned
+     * by the metadata endpoint.
+     */
+    public static final class ContextTree {
+
+        // Flow type identifiers — must match the values produced by FlowTypes.getType().
+        public static final String FLOW_REGISTRATION = "REGISTRATION";
+        public static final String FLOW_INVITED_USER_REGISTRATION = "INVITED_USER_REGISTRATION";
+        public static final String FLOW_PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
+
+        // Node-type sentinels matching the tree component's NodeType enum on the Console side.
+        public static final String NODE_OBJECT = "OBJECT";
+        public static final String NODE_LEAF = "LEAF";
+        public static final String NODE_MAP = "MAP";
+        public static final String NODE_COMPLEX_MAP = "COMPLEX_MAP";
+
+        public static final String OP_EXPOSE = "EXPOSE";
+        public static final String OP_MODIFY = "MODIFY";
+        public static final String DATA_TYPE_STRING = "String";
+
+        private ContextTree() {
+
+        }
+    }
+
+    /**
      * JSON-pointer-style path constants for the In-Flow Extension context tree.
      */
     public static final class FlowContextPaths {
@@ -131,11 +202,14 @@ public class FlowExtensionConstants {
         public static final String PROPERTIES_PATH_PREFIX = "/properties/";
 
         public static final String FLOW_PREFIX = "/flow/";
-        public static final String FLOW_TENANT_PATH = "/flow/tenantDomain";
-        public static final String FLOW_APP_ID_PATH = "/flow/applicationId";
         public static final String FLOW_TYPE_PATH = "/flow/flowType";
-        public static final String FLOW_CALLBACK_URL_PATH = "/flow/callbackUrl";
         public static final String FLOW_PORTAL_URL_PATH = "/flow/portalUrl";
+
+        public static final String TENANT_PREFIX = "/tenant/";
+        public static final String TENANT_DOMAIN_PATH = "/tenant/domain";
+
+        public static final String APPLICATION_PREFIX = "/application/";
+        public static final String APPLICATION_ID_PATH = "/application/id";
 
         public static final String ORGANIZATION_PREFIX = "/organization/";
         public static final String ORGANIZATION_ID_PATH = "/organization/id";
