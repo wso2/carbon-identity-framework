@@ -168,7 +168,7 @@ public class Constants {
                 "Error occurred while processing policy consent for the %s request of flow id: %s."),
         ERROR_CODE_INFLOW_EXTENSION_ERROR("65034",
                 "Error occurred while invoking the flow extension.",
-                "%s"),
+                "Error occurred while invoking the flow extension."),
 
         // Client errors.
         ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -220,8 +220,8 @@ public class Constants {
                 "Password does not meet the required format.",
                 "The provided password does not meet the configured format requirements."),
         ERROR_CODE_INFLOW_EXTENSION_FAILURE("60017",
-                "%s",
-                "%s")
+                "Flow extension execution failed.",
+                "Something went wrong while executing the flow extension. Please try again.")
         ;
 
         private static final String ERROR_PREFIX = "FE";

@@ -118,7 +118,7 @@ public class FlowExtensionContextTreeBuilder {
         children.add(FlowExtensionContextTreeNode.builder()
                 .key("claims")
                 .title("Claims")
-                .path("/user/claims/")
+                .path("/user/claims")
                 .dataType("Map<String, String>")
                 .nodeType(ContextTree.NODE_MAP)
                 .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))

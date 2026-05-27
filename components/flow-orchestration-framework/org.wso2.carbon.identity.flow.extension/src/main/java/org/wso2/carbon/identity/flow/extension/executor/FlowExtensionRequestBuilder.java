@@ -371,7 +371,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                     if (annotation != null) {
                         pathTypeAnnotations.put(cleanPath, annotation);
                     }
-                    cleanPaths.add(toExternalPath(cleanPath));
+                    cleanPaths.add(cleanPath);
                 } else {
                     LOG.warn("Annotation for path " + cleanPath
                             + " exceeds maximum attribute limit. Skipping path.");
@@ -541,7 +541,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                                                 AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        if (!isAreaExposed(FlowContextPaths.USER_CLAIMS_PATH_PREFIX, expose)) {
+        if (!isAreaExposed(FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX, expose)) {
             return Collections.emptyList();
         }
 
@@ -549,18 +549,35 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         List<UserClaim> userClaims = new ArrayList<>();
 
         for (String exposePath : expose) {
-            if (!exposePath.startsWith(FlowContextPaths.USER_CLAIMS_PATH_PREFIX)) {
+            String claimUri = extractClaimUriFromSelectorPath(exposePath);
+            if (claimUri == null) {
                 continue;
             }
-            String claimKey = exposePath.substring(FlowContextPaths.USER_CLAIMS_PATH_PREFIX.length());
-            String claimValue = claims != null ? claims.get(claimKey) : null;
+            String claimValue = claims != null ? claims.get(claimUri) : null;
             claimValue = claimValue != null ? claimValue : "";
             if (!claimValue.isEmpty() && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
                 claimValue = encryptValue(claimValue, certificatePEM);
             }
-            userClaims.add(new UserClaim(claimKey, claimValue));
+            userClaims.add(new UserClaim(claimUri, claimValue));
         }
         return userClaims;
+    }
+
+    /**
+     * Extract the claim URI from a selector-format path.
+     * Accepts {@code /user/claims[uri=<claimUri>]} and returns the claim URI.
+     * Returns {@code null} if the path does not match the selector format.
+     */
+    private static String extractClaimUriFromSelectorPath(String path) {
+
+        if (path != null
+                && path.startsWith(FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)
+                && path.endsWith(FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX)) {
+            return path.substring(
+                    FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX.length(),
+                    path.length() - FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX.length());
+        }
+        return null;
     }
 
     private static class ExposeResolution {
@@ -613,23 +630,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
 
             return skippedPaths;
         }
-    }
-
-    /**
-     * Convert an internal path to its external (API-facing) form.
-     * User-claim paths stored internally as {@code /user/claims/<uri>} are emitted
-     * externally as {@code /user/claims[uri=<uri>]}. All other paths are unchanged.
-     */
-    private static String toExternalPath(String internalPath) {
-
-        if (internalPath != null
-                && internalPath.startsWith(FlowContextPaths.USER_CLAIMS_PATH_PREFIX)) {
-            String claimUri = internalPath.substring(
-                    FlowContextPaths.USER_CLAIMS_PATH_PREFIX.length());
-            return FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX + claimUri
-                    + FlowContextPaths.USER_CLAIMS_SELECTOR_SUFFIX;
-        }
-        return internalPath;
     }
 
     /**
