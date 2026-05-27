@@ -23,8 +23,10 @@ import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRe
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
 import org.wso2.carbon.identity.action.execution.api.model.User;
@@ -54,7 +56,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Pre Update Profile Action Request Builder.
@@ -63,6 +67,7 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
 
     private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
     private static final String GROUP_CLAIM_URI = "http://wso2.org/claims/groups";
+    public static final String USER_CLAIMS_FILTERED_PATH_TEMPLATE = "/user/claims[uri={claim_uri}]";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -78,11 +83,35 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         UserActionContext userActionContext =
                 flowContext.getValue(UserActionContext.USER_ACTION_CONTEXT_REFERENCE_KEY, UserActionContext.class);
         PreUpdateProfileAction preUpdateProfileAction = (PreUpdateProfileAction) actionExecutionContext.getAction();
+        Event event  = getEvent(userActionContext, preUpdateProfileAction);
 
         return new ActionExecutionRequest.Builder()
                 .actionType(getSupportedActionType())
-                .event(getEvent(userActionContext, preUpdateProfileAction))
+                .event(event)
+                .allowedOperations(getAllowedOperations())
                 .build();
+    }
+
+    private List<AllowedOperation> getAllowedOperations() {
+
+        List<String> allowedPaths = new ArrayList<>();
+        allowedPaths.add(USER_CLAIMS_FILTERED_PATH_TEMPLATE);
+
+        List<AllowedOperation> allowedOperations = new ArrayList<>();
+
+        allowedOperations.add(createAllowedOperation(Operation.ADD, allowedPaths));
+        allowedOperations.add(createAllowedOperation(Operation.REMOVE, allowedPaths));
+        allowedOperations.add(createAllowedOperation(Operation.REPLACE, allowedPaths));
+
+        return allowedOperations;
+    }
+
+    private AllowedOperation createAllowedOperation(Operation op, List<String> paths) {
+
+        AllowedOperation operation = new AllowedOperation();
+        operation.setOp(op);
+        operation.setPaths(new ArrayList<>(paths));
+        return operation;
     }
 
     private Event getEvent(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction)
@@ -93,10 +122,9 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         eventBuilder.action(PreUpdateProfileEvent.Action.UPDATE);
         eventBuilder.request(getPreUpdateProfileRequest(userActionContext));
         eventBuilder.tenant(getTenant());
-        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction));
 
-        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        UniqueIDUserStoreManager userStoreManager = RequestBuilderUtil.getUserStoreManager(tenantDomain);
+        UniqueIDUserStoreManager userStoreManager = getUserStoreManager();
+        eventBuilder.user(getUser(userActionContext, preUpdateProfileAction, userStoreManager));
         eventBuilder.userStore(getUserStore(userActionContext.getUserActionRequestDTO(), userStoreManager));
         eventBuilder.organization(getOrganization());
 
@@ -180,8 +208,8 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
                 .build();
     }
 
-    private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction)
-            throws ActionExecutionRequestBuilderException {
+    private User getUser(UserActionContext userActionContext, PreUpdateProfileAction preUpdateProfileAction,
+                         UniqueIDUserStoreManager userStoreManager) throws ActionExecutionRequestBuilderException {
 
         UserActionRequestDTO userActionRequestDTO = userActionContext.getUserActionRequestDTO();
         List<String> userClaimsToSetInEvent = preUpdateProfileAction.getAttributes();
@@ -193,15 +221,31 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             return userBuilder.build();
         }
 
-        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        Map<String, String> claimValues = RequestBuilderUtil.getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
-                userClaimsToSetInEvent, tenantDomain);
+        Map<String, String> claimValues = getClaimValues(resolveOrgBoundUserId(userActionRequestDTO),
+                userClaimsToSetInEvent, userStoreManager);
         String multiAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
 
         setClaimsInUserBuilder(userBuilder, claimValues, userActionRequestDTO.getClaims(), multiAttributeSeparator);
         setGroupsInUserBuilder(userBuilder, claimValues, multiAttributeSeparator);
 
         return userBuilder.build();
+    }
+
+    private Map<String, String> getClaimValues(String userId, List<String> requestedClaims,
+                                               UniqueIDUserStoreManager userStoreManager)
+            throws ActionExecutionRequestBuilderException {
+
+        try {
+            Map<String, String> claimValues = userStoreManager.getUserClaimValuesWithID(userId,
+                    requestedClaims.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
+
+            // Filter out the extra claims that are not requested.
+            return requestedClaims.stream()
+                    .filter(claimValues::containsKey)
+                    .collect(Collectors.toMap(Function.identity(), claimValues::get));
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new ActionExecutionRequestBuilderException("Failed to retrieve user claims from user store.", e);
+        }
     }
 
     private void setClaimsInUserBuilder(User.Builder userBuilder, Map<String, String> claimValues,
@@ -217,13 +261,37 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
                 continue;
             }
 
+            UpdatingUserClaim claim;
             if (isMultiValuedClaim(claimKey)) {
-                userClaimValuesToSetInEvent.add(
-                        constructMultiValuedClaim(updatingUserClaimsInRequest, claimKey, claimValue,
-                                multiAttributeSeparator));
+                claim = constructMultiValuedClaim(updatingUserClaimsInRequest, claimKey, claimValue,
+                        multiAttributeSeparator);
             } else {
-                userClaimValuesToSetInEvent.add(constructSingleValuedClaim(updatingUserClaimsInRequest, claimKey,
-                        claimValue));
+                claim = constructSingleValuedClaim(updatingUserClaimsInRequest, claimKey, claimValue);
+            }
+            userClaimValuesToSetInEvent.add(claim);
+        }
+
+        if (updatingUserClaimsInRequest != null) {
+            for (Map.Entry<String, Object> entry : updatingUserClaimsInRequest.entrySet()) {
+                String claimKey = entry.getKey();
+                if (isRoleOrGroupClaim(claimKey) || claimValues.containsKey(claimKey) &&
+                        StringUtils.isNotBlank(claimValues.get(claimKey))) {
+                    continue;
+                }
+
+                Object updatingClaimValue = entry.getValue();
+                UpdatingUserClaim claim;
+                if (isMultiValuedClaim(claimKey)) {
+                    if (!(updatingClaimValue instanceof String[])) {
+                        throw new ActionExecutionRequestBuilderException(
+                                "Invalid claim value format for multi-valued claim: " + claimKey +
+                                        " Only String[] types are expected.");
+                    }
+                    claim = new UpdatingUserClaim(claimKey, new String[0], (String[]) updatingClaimValue);
+                } else {
+                    claim = new UpdatingUserClaim(claimKey, null, String.valueOf(updatingClaimValue));
+                }
+                userClaimValuesToSetInEvent.add(claim);
             }
         }
 
@@ -291,6 +359,12 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         }
 
         return new UserStore(userStoreDomain);
+    }
+
+    private UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionRequestBuilderException {
+
+        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
+        return RequestBuilderUtil.getUserStoreManager(tenantDomain);
     }
 
     private boolean isMultiValuedClaim(String claimUri) throws ActionExecutionRequestBuilderException {

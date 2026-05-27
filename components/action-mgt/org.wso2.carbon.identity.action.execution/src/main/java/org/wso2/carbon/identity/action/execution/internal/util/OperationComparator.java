@@ -54,11 +54,34 @@ public class OperationComparator {
 
         for (String allowedPath : allowedOp.getPaths()) {
             if (performableOp.getPath().equals(allowedPath) ||
-                    performableOperationBasePath.equals(allowedPath)) {
+                    performableOperationBasePath.equals(allowedPath) ||
+                    performableOp.getPath().startsWith(allowedPath) ||
+                    matchesPathTemplate(allowedPath, performableOp.getPath())) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    // Allowed operation paths can contain placeholders (e.g /user/claims[uri={claim_uri}]).
+    private static boolean matchesPathTemplate(String allowedPathTemplate, String performablePath) {
+
+        if (allowedPathTemplate == null || performablePath == null || !allowedPathTemplate.contains("{")) {
+            return false;
+        }
+
+        int templateVariableStart = allowedPathTemplate.indexOf('{');
+        int templateVariableEnd = allowedPathTemplate.indexOf('}', templateVariableStart);
+        if (templateVariableStart == -1 || templateVariableEnd == -1 || templateVariableEnd < templateVariableStart) {
+            return false;
+        }
+
+        String prefix = allowedPathTemplate.substring(0, templateVariableStart);
+        String suffix = allowedPathTemplate.substring(templateVariableEnd + 1);
+
+        return performablePath.startsWith(prefix) &&
+                performablePath.endsWith(suffix) &&
+                performablePath.length() > (prefix.length() + suffix.length());
     }
 }

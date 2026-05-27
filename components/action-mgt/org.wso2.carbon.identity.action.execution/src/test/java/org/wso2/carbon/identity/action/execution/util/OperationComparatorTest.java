@@ -102,4 +102,19 @@ public class OperationComparatorTest {
 
         assertFalse(OperationComparator.compare(allowedOp, performableOp));
     }
+
+    @Test
+    public void testCompareMatchingPathForTemplateBasedClaimFilterPath() {
+
+        AllowedOperation allowedOp = new AllowedOperation();
+        allowedOp.setOp(Operation.ADD);
+        allowedOp.setPaths(Arrays.asList("/user/claims[uri={claim_uri}]"));
+
+        PerformableOperation performableOp = new PerformableOperation();
+        performableOp.setOp(Operation.ADD);
+        performableOp.setPath("/user/claims[uri=http://wso2.org/claims/country]");
+        performableOp.setValue("Sri Lanka");
+
+        assertTrue(OperationComparator.compare(allowedOp, performableOp));
+    }
 }
