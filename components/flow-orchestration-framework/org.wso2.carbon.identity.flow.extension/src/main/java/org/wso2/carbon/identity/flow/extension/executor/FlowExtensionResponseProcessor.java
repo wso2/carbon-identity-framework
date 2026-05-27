@@ -309,20 +309,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                 "User claim replace applied.");
     }
 
-    /**
-     * Validate that the given claim URI corresponds to a registered local claim in the tenant.
-     * Infrastructure failures (claim metadata service unavailable, or the lookup itself throwing)
-     * are treated as contract-level: this method throws
-     * {@link ActionExecutionResponseProcessorException} and the whole response aborts. A clean
-     * "claim does not exist" result is returned as {@code false} so the caller can drop the
-     * single offending operation per the per-operation failure policy.
-     *
-     * @param claimUri     Local claim URI to check.
-     * @param tenantDomain Tenant domain for the lookup.
-     * @return {@code true} if the claim is registered in the tenant, {@code false} otherwise.
-     * @throws ActionExecutionResponseProcessorException if the claim metadata service is
-     *         unavailable or the lookup throws.
-     */
     private Optional<LocalClaim> getLocalClaim(String claimUri, String tenantDomain)
             throws ActionExecutionResponseProcessorException {
 
