@@ -61,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Processes responses from In-Flow Extension actions, applying {@code REPLACE} operations on
@@ -85,6 +86,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     private static final Log LOG = LogFactory.getLog(FlowExtensionResponseProcessor.class);
     private static final String ERROR_VALUE_REQUIRED_FOR_REPLACE = "Value is required for REPLACE operation.";
     private static final String DIAG_PARAM_ACTION_TYPE = "actionType";
+    private static final String MULTI_VALUED_CLAIM_PROPERTY = "multiValued";
 
     @Override
     public ActionType getSupportedActionType() {
@@ -295,31 +297,19 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Identity-system claims cannot be modified by In-Flow Extensions: " + claimUri);
         }
 
-        if (!validateLocalClaimExists(claimUri, tenantDomain)) {
+        Optional<LocalClaim> optionalLocalClaim = getLocalClaim(claimUri, tenantDomain);
+        if (optionalLocalClaim.isEmpty()) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Unknown local claim URI: " + claimUri);
         }
 
-        pendingClaims.put(claimUri, String.valueOf(operation.getValue()));
+        String resolvedClaimValue = getResolvedClaimValue(operation.getValue(), optionalLocalClaim.get());
+        pendingClaims.put(claimUri, resolvedClaimValue);
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "User claim replace applied.");
     }
 
-    /**
-     * Validate that the given claim URI corresponds to a registered local claim in the tenant.
-     * Infrastructure failures (claim metadata service unavailable, or the lookup itself throwing)
-     * are treated as contract-level: this method throws
-     * {@link ActionExecutionResponseProcessorException} and the whole response aborts. A clean
-     * "claim does not exist" result is returned as {@code false} so the caller can drop the
-     * single offending operation per the per-operation failure policy.
-     *
-     * @param claimUri     Local claim URI to check.
-     * @param tenantDomain Tenant domain for the lookup.
-     * @return {@code true} if the claim is registered in the tenant, {@code false} otherwise.
-     * @throws ActionExecutionResponseProcessorException if the claim metadata service is
-     *         unavailable or the lookup throws.
-     */
-    private boolean validateLocalClaimExists(String claimUri, String tenantDomain)
+    private Optional<LocalClaim> getLocalClaim(String claimUri, String tenantDomain)
             throws ActionExecutionResponseProcessorException {
 
         org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService claimService =
@@ -329,14 +319,34 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "ClaimMetadataManagementService is unavailable; cannot validate claim URI: " + claimUri);
         }
         try {
-            java.util.Optional<LocalClaim> localClaim = claimService.getLocalClaim(claimUri, tenantDomain);
-            return localClaim.isPresent();
+            return claimService.getLocalClaim(claimUri, tenantDomain);
         } catch (ClaimMetadataException e) {
             throw new ActionExecutionResponseProcessorException(
                     "Failed to look up local claim '" + claimUri + "' in tenant '" + tenantDomain + "'.", e);
         }
     }
 
+    private String getResolvedClaimValue(Object operationValue, LocalClaim localClaim) throws
+            ActionExecutionResponseProcessorException {
+
+        if (isMultiValuedClaim(localClaim)) {
+            if (operationValue instanceof List) {
+                List<String> valueList = (List<String>) operationValue;
+                return StringUtils.join(valueList, ",");
+            }
+            throw new ActionExecutionResponseProcessorException(
+                    "Expected a list value for multi-valued claim: " + localClaim.getClaimURI());
+        } else if (operationValue instanceof String) {
+            return String.valueOf(operationValue);
+        }
+        throw new ActionExecutionResponseProcessorException(
+                "Expected a string value for single-valued claim: " + localClaim.getClaimURI());
+    }
+
+    private boolean isMultiValuedClaim(LocalClaim localClaim) {
+
+        return Boolean.parseBoolean(localClaim.getClaimProperty(MULTI_VALUED_CLAIM_PROPERTY));
+    }
     /**
      * Handle REPLACE operation on user credentials — collect into pending credentials map.
      * No key validation is applied; any credential key is accepted. The value is converted
