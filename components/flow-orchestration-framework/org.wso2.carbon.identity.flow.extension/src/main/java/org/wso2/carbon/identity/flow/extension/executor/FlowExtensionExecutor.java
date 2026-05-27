@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.flow.extension.executor;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
@@ -167,7 +168,6 @@ public class FlowExtensionExecutor implements Executor {
 
             case FAILED:
                 handleFailedStatus(response, executionStatus);
-                applyRetryMetadata(response, actionId);
                 return response;
 
             case ERROR:
@@ -180,27 +180,6 @@ public class FlowExtensionExecutor implements Executor {
             default:
                 return handleUnknownExecutionStatus(response, executionStatus);
         }
-    }
-
-    /**
-     * Build a user-facing error message from the failure details returned by the external service.
-     * Prefers the failureDescription (human-readable). Falls back to failureReason if description is absent.
-     *
-     * @param failure The failure object from the external service.
-     * @return A display-ready error message string.
-     */
-    private String buildUserFacingErrorMessage(Failure failure) {
-
-        String description = failure.getFailureDescription();
-        String reason = failure.getFailureReason();
-
-        if (description != null && !description.isEmpty()) {
-            return description;
-        }
-        if (reason != null && !reason.isEmpty()) {
-            return reason;
-        }
-        return "The operation could not be completed due to an external service failure.";
     }
 
     private ExecutorResponse buildErrorResponse(String errorMessage, String errorDescription) {
@@ -231,36 +210,17 @@ public class FlowExtensionExecutor implements Executor {
 
     private void handleFailedStatus(ExecutorResponse response, ActionExecutionStatus<?> executionStatus) {
 
-        response.setResult(ExecutorStatus.STATUS_RETRY);
+        response.setResult(ExecutorStatus.STATUS_USER_ERROR);
         Failure failure = (Failure) executionStatus.getResponse();
-        if (failure == null) {
-            return;
-        }
 
-        Map<String, String> failureInfo = new HashMap<>();
-        if (failure.getFailureReason() != null) {
-            failureInfo.put(FlowExtensionConstants.FAILURE_MESSAGE_KEY, failure.getFailureReason());
-        }
-        if (failure.getFailureDescription() != null) {
-            failureInfo.put(FlowExtensionConstants.FAILURE_DESCRIPTION_KEY, failure.getFailureDescription());
-        }
-        response.setAdditionalInfo(failureInfo);
+        String failureReason = StringUtils.isNotBlank(failure.getFailureReason()) ? failure.getFailureReason() :
+                Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_FAILURE.getMessage();
+        String failureDescription = StringUtils.isNotBlank(failure.getFailureDescription()) ? failure.getFailureDescription() :
+                Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_FAILURE.getDescription();
+
         response.setErrorCode(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_FAILURE.getCode());
-
-        String reason = failure.getFailureReason();
-        String description = failure.getFailureDescription();
-
-        if (reason != null && !reason.isEmpty()) {
-            response.setErrorMessage(reason);
-        } else {
-            response.setErrorMessage("The operation could not be completed.");
-        }
-
-        if (description != null && !description.isEmpty()) {
-            response.setErrorDescription(description);
-        } else {
-            response.setErrorDescription(buildUserFacingErrorMessage(failure));
-        }
+        response.setErrorMessage(failureReason);
+        response.setErrorDescription(failureDescription);
     }
 
     private void handleErrorStatus(ExecutorResponse response, ActionExecutionStatus<?> executionStatus) {
@@ -272,8 +232,13 @@ public class FlowExtensionExecutor implements Executor {
             return;
         }
 
-        response.setErrorMessage(error.getErrorMessage());
-        response.setErrorDescription(error.getErrorDescription());
+        String errorMessage = StringUtils.isNotBlank(error.getErrorMessage()) ? error.getErrorMessage() :
+                Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getMessage();
+        String errorDescription = StringUtils.isNotBlank(error.getErrorDescription()) ? error.getErrorDescription() :
+                Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getDescription();
+
+        response.setErrorMessage(errorMessage);
+        response.setErrorDescription(errorDescription);
     }
 
     private ExecutorResponse handleIncompleteExecutionStatus(ExecutorResponse response, FlowContext flowContext,
@@ -307,11 +272,11 @@ public class FlowExtensionExecutor implements Executor {
     private ExecutorResponse handleUnknownExecutionStatus(ExecutorResponse response,
                                                           ActionExecutionStatus<?> executionStatus) {
 
-        LOG.warn("Unknown execution status: " + executionStatus.getStatus());
+        LOG.error("Unknown execution status: " + executionStatus.getStatus());
         response.setResult(ExecutorStatus.STATUS_ERROR);
         response.setErrorCode(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getCode());
         response.setErrorMessage(Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR.getMessage());
-        response.setErrorDescription("The Flow Extension returned an unrecognised status. Please try again.");
+        response.setErrorDescription("The Flow Extension returned an unrecognized status.");
         return response;
     }
 
@@ -391,7 +356,7 @@ public class FlowExtensionExecutor implements Executor {
         if (actionExecutorService == null) {
             throw FlowExecutionEngineUtils.handleServerException(
                     Constants.ErrorMessages.ERROR_CODE_INFLOW_EXTENSION_ERROR,
-                    "ActionExecutorService is not available. actionId: " + actionId);
+                    "ActionExecutorService is not available.");
         }
         return actionExecutorService;
     }
