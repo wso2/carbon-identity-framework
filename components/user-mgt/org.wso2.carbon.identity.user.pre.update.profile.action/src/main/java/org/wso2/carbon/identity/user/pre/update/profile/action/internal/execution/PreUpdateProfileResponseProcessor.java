@@ -113,7 +113,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                         break;
                     case REMOVE:
                         operationExecutionResultList.add(handleRemoveOperation(operation, responseContext,
-                                userClaimsToBeModified, userClaimsToBeRemoved, simpleMultiValuedClaimsToBeRemoved));
+                                userClaimsToBeModified, userClaimsToBeRemoved));
                         break;
                     default:
                         break;
@@ -174,12 +174,10 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
             PerformableOperation operation,
             ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext,
             Map<String, String> userClaimsToBeModified,
-            Map<String, String> userClaimsToBeRemoved,
-            Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved) {
+            Map<String, String> userClaimsToBeRemoved) {
 
         try {
-            populateRemoveOperationResult(operation, responseContext, userClaimsToBeModified, userClaimsToBeRemoved,
-                    simpleMultiValuedClaimsToBeRemoved);
+            populateRemoveOperationResult(operation, responseContext, userClaimsToBeModified, userClaimsToBeRemoved);
             return new ProfileOperationExecutionResult(operation, ProfileOperationExecutionResult.Status.SUCCESS,
                     "Operation applied.");
         } catch (ActionExecutionResponseProcessorException e) {
@@ -205,7 +203,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         String path = operation.getPath();
 
         // Determine claim URI: from path (path-based format) or from value map.
-        if (path != null && isClaimPathFormat(path)) {
+        if (isClaimPathFormat(path)) {
             claimUri = getClaimUriFromPath(path);
         } else if (operation.getValue() instanceof LinkedHashMap) {
             LinkedHashMap<?, ?> valueMap = (LinkedHashMap<?, ?>) operation.getValue();
@@ -330,16 +328,14 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                                                ActionExecutionResponseContext<ActionInvocationSuccessResponse>
                                                        responseContext,
                                                Map<String, String> userClaimsToBeModified,
-                                               Map<String, String> userClaimsToBeRemoved,
-                                               Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved)
+                                               Map<String, String> userClaimsToBeRemoved)
             throws ActionExecutionResponseProcessorException {
 
         String path = operation.getPath();
         PreUpdateProfileEvent.FlowInitiatorType initiatorType = ((PreUpdateProfileEvent) responseContext
                 .getActionEvent()).getInitiatorType();
 
-        // Extract the claim URI and optionally the specific value to remove for
-        // multivalued claims.
+        // Extract the claim URI and optionally the specific value to remove for multivalued claims.
         String claimUri = getClaimUriFromPath(path);
 
         Optional<LocalClaim> localClaim = isLocalClaim(claimUri);
@@ -354,8 +350,7 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                 throw new ActionExecutionResponseProcessorException(
                         "Remove specific value from a multivalued claim is not supported.");
             }
-            populateMultiValuedClaimsForRemoveOperation(initiatorType, claimUri, userClaimsToBeRemoved,
-                    simpleMultiValuedClaimsToBeRemoved);
+            populateMultiValuedClaimsForRemoveOperation(claimUri, userClaimsToBeRemoved);
         }
     }
 
@@ -501,12 +496,8 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
         }
     }
 
-    private void populateMultiValuedClaimsForRemoveOperation(
-            PreUpdateProfileEvent.FlowInitiatorType initiatorType,
-            String claimUri,
-            Map<String, String> userClaimsToBeRemoved,
-            Map<String, List<String>> simpleMultiValuedClaimsToBeRemoved)
-            throws ActionExecutionResponseProcessorException {
+    private void populateMultiValuedClaimsForRemoveOperation(String claimUri,
+                                                             Map<String, String> userClaimsToBeRemoved) {
 
         userClaimsToBeRemoved.put(claimUri, "");
     }
@@ -756,17 +747,17 @@ public class PreUpdateProfileResponseProcessor implements ActionExecutionRespons
                             "message", performedOperation.getMessage()
                     )));
 
-            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                     ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE);
-            diagLogBuilder
+            diagnosticLogBuilder
                     .inputParam("executedOperations",
                             operationDetailsList.isEmpty() ? "empty" : operationDetailsList)
                     .resultMessage("Allowed operations are executed for " + actionType.getDisplayName() + " action.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .build();
-            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
 
         if (LOG.isDebugEnabled()) {

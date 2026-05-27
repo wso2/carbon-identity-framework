@@ -88,11 +88,11 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
         return new ActionExecutionRequest.Builder()
                 .actionType(getSupportedActionType())
                 .event(event)
-                .allowedOperations(getAllowedOperations(event))
+                .allowedOperations(getAllowedOperations())
                 .build();
     }
 
-    private List<AllowedOperation> getAllowedOperations(Event event) throws ActionExecutionRequestBuilderException {
+    private List<AllowedOperation> getAllowedOperations() {
 
         List<String> allowedPaths = new ArrayList<>();
         allowedPaths.add(USER_CLAIMS_FILTERED_PATH_TEMPLATE);
