@@ -38,6 +38,7 @@ public class NodeResponse implements Serializable {
     private String status;
     private String type;
     private String error;
+    private String i18nKey;
     private Map<String, String> additionalInfo;
 
     private NodeResponse(Builder builder) {
@@ -45,6 +46,7 @@ public class NodeResponse implements Serializable {
         this.status = builder.status;
         this.type = builder.type;
         this.error = builder.error;
+        this.i18nKey = builder.i18nKey;
         this.requiredData = builder.requiredData;
         this.additionalInfo = builder.additionalInfo;
         this.optionalData = builder.optionalData;
@@ -100,6 +102,16 @@ public class NodeResponse implements Serializable {
         this.error = error;
     }
 
+    public String getI18nKey() {
+
+        return i18nKey;
+    }
+
+    public void setI18nKey(String i18nKey) {
+
+        this.i18nKey = i18nKey;
+    }
+
     /**
      * Builder class to build {@link NodeResponse} objects.
      */
@@ -112,6 +124,8 @@ public class NodeResponse implements Serializable {
         private String type;
         @JsonProperty("error")
         private String error;
+        @JsonProperty("i18nKey")
+        private String i18nKey;
         @JsonProperty("requiredData")
         private List<String> requiredData;
         @JsonProperty("optionalData")
@@ -134,6 +148,12 @@ public class NodeResponse implements Serializable {
         public Builder error(String error) {
 
             this.error = error;
+            return this;
+        }
+
+        public Builder i18nKey(String i18nKey) {
+
+            this.i18nKey = i18nKey;
             return this;
         }
 

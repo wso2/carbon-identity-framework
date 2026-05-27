@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ERROR;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.I18N_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_REQUIRED_DATA_NOT_FOUND;
@@ -341,6 +342,9 @@ public class FlowExecutionEngine {
 
         if (StringUtils.isNotBlank(nodeResponse.getError())) {
             dataDTO.addAdditionalData(ERROR, nodeResponse.getError());
+        }
+        if (StringUtils.isNotBlank(nodeResponse.getI18nKey())) {
+            dataDTO.addAdditionalData(I18N_KEY, nodeResponse.getI18nKey());
         }
     }
 }

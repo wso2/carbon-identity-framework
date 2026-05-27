@@ -145,6 +145,16 @@ public class ExecutorResponse {
         this.errorObject.setDescription(errorDescription);
     }
 
+    public String getI18nKey() {
+
+        return errorObject.getI18nKey();
+    }
+
+    public void setI18nKey(String i18nKey) {
+
+        this.errorObject.setI18nKey(i18nKey);
+    }
+
     public Throwable getThrowable() {
 
         return errorObject.getThrowable();
@@ -163,6 +173,7 @@ public class ExecutorResponse {
         private String code;
         private String message;
         private String description;
+        private String i18nKey;
         private Throwable throwable;
 
         public ErrorObject() {
@@ -197,6 +208,16 @@ public class ExecutorResponse {
         public void setDescription(String description) {
 
             this.description = description;
+        }
+
+        public String getI18nKey() {
+
+            return i18nKey;
+        }
+
+        public void setI18nKey(String i18nKey) {
+
+            this.i18nKey = i18nKey;
         }
 
         public Throwable getThrowable() {

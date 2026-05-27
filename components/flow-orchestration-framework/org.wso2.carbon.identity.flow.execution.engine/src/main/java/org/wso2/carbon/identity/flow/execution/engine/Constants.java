@@ -38,6 +38,7 @@ public class Constants {
     public static final String IDENTIFIER = "identifier";
     public static final String REQUIRED = "required";
     public static final String ERROR = "error";
+    public static final String I18N_KEY = "i18nKey";
     public static final String WEBAUTHN_DATA = "webAuthnData";
     public static final String OTFI = "OTFI";
 
