@@ -243,6 +243,10 @@ public class FlowUser implements Serializable {
     public static class UserConsent implements Serializable {
 
         private static final long serialVersionUID = -4631846306935565799L;
+        private static final String FIELD_PURPOSES = "purposes";
+        private static final String FIELD_ATTRIBUTES = "attributes";
+        private static final String FIELD_ID = "id";
+        private static final String FIELD_ACCEPTED = "accepted";
 
         private String purposeType;
         private List<ConsentPurpose> purposes = new ArrayList<>();
@@ -259,14 +263,14 @@ public class FlowUser implements Serializable {
                 root.fields().forEachRemaining(typeEntry -> {
                     UserConsent consent = new UserConsent();
                     consent.purposeType = typeEntry.getKey();
-                    JsonNode purposesNode = typeEntry.getValue().path("purposes");
+                    JsonNode purposesNode = typeEntry.getValue().path(FIELD_PURPOSES);
                     if (purposesNode.isArray()) {
                         for (JsonNode purposeNode : purposesNode) {
                             ConsentPurpose cp = new ConsentPurpose();
-                            cp.setId(purposeNode.path("id").asText(null));
-                            cp.setAccepted(purposeNode.path("accepted").asBoolean(false));
+                            cp.setId(purposeNode.path(FIELD_ID).asText(null));
+                            cp.setAccepted(purposeNode.path(FIELD_ACCEPTED).asBoolean(false));
                             List<String> acceptedAttrs = new ArrayList<>();
-                            purposeNode.path("attributes").forEach(n -> acceptedAttrs.add(n.asText()));
+                            purposeNode.path(FIELD_ATTRIBUTES).forEach(n -> acceptedAttrs.add(n.asText()));
                             cp.setAttributes(acceptedAttrs);
                             consent.purposes.add(cp);
                         }
@@ -292,7 +296,9 @@ public class FlowUser implements Serializable {
 
     /**
      * Represents a single purpose entry within a consent type, including its purpose-level
-     * acceptance flag and the accepted/rejected attribute ID lists.
+     * acceptance flag and the associated attribute ID list. When {@code accepted} is {@code true},
+     * the list contains the accepted attribute IDs; when {@code false}, it contains the rejected
+     * attribute IDs.
      */
     public static class ConsentPurpose implements Serializable {
 
