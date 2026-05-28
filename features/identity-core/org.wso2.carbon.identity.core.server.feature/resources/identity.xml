@@ -197,6 +197,10 @@
     </ClientAttestation>
 
     <OAuth>
+        <GracefulRefreshTokenRotation>
+            <ValidityPeriodMax>60</ValidityPeriodMax>
+            <ReuseLimitMax>5</ReuseLimitMax>
+        </GracefulRefreshTokenRotation>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
