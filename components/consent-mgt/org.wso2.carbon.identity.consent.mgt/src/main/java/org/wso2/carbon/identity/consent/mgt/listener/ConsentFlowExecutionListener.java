@@ -40,11 +40,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
-import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.MARKETING;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.POLICY;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.PREFERENCE;
 
 /**
- * Listener to enrich POLICY and MARKETING components with purpose and attribute details from the consent manager.
+ * Listener to enrich POLICY and PREFERENCE components with purpose and attribute details from the consent manager.
  */
 public class ConsentFlowExecutionListener extends AbstractFlowExecutionListener {
 
@@ -91,8 +91,8 @@ public class ConsentFlowExecutionListener extends AbstractFlowExecutionListener 
                 for (ComponentDTO child : component.getComponents()) {
                     if (POLICY.equals(child.getType())) {
                         enrichPolicyComponent(child, context);
-                    } else if (MARKETING.equals(child.getType())) {
-                        enrichMarketingComponent(child, context);
+                    } else if (PREFERENCE.equals(child.getType())) {
+                        enrichPreferenceComponent(child, context);
                     }
                 }
             }
@@ -143,7 +143,7 @@ public class ConsentFlowExecutionListener extends AbstractFlowExecutionListener 
     }
 
     @SuppressWarnings("unchecked")
-    private void enrichMarketingComponent(ComponentDTO component, FlowExecutionContext context)
+    private void enrichPreferenceComponent(ComponentDTO component, FlowExecutionContext context)
             throws FlowEngineException {
 
         if (component.getConfigs() == null || !component.getConfigs().containsKey(PURPOSES_CONFIG)) {
