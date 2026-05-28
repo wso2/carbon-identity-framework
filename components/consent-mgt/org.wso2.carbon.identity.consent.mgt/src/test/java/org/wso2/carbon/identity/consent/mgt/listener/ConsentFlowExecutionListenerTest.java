@@ -493,6 +493,7 @@ public class ConsentFlowExecutionListenerTest {
 
     private FlowExecutionStep stepWithPreferenceMap(Map<String, Object> preference) {
 
-        return stepWithPreferenceComponent(preferenceComponentWithPurposesObject(Collections.singletonList(preference)));
+        return stepWithPreferenceComponent(
+            preferenceComponentWithPurposesObject(Collections.singletonList(preference)));
     }
 }
