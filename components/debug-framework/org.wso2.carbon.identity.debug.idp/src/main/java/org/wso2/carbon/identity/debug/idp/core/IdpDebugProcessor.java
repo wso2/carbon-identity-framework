@@ -102,7 +102,7 @@ public abstract class IdpDebugProcessor extends DebugProcessor {
     protected abstract Map<String, Object> extractClaims(DebugContext debugContext, String state);
 
     protected abstract void buildAndCacheDebugResult(DebugContext debugContext, String state,
-            Map<String, Object> claims);
+            Map<String, Object> claims) throws DebugFrameworkServerException;
 
     protected abstract void sendDebugResponse(HttpServletResponse response, String state,
             String resourceIdentifier) throws DebugFrameworkServerException;
