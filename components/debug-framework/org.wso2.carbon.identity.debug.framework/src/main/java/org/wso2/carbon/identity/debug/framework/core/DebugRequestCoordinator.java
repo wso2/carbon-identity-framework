@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkRequest;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponse;
 import org.wso2.carbon.identity.debug.framework.model.DebugFrameworkResponseBuilder;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
-import org.wso2.carbon.identity.debug.framework.registry.DebugHandlerRegistry;
 import org.wso2.carbon.identity.debug.framework.registry.DebugTypeRegistry;
 import org.wso2.carbon.identity.debug.framework.store.DebugSessionStore;
 import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
@@ -72,7 +71,7 @@ public class DebugRequestCoordinator {
         }
 
         String resourceType = debugFrameworkRequest.getResourceType();
-        DebugResourceHandler handler = DebugHandlerRegistry.getInstance().getHandler(resourceType);
+        DebugResourceHandler handler = DebugTypeRegistry.getInstance().getResourceHandler(resourceType);
         if (handler == null) {
             throw DebugFrameworkUtils.handleClientException(ErrorMessages.ERROR_CODE_HANDLER_NOT_FOUND, resourceType);
         }
@@ -127,7 +126,7 @@ public class DebugRequestCoordinator {
 
     /**
      * Handles a debug callback request from /commonauth.
-     * Resolves the protocol from the session, routes to the registered handler directly.
+     * Resolves the IdP type from the session, routes to the registered handler directly.
      *
      * @param request  The HTTP request containing callback parameters.
      * @param response The HTTP response for sending results.
@@ -136,12 +135,9 @@ public class DebugRequestCoordinator {
     public boolean handleCallbackRequest(HttpServletRequest request, HttpServletResponse response) {
 
         String state = request.getParameter(DebugFrameworkConstants.CALLBACK_STATE_PARAM);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Handling debug callback request for state: " + state);
-        }
         Map<String, Object> sessionData = loadSessionData(state);
-        String protocol = extractProtocol(sessionData);
-        DebugCallbackHandler handler = DebugTypeRegistry.getInstance().getHandler(protocol);
+        String debugType = extractDebugType(sessionData);
+        DebugCallbackHandler handler = DebugTypeRegistry.getInstance().getCallbackHandler(debugType);
 
         try {
             return handler.handleCallback(request, response, sessionData);
@@ -168,10 +164,10 @@ public class DebugRequestCoordinator {
         }
     }
 
-    private String extractProtocol(Map<String, Object> sessionData) {
+    private String extractDebugType(Map<String, Object> sessionData) {
 
-        Object protocol = sessionData.get(DebugFrameworkConstants.CONTEXT_PROTOCOL_KEY);
-        return protocol != null ? protocol.toString() : null;
+        Object debugType = sessionData.get(DebugFrameworkConstants.CONTEXT_DEBUG_TYPE_KEY);
+        return debugType != null ? debugType.toString() : null;
     }
 
     private void executePostListeners(DebugFrameworkResponse debugFrameworkResponse,

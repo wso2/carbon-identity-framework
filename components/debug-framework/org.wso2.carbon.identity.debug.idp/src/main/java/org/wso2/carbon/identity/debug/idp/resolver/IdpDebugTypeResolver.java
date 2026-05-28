@@ -24,13 +24,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 /**
- * Debug protocol resolver for Identity Providers.
- * Resolves the protocol based on the configured authenticators in the IdP.
+ * Resolves the authenticator implementation name from an IdP resource,
+ * so callers can look up a DebugTypeProvider directly without an intermediate type mapping.
  */
 public class IdpDebugTypeResolver {
 
@@ -42,21 +41,21 @@ public class IdpDebugTypeResolver {
     }
 
     /**
-     * Holds the result of protocol resolution: the protocol key and the already-loaded IdP object,
+     * Holds the loaded IdP and the authenticator implementation name resolved from it,
      * so callers can reuse the IdP without a second DB fetch.
      */
-    public static class ProtocolResolutionResult {
+    public static class TypeResolutionResult {
 
-        private final String protocolKey;
+        private final String authenticatorName;
         private final IdentityProvider identityProvider;
 
-        public ProtocolResolutionResult(String protocolKey, IdentityProvider identityProvider) {
-            this.protocolKey = protocolKey;
+        public TypeResolutionResult(String authenticatorName, IdentityProvider identityProvider) {
+            this.authenticatorName = authenticatorName;
             this.identityProvider = identityProvider;
         }
 
-        public String getProtocolKey() {
-            return protocolKey;
+        public String getAuthenticatorName() {
+            return authenticatorName;
         }
 
         public IdentityProvider getIdentityProvider() {
@@ -65,12 +64,13 @@ public class IdpDebugTypeResolver {
     }
 
     /**
-     * Resolves the protocol type for a given IdP resource ID and returns the loaded IdP alongside it.
+     * Loads the IdP for the given resource ID and resolves the authenticator implementation name
+     * from its enabled federated authenticator configs.
      *
      * @param resourceId The unique identifier of the IdP resource.
-     * @return ProtocolResolutionResult containing the protocol key and loaded IdP, or null if unresolvable.
+     * @return TypeResolutionResult, or null if the IdP cannot be loaded or has no enabled authenticator.
      */
-    public static ProtocolResolutionResult resolveProtocol(String resourceId) {
+    public static TypeResolutionResult resolve(String resourceId) {
 
         if (StringUtils.isEmpty(resourceId)) {
             return null;
@@ -78,15 +78,19 @@ public class IdpDebugTypeResolver {
 
         try {
             String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-            IdentityProvider resource = loadIdpConfig(IDP_MANAGER, resourceId, tenantDomain);
-            String protocolKey = detectProtocolFromIdP(resource);
-            if (protocolKey == null) {
+            IdentityProvider idp = loadIdpConfig(IDP_MANAGER, resourceId, tenantDomain);
+            String authenticatorName = resolveAuthenticatorName(idp);
+            if (authenticatorName == null) {
                 return null;
             }
-            return new ProtocolResolutionResult(protocolKey, resource);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Resolved authenticator implementation: " + authenticatorName
+                        + " for IdP resource: " + resourceId);
+            }
+            return new TypeResolutionResult(authenticatorName, idp);
 
         } catch (IdentityProviderManagementException e) {
-            LOG.error("Error resolving protocol for IdP resource: " + resourceId, e);
+            LOG.error("Error resolving authenticator type for IdP resource: " + resourceId, e);
         }
         return null;
     }
@@ -97,87 +101,28 @@ public class IdpDebugTypeResolver {
         return idpManager.getIdPByResourceId(resourceId, tenantDomain, true);
     }
 
-    protected static String detectProtocolFromIdP(IdentityProvider resource) {
+    protected static String resolveAuthenticatorName(IdentityProvider idp) {
 
-        FederatedAuthenticatorConfig defaultConfig = resource.getDefaultAuthenticatorConfig();
+        FederatedAuthenticatorConfig defaultConfig = idp.getDefaultAuthenticatorConfig();
         if (defaultConfig != null && isValidAuthenticatorConfig(defaultConfig)) {
-            return resolveProtocolForConfig(defaultConfig);
+            return defaultConfig.getName();
         }
 
-        FederatedAuthenticatorConfig[] configs = resource.getFederatedAuthenticatorConfigs();
+        FederatedAuthenticatorConfig[] configs = idp.getFederatedAuthenticatorConfigs();
         if (configs == null || configs.length == 0) {
             return null;
         }
 
-        return detectProtocolFromConfigs(configs);
-    }
-
-    protected static String detectProtocolFromConfigs(FederatedAuthenticatorConfig[] configs) {
-
         for (FederatedAuthenticatorConfig config : configs) {
-            if (!isValidAuthenticatorConfig(config)) {
-                continue;
-            }
-
-            String protocol = resolveProtocolForConfig(config);
-            if (protocol != null) {
-                return protocol;
+            if (isValidAuthenticatorConfig(config)) {
+                return config.getName();
             }
         }
         return null;
-    }
-
-    protected static String resolveProtocolForConfig(FederatedAuthenticatorConfig config) {
-
-        String implementationName = config.getName();
-        String protocolType = resolveIdpType(implementationName);
-
-        if (protocolType != null && LOG.isDebugEnabled()) {
-            LOG.debug("Detected protocol type: " + protocolType + " for implementation: " + implementationName);
-        }
-
-        return protocolType;
     }
 
     protected static boolean isValidAuthenticatorConfig(FederatedAuthenticatorConfig config) {
 
         return config != null && config.isEnabled() && !StringUtils.isEmpty(config.getName());
-    }
-
-    /**
-     * Maps a federated authenticator implementation name to a canonical protocol key.
-     * Returns {@code null} for unrecognized implementations. Note that SAML resolves to a key
-     * for which no debug provider is registered yet; such requests fail later with a clear
-     * "executor not found" error rather than being silently dropped here.
-     *
-     * OIDC-family authenticators (plain OIDC, Google) all map to IDP_TYPE_OIDC because they share
-     * the same debug components. GitHub maps to its own key because it has a custom processor that
-     * calls the userinfo endpoint instead of parsing an ID token. Facebook has its own executor.
-     */
-    protected static String resolveIdpType(String implementationName) {
-
-        if (StringUtils.isBlank(implementationName)) {
-            return null;
-        }
-
-        if (isOidcFamilyImplementation(implementationName)) {
-            return IdpDebugConstants.IDP_TYPE_OIDC;
-        }
-        if (IdpDebugConstants.IMPLEMENTATION_GITHUB.equalsIgnoreCase(implementationName)) {
-            return IdpDebugConstants.IDP_TYPE_GITHUB;
-        }
-        if (IdpDebugConstants.IMPLEMENTATION_FACEBOOK.equalsIgnoreCase(implementationName)) {
-            return IdpDebugConstants.IDP_TYPE_FACEBOOK;
-        }
-        if (IdpDebugConstants.IMPLEMENTATION_SAML_SSO.equalsIgnoreCase(implementationName)) {
-            return IdpDebugConstants.IDP_TYPE_SAML;
-        }
-        return null;
-    }
-
-    private static boolean isOidcFamilyImplementation(String implementationName) {
-
-        return IdpDebugConstants.IMPLEMENTATION_OPENID_CONNECT.equalsIgnoreCase(implementationName)
-                || IdpDebugConstants.IMPLEMENTATION_GOOGLE_OIDC.equalsIgnoreCase(implementationName);
     }
 }

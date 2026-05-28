@@ -59,16 +59,16 @@ public final class DebugFrameworkConstants {
     public static final String CALLBACK_ERROR_PARAM = "error";
     public static final String UNKNOWN_DEBUG_STATE = "unknown";
 
-    public static final String CONTEXT_PROTOCOL_KEY = "protocol";
+    public static final String CONTEXT_DEBUG_TYPE_KEY = "debugType";
 
-    // Debug Context Properties (used by protocol modules).
+    // Debug Context Properties (used by authenticator-type modules).
     public static final String DEBUG_AUTH_ERROR = "DEBUG_AUTH_ERROR";
     public static final String DEBUG_AUTH_SUCCESS = "DEBUG_AUTH_SUCCESS";
     public static final String DEBUG_PROTOCOL_CODE = "DEBUG_PROTOCOL_CODE";
     public static final String DEBUG_PROTOCOL_STATE = "DEBUG_PROTOCOL_STATE";
     public static final String DEBUG_SESSION_DATA_KEY = "DEBUG_SESSION_DATA_KEY";
 
-    // Debug Flow Type Constants (used by protocol modules).
+    // Debug Flow Type Constants (used by authenticator-type modules).
     public static final String DEBUG_FLOW_TYPE = "DEBUG_FLOW_TYPE";
     public static final String DEBUG_CONTEXT_CREATED = "DEBUG_CONTEXT_CREATED";
     public static final String DEBUG_CREATION_TIMESTAMP = "DEBUG_CREATION_TIMESTAMP";

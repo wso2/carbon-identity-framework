@@ -21,8 +21,9 @@ package org.wso2.carbon.identity.debug.framework.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.debug.framework.extension.DebugInterceptor;
 import org.wso2.carbon.identity.debug.framework.internal.DebugFrameworkServiceDataHolder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Intercepts /commonauth requests and delegates debug callbacks to the coordinator.
  */
-public class DebugCommonAuthInterceptor implements DebugAuthenticationInterceptor {
+public class DebugCommonAuthInterceptor implements DebugInterceptor, AuthenticationInterceptor {
 
     private static final Log LOG = LogFactory.getLog(DebugCommonAuthInterceptor.class);
 
@@ -43,7 +44,7 @@ public class DebugCommonAuthInterceptor implements DebugAuthenticationIntercepto
     }
 
     @Override
-    public boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response) {
+    public boolean handle(HttpServletRequest request, HttpServletResponse response) {
 
         DebugRequestCoordinator coordinator =
                 DebugFrameworkServiceDataHolder.getInstance().getDebugRequestCoordinator();

@@ -19,18 +19,22 @@
 package org.wso2.carbon.identity.debug.idp.registry;
 
 import org.wso2.carbon.identity.debug.framework.extension.DebugTypeProvider;
+import org.wso2.carbon.identity.debug.idp.extension.IdpDebugTypeProvider;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Registry for IdP debug protocol providers.
+ * Registry for IdP debug type providers.
+ *
+ * <p>Providers are stored in a list rather than a name-keyed map. Resolution is done by
+ * iterating the list and delegating to each provider's
+ * {@link IdpDebugTypeProvider#supportsAuthenticator(String)} predicate.
  */
 public class IdpDebugProviderRegistry {
 
     private static final IdpDebugProviderRegistry INSTANCE = new IdpDebugProviderRegistry();
 
-    private final Map<String, DebugTypeProvider> providers = new ConcurrentHashMap<>();
+    private final CopyOnWriteArrayList<IdpDebugTypeProvider> providers = new CopyOnWriteArrayList<>();
 
     private IdpDebugProviderRegistry() {
 
@@ -41,18 +45,27 @@ public class IdpDebugProviderRegistry {
         return INSTANCE;
     }
 
-    public void addProvider(DebugTypeProvider provider) {
+    public void addProvider(IdpDebugTypeProvider provider) {
 
-        providers.put(provider.getProtocolType(), provider);
+        providers.addIfAbsent(provider);
     }
 
-    public void removeProvider(DebugTypeProvider provider) {
+    public void removeProvider(IdpDebugTypeProvider provider) {
 
-        providers.remove(provider.getProtocolType());
+        providers.remove(provider);
     }
 
-    public DebugTypeProvider getProvider(String protocolType) {
+    /**
+     * Finds the first registered provider that supports the given authenticator name.
+     *
+     * @param authenticatorName the authenticator name from the IdP's federated authenticator config.
+     * @return the matching {@link DebugTypeProvider}, or {@code null} if none found.
+     */
+    public DebugTypeProvider resolve(String authenticatorName) {
 
-        return providers.get(protocolType);
+        return providers.stream()
+                .filter(p -> p.supportsAuthenticator(authenticatorName))
+                .findFirst()
+                .orElse(null);
     }
 }

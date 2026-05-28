@@ -22,28 +22,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Intercepts incoming common auth requests before the regular framework flow.
- * Implementations can short-circuit handling by returning {@code true}.
+ * Extension point for intercepting incoming /commonauth requests before the regular framework flow.
+ * Implementations can short-circuit handling by returning {@code true} from {@link #handle}.
  */
-public interface DebugAuthenticationInterceptor {
+public interface AuthenticationInterceptor {
 
     /**
-     * Checks whether this interceptor can handle the given debug request.
-     * Implementations must inspect the request (e.g. a specific parameter or session key) to
-     * determine whether they are the correct handler, avoiding unintended interception of
-     * requests meant for other interceptors and disruption of the regular authentication flow.
+     * Checks whether this interceptor can handle the given request.
+     * Implementations must inspect the request to determine whether they are the correct handler,
+     * avoiding unintended interception of requests meant for other interceptors.
      *
      * @param request HttpServletRequest.
-     * @return {@code true} if this interceptor can handle the given debug request.
+     * @return {@code true} if this interceptor can handle the given request.
      */
     boolean canHandle(HttpServletRequest request);
 
     /**
-     * Handles an incoming common auth request.
+     * Handles an incoming /commonauth request.
      *
-     * @param request HttpServletRequest.
+     * @param request  HttpServletRequest.
      * @param response HttpServletResponse.
      * @return {@code true} if the request was handled and the regular flow should be skipped.
      */
-    boolean handleCommonAuthRequest(HttpServletRequest request, HttpServletResponse response);
+    boolean handle(HttpServletRequest request, HttpServletResponse response);
 }

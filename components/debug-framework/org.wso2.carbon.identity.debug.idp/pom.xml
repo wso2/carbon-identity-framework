@@ -70,6 +70,10 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
             <version>${equinox.osgi.services.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.flow.execution.engine</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -98,6 +102,7 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.debug.idp.internal,
                             org.wso2.carbon.identity.debug.idp.core.*; version="${project.version}",
+                            org.wso2.carbon.identity.debug.idp.extension.*; version="${project.version}",
                             org.wso2.carbon.identity.debug.idp.resolver.*; version="${project.version}",
                             org.wso2.carbon.identity.debug.idp.registry.*; version="${project.version}"
                         </Export-Package>
@@ -120,7 +125,8 @@
                             org.apache.commons.logging; version="[1.2.0,2.0.0)",
                             org.apache.commons.lang; version="[2.6.0,3.0.0)",
                             javax.servlet.http; version="[2.6.0,3.0.0)",
-                            javax.servlet; version="[2.6.0,3.0.0)"
+                            javax.servlet; version="[2.6.0,3.0.0)",
+                            org.wso2.carbon.identity.flow.execution.engine.graph; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

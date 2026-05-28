@@ -25,7 +25,7 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
-import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationInterceptor;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
@@ -99,7 +99,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
-    private DebugAuthenticationInterceptor debugAuthenticationInterceptor;
+    private List<AuthenticationInterceptor> authenticationInterceptors = new ArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -862,31 +862,33 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Get the debug authentication interceptor.
+     * Get all registered authentication interceptors.
      *
-     * @return Debug authentication interceptor, or null if not registered.
+     * @return List of registered {@link AuthenticationInterceptor} instances.
      */
-    public DebugAuthenticationInterceptor getDebugAuthenticationInterceptor() {
+    public List<AuthenticationInterceptor> getAuthenticationInterceptors() {
 
-        return debugAuthenticationInterceptor;
+        return authenticationInterceptors;
     }
 
     /**
-     * Set the debug authentication interceptor.
+     * Add an authentication interceptor.
      *
-     * @param interceptor Debug authentication interceptor to be set.
+     * @param interceptor {@link AuthenticationInterceptor} to add.
      */
-    public void setDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+    public void addAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
 
-        this.debugAuthenticationInterceptor = interceptor;
+        this.authenticationInterceptors.add(interceptor);
     }
 
     /**
-     * Unset the debug authentication interceptor.
+     * Remove an authentication interceptor.
+     *
+     * @param interceptor {@link AuthenticationInterceptor} to remove.
      */
-    public void unsetDebugAuthenticationInterceptor() {
+    public void removeAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
 
-        this.debugAuthenticationInterceptor = null;
+        this.authenticationInterceptors.remove(interceptor);
     }
 
     /**

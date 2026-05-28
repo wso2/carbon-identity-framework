@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
-import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationInterceptor;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -682,25 +682,25 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
-            name = "debug.authentication.interceptor",
-            service = DebugAuthenticationInterceptor.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
+            name = "authentication.interceptor",
+            service = AuthenticationInterceptor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetDebugAuthenticationInterceptor"
+            unbind = "unsetAuthenticationInterceptor"
     )
-    protected void setDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+    protected void setAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
 
-        FrameworkServiceDataHolder.getInstance().setDebugAuthenticationInterceptor(interceptor);
+        FrameworkServiceDataHolder.getInstance().addAuthenticationInterceptor(interceptor);
         if (log.isDebugEnabled()) {
-            log.debug("DebugAuthenticationInterceptor registered: " + interceptor.getClass().getName());
+            log.debug("AuthenticationInterceptor registered: " + interceptor.getClass().getName());
         }
     }
 
-    protected void unsetDebugAuthenticationInterceptor(DebugAuthenticationInterceptor interceptor) {
+    protected void unsetAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
 
-        FrameworkServiceDataHolder.getInstance().unsetDebugAuthenticationInterceptor();
+        FrameworkServiceDataHolder.getInstance().removeAuthenticationInterceptor(interceptor);
         if (log.isDebugEnabled()) {
-            log.debug("DebugAuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
+            log.debug("AuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
         }
     }
 

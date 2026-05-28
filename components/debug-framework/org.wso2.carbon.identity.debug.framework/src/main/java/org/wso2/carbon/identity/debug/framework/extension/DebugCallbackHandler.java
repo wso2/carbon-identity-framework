@@ -31,14 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 public interface DebugCallbackHandler {
 
     /**
-     * Returns the protocol key this handler is responsible for (e.g., "oidc", "saml").
-     * Used by the interceptor to route directly to the correct handler without scanning.
-     *
-     * @return The protocol key in lowercase.
-     */
-    String getSupportedProtocol();
-
-    /**
      * Processes the debug callback request.
      *
      * @param request     The HTTP servlet request.

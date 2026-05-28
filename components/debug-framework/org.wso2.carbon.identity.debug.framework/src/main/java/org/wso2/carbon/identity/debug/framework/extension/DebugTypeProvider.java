@@ -22,38 +22,34 @@ import org.wso2.carbon.identity.debug.framework.core.DebugContextProvider;
 import org.wso2.carbon.identity.debug.framework.core.DebugExecutor;
 
 /**
- * Service interface for protocol-specific debug implementations.
+ * Service interface for authenticator-type-specific debug implementations.
  */
 public interface DebugTypeProvider {
 
     /**
-     * Gets the protocol type identifier for this provider.
+     * A stable identifier for this provider used as the callback-routing key stored in the debug session.
+     * Must be unique across all registered providers.
      *
-     * Used for logging, identification, and filtering providers.
-     *
-     * @return Protocol type string (non-null).
+     * @return non-null identifier string.
      */
-    String getProtocolType();
+    String getTypeIdentifier();
 
     /**
-     * Gets the context provider for this protocol.
-     * The context provider resolves debug request parameters into a structured context map.
+     * Gets the context provider for this authenticator type.
      *
-     * @return DebugContextProvider implementation for this protocol (non-null).
+     * @return DebugContextProvider implementation (non-null).
      */
     DebugContextProvider getContextProvider();
 
     /**
-     * Gets the executor for this protocol.
-     * The executor generates the initial authorization URL or debug flow entry point.
+     * Gets the executor for this authenticator type.
      *
-     * @return DebugExecutor implementation for this protocol (may be null for synchronous protocols).
+     * @return DebugExecutor implementation (may be null for synchronous flows).
      */
     DebugExecutor getExecutor();
 
     /**
-     * Gets the callback handler for this protocol.
-     * The handler determines if the incoming callback matches the protocol and processes it.
+     * Gets the callback handler for this authenticator type.
      *
      * @return DebugCallbackHandler implementation, or null if not applicable.
      */

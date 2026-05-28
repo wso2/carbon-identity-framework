@@ -57,14 +57,13 @@ public class CommonAuthenticationHandler {
         }
 
         try {
-            DebugAuthenticationInterceptor debugInterceptor =
-                    FrameworkServiceDataHolder.getInstance().getDebugAuthenticationInterceptor();
-            if (debugInterceptor != null && debugInterceptor.canHandle(request)
-                    && debugInterceptor.handleCommonAuthRequest(request, response)) {
-                return;
+            for (AuthenticationInterceptor interceptor :
+                    FrameworkServiceDataHolder.getInstance().getAuthenticationInterceptors()) {
+                if (interceptor.canHandle(request) && interceptor.handle(request, response)) {
+                    return;
+                }
             }
 
-            // If not a debug flow, proceed with regular authentication.
             FrameworkUtils.getRequestCoordinator().handle(request, response);
         } catch (CookieValidationFailedException e) {
 

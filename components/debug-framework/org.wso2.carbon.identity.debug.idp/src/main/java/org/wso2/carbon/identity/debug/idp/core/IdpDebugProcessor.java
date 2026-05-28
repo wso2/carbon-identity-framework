@@ -62,16 +62,16 @@ public abstract class IdpDebugProcessor extends DebugProcessor {
             return;
         }
 
-        Map<String, Object> debugData = extractDebugData(debugContext, state);
-        if (debugData == null) {
+        Map<String, Object> claims = extractClaims(debugContext, state);
+        if (claims == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Data extraction failed for state: " + state + ". Sending debug response.");
+                LOG.debug("Claim extraction failed for state: " + state + ". Sending debug response.");
             }
             sendDebugResponse(response, state, connectionId);
             return;
         }
 
-        buildAndCacheDebugResult(debugContext, state);
+        buildAndCacheDebugResult(debugContext, state, claims);
         sendDebugResponse(response, state, connectionId);
     }
 
@@ -99,9 +99,10 @@ public abstract class IdpDebugProcessor extends DebugProcessor {
     protected abstract boolean processAuthentication(HttpServletRequest request, DebugContext debugContext,
             HttpServletResponse response, String state, String resourceIdentifier) throws DebugFrameworkServerException;
 
-    protected abstract Map<String, Object> extractDebugData(DebugContext debugContext, String state);
+    protected abstract Map<String, Object> extractClaims(DebugContext debugContext, String state);
 
-    protected abstract void buildAndCacheDebugResult(DebugContext debugContext, String state);
+    protected abstract void buildAndCacheDebugResult(DebugContext debugContext, String state,
+            Map<String, Object> claims);
 
     protected abstract void sendDebugResponse(HttpServletResponse response, String state,
             String resourceIdentifier) throws DebugFrameworkServerException;

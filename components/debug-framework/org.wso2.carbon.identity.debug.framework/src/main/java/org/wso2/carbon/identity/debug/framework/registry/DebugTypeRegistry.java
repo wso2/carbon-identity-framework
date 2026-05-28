@@ -19,18 +19,20 @@
 package org.wso2.carbon.identity.debug.framework.registry;
 
 import org.wso2.carbon.identity.debug.framework.extension.DebugCallbackHandler;
+import org.wso2.carbon.identity.debug.framework.extension.DebugResourceHandler;
 
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Registry for debug callback handlers, keyed by protocol.
+ * Registry for debug handlers.
  */
 public class DebugTypeRegistry {
 
     private static final DebugTypeRegistry INSTANCE = new DebugTypeRegistry();
 
-    private final ConcurrentHashMap<String, DebugCallbackHandler> handlersByProtocol = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, DebugCallbackHandler> callbackHandlersByType = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, DebugResourceHandler> handlersByResourceType = new ConcurrentHashMap<>();
 
     private DebugTypeRegistry() {
 
@@ -41,18 +43,33 @@ public class DebugTypeRegistry {
         return INSTANCE;
     }
 
-    public void addDebugCallbackHandler(DebugCallbackHandler handler) {
+    public void addCallbackHandler(String type, DebugCallbackHandler handler) {
 
-        handlersByProtocol.put(handler.getSupportedProtocol().toLowerCase(Locale.ROOT), handler);
+        callbackHandlersByType.put(type.toLowerCase(Locale.ROOT), handler);
     }
 
-    public void removeDebugCallbackHandler(DebugCallbackHandler handler) {
+    public void removeCallbackHandler(String type) {
 
-        handlersByProtocol.remove(handler.getSupportedProtocol().toLowerCase(Locale.ROOT));
+        callbackHandlersByType.remove(type.toLowerCase(Locale.ROOT));
     }
 
-    public DebugCallbackHandler getHandler(String protocol) {
+    public DebugCallbackHandler getCallbackHandler(String type) {
 
-        return handlersByProtocol.get(protocol.toLowerCase(Locale.ROOT));
+        return callbackHandlersByType.get(type.toLowerCase(Locale.ROOT));
+    }
+
+    public void addDebugResourceHandler(String resourceType, DebugResourceHandler handler) {
+
+        handlersByResourceType.put(resourceType.toLowerCase(Locale.ROOT), handler);
+    }
+
+    public void removeDebugResourceHandler(String resourceType) {
+
+        handlersByResourceType.remove(resourceType.toLowerCase(Locale.ROOT));
+    }
+
+    public DebugResourceHandler getResourceHandler(String resourceType) {
+
+        return handlersByResourceType.get(resourceType.toLowerCase(Locale.ROOT));
     }
 }

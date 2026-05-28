@@ -29,7 +29,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.application.authentication.framework.DebugAuthenticationInterceptor;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugCommonAuthInterceptor;
 import org.wso2.carbon.identity.debug.framework.core.DebugRequestCoordinator;
 import org.wso2.carbon.identity.debug.framework.listener.DebugExecutionListener;
@@ -47,7 +47,7 @@ public class DebugServiceComponent {
 
     private ServiceRegistration<DebugExecutionListener> cleanupListenerServiceRegistration;
     private ServiceRegistration<DebugRequestCoordinator> requestCoordinatorServiceRegistration;
-    private ServiceRegistration<DebugAuthenticationInterceptor> authInterceptorServiceRegistration;
+    private ServiceRegistration<AuthenticationInterceptor> authInterceptorServiceRegistration;
     private DebugSessionCleanupService cleanupService;
 
     @Activate
@@ -61,7 +61,7 @@ public class DebugServiceComponent {
                 DebugRequestCoordinator.class, requestCoordinator, null);
 
         authInterceptorServiceRegistration = bundleContext.registerService(
-                DebugAuthenticationInterceptor.class, new DebugCommonAuthInterceptor(), null);
+                AuthenticationInterceptor.class, new DebugCommonAuthInterceptor(), null);
 
         cleanupListenerServiceRegistration = bundleContext.registerService(
                 DebugExecutionListener.class, new DebugSessionCleanupExecutionListener(), null);

@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 import org.wso2.carbon.identity.debug.idp.core.IdpDebugConstants;
 import org.wso2.carbon.identity.debug.idp.registry.IdpDebugProviderRegistry;
 import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugTypeResolver;
-import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugTypeResolver.ProtocolResolutionResult;
+import org.wso2.carbon.identity.debug.idp.resolver.IdpDebugTypeResolver.TypeResolutionResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,20 +65,20 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
             LOG.debug("IdP debug handler processing resource: " + connectionId);
         }
 
-        ProtocolResolutionResult resolutionResult = resolveProtocol(connectionId);
-        DebugTypeProvider protocolProvider = resolveProtocolProvider(resolutionResult, connectionId);
+        TypeResolutionResult resolutionResult = resolveIdpType(connectionId);
+        DebugTypeProvider typeProvider = resolveTypeProvider(resolutionResult, connectionId);
         DebugContext resolvedContext = resolveDebugContext(connectionId, resourceType,
-                resolutionResult.getIdentityProvider(), protocolProvider);
+                resolutionResult.getIdentityProvider(), typeProvider);
 
-        DebugResult debugResult = protocolProvider.getExecutor().execute(resolvedContext);
+        DebugResult debugResult = typeProvider.getExecutor().execute(resolvedContext);
         return new DebugFrameworkResponseBuilder().populateFromExecutorResult(debugResult).build();
     }
 
     protected DebugContext resolveDebugContext(String connectionId, String resourceType,
-            IdentityProvider identityProvider, DebugTypeProvider protocolProvider)
+            IdentityProvider identityProvider, DebugTypeProvider typeProvider)
             throws DebugFrameworkServerException {
 
-        DebugContextProvider contextProvider = protocolProvider.getContextProvider();
+        DebugContextProvider contextProvider = typeProvider.getContextProvider();
         Map<String, Object> params = new HashMap<>();
         params.put(IdpDebugConstants.CONNECTION_ID, connectionId);
         params.put(IdpDebugConstants.RESOURCE_TYPE_KEY, resourceType);
@@ -86,9 +86,9 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         return contextProvider.resolveContext(params);
     }
 
-    protected ProtocolResolutionResult resolveProtocol(String connectionId) throws DebugFrameworkClientException {
+    protected TypeResolutionResult resolveIdpType(String connectionId) throws DebugFrameworkClientException {
 
-        ProtocolResolutionResult result = IdpDebugTypeResolver.resolveProtocol(connectionId);
+        TypeResolutionResult result = IdpDebugTypeResolver.resolve(connectionId);
         if (result == null) {
             throw DebugFrameworkUtils.handleClientException(
                     ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);
@@ -96,11 +96,11 @@ public class IdpDebugResourceHandler implements DebugResourceHandler {
         return result;
     }
 
-    protected DebugTypeProvider resolveProtocolProvider(ProtocolResolutionResult resolutionResult,
-                                                        String connectionId) throws DebugFrameworkClientException {
+    protected DebugTypeProvider resolveTypeProvider(TypeResolutionResult resolutionResult,
+                                                    String connectionId) throws DebugFrameworkClientException {
 
         DebugTypeProvider provider = IdpDebugProviderRegistry.getInstance()
-                .getProvider(resolutionResult.getProtocolKey());
+                .resolve(resolutionResult.getAuthenticatorName());
         if (provider == null) {
             throw DebugFrameworkUtils.handleClientException(
                     ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND, connectionId);

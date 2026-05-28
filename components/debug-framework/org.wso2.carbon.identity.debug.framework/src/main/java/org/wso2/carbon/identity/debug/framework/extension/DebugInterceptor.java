@@ -16,19 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.debug.idp.core;
+package org.wso2.carbon.identity.debug.framework.extension;
 
 /**
- * Constants for the IdP Debug Adapter.
+ * Marker interface for all debug interceptors in the debug framework.
+ * Concrete debug interceptors implement this interface alongside the relevant
+ * framework-specific interceptor (e.g. {@code AuthenticationInterceptor}) to
+ * participate in both the debug interception lifecycle and the target flow's
+ * extension point.
  */
-public final class IdpDebugConstants {
-
-    public static final String CONNECTION_ID = "connectionId";
-    public static final String RESOURCE_TYPE_KEY = "resourceType";
-    public static final String IDENTITY_PROVIDER = "identityProvider";
-
-
-    private IdpDebugConstants() {
-
-    }
+public interface DebugInterceptor {
 }

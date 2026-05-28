@@ -43,7 +43,7 @@ public class DebugContext {
      * @param contextMap Map containing context properties.
      * @return DebugContext instance.
      */
-    public static DebugContext buildFromMap(Map<String, Object> contextMap) {
+    public static DebugContext buildContextFromMap(Map<String, Object> contextMap) {
 
         DebugContext context = new DebugContext();
 
