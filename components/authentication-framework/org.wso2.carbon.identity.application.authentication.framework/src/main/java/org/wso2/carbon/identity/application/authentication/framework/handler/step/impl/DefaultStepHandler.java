@@ -903,7 +903,7 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
 
-            if (context.getSubject() != null && context.isSharedAppLogin()) {
+            if (context.getSubject() != null && !context.getSubject().isSharedUser() && context.isSharedAppLogin()) {
                 String accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
                 context.getSubject().setAccessingOrganization(accessingOrgId);
                 context.getSubject().setUserResidentOrganization(accessingOrgId);
@@ -1626,6 +1626,18 @@ public class DefaultStepHandler implements StepHandler {
 
         AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
+        // First check for org_id claim as it is the standard claim to be used for organization login.
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            ClaimMapping claimMapping = entry.getKey();
+            if (FrameworkConstants.ORG_ID_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                String organizationId = entry.getValue();
+                if (StringUtils.isNotBlank(organizationId)) {
+                    request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
+                }
+                return;
+            }
+        }
+        // Check for user_organization claim as a fallback if org_id claim is not present.
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
             if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {

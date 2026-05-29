@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.flow.execution.engine.internal;
 
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.flow.mgt.FlowMgtService;
@@ -45,6 +46,7 @@ public class FlowExecutionEngineDataHolder {
     private ClaimMetadataManagementService claimMetadataManagementService;
     private ApplicationManagementService applicationManagementService;
     private FederatedAssociationManager federatedAssociationManager;
+    private IdentityEventService identityEventService;
     private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
 
     private FlowExecutionEngineDataHolder() {
@@ -205,5 +207,15 @@ public class FlowExecutionEngineDataHolder {
     public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
 
         this.federatedAssociationManager = federatedAssociationManager;
+    }
+
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
     }
 }

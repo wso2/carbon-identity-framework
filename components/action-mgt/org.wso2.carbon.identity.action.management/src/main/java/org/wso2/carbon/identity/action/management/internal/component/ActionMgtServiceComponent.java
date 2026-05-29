@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionDTOMod
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionConverterFactory;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionValidatorFactory;
 import org.wso2.carbon.identity.action.management.internal.service.impl.CacheBackedActionManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -201,5 +202,23 @@ public class ActionMgtServiceComponent {
         LOG.debug("Unregistering ActionValidator: " + actionValidator.getClass().getName() +
                 " in the ActionMgtServiceComponent.");
         ActionValidatorFactory.unregisterActionValidatorFactory(actionValidator);
+    }
+
+    @Reference(
+            name = "claim.metadata.management.service",
+            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(claimManagementService);
+        LOG.debug("ClaimMetadataManagementService set in ActionMgtServiceComponentHolder bundle.");
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
+        LOG.debug("ClaimMetadataManagementService unset in ActionMgtServiceComponentHolder bundle.");
     }
 }

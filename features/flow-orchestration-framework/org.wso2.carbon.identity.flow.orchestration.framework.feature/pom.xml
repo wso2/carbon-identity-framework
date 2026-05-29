@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>flow-orchestration-framework-feature</artifactId>
-        <version>7.11.75-SNAPSHOT</version>
+        <version>7.11.102-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -41,6 +41,11 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.flow.execution.engine.server.feature</artifactId>
+            <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.flow.extension.server.feature</artifactId>
             <type>zip</type>
         </dependency>
     </dependencies>
@@ -66,6 +71,9 @@
                                 </includedFeatureDef>
                                 <includedFeatureDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.execution.engine.server.feature
+                                </includedFeatureDef>
+                                <includedFeatureDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.flow.extension.server.feature
                                 </includedFeatureDef>
                             </includedFeatures>
                         </configuration>

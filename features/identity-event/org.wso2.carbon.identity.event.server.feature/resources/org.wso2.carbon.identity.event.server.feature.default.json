@@ -84,6 +84,7 @@
   "identity_mgt.events.schemes.'suspension.notification'.properties.'account.disable.delay'": "90d",
   "identity_mgt.events.schemes.'suspension.notification'.properties.'trigger.time'": "20:00:00",
   "identity_mgt.events.schemes.'suspension.notification'.properties.delays": "30,45,60,75",
+  "identity_mgt.events.schemes.'suspension.notification'.properties.'date.format'": "dd-MM-yyyy",
   "identity_mgt.events.schemes.handleRequestObject.module_index": "11",
   "identity_mgt.events.schemes.handleRequestObject.subscriptions": [
     "POST_REVOKE_ACESS_TOKEN",
@@ -428,5 +429,32 @@
     "POST_UPDATE_ORGANIZATION",
     "POST_PATCH_ORGANIZATION",
     "PRE_DELETE_ORGANIZATION"
-   ]
+  ],
+  "identity_mgt.events.schemes.OrganizationAgentSharingHandler.module_index": "64",
+  "identity_mgt.events.schemes.OrganizationAgentSharingHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.moesifUserAuthenticationPublisher.module_index": "65",
+  "identity_mgt.events.schemes.moesifUserAuthenticationPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.moesifUserAuthenticationPublisher.subscriptions": [
+    "AUTHENTICATION_SUCCESS",
+    "AUTHENTICATION_STEP_FAILURE",
+    "AUTHENTICATION_STEP_SUCCESS"
+  ],
+  "identity_mgt.events.schemes.moesifFlowPublisher.module_index": "66",
+  "identity_mgt.events.schemes.moesifFlowPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.moesifFlowPublisher.subscriptions": [
+    "POST_FLOW_EXECUTION_STEP_EVENT"
+  ],
+  "identity_mgt.events.schemes.moesifUserRegistrationPublisher.module_index": "67",
+  "identity_mgt.events.schemes.moesifUserRegistrationPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.moesifUserRegistrationPublisher.subscriptions": [
+    "POST_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.moesifOrgSwitchPublisher.module_index": "68",
+  "identity_mgt.events.schemes.moesifOrgSwitchPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.moesifOrgSwitchPublisher.subscriptions": [
+    "POST_ORGANIZATION_SWITCH_EVENT"
+  ]
 }

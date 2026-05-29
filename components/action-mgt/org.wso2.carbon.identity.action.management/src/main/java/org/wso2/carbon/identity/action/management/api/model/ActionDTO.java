@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.action.management.api.model;
 
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +38,7 @@ public class ActionDTO {
     private final Timestamp updatedAt;
     private final EndpointConfig endpoint;
     private final ActionRule rule;
+    private final List<String> attributes;
     private final Map<String, ActionProperty> properties;
 
     public ActionDTO(Builder builder) {
@@ -50,6 +53,7 @@ public class ActionDTO {
         this.updatedAt = builder.updatedAt;
         this.endpoint = builder.endpoint;
         this.rule = builder.rule;
+        this.attributes = builder.attributes;
         this.properties = builder.properties;
     }
 
@@ -103,6 +107,14 @@ public class ActionDTO {
         return rule;
     }
 
+    public List<String> getAttributes() {
+
+        if (attributes == null) {
+            return null;
+        }
+        return Collections.unmodifiableList(attributes);
+    }
+
     public Map<String, ActionProperty> getProperties() {
 
         return properties;
@@ -132,6 +144,7 @@ public class ActionDTO {
         private final Timestamp updatedAt;
         private final EndpointConfig endpoint;
         private final ActionRule rule;
+        private List<String> attributes;
         private Map<String, ActionProperty> properties;
 
         public Builder(ActionDTO actionDTO) {
@@ -146,6 +159,7 @@ public class ActionDTO {
             this.updatedAt = actionDTO.getUpdatedAt();
             this.endpoint = actionDTO.getEndpoint();
             this.rule = actionDTO.getActionRule();
+            this.attributes = actionDTO.getAttributes();
             this.properties = actionDTO.getProperties();
         }
 
@@ -161,6 +175,7 @@ public class ActionDTO {
             this.updatedAt = action.getUpdatedAt();
             this.endpoint = action.getEndpoint();
             this.rule = action.getActionRule();
+            this.attributes = action.getAttributes();
         }
 
         public Builder properties(Map<String, ActionProperty> properties) {

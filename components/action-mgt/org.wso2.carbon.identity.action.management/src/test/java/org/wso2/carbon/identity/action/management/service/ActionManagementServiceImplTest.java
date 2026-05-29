@@ -30,11 +30,14 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionMgtExcepti
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -46,11 +49,14 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -120,6 +126,11 @@ public class ActionManagementServiceImplTest {
         when(ruleManagementService.addRule(any(), any())).thenReturn(sampleRule);
         when(ruleManagementService.updateRule(any(), any())).thenReturn(sampleRule);
 
+        ClaimMetadataManagementService claimMetadataManagementService = mock(ClaimMetadataManagementService.class);
+        when(claimMetadataManagementService.getLocalClaim(anyString(), anyString()))
+                .thenReturn(Optional.of(new LocalClaim("mock")));
+        ActionMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(claimMetadataManagementService);
+
         loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
         loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any())).thenAnswer(inv -> null);
         auditLogBuilderForRuleMockedStatic = mockStatic(AuditLogBuilderForRule.class);
@@ -168,6 +179,36 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 2, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid attribute provided.")
+    public void testAddActionWithAttributes() throws ActionMgtException, SecretManagementException {
+
+        if (sampleAction == null) {
+            Action creatingAction = TestUtil.buildMockAction(
+                    TEST_ACTION_NAME,
+                    TEST_ACTION_DESCRIPTION,
+                    TEST_ACTION_URI,
+                    TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD));
+            sampleAction = actionManagementService.addAction(
+                    PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+        }
+
+        List<String> attributes = Arrays.asList("attr1", "attr2");
+        Action updatingAction = new Action.ActionRequestBuilder()
+                .name(TEST_ACTION_NAME)
+                .description(TEST_ACTION_DESCRIPTION)
+                .actionVersion(TestUtil.TEST_DEFAULT_LATEST_ACTION_VERSION)
+                .attributes(attributes)
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(TEST_ACTION_URI)
+                        .authentication(TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD))
+                        .build())
+                .build();
+
+        actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), updatingAction,
+                TENANT_DOMAIN);
+    }
+
+    @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithInvalidData() throws ActionMgtException {
 
@@ -180,7 +221,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(action);
     }
 
-    @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 4, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithEmptyData() throws ActionMgtException {
 
@@ -193,7 +234,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(action);
     }
 
-    @Test(priority = 4, expectedExceptions = ActionMgtException.class,
+    @Test(priority = 5, expectedExceptions = ActionMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddMaximumActionsPerType() throws ActionMgtException {
 
@@ -206,7 +247,7 @@ public class ActionManagementServiceImplTest {
                 TENANT_DOMAIN);
     }
 
-    @Test(priority = 5)
+    @Test(priority = 6)
     public void testGetActionsByActionType() throws ActionMgtException {
 
         List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
@@ -233,7 +274,7 @@ public class ActionManagementServiceImplTest {
                 sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
-    @Test(priority = 6)
+    @Test(priority = 7)
     public void testGetActionByActionId() throws ActionMgtException {
 
         Action result = actionManagementService.getActionByActionId(sampleAction.getType().getPathParam(),
@@ -258,7 +299,7 @@ public class ActionManagementServiceImplTest {
                 sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
-    @Test(priority = 6)
+    @Test(priority = 8)
     public void testUpdateActionFailureWithNotAllowedActionVersion() throws Exception {
 
         Action updatingAction = TestUtil.buildMockActionWithVersion(
@@ -271,7 +312,7 @@ public class ActionManagementServiceImplTest {
                 PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), updatingAction, TENANT_DOMAIN));
     }
 
-    @Test(priority = 7)
+    @Test(priority = 9)
     public void testUpdateAction() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockAction(
@@ -304,7 +345,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 8)
+    @Test(priority = 10)
     public void testActivateAction() throws ActionMgtException {
 
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
@@ -318,7 +359,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = activatedAction;
     }
 
-    @Test(priority = 10)
+    @Test(priority = 11)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = actionManagementService.getActionsCountPerType(TENANT_DOMAIN);
@@ -332,7 +373,7 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 11)
+    @Test(priority = 12)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
@@ -345,7 +386,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertTrue(deactivatedAction.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
-    @Test(priority = 11)
+    @Test(priority = 13)
     public void testUpdateEndpointConfigWithSameAuthenticationType() throws ActionMgtException,
             SecretManagementException {
 
@@ -366,7 +407,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
-    @Test(priority = 12)
+    @Test(priority = 14)
     public void testUpdateEndpointConfigWithDifferentAuthenticationType()
             throws ActionMgtException, SecretManagementException {
 
@@ -384,7 +425,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertTrue(result.getUpdatedAt().after(sampleAction.getUpdatedAt()));
     }
 
-    @Test(priority = 13)
+    @Test(priority = 15)
     public void testDeleteAction() throws ActionMgtException {
 
         actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
@@ -394,7 +435,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(actions.get(PRE_ISSUE_ACCESS_TOKEN_PATH));
     }
 
-    @Test(priority = 14)
+    @Test(priority = 16)
     public void testDeleteNonExistingAction() {
 
         try {
@@ -404,7 +445,7 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 15)
+    @Test(priority = 17)
     public void testAddActionWithRule() throws ActionMgtException, SecretManagementException {
 
         Action creatingAction = TestUtil.buildMockActionWithRule(
@@ -441,7 +482,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleAction.getActionRule().getRule(), creatingAction.getActionRule().getRule());
     }
 
-    @Test(priority = 16)
+    @Test(priority = 18)
     public void testGetActionsWithRulesByActionType() throws ActionMgtException {
 
         List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
@@ -472,7 +513,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getActionRule().getRule(), sampleAction.getActionRule().getRule());
     }
 
-    @Test(priority = 17)
+    @Test(priority = 19)
     public void testUpdateActionUpdatingRule() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockActionWithRule(
@@ -508,7 +549,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(result.getActionRule().getRule(), sampleAction.getActionRule().getRule());
     }
 
-    @Test(priority = 18)
+    @Test(priority = 20)
     public void testDeleteActionToCleanupForClientCredentialTests() throws ActionMgtException {
 
         actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
@@ -516,7 +557,7 @@ public class ActionManagementServiceImplTest {
                 TENANT_DOMAIN));
     }
 
-    @Test(priority = 19)
+    @Test(priority = 21)
     public void testAddActionWithClientCredentialAuthentication()
             throws ActionMgtException, SecretManagementException {
 
@@ -550,7 +591,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
     }
 
-    @Test(priority = 20)
+    @Test(priority = 22)
     public void testGetActionWithClientCredentialAuthentication() throws ActionMgtException {
 
         Action result = actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
@@ -570,7 +611,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.SCOPES).getValue(), TEST_SCOPES);
     }
 
-    @Test(priority = 21)
+    @Test(priority = 23)
     public void testUpdateActionEndpointAuthenticationWithSameClientCredentialType()
             throws ActionMgtException, SecretManagementException {
 
@@ -596,7 +637,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 22)
+    @Test(priority = 24)
     public void testUpdateActionEndpointAuthenticationFromClientCredentialToBasic()
             throws ActionMgtException, SecretManagementException {
 
@@ -621,7 +662,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 23)
+    @Test(priority = 25)
     public void testUpdateActionEndpointAuthenticationFromBasicToClientCredential()
             throws ActionMgtException, SecretManagementException {
 
@@ -648,7 +689,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 24)
+    @Test(priority = 26)
     public void testDeleteActionWithClientCredentialAuthentication() throws ActionMgtException {
 
         actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
@@ -656,7 +697,7 @@ public class ActionManagementServiceImplTest {
                 TENANT_DOMAIN));
     }
 
-    @Test(priority = 25, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 27, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithClientCredentialMissingClientId() throws ActionMgtException {
 
@@ -669,7 +710,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 26, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 28, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithClientCredentialMissingClientSecret() throws ActionMgtException {
 
@@ -682,7 +723,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 27, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 29, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithClientCredentialInvalidTokenEndpoint() throws ActionMgtException {
 
@@ -695,7 +736,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 28)
+    @Test(priority = 30)
     public void testAddActionWithPasswordCredentialAuthentication()
             throws ActionMgtException, SecretManagementException {
 
@@ -733,7 +774,7 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
-    @Test(priority = 29)
+    @Test(priority = 31)
     public void testGetActionWithPasswordCredentialAuthentication() throws ActionMgtException {
 
         Action result = actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
@@ -757,7 +798,7 @@ public class ActionManagementServiceImplTest {
                 sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
-    @Test(priority = 30)
+    @Test(priority = 32)
     public void testUpdateActionEndpointAuthenticationWithSamePasswordCredentialType()
             throws ActionMgtException, SecretManagementException {
 
@@ -788,7 +829,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 31)
+    @Test(priority = 33)
     public void testUpdateActionEndpointAuthenticationFromPasswordCredentialToClientCredential()
             throws ActionMgtException, SecretManagementException {
 
@@ -815,7 +856,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 32)
+    @Test(priority = 34)
     public void testUpdateActionEndpointAuthenticationFromClientCredentialToPasswordCredential()
             throws ActionMgtException, SecretManagementException {
 
@@ -844,7 +885,7 @@ public class ActionManagementServiceImplTest {
         sampleAction = result;
     }
 
-    @Test(priority = 33)
+    @Test(priority = 35)
     public void testDeleteActionWithPasswordCredentialAuthentication() throws ActionMgtException {
 
         actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
@@ -852,7 +893,7 @@ public class ActionManagementServiceImplTest {
                 TENANT_DOMAIN));
     }
 
-    @Test(priority = 34, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 36, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithPasswordCredentialMissingClientId() throws ActionMgtException {
 
@@ -865,7 +906,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 35, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 37, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithPasswordCredentialMissingClientSecret() throws ActionMgtException {
 
@@ -878,7 +919,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 36, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 38, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithPasswordCredentialInvalidTokenEndpoint() throws ActionMgtException {
 
@@ -891,7 +932,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 37, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 39, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithPasswordCredentialMissingUsername() throws ActionMgtException {
 
@@ -904,7 +945,7 @@ public class ActionManagementServiceImplTest {
         actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
     }
 
-    @Test(priority = 38, expectedExceptions = ActionMgtClientException.class,
+    @Test(priority = 40, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithPasswordCredentialMissingPassword() throws ActionMgtException {
 

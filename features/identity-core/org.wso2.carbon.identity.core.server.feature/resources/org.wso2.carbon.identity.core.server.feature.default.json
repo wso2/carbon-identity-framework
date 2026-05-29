@@ -39,6 +39,7 @@
   "session_data.cleanup.enable_periodic_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": true,
   "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": false,
+  "session_data.session_data_persist.batch_insert_chunk_size": "250",
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
   "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
@@ -727,12 +728,16 @@
   "event.default_listener.outbound_provisioning_error_handler.enable": true,
   "event.default_listener.fragment_app_mgt_listener.priority": "50",
   "event.default_listener.fragment_app_mgt_listener.enable": true,
+  "event.default_listener.sub_org_application_mgt_listener.priority": "375",
+  "event.default_listener.sub_org_application_mgt_listener.enable": true,
   "event.default_listener.organization_user_operation_listener.priority": "115",
   "event.default_listener.organization_user_operation_listener.enable": true,
   "event.default_listener.organization_discovery_user_operation_listener.priority": "114",
   "event.default_listener.organization_discovery_user_operation_listener.enable": true,
   "event.default_listener.organization_user_association_listener.priority": "128",
   "event.default_listener.organization_user_association_listener.enable": true,
+  "event.default_listener.organization_agent_association_listener.priority": "130",
+  "event.default_listener.organization_agent_association_listener.enable": true,
   "event.default_listener.shared_user_profile_update_governance_listener.priority": "8",
   "event.default_listener.shared_user_profile_update_governance_listener.enable": true,
 
@@ -1406,7 +1411,8 @@
     "swe-idp"
   ],
   "console.ui.hiddenApplicationTemplates": [
-    "microsoft-365"
+    "microsoft-365",
+    "agent-application"
   ],
   "console.ui.system_reserved_user_stores": ["AGENT"],
   "console.ui.google_one_tap_enabled_tenants": [],
@@ -1431,6 +1437,7 @@
   "console.ui.routes.organizationEnabledRoutes.groups": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.identityProviders": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.loginAndRegistration": "v1.0.0",
+  "console.ui.routes.organizationEnabledRoutes.mcpServers": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.oidcScopes": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.organizations": "v0.0.0",
   "console.ui.routes.organizationEnabledRoutes.password-recovery": "v1.0.0",
@@ -1506,6 +1513,26 @@
   ],
   "console.agents.scopes.update": ["internal_agent_mgt_update"],
   "console.agents.scopes.delete": ["internal_agent_mgt_delete"],
+  "console.agents.sub_features.agentSharing.enabled": true,
+  "console.agents.sub_features.agentSharing.scopes.create": [
+    "internal_agent_share"
+  ],
+  "console.agents.sub_features.agentSharing.scopes.delete": [
+    "internal_agent_unshare"
+  ],
+  "console.agents.sub_features.agentSharing.scopes.read": [
+    "internal_agent_mgt_list",
+    "internal_agent_mgt_view",
+    "internal_agent_shared_access_view",
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_organization_view",
+    "internal_role_mgt_view",
+    "internal_userstore_view"
+  ],
+  "console.agents.sub_features.agentSharing.scopes.update": [
+    "internal_agent_shared_access_update"
+  ],
   "console.webhooks.scopes.feature": ["console:webhooks"],
   "console.webhooks.scopes.create": ["internal_webhook_mgt_create"],
   "console.webhooks.scopes.read": [
@@ -1616,6 +1643,22 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
+  "console.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
+  "console.consents.scopes.feature": ["console:consents"],
+  "console.consents.disabled_features": [],
+  "console.consents.scopes.create": [
+    "internal_consent_mgt_element_create",
+    "internal_consent_mgt_purpose_create"
+  ],
+  "console.consents.scopes.read": [
+    "internal_consent_mgt_element_view",
+    "internal_consent_mgt_purpose_view"
+  ],
+  "console.consents.scopes.update": ["internal_consent_mgt_purpose_update"],
+  "console.consents.scopes.delete": [
+    "internal_consent_mgt_element_delete",
+    "internal_consent_mgt_purpose_delete"
+  ],
   "console.flows.enabled": true,
   "console.flows.scopes.feature": ["console:flows"],
   "console.flows.disabled_features": [],
@@ -1623,6 +1666,13 @@
   "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view"],
   "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
+  "console.flow_extensions.enabled": true,
+  "console.flow_extensions.scopes.feature": ["console:flowExtensions"],
+  "console.flow_extensions.disabled_features": [],
+  "console.flow_extensions.scopes.create": ["internal_flow_extension_create"],
+  "console.flow_extensions.scopes.read": ["internal_flow_extension_view", "internal_claim_meta_view"],
+  "console.flow_extensions.scopes.update": ["internal_flow_extension_update"],
+  "console.flow_extensions.scopes.delete": ["internal_flow_extension_delete"],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],
@@ -2102,6 +2152,8 @@
   "myaccount.approvals.enabled": true,
   "myaccount.approvals.scopes.read": ["internal_approval_task_view"],
   "myaccount.approvals.scopes.update": ["internal_approval_task_update"],
+  "myaccount.consents.enabled": "$ref{consent_mgt.enable_v2_api}",
+  "myaccount.consents.disabled_features": [],
   "myaccount.operations.scopes.create": [],
   "myaccount.operations.scopes.read": ["internal_humantask_view"],
   "myaccount.operations.scopes.update": [],
@@ -2227,6 +2279,8 @@
   "actions.types.pre_update_profile.enable": true,
   "actions.types.pre_update_profile.version.latest": "v1",
   "actions.types.pre_update_password.version.latest": "v2",
+  "actions.types.flow_extension.enable": true,
+  "actions.types.flow_extension.version.latest": "v1",
 
   "external_api_client.http_client.connection_timeout": "2000",
   "external_api_client.http_client.read_timeout": "3000",
@@ -2286,6 +2340,7 @@
   "flow_execution.enable_legacy_password_recovery_flow": false,
   "flow_execution.enable_legacy_invited_user_registration_flow": false,
   "flow_execution.registration.display_claim_availability": false,
+  "consent_mgt.enable_v2_api": true,
   "branding_configuration.custom_content.max_file_size": "1048576",
   "captcha.enable_captcha_for_local_otp_authenticators": true,
 
@@ -2317,5 +2372,13 @@
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
   "enhanced_organization_authentication.enabled_by_default_for_new_apps": true,
   "saas.enable_app_creation": false,
-  "saas.enable_cross_tenant_operations": false
+  "saas.enable_cross_tenant_operations": false,
+
+  "analytics.moesif.provider_url": "https://api.moesif.net/v1/actions",
+  "analytics.moesif.auth_type": "API_KEY",
+  "analytics.moesif.api_key_header": "X-Moesif-Application-Id",
+  "analytics.moesif.stream_name": "org.wso2.is.analytics.stream.MoesifData",
+  "analytics.moesif.stream_version": "1.0.0",
+  "analytics.moesif.inline_body": "",
+  "analytics.moesif.enabled": false
 }

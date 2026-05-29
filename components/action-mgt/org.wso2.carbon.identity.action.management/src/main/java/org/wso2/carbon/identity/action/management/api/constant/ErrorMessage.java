@@ -41,6 +41,14 @@ public enum ErrorMessage {
             "Only allowed to update to the latest Action version: %s. Ensure that only the major version is provided."),
     ERROR_INVALID_RULE_FOR_ACTION_VERSION("600010", "Invalid action rule for the action version.",
             "An unsupported rule has been provided for action version %s."),
+    ERROR_MAXIMUM_ATTRIBUTES_LIMIT_EXCEEDED("60011", "Maximum attributes limit exceeded.",
+            "The number of configured attributes: %s exceeds the maximum allowed limit: %s"),
+    ERROR_INVALID_ATTRIBUTES("60012", "Invalid attribute provided.",
+            "%s"),
+    ERROR_ACTION_NAME_ALREADY_EXISTS("60013", "Action name already exists.",
+            "An action with the name '%s' already exists for the action type '%s'."),
+    ERROR_ACTION_NAME_BLANK("60014", "Invalid action name.", 
+            "An action name must be a non-empty string."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
@@ -63,7 +71,10 @@ public enum ErrorMessage {
             "Error while retrieving count of Actions per Action Type from the system."),
     ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES("65009",
             "Error while decrypting Action Endpoint Authentication properties",
-            "Error while decrypting Action Endpoint Authentication properties in the system.");
+            "Error while decrypting Action Endpoint Authentication properties in the system."),
+    ERROR_WHILE_RETRIEVING_CLAIM_METADATA("65010",
+            "Error while retrieving claim metadata.",
+            "Error while retrieving claim metadata from the system.");
 
     private final String code;
     private final String message;

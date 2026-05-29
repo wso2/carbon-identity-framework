@@ -220,6 +220,7 @@ public class Constants {
         public static final String BUTTON = "BUTTON";
         public static final String INPUT = "INPUT";
         public static final String CAPTCHA = "CAPTCHA";
+        public static final String POLICY = "POLICY";
 
         private ComponentTypes() {
 

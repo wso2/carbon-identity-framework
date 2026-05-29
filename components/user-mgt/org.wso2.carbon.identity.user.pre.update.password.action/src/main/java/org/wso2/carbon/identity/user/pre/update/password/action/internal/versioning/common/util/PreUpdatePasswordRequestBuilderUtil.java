@@ -41,12 +41,6 @@ import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpd
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.versioning.common.model.Credential;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserStoreManager;
-import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
-import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
@@ -56,9 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.GROUP_CLAIM_URI;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.ROLE_CLAIM_URI;
@@ -156,23 +148,6 @@ public class PreUpdatePasswordRequestBuilderUtil {
         return certificate != null && StringUtils.isNotEmpty(certificate.getCertificateContent());
     }
 
-
-    public static Map<String, String> getClaimValues(String userId, List<String> requestedClaims)
-            throws ActionExecutionRequestBuilderException {
-
-        try {
-            Map<String, String> claimValues = getUserStoreManager().getUserClaimValuesWithID(userId,
-                    requestedClaims.toArray(new String[0]), UserCoreConstants.DEFAULT_PROFILE);
-
-            // Filter out the extra claims that are not requested.
-            return requestedClaims.stream()
-                    .filter(claimValues::containsKey)
-                    .collect(Collectors.toMap(Function.identity(), claimValues::get));
-        } catch (UserStoreException e) {
-            throw new ActionExecutionRequestBuilderException("Failed to retrieve user claims from user store.", e);
-        }
-    }
-
     public static List<UserClaim> setClaimsInUserBuilder(Map<String, String> claimValues,
                                                          String multiAttributeSeparator)
             throws ActionExecutionRequestBuilderException {
@@ -219,38 +194,6 @@ public class PreUpdatePasswordRequestBuilderUtil {
         } catch (ClaimMetadataException e) {
             throw new ActionExecutionRequestBuilderException("Error while retrieving claim metadata for claim URI: " +
                     claimUri, e);
-        }
-    }
-
-    private static UniqueIDUserStoreManager getUserStoreManager() throws ActionExecutionRequestBuilderException {
-
-        String tenantDomain = IdentityContext.getThreadLocalIdentityContext().getTenantDomain();
-        RealmService realmService = PreUpdatePasswordActionServiceComponentHolder.getInstance().getRealmService();
-
-        if (realmService == null) {
-            throw new ActionExecutionRequestBuilderException("Realm service is unavailable.");
-        }
-
-        try {
-            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            UserRealm userRealm = realmService.getTenantUserRealm(tenantId);
-
-            if (userRealm == null) {
-                throw new ActionExecutionRequestBuilderException(
-                        "User realm is not available for tenant: " + tenantDomain);
-            }
-
-            UserStoreManager userStoreManager = userRealm.getUserStoreManager();
-            if (!(userStoreManager instanceof UniqueIDUserStoreManager)) {
-                throw new ActionExecutionRequestBuilderException(
-                        "User store manager is not an instance of UniqueIDUserStoreManager for tenant: " +
-                                tenantDomain);
-            }
-
-            return (UniqueIDUserStoreManager) userStoreManager;
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            throw new ActionExecutionRequestBuilderException(
-                    "Error while loading user store manager for tenant: " + tenantDomain, e);
         }
     }
 

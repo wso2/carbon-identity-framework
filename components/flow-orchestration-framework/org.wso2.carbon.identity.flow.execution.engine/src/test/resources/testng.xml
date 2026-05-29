@@ -28,6 +28,7 @@
             <class name="org.wso2.carbon.identity.flow.execution.engine.util.AuthenticationAssertionUtilsTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.dao.FlowContextStoreDAOImplTest"/>
             <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputProcessingListenerTest"/>
+            <class name="org.wso2.carbon.identity.flow.execution.engine.validation.InputValidationServiceTest"/>
         </classes>
     </test>
 </suite>

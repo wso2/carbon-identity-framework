@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.action.management.api.service.ActionManagementSe
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * This class holds references for dependent services required for Action Execution Service to function.
@@ -34,6 +35,7 @@ public class ActionExecutionServiceComponentHolder {
     private RuleEvaluationService ruleEvaluationService;
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
+    private RealmService realmService;
 
     private ActionExecutionServiceComponentHolder() {
 
@@ -102,5 +104,15 @@ public class ActionExecutionServiceComponentHolder {
     public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         this.secretResolveManager = secretResolveManager;
+    }
+
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 }
