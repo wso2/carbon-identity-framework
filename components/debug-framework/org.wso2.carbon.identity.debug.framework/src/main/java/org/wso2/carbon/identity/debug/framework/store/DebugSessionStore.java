@@ -137,7 +137,7 @@ public final class DebugSessionStore {
         sessionData.setCreatedTime(now);
         sessionData.setExpiryTime(now + SESSION_TTL_MS);
 
-        debugSessionDAO.upsertDebugSession(sessionData);
+        debugSessionDAO.updateDebugSession(sessionData);
     }
 
     /**

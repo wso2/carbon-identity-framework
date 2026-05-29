@@ -20,22 +20,25 @@ package org.wso2.carbon.identity.debug.framework.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.debug.framework.DebugFrameworkConstants.ErrorMessages;
 import org.wso2.carbon.identity.debug.framework.dao.DebugSessionDAO;
 import org.wso2.carbon.identity.debug.framework.exception.DebugFrameworkServerException;
 import org.wso2.carbon.identity.debug.framework.model.DebugSessionData;
+import org.wso2.carbon.identity.debug.framework.util.DebugFrameworkUtils;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.UUID;
 
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQLPlaceholders.DB_COLUMN_CREATED_TIME;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQLPlaceholders.DB_COLUMN_EXPIRY_TIME;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQLPlaceholders.DB_COLUMN_RESULT_JSON;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQLPlaceholders.DB_COLUMN_SESSION_DATA;
+import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQLPlaceholders.DB_COLUMN_STATUS;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_DEBUG_SESSION;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_DELETE_EXPIRED_DEBUG_SESSIONS;
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_GET_DEBUG_SESSION;
@@ -43,8 +46,7 @@ import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_INSE
 import static org.wso2.carbon.identity.debug.framework.dao.SQLConstants.SQL_UPDATE_DEBUG_SESSION;
 
 /**
- * Implementation of the DebugSessionDAO using raw JDBC connections.
- * All database operations use IdentityDatabaseUtil.getDBConnection() for consistent connection management.
+ * Implementation of {@link DebugSessionDAO} using {@link JdbcTemplate}.
  */
 public class DebugSessionDAOImpl implements DebugSessionDAO {
 
@@ -53,213 +55,136 @@ public class DebugSessionDAOImpl implements DebugSessionDAO {
     @Override
     public void createDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
 
-        String storageDebugId = resolveStorageDebugId(sessionData.getDebugId());
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
-                prepStmt.setString(1, storageDebugId);
-                prepStmt.setString(2, sessionData.getStatus());
-                setSessionData(prepStmt, 3, sessionData);
-                prepStmt.setString(4, sessionData.getResultJson());
-                prepStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-                prepStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-                prepStmt.executeUpdate();
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
-            }
-        } catch (SQLException e) {
-            throw serverError("Error inserting debug session into DB. Debug ID: "
-                    + sessionData.getDebugId() + ", storage key: " + storageDebugId, e);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            int tenantId = resolveTenantId();
+            jdbcTemplate.executeUpdate(SQL_INSERT_DEBUG_SESSION, preparedStatement -> {
+                preparedStatement.setString(1, sessionData.getDebugId());
+                preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, sessionData.getStatus());
+                setSessionDataParam(preparedStatement, 4, sessionData);
+                preparedStatement.setString(5, sessionData.getResultJson());
+                preparedStatement.setTimestamp(6, new Timestamp(sessionData.getCreatedTime()));
+                preparedStatement.setTimestamp(7, new Timestamp(sessionData.getExpiryTime()));
+            });
+        } catch (DataAccessException e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e,
+                    "Error inserting debug session: " + sessionData.getDebugId());
         }
     }
 
     @Override
     public DebugSessionData getDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String storageDebugId = resolveStorageDebugId(debugId);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_GET_DEBUG_SESSION)) {
-                prepStmt.setString(1, storageDebugId);
-                try (ResultSet resultSet = prepStmt.executeQuery()) {
-                    if (resultSet.next()) {
-                        return mapResultSetToDebugSessionData(resultSet, debugId);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw serverError("Error retrieving debug session from DB. Debug ID: "
-                    + debugId + ", storage key: " + storageDebugId, e);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            int tenantId = resolveTenantId();
+            return jdbcTemplate.fetchSingleRecord(SQL_GET_DEBUG_SESSION,
+                    LambdaExceptionUtils.rethrowRowMapper(
+                            (resultSet, rowNumber) -> mapResultSetToDebugSessionData(resultSet, debugId)),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, debugId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
+        } catch (DataAccessException e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e,
+                    "Error retrieving debug session: " + debugId);
         }
-        return null;
+    }
+
+    @Override
+    public void updateDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            int tenantId = resolveTenantId();
+            jdbcTemplate.executeUpdate(SQL_UPDATE_DEBUG_SESSION, preparedStatement -> {
+                preparedStatement.setString(1, sessionData.getStatus());
+                setSessionDataParam(preparedStatement, 2, sessionData);
+                preparedStatement.setString(3, sessionData.getResultJson());
+                preparedStatement.setTimestamp(4, new Timestamp(sessionData.getCreatedTime()));
+                preparedStatement.setTimestamp(5, new Timestamp(sessionData.getExpiryTime()));
+                preparedStatement.setString(6, sessionData.getDebugId());
+                preparedStatement.setInt(7, tenantId);
+            });
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Debug session updated successfully: " + sessionData.getDebugId());
+            }
+        } catch (DataAccessException e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e,
+                    "Error updating debug session: " + sessionData.getDebugId());
+        }
     }
 
     @Override
     public void deleteDebugSession(String debugId) throws DebugFrameworkServerException {
 
-        String storageDebugId = resolveStorageDebugId(debugId);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_DEBUG_SESSION)) {
-                prepStmt.setString(1, storageDebugId);
-                prepStmt.executeUpdate();
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
-            }
-        } catch (SQLException e) {
-            throw serverError("Error deleting debug session from DB. Debug ID: "
-                    + debugId + ", storage key: " + storageDebugId, e);
-        }
-    }
-
-    @Override
-    public void upsertDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException {
-
-        String storageDebugId = resolveStorageDebugId(sessionData.getDebugId());
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            int affectedRows;
-            try (PreparedStatement updateStmt = connection.prepareStatement(SQL_UPDATE_DEBUG_SESSION)) {
-                updateStmt.setString(1, sessionData.getStatus());
-                setSessionData(updateStmt, 2, sessionData);
-                updateStmt.setString(3, sessionData.getResultJson());
-                updateStmt.setTimestamp(4, new Timestamp(sessionData.getCreatedTime()));
-                updateStmt.setTimestamp(5, new Timestamp(sessionData.getExpiryTime()));
-                updateStmt.setString(6, storageDebugId);
-                affectedRows = updateStmt.executeUpdate();
-            }
-
-            if (affectedRows == 0) {
-                try (PreparedStatement insertStmt = connection.prepareStatement(SQL_INSERT_DEBUG_SESSION)) {
-                    insertStmt.setString(1, storageDebugId);
-                    insertStmt.setString(2, sessionData.getStatus());
-                    setSessionData(insertStmt, 3, sessionData);
-                    insertStmt.setString(4, sessionData.getResultJson());
-                    insertStmt.setTimestamp(5, new Timestamp(sessionData.getCreatedTime()));
-                    insertStmt.setTimestamp(6, new Timestamp(sessionData.getExpiryTime()));
-                    insertStmt.executeUpdate();
-                }
-            }
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Debug session upserted successfully: " + sessionData.getDebugId());
-            }
-        } catch (SQLException e) {
-            throw serverError("Error upserting debug session in DB. Debug ID: "
-                    + sessionData.getDebugId() + ", storage key: " + storageDebugId, e);
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            int tenantId = resolveTenantId();
+            jdbcTemplate.executeUpdate(SQL_DELETE_DEBUG_SESSION, preparedStatement -> {
+                preparedStatement.setString(1, debugId);
+                preparedStatement.setInt(2, tenantId);
+            });
+        } catch (DataAccessException e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e,
+                    "Error deleting debug session: " + debugId);
         }
     }
 
     @Override
     public void deleteExpiredDebugSessions() throws DebugFrameworkServerException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement prepStmt = connection.prepareStatement(SQL_DELETE_EXPIRED_DEBUG_SESSIONS)) {
-                prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-                int deletedCount = prepStmt.executeUpdate();
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
-
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Deleted " + deletedCount + " expired debug sessions from database.");
-                }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(SQL_DELETE_EXPIRED_DEBUG_SESSIONS,
+                    preparedStatement -> preparedStatement.setTimestamp(1, new Timestamp(System.currentTimeMillis())));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Expired debug sessions deleted from database.");
             }
-        } catch (SQLException e) {
-            throw serverError("Error deleting expired debug sessions", e);
+        } catch (DataAccessException e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e,
+                    "Error deleting expired debug sessions.");
         }
     }
 
-    private DebugSessionData mapResultSetToDebugSessionData(ResultSet resultSet, String debugId)
-            throws SQLException {
+    private DebugSessionData mapResultSetToDebugSessionData(java.sql.ResultSet resultSet, String debugId)
+            throws java.sql.SQLException {
 
         DebugSessionData sessionData = new DebugSessionData();
         sessionData.setDebugId(debugId);
-        sessionData.setStatus(DebugSessionData.SessionStatus.fromString(
-                resultSet.getString(DebugFrameworkConstants.DB_COLUMN_STATUS)));
-        sessionData.setSessionData(resultSet.getBytes(DebugFrameworkConstants.DB_COLUMN_SESSION_DATA));
-        sessionData.setResultJson(resultSet.getString(DebugFrameworkConstants.DB_COLUMN_RESULT_JSON));
-        sessionData.setCreatedTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_CREATED_TIME));
-        sessionData.setExpiryTime(getTimeInMillis(resultSet, DebugFrameworkConstants.DB_COLUMN_EXPIRY_TIME));
+        sessionData.setStatus(DebugSessionData.SessionStatus.fromString(resultSet.getString(DB_COLUMN_STATUS)));
+        sessionData.setSessionData(resultSet.getBytes(DB_COLUMN_SESSION_DATA));
+        sessionData.setResultJson(resultSet.getString(DB_COLUMN_RESULT_JSON));
+        sessionData.setCreatedTime(timestampToMillis(resultSet, DB_COLUMN_CREATED_TIME));
+        sessionData.setExpiryTime(timestampToMillis(resultSet, DB_COLUMN_EXPIRY_TIME));
         return sessionData;
     }
 
-    /**
-     * Normalizes the debug ID by removing hyphens from the UUID part.
-     * Validates that the UUID portion is a well-formed UUID before normalizing to reject arbitrary
-     * strings that merely start with the debug prefix. Returns the original value when the prefix
-     * is absent (e.g. tests / direct keys).
-     *
-     * @return Normalized debug ID, or {@code null} if the UUID part is malformed.
-     */
-    private String normalizeDebugId(String debugId) {
+    private int resolveTenantId() throws DebugFrameworkServerException {
 
-        if (debugId == null || !debugId.startsWith(DebugFrameworkConstants.DEBUG_PREFIX)) {
-            return debugId;
-        }
-
-        String uuidPart = debugId.substring(DebugFrameworkConstants.DEBUG_PREFIX.length());
         try {
-            UUID.fromString(uuidPart);
-        } catch (IllegalArgumentException e) {
-            LOG.warn("Rejected malformed debug ID with invalid UUID part: " + debugId);
-            return null;
+            String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
+            return IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (Exception e) {
+            throw DebugFrameworkUtils.handleServerException(ErrorMessages.ERROR_CODE_SERVER_ERROR, e,
+                    "Failed to resolve tenant ID for debug session operation.");
         }
-        return DebugFrameworkConstants.DEBUG_PREFIX + uuidPart.replace("-", "");
     }
 
-    /**
-     * Resolves the storage debug ID by prefixing the tenant domain. Rejects malformed debug IDs
-     * and missing tenant domains as server errors so callers do not silently no-op on bad state.
-     */
-    private String resolveStorageDebugId(String debugId) throws DebugFrameworkServerException {
-
-        String normalizedDebugId = normalizeDebugId(debugId);
-        if (normalizedDebugId == null) {
-            throw new DebugFrameworkServerException(
-                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
-                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
-                    "Invalid debug ID: " + debugId);
-        }
-        String tenantDomain = IdentityTenantUtil.resolveTenantDomain();
-        if (tenantDomain == null || tenantDomain.trim().isEmpty()) {
-            throw new DebugFrameworkServerException(
-                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
-                    ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
-                    "Tenant domain could not be resolved for debug session storage ID: " + normalizedDebugId);
-        }
-        return tenantDomain + ":" + normalizedDebugId;
-    }
-
-    private void setSessionData(PreparedStatement preparedStatement, int parameterIndex,
-                                DebugSessionData sessionData) throws SQLException {
+    private void setSessionDataParam(java.sql.PreparedStatement preparedStatement, int parameterIndex,
+                                     DebugSessionData sessionData) throws java.sql.SQLException {
 
         if (sessionData.getSessionData() == null) {
             preparedStatement.setNull(parameterIndex, Types.BLOB);
-            return;
+        } else {
+            preparedStatement.setBytes(parameterIndex, sessionData.getSessionData());
         }
-        preparedStatement.setBytes(parameterIndex, sessionData.getSessionData());
     }
 
-    private long getTimeInMillis(ResultSet resultSet, String columnName) throws SQLException {
+    private long timestampToMillis(java.sql.ResultSet resultSet, String columnName) throws java.sql.SQLException {
 
         Timestamp ts = resultSet.getTimestamp(columnName);
         return ts != null ? ts.getTime() : 0L;
-    }
-
-    private DebugFrameworkServerException serverError(String message, Throwable cause) {
-
-        return new DebugFrameworkServerException(
-                ErrorMessages.ERROR_CODE_SERVER_ERROR.getCode(),
-                ErrorMessages.ERROR_CODE_SERVER_ERROR.getMessage(),
-                message, cause);
     }
 }

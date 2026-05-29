@@ -41,13 +41,6 @@ public final class DebugFrameworkConstants {
     public static final String TRUE_VALUE = Boolean.TRUE.toString();
     public static final String FALSE_VALUE = Boolean.FALSE.toString();
 
-    // Database Column Names.
-    public static final String DB_COLUMN_STATUS = "STATUS";
-    public static final String DB_COLUMN_SESSION_DATA = "SESSION_DATA";
-    public static final String DB_COLUMN_RESULT_JSON = "RESULT_JSON";
-    public static final String DB_COLUMN_CREATED_TIME = "CREATED_TIME";
-    public static final String DB_COLUMN_EXPIRY_TIME = "EXPIRY_TIME";
-
     // Debug Status Constants.
     public static final String DEBUG_STATUS_FAILURE = "FAILURE";
     public static final String DEBUG_STATUS_SUCCESS_INCOMPLETE = "SUCCESS_INCOMPLETE";

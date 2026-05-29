@@ -39,28 +39,25 @@ public interface DebugSessionDAO {
      *
      * @param debugId Debug ID.
      * @return DebugSessionData or null if not found.
-     * @throws DebugFrameworkServerException If an error occurs while retrieving the
-     *                                       session.
+     * @throws DebugFrameworkServerException If an error occurs while retrieving the session.
      */
     DebugSessionData getDebugSession(String debugId) throws DebugFrameworkServerException;
+
+    /**
+     * Updates an existing debug session.
+     *
+     * @param sessionData Session data object.
+     * @throws DebugFrameworkServerException If an error occurs while updating the session.
+     */
+    void updateDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException;
 
     /**
      * Deletes a debug session.
      *
      * @param debugId Debug ID.
-     * @throws DebugFrameworkServerException If an error occurs while deleting the
-     *                                       session.
+     * @throws DebugFrameworkServerException If an error occurs while deleting the session.
      */
     void deleteDebugSession(String debugId) throws DebugFrameworkServerException;
-
-    /**
-     * Upserts a debug session (Insert or Update).
-     *
-     * @param sessionData Session data object.
-     * @throws DebugFrameworkServerException If an error occurs while upserting the
-     *                                       session.
-     */
-    void upsertDebugSession(DebugSessionData sessionData) throws DebugFrameworkServerException;
 
     /**
      * Deletes expired debug sessions from the database.

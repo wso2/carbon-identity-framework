@@ -23,20 +23,41 @@ package org.wso2.carbon.identity.debug.framework.dao;
  */
 public final class SQLConstants {
 
-    public static final String SQL_INSERT_DEBUG_SESSION = "INSERT INTO IDN_DEBUG_SESSION " +
-            "(DEBUG_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME) " +
-            "VALUES (?, ?, ?, ?, ?, ?)";
+    public static final String SQL_INSERT_DEBUG_SESSION =
+            "INSERT INTO IDN_DEBUG_SESSION (DEBUG_ID, TENANT_ID, STATUS, SESSION_DATA, RESULT_JSON, " +
+            "CREATED_TIME, EXPIRY_TIME) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-    public static final String SQL_GET_DEBUG_SESSION = "SELECT DEBUG_ID, STATUS, SESSION_DATA, " +
-            "RESULT_JSON, CREATED_TIME, EXPIRY_TIME FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
-
-    public static final String SQL_DELETE_DEBUG_SESSION = "DELETE FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ?";
-
-    public static final String SQL_DELETE_EXPIRED_DEBUG_SESSIONS
-            = "DELETE FROM IDN_DEBUG_SESSION WHERE EXPIRY_TIME < ?";
+    public static final String SQL_GET_DEBUG_SESSION =
+            "SELECT DEBUG_ID, TENANT_ID, STATUS, SESSION_DATA, RESULT_JSON, CREATED_TIME, EXPIRY_TIME " +
+            "FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ? AND TENANT_ID = ?";
 
     public static final String SQL_UPDATE_DEBUG_SESSION =
             "UPDATE IDN_DEBUG_SESSION SET STATUS = ?, SESSION_DATA = ?, RESULT_JSON = ?, " +
-                    "CREATED_TIME = ?, EXPIRY_TIME = ? WHERE DEBUG_ID = ?";
+            "CREATED_TIME = ?, EXPIRY_TIME = ? WHERE DEBUG_ID = ? AND TENANT_ID = ?";
 
+    public static final String SQL_DELETE_DEBUG_SESSION =
+            "DELETE FROM IDN_DEBUG_SESSION WHERE DEBUG_ID = ? AND TENANT_ID = ?";
+
+    public static final String SQL_DELETE_EXPIRED_DEBUG_SESSIONS =
+            "DELETE FROM IDN_DEBUG_SESSION WHERE EXPIRY_TIME < ?";
+
+    private SQLConstants() {
+    }
+
+    /**
+     * Column name constants for result-set mapping.
+     */
+    public static final class SQLPlaceholders {
+
+        public static final String DB_COLUMN_DEBUG_ID = "DEBUG_ID";
+        public static final String DB_COLUMN_TENANT_ID = "TENANT_ID";
+        public static final String DB_COLUMN_STATUS = "STATUS";
+        public static final String DB_COLUMN_SESSION_DATA = "SESSION_DATA";
+        public static final String DB_COLUMN_RESULT_JSON = "RESULT_JSON";
+        public static final String DB_COLUMN_CREATED_TIME = "CREATED_TIME";
+        public static final String DB_COLUMN_EXPIRY_TIME = "EXPIRY_TIME";
+
+        private SQLPlaceholders() {
+        }
+    }
 }
