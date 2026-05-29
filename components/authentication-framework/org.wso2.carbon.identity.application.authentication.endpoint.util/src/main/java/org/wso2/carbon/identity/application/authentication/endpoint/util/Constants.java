@@ -295,6 +295,10 @@ public class Constants {
                 "invalid_client_invalid.response.type.for.hybrid.flow";
         public static final String INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION_I18N_KEY =
                 "invalid.response.type.for.hybrid.flow";
+        public static final String AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH =
+                "authentication.attempt.failed_ciba.user.mismatch";
+        public static final String AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH_I18N_KEY =
+                "ciba.user.mismatch";
 
         public static final Map<String, String> ERROR_TO_I18N_MAP = new HashMap<>();
 
@@ -401,6 +405,8 @@ public class Constants {
                     Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION,
                     Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH,
+                    ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CIBA_USER_MISMATCH_I18N_KEY);
         }
 
         private ErrorToi18nMappingConstants() {
