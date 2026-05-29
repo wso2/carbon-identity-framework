@@ -25,6 +25,7 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationInterceptor;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
@@ -64,11 +65,13 @@ import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * Authentication framework data holder.
@@ -96,6 +99,7 @@ public class FrameworkServiceDataHolder {
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
     private List<ClaimFilter> claimFilters = new ArrayList<>();
+    private List<AuthenticationInterceptor> authenticationInterceptors = new ArrayList<>();
     private AsyncSequenceExecutor asyncSequenceExecutor;
     private LongWaitStatusStoreService longWaitStatusStoreService;
     private IdentityEventService identityEventService;
@@ -855,6 +859,36 @@ public class FrameworkServiceDataHolder {
     public void setOrganizationDiscoveryHandler(OrganizationDiscoveryHandler organizationDiscoveryHandler) {
 
         this.organizationDiscoveryHandler = organizationDiscoveryHandler;
+    }
+
+    /**
+     * Get all registered authentication interceptors.
+     *
+     * @return List of registered {@link AuthenticationInterceptor} instances.
+     */
+    public List<AuthenticationInterceptor> getAuthenticationInterceptors() {
+
+        return authenticationInterceptors;
+    }
+
+    /**
+     * Add an authentication interceptor.
+     *
+     * @param interceptor {@link AuthenticationInterceptor} to add.
+     */
+    public void addAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
+
+        this.authenticationInterceptors.add(interceptor);
+    }
+
+    /**
+     * Remove an authentication interceptor.
+     *
+     * @param interceptor {@link AuthenticationInterceptor} to remove.
+     */
+    public void removeAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
+
+        this.authenticationInterceptors.remove(interceptor);
     }
 
     /**

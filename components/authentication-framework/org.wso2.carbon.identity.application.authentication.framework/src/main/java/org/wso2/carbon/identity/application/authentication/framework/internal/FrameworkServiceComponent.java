@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationInterceptor;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -680,6 +681,29 @@ public class FrameworkServiceComponent {
         if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
+        }
+    }
+
+    @Reference(
+            name = "authentication.interceptor",
+            service = AuthenticationInterceptor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthenticationInterceptor"
+    )
+    protected void setAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
+
+        FrameworkServiceDataHolder.getInstance().addAuthenticationInterceptor(interceptor);
+        if (log.isDebugEnabled()) {
+            log.debug("AuthenticationInterceptor registered: " + interceptor.getClass().getName());
+        }
+    }
+
+    protected void unsetAuthenticationInterceptor(AuthenticationInterceptor interceptor) {
+
+        FrameworkServiceDataHolder.getInstance().removeAuthenticationInterceptor(interceptor);
+        if (log.isDebugEnabled()) {
+            log.debug("AuthenticationInterceptor unregistered: " + interceptor.getClass().getName());
         }
     }
 
