@@ -286,8 +286,8 @@
 
     <OAuth>
         <GracefulRefreshTokenRotation>
-            <ValidityPeriodMax>{{oauth.graceful_refresh_token_rotation.maximum_validity_period | default(60)}}</ValidityPeriodMax>
-            <ReuseLimitMax>{{oauth.graceful_refresh_token_rotation.maximum_reuse_limit | default(5)}}</ReuseLimitMax>
+            <ValidityPeriodMax>{{oauth.graceful_refresh_token_rotation.maximum_validity_period}}</ValidityPeriodMax>
+            <ReuseLimitMax>{{oauth.graceful_refresh_token_rotation.maximum_reuse_limit}}</ReuseLimitMax>
         </GracefulRefreshTokenRotation>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
