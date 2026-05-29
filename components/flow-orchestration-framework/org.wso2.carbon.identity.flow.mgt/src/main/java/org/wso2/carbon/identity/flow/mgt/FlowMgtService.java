@@ -57,7 +57,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
+import static org.wso2.carbon.identity.flow.mgt.Constants.AuditLogConstants.EXECUTOR;
+import static org.wso2.carbon.identity.flow.mgt.Constants.AuditLogConstants.EXECUTORS;
+import static org.wso2.carbon.identity.flow.mgt.Constants.AuditLogConstants.FLOW_COMPLETION_CONFIGS;
+import static org.wso2.carbon.identity.flow.mgt.Constants.AuditLogConstants.METADATA;
 import static org.wso2.carbon.identity.flow.mgt.Constants.DEFAULT_FLOW_NAME;
+import static org.wso2.carbon.identity.flow.mgt.Constants.FlowConfigConstants.IS_ENABLED;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.getInitiatorId;
 import static org.wso2.carbon.identity.flow.mgt.utils.FlowMgtUtils.handleServerException;
 
@@ -281,10 +286,10 @@ public class FlowMgtService {
     private Map<String, Object> buildFlowConfigAuditData(FlowConfigDTO flowConfigDTO) {
 
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("isEnabled", flowConfigDTO.getIsEnabled());
+        data.put(IS_ENABLED, flowConfigDTO.getIsEnabled());
         Map<String, String> completionConfigs = flowConfigDTO.getAllFlowCompletionConfigs();
         if (completionConfigs != null && !completionConfigs.isEmpty()) {
-            data.put("flowCompletionConfigs", completionConfigs);
+            data.put(FLOW_COMPLETION_CONFIGS, completionConfigs);
         }
         return data;
     }
@@ -298,12 +303,12 @@ public class FlowMgtService {
                 continue;
             }
             Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("executor", executor.getName());
+            entry.put(EXECUTOR, executor.getName());
             if (executor.getMetadata() != null && !executor.getMetadata().isEmpty()) {
-                entry.put("metadata", executor.getMetadata());
+                entry.put(METADATA, executor.getMetadata());
             }
             executors.add(entry);
         }
-        return Collections.singletonMap("executors", executors);
+        return Collections.singletonMap(EXECUTORS, executors);
     }
 }
