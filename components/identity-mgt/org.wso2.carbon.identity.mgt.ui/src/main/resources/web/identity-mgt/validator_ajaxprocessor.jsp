@@ -26,6 +26,10 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 
 <%
+    if (!"post".equalsIgnoreCase(request.getMethod())) {
+        response.sendError(405);
+        return;
+    }
     VerificationBean confirmationBean;
     String redirect = null;
     String confirm = request.getParameter("confirmation");
