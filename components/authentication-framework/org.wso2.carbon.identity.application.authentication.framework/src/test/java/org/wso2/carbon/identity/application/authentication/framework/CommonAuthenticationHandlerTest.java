@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  */
 public class CommonAuthenticationHandlerTest {
 
-    @Test(description = "test doPost when cooke validation fails with a non-mismatching tenant error code")
+    @Test(description = "Test doPost when cookie validation fails with a non-mismatching tenant error code.")
     public void testdoPostCookieValidationFailedWithNonTenantError() throws Exception {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -71,7 +71,7 @@ public class CommonAuthenticationHandlerTest {
         }
     }
 
-    @Test(description = "test doPost when user assertion fails")
+    @Test(description = "Test doPost when user assertion fails.")
     public void testdoPostUserAssertionFailed() throws Exception {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
