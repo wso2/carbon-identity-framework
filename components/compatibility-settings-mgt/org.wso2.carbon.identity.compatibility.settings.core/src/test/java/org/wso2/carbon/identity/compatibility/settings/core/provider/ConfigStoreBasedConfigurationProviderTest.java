@@ -650,7 +650,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         when(configurationManager.getResource(eq(COMPATIBILITY_SETTINGS_RESOURCE_TYPE),
                 eq(formattedResourceName), eq(false))).thenThrow(notFoundException);
 
-        // addResource throws unknown error.
+        // AddResource throws unknown error.
         ConfigurationManagementException addResourceException = new ConfigurationManagementException(
                 "Add resource error", "ADD_RESOURCE_ERROR");
         when(configurationManager.addResource(anyString(), any(Resource.class)))
@@ -693,7 +693,7 @@ public class ConfigStoreBasedConfigurationProviderTest {
         when(configurationManager.addResource(anyString(), any(Resource.class)))
                 .thenThrow(resourceTypeNotFound);
 
-        // addResourceType throws error.
+        // AddResourceType throws error.
         ConfigurationManagementException addResourceTypeException = new ConfigurationManagementException(
                 "Add resource type error", "ADD_RESOURCE_TYPE_ERROR");
         when(configurationManager.addResourceType(any())).thenThrow(addResourceTypeException);
