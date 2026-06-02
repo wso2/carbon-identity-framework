@@ -192,7 +192,7 @@ public class InputValidationService {
         context.getUserInputData().forEach(
                 (key, value) -> {
                     if (key.startsWith(CLAIM_URI_PREFIX)) {
-                        context.getFlowUser().addClaim(key, value);
+                        context.getFlowUser().addUpdatedClaim(key, value);
                     } else if (CONSENT_KEY.equals(key) || PREFERENCE_KEY.equals(key)) {
                         context.getFlowUser().addUserConsents(FlowUser.UserConsent.fromJson(value));
                     }

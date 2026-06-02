@@ -49,10 +49,13 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
@@ -70,6 +73,7 @@ public class FlowUser implements Serializable {
     private static final String LOCAL_CREDENTIAL_EXISTS_CLAIM_URI = "http://wso2.org/claims/identity/localCredentialExists";
 
     private final Map<String, String> claims = new HashMap<>();
+    private final Set<String> updatedClaimUris = new HashSet<>();
     private List<UserConsent> userConsents = new ArrayList<>();
 
     @JsonProperty("userCredentials")
@@ -134,6 +138,28 @@ public class FlowUser implements Serializable {
     public void addClaim(String claimUri, String claimValue) {
 
         this.claims.put(claimUri, claimValue);
+    }
+
+    /**
+     * Adds a claim and marks its URI as user-updated in this flow.
+     *
+     * @param claimUri   claim URI to set and mark as updated.
+     * @param claimValue claim value.
+     */
+    public void addUpdatedClaim(String claimUri, String claimValue) {
+
+        this.claims.put(claimUri, claimValue);
+        this.updatedClaimUris.add(claimUri);
+    }
+
+    /**
+     * Returns the URIs of claims marked as user-updated via {@link #addUpdatedClaim}.
+     *
+     * @return unmodifiable view of the updated claim URI set.
+     */
+    public Set<String> getUpdatedClaimUris() {
+
+        return Collections.unmodifiableSet(updatedClaimUris);
     }
 
     public Map<String, char[]> getUserCredentials() {

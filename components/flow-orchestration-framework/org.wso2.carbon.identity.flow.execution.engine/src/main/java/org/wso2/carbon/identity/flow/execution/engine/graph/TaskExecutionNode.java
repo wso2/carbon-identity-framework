@@ -205,7 +205,8 @@ public class TaskExecutionNode implements Node {
 
         FlowUser user = context.getFlowUser();
         if (response.getUpdatedUserClaims() != null) {
-            response.getUpdatedUserClaims().forEach((key, value) -> user.addClaim(key, String.valueOf(value)));
+            response.getUpdatedUserClaims()
+                    .forEach((key, value) -> user.addUpdatedClaim(key, String.valueOf(value)));
         }
         if (response.getUserCredentials() != null) {
             user.getUserCredentials().putAll(response.getUserCredentials());
