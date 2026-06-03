@@ -23,10 +23,7 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  */
 class TenantBreakerEntry {
 
-    private final long openDurationMs;
-    private final double failureRateThreshold;
-    private final int minCallsToEvaluate;
-    private final int maxInFlight;
+    private final RuntimePolicy dynamicPolicy;
     private final SlidingWindow window;
 
     private CircuitState state = CircuitState.CLOSED;
@@ -35,22 +32,19 @@ class TenantBreakerEntry {
 
     private int inFlight;
 
-    TenantBreakerEntry(Policy policy, long nowMs) {
+    public TenantBreakerEntry(RuntimePolicy dynamicPolicy, long nowMs) {
 
-        this.openDurationMs = policy.getOpenDurationMs();
-        this.failureRateThreshold = policy.getFailureRateThreshold();
-        this.minCallsToEvaluate = policy.getMinCallsToEvaluate();
-        this.maxInFlight = policy.getMaxInFlight();
-        this.window = new SlidingWindow(policy.getWindowSize());
+        this.dynamicPolicy = dynamicPolicy;
+        this.window = new SlidingWindow(dynamicPolicy.getWindowSize());
         this.stateSinceMs = nowMs;
         this.lastAccessMs = nowMs;
     }
 
-    synchronized Decision allowRequest(long nowMs) {
+    public synchronized Decision allowRequest(long nowMs) {
 
         lastAccessMs = nowMs;
         if (state == CircuitState.OPEN) {
-            if ((nowMs - stateSinceMs) < openDurationMs) {
+            if ((nowMs - stateSinceMs) < dynamicPolicy.getOpenDurationMs()) {
                 return Decision.rejected(RejectReason.CIRCUIT_OPEN);
             }
             state = CircuitState.HALF_OPEN;
@@ -66,9 +60,9 @@ class TenantBreakerEntry {
         return Decision.allowed();
     }
 
-    synchronized Decision acquireBulkhead() {
+    public synchronized Decision acquireBulkhead() {
 
-        if (inFlight >= maxInFlight) {
+        if (inFlight >= dynamicPolicy.getMaxInFlight()) {
             return Decision.rejected(RejectReason.BULKHEAD_FULL);
         }
 
@@ -76,7 +70,7 @@ class TenantBreakerEntry {
         return Decision.allowed();
     }
 
-    synchronized void releaseBulkhead(long nowMs) {
+    public synchronized void releaseBulkhead(long nowMs) {
 
         lastAccessMs = nowMs;
         if (inFlight > 0) {
@@ -84,7 +78,7 @@ class TenantBreakerEntry {
         }
     }
 
-    synchronized void recordResult(boolean success, long nowMs) {
+    public synchronized void recordResult(boolean success, long nowMs) {
 
         lastAccessMs = nowMs;
 
@@ -105,52 +99,52 @@ class TenantBreakerEntry {
         }
 
         window.record(success);
-        if (window.calls() < minCallsToEvaluate) {
+        if (window.calls() < dynamicPolicy.getMinCallsToEvaluate()) {
             return;
         }
 
-        if (window.failureRate() >= failureRateThreshold) {
+        if (window.failureRate() >= dynamicPolicy.getFailureRateThreshold()) {
             state = CircuitState.OPEN;
             stateSinceMs = nowMs;
         }
     }
 
-    synchronized boolean isEvictable(long nowMs, long idleEvictMs) {
+    public synchronized boolean isEvictable(long nowMs, long idleEvictMs) {
 
         return (nowMs - lastAccessMs) > idleEvictMs && inFlight == 0;
     }
 
-    synchronized CircuitState getState() {
+    public synchronized CircuitState getState() {
 
         return state;
     }
 
-    synchronized int getCalls() {
+    public synchronized int getCalls() {
 
         return window.calls();
     }
 
-    synchronized int getFailures() {
+    public synchronized int getFailures() {
 
         return window.failures();
     }
 
-    synchronized double getFailureRate() {
+    public synchronized double getFailureRate() {
 
         return window.failureRate();
     }
 
-    synchronized int getInFlight() {
+    public synchronized int getInFlight() {
 
         return inFlight;
     }
 
-    synchronized boolean hasInFlightRequests() {
+    public synchronized boolean hasInFlightRequests() {
 
         return inFlight > 0;
     }
 
-    synchronized long getLastAccessMs() {
+    public synchronized long getLastAccessMs() {
 
         return lastAccessMs;
     }

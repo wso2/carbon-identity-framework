@@ -18,9 +18,14 @@
 
 package org.wso2.carbon.identity.core.internal.component;
 
+import org.wso2.carbon.identity.core.circuitbreaker.TenantService;
+import org.wso2.carbon.identity.core.circuitbreaker.TenantServiceBreakerObserver;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Identity core service data holder.
@@ -31,6 +36,7 @@ public class IdentityCoreServiceDataHolder {
     private RealmService realmService = null;
     private OrganizationUserResidentResolverService organizationUserResidentResolverService = null;
     private OrganizationManager organizationManager = null;
+    private final Map<TenantService, TenantServiceBreakerObserver> tenantBreakerObservers = new HashMap<>();
 
     private boolean isTenantQualifiedUrlsEnabled;
 
@@ -135,5 +141,48 @@ public class IdentityCoreServiceDataHolder {
     public void setOrganizationManager(OrganizationManager organizationManager) {
 
         this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Registers a {@link TenantServiceBreakerObserver} for the service it is associated with.
+     * Only one observer can be registered per {@link TenantService}.
+     *
+     * @param observer The observer to register; ignored if {@code null}.
+     * @throws IllegalStateException If an observer is already registered for the same service.
+     */
+    public void addTenantServiceBreakerObserver(TenantServiceBreakerObserver observer) {
+
+        if (observer == null) {
+            return;
+        }
+        TenantService service = observer.getService();
+        if (tenantBreakerObservers.containsKey(service)) {
+            throw new IllegalStateException(
+                    "A TenantServiceBreakerObserver is already registered for service: " + service);
+        }
+        tenantBreakerObservers.put(service, observer);
+    }
+
+    /**
+     * Removes the {@link TenantServiceBreakerObserver} registered for the given service, if any.
+     *
+     * @param service The service whose observer should be removed; ignored if {@code null}.
+     */
+    public void removeTenantServiceBreakerObserver(TenantService service) {
+
+        if (service != null) {
+            tenantBreakerObservers.remove(service);
+        }
+    }
+
+    /**
+     * Returns the {@link TenantServiceBreakerObserver} registered for the given service.
+     *
+     * @param service The service to look up.
+     * @return The registered observer, or {@code null} if none is registered for the service.
+     */
+    public TenantServiceBreakerObserver getTenantServiceBreakerObserver(TenantService service) {
+
+        return tenantBreakerObservers.get(service);
     }
 }

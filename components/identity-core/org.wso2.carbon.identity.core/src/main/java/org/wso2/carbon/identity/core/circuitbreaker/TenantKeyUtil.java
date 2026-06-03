@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.core.circuitbreaker;
 
 /**
- * Utility for constructing per-tenant service keys.
+ * Utility for constructing and parsing per-tenant service keys.
  */
 public final class TenantKeyUtil {
 
@@ -29,64 +29,39 @@ public final class TenantKeyUtil {
 
     }
 
+    /**
+     * Tenant domain and service name extracted from a composite tenant-service key.
+     *
+     * @param tenantDomain Tenant domain segment.
+     * @param serviceName  Service name segment.
+     */
+    public record TenantKeyParts(String tenantDomain, String serviceName) {
+
+    }
+
+    /**
+     * Builds a composite key of the form {@code "<tenantDomain>:<service>"}. Callers must
+     * ensure both arguments are non-null and non-blank before invoking.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param service      Service name.
+     * @return Composite tenant-service key.
+     */
     public static String buildTenantServiceKey(String tenantDomain, String service) {
 
-        String normalizedTenantDomain = normalize(tenantDomain, "tenantDomain");
-        String normalizedService = normalize(service, "service");
-        return normalizedTenantDomain + KEY_SEGMENT_SEPARATOR + normalizedService;
+        return tenantDomain.trim() + KEY_SEGMENT_SEPARATOR + service.trim();
     }
 
-    public static String extractTenantDomain(String tenantServiceKey) {
+    /**
+     * Parses a composite key produced by {@link #buildTenantServiceKey(String, String)} and
+     * returns both the tenant domain and service name.
+     *
+     * @param tenantKey Composite tenant-service key.
+     * @return {@link TenantKeyParts} holding the tenant domain and service name.
+     */
+    public static TenantKeyParts parse(String tenantKey) {
 
-        KeySegments keySegments = parseTenantServiceKey(tenantServiceKey);
-        return keySegments.tenantDomain;
-    }
-
-    public static String extractService(String tenantServiceKey) {
-
-        KeySegments keySegments = parseTenantServiceKey(tenantServiceKey);
-        return keySegments.service;
-    }
-
-    private static KeySegments parseTenantServiceKey(String tenantServiceKey) {
-
-        String normalizedTenantServiceKey = normalize(tenantServiceKey, "tenantServiceKey");
-        int separatorIndex = normalizedTenantServiceKey.indexOf(KEY_SEGMENT_SEPARATOR);
-        if (separatorIndex <= 0 || separatorIndex == normalizedTenantServiceKey.length() - 1) {
-            throw new IllegalArgumentException("Invalid tenantServiceKey format");
-        }
-
-        String tenantDomain = normalizedTenantServiceKey.substring(0, separatorIndex);
-        String service = normalizedTenantServiceKey.substring(separatorIndex + 1);
-        if (isBlank(tenantDomain) || isBlank(service)) {
-            throw new IllegalArgumentException("Invalid tenantServiceKey format");
-        }
-
-        return new KeySegments(tenantDomain, service);
-    }
-
-    private static String normalize(String value, String fieldName) {
-
-        if (isBlank(value)) {
-            throw new IllegalArgumentException(fieldName + " cannot be null or blank");
-        }
-        return value.trim();
-    }
-
-    private static boolean isBlank(String value) {
-
-        return value == null || value.trim().isEmpty();
-    }
-
-    private static final class KeySegments {
-
-        private final String tenantDomain;
-        private final String service;
-
-        private KeySegments(String tenantDomain, String service) {
-
-            this.tenantDomain = tenantDomain;
-            this.service = service;
-        }
+        int idx = tenantKey.indexOf(KEY_SEGMENT_SEPARATOR);
+        return new TenantKeyParts(tenantKey.substring(0, idx), tenantKey.substring(idx + 1));
     }
 }

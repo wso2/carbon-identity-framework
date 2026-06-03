@@ -29,6 +29,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.circuitbreaker.TenantServiceBreakerObserver;
+
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.ServerStartupObserver;
@@ -411,5 +413,22 @@ public class IdentityCoreServiceComponent {
 
         IdentityCoreServiceDataHolder.getInstance().setOrganizationManager(null);
         log.debug("OrganizationManager unset in IdentityCoreServiceDataHolder bundle.");
+    }
+
+    @Reference(
+            name = "tenant.service.breaker.observer",
+            service = TenantServiceBreakerObserver.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeTenantServiceBreakerObserver"
+    )
+    protected void addTenantServiceBreakerObserver(TenantServiceBreakerObserver observer) {
+
+        IdentityCoreServiceDataHolder.getInstance().addTenantServiceBreakerObserver(observer);
+    }
+
+    protected void removeTenantServiceBreakerObserver(TenantServiceBreakerObserver observer) {
+
+        IdentityCoreServiceDataHolder.getInstance().removeTenantServiceBreakerObserver(observer.getService());
     }
 }

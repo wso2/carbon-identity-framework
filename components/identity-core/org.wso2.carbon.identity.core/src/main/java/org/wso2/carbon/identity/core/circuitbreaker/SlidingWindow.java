@@ -28,12 +28,12 @@ class SlidingWindow {
     private int filled;
     private int failures;
 
-    SlidingWindow(int windowSize) {
+    public SlidingWindow(int windowSize) {
 
         this.outcomes = new byte[windowSize];
     }
 
-    void record(boolean success) {
+    public void record(boolean success) {
 
         byte next = (byte) (success ? 1 : 0);
         if (filled == outcomes.length) {
@@ -53,17 +53,17 @@ class SlidingWindow {
         index = (index + 1) % outcomes.length;
     }
 
-    int calls() {
+    public int calls() {
 
         return filled;
     }
 
-    int failures() {
+    public int failures() {
 
         return failures;
     }
 
-    double failureRate() {
+    public double failureRate() {
 
         if (filled == 0) {
             return 0D;
@@ -71,7 +71,7 @@ class SlidingWindow {
         return (double) failures / (double) filled;
     }
 
-    void reset() {
+    public void reset() {
 
         index = 0;
         filled = 0;

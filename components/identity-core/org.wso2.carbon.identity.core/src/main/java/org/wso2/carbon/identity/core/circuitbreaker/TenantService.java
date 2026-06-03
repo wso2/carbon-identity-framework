@@ -19,25 +19,10 @@
 package org.wso2.carbon.identity.core.circuitbreaker;
 
 /**
- * Observer hook for transition and rejection events.
+ * Services supported by the circuit breaker.
  */
-public interface TenantBreakerObserver {
+public enum TenantService {
 
-    TenantBreakerObserver NO_OP = new TenantBreakerObserver() {
-
-    };
-
-    default void onStateTransition(String tenantKey, CircuitState previousState, CircuitState currentState,
-                                   int calls, int failures, double failureRate, double failureRateThreshold) {
-
-    }
-
-    default void onRejection(String tenantKey, RejectReason rejectReason, CircuitState state, Integer calls,
-                             Integer failures, Double failureRate, Integer inFlight) {
-
-    }
-
-    default void onForcedEviction(String tenantKey) {
-
-    }
+    SMS_OTP,
+    EMAIL_OTP
 }

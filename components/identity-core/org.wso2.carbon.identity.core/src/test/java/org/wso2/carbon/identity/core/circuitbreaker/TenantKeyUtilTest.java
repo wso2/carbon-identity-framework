@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.core.circuitbreaker;
 
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -33,9 +32,10 @@ public class TenantKeyUtilTest {
         String service = "oauth2_token_service";
 
         String tenantServiceKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service);
+        TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(tenantServiceKey);
 
-        assertEquals(TenantKeyUtil.extractTenantDomain(tenantServiceKey), tenantDomain);
-        assertEquals(TenantKeyUtil.extractService(tenantServiceKey), service);
+        assertEquals(parts.tenantDomain(), tenantDomain);
+        assertEquals(parts.serviceName(), service);
     }
 
     @Test
@@ -51,62 +51,20 @@ public class TenantKeyUtilTest {
     public void testBuildTenantServiceKeyTrimsInputs() {
 
         String tenantServiceKey = TenantKeyUtil.buildTenantServiceKey(" foo_bar.example.com ", " oauth2 ");
+        TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(tenantServiceKey);
 
-        assertEquals(TenantKeyUtil.extractTenantDomain(tenantServiceKey), "foo_bar.example.com");
-        assertEquals(TenantKeyUtil.extractService(tenantServiceKey), "oauth2");
+        assertEquals(parts.tenantDomain(), "foo_bar.example.com");
+        assertEquals(parts.serviceName(), "oauth2");
     }
 
     @Test
-    public void testExtractServiceSupportsAdditionalColons() {
+    public void testParseServiceSupportsAdditionalColons() {
 
         String tenantServiceKey = TenantKeyUtil.buildTenantServiceKey("foo_bar.example.com", "oauth2:token");
+        TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(tenantServiceKey);
 
-        assertEquals(TenantKeyUtil.extractTenantDomain(tenantServiceKey), "foo_bar.example.com");
-        assertEquals(TenantKeyUtil.extractService(tenantServiceKey), "oauth2:token");
+        assertEquals(parts.tenantDomain(), "foo_bar.example.com");
+        assertEquals(parts.serviceName(), "oauth2:token");
     }
 
-    @Test(dataProvider = "invalidBuildInputs", expectedExceptions = IllegalArgumentException.class)
-    public void testBuildTenantServiceKeyRejectsInvalidInputs(String tenantDomain, String service) {
-
-        TenantKeyUtil.buildTenantServiceKey(tenantDomain, service);
-    }
-
-    @DataProvider(name = "invalidBuildInputs")
-    public Object[][] invalidBuildInputs() {
-
-        return new Object[][]{
-                {null, "oauth2"},
-                {"", "oauth2"},
-                {" ", "oauth2"},
-                {"foo.com", null},
-                {"foo.com", ""},
-                {"foo.com", " "}
-        };
-    }
-
-    @Test(dataProvider = "invalidExtractInputs", expectedExceptions = IllegalArgumentException.class)
-    public void testExtractTenantDomainRejectsInvalidKeys(String tenantServiceKey) {
-
-        TenantKeyUtil.extractTenantDomain(tenantServiceKey);
-    }
-
-    @Test(dataProvider = "invalidExtractInputs", expectedExceptions = IllegalArgumentException.class)
-    public void testExtractServiceRejectsInvalidKeys(String tenantServiceKey) {
-
-        TenantKeyUtil.extractService(tenantServiceKey);
-    }
-
-    @DataProvider(name = "invalidExtractInputs")
-    public Object[][] invalidExtractInputs() {
-
-        return new Object[][]{
-                {null},
-                {""},
-                {" "},
-                {"foo"},
-                {":oauth2"},
-                {"foo.com:"},
-                {"foo.com: "}
-        };
-    }
 }

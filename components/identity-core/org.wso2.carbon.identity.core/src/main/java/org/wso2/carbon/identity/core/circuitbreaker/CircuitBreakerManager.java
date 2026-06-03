@@ -18,20 +18,24 @@
 
 package org.wso2.carbon.identity.core.circuitbreaker;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Node-local per-tenant circuit breaker manager.
+ * Node-local per-tenant, per-service circuit breaker manager.
  */
-public class PerTenantCircuitBreakerManager {
+public class CircuitBreakerManager {
+
+    private static final CircuitBreakerManager INSTANCE = new CircuitBreakerManager();
 
     private final Shard[] shards;
     private final AtomicInteger entryCount = new AtomicInteger();
@@ -39,62 +43,75 @@ public class PerTenantCircuitBreakerManager {
     private final AtomicInteger shardSweepCursor = new AtomicInteger();
     private final Object admissionLock = new Object();
 
-    private final Policy policy;
-    private final TenantBreakerObserver observer;
+    private final StaticPolicy staticPolicy;
+    private final RuntimePolicy defaultRuntimPolicy;
 
-    public PerTenantCircuitBreakerManager(Policy policy) {
+    public static CircuitBreakerManager getInstance() {
 
-        this(policy, TenantBreakerObserver.NO_OP);
+        return INSTANCE;
     }
 
-    public PerTenantCircuitBreakerManager(Policy policy, TenantBreakerObserver observer) {
+    private CircuitBreakerManager() {
 
-        this.policy = Objects.requireNonNull(policy, "policy cannot be null");
-        this.observer = Objects.requireNonNull(observer, "observer cannot be null");
-        int stripeCount = Math.max(1, policy.getCacheStripes());
+        this.staticPolicy = DefaultPolicyConfigurationLoader.getStaticPolicy();
+        this.defaultRuntimPolicy = DefaultPolicyConfigurationLoader.getRuntimePolicy();
+        int stripeCount = Math.max(1, staticPolicy.getCacheStripes());
         this.shards = new Shard[stripeCount];
         for (int i = 0; i < stripeCount; i++) {
             this.shards[i] = new Shard();
         }
     }
 
-    public Decision tryAcquire(String tenantKey, long nowMs) {
+    public Decision tryAcquire(String tenantDomain, TenantService service) {
 
-        if (!policy.isEnabled()) {
+        if (!staticPolicy.isEnabled()) {
             return Decision.allowed();
         }
+        if (StringUtils.isBlank(tenantDomain)) {
+            return Decision.rejected(RejectReason.NONE);
+        }
 
+        long nowMs = System.currentTimeMillis();
+        String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
         maybeCleanup(nowMs);
         TenantBreakerEntry entry = getOrCreateEntry(tenantKey, nowMs);
         if (entry == null) {
             Decision decision = Decision.rejected(RejectReason.BREAKER_CACHE_FULL);
-            observer.onRejection(tenantKey, decision.getRejectReason(), null, null, null, null, null);
+            TenantServiceBreakerObserver obs = observerFor(service);
+            if (obs != null) {
+                obs.onRejection(tenantDomain, service, decision.getRejectReason(), null, null, null, null, null);
+            }
             return decision;
         }
 
         synchronized (entry) {
             CircuitState previousState = entry.getState();
             Decision decision = entry.allowRequest(nowMs);
-            notifyTransitionIfRequired(tenantKey, previousState, entry);
+            notifyTransitionIfRequired(tenantDomain, service, previousState, entry);
             if (!decision.isAllowed()) {
-                notifyRejection(tenantKey, decision, entry);
+                notifyRejection(tenantDomain, service, decision, entry);
                 return decision;
             }
 
             decision = entry.acquireBulkhead();
             if (!decision.isAllowed()) {
-                notifyRejection(tenantKey, decision, entry);
+                notifyRejection(tenantDomain, service, decision, entry);
             }
             return decision;
         }
     }
 
-    public void onComplete(String tenantKey, boolean success, long nowMs) {
+    public void onComplete(String tenantDomain, TenantService service, boolean success) {
 
-        if (!policy.isEnabled()) {
+        if (StringUtils.isBlank(tenantDomain)) {
+            return;
+        }
+        if (!staticPolicy.isEnabled()) {
             return;
         }
 
+        long nowMs = System.currentTimeMillis();
+        String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
         TenantBreakerEntry entry = getEntry(tenantKey);
         if (entry == null) {
             return;
@@ -104,49 +121,57 @@ public class PerTenantCircuitBreakerManager {
             CircuitState previousState = entry.getState();
             entry.releaseBulkhead(nowMs);
             entry.recordResult(success, nowMs);
-            notifyTransitionIfRequired(tenantKey, previousState, entry);
+            notifyTransitionIfRequired(tenantDomain, service, previousState, entry);
         }
     }
 
-    public void cleanupIdleEntries(long nowMs) {
+    public void cleanupIdleEntries() {
 
-        if (!policy.isEnabled()) {
+        if (!staticPolicy.isEnabled()) {
             return;
         }
 
-        evictIdleEntries(nowMs, policy.getEvictionScanLimit());
+        evictIdleEntries(System.currentTimeMillis(), staticPolicy.getEvictionScanLimit());
     }
 
     public boolean isEnabled() {
 
-        return policy.isEnabled();
+        return staticPolicy.isEnabled();
     }
 
-    Policy getPolicy() {
+    public StaticPolicy getStaticPolicy() {
 
-        return policy;
+        return staticPolicy;
     }
 
-    int getEntryCount() {
+    public RuntimePolicy getRuntimePolicy() {
+
+        return defaultRuntimPolicy;
+    }
+
+    public int getEntryCount() {
 
         return entryCount.get();
     }
 
-    CircuitState getState(String tenantKey) {
+    public CircuitState getState(String tenantDomain, TenantService service) {
 
-        TenantBreakerEntry entry = getEntry(tenantKey);
+        if (StringUtils.isBlank(tenantDomain)) {
+            return null;
+        }
+        TenantBreakerEntry entry = getEntry(TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name()));
         return entry == null ? null : entry.getState();
     }
 
     private void maybeCleanup(long nowMs) {
 
-        if (policy.getCleanupTriggerEveryRequests() <= 0) {
+        if (staticPolicy.getCleanupTriggerEveryRequests() <= 0) {
             return;
         }
 
         long count = requestCounter.incrementAndGet();
-        if (count % policy.getCleanupTriggerEveryRequests() == 0) {
-            cleanupIdleEntries(nowMs);
+        if (count % staticPolicy.getCleanupTriggerEveryRequests() == 0) {
+            evictIdleEntries(nowMs, staticPolicy.getEvictionScanLimit());
         }
     }
 
@@ -164,7 +189,7 @@ public class PerTenantCircuitBreakerManager {
             }
 
             ensureCapacity(nowMs);
-            if (entryCount.get() >= policy.getMaxTenantsInCache()) {
+            if (entryCount.get() >= staticPolicy.getMaxTenantsInCache()) {
                 return null;
             }
 
@@ -175,16 +200,16 @@ public class PerTenantCircuitBreakerManager {
     private void ensureCapacity(long nowMs) {
 
         int attempts = 0;
-        while (entryCount.get() >= policy.getMaxTenantsInCache() && attempts < 4) {
+        while (entryCount.get() >= staticPolicy.getMaxTenantsInCache() && attempts < 4) {
             attempts++;
-            evictIdleEntries(nowMs, policy.getHardCapEvictionScanLimit());
-            if (entryCount.get() < policy.getMaxTenantsInCache()) {
+            evictIdleEntries(nowMs, staticPolicy.getHardCapEvictionScanLimit());
+            if (entryCount.get() < staticPolicy.getMaxTenantsInCache()) {
                 return;
             }
 
-            boolean evicted = evictOldestInactiveEntry(policy.getHardCapEvictionScanLimit());
+            boolean evicted = evictOldestInactiveEntry(staticPolicy.getHardCapEvictionScanLimit());
             if (!evicted) {
-                evicted = evictOldestEntry(policy.getHardCapEvictionScanLimit());
+                evicted = evictOldestEntry(staticPolicy.getHardCapEvictionScanLimit());
             }
             if (!evicted) {
                 return;
@@ -213,7 +238,7 @@ public class PerTenantCircuitBreakerManager {
                 return existing;
             }
 
-            TenantBreakerEntry created = new TenantBreakerEntry(policy, nowMs);
+            TenantBreakerEntry created = new TenantBreakerEntry(defaultRuntimPolicy, nowMs);
             shard.entries.put(tenantKey, created);
             entryCount.incrementAndGet();
             return created;
@@ -258,7 +283,7 @@ public class PerTenantCircuitBreakerManager {
                 while (iterator.hasNext() && scanned < scanLimit) {
                     scanned++;
                     Map.Entry<String, TenantBreakerEntry> mapEntry = iterator.next();
-                    if (mapEntry.getValue().isEvictable(nowMs, policy.getTenantEntryIdleEvictMs())) {
+                    if (mapEntry.getValue().isEvictable(nowMs, staticPolicy.getTenantEntryIdleEvictMs())) {
                         iterator.remove();
                         entryCount.decrementAndGet();
                         evictedKeys.add(mapEntry.getKey());
@@ -270,7 +295,12 @@ public class PerTenantCircuitBreakerManager {
         }
 
         for (String evictedKey : evictedKeys) {
-            observer.onForcedEviction(evictedKey);
+            TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(evictedKey);
+            TenantService service = TenantService.valueOf(parts.serviceName());
+            TenantServiceBreakerObserver obs = observerFor(service);
+            if (obs != null) {
+                obs.onForcedEviction(parts.tenantDomain(), service);
+            }
         }
     }
 
@@ -291,7 +321,12 @@ public class PerTenantCircuitBreakerManager {
         }
 
         if (removeEntry(candidate.tenantKey, candidate.entry)) {
-            observer.onForcedEviction(candidate.tenantKey);
+            TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(candidate.tenantKey);
+            TenantService service = TenantService.valueOf(parts.serviceName());
+            TenantServiceBreakerObserver obs = observerFor(service);
+            if (obs != null) {
+                obs.onForcedEviction(parts.tenantDomain(), service);
+            }
             return true;
         }
         return false;
@@ -335,26 +370,40 @@ public class PerTenantCircuitBreakerManager {
         return candidate;
     }
 
-    private void notifyTransitionIfRequired(String tenantKey, CircuitState previousState, TenantBreakerEntry entry) {
+    private void notifyTransitionIfRequired(String tenantDomain, TenantService service, CircuitState previousState,
+                                            TenantBreakerEntry entry) {
 
         CircuitState currentState = entry.getState();
         if (previousState == currentState) {
             return;
         }
 
-        observer.onStateTransition(tenantKey, previousState, currentState, entry.getCalls(), entry.getFailures(),
-                entry.getFailureRate(), policy.getFailureRateThreshold());
+        TenantServiceBreakerObserver obs = observerFor(service);
+        if (obs != null) {
+            obs.onStateTransition(tenantDomain, service, previousState, currentState,
+                    entry.getCalls(), entry.getFailures(), entry.getFailureRate(),
+                    defaultRuntimPolicy.getFailureRateThreshold());
+        }
     }
 
-    private void notifyRejection(String tenantKey, Decision decision, TenantBreakerEntry entry) {
+    private void notifyRejection(String tenantDomain, TenantService service, Decision decision,
+                                 TenantBreakerEntry entry) {
 
-        observer.onRejection(tenantKey, decision.getRejectReason(), entry.getState(), entry.getCalls(),
-                entry.getFailures(), entry.getFailureRate(), entry.getInFlight());
+        TenantServiceBreakerObserver obs = observerFor(service);
+        if (obs != null) {
+            obs.onRejection(tenantDomain, service, decision.getRejectReason(), entry.getState(),
+                    entry.getCalls(), entry.getFailures(), entry.getFailureRate(), entry.getInFlight());
+        }
     }
 
     private Shard shardFor(String tenantKey) {
 
         return shards[Math.floorMod(tenantKey.hashCode(), shards.length)];
+    }
+
+    private TenantServiceBreakerObserver observerFor(TenantService service) {
+
+        return IdentityCoreServiceDataHolder.getInstance().getTenantServiceBreakerObserver(service);
     }
 
     private static final class Shard {

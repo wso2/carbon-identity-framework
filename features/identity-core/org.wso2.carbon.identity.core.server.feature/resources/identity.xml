@@ -3074,4 +3074,20 @@
             <Enabled>false</Enabled>
         </Moesif>
     </Analytics>
+
+    <!-- Circuit Breaker configuration -->
+    <CircuitBreaker>
+        <Enabled>true</Enabled>
+        <CacheStripes>1</CacheStripes>
+        <MaxTenantsInCache>2</MaxTenantsInCache>
+        <TenantEntryIdleEvictMs>600000</TenantEntryIdleEvictMs>
+        <CleanupEveryRequests>5</CleanupEveryRequests>
+        <EvictionScanLimit>2</EvictionScanLimit>
+        <HardCapEvictionScanLimit>2</HardCapEvictionScanLimit>
+        <WindowSize>2</WindowSize>
+        <MinCallsToEvaluate>2</MinCallsToEvaluate>
+        <FailureRateThreshold>0.50</FailureRateThreshold>
+        <OpenDurationMs>600000</OpenDurationMs>
+        <MaxInFlight>2</MaxInFlight>
+    </CircuitBreaker>
 </Server>

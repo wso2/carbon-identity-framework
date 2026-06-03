@@ -5312,4 +5312,20 @@
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>{{app_native_authentication.handle_fail_completed_authenticator_status}}</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>
+
+    <!-- Circuit Breaker configuration -->
+    <CircuitBreaker>
+        <Enabled>{{circuit_breaker.enabled}}</Enabled>
+        <CacheStripes>{{circuit_breaker.cache_stripes}}</CacheStripes>
+        <MaxTenantsInCache>{{circuit_breaker.max_tenants_in_cache}}</MaxTenantsInCache>
+        <TenantEntryIdleEvictMs>{{circuit_breaker.tenant_entry_idle_evict_ms}}</TenantEntryIdleEvictMs>
+        <CleanupEveryRequests>{{circuit_breaker.cleanup_every_requests}}</CleanupEveryRequests>
+        <EvictionScanLimit>{{circuit_breaker.eviction_scan_limit}}</EvictionScanLimit>
+        <HardCapEvictionScanLimit>{{circuit_breaker.hard_cap_eviction_scan_limit}}</HardCapEvictionScanLimit>
+        <WindowSize>{{circuit_breaker.window_size}}</WindowSize>
+        <MinCallsToEvaluate>{{circuit_breaker.min_calls_to_evaluate}}</MinCallsToEvaluate>
+        <FailureRateThreshold>{{circuit_breaker.failure_rate_threshold}}</FailureRateThreshold>
+        <OpenDurationMs>{{circuit_breaker.open_duration_ms}}</OpenDurationMs>
+        <MaxInFlight>{{circuit_breaker.max_in_flight}}</MaxInFlight>
+    </CircuitBreaker>
 </Server>
