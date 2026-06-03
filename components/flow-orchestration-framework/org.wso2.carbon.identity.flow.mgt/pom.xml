@@ -192,6 +192,8 @@
                             org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.wso2.carbon.identity.compatibility.settings.core.*; version="${carbon.identity.package.import.version.range}",
+                            com.fasterxml.jackson.databind.*;version="${com.fasterxml.jackson.databind.version.range}",
+                            com.fasterxml.jackson.annotation.*;version="${com.fasterxml.jackson.annotation.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.mgt.internal,
