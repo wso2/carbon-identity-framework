@@ -29,6 +29,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyExtender;
+import org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyLoader;
 import org.wso2.carbon.identity.core.circuitbreaker.TenantServiceBreakerObserver;
 
 import org.wso2.carbon.base.MultitenantConstants;
@@ -430,5 +432,39 @@ public class IdentityCoreServiceComponent {
     protected void removeTenantServiceBreakerObserver(TenantServiceBreakerObserver observer) {
 
         IdentityCoreServiceDataHolder.getInstance().removeTenantServiceBreakerObserver(observer.getService());
+    }
+
+    @Reference(
+            name = "circuit.breaker.runtime.policy.loader",
+            service = RuntimePolicyLoader.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeRuntimePolicyLoader"
+    )
+    protected void addRuntimePolicyLoader(RuntimePolicyLoader loader) {
+
+        IdentityCoreServiceDataHolder.getInstance().addRuntimePolicyLoader(loader);
+    }
+
+    protected void removeRuntimePolicyLoader(RuntimePolicyLoader loader) {
+
+        IdentityCoreServiceDataHolder.getInstance().removeRuntimePolicyLoader(loader.getService());
+    }
+
+    @Reference(
+            name = "circuit.breaker.runtime.policy.extender",
+            service = RuntimePolicyExtender.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeRuntimePolicyExtender"
+    )
+    protected void setRuntimePolicyExtender(RuntimePolicyExtender extender) {
+
+        IdentityCoreServiceDataHolder.getInstance().setRuntimePolicyExtender(extender);
+    }
+
+    protected void removeRuntimePolicyExtender(RuntimePolicyExtender extender) {
+
+        IdentityCoreServiceDataHolder.getInstance().setRuntimePolicyExtender(null);
     }
 }

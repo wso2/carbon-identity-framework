@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  * can be updated without a restart. All fields are {@code volatile} to ensure
  * visibility across threads without holding a lock.
  */
-public final class RuntimePolicy {
+public final class RuntimePolicy implements Cloneable {
 
     private volatile int windowSize;
     private volatile int minCallsToEvaluate;
@@ -44,6 +44,21 @@ public final class RuntimePolicy {
     public static Builder builder() {
 
         return new Builder();
+    }
+
+    /**
+     * Returns a new {@link RuntimePolicy} with the same field values as this instance.
+     *
+     * @return A copy of this policy.
+     */
+    @Override
+    public RuntimePolicy clone() {
+
+        try {
+            return (RuntimePolicy) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
     public int getWindowSize() {

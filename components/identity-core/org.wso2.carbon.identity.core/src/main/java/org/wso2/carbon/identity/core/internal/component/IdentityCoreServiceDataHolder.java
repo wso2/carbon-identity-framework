@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.internal.component;
 
+import org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyExtender;
+import org.wso2.carbon.identity.core.circuitbreaker.RuntimePolicyLoader;
 import org.wso2.carbon.identity.core.circuitbreaker.TenantService;
 import org.wso2.carbon.identity.core.circuitbreaker.TenantServiceBreakerObserver;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -37,6 +39,8 @@ public class IdentityCoreServiceDataHolder {
     private OrganizationUserResidentResolverService organizationUserResidentResolverService = null;
     private OrganizationManager organizationManager = null;
     private final Map<TenantService, TenantServiceBreakerObserver> tenantBreakerObservers = new HashMap<>();
+    private final Map<TenantService, RuntimePolicyLoader> runtimePolicyLoaders = new HashMap<>();
+    private RuntimePolicyExtender runtimePolicyExtender;
 
     private boolean isTenantQualifiedUrlsEnabled;
 
@@ -184,5 +188,68 @@ public class IdentityCoreServiceDataHolder {
     public TenantServiceBreakerObserver getTenantServiceBreakerObserver(TenantService service) {
 
         return tenantBreakerObservers.get(service);
+    }
+
+    /**
+     * Registers a {@link RuntimePolicyLoader} for the service it is associated with.
+     * Only one loader can be registered per {@link TenantService}.
+     *
+     * @param loader The loader to register; ignored if {@code null}.
+     * @throws IllegalStateException If a loader is already registered for the same service.
+     */
+    public void addRuntimePolicyLoader(RuntimePolicyLoader loader) {
+
+        if (loader == null) {
+            return;
+        }
+        TenantService service = loader.getService();
+        if (runtimePolicyLoaders.containsKey(service)) {
+            throw new IllegalStateException(
+                    "A RuntimePolicyLoader is already registered for service: " + service);
+        }
+        runtimePolicyLoaders.put(service, loader);
+    }
+
+    /**
+     * Removes the {@link RuntimePolicyLoader} registered for the given service, if any.
+     *
+     * @param service The service whose loader should be removed; ignored if {@code null}.
+     */
+    public void removeRuntimePolicyLoader(TenantService service) {
+
+        if (service != null) {
+            runtimePolicyLoaders.remove(service);
+        }
+    }
+
+    /**
+     * Returns the {@link RuntimePolicyLoader} registered for the given service.
+     *
+     * @param service The service to look up.
+     * @return The registered loader, or {@code null} if none is registered for the service.
+     */
+    public RuntimePolicyLoader getRuntimePolicyLoader(TenantService service) {
+
+        return runtimePolicyLoaders.get(service);
+    }
+
+    /**
+     * Sets the global {@link RuntimePolicyExtender}.
+     *
+     * @param extender The extender to register; {@code null} clears any existing registration.
+     */
+    public void setRuntimePolicyExtender(RuntimePolicyExtender extender) {
+
+        this.runtimePolicyExtender = extender;
+    }
+
+    /**
+     * Returns the registered global {@link RuntimePolicyExtender}, or {@code null} if none.
+     *
+     * @return The registered extender, or {@code null}.
+     */
+    public RuntimePolicyExtender getRuntimePolicyExtender() {
+
+        return runtimePolicyExtender;
     }
 }

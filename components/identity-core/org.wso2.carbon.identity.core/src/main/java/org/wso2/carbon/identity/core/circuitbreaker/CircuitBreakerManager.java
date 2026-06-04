@@ -199,21 +199,16 @@ public class CircuitBreakerManager {
 
     private void ensureCapacity(long nowMs) {
 
-        int attempts = 0;
-        while (entryCount.get() >= staticPolicy.getMaxTenantsInCache() && attempts < 4) {
-            attempts++;
-            evictIdleEntries(nowMs, staticPolicy.getHardCapEvictionScanLimit());
-            if (entryCount.get() < staticPolicy.getMaxTenantsInCache()) {
-                return;
-            }
-
-            boolean evicted = evictOldestInactiveEntry(staticPolicy.getHardCapEvictionScanLimit());
-            if (!evicted) {
-                evicted = evictOldestEntry(staticPolicy.getHardCapEvictionScanLimit());
-            }
-            if (!evicted) {
-                return;
-            }
+        if (entryCount.get() < staticPolicy.getMaxTenantsInCache()) {
+            return;
+        }
+        evictIdleEntries(nowMs, staticPolicy.getHardCapEvictionScanLimit());
+        if (entryCount.get() < staticPolicy.getMaxTenantsInCache()) {
+            return;
+        }
+        boolean evicted = evictOldestInactiveEntry(staticPolicy.getHardCapEvictionScanLimit());
+        if (!evicted) {
+            evictOldestEntry(staticPolicy.getHardCapEvictionScanLimit());
         }
     }
 
@@ -238,7 +233,8 @@ public class CircuitBreakerManager {
                 return existing;
             }
 
-            TenantBreakerEntry created = new TenantBreakerEntry(defaultRuntimPolicy, nowMs);
+            RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimPolicy);
+            TenantBreakerEntry created = new TenantBreakerEntry(entryPolicy, nowMs);
             shard.entries.put(tenantKey, created);
             entryCount.incrementAndGet();
             return created;

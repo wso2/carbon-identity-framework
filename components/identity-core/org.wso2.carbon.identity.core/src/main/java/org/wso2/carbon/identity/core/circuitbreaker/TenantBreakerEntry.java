@@ -23,7 +23,7 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  */
 class TenantBreakerEntry {
 
-    private final RuntimePolicy dynamicPolicy;
+    private final RuntimePolicy runtimePolicy;
     private final SlidingWindow window;
 
     private CircuitState state = CircuitState.CLOSED;
@@ -32,10 +32,10 @@ class TenantBreakerEntry {
 
     private int inFlight;
 
-    public TenantBreakerEntry(RuntimePolicy dynamicPolicy, long nowMs) {
+    public TenantBreakerEntry(RuntimePolicy runtimePolicy, long nowMs) {
 
-        this.dynamicPolicy = dynamicPolicy;
-        this.window = new SlidingWindow(dynamicPolicy.getWindowSize());
+        this.runtimePolicy = runtimePolicy;
+        this.window = new SlidingWindow(runtimePolicy.getWindowSize());
         this.stateSinceMs = nowMs;
         this.lastAccessMs = nowMs;
     }
@@ -44,7 +44,7 @@ class TenantBreakerEntry {
 
         lastAccessMs = nowMs;
         if (state == CircuitState.OPEN) {
-            if ((nowMs - stateSinceMs) < dynamicPolicy.getOpenDurationMs()) {
+            if ((nowMs - stateSinceMs) < runtimePolicy.getOpenDurationMs()) {
                 return Decision.rejected(RejectReason.CIRCUIT_OPEN);
             }
             state = CircuitState.HALF_OPEN;
@@ -62,7 +62,7 @@ class TenantBreakerEntry {
 
     public synchronized Decision acquireBulkhead() {
 
-        if (inFlight >= dynamicPolicy.getMaxInFlight()) {
+        if (inFlight >= runtimePolicy.getMaxInFlight()) {
             return Decision.rejected(RejectReason.BULKHEAD_FULL);
         }
 
@@ -99,11 +99,11 @@ class TenantBreakerEntry {
         }
 
         window.record(success);
-        if (window.calls() < dynamicPolicy.getMinCallsToEvaluate()) {
+        if (window.calls() < runtimePolicy.getMinCallsToEvaluate()) {
             return;
         }
 
-        if (window.failureRate() >= dynamicPolicy.getFailureRateThreshold()) {
+        if (window.failureRate() >= runtimePolicy.getFailureRateThreshold()) {
             state = CircuitState.OPEN;
             stateSinceMs = nowMs;
         }
