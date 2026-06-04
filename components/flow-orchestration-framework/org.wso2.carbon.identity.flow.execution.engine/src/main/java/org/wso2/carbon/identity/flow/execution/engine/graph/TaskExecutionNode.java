@@ -143,7 +143,7 @@ public class TaskExecutionNode implements Node {
                         .requiredData(response.getRequiredData())
                         .optionalData(response.getOptionalData())
                         .error(response.getErrorMessage())
-                        .i18nKey(response.getI18nKey())
+                        .messages(response.getMessages())
                         .build();
             case STATUS_USER_INPUT_REQUIRED:
                 return new NodeResponse.Builder()

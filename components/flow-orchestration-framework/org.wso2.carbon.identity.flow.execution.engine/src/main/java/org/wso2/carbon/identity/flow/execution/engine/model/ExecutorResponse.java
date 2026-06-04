@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
+import org.wso2.carbon.identity.flow.mgt.model.Message;
+import org.wso2.carbon.identity.flow.mgt.model.Message.MessageType;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +37,7 @@ public class ExecutorResponse {
     private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
+    private List<Message> messages;
     private ErrorObject errorObject;
 
     public ExecutorResponse() {
@@ -115,6 +120,35 @@ public class ExecutorResponse {
         this.additionalInfo = additionalInfo;
     }
 
+    public List<Message> getMessages() {
+
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+
+        this.messages = messages;
+    }
+
+    /**
+     * Add a message to be surfaced to the client as part of the resulting flow execution step.
+     *
+     * @param type    Type of the message.
+     * @param message Human-readable message.
+     * @param i18nKey i18n key the client can use to render a localized message.
+     */
+    public void addMessage(MessageType type, String message, String i18nKey) {
+
+        if (this.messages == null) {
+            this.messages = new ArrayList<>();
+        }
+        this.messages.add(new Message.Builder()
+                .type(type)
+                .message(message)
+                .i18nKey(i18nKey)
+                .build());
+    }
+
     public String getErrorMessage() {
 
         return errorObject.getMessage();
@@ -145,16 +179,6 @@ public class ExecutorResponse {
         this.errorObject.setDescription(errorDescription);
     }
 
-    public String getI18nKey() {
-
-        return errorObject.getI18nKey();
-    }
-
-    public void setI18nKey(String i18nKey) {
-
-        this.errorObject.setI18nKey(i18nKey);
-    }
-
     public Throwable getThrowable() {
 
         return errorObject.getThrowable();
@@ -173,7 +197,6 @@ public class ExecutorResponse {
         private String code;
         private String message;
         private String description;
-        private String i18nKey;
         private Throwable throwable;
 
         public ErrorObject() {
@@ -208,16 +231,6 @@ public class ExecutorResponse {
         public void setDescription(String description) {
 
             this.description = description;
-        }
-
-        public String getI18nKey() {
-
-            return i18nKey;
-        }
-
-        public void setI18nKey(String i18nKey) {
-
-            this.i18nKey = i18nKey;
         }
 
         public Throwable getThrowable() {

@@ -35,6 +35,7 @@ public class DataDTO implements Serializable {
     private List<String> requiredParams;
     private List<String> optionalParams;
     private Map<String, String> additionalData;
+    private List<Message> messages;
     private Map<String, Object> webAuthnData;
 
     public DataDTO() {
@@ -49,6 +50,7 @@ public class DataDTO implements Serializable {
         this.requiredParams = builder.requiredParams;
         this.optionalParams = builder.optionalParams;
         this.additionalData = builder.additionalData;
+        this.messages = builder.messages;
         this.webAuthnData = builder.webAuthnData;
     }
 
@@ -113,6 +115,24 @@ public class DataDTO implements Serializable {
         this.additionalData.put(key, value);
     }
 
+    public List<Message> getMessages() {
+
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+
+        this.messages = messages;
+    }
+
+    public void addMessage(Message message) {
+
+        if (this.messages == null) {
+            this.messages = new ArrayList<>();
+        }
+        this.messages.add(message);
+    }
+
     public void addRequiredParam(String param) {
 
         if (this.requiredParams == null) {
@@ -145,6 +165,7 @@ public class DataDTO implements Serializable {
         private List<String> requiredParams;
         private List<String> optionalParams;
         private Map<String, String> additionalData;
+        private List<Message> messages;
         private Map<String, Object> webAuthnData;
 
         public Builder components(List<ComponentDTO> components) {
@@ -180,6 +201,12 @@ public class DataDTO implements Serializable {
         public Builder additionalData(Map<String, String> additionalData) {
 
             this.additionalData = additionalData;
+            return this;
+        }
+
+        public Builder messages(List<Message> messages) {
+
+            this.messages = messages;
             return this;
         }
 

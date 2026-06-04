@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.wso2.carbon.identity.flow.mgt.model.Message;
 
 import java.io.Serializable;
 import java.util.List;
@@ -38,7 +39,7 @@ public class NodeResponse implements Serializable {
     private String status;
     private String type;
     private String error;
-    private String i18nKey;
+    private List<Message> messages;
     private Map<String, String> additionalInfo;
 
     private NodeResponse(Builder builder) {
@@ -46,7 +47,7 @@ public class NodeResponse implements Serializable {
         this.status = builder.status;
         this.type = builder.type;
         this.error = builder.error;
-        this.i18nKey = builder.i18nKey;
+        this.messages = builder.messages;
         this.requiredData = builder.requiredData;
         this.additionalInfo = builder.additionalInfo;
         this.optionalData = builder.optionalData;
@@ -102,14 +103,14 @@ public class NodeResponse implements Serializable {
         this.error = error;
     }
 
-    public String getI18nKey() {
+    public List<Message> getMessages() {
 
-        return i18nKey;
+        return messages;
     }
 
-    public void setI18nKey(String i18nKey) {
+    public void setMessages(List<Message> messages) {
 
-        this.i18nKey = i18nKey;
+        this.messages = messages;
     }
 
     /**
@@ -124,8 +125,8 @@ public class NodeResponse implements Serializable {
         private String type;
         @JsonProperty("error")
         private String error;
-        @JsonProperty("i18nKey")
-        private String i18nKey;
+        @JsonProperty("messages")
+        private List<Message> messages;
         @JsonProperty("requiredData")
         private List<String> requiredData;
         @JsonProperty("optionalData")
@@ -151,9 +152,9 @@ public class NodeResponse implements Serializable {
             return this;
         }
 
-        public Builder i18nKey(String i18nKey) {
+        public Builder messages(List<Message> messages) {
 
-            this.i18nKey = i18nKey;
+            this.messages = messages;
             return this;
         }
 
