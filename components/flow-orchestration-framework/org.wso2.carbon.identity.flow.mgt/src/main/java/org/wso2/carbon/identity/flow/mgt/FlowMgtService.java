@@ -251,8 +251,7 @@ public class FlowMgtService {
                     new FirstFoundAggregationStrategy<>());
 
             if (resolvedTenantId != null) {
-                FlowResolveCache.getInstance().addToCache(cacheKey, new FlowResolveCacheEntry(resolvedTenantId),
-                        tenantID);
+                FlowResolveCache.getInstance().addToCache(cacheKey, new FlowResolveCacheEntry(resolvedTenantId), tenantID);
             }
             return resolvedTenantId;
         } catch (OrganizationManagementException | OrgResourceHierarchyTraverseException e) {
