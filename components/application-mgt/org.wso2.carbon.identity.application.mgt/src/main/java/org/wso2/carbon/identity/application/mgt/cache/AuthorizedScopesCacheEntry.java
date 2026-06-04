@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.cache;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,16 +35,16 @@ public class AuthorizedScopesCacheEntry extends CacheEntry {
 
     public AuthorizedScopesCacheEntry(List<AuthorizedScopes> authorizedScopes) {
 
-        this.authorizedScopes = authorizedScopes;
+        this.authorizedScopes = new ArrayList<>(authorizedScopes);
     }
 
     public List<AuthorizedScopes> getAuthorizedScopes() {
 
-        return authorizedScopes;
+        return new ArrayList<>(authorizedScopes);
     }
 
     public void setAuthorizedScopes(List<AuthorizedScopes> authorizedScopes) {
 
-        this.authorizedScopes = authorizedScopes;
+        this.authorizedScopes = new ArrayList<>(authorizedScopes);
     }
 }
