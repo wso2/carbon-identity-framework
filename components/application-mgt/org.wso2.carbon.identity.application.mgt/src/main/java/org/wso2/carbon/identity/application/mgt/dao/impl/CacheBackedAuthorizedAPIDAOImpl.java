@@ -75,7 +75,6 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes, List<String> removedScopes,
                                    int tenantId) throws IdentityApplicationManagementException {
 
-        clearAuthorizedScopesFromCache(appId, tenantId);
         this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, null, null, tenantId);
     }
 
