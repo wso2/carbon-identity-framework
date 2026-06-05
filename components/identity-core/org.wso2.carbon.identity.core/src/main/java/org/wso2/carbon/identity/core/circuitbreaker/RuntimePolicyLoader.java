@@ -35,7 +35,8 @@ public interface RuntimePolicyLoader {
      *
      * @param tenantDomain  The tenant domain.
      * @param service       The tenant service.
-     * @param currentPolicy A mutable copy of the default policy.
+     * @param currentPolicy The current effective policy (immutable). Use {@link RuntimePolicy#builder()} to construct
+     *                      a new instance if overrides are needed.
      * @return The updated {@link RuntimePolicy}, or {@code null} to keep the current policy.
      */
     public RuntimePolicy load(String tenantDomain, TenantService service, RuntimePolicy currentPolicy);

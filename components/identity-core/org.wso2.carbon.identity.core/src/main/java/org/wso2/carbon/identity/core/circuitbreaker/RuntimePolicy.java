@@ -19,18 +19,17 @@
 package org.wso2.carbon.identity.core.circuitbreaker;
 
 /**
- * Runtime-overridable circuit breaker policy for breaker-behaviour settings.
- * Defaults are loaded from identity.xml at server startup and individual fields
- * can be updated without a restart. All fields are {@code volatile} to ensure
- * visibility across threads without holding a lock.
+ * Immutable circuit breaker policy for breaker-behaviour settings.
+ * Defaults are loaded from identity.xml at server startup. To apply new values,
+ * construct a new instance via {@link Builder}.
  */
-public final class RuntimePolicy implements Cloneable {
+public final class RuntimePolicy {
 
-    private volatile int windowSize;
-    private volatile int minCallsToEvaluate;
-    private volatile double failureRateThreshold;
-    private volatile long openDurationMs;
-    private volatile int maxInFlight;
+    private final int windowSize;
+    private final int minCallsToEvaluate;
+    private final double failureRateThreshold;
+    private final long openDurationMs;
+    private final int maxInFlight;
 
     private RuntimePolicy(Builder builder) {
 
@@ -44,21 +43,6 @@ public final class RuntimePolicy implements Cloneable {
     public static Builder builder() {
 
         return new Builder();
-    }
-
-    /**
-     * Returns a new {@link RuntimePolicy} with the same field values as this instance.
-     *
-     * @return A copy of this policy.
-     */
-    @Override
-    public RuntimePolicy clone() {
-
-        try {
-            return (RuntimePolicy) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
     }
 
     public int getWindowSize() {
@@ -84,46 +68,6 @@ public final class RuntimePolicy implements Cloneable {
     public int getMaxInFlight() {
 
         return maxInFlight;
-    }
-
-    public void setWindowSize(int windowSize) {
-
-        if (windowSize < 1) {
-            throw new IllegalArgumentException("windowSize must be >= 1");
-        }
-        this.windowSize = windowSize;
-    }
-
-    public void setMinCallsToEvaluate(int minCallsToEvaluate) {
-
-        if (minCallsToEvaluate < 1) {
-            throw new IllegalArgumentException("minCallsToEvaluate must be >= 1");
-        }
-        this.minCallsToEvaluate = Math.min(minCallsToEvaluate, this.windowSize);
-    }
-
-    public void setFailureRateThreshold(double failureRateThreshold) {
-
-        if (failureRateThreshold <= 0.0 || failureRateThreshold > 1.0) {
-            throw new IllegalArgumentException("failureRateThreshold must be > 0.0 and <= 1.0");
-        }
-        this.failureRateThreshold = failureRateThreshold;
-    }
-
-    public void setOpenDurationMs(long openDurationMs) {
-
-        if (openDurationMs < 1) {
-            throw new IllegalArgumentException("openDurationMs must be >= 1");
-        }
-        this.openDurationMs = openDurationMs;
-    }
-
-    public void setMaxInFlight(int maxInFlight) {
-
-        if (maxInFlight < 1) {
-            throw new IllegalArgumentException("maxInFlight must be >= 1");
-        }
-        this.maxInFlight = maxInFlight;
     }
 
     /**

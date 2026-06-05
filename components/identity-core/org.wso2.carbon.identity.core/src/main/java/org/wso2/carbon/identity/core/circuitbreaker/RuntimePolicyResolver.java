@@ -50,7 +50,7 @@ public class RuntimePolicyResolver {
         String tenantDomain = parts.tenantDomain();
         TenantService service = TenantService.valueOf(parts.serviceName());
 
-        RuntimePolicy current = defaultPolicy.clone();
+        RuntimePolicy current = defaultPolicy;
 
         IdentityCoreServiceDataHolder dataHolder = IdentityCoreServiceDataHolder.getInstance();
 
