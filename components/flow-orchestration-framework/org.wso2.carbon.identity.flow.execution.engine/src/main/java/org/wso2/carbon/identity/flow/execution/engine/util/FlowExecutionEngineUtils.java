@@ -77,6 +77,7 @@ import static org.wso2.carbon.identity.event.IdentityEventConstants.EventPropert
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.FLOW_TYPE;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.STEP_TYPE;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.event.IdentityEventConstants.EventProperty.USER_ID;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_NOT_FOUND;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_FLOW_TYPE_NOT_PROVIDED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.ErrorMessages.ERROR_CODE_GET_APP_CONFIG_FAILURE;
@@ -665,6 +666,9 @@ public class FlowExecutionEngineUtils {
         if (currentNodeResponse != null) {
             properties.put(CURRENT_NODE_RESPONSE_STATUS, currentNodeResponse.getStatus());
             properties.put(CURRENT_NODE_RESPONSE_TYPE, currentNodeResponse.getType());
+        }
+        if (context.getFlowUser() != null && StringUtils.isNotBlank(context.getFlowUser().getUserId())) {
+            properties.put(USER_ID, context.getFlowUser().getUserId());
         }
         return properties;
     }

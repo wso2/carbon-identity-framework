@@ -3065,7 +3065,7 @@
 
     <Analytics>
         <Moesif>
-            <ProviderURL>https://api.moesif.net/v1/actions</ProviderURL>
+            <ProviderURL>https://api.moesif.net/v1</ProviderURL>
             <AuthType>API_KEY</AuthType>
             <ApiKeyHeader>X-Moesif-Application-Id</ApiKeyHeader>
             <StreamName>org.wso2.is.analytics.stream.MoesifData</StreamName>
