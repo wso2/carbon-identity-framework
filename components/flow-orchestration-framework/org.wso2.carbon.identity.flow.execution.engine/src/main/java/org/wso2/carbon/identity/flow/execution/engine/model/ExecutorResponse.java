@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.flow.execution.engine.model;
 
-import org.wso2.carbon.identity.flow.mgt.model.Message;
-import org.wso2.carbon.identity.flow.mgt.model.Message.MessageType;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO.MessageType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class ExecutorResponse {
     private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
-    private List<Message> messages;
+    private List<MessageDTO> messages;
     private ErrorObject errorObject;
 
     public ExecutorResponse() {
@@ -120,12 +120,12 @@ public class ExecutorResponse {
         this.additionalInfo = additionalInfo;
     }
 
-    public List<Message> getMessages() {
+    public List<MessageDTO> getMessages() {
 
         return messages;
     }
 
-    public void setMessages(List<Message> messages) {
+    public void setMessages(List<MessageDTO> messages) {
 
         this.messages = messages;
     }
@@ -142,7 +142,7 @@ public class ExecutorResponse {
         if (this.messages == null) {
             this.messages = new ArrayList<>();
         }
-        this.messages.add(new Message.Builder()
+        this.messages.add(new MessageDTO.Builder()
                 .type(type)
                 .message(message)
                 .i18nKey(i18nKey)
@@ -154,6 +154,9 @@ public class ExecutorResponse {
         return errorObject.getMessage();
     }
 
+    /**
+     * @deprecated Use {@link #addMessage(MessageType, String, String)} instead.
+     */
     public void setErrorMessage(String errorMessage) {
 
         this.errorObject.setMessage(errorMessage);

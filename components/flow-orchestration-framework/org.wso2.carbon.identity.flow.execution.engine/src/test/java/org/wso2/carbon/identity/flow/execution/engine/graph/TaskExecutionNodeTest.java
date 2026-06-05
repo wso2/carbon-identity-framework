@@ -39,8 +39,8 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
 import org.wso2.carbon.identity.flow.execution.engine.model.NodeResponse;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
-import org.wso2.carbon.identity.flow.mgt.model.Message;
-import org.wso2.carbon.identity.flow.mgt.model.Message.MessageType;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO.MessageType;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeEdge;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -204,7 +204,8 @@ public class TaskExecutionNodeTest {
         executorResponse.setResult(STATUS_RETRY);
         executorResponse.setRequiredData(new ArrayList<>());
         executorResponse.setErrorMessage("Retry error");
-        executorResponse.addMessage(MessageType.ERROR, "User does not exist", "error.invalid.identifier");
+        executorResponse.addMessage(MessageType.ERROR, "User does not exist",
+                "error.invalid.identifier");
 
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse)) {
             NodeResponse nodeResponse = taskExecutionNode.execute(context, nodeConfig);
@@ -212,7 +213,7 @@ public class TaskExecutionNodeTest {
             assertEquals(nodeResponse.getType(), "VIEW");
             assertNotNull(nodeResponse.getMessages());
             assertEquals(nodeResponse.getMessages().size(), 1);
-            Message message = nodeResponse.getMessages().get(0);
+            MessageDTO message = nodeResponse.getMessages().get(0);
             assertEquals(message.getType(), MessageType.ERROR);
             assertEquals(message.getMessage(), "User does not exist");
             assertEquals(message.getI18nKey(), "error.invalid.identifier");

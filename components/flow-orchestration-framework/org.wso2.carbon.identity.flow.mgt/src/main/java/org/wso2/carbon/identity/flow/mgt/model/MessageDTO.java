@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,7 +25,7 @@ import java.io.Serializable;
  * A message carries a {@link MessageType}, a human-readable message and an i18n key that the
  * client can use to render a localized message.
  */
-public class Message implements Serializable {
+public class MessageDTO implements Serializable {
 
     private static final long serialVersionUID = 6473859283746591023L;
 
@@ -33,11 +33,11 @@ public class Message implements Serializable {
     private String message;
     private String i18nKey;
 
-    public Message() {
+    public MessageDTO() {
 
     }
 
-    private Message(Builder builder) {
+    private MessageDTO(Builder builder) {
 
         this.type = builder.type;
         this.message = builder.message;
@@ -75,7 +75,7 @@ public class Message implements Serializable {
     }
 
     /**
-     * Builder class to build {@link Message} objects.
+     * Builder class to build {@link MessageDTO} objects.
      */
     public static class Builder {
 
@@ -101,14 +101,14 @@ public class Message implements Serializable {
             return this;
         }
 
-        public Message build() {
+        public MessageDTO build() {
 
-            return new Message(this);
+            return new MessageDTO(this);
         }
     }
 
     /**
-     * Type of a {@link Message} surfaced in a flow execution step.
+     * Type of a {@link MessageDTO} surfaced in a flow execution step.
      * <p>
      * The constant name is what gets serialized to the client (e.g. {@code "ERROR"}), so the
      * client uses it to decide how to render the message.

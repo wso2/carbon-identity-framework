@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.wso2.carbon.identity.flow.mgt.model.Message;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -39,7 +39,7 @@ public class NodeResponse implements Serializable {
     private String status;
     private String type;
     private String error;
-    private List<Message> messages;
+    private List<MessageDTO> messages;
     private Map<String, String> additionalInfo;
 
     private NodeResponse(Builder builder) {
@@ -103,12 +103,12 @@ public class NodeResponse implements Serializable {
         this.error = error;
     }
 
-    public List<Message> getMessages() {
+    public List<MessageDTO> getMessages() {
 
         return messages;
     }
 
-    public void setMessages(List<Message> messages) {
+    public void setMessages(List<MessageDTO> messages) {
 
         this.messages = messages;
     }
@@ -126,7 +126,7 @@ public class NodeResponse implements Serializable {
         @JsonProperty("error")
         private String error;
         @JsonProperty("messages")
-        private List<Message> messages;
+        private List<MessageDTO> messages;
         @JsonProperty("requiredData")
         private List<String> requiredData;
         @JsonProperty("optionalData")
@@ -152,7 +152,7 @@ public class NodeResponse implements Serializable {
             return this;
         }
 
-        public Builder messages(List<Message> messages) {
+        public Builder messages(List<MessageDTO> messages) {
 
             this.messages = messages;
             return this;
