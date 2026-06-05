@@ -29,10 +29,13 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
@@ -85,6 +88,11 @@ public class DefaultInboundUserProvisioningListenerTest {
     private static final String DOMAIN_NAME = "PRIMARY";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String DOMAIN_AWARE_NAME = DOMAIN_NAME + "/" + OLD_ROLE_NAME;
+    private static final String USER_NAME = "testUser";
+    private static final String USER_DOMAIN_AWARE_NAME = DOMAIN_NAME + "/" + USER_NAME;
+    private static final String PROCESS_ADD_SHARED_USER = "processAddSharedUser";
+    private static final String SP_NAME = "testServiceProvider";
+    private static final String SP_CLAIM_DIALECT = "http://wso2.org/oidc/claim";
 
     @BeforeClass
     public void setUpClass() {
@@ -116,6 +124,8 @@ public class DefaultInboundUserProvisioningListenerTest {
         userCoreUtilMockedStatic.when(() -> UserCoreUtil.getDomainName(realmConfiguration)).thenReturn(DOMAIN_NAME);
         userCoreUtilMockedStatic.when(() -> UserCoreUtil.addDomainToName(OLD_ROLE_NAME, DOMAIN_NAME))
                 .thenReturn(DOMAIN_AWARE_NAME);
+        userCoreUtilMockedStatic.when(() -> UserCoreUtil.addDomainToName(USER_NAME, DOMAIN_NAME))
+                .thenReturn(USER_DOMAIN_AWARE_NAME);
 
         carbonContextMockedStatic.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(carbonContext);
         when(carbonContext.getTenantDomain()).thenReturn(TENANT_DOMAIN);
@@ -139,6 +149,9 @@ public class DefaultInboundUserProvisioningListenerTest {
 
     @AfterMethod
     public void tearDown() {
+        // Clear any thread local state set during the test to avoid leaking across tests.
+        IdentityUtil.threadLocalProperties.get().remove(PROCESS_ADD_SHARED_USER);
+
         // Close all static mocks.
         if (outboundProvisioningManagerMockedStatic != null) {
             outboundProvisioningManagerMockedStatic.close();
@@ -266,5 +279,96 @@ public class DefaultInboundUserProvisioningListenerTest {
             verify(outboundProvisioningManager, Mockito.never()).provision(
                     any(ProvisioningEntity.class), anyString(), anyString(), anyString(), anyBoolean());
         }
+    }
+
+    @Test
+    public void testDoPreAddUserWhenSharedUserCreationUsesResidentOutboundProvisioningConfigs()
+            throws UserStoreException {
+
+        // A service provider is present in the thread local (e.g. the application that initiated the request),
+        // but the request is a shared user creation in a sub organization. In that case the sub organization's
+        // resident outbound provisioning configs (LOCAL_SP) must be used instead of the service provider's.
+        IdentityUtil.threadLocalProperties.get().put(PROCESS_ADD_SHARED_USER, Boolean.TRUE);
+        ThreadLocalProvisioningServiceProvider serviceProvider = mockThreadLocalServiceProvider();
+        identityAppManagementUtilMockedStatic.when(
+                        IdentityApplicationManagementUtil::getThreadLocalProvisioningServiceProvider)
+                .thenReturn(serviceProvider);
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMockedStatic =
+                     mockPrivilegedCarbonContext()) {
+
+            boolean result = listener.doPreAddUser(USER_NAME, new StringBuffer("password"), null,
+                    new HashMap<>(), "default", userStoreManager);
+
+            assertTrue(result, "Should return true after provisioning");
+
+            // The resident (local SP) outbound provisioning configs must be used.
+            verify(outboundProvisioningManager).provision(
+                    any(ProvisioningEntity.class),
+                    eq(IdentityProvisioningConstants.LOCAL_SP),
+                    eq(IdentityProvisioningConstants.WSO2_CARBON_DIALECT),
+                    eq(TENANT_DOMAIN),
+                    eq(false));
+
+            // The service provider's outbound provisioning configs must NOT be used.
+            verify(outboundProvisioningManager, Mockito.never()).provision(
+                    any(ProvisioningEntity.class), eq(SP_NAME), anyString(), anyString(), anyBoolean());
+        }
+    }
+
+    @Test
+    public void testDoPreAddUserWhenNotSharedUserCreationUsesServiceProviderOutboundProvisioningConfigs()
+            throws UserStoreException {
+
+        // No shared user creation flag is set, so the service provider present in the thread local
+        // should continue to drive the outbound provisioning configs.
+        ThreadLocalProvisioningServiceProvider serviceProvider = mockThreadLocalServiceProvider();
+        identityAppManagementUtilMockedStatic.when(
+                        IdentityApplicationManagementUtil::getThreadLocalProvisioningServiceProvider)
+                .thenReturn(serviceProvider);
+
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMockedStatic =
+                     mockPrivilegedCarbonContext()) {
+
+            boolean result = listener.doPreAddUser(USER_NAME, new StringBuffer("password"), null,
+                    new HashMap<>(), "default", userStoreManager);
+
+            assertTrue(result, "Should return true after provisioning");
+
+            // The service provider's outbound provisioning configs must be used.
+            verify(outboundProvisioningManager).provision(
+                    any(ProvisioningEntity.class),
+                    eq(SP_NAME),
+                    eq(SP_CLAIM_DIALECT),
+                    eq(TENANT_DOMAIN),
+                    eq(true));
+
+            // The resident (local SP) outbound provisioning configs must NOT be used.
+            verify(outboundProvisioningManager, Mockito.never()).provision(
+                    any(ProvisioningEntity.class), eq(IdentityProvisioningConstants.LOCAL_SP),
+                    anyString(), anyString(), anyBoolean());
+        }
+    }
+
+    private ThreadLocalProvisioningServiceProvider mockThreadLocalServiceProvider() {
+
+        ThreadLocalProvisioningServiceProvider serviceProvider =
+                Mockito.mock(ThreadLocalProvisioningServiceProvider.class);
+        when(serviceProvider.getServiceProviderName()).thenReturn(SP_NAME);
+        when(serviceProvider.getServiceProviderType()).thenReturn(null);
+        when(serviceProvider.getClaimDialect()).thenReturn(SP_CLAIM_DIALECT);
+        when(serviceProvider.isJustInTimeProvisioning()).thenReturn(true);
+        return serviceProvider;
+    }
+
+    private MockedStatic<PrivilegedCarbonContext> mockPrivilegedCarbonContext() {
+
+        MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMockedStatic =
+                Mockito.mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContextMockedStatic.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                .thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getApplicationResidentOrganizationId()).thenReturn(null);
+        return privilegedCarbonContextMockedStatic;
     }
 }

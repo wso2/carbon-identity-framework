@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
@@ -65,6 +66,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
     private static final String LAST_PASSWORD_UPDATE_TIME_CLAIM =
             "http://wso2.org/claims/identity/lastPasswordUpdateTime";
+    private static final String PROCESS_ADD_SHARED_USER = "processAddSharedUser";
 
     // Flows that create a new user locally; used to suppress the lastPasswordUpdateTime update that would
     // otherwise cause a duplicate POST before the original user-creation POST completes.
@@ -594,8 +596,10 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
         ThreadLocalProvisioningServiceProvider threadLocalServiceProvider =
                 IdentityApplicationManagementUtil.getThreadLocalProvisioningServiceProvider();
+        boolean isSharedUserCreation =
+                Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get().get(PROCESS_ADD_SHARED_USER));
 
-        if (threadLocalServiceProvider != null) {
+        if (threadLocalServiceProvider != null && !isSharedUserCreation) {
             String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
             if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
                 try {
