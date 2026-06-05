@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.api.resource.mgt.cache;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,15 +31,21 @@ public class ScopeMetadataCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 4476546755970558142L;
 
-    private final List<Scope> scopes;
+    private List<Scope> scopes;
 
     public ScopeMetadataCacheEntry(List<Scope> scopes) {
 
-        this.scopes = scopes;
+        this.scopes = new ArrayList<>(scopes);
     }
 
     public List<Scope> getScopes() {
 
-        return scopes;
+        // Return a copy so callers cannot mutate the cached list.
+        return new ArrayList<>(scopes);
+    }
+
+    public void setScopes(List<Scope> scopes) {
+
+        this.scopes = new ArrayList<>(scopes);
     }
 }
