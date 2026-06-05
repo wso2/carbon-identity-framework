@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -32,9 +33,13 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
+import org.wso2.carbon.identity.application.mgt.cache.MainApplicationCache;
+import org.wso2.carbon.identity.application.mgt.cache.MainApplicationCacheEntry;
+import org.wso2.carbon.identity.application.mgt.cache.MainApplicationCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoByNameCache;
@@ -57,6 +62,7 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderRe
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppByPlatformTypeCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppPlatformTypeCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppPlatformTypeCacheKey;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,10 +90,12 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     private static ApplicationBasicInfoByResourceIdCache appBasicInfoCacheByResourceId = null;
     private static ApplicationBasicInfoByNameCache appBasicInfoCacheByName = null;
     private static TrustedAppByPlatformTypeCache trustedAppByPlatformTypeCache = null;
+    private static MainApplicationCache mainApplicationCache = null;
 
     public CacheBackedApplicationDAO(ApplicationDAO appDAO) {
 
         this.appDAO = appDAO;
+        mainApplicationCache = MainApplicationCache.getInstance();
         appCacheByName = IdentityServiceProviderCache.getInstance();
         appCacheByInboundAuth = ServiceProviderByInboundAuthCache.getInstance();
         appCacheByID = ServiceProviderByIDCache.getInstance();
@@ -96,6 +104,29 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appBasicInfoCacheByName = ApplicationBasicInfoByNameCache.getInstance();
         resourceIDCacheByInboundAuth = ApplicationResourceIDByInboundAuthCache.getInstance();
         trustedAppByPlatformTypeCache = TrustedAppByPlatformTypeCache.getInstance();
+    }
+
+    @Override
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        if (!isScopeValidationCacheEnabled() || StringUtils.isBlank(sharedAppId)) {
+            return appDAO.getMainAppId(sharedAppId);
+        }
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        MainApplicationCacheKey cacheKey = new MainApplicationCacheKey(sharedAppId);
+        MainApplicationCacheEntry entry = mainApplicationCache.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            return entry.getMainAppId();
+        }
+        String mainAppId = appDAO.getMainAppId(sharedAppId);
+        // Cache negative results too: a null mainAppId means the application is not a shared application.
+        mainApplicationCache.addToCacheOnRead(cacheKey, new MainApplicationCacheEntry(mainAppId), tenantDomain);
+        return mainAppId;
+    }
+
+    private boolean isScopeValidationCacheEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ApplicationConstants.ENABLE_SCOPE_VALIDATION_CACHE));
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -808,6 +839,11 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         ApplicationBasicInfoNameCacheKey basicInfoNameKey =
                 new ApplicationBasicInfoNameCacheKey(serviceProvider.getApplicationName());
         appBasicInfoCacheByName.clearCacheEntry(basicInfoNameKey, tenantDomain);
+
+        // Clear the shared-app -> main-app resolution entry (keyed by the application resource id). A shared
+        // (fragment) application is deleted on unshare, so this clears its negative/positive cached mapping.
+        MainApplicationCache.getInstance().clearCacheEntry(
+                new MainApplicationCacheKey(serviceProvider.getApplicationResourceId()), tenantDomain);
 
         clearAppCacheByInboundKey(serviceProvider, tenantDomain);
     }

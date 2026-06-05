@@ -28,11 +28,16 @@ import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheByIdentif
 import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheEntry;
 import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdCacheKey;
 import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdentifierCacheKey;
+import org.wso2.carbon.identity.api.resource.mgt.cache.ScopeMetadataCache;
+import org.wso2.carbon.identity.api.resource.mgt.cache.ScopeMetadataCacheEntry;
+import org.wso2.carbon.identity.api.resource.mgt.cache.ScopeMetadataCacheKey;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAO;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.List;
 
@@ -44,6 +49,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     private static final Log LOG = LogFactory.getLog(CacheBackedAPIResourceMgtDAO.class);
     private final APIResourceCacheByIdentifier apiResourceCacheByIdentifier;
     private final APIResourceCacheById apiResourceCacheById;
+    private final ScopeMetadataCache scopeMetadataCache;
     private final APIResourceManagementDAO apiResourceManagementDAO;
 
     public CacheBackedAPIResourceMgtDAO(APIResourceManagementDAO apiResourceManagementDAO) {
@@ -51,6 +57,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
         this.apiResourceManagementDAO = apiResourceManagementDAO;
         apiResourceCacheByIdentifier = APIResourceCacheByIdentifier.getInstance();
         apiResourceCacheById = APIResourceCacheById.getInstance();
+        scopeMetadataCache = ScopeMetadataCache.getInstance();
     }
 
     @Override
@@ -98,6 +105,8 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     @Override
     public APIResource addAPIResource(APIResource apiResource, Integer tenantId) throws APIResourceMgtException {
 
+        // A new API resource introduces new tenant scopes; invalidate the tenant scope metadata cache.
+        clearScopeMetadataCache(tenantId);
         return apiResourceManagementDAO.addAPIResource(apiResource, tenantId);
     }
 
@@ -218,6 +227,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
                                   Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.updateAPIResource(apiResource, addedScopes, removedScopes, tenantId);
     }
 
@@ -226,6 +236,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.updateScopeMetadata(scope, apiResource, tenantId);
     }
 
@@ -234,6 +245,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.updateScopeMetadataById(scope, apiResource, tenantId);
     }
 
@@ -241,6 +253,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public void deleteAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.deleteAPIResourceById(apiId, tenantId);
     }
 
@@ -273,13 +286,48 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public List<Scope> getScopesByTenantId(Integer tenantId, List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 
-        return apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
+        // Only the unfiltered "all tenant scopes" lookup is cached (the hot path used on the OAuth token
+        // flow when authorize_all_scopes is enabled), and only when the cache knob is on. Filtered lookups
+        // pass through to avoid a key explosion.
+        if (!isScopeValidationCacheEnabled() || expressionNodes != null && !expressionNodes.isEmpty()) {
+            return apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
+        }
+
+        ScopeMetadataCacheKey cacheKey =
+                new ScopeMetadataCacheKey(APIResourceManagementConstants.TENANT_SCOPE_METADATA_CACHE_KEY);
+        ScopeMetadataCacheEntry entry = scopeMetadataCache.getValueFromCache(cacheKey, tenantId);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Scope metadata cache hit for tenant id: " + tenantId);
+            }
+            return entry.getScopes();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Scope metadata cache miss for tenant id: " + tenantId + ". Fetching from DB.");
+        }
+        List<Scope> scopes = apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
+        scopeMetadataCache.addToCacheOnRead(cacheKey, new ScopeMetadataCacheEntry(scopes), tenantId);
+        return scopes;
+    }
+
+    private boolean isScopeValidationCacheEnabled() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty(APIResourceManagementConstants.ENABLE_SCOPE_VALIDATION_CACHE));
+    }
+
+    private void clearScopeMetadataCache(int tenantId) {
+
+        ScopeMetadataCacheKey cacheKey =
+                new ScopeMetadataCacheKey(APIResourceManagementConstants.TENANT_SCOPE_METADATA_CACHE_KEY);
+        scopeMetadataCache.clearCacheEntry(cacheKey, tenantId);
     }
 
     @Override
     public void addScopes(List<Scope> scopes, String apiId, Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.addScopes(scopes, apiId, tenantId);
     }
 
@@ -287,6 +335,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public void deleteAllScopes(String apiId, Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.deleteAllScopes(apiId, tenantId);
     }
 
@@ -294,6 +343,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public void deleteScope(String apiId, String scopeName, Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.deleteScope(apiId, scopeName, tenantId);
     }
 
@@ -301,6 +351,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public void deleteScopeById(String apiId, String scopeId, Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.deleteScopeById(apiId, scopeId, tenantId);
     }
 
@@ -309,6 +360,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
+        clearScopeMetadataCache(tenantId);
         apiResourceManagementDAO.putScopes(apiId, currentScopes, scopes, tenantId);
     }
 
