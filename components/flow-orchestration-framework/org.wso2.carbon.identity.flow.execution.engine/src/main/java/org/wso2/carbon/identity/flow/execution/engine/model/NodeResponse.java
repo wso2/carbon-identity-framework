@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.execution.engine.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.wso2.carbon.identity.flow.mgt.model.MessageDTO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -38,6 +39,7 @@ public class NodeResponse implements Serializable {
     private String status;
     private String type;
     private String error;
+    private List<MessageDTO> messages;
     private Map<String, String> additionalInfo;
 
     private NodeResponse(Builder builder) {
@@ -45,6 +47,7 @@ public class NodeResponse implements Serializable {
         this.status = builder.status;
         this.type = builder.type;
         this.error = builder.error;
+        this.messages = builder.messages;
         this.requiredData = builder.requiredData;
         this.additionalInfo = builder.additionalInfo;
         this.optionalData = builder.optionalData;
@@ -100,6 +103,16 @@ public class NodeResponse implements Serializable {
         this.error = error;
     }
 
+    public List<MessageDTO> getMessages() {
+
+        return messages;
+    }
+
+    public void setMessages(List<MessageDTO> messages) {
+
+        this.messages = messages;
+    }
+
     /**
      * Builder class to build {@link NodeResponse} objects.
      */
@@ -112,6 +125,8 @@ public class NodeResponse implements Serializable {
         private String type;
         @JsonProperty("error")
         private String error;
+        @JsonProperty("messages")
+        private List<MessageDTO> messages;
         @JsonProperty("requiredData")
         private List<String> requiredData;
         @JsonProperty("optionalData")
@@ -134,6 +149,12 @@ public class NodeResponse implements Serializable {
         public Builder error(String error) {
 
             this.error = error;
+            return this;
+        }
+
+        public Builder messages(List<MessageDTO> messages) {
+
+            this.messages = messages;
             return this;
         }
 

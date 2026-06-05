@@ -274,6 +274,21 @@ public class Constants {
         }
     }
 
+    /**
+     * Constants for audit log data keys.
+     */
+    public static class AuditLogConstants {
+
+        public static final String FLOW_COMPLETION_CONFIGS = "flowCompletionConfigs";
+        public static final String EXECUTORS = "executors";
+        public static final String EXECUTOR = "executor";
+        public static final String METADATA = "metadata";
+
+        private AuditLogConstants() {
+
+        }
+    }
+
     public static class FlowAIConstants {
 
         public static final String FLOW_AI_ENDPOINT = "AIServices.FlowAI.Endpoint";
