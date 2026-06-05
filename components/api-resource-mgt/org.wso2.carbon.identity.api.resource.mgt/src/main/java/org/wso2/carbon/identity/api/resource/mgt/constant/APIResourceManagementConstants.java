@@ -27,8 +27,6 @@ import java.util.Map;
  */
 public class APIResourceManagementConstants {
 
-    // Config knob (default off) that enables caching of scope-validation lookups on the OAuth token path.
-    public static final String ENABLE_SCOPE_VALIDATION_CACHE = "OAuth.EnableScopeValidationCache";
     // Constant cache key for the per-tenant unfiltered scope list (the cache is partitioned by tenant id).
     public static final String TENANT_SCOPE_METADATA_CACHE_KEY = "ALL_TENANT_SCOPES";
 

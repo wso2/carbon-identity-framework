@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
@@ -62,7 +61,6 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderRe
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppByPlatformTypeCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppPlatformTypeCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppPlatformTypeCacheKey;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -109,7 +107,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     @Override
     public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
 
-        if (!isScopeValidationCacheEnabled() || StringUtils.isBlank(sharedAppId)) {
+        if (StringUtils.isBlank(sharedAppId)) {
             return appDAO.getMainAppId(sharedAppId);
         }
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -122,11 +120,6 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         // Cache negative results too: a null mainAppId means the application is not a shared application.
         mainApplicationCache.addToCacheOnRead(cacheKey, new MainApplicationCacheEntry(mainAppId), tenantDomain);
         return mainAppId;
-    }
-
-    private boolean isScopeValidationCacheEnabled() {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty(ApplicationConstants.ENABLE_SCOPE_VALIDATION_CACHE));
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws

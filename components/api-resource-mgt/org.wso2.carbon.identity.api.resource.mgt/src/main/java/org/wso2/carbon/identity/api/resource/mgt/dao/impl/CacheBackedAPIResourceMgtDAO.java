@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.List;
 
@@ -287,9 +286,8 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         // Only the unfiltered "all tenant scopes" lookup is cached (the hot path used on the OAuth token
-        // flow when authorize_all_scopes is enabled), and only when the cache knob is on. Filtered lookups
-        // pass through to avoid a key explosion.
-        if (!isScopeValidationCacheEnabled() || expressionNodes != null && !expressionNodes.isEmpty()) {
+        // flow when authorize_all_scopes is enabled). Filtered lookups pass through to avoid a key explosion.
+        if (expressionNodes != null && !expressionNodes.isEmpty()) {
             return apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
         }
 
@@ -308,12 +306,6 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
         List<Scope> scopes = apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
         scopeMetadataCache.addToCacheOnRead(cacheKey, new ScopeMetadataCacheEntry(scopes), tenantId);
         return scopes;
-    }
-
-    private boolean isScopeValidationCacheEnabled() {
-
-        return Boolean.parseBoolean(
-                IdentityUtil.getProperty(APIResourceManagementConstants.ENABLE_SCOPE_VALIDATION_CACHE));
     }
 
     private void clearScopeMetadataCache(int tenantId) {
