@@ -228,11 +228,6 @@ public class CircuitBreakerManager {
         Shard shard = shardFor(tenantKey);
         shard.lock.lock();
         try {
-            TenantBreakerEntry existing = shard.entries.get(tenantKey);
-            if (existing != null) {
-                return existing;
-            }
-
             RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimPolicy);
             TenantBreakerEntry created = new TenantBreakerEntry(entryPolicy, nowMs);
             shard.entries.put(tenantKey, created);
