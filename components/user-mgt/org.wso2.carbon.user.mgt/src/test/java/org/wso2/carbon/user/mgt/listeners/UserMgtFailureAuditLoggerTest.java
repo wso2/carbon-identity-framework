@@ -27,12 +27,14 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.WriterAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.user.core.constants.UserCoreErrorConstants;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
@@ -41,8 +43,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -325,6 +329,96 @@ public class UserMgtFailureAuditLoggerTest {
         String logMsg = out.toString(StandardCharsets.UTF_8.name());
         Assert.assertTrue(StringUtils.isNotEmpty(logMsg),
                 "Audit message is not getting logged when there is a failure while deleting role.");
+    }
+
+    /**
+     * Direct unit test of the private helper {@code getErrorMessageWithMaskedUsername} via reflection. Asserts the
+     * four corners of the null-guard:
+     * <ul>
+     *   <li>both args null &rarr; return null (no NPE);</li>
+     *   <li>null errorMessage with non-null userName &rarr; return null;</li>
+     *   <li>non-null errorMessage with null userName &rarr; return the original errorMessage unchanged;</li>
+     *   <li>non-null errorMessage with empty userName &rarr; return the original errorMessage unchanged.</li>
+     * </ul>
+     */
+    @Test(description = "getErrorMessageWithMaskedUsername null-guard returns the original message instead of NPE")
+    public void testGetErrorMessageWithMaskedUsernameNullGuard() throws Exception {
+
+        boolean originalMasking = LoggerUtils.isLogMaskingEnable;
+        try {
+            LoggerUtils.isLogMaskingEnable = true;
+
+            Method method = UserMgtFailureAuditLogger.class.getDeclaredMethod(
+                    "getErrorMessageWithMaskedUsername", String.class, String.class);
+            method.setAccessible(true);
+
+            // Case 1: both null.
+            Assert.assertNull(method.invoke(null, null, null),
+                    "Both-args-null should return null without NPE.");
+
+            // Case 2: null errorMessage, non-null username.
+            Assert.assertNull(method.invoke(null, null, "alice"),
+                    "Null errorMessage should pass through as null.");
+
+            // Case 3: non-null errorMessage, null username — the exact scenario the bug exposed.
+            String original = "User addition failed";
+            Assert.assertEquals(method.invoke(null, original, null), original,
+                    "Null username must short-circuit and return the original error message.");
+
+            // Case 4: non-null errorMessage, empty username.
+            Assert.assertEquals(method.invoke(null, original, ""), original,
+                    "Empty username must short-circuit and return the original error message.");
+        } finally {
+            LoggerUtils.isLogMaskingEnable = originalMasking;
+        }
+    }
+
+    /**
+     * Verify the happy path is unchanged — when both args are valid AND log masking is enabled
+     * AND the username appears in the error message, the username is masked. This guards against
+     * over-eager null-guards that would skip masking in the supported case.
+     */
+    @Test(description = "Happy path: when masking is on and the username is contained in the message, it is masked")
+    public void testGetErrorMessageWithMaskedUsernameMasksWhenEnabled() throws Exception {
+
+        boolean originalMasking = LoggerUtils.isLogMaskingEnable;
+        try (MockedStatic<LoggerUtils> loggerUtilsMockedStatic = mockStatic(LoggerUtils.class)) {
+            LoggerUtils.isLogMaskingEnable = true;
+            loggerUtilsMockedStatic.when(() -> LoggerUtils.getMaskedContent("alice")).thenReturn("a***e");
+
+            Method method = UserMgtFailureAuditLogger.class.getDeclaredMethod(
+                    "getErrorMessageWithMaskedUsername", String.class, String.class);
+            method.setAccessible(true);
+
+            String result = (String) method.invoke(null, "User alice could not be added", "alice");
+            Assert.assertEquals(result, "User a***e could not be added",
+                    "Username should be masked in the error message when masking is enabled.");
+        } finally {
+            LoggerUtils.isLogMaskingEnable = originalMasking;
+        }
+    }
+
+    /**
+     * Verify that when log masking is disabled, the helper returns the message untouched
+     * regardless of whether the username appears in it.
+     */
+    @Test(description = "When masking is disabled, the error message is returned unchanged")
+    public void testGetErrorMessageWithMaskedUsernameNoMaskingWhenDisabled() throws Exception {
+
+        boolean originalMasking = LoggerUtils.isLogMaskingEnable;
+        try {
+            LoggerUtils.isLogMaskingEnable = false;
+
+            Method method = UserMgtFailureAuditLogger.class.getDeclaredMethod(
+                    "getErrorMessageWithMaskedUsername", String.class, String.class);
+            method.setAccessible(true);
+
+            String original = "User alice could not be added";
+            Assert.assertEquals(method.invoke(null, original, "alice"), original,
+                    "When log masking is disabled the error message must be returned unchanged.");
+        } finally {
+            LoggerUtils.isLogMaskingEnable = originalMasking;
+        }
     }
 
     @AfterMethod

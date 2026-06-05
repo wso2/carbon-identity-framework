@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -48,10 +49,13 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
@@ -69,6 +73,7 @@ public class FlowUser implements Serializable {
     private static final String LOCAL_CREDENTIAL_EXISTS_CLAIM_URI = "http://wso2.org/claims/identity/localCredentialExists";
 
     private final Map<String, String> claims = new HashMap<>();
+    private final Set<String> updatedClaimUris = new HashSet<>();
     private List<UserConsent> userConsents = new ArrayList<>();
 
     @JsonProperty("userCredentials")
@@ -113,9 +118,11 @@ public class FlowUser implements Serializable {
         return userConsents;
     }
 
-    public void setUserConsents(List<UserConsent> userConsents) {
+    public void addUserConsents(List<UserConsent> consents) {
 
-        this.userConsents = (userConsents != null) ? userConsents : new ArrayList<>();
+        if (consents != null) {
+            this.userConsents.addAll(consents);
+        }
     }
 
     public void addClaims(Map<String, String> claims) {
@@ -131,6 +138,28 @@ public class FlowUser implements Serializable {
     public void addClaim(String claimUri, String claimValue) {
 
         this.claims.put(claimUri, claimValue);
+    }
+
+    /**
+     * Adds a claim and marks its URI as user-updated in this flow.
+     *
+     * @param claimUri   claim URI to set and mark as updated.
+     * @param claimValue claim value.
+     */
+    public void addUpdatedClaim(String claimUri, String claimValue) {
+
+        this.claims.put(claimUri, claimValue);
+        this.updatedClaimUris.add(claimUri);
+    }
+
+    /**
+     * Returns the URIs of claims marked as user-updated via {@link #addUpdatedClaim}.
+     *
+     * @return unmodifiable view of the updated claim URI set.
+     */
+    public Set<String> getUpdatedClaimUris() {
+
+        return Collections.unmodifiableSet(updatedClaimUris);
     }
 
     public Map<String, char[]> getUserCredentials() {
@@ -235,15 +264,18 @@ public class FlowUser implements Serializable {
     }
 
     /**
-     * Holds accepted and rejected user consents for a given purpose type collected during the flow.
+     * Holds the per-purpose consent data for a given purpose type collected during the flow.
      */
     public static class UserConsent implements Serializable {
 
         private static final long serialVersionUID = -4631846306935565799L;
+        private static final String FIELD_PURPOSES = "purposes";
+        private static final String FIELD_ATTRIBUTES = "attributes";
+        private static final String FIELD_ID = "id";
+        private static final String FIELD_ACCEPTED = "accepted";
 
         private String purposeType;
-        private List<String> accepted = new ArrayList<>();
-        private List<String> rejected = new ArrayList<>();
+        private List<ConsentPurpose> purposes = new ArrayList<>();
 
         public UserConsent() {
 
@@ -253,16 +285,21 @@ public class FlowUser implements Serializable {
 
             List<UserConsent> consents = new ArrayList<>();
             try {
-                Map<String, Map<String, List<String>>> consentMap = new ObjectMapper()
-                        .readValue(jsonValue, new TypeReference<>() {});
-                consentMap.forEach((purpose, lists) -> {
+                JsonNode root = new ObjectMapper().readTree(jsonValue);
+                root.fields().forEachRemaining(typeEntry -> {
                     UserConsent consent = new UserConsent();
-                    consent.purposeType = purpose;
-                    if (lists.containsKey("accepted")) {
-                        consent.accepted = new ArrayList<>(lists.get("accepted"));
-                    }
-                    if (lists.containsKey("rejected")) {
-                        consent.rejected = new ArrayList<>(lists.get("rejected"));
+                    consent.purposeType = typeEntry.getKey();
+                    JsonNode purposesNode = typeEntry.getValue().path(FIELD_PURPOSES);
+                    if (purposesNode.isArray()) {
+                        for (JsonNode purposeNode : purposesNode) {
+                            ConsentPurpose cp = new ConsentPurpose();
+                            cp.setId(purposeNode.path(FIELD_ID).asText(null));
+                            cp.setAccepted(purposeNode.path(FIELD_ACCEPTED).asBoolean(false));
+                            List<String> acceptedAttrs = new ArrayList<>();
+                            purposeNode.path(FIELD_ATTRIBUTES).forEach(n -> acceptedAttrs.add(n.asText()));
+                            cp.setAttributes(acceptedAttrs);
+                            consent.purposes.add(cp);
+                        }
                     }
                     consents.add(consent);
                 });
@@ -277,14 +314,54 @@ public class FlowUser implements Serializable {
             return purposeType;
         }
 
-        public List<String> getAccepted() {
+        public List<ConsentPurpose> getPurposes() {
+
+            return purposes;
+        }
+    }
+
+    /**
+     * Represents a single purpose entry within a consent type, including its purpose-level
+     * acceptance flag and the associated attribute ID list. When {@code accepted} is {@code true},
+     * the list contains the accepted attribute IDs; when {@code false}, it contains the rejected
+     * attribute IDs.
+     */
+    public static class ConsentPurpose implements Serializable {
+
+        private static final long serialVersionUID = 7812345678901234567L;
+
+        private String id;
+        private boolean accepted;
+        private List<String> attributes = new ArrayList<>();
+
+        public String getId() {
+
+            return id;
+        }
+
+        public void setId(String id) {
+
+            this.id = id;
+        }
+
+        public boolean isAccepted() {
 
             return accepted;
         }
 
-        public List<String> getRejected() {
+        public void setAccepted(boolean accepted) {
 
-            return rejected;
+            this.accepted = accepted;
+        }
+
+        public List<String> getAttributes() {
+
+            return attributes;
+        }
+
+        public void setAttributes(List<String> attributes) {
+
+            this.attributes = attributes != null ? attributes : new ArrayList<>();
         }
     }
 

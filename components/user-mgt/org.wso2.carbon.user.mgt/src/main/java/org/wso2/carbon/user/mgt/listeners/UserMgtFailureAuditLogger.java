@@ -19,6 +19,7 @@
 package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -383,7 +384,10 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
      */
     private static String getErrorMessageWithMaskedUsername(String errorMessage, String userName) {
 
-        if(LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
+        if (errorMessage == null || StringUtils.isEmpty(userName)) {
+            return errorMessage;
+        }
+        if (LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
             errorMessage = errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
         }
         return errorMessage;

@@ -45,6 +45,10 @@ public enum ErrorMessage {
             "The number of configured attributes: %s exceeds the maximum allowed limit: %s"),
     ERROR_INVALID_ATTRIBUTES("60012", "Invalid attribute provided.",
             "%s"),
+    ERROR_ACTION_NAME_ALREADY_EXISTS("60013", "Action name already exists.",
+            "An action with the name '%s' already exists for the action type '%s'."),
+    ERROR_ACTION_NAME_BLANK("60014", "Invalid action name.", 
+            "An action name must be a non-empty string."),
 
     // Server errors.
     ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",

@@ -63,6 +63,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -226,6 +227,7 @@ public class PolicyConsentPostAuthnHandlerTest {
     public void testHandleSkipsForConsoleApplication() throws Exception {
 
         context.setServiceProviderName(CONSOLE_APPLICATION_NAME);
+        context.setTenantDomain(TENANT_DOMAIN);
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 
@@ -238,6 +240,9 @@ public class PolicyConsentPostAuthnHandlerTest {
     public void testHandleSkipsForMyAccountApplication() throws Exception {
 
         context.setServiceProviderName(MY_ACCOUNT_APPLICATION_NAME);
+        policyConsentUtilMock.when(() -> PolicyConsentUtil.hasUnconsentedPolicies(any(), any()))
+                .thenReturn(false);
+        clearInvocations(consentManager);
 
         PostAuthnHandlerFlowStatus status = handler.handle(request, response, context);
 

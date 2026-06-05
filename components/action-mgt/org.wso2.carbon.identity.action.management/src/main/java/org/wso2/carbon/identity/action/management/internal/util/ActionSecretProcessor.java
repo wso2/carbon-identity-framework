@@ -170,6 +170,55 @@ public class ActionSecretProcessor {
     }
 
     /**
+     * Decrypt secret property by secret reference.
+     *
+     * @param authProperty Authentication property object with secret reference as value.
+     * @return Decrypted Auth Property if it is a confidential property.
+     * @throws SecretManagementException If an error occurs while decrypting the secret.
+     */
+    public AuthProperty decryptPropertyBySecretReference(AuthProperty authProperty) throws SecretManagementException {
+
+        String secretReference = authProperty.getValue();
+        String secretName = resolveSecretName(secretReference, authProperty.getName());
+        if (!isSecretPropertyExists(secretName)) {
+            throw new SecretManagementException(String.format("Unable to find the Secret Property: %s of " +
+                    "Secret Name: %s from the system.", authProperty.getName(), secretName));
+        }
+        ResolvedSecret resolvedSecret = ActionMgtServiceComponentHolder.getInstance().getSecretResolveManager()
+                .getResolvedSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
+
+        return new AuthProperty.AuthPropertyBuilder()
+                .name(authProperty.getName())
+                .isConfidential(authProperty.getIsConfidential())
+                .value(resolvedSecret.getResolvedSecretValue())
+                .build();
+    }
+
+    /**
+     * Resolve the secret name portion of a secret reference. A reference is formatted as
+     * {@code <secretType>:<secretName>}, where {@code <secretName>} itself may contain ':'
+     * characters (it is composed as {@code actionId:authType:propertyName}). Therefore only the
+     * first ':' is treated as the delimiter; everything after it belongs to the secret name.
+     *
+     * @param secretReference Secret reference value to parse.
+     * @param propertyName    Authentication property name used for diagnostics.
+     * @return Secret name portion of the reference.
+     * @throws SecretManagementException If the reference is null, empty, or does not contain a
+     *                                   non-empty type and name separated by ':'.
+     */
+    private String resolveSecretName(String secretReference, String propertyName) throws SecretManagementException {
+
+        if (secretReference != null) {
+            int separatorIndex = secretReference.indexOf(':');
+            if (separatorIndex > 0 && separatorIndex < secretReference.length() - 1) {
+                return secretReference.substring(separatorIndex + 1);
+            }
+        }
+        throw new SecretManagementException(String.format("Invalid secret reference format for property: %s. " +
+                "Expected format: <secretType>:<secretName>", propertyName));
+    }
+
+    /**
      * Check whether the secret property exists.
      *
      * @param secretName Secret Name.

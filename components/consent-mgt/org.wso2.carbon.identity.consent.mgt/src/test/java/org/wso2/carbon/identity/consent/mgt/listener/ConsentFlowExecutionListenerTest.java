@@ -49,8 +49,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.FORM;
 import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.POLICY;
+import static org.wso2.carbon.identity.flow.mgt.Constants.ComponentTypes.PREFERENCE;
 
-public class PolicyConsentFlowExecutionListenerTest {
+public class ConsentFlowExecutionListenerTest {
 
     @Mock
     private IdentityConsentDataHolder mockDataHolder;
@@ -60,7 +61,7 @@ public class PolicyConsentFlowExecutionListenerTest {
 
     private MockedStatic<IdentityConsentDataHolder> identityConsentDataHolder;
 
-    private PolicyConsentFlowExecutionListener listener;
+    private ConsentFlowExecutionListener listener;
 
     private FlowExecutionContext context;
 
@@ -71,7 +72,7 @@ public class PolicyConsentFlowExecutionListenerTest {
         identityConsentDataHolder = mockStatic(IdentityConsentDataHolder.class);
         identityConsentDataHolder.when(IdentityConsentDataHolder::getInstance).thenReturn(mockDataHolder);
         when(mockDataHolder.getConsentManager()).thenReturn(mockConsentManager);
-        listener = new PolicyConsentFlowExecutionListener();
+        listener = new ConsentFlowExecutionListener();
         context = mock(FlowExecutionContext.class);
         when(context.getFlowType()).thenReturn("REGISTRATION");
         when(context.getContextIdentifier()).thenReturn("ctx-123");
@@ -311,6 +312,118 @@ public class PolicyConsentFlowExecutionListenerTest {
         assertEquals(eligible.get("name"), "Legal");
     }
 
+    // ---- Preference component enrichment ----
+
+    @Test
+    public void testEnrichPreferenceComponent_FullEnrichment_WithAttributes() throws Exception {
+
+        PurposeVersion version = new PurposeVersion();
+        version.setDescription("Preference desc");
+        PurposePIICategory category1 = new PurposePIICategory(1, Boolean.FALSE);
+        category1.setName("Email");
+        category1.setDisplayName("Email Address");
+        PurposePIICategory category2 = new PurposePIICategory(2, Boolean.FALSE);
+        category2.setName("Phone");
+        version.setPurposePIICategories(Arrays.asList(category1, category2));
+
+        Purpose purpose = buildPurpose("Preference", "Purpose desc");
+        purpose.setLatestVersion(version);
+
+        when(mockConsentManager.getPurposeByUuid("purpose-preference")).thenReturn(purpose);
+        Map<String, Object> preferenceEntry = new HashMap<>();
+        preferenceEntry.put("purposeId", "purpose-preference");
+
+        ComponentDTO preferenceComp = preferenceComponentWithPurposesObject(Collections.singletonList(preferenceEntry));
+        FlowExecutionStep step = stepWithPreferenceComponent(preferenceComp);
+
+        assertTrue(listener.doPostExecute(step, context));
+        assertEquals(preferenceEntry.get("name"), "Preference");
+        assertEquals(preferenceEntry.get("description"), "Preference desc");
+        List<Map<String, Object>> attributes = (List<Map<String, Object>>) preferenceEntry.get("attributes");
+        assertEquals(attributes.size(), 2);
+        assertEquals(attributes.get(0).get("name"), "Email");
+        assertEquals(attributes.get(0).get("displayName"), "Email Address");
+        assertEquals(attributes.get(1).get("name"), "Phone");
+        assertEquals(attributes.get(1).get("displayName"), "Phone");
+    }
+
+    @Test
+    public void testEnrichPreferenceComponent_NullConfigs_SkipsGracefully() throws Exception {
+
+        ComponentDTO preferenceComp = new ComponentDTO.Builder().type(PREFERENCE).configs(null).build();
+        FlowExecutionStep step = stepWithPreferenceComponent(preferenceComp);
+        assertTrue(listener.doPostExecute(step, context));
+    }
+
+    @Test
+    public void testEnrichPreferenceComponent_MissingPurposesKey_SkipsGracefully() throws Exception {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("otherKey", "value");
+        ComponentDTO preferenceComp = new ComponentDTO.Builder().type(PREFERENCE).configs(configs).build();
+        FlowExecutionStep step = stepWithPreferenceComponent(preferenceComp);
+        assertTrue(listener.doPostExecute(step, context));
+    }
+
+    @Test
+    public void testEnrichPreferenceComponent_BlankPurposeId_SkipsEntry() throws Exception {
+
+        Map<String, Object> purpose = new HashMap<>();
+        purpose.put("purposeId", "");
+        FlowExecutionStep step = stepWithPreferenceMap(purpose);
+        assertTrue(listener.doPostExecute(step, context));
+    }
+
+    @Test
+    public void testEnrichPreferenceComponent_NameAlreadyPresent_SkipsEntry() throws Exception {
+
+        Map<String, Object> purpose = new HashMap<>();
+        purpose.put("purposeId", "purpose-uuid-1");
+        purpose.put("name", "Existing Name");
+        FlowExecutionStep step = stepWithPreferenceMap(purpose);
+        assertTrue(listener.doPostExecute(step, context));
+        assertEquals(purpose.get("name"), "Existing Name");
+    }
+
+    @Test
+    public void testEnrichPreferenceComponent_NoAttributes_ReturnsEmptyList() throws Exception {
+
+        Purpose purpose = buildPurpose("Analytics", "Analytics desc");
+        when(mockConsentManager.getPurposeByUuid("purpose-analytics")).thenReturn(purpose);
+        Map<String, Object> preferenceEntry = new HashMap<>();
+        preferenceEntry.put("purposeId", "purpose-analytics");
+
+        assertTrue(listener.doPostExecute(stepWithPreferenceMap(preferenceEntry), context));
+        List<Map<String, Object>> attributes = (List<Map<String, Object>>) preferenceEntry.get("attributes");
+        assertEquals(attributes.size(), 0);
+    }
+
+    @Test
+    public void testDoPostExecute_BothPolicyAndPreferenceComponents_BothEnriched() throws Exception {
+
+        Purpose policyPurpose = buildPurpose("Privacy Policy", "Privacy desc");
+        Purpose preferencePurpose = buildPurpose("Preference", "Preference desc");
+
+        when(mockConsentManager.getPurposeByUuid("policy-uuid")).thenReturn(policyPurpose);
+        when(mockConsentManager.getPurposeByUuid("preference-uuid")).thenReturn(preferencePurpose);
+
+        Map<String, Object> policy = new HashMap<>();
+        policy.put("purposeId", "policy-uuid");
+
+        Map<String, Object> preference = new HashMap<>();
+        preference.put("purposeId", "preference-uuid");
+
+        ComponentDTO policyComp = policyComponentWithPoliciesObject(Collections.singletonList(policy));
+        ComponentDTO preferenceComp = preferenceComponentWithPurposesObject(Collections.singletonList(preference));
+        ComponentDTO form = new ComponentDTO.Builder().type(FORM)
+                .components(Arrays.asList(policyComp, preferenceComp)).build();
+        FlowExecutionStep step = stepWithTopLevelComponents(Collections.singletonList(form));
+
+        assertTrue(listener.doPostExecute(step, context));
+        assertEquals(policy.get("name"), "Privacy Policy");
+        assertEquals(preference.get("name"), "Preference");
+    }
+
     // ---- Listener metadata ----
 
     @Test
@@ -337,7 +450,7 @@ public class PolicyConsentFlowExecutionListenerTest {
     private ComponentDTO policyComponentWithPoliciesObject(Object policiesValue) {
 
         Map<String, Object> configs = new HashMap<>();
-        configs.put("policies", policiesValue);
+        configs.put("purposes", policiesValue);
         return new ComponentDTO.Builder().type(POLICY).configs(configs).build();
     }
 
@@ -362,5 +475,25 @@ public class PolicyConsentFlowExecutionListenerTest {
     private Purpose buildPurpose(String name, String description) {
 
         return new Purpose(1, name, description, "GROUP", "SYSTEM", -1234);
+    }
+
+    private ComponentDTO preferenceComponentWithPurposesObject(Object purposesValue) {
+
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("purposes", purposesValue);
+        return new ComponentDTO.Builder().type(PREFERENCE).configs(configs).build();
+    }
+
+    private FlowExecutionStep stepWithPreferenceComponent(ComponentDTO preferenceComp) {
+
+        ComponentDTO form = new ComponentDTO.Builder().type(FORM)
+                .components(Collections.singletonList(preferenceComp)).build();
+        return stepWithTopLevelComponents(Collections.singletonList(form));
+    }
+
+    private FlowExecutionStep stepWithPreferenceMap(Map<String, Object> preference) {
+
+        return stepWithPreferenceComponent(
+            preferenceComponentWithPurposesObject(Collections.singletonList(preference)));
     }
 }

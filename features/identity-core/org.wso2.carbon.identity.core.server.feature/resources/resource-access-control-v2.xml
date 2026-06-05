@@ -307,6 +307,56 @@
         <Scopes>internal_consent_mgt_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] Consent Management V2 API -->
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="POST">
+        <Scopes>internal_org_consent_mgt_element_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="GET">
+        <Scopes>internal_org_consent_mgt_element_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/elements/(.+)" secured="true" http-method="GET">
+        <Scopes>internal_org_consent_mgt_element_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/elements/(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_consent_mgt_element_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes" secured="true" http-method="POST">
+        <Scopes>internal_org_consent_mgt_purpose_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes" secured="true" http-method="GET">
+        <Scopes>internal_org_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)$" secured="true" http-method="GET">
+        <Scopes>internal_org_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)$" secured="true" http-method="DELETE">
+        <Scopes>internal_org_consent_mgt_purpose_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)/versions" secured="true" http-method="POST">
+        <Scopes>internal_org_consent_mgt_purpose_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)/versions" secured="true" http-method="GET">
+        <Scopes>internal_org_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/(.+)" secured="true" http-method="GET">
+        <Scopes>internal_org_consent_mgt_purpose_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_consent_mgt_purpose_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/purposes/(.+)/versions/latest" secured="true" http-method="PUT">
+        <Scopes>internal_org_consent_mgt_purpose_update</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
+
     <!-- Consent Management V2 API -->
     <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="POST">
         <Scopes>internal_consent_mgt_element_create</Scopes>
@@ -1789,6 +1839,34 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_custom_authenticator_delete</Scopes>
+    </Resource>
+
+    <!-- [Organization] Flow Extension Management API -->
+    <Resource context="(.*)/o/api/server/v1/flow/extension" secured="true" http-method="POST">
+        <Scopes>internal_org_flow_extension_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_org_flow_extension_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/flow/extension/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_flow_extension_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/flow/extension(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_flow_extension_view</Scopes>
+    </Resource>
+
+    <!-- Flow Extension Management API -->
+    <Resource context="(.*)/api/server/v1/flow/extension" secured="true" http-method="POST">
+        <Scopes>internal_flow_extension_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_flow_extension_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/flow/extension/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_flow_extension_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/flow/extension(.*)" secured="true" http-method="GET">
+        <Scopes>internal_flow_extension_view</Scopes>
     </Resource>
 
     <!-- Flow execution API -->

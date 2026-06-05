@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.action.management.api.model;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.util.ActionManagementExceptionHandler;
@@ -35,6 +37,8 @@ import java.util.NoSuchElementException;
  * Authentication class which hold supported authentication types and their properties.
  */
 public class Authentication {
+
+    private static final Log LOG = LogFactory.getLog(Authentication.class);
 
     /**
      * Authentication Type.
@@ -196,6 +200,34 @@ public class Authentication {
                 try {
                     return secretProcessor.decryptProperty(authProperty, this.getType().name(), actionId);
                 } catch (SecretManagementException e) {
+                    LOG.warn(String.format("Error while decrypting authentication property '%s' for action '%s'.",
+                            propertyName, actionId));
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the authentication property matching the given name, decrypting its value when the property contains
+     * a secret reference. The {@code propertyName} should be the plain property name to look up; the matched property
+     * may contain either a plain value or a secret reference. Returns {@code null} if no matching property is found
+     * or if decryption fails.
+     *
+     * @param propertyName name of the authentication property to look up.
+     * @return the matching {@link AuthProperty} with a decrypted value when decryption succeeds, or {@code null} if
+     * no matching property exists or decryption fails.
+     */
+    public AuthProperty getPropertyWithDecryptedValue(String propertyName) {
+
+        for (AuthProperty authProperty : this.getProperties()) {
+            if (StringUtils.equalsIgnoreCase(propertyName, authProperty.getName())) {
+                try {
+                    return secretProcessor.decryptPropertyBySecretReference(authProperty);
+                } catch (SecretManagementException e) {
+                    LOG.warn(String.format("Error while decrypting authentication property '%s' for action.",
+                            propertyName));
                     return null;
                 }
             }
@@ -213,6 +245,9 @@ public class Authentication {
                 try {
                     return secretProcessor.decryptProperty(authProperty, this.getType().name(), actionId);
                 } catch (SecretManagementException e) {
+                    LOG.warn(String.format(
+                            "Error while decrypting internal authentication property '%s' for action '%s'.",
+                            propertyName, actionId));
                     return null;
                 }
             }
@@ -354,6 +389,12 @@ public class Authentication {
                 this.properties.add(new AuthProperty.AuthPropertyBuilder()
                         .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
             }
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_ACCESS_TOKEN.getName()).isConfidential(true)
+                    .build());
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_REFRESH_TOKEN.getName()).isConfidential(true)
+                    .build());
         }
 
         public Authentication build() {
@@ -416,6 +457,12 @@ public class Authentication {
                 this.properties.add(new AuthProperty.AuthPropertyBuilder()
                         .name(Property.SCOPES.getName()).value(scopes).isConfidential(false).build());
             }
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_ACCESS_TOKEN.getName()).value(null).isConfidential(true)
+                    .build());
+            this.internalProperties.add(new AuthProperty.AuthPropertyBuilder()
+                    .name(Property.INTERNAL_REFRESH_TOKEN.getName()).value(null).isConfidential(true)
+                    .build());
         }
 
         public Authentication build() {

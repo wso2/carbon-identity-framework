@@ -1008,6 +1008,32 @@
                    description="Delete Consent Purpose"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Management V2 Elements API" identifier="/o/api/identity/consent-mgt/v2.0/elements"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Elements API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Consent Element" name="internal_org_consent_mgt_element_view"
+                   description="View Consent Elements in the organization"/>
+            <Scope displayName="Create Consent Element" name="internal_org_consent_mgt_element_create"
+                   description="Create new Consent Element in the organization"/>
+            <Scope displayName="Delete Consent Element" name="internal_org_consent_mgt_element_delete"
+                   description="Delete Consent Element in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Management V2 Purposes API" identifier="/o/api/identity/consent-mgt/v2.0/purposes"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Purposes API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Consent Purpose" name="internal_org_consent_mgt_purpose_view"
+                   description="View Consent Purposes in the organization"/>
+            <Scope displayName="Create Consent Purpose" name="internal_org_consent_mgt_purpose_create"
+                   description="Create new Consent Purpose in the organization"/>
+            <Scope displayName="Update Consent Purpose" name="internal_org_consent_mgt_purpose_update"
+                   description="Update Consent Purpose in the organization"/>
+            <Scope displayName="Delete Consent Purpose" name="internal_org_consent_mgt_purpose_delete"
+                   description="Delete Consent Purpose in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
                  requiresAuthorization="true" description="API representation of the Identity Recovery API" type="TENANT">
         <Scopes>
@@ -2074,6 +2100,19 @@
                    description="Manage edits of consent from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Management Feature" identifier="console:org:consents"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Consent Management Feature for organizations"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Consent Management Feature" name="console:org:consents"
+                   description="Manage consent in the organization from the Console"/>
+            <Scope displayName="Consent Management View Feature" name="console:org:consents_view"
+                   description="Manage views of consent in the organization from the Console"/>
+            <Scope displayName="Consent Management Edit Feature" name="console:org:consents_edit"
+                   description="Manage edits of consent in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Flows Feature" identifier="console:flows"
                  requiresAuthorization="true"
                  description="Resource representation of the Flows Feature"
@@ -2098,6 +2137,32 @@
                    description="Manage views of flows from the Console"/>
             <Scope displayName="Flows Edit Feature" name="console:org:flows_edit"
                    description="Manage edits of flows from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extensions Feature" identifier="console:flowExtensions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flow Extensions Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Flow Extensions Feature" name="console:flowExtensions"
+                   description="Manage flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions View Feature" name="console:flowExtensions_view"
+                   description="Manage views of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Edit Feature" name="console:flowExtensions_edit"
+                   description="Manage edits of flow extensions from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extensions Feature" identifier="console:org:flowExtensions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Flow Extensions Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Flow Extensions Feature" name="console:org:flowExtensions"
+                   description="Manage flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions View Feature" name="console:org:flowExtensions_view"
+                   description="Manage views of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Edit Feature" name="console:org:flowExtensions_edit"
+                   description="Manage edits of flow extensions from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
@@ -2176,6 +2241,34 @@
                    description="Update flow in the organization"/>
             <Scope displayName="Delete Flow" name="internal_org_flow_delete"
                    description="Delete flow in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extension Management API" identifier="/api/server/v1/flow/extension"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Extension Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Flow Extension" name="internal_flow_extension_view"
+                   description="View flow extension in the organization (root)"/>
+            <Scope displayName="Create Flow Extension" name="internal_flow_extension_create"
+                   description="Create flow extension in the organization (root)"/>
+            <Scope displayName="Update Flow Extension" name="internal_flow_extension_update"
+                   description="Update flow extension in the organization (root)"/>
+            <Scope displayName="Delete Flow Extension" name="internal_flow_extension_delete"
+                   description="Delete flow extension in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Flow Extension Management API" identifier="/o/api/server/v1/flow/extension"
+                 requiresAuthorization="true"
+                 description="API representation of the Flow Extension Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Flow Extension" name="internal_org_flow_extension_view"
+                   description="View flow extension in the organization"/>
+            <Scope displayName="Create Flow Extension" name="internal_org_flow_extension_create"
+                   description="Create flow extension in the organization"/>
+            <Scope displayName="Update Flow Extension" name="internal_org_flow_extension_update"
+                   description="Update flow extension in the organization"/>
+            <Scope displayName="Delete Flow Extension" name="internal_org_flow_extension_delete"
+                   description="Delete flow extension in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Asynchronous Operation Status API" identifier="/api/server/v1/async-operations"

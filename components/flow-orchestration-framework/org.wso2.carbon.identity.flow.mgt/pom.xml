@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.11.94-SNAPSHOT</version>
+        <version>7.11.110-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -131,6 +131,16 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <configuration>
+                    <excludeFilterFile>../../../spotbugs-exclude.xml</excludeFilterFile>
+                    <effort>Max</effort>
+                    <threshold>High</threshold>
+                    <xmlOutput>true</xmlOutput>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
@@ -182,6 +192,8 @@
                             org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.wso2.carbon.identity.compatibility.settings.core.*; version="${carbon.identity.package.import.version.range}",
+                            com.fasterxml.jackson.databind.*;version="${com.fasterxml.jackson.databind.version.range}",
+                            com.fasterxml.jackson.annotation.*;version="${com.fasterxml.jackson.annotation.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.flow.mgt.internal,

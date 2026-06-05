@@ -229,7 +229,10 @@ public class InputValidationServiceTest {
         FlowExecutionContext = initiateFlowContext();
         Map<String, String> userInputData = new HashMap<>();
         userInputData.put(CONSENT_KEY,
-                "{\"Policy\":{\"accepted\":[\"policy-id-1\",\"policy-id-2\"],\"rejected\":[]}}");
+                "{\"Policy\":{\"purposes\":[" +
+                        "{\"id\":\"policy-id-1\",\"accepted\":true,\"attributes\":[]}," +
+                        "{\"id\":\"policy-id-2\",\"accepted\":true,\"attributes\":[]}" +
+                        "]}}");
         FlowExecutionContext.getUserInputData().putAll(userInputData);
         inputValidationService.handleUserInputs(FlowExecutionContext);
 
@@ -237,10 +240,9 @@ public class InputValidationServiceTest {
                 FlowExecutionContext.getFlowUser().getUserConsents();
         Assert.assertEquals(consents.size(), 1);
         Assert.assertEquals(consents.get(0).getPurposeType(), "Policy");
-        Assert.assertEquals(consents.get(0).getAccepted().size(), 2);
-        Assert.assertTrue(consents.get(0).getAccepted().contains("policy-id-1"));
-        Assert.assertTrue(consents.get(0).getAccepted().contains("policy-id-2"));
-        Assert.assertTrue(consents.get(0).getRejected().isEmpty());
+        Assert.assertEquals(consents.get(0).getPurposes().size(), 2);
+        Assert.assertTrue(consents.get(0).getPurposes().stream().anyMatch(p -> "policy-id-1".equals(p.getId()) && p.isAccepted()));
+        Assert.assertTrue(consents.get(0).getPurposes().stream().anyMatch(p -> "policy-id-2".equals(p.getId()) && p.isAccepted()));
         Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
     }
 
@@ -250,7 +252,9 @@ public class InputValidationServiceTest {
         FlowExecutionContext = initiateFlowContext();
         Map<String, String> userInputData = new HashMap<>();
         userInputData.put(CONSENT_KEY,
-                "{\"Policy\":{\"accepted\":[],\"rejected\":[\"policy-id-3\"]}}");
+                "{\"Policy\":{\"purposes\":[" +
+                        "{\"id\":\"policy-id-3\",\"accepted\":false,\"attributes\":[]}" +
+                        "]}}");
         FlowExecutionContext.getUserInputData().putAll(userInputData);
         inputValidationService.handleUserInputs(FlowExecutionContext);
 
@@ -258,9 +262,8 @@ public class InputValidationServiceTest {
                 FlowExecutionContext.getFlowUser().getUserConsents();
         Assert.assertEquals(consents.size(), 1);
         Assert.assertEquals(consents.get(0).getPurposeType(), "Policy");
-        Assert.assertEquals(consents.get(0).getRejected().size(), 1);
-        Assert.assertTrue(consents.get(0).getRejected().contains("policy-id-3"));
-        Assert.assertTrue(consents.get(0).getAccepted().isEmpty());
+        Assert.assertEquals(consents.get(0).getPurposes().size(), 1);
+        Assert.assertTrue(consents.get(0).getPurposes().stream().anyMatch(p -> "policy-id-3".equals(p.getId()) && !p.isAccepted()));
         Assert.assertTrue(FlowExecutionContext.getUserInputData().isEmpty());
     }
 
@@ -270,8 +273,12 @@ public class InputValidationServiceTest {
         FlowExecutionContext = initiateFlowContext();
         Map<String, String> userInputData = new HashMap<>();
         userInputData.put(CONSENT_KEY,
-                "{\"Policy\":{\"accepted\":[\"policy-id-1\"],\"rejected\":[]}," +
-                        "\"Terms\":{\"accepted\":[],\"rejected\":[\"terms-id-1\"]}}");
+                "{\"Policy\":{\"purposes\":[" +
+                        "{\"id\":\"policy-id-1\",\"accepted\":true,\"attributes\":[]}" +
+                        "]}," +
+                        "\"Terms\":{\"purposes\":[" +
+                        "{\"id\":\"terms-id-1\",\"accepted\":false,\"attributes\":[]}" +
+                        "]}}");
         FlowExecutionContext.getUserInputData().putAll(userInputData);
         inputValidationService.handleUserInputs(FlowExecutionContext);
 
@@ -288,7 +295,10 @@ public class InputValidationServiceTest {
         Map<String, String> userInputData = new HashMap<>();
         userInputData.put(CLAIM_URI_PREFIX + "email", "user@example.com");
         userInputData.put(CONSENT_KEY,
-                "{\"Policy\":{\"accepted\":[\"policy-id-1\"],\"rejected\":[\"policy-id-2\"]}}");
+                "{\"Policy\":{\"purposes\":[" +
+                        "{\"id\":\"policy-id-1\",\"accepted\":true,\"attributes\":[]}," +
+                        "{\"id\":\"policy-id-2\",\"accepted\":false,\"attributes\":[]}" +
+                        "]}}");
         userInputData.put("nonClaimInput", "someValue");
         FlowExecutionContext.getUserInputData().putAll(userInputData);
         inputValidationService.handleUserInputs(FlowExecutionContext);
@@ -302,14 +312,13 @@ public class InputValidationServiceTest {
         List<org.wso2.carbon.identity.flow.execution.engine.model.FlowUser.UserConsent> consents =
                 FlowExecutionContext.getFlowUser().getUserConsents();
         Assert.assertEquals(consents.size(), 1);
+        Assert.assertEquals(consents.get(0).getPurposes().size(), 2);
 
-        // Accepted consents routed to accepted list.
-        Assert.assertEquals(consents.get(0).getAccepted().size(), 1);
-        Assert.assertTrue(consents.get(0).getAccepted().contains("policy-id-1"));
+        // Accepted purpose.
+        Assert.assertTrue(consents.get(0).getPurposes().stream().anyMatch(p -> "policy-id-1".equals(p.getId()) && p.isAccepted()));
 
-        // Rejected consents routed to rejected list.
-        Assert.assertEquals(consents.get(0).getRejected().size(), 1);
-        Assert.assertTrue(consents.get(0).getRejected().contains("policy-id-2"));
+        // Rejected purpose.
+        Assert.assertTrue(consents.get(0).getPurposes().stream().anyMatch(p -> "policy-id-2".equals(p.getId()) && !p.isAccepted()));
 
         // Non-claim input remains in userInputData.
         Assert.assertEquals(FlowExecutionContext.getUserInputData().size(), 1);

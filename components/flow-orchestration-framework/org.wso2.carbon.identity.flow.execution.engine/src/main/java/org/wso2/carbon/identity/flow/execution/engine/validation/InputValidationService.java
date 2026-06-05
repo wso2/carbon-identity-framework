@@ -78,6 +78,7 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.LENGTH_CO
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_LENGTH;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.OTP_VARIANT;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_KEY;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.PREFERENCE_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.REQUIRED;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
@@ -191,9 +192,9 @@ public class InputValidationService {
         context.getUserInputData().forEach(
                 (key, value) -> {
                     if (key.startsWith(CLAIM_URI_PREFIX)) {
-                        context.getFlowUser().addClaim(key, value);
-                    } else if (CONSENT_KEY.equals(key)) {
-                        context.getFlowUser().setUserConsents(FlowUser.UserConsent.fromJson(value));
+                        context.getFlowUser().addUpdatedClaim(key, value);
+                    } else if (CONSENT_KEY.equals(key) || PREFERENCE_KEY.equals(key)) {
+                        context.getFlowUser().addUserConsents(FlowUser.UserConsent.fromJson(value));
                     }
                 }
         );
@@ -203,6 +204,7 @@ public class InputValidationService {
                 }
         );
         context.getUserInputData().remove(CONSENT_KEY);
+        context.getUserInputData().remove(PREFERENCE_KEY);
     }
 
     /**
@@ -536,6 +538,8 @@ public class InputValidationService {
                     }
                     if (Constants.ComponentTypes.POLICY.equalsIgnoreCase(child.getType())) {
                         inputIdentifiers.add(CONSENT_KEY);
+                    } else if (Constants.ComponentTypes.PREFERENCE.equalsIgnoreCase(child.getType())) {
+                        inputIdentifiers.add(PREFERENCE_KEY);
                     }
                     if (Constants.ComponentTypes.BUTTON.equalsIgnoreCase(child.getType())) {
                         // If the button has an executor, add the required inputs defined from the executor.
