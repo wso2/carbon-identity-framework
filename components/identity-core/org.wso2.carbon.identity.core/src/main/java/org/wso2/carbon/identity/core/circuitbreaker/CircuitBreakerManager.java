@@ -134,33 +134,42 @@ public class CircuitBreakerManager {
         evictIdleEntries(System.currentTimeMillis(), staticPolicy.getEvictionScanLimit());
     }
 
-    public boolean isEnabled() {
-
-        return staticPolicy.isEnabled();
-    }
-
-    public StaticPolicy getStaticPolicy() {
-
-        return staticPolicy;
-    }
-
-    public RuntimePolicy getRuntimePolicy() {
-
-        return defaultRuntimPolicy;
-    }
-
-    public int getEntryCount() {
-
-        return entryCount.get();
-    }
-
-    public CircuitState getState(String tenantDomain, TenantService service) {
+    public void invalidateTenant(String tenantDomain) {
 
         if (StringUtils.isBlank(tenantDomain)) {
-            return null;
+            return;
         }
-        TenantBreakerEntry entry = getEntry(TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name()));
-        return entry == null ? null : entry.getState();
+
+        for (TenantService service : TenantService.values()) {
+            String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
+            Shard shard = shardFor(tenantKey);
+            shard.lock.lock();
+            try {
+                if (shard.entries.remove(tenantKey) != null) {
+                    entryCount.decrementAndGet();
+                }
+            } finally {
+                shard.lock.unlock();
+            }
+        }
+    }
+
+    public void invalidateTenantService(String tenantDomain, TenantService service) {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            return;
+        }
+
+        String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
+        Shard shard = shardFor(tenantKey);
+        shard.lock.lock();
+        try {
+            if (shard.entries.remove(tenantKey) != null) {
+                entryCount.decrementAndGet();
+            }
+        } finally {
+            shard.lock.unlock();
+        }
     }
 
     private void maybeCleanup(long nowMs) {
