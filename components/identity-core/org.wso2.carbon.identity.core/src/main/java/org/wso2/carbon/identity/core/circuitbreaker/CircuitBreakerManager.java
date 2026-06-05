@@ -84,21 +84,30 @@ public class CircuitBreakerManager {
             return decision;
         }
 
-        synchronized (entry) {
-            CircuitState previousState = entry.getState();
-            Decision decision = entry.allowRequest(nowMs);
-            notifyTransitionIfRequired(tenantDomain, service, previousState, entry);
-            if (!decision.isAllowed()) {
-                notifyRejection(tenantDomain, service, decision, entry);
-                return decision;
-            }
+        CircuitState previousState;
+        CircuitState currentState;
+        Decision decision;
+        int calls, failures, inFlight;
+        double failureRate;
 
-            decision = entry.acquireBulkhead();
-            if (!decision.isAllowed()) {
-                notifyRejection(tenantDomain, service, decision, entry);
+        synchronized (entry) {
+            previousState = entry.getState();
+            decision = entry.allowRequest(nowMs);
+            if (decision.isAllowed()) {
+                decision = entry.acquireBulkhead();
             }
-            return decision;
+            currentState = entry.getState();
+            calls = entry.getCalls();
+            failures = entry.getFailures();
+            failureRate = entry.getFailureRate();
+            inFlight = entry.getInFlight();
         }
+
+        notifyTransitionIfRequired(tenantDomain, service, previousState, currentState, calls, failures, failureRate);
+        if (!decision.isAllowed()) {
+            notifyRejection(tenantDomain, service, decision, currentState, calls, failures, failureRate, inFlight);
+        }
+        return decision;
     }
 
     public void onComplete(String tenantDomain, TenantService service, boolean success) {
@@ -117,12 +126,22 @@ public class CircuitBreakerManager {
             return;
         }
 
+        CircuitState previousState;
+        CircuitState currentState;
+        int calls, failures;
+        double failureRate;
+
         synchronized (entry) {
-            CircuitState previousState = entry.getState();
+            previousState = entry.getState();
             entry.releaseBulkhead(nowMs);
             entry.recordResult(success, nowMs);
-            notifyTransitionIfRequired(tenantDomain, service, previousState, entry);
+            currentState = entry.getState();
+            calls = entry.getCalls();
+            failures = entry.getFailures();
+            failureRate = entry.getFailureRate();
         }
+
+        notifyTransitionIfRequired(tenantDomain, service, previousState, currentState, calls, failures, failureRate);
     }
 
     public void cleanupIdleEntries() {
@@ -234,10 +253,10 @@ public class CircuitBreakerManager {
 
     private TenantBreakerEntry putIfAbsentEntry(String tenantKey, long nowMs) {
 
+        RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimPolicy);
         Shard shard = shardFor(tenantKey);
         shard.lock.lock();
         try {
-            RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimPolicy);
             TenantBreakerEntry created = new TenantBreakerEntry(entryPolicy, nowMs);
             shard.entries.put(tenantKey, created);
             entryCount.incrementAndGet();
@@ -371,9 +390,8 @@ public class CircuitBreakerManager {
     }
 
     private void notifyTransitionIfRequired(String tenantDomain, TenantService service, CircuitState previousState,
-                                            TenantBreakerEntry entry) {
+                                            CircuitState currentState, int calls, int failures, double failureRate) {
 
-        CircuitState currentState = entry.getState();
         if (previousState == currentState) {
             return;
         }
@@ -381,18 +399,17 @@ public class CircuitBreakerManager {
         TenantServiceBreakerObserver obs = observerFor(service);
         if (obs != null) {
             obs.onStateTransition(tenantDomain, service, previousState, currentState,
-                    entry.getCalls(), entry.getFailures(), entry.getFailureRate(),
-                    defaultRuntimPolicy.getFailureRateThreshold());
+                    calls, failures, failureRate, defaultRuntimPolicy.getFailureRateThreshold());
         }
     }
 
     private void notifyRejection(String tenantDomain, TenantService service, Decision decision,
-                                 TenantBreakerEntry entry) {
+                                 CircuitState state, int calls, int failures, double failureRate, int inFlight) {
 
         TenantServiceBreakerObserver obs = observerFor(service);
         if (obs != null) {
-            obs.onRejection(tenantDomain, service, decision.getRejectReason(), entry.getState(),
-                    entry.getCalls(), entry.getFailures(), entry.getFailureRate(), entry.getInFlight());
+            obs.onRejection(tenantDomain, service, decision.getRejectReason(),
+                    state, calls, failures, failureRate, inFlight);
         }
     }
 
