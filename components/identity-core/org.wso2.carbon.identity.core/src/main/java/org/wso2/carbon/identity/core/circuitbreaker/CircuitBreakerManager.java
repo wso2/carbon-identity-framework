@@ -77,10 +77,7 @@ public class CircuitBreakerManager {
         TenantBreakerEntry entry = getOrCreateEntry(tenantKey, now);
         if (entry == null) {
             Decision decision = Decision.rejected(RejectReason.BREAKER_CACHE_FULL);
-            TenantServiceBreakerObserver obs = observerFor(service);
-            if (obs != null) {
-                obs.onRejection(tenantDomain, service, decision.getRejectReason(), null, null, null, null, null);
-            }
+            notifyRejection(tenantDomain, service, decision, null, null, null, null, null);
             return decision;
         }
 
@@ -404,7 +401,8 @@ public class CircuitBreakerManager {
     }
 
     private void notifyRejection(String tenantDomain, TenantService service, Decision decision,
-                                 CircuitState state, int calls, int failures, double failureRate, int inFlight) {
+                                 CircuitState state, Integer calls, Integer failures, Double failureRate,
+                                 Integer inFlight) {
 
         TenantServiceBreakerObserver obs = observerFor(service);
         if (obs != null) {
