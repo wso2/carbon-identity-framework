@@ -27,28 +27,28 @@ class TenantBreakerEntry {
     private final SlidingWindow window;
 
     private CircuitState state = CircuitState.CLOSED;
-    private long stateSinceMs;
-    private long lastAccessMs;
+    private long stateSince;
+    private long lastAccess;
 
     private int inFlight;
 
-    public TenantBreakerEntry(RuntimePolicy runtimePolicy, long nowMs) {
+    public TenantBreakerEntry(RuntimePolicy runtimePolicy, long now) {
 
         this.runtimePolicy = runtimePolicy;
         this.window = new SlidingWindow(runtimePolicy.getWindowSize());
-        this.stateSinceMs = nowMs;
-        this.lastAccessMs = nowMs;
+        this.stateSince = now;
+        this.lastAccess = now;
     }
 
-    public synchronized Decision allowRequest(long nowMs) {
+    public synchronized Decision allowRequest(long now) {
 
-        lastAccessMs = nowMs;
+        lastAccess = now;
         if (state == CircuitState.OPEN) {
-            if ((nowMs - stateSinceMs) < runtimePolicy.getOpenDurationMs()) {
+            if ((now - stateSince) < runtimePolicy.getOpenDuration()) {
                 return Decision.rejected(RejectReason.CIRCUIT_OPEN);
             }
             state = CircuitState.HALF_OPEN;
-            stateSinceMs = nowMs;
+            stateSince = now;
         }
 
         if (state == CircuitState.HALF_OPEN) {
@@ -70,26 +70,26 @@ class TenantBreakerEntry {
         return Decision.allowed();
     }
 
-    public synchronized void releaseBulkhead(long nowMs) {
+    public synchronized void releaseBulkhead(long now) {
 
-        lastAccessMs = nowMs;
+        lastAccess = now;
         if (inFlight > 0) {
             inFlight--;
         }
     }
 
-    public synchronized void recordResult(boolean success, long nowMs) {
+    public synchronized void recordResult(boolean success, long now) {
 
-        lastAccessMs = nowMs;
+        lastAccess = now;
 
         if (state == CircuitState.HALF_OPEN) {
             if (success) {
                 state = CircuitState.CLOSED;
-                stateSinceMs = nowMs;
+                stateSince = now;
                 window.reset();
             } else {
                 state = CircuitState.OPEN;
-                stateSinceMs = nowMs;
+                stateSince = now;
             }
             return;
         }
@@ -105,13 +105,13 @@ class TenantBreakerEntry {
 
         if (window.failureRate() >= runtimePolicy.getFailureRateThreshold()) {
             state = CircuitState.OPEN;
-            stateSinceMs = nowMs;
+            stateSince = now;
         }
     }
 
-    public synchronized boolean isEvictable(long nowMs, long idleEvictMs) {
+    public synchronized boolean isEvictable(long now, long idleEvict) {
 
-        return (nowMs - lastAccessMs) > idleEvictMs && inFlight == 0;
+        return (now - lastAccess) > idleEvict && inFlight == 0;
     }
 
     public synchronized CircuitState getState() {
@@ -144,8 +144,8 @@ class TenantBreakerEntry {
         return inFlight > 0;
     }
 
-    public synchronized long getLastAccessMs() {
+    public synchronized long getLastAccess() {
 
-        return lastAccessMs;
+        return lastAccess;
     }
 }

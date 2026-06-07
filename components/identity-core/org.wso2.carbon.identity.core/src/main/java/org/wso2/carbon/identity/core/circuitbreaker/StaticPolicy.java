@@ -25,22 +25,22 @@ package org.wso2.carbon.identity.core.circuitbreaker;
 public final class StaticPolicy {
 
     private final boolean enabled;
-    private final int cacheStripes;
-    private final int maxTenantsInCache;
-    private final long tenantEntryIdleEvictMs;
-    private final int cleanupTriggerEveryRequests;
-    private final int evictionScanLimit;
-    private final int hardCapEvictionScanLimit;
+    private final int cacheShardCount;
+    private final int tenantServiceCacheCapacity;
+    private final long tenantServiceEntryIdleTimeout;
+    private final int cleanupRequestInterval;
+    private final int tenantServiceScanLimit;
+    private final int tenantServiceOverflowScanLimit;
 
     private StaticPolicy(Builder builder) {
 
         this.enabled = builder.enabled;
-        this.cacheStripes = Math.max(builder.cacheStripes, 1);
-        this.maxTenantsInCache = builder.maxTenantsInCache;
-        this.tenantEntryIdleEvictMs = builder.tenantEntryIdleEvictMs;
-        this.cleanupTriggerEveryRequests = builder.cleanupTriggerEveryRequests;
-        this.evictionScanLimit = builder.evictionScanLimit;
-        this.hardCapEvictionScanLimit = builder.hardCapEvictionScanLimit;
+        this.cacheShardCount = Math.max(builder.cacheShardCount, 1);
+        this.tenantServiceCacheCapacity = builder.tenantServiceCacheCapacity;
+        this.tenantServiceEntryIdleTimeout = builder.tenantServiceEntryIdleTimeout;
+        this.cleanupRequestInterval = builder.cleanupRequestInterval;
+        this.tenantServiceScanLimit = builder.tenantServiceScanLimit;
+        this.tenantServiceOverflowScanLimit = builder.tenantServiceOverflowScanLimit;
     }
 
     public static Builder builder() {
@@ -53,34 +53,71 @@ public final class StaticPolicy {
         return enabled;
     }
 
-    public int getCacheStripes() {
+    /**
+     * Returns the number of independent lock stripes for the breaker entry cache.
+     * Increasing this reduces lock contention under high concurrency.
+     *
+     * @return number of cache shards.
+     */
+    public int getCacheShardCount() {
 
-        return cacheStripes;
+        return cacheShardCount;
     }
 
-    public int getMaxTenantsInCache() {
+    /**
+     * Returns the maximum number of (tenant, service) breaker entries held in memory at once.
+     * Each unique tenant-service pair occupies one slot.
+     *
+     * @return maximum tenant-service entry count.
+     */
+    public int getTenantServiceCacheCapacity() {
 
-        return maxTenantsInCache;
+        return tenantServiceCacheCapacity;
     }
 
-    public long getTenantEntryIdleEvictMs() {
+    /**
+     * Returns the idle eviction timeout for tenant-service entries.
+     * An entry with no active calls that has been idle longer than this value is eligible for eviction.
+     *
+     * @return idle timeout in milliseconds.
+     */
+    public long getTenantServiceEntryIdleTimeout() {
 
-        return tenantEntryIdleEvictMs;
+        return tenantServiceEntryIdleTimeout;
     }
 
-    public int getCleanupTriggerEveryRequests() {
+    /**
+     * Returns the number of requests processed between automatic idle-entry cleanup passes.
+     * A value of 0 disables periodic cleanup; entries are only evicted when the cache reaches capacity.
+     *
+     * @return requests per cleanup interval.
+     */
+    public int getCleanupRequestInterval() {
 
-        return cleanupTriggerEveryRequests;
+        return cleanupRequestInterval;
     }
 
-    public int getEvictionScanLimit() {
+    /**
+     * Returns the maximum number of entries inspected per periodic cleanup pass.
+     * Bounds the per-request overhead of background eviction during normal operation.
+     *
+     * @return entry scan limit per cleanup cycle.
+     */
+    public int getTenantServiceScanLimit() {
 
-        return evictionScanLimit;
+        return tenantServiceScanLimit;
     }
 
-    public int getHardCapEvictionScanLimit() {
+    /**
+     * Returns the maximum number of entries inspected when making room at full capacity.
+     * A larger value increases the chance of finding an evictable entry but adds latency
+     * to admission under capacity pressure.
+     *
+     * @return entry scan limit used during overflow eviction.
+     */
+    public int getTenantServiceOverflowScanLimit() {
 
-        return hardCapEvictionScanLimit;
+        return tenantServiceOverflowScanLimit;
     }
 
     /**
@@ -89,32 +126,32 @@ public final class StaticPolicy {
     public static final class Builder {
 
         private boolean enabled = CircuitBreakerConstants.Defaults.ENABLED;
-        private int cacheStripes = CircuitBreakerConstants.Defaults.CACHE_STRIPES;
-        private int maxTenantsInCache = CircuitBreakerConstants.Defaults.MAX_TENANTS_IN_CACHE;
-        private long tenantEntryIdleEvictMs = CircuitBreakerConstants.Defaults.TENANT_ENTRY_IDLE_EVICT_MS;
-        private int cleanupTriggerEveryRequests = CircuitBreakerConstants.Defaults.CLEANUP_EVERY_REQUESTS;
-        private int evictionScanLimit = CircuitBreakerConstants.Defaults.EVICTION_SCAN_LIMIT;
-        private int hardCapEvictionScanLimit = CircuitBreakerConstants.Defaults.HARD_CAP_EVICTION_SCAN_LIMIT;
+        private int cacheShardCount = CircuitBreakerConstants.Defaults.CACHE_SHARD_COUNT;
+        private int tenantServiceCacheCapacity = CircuitBreakerConstants.Defaults.TENANT_SERVICE_CACHE_CAPACITY;
+        private long tenantServiceEntryIdleTimeout = CircuitBreakerConstants.Defaults.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT;
+        private int cleanupRequestInterval = CircuitBreakerConstants.Defaults.CLEANUP_REQUEST_INTERVAL;
+        private int tenantServiceScanLimit = CircuitBreakerConstants.Defaults.TENANT_SERVICE_SCAN_LIMIT;
+        private int tenantServiceOverflowScanLimit = CircuitBreakerConstants.Defaults.TENANT_SERVICE_OVERFLOW_SCAN_LIMIT;
 
         public StaticPolicy build() {
 
-            if (maxTenantsInCache < 1) {
-                throw new IllegalArgumentException("maxTenantsInCache must be >= 1");
+            if (tenantServiceCacheCapacity < 1) {
+                throw new IllegalArgumentException("tenantServiceCacheCapacity must be >= 1");
             }
-            if (tenantEntryIdleEvictMs < 1) {
-                throw new IllegalArgumentException("tenantEntryIdleEvictMs must be >= 1");
+            if (tenantServiceEntryIdleTimeout < 1) {
+                throw new IllegalArgumentException("tenantServiceEntryIdleTimeout must be >= 1");
             }
-            if (cleanupTriggerEveryRequests < 0) {
-                throw new IllegalArgumentException("cleanupTriggerEveryRequests must be >= 0");
+            if (cleanupRequestInterval < 0) {
+                throw new IllegalArgumentException("cleanupRequestInterval must be >= 0");
             }
-            if (evictionScanLimit < 1) {
-                throw new IllegalArgumentException("evictionScanLimit must be >= 1");
+            if (tenantServiceScanLimit < 1) {
+                throw new IllegalArgumentException("tenantServiceScanLimit must be >= 1");
             }
-            if (hardCapEvictionScanLimit < 1) {
-                throw new IllegalArgumentException("hardCapEvictionScanLimit must be >= 1");
+            if (tenantServiceOverflowScanLimit < 1) {
+                throw new IllegalArgumentException("tenantServiceOverflowScanLimit must be >= 1");
             }
-            if (cacheStripes < 1) {
-                throw new IllegalArgumentException("cacheStripes must be >= 1");
+            if (cacheShardCount < 1) {
+                throw new IllegalArgumentException("cacheShardCount must be >= 1");
             }
             return new StaticPolicy(this);
         }
@@ -125,39 +162,45 @@ public final class StaticPolicy {
             return this;
         }
 
-        public Builder setCacheStripes(int cacheStripes) {
+        public Builder setCacheShardCount(int cacheShardCount) {
 
-            this.cacheStripes = cacheStripes;
+            this.cacheShardCount = cacheShardCount;
             return this;
         }
 
-        public Builder setMaxTenantsInCache(int maxTenantsInCache) {
+        public Builder setTenantServiceCacheCapacity(int tenantServiceCacheCapacity) {
 
-            this.maxTenantsInCache = maxTenantsInCache;
+            this.tenantServiceCacheCapacity = tenantServiceCacheCapacity;
             return this;
         }
 
-        public Builder setTenantEntryIdleEvictMs(long tenantEntryIdleEvictMs) {
+        /**
+         * Set the idle eviction timeout for tenant-service entries.
+         *
+         * @param tenantServiceEntryIdleTimeout idle timeout in milliseconds.
+         * @return this builder.
+         */
+        public Builder setTenantServiceEntryIdleTimeout(long tenantServiceEntryIdleTimeout) {
 
-            this.tenantEntryIdleEvictMs = tenantEntryIdleEvictMs;
+            this.tenantServiceEntryIdleTimeout = tenantServiceEntryIdleTimeout;
             return this;
         }
 
-        public Builder setCleanupTriggerEveryRequests(int cleanupTriggerEveryRequests) {
+        public Builder setCleanupRequestInterval(int cleanupRequestInterval) {
 
-            this.cleanupTriggerEveryRequests = cleanupTriggerEveryRequests;
+            this.cleanupRequestInterval = cleanupRequestInterval;
             return this;
         }
 
-        public Builder setEvictionScanLimit(int evictionScanLimit) {
+        public Builder setTenantServiceScanLimit(int tenantServiceScanLimit) {
 
-            this.evictionScanLimit = evictionScanLimit;
+            this.tenantServiceScanLimit = tenantServiceScanLimit;
             return this;
         }
 
-        public Builder setHardCapEvictionScanLimit(int hardCapEvictionScanLimit) {
+        public Builder setTenantServiceOverflowScanLimit(int tenantServiceOverflowScanLimit) {
 
-            this.hardCapEvictionScanLimit = hardCapEvictionScanLimit;
+            this.tenantServiceOverflowScanLimit = tenantServiceOverflowScanLimit;
             return this;
         }
     }

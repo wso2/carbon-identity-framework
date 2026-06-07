@@ -59,18 +59,18 @@ public final class DefaultPolicyConfigurationLoader {
         return StaticPolicy.builder()
                 .setEnabled(parseBoolean(CircuitBreakerConstants.PropertyKeys.ENABLED,
                         CircuitBreakerConstants.Defaults.ENABLED))
-                .setCacheStripes(parseInt(CircuitBreakerConstants.PropertyKeys.CACHE_STRIPES,
-                        CircuitBreakerConstants.Defaults.CACHE_STRIPES, 1))
-                .setMaxTenantsInCache(parseInt(CircuitBreakerConstants.PropertyKeys.MAX_TENANTS_IN_CACHE,
-                        CircuitBreakerConstants.Defaults.MAX_TENANTS_IN_CACHE, 1))
-                .setTenantEntryIdleEvictMs(parseLong(CircuitBreakerConstants.PropertyKeys.TENANT_ENTRY_IDLE_EVICT_MS,
-                        CircuitBreakerConstants.Defaults.TENANT_ENTRY_IDLE_EVICT_MS, 1L))
-                .setCleanupTriggerEveryRequests(parseInt(CircuitBreakerConstants.PropertyKeys.CLEANUP_EVERY_REQUESTS,
-                        CircuitBreakerConstants.Defaults.CLEANUP_EVERY_REQUESTS, 0))
-                .setEvictionScanLimit(parseInt(CircuitBreakerConstants.PropertyKeys.EVICTION_SCAN_LIMIT,
-                        CircuitBreakerConstants.Defaults.EVICTION_SCAN_LIMIT, 1))
-                .setHardCapEvictionScanLimit(parseInt(CircuitBreakerConstants.PropertyKeys.HARD_CAP_EVICTION_SCAN_LIMIT,
-                        CircuitBreakerConstants.Defaults.HARD_CAP_EVICTION_SCAN_LIMIT, 1))
+                .setCacheShardCount(parseInt(CircuitBreakerConstants.PropertyKeys.CACHE_SHARD_COUNT,
+                        CircuitBreakerConstants.Defaults.CACHE_SHARD_COUNT, 1))
+                .setTenantServiceCacheCapacity(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_CACHE_CAPACITY,
+                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_CACHE_CAPACITY, 1))
+                .setTenantServiceEntryIdleTimeout(parseLong(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT,
+                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT, 1L))
+                .setCleanupRequestInterval(parseInt(CircuitBreakerConstants.PropertyKeys.CLEANUP_REQUEST_INTERVAL,
+                        CircuitBreakerConstants.Defaults.CLEANUP_REQUEST_INTERVAL, 0))
+                .setTenantServiceScanLimit(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_SCAN_LIMIT,
+                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_SCAN_LIMIT, 1))
+                .setTenantServiceOverflowScanLimit(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_OVERFLOW_SCAN_LIMIT,
+                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_OVERFLOW_SCAN_LIMIT, 1))
                 .build();
     }
 
@@ -83,8 +83,8 @@ public final class DefaultPolicyConfigurationLoader {
                         CircuitBreakerConstants.Defaults.MIN_CALLS_TO_EVALUATE, 1))
                 .setFailureRateThreshold(parseDouble(CircuitBreakerConstants.PropertyKeys.FAILURE_RATE_THRESHOLD,
                         CircuitBreakerConstants.Defaults.FAILURE_RATE_THRESHOLD, 0D, 1D))
-                .setOpenDurationMs(parseLong(CircuitBreakerConstants.PropertyKeys.OPEN_DURATION_MS,
-                        CircuitBreakerConstants.Defaults.OPEN_DURATION_MS, 1L))
+                .setOpenDuration(parseLong(CircuitBreakerConstants.PropertyKeys.OPEN_DURATION,
+                        CircuitBreakerConstants.Defaults.OPEN_DURATION, 1L))
                 .setMaxInFlight(parseInt(CircuitBreakerConstants.PropertyKeys.MAX_IN_FLIGHT,
                         CircuitBreakerConstants.Defaults.MAX_IN_FLIGHT, 1))
                 .build();

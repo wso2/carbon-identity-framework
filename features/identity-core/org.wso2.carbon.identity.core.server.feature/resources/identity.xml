@@ -3078,16 +3078,16 @@
     <!-- Circuit Breaker configuration -->
     <CircuitBreaker>
         <Enabled>true</Enabled>
-        <CacheStripes>1</CacheStripes>
-        <MaxTenantsInCache>2</MaxTenantsInCache>
-        <TenantEntryIdleEvictMs>600000</TenantEntryIdleEvictMs>
-        <CleanupEveryRequests>5</CleanupEveryRequests>
-        <EvictionScanLimit>2</EvictionScanLimit>
-        <HardCapEvictionScanLimit>2</HardCapEvictionScanLimit>
+        <CacheShardCount>1</CacheShardCount>
+        <TenantServiceCacheCapacity>2</TenantServiceCacheCapacity>
+        <TenantServiceEntryIdleTimeout>600000</TenantServiceEntryIdleTimeout> <!-- value in milliseconds -->
+        <CleanupRequestInterval>5</CleanupRequestInterval>
+        <TenantServiceScanLimit>2</TenantServiceScanLimit>
+        <TenantServiceOverflowScanLimit>2</TenantServiceOverflowScanLimit>
         <WindowSize>2</WindowSize>
         <MinCallsToEvaluate>2</MinCallsToEvaluate>
         <FailureRateThreshold>0.50</FailureRateThreshold>
-        <OpenDurationMs>600000</OpenDurationMs>
+        <OpenDuration>600000</OpenDuration> <!-- value in milliseconds -->
         <MaxInFlight>2</MaxInFlight>
     </CircuitBreaker>
 </Server>

@@ -36,18 +36,20 @@ final class CircuitBreakerConstants {
 
         // StaticPolicy keys — require a server restart to take effect.
         public static final String ENABLED = PREFIX + "Enabled";
-        public static final String CACHE_STRIPES = PREFIX + "CacheStripes";
-        public static final String MAX_TENANTS_IN_CACHE = PREFIX + "MaxTenantsInCache";
-        public static final String TENANT_ENTRY_IDLE_EVICT_MS = PREFIX + "TenantEntryIdleEvictMs";
-        public static final String CLEANUP_EVERY_REQUESTS = PREFIX + "CleanupEveryRequests";
-        public static final String EVICTION_SCAN_LIMIT = PREFIX + "EvictionScanLimit";
-        public static final String HARD_CAP_EVICTION_SCAN_LIMIT = PREFIX + "HardCapEvictionScanLimit";
+        public static final String CACHE_SHARD_COUNT = PREFIX + "CacheShardCount";
+        public static final String TENANT_SERVICE_CACHE_CAPACITY = PREFIX + "TenantServiceCacheCapacity";
+        // Value in milliseconds.
+        public static final String TENANT_SERVICE_ENTRY_IDLE_TIMEOUT = PREFIX + "TenantServiceEntryIdleTimeout";
+        public static final String CLEANUP_REQUEST_INTERVAL = PREFIX + "CleanupRequestInterval";
+        public static final String TENANT_SERVICE_SCAN_LIMIT = PREFIX + "TenantServiceScanLimit";
+        public static final String TENANT_SERVICE_OVERFLOW_SCAN_LIMIT = PREFIX + "TenantServiceOverflowScanLimit";
 
         // RuntimePolicy keys — can be overridden at runtime.
         public static final String WINDOW_SIZE = PREFIX + "WindowSize";
         public static final String MIN_CALLS_TO_EVALUATE = PREFIX + "MinCallsToEvaluate";
         public static final String FAILURE_RATE_THRESHOLD = PREFIX + "FailureRateThreshold";
-        public static final String OPEN_DURATION_MS = PREFIX + "OpenDurationMs";
+        // Value in milliseconds.
+        public static final String OPEN_DURATION = PREFIX + "OpenDuration";
         public static final String MAX_IN_FLIGHT = PREFIX + "MaxInFlight";
 
         private PropertyKeys() {
@@ -62,18 +64,18 @@ final class CircuitBreakerConstants {
 
         // StaticPolicy defaults.
         public static final boolean ENABLED = true;
-        public static final int CACHE_STRIPES = 1;
-        public static final int MAX_TENANTS_IN_CACHE = 2;
-        public static final long TENANT_ENTRY_IDLE_EVICT_MS = 600000L;
-        public static final int CLEANUP_EVERY_REQUESTS = 5;
-        public static final int EVICTION_SCAN_LIMIT = 2;
-        public static final int HARD_CAP_EVICTION_SCAN_LIMIT = 2;
+        public static final int CACHE_SHARD_COUNT = 1;
+        public static final int TENANT_SERVICE_CACHE_CAPACITY = 2;
+        public static final long TENANT_SERVICE_ENTRY_IDLE_TIMEOUT = 600000L;
+        public static final int CLEANUP_REQUEST_INTERVAL = 5;
+        public static final int TENANT_SERVICE_SCAN_LIMIT = 2;
+        public static final int TENANT_SERVICE_OVERFLOW_SCAN_LIMIT = 2;
 
         // RuntimePolicy defaults.
         public static final int WINDOW_SIZE = 2;
         public static final int MIN_CALLS_TO_EVALUATE = 2;
         public static final double FAILURE_RATE_THRESHOLD = 0.50D;
-        public static final long OPEN_DURATION_MS = 600000L;
+        public static final long OPEN_DURATION = 600000L;
         public static final int MAX_IN_FLIGHT = 2;
 
         private Defaults() {
