@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.flow.mgt.Constants;
 import org.wso2.carbon.identity.flow.mgt.exception.FlowMgtServerException;
 import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
@@ -153,6 +154,10 @@ public class DefaultStepHandler implements StepHandler {
         Optional<String> appName = FrameworkUtils.getApplicationName(context);
         appName.ifPresent(name ->
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setApplicationName(name));
+        Optional<String> appResourceId = FrameworkUtils.getApplicationResourceId(context);
+        appResourceId.ifPresent(resourceId ->
+                IdentityUtil.threadLocalProperties.get().put(
+                        IdentityEventConstants.EventProperty.SERVICE_PROVIDER_UUID, resourceId));
         List<AuthenticatorConfig> authConfigList = stepConfig.getAuthenticatorList();
 
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
