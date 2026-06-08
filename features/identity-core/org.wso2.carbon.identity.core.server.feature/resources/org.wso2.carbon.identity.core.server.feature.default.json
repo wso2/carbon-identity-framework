@@ -2378,7 +2378,7 @@
   "saas.enable_app_creation": false,
   "saas.enable_cross_tenant_operations": false,
 
-  "analytics.moesif.provider_url": "https://api.moesif.net/v1/actions",
+  "analytics.moesif.provider_url": "https://api.moesif.net/v1",
   "analytics.moesif.auth_type": "API_KEY",
   "analytics.moesif.api_key_header": "X-Moesif-Application-Id",
   "analytics.moesif.stream_name": "org.wso2.is.analytics.stream.MoesifData",

@@ -2142,7 +2142,7 @@
     <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="POST">
         <Scopes>internal_moesif_config_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="PUT">
+    <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="PATCH">
         <Scopes>internal_moesif_config_update</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/moesif-publishers" secured="true" http-method="DELETE">
