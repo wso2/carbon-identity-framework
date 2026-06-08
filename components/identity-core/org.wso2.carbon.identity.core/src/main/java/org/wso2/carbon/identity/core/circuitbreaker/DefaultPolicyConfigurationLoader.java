@@ -59,18 +59,12 @@ public final class DefaultPolicyConfigurationLoader {
         return StaticPolicy.builder()
                 .setEnabled(parseBoolean(CircuitBreakerConstants.PropertyKeys.ENABLED,
                         CircuitBreakerConstants.Defaults.ENABLED))
-                .setCacheShardCount(parseInt(CircuitBreakerConstants.PropertyKeys.CACHE_SHARD_COUNT,
-                        CircuitBreakerConstants.Defaults.CACHE_SHARD_COUNT, 1))
                 .setTenantServiceCacheCapacity(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_CACHE_CAPACITY,
                         CircuitBreakerConstants.Defaults.TENANT_SERVICE_CACHE_CAPACITY, 1))
+                .setTenantServiceEvictionThreshold(parseDouble(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_EVICTION_THRESHOLD,
+                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_EVICTION_THRESHOLD, 0.0, 1.0))
                 .setTenantServiceEntryIdleTimeout(parseLong(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT,
                         CircuitBreakerConstants.Defaults.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT, 1L))
-                .setCleanupRequestInterval(parseInt(CircuitBreakerConstants.PropertyKeys.CLEANUP_REQUEST_INTERVAL,
-                        CircuitBreakerConstants.Defaults.CLEANUP_REQUEST_INTERVAL, 0))
-                .setTenantServiceScanLimit(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_SCAN_LIMIT,
-                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_SCAN_LIMIT, 1))
-                .setTenantServiceOverflowScanLimit(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_OVERFLOW_SCAN_LIMIT,
-                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_OVERFLOW_SCAN_LIMIT, 1))
                 .build();
     }
 

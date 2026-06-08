@@ -36,13 +36,10 @@ final class CircuitBreakerConstants {
 
         // StaticPolicy keys — require a server restart to take effect.
         public static final String ENABLED = PREFIX + "Enabled";
-        public static final String CACHE_SHARD_COUNT = PREFIX + "CacheShardCount";
         public static final String TENANT_SERVICE_CACHE_CAPACITY = PREFIX + "TenantServiceCacheCapacity";
+        public static final String TENANT_SERVICE_EVICTION_THRESHOLD = PREFIX + "TenantServiceEvictionThreshold";
         // Value in milliseconds.
         public static final String TENANT_SERVICE_ENTRY_IDLE_TIMEOUT = PREFIX + "TenantServiceEntryIdleTimeout";
-        public static final String CLEANUP_REQUEST_INTERVAL = PREFIX + "CleanupRequestInterval";
-        public static final String TENANT_SERVICE_SCAN_LIMIT = PREFIX + "TenantServiceScanLimit";
-        public static final String TENANT_SERVICE_OVERFLOW_SCAN_LIMIT = PREFIX + "TenantServiceOverflowScanLimit";
 
         // RuntimePolicy keys — can be overridden at runtime.
         public static final String WINDOW_SIZE = PREFIX + "WindowSize";
@@ -64,12 +61,9 @@ final class CircuitBreakerConstants {
 
         // StaticPolicy defaults.
         public static final boolean ENABLED = true;
-        public static final int CACHE_SHARD_COUNT = 1;
         public static final int TENANT_SERVICE_CACHE_CAPACITY = 2;
+        public static final double TENANT_SERVICE_EVICTION_THRESHOLD = 0.8;
         public static final long TENANT_SERVICE_ENTRY_IDLE_TIMEOUT = 600000L;
-        public static final int CLEANUP_REQUEST_INTERVAL = 5;
-        public static final int TENANT_SERVICE_SCAN_LIMIT = 2;
-        public static final int TENANT_SERVICE_OVERFLOW_SCAN_LIMIT = 2;
 
         // RuntimePolicy defaults.
         public static final int WINDOW_SIZE = 2;

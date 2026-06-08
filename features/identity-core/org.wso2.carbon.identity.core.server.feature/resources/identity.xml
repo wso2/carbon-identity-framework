@@ -3078,12 +3078,9 @@
     <!-- Circuit Breaker configuration -->
     <CircuitBreaker>
         <Enabled>true</Enabled>
-        <CacheShardCount>1</CacheShardCount>
         <TenantServiceCacheCapacity>2</TenantServiceCacheCapacity>
+        <TenantServiceEvictionThreshold>0.8</TenantServiceEvictionThreshold>
         <TenantServiceEntryIdleTimeout>600000</TenantServiceEntryIdleTimeout> <!-- value in milliseconds -->
-        <CleanupRequestInterval>5</CleanupRequestInterval>
-        <TenantServiceScanLimit>2</TenantServiceScanLimit>
-        <TenantServiceOverflowScanLimit>2</TenantServiceOverflowScanLimit>
         <WindowSize>2</WindowSize>
         <MinCallsToEvaluate>2</MinCallsToEvaluate>
         <FailureRateThreshold>0.50</FailureRateThreshold>

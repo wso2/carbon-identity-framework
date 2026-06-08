@@ -28,9 +28,10 @@ class TenantBreakerEntry {
 
     private CircuitState state = CircuitState.CLOSED;
     private long stateSince;
-    private long lastAccess;
+    private volatile long lastAccess;
 
-    private int inFlight;
+    private volatile int inFlight;
+    private volatile boolean fullyRecovered;
 
     public TenantBreakerEntry(RuntimePolicy runtimePolicy, long now) {
 
@@ -40,12 +41,12 @@ class TenantBreakerEntry {
         this.lastAccess = now;
     }
 
-    public synchronized Decision allowRequest(long now) {
+    public Decision allowRequest(long now) {
 
         lastAccess = now;
         if (state == CircuitState.OPEN) {
             if ((now - stateSince) < runtimePolicy.getOpenDuration()) {
-                return Decision.rejected(RejectReason.CIRCUIT_OPEN);
+                return Decision.rejected(DecisionReason.CIRCUIT_OPEN);
             }
             state = CircuitState.HALF_OPEN;
             stateSince = now;
@@ -53,24 +54,24 @@ class TenantBreakerEntry {
 
         if (state == CircuitState.HALF_OPEN) {
             if (inFlight > 0) {
-                return Decision.rejected(RejectReason.CIRCUIT_OPEN);
+                return Decision.rejected(DecisionReason.CIRCUIT_OPEN);
             }
         }
 
         return Decision.allowed();
     }
 
-    public synchronized Decision acquireBulkhead() {
+    public Decision acquireBulkhead() {
 
         if (inFlight >= runtimePolicy.getMaxInFlight()) {
-            return Decision.rejected(RejectReason.BULKHEAD_FULL);
+            return Decision.rejected(DecisionReason.BULKHEAD_FULL);
         }
 
         inFlight++;
         return Decision.allowed();
     }
 
-    public synchronized void releaseBulkhead(long now) {
+    public void releaseBulkhead(long now) {
 
         lastAccess = now;
         if (inFlight > 0) {
@@ -78,7 +79,7 @@ class TenantBreakerEntry {
         }
     }
 
-    public synchronized void recordResult(boolean success, long now) {
+    public void recordResult(boolean success, long now) {
 
         lastAccess = now;
 
@@ -91,60 +92,61 @@ class TenantBreakerEntry {
                 state = CircuitState.OPEN;
                 stateSince = now;
             }
-            return;
+        } else if (state == CircuitState.CLOSED) {
+            window.record(success);
+            if (window.calls() >= runtimePolicy.getMinCallsToEvaluate()
+                    && window.failureRate() >= runtimePolicy.getFailureRateThreshold()) {
+                state = CircuitState.OPEN;
+                stateSince = now;
+            }
         }
 
-        if (state != CircuitState.CLOSED) {
-            return;
-        }
-
-        window.record(success);
-        if (window.calls() < runtimePolicy.getMinCallsToEvaluate()) {
-            return;
-        }
-
-        if (window.failureRate() >= runtimePolicy.getFailureRateThreshold()) {
-            state = CircuitState.OPEN;
-            stateSince = now;
-        }
+        fullyRecovered = state == CircuitState.CLOSED
+                && window.calls() >= runtimePolicy.getMinCallsToEvaluate()
+                && window.failures() == 0;
     }
 
-    public synchronized boolean isEvictable(long now, long idleEvict) {
+    public boolean isFullyRecovered() {
+
+        return fullyRecovered;
+    }
+
+    public boolean isEvictable(long now, long idleEvict) {
 
         return (now - lastAccess) > idleEvict && inFlight == 0;
     }
 
-    public synchronized CircuitState getState() {
+    public CircuitState getState() {
 
         return state;
     }
 
-    public synchronized int getCalls() {
+    public int getCalls() {
 
         return window.calls();
     }
 
-    public synchronized int getFailures() {
+    public int getFailures() {
 
         return window.failures();
     }
 
-    public synchronized double getFailureRate() {
+    public double getFailureRate() {
 
         return window.failureRate();
     }
 
-    public synchronized int getInFlight() {
+    public int getInFlight() {
 
         return inFlight;
     }
 
-    public synchronized boolean hasInFlightRequests() {
+    public boolean hasInFlightRequests() {
 
         return inFlight > 0;
     }
 
-    public synchronized long getLastAccess() {
+    public long getLastAccess() {
 
         return lastAccess;
     }

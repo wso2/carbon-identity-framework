@@ -5317,25 +5317,15 @@
     <CircuitBreaker>
         <!-- Master switch. Set to false to disable the circuit breaker globally across all tenants and services. -->
         <Enabled>{{circuit_breaker.enabled}}</Enabled>
-        <!-- Number of independent lock stripes for the breaker entry cache. Increasing this reduces lock
-             contention under high concurrency. Should be a power of two for best distribution. -->
-        <CacheShardCount>{{circuit_breaker.cache_shard_count}}</CacheShardCount>
         <!-- Maximum number of (tenant, service) breaker entries held in memory at once.
              Each unique tenant-service pair occupies one slot. -->
         <TenantServiceCacheCapacity>{{circuit_breaker.tenant_service_cache_capacity}}</TenantServiceCacheCapacity>
+        <!-- Fraction of TenantServiceCacheCapacity at which eviction is triggered to make room for new entries.
+             Must be between 0 (exclusive) and 1 (inclusive). -->
+        <TenantServiceEvictionThreshold>{{circuit_breaker.tenant_service_eviction_threshold}}</TenantServiceEvictionThreshold>
         <!-- Time after which an idle (tenant, service) entry with no active calls is eligible for eviction.
              Controls memory reclamation for inactive tenants. Value in milliseconds. -->
         <TenantServiceEntryIdleTimeout>{{circuit_breaker.tenant_service_entry_idle_timeout}}</TenantServiceEntryIdleTimeout>
-        <!-- Number of requests processed between automatic idle-entry cleanup passes.
-             Set to 0 to disable periodic cleanup; entries are only evicted when the cache reaches capacity. -->
-        <CleanupRequestInterval>{{circuit_breaker.cleanup_request_interval}}</CleanupRequestInterval>
-        <!-- Maximum number of (tenant, service) entries inspected per periodic cleanup pass.
-             Bounds the per-request overhead of background eviction during normal operation. -->
-        <TenantServiceScanLimit>{{circuit_breaker.tenant_service_scan_limit}}</TenantServiceScanLimit>
-        <!-- Maximum number of (tenant, service) entries inspected when making room at full capacity.
-             A larger value increases the chance of finding an evictable entry but adds latency
-             to admission under capacity pressure. -->
-        <TenantServiceOverflowScanLimit>{{circuit_breaker.tenant_service_overflow_scan_limit}}</TenantServiceOverflowScanLimit>
         <!-- Size of the sliding call window per (tenant, service) entry.
              The breaker tracks the last N calls to compute the live failure rate. -->
         <WindowSize>{{circuit_breaker.window_size}}</WindowSize>

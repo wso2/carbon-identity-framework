@@ -23,15 +23,15 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  */
 public final class Decision {
 
-    private static final Decision ALLOWED = new Decision(true, RejectReason.NONE);
+    private static final Decision ALLOWED = new Decision(true, DecisionReason.NONE);
 
     private final boolean allowed;
-    private final RejectReason rejectReason;
+    private final DecisionReason reason;
 
-    private Decision(boolean allowed, RejectReason rejectReason) {
+    private Decision(boolean allowed, DecisionReason reason) {
 
         this.allowed = allowed;
-        this.rejectReason = rejectReason;
+        this.reason = reason;
     }
 
     public static Decision allowed() {
@@ -39,7 +39,12 @@ public final class Decision {
         return ALLOWED;
     }
 
-    public static Decision rejected(RejectReason reason) {
+    public static Decision allowed(DecisionReason reason) {
+
+        return new Decision(true, reason);
+    }
+
+    public static Decision rejected(DecisionReason reason) {
 
         return new Decision(false, reason);
     }
@@ -49,8 +54,8 @@ public final class Decision {
         return allowed;
     }
 
-    public RejectReason getRejectReason() {
+    public DecisionReason getReason() {
 
-        return rejectReason;
+        return reason;
     }
 }

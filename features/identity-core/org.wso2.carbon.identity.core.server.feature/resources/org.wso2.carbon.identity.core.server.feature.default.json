@@ -2387,12 +2387,9 @@
   "analytics.moesif.enabled": false,
 
   "circuit_breaker.enabled": true,
-  "circuit_breaker.cache_shard_count": 1,
   "circuit_breaker.tenant_service_cache_capacity": 2,
+  "circuit_breaker.tenant_service_eviction_threshold": 0.8,
   "circuit_breaker.tenant_service_entry_idle_timeout": 600000,
-  "circuit_breaker.cleanup_request_interval": 5,
-  "circuit_breaker.tenant_service_scan_limit": 2,
-  "circuit_breaker.tenant_service_overflow_scan_limit": 2,
   "circuit_breaker.window_size": 2,
   "circuit_breaker.min_calls_to_evaluate": 2,
   "circuit_breaker.failure_rate_threshold": 0.50,
