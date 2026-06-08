@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -31,6 +30,7 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentReceiptUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ConsentAppMappingException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
@@ -39,12 +39,12 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -54,7 +54,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,14 +70,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PURP
  * is not shown again until a new version is published.
  * Skipped for API-based authentication flows where browser redirects are not possible.
  */
-@Capability(
-        namespace = "osgi.service",
-        attribute = {
-                "objectClass=org.wso2.carbon.identity.application.authentication.framework.handler.request." +
-                        "PostAuthenticationHandler",
-                "service.scope=singleton"
-        }
-)
 public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
 
     private static final Log LOG = LogFactory.getLog(PolicyConsentPostAuthnHandler.class);
@@ -91,6 +82,12 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
     private static final String OPTIONAL_PURPOSE_ID_PARAM = "optionalPurposeId";
     private static final String POLICY_MANDATORY_IDS_PARAM = "policyMandatoryIds";
     private static final String POLICY_OPTIONAL_IDS_PARAM = "policyOptionalIds";
+
+    @Override
+    public String getName() {
+
+        return "PolicyConsentPostAuthenticationHandler";
+    }
 
     @Override
     public PostAuthnHandlerFlowStatus handle(HttpServletRequest request, HttpServletResponse response,
@@ -111,22 +108,13 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        if (authenticatedUser.isFederatedUser()) {
+        if (authenticatedUser.isFederatedUser() || authenticatedUser.isSharedUser()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Federated user detected. Skipping policy consent "
-                        + "handling for user: " + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
-                                authenticatedUser.getAuthenticatedSubjectIdentifier())
-                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
-            }
-            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-        }
-
-        if (isSuperTenantConsoleApp(context)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Super tenant Console application detected. Skipping policy consent handling for user: "
+                String userType = authenticatedUser.isFederatedUser() ? "Federated" : "Shared";
+                LOG.debug(userType + " user detected. Skipping policy consent handling for user: "
                         + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
-                                authenticatedUser.getAuthenticatedSubjectIdentifier())
-                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
+                        authenticatedUser.getAuthenticatedSubjectIdentifier())
+                        : authenticatedUser.getAuthenticatedSubjectIdentifier()));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -134,16 +122,6 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (getServiceProvider(context).isSaasApp()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("SaaS application detected. Skipping policy consent handling for user: "
-                        + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
-                                authenticatedUser.getAuthenticatedSubjectIdentifier())
-                                : authenticatedUser.getAuthenticatedSubjectIdentifier()));
-            }
-            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-        }
-
-        if (FrameworkUtils.isConsentPageSkippedForSP(getServiceProvider(context))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Consent page skipped for service provider. Skipping policy consent handling for user: "
                         + (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
                                 authenticatedUser.getAuthenticatedSubjectIdentifier())
                                 : authenticatedUser.getAuthenticatedSubjectIdentifier()));
@@ -164,16 +142,16 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         if (isPolicyConsentPrompted(context)) {
             return handlePostPolicyConsent(request, context);
         }
-        return handlePrePolicyConsent(request, response, context);
+        return handlePrePolicyConsent(response, context);
     }
 
     /**
      * Checks for unconsented policy purposes and redirects the user to the policy consent page if any are found.
+     * Only policies mapped to the current application via the consent-purpose-mapping resource type are considered.
      * The JSP retrieves the actual purpose lists via {@link PolicyConsentUtil} at render time.
      */
-    protected PostAuthnHandlerFlowStatus handlePrePolicyConsent(HttpServletRequest request,
-                                                                HttpServletResponse response,
-                                                                AuthenticationContext context)
+    private PostAuthnHandlerFlowStatus handlePrePolicyConsent(HttpServletResponse response,
+                                                              AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(context);
@@ -181,9 +159,19 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 authenticatedUser.getUserStoreDomain());
         String tenantDomain = authenticatedUser.getTenantDomain();
 
+        String appResourceId = getServiceProvider(context).getApplicationResourceId();
+        Set<String> mappedPolicyIds = getMappedPolicyIds(appResourceId, tenantDomain);
+        if (mappedPolicyIds.isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("No policy mappings found for application: %s. "
+                        + "Skipping policy consent handling.", appResourceId));
+            }
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
         boolean hasUnconsentedPolicies;
         try {
-            hasUnconsentedPolicies = PolicyConsentUtil.hasUnconsentedPolicies(subjectId, tenantDomain);
+            hasUnconsentedPolicies = PolicyConsentUtil.hasUnconsentedPolicies(subjectId, tenantDomain, mappedPolicyIds);
         } catch (ConsentManagementException e) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
@@ -228,7 +216,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
      * Mandatory and optional purpose IDs are read from hidden form fields rendered by the JSP
      * ({@value POLICY_MANDATORY_IDS_PARAM} and {@value POLICY_OPTIONAL_IDS_PARAM}).
      */
-    protected PostAuthnHandlerFlowStatus handlePostPolicyConsent(HttpServletRequest request,
+    private PostAuthnHandlerFlowStatus handlePostPolicyConsent(HttpServletRequest request,
                                                                  AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
@@ -255,9 +243,7 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
-            throw new PostAuthenticationFailedException(
-                    ErrorMessages.USER_DENIED_MANDATORY_POLICY_CONSENT.getCode(),
-                    ErrorMessages.USER_DENIED_MANDATORY_POLICY_CONSENT.getMessage());
+            return handleDeniedConsent(context);
         }
 
         String[] mandatoryParam = request.getParameterValues(POLICY_MANDATORY_IDS_PARAM);
@@ -270,9 +256,6 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 ? new ArrayList<>(Arrays.asList(optionalParam))
                 : Collections.emptyList();
 
-        // Re-derive the full allowed ID sets from the backend to reject tampered form submissions
-        // that either dropped mandatory IDs to skip consent or injected extra IDs to persist
-        // consents for purposes the server never presented.
         Set<String> allowedMandatoryIds;
         Set<String> allowedOptionalIds;
         try {
@@ -280,17 +263,14 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                     PolicyConsentUtil.classifyUnconsentedPolicies(subjectId, tenantDomain);
             Set<String> expectedMandatoryIds = new HashSet<>(classified.getMandatoryUnconsentedIds());
             expectedMandatoryIds.addAll(classified.getMandatoryNewVersionIds());
-            if (!mandatoryIds.containsAll(expectedMandatoryIds)) {
+            if (!new HashSet<>(mandatoryIds).containsAll(expectedMandatoryIds)) {
                 if (diagnosticLogBuilder != null) {
                     diagnosticLogBuilder
                             .resultMessage("Submitted mandatory policy IDs do not cover all required policies.")
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
-                throw new PostAuthenticationFailedException(
-                        ErrorMessages.USER_DENIED_MANDATORY_POLICY_CONSENT.getCode(),
-                        String.format("User: %s did not consent to all mandatory policies in tenant: %s.",
-                                subjectId, tenantDomain));
+                return handleDeniedConsent(context);
             }
             allowedMandatoryIds = expectedMandatoryIds;
             allowedOptionalIds = new HashSet<>(classified.getOptionalUnconsentedIds());
@@ -308,12 +288,8 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                             subjectId, tenantDomain), e);
         }
 
-        mandatoryIds = mandatoryIds.stream()
-                .filter(allowedMandatoryIds::contains)
-                .collect(Collectors.toList());
-        optionalIds = optionalIds.stream()
-                .filter(allowedOptionalIds::contains)
-                .collect(Collectors.toList());
+        mandatoryIds = mandatoryIds.stream().filter(allowedMandatoryIds::contains).toList();
+        optionalIds = optionalIds.stream().filter(allowedOptionalIds::contains).toList();
 
         String[] approvedOptionalParam = request.getParameterValues(OPTIONAL_PURPOSE_ID_PARAM);
         Set<String> approvedOptionalIds = (approvedOptionalParam != null)
@@ -388,24 +364,13 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         return context.getSequenceConfig().getAuthenticatedUser();
     }
 
+    @SuppressWarnings("unchecked")
     private void setPolicyConsentPromptedState(AuthenticationContext context) {
 
         context.addParameter(POLICY_CONSENT_PROMPTED, true);
     }
 
-    private boolean isSuperTenantConsoleApp(AuthenticationContext context) {
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(context.getTenantDomain())) {
-            return false;
-        }
-        String applicationName = context.getServiceProviderName();
-        if (applicationName == null && context.getSequenceConfig() != null
-                && context.getSequenceConfig().getApplicationConfig() != null) {
-            applicationName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
-        }
-        return FrameworkConstants.Application.CONSOLE_APP.equalsIgnoreCase(applicationName);
-    }
-
+    @SuppressWarnings("unchecked")
     private boolean isPolicyConsentPrompted(AuthenticationContext context) {
 
         return context.getParameter(POLICY_CONSENT_PROMPTED) != null;
@@ -416,14 +381,38 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         return FrameworkServiceDataHolder.getInstance().getConsentManager();
     }
 
-    @Override
-    public String getName() {
+    private PostAuthnHandlerFlowStatus handleDeniedConsent(AuthenticationContext context) {
 
-        return "PolicyConsentPostAuthenticationHandler";
+        context.setRequestAuthenticated(false);
+        return PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
     }
 
-    private ServiceProvider getServiceProvider(AuthenticationContext context) {
+    private Set<String> getMappedPolicyIds(String appResourceId, String tenantDomain)
+            throws PostAuthenticationFailedException {
 
-        return context.getSequenceConfig().getApplicationConfig().getServiceProvider();
+        try {
+            List<String> purposeIds = FrameworkServiceDataHolder.getInstance()
+                    .getConsentAppMappingService()
+                    .getPurposesForApplication(appResourceId);
+            return new HashSet<>(purposeIds);
+        } catch (ConsentAppMappingException e) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
+                    String.format("Error retrieving policy config mappings for application: %s in tenant: %s.",
+                            appResourceId, tenantDomain), e);
+        }
+    }
+
+    private ServiceProvider getServiceProvider(AuthenticationContext context) throws PostAuthenticationFailedException {
+
+        try {
+            return FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                    .getServiceProvider(context.getServiceProviderName(), context.getTenantDomain());
+        } catch (IdentityApplicationManagementException e) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
+                    String.format("Error retrieving service provider: %s in tenant: %s.",
+                            context.getServiceProviderName(), context.getTenantDomain()), e);
+        }
     }
 }

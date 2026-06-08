@@ -23,7 +23,6 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
 import org.wso2.carbon.identity.flow.execution.engine.Constants;
@@ -74,10 +73,7 @@ public class ConsentFlowExecutionListener extends AbstractFlowExecutionListener 
     @Override
     public boolean isEnabled() {
 
-        if (!FrameworkUtils.isConsentV2APIEnabled()) {
-            return false;
-        }
-        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId() == null;
+        return FrameworkUtils.isConsentV2APIEnabled();
     }
 
     @Override

@@ -31,7 +31,6 @@ public class IdentityConsentDataHolder {
     private ConsentManager consentManager = null;
     private PrivilegedConsentManager privilegedConsentManager = null;
     private SSOConsentService ssoConsentService = null;
-
     private IdentityConsentDataHolder() {
 
     }

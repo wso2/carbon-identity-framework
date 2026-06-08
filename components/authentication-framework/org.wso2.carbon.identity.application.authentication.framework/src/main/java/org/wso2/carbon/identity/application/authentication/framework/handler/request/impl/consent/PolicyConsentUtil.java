@@ -69,9 +69,9 @@ public final class PolicyConsentUtil {
         private final List<String> optionalNewVersionIds;
         private final String purposeMetadataJson;
 
-        ClassifiedPolicies(List<String> mandatoryUnconsentedIds, List<String> mandatoryNewVersionIds,
-                           List<String> optionalUnconsentedIds, List<String> optionalNewVersionIds,
-                           String purposeMetadataJson) {
+        public ClassifiedPolicies(List<String> mandatoryUnconsentedIds, List<String> mandatoryNewVersionIds,
+                                  List<String> optionalUnconsentedIds, List<String> optionalNewVersionIds,
+                                  String purposeMetadataJson) {
 
             this.mandatoryUnconsentedIds = mandatoryUnconsentedIds;
             this.mandatoryNewVersionIds = mandatoryNewVersionIds;
@@ -192,17 +192,17 @@ public final class PolicyConsentUtil {
     }
 
     /**
-     * Checks whether the user has any unconsented policy purpose, i.e. whether the policy consent page must be shown.
-     * Unlike {@link #classifyUnconsentedPolicies(String, String)} this short-circuits on the first match and avoids
-     * the per-purpose classification (mandatory/new-version) lookups and metadata building, so it is the preferred
-     * entry point when only the show/skip decision is needed.
+     * Checks whether the user has any unconsented policy purpose among the given set of policy IDs.
+     * When {@code policyIds} is non-empty only purposes whose UUID is in that set are evaluated;
+     * an empty set means all policy purposes are considered.
      *
      * @param subjectId    the user's subject identifier (domain-qualified)
      * @param tenantDomain the user's tenant domain
-     * @return {@code true} if at least one policy purpose requires consent
+     * @param policyIds    the set of policy purpose UUIDs to restrict the check to (empty = all)
+     * @return {@code true} if at least one matching policy purpose requires consent
      * @throws ConsentManagementException if an error occurs during consent lookup
      */
-    public static boolean hasUnconsentedPolicies(String subjectId, String tenantDomain)
+    public static boolean hasUnconsentedPolicies(String subjectId, String tenantDomain, Set<String> policyIds)
             throws ConsentManagementException {
 
         ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
@@ -210,6 +210,9 @@ public final class PolicyConsentUtil {
             startTenantFlow(subjectId, tenantDomain);
             List<Purpose> policyPurposes = getPolicyPurposes(consentManager);
             for (Purpose purpose : policyPurposes) {
+                if (!policyIds.isEmpty() && !policyIds.contains(purpose.getUuid())) {
+                    continue;
+                }
                 if (isPolicyConsentMissing(subjectId, purpose, consentManager)) {
                     return true;
                 }
@@ -220,11 +223,6 @@ public final class PolicyConsentUtil {
         }
     }
 
-    /**
-     * Determines whether the given policy purpose has a prompt-on-login version for which the user has not yet
-     * recorded consent. Shared by {@link #hasUnconsentedPolicies(String, String)} and
-     * {@link #classifyUnconsentedPolicies(String, String)}. Must be called within an active tenant flow.
-     */
     private static boolean isPolicyConsentMissing(String subjectId, Purpose purpose, ConsentManager consentManager)
             throws ConsentManagementException {
 
@@ -290,7 +288,6 @@ public final class PolicyConsentUtil {
         if (version == null || version.getProperties() == null) {
             return false;
         }
-
         return Boolean.parseBoolean(version.getProperties().get(PROMPT_ON_LOGIN_PROPERTY_KEY));
     }
 
@@ -310,8 +307,6 @@ public final class PolicyConsentUtil {
         if (promptOnLoginVersionIndex == -1) {
             return true;
         }
-        // Mandatory: only an ACTIVE receipt satisfies consent — revoked/rejected/expired must re-prompt.
-        // Optional: any receipt (any state) satisfies — once explicitly declined, don't re-ask.
         String state = mandatory ? ConsentConstants.ACTIVE_STATE : null;
         for (int i = promptOnLoginVersionIndex; i < allVersions.size(); i++) {
             List<Receipt> receipts = consentManager.listReceipts(subjectId, RESIDENT_IDP,
@@ -326,8 +321,6 @@ public final class PolicyConsentUtil {
     private static boolean hasConsentForAnyVersion(String subjectId, Purpose purpose, ConsentManager consentManager)
             throws ConsentManagementException {
 
-        // A null state matches any receipt (active or rejected); a single lookup tells us whether the user has
-        // ever responded to this policy, so it is enough to distinguish a new-version prompt from a first prompt.
         List<Receipt> receipts = consentManager.listReceipts(subjectId, RESIDENT_IDP,
                 null, purpose.getUuid(), null, null, null, 1);
         return receipts != null && !receipts.isEmpty();
