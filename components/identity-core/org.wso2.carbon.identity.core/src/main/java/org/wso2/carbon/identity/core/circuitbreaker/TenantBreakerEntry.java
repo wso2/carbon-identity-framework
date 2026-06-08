@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.circuitbreaker;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Tenant-local state holder used by the breaker manager.
  */
@@ -31,7 +33,7 @@ class TenantBreakerEntry {
     private volatile long lastAccess;
 
     private volatile int inFlight;
-    private volatile boolean fullyRecovered;
+    private final AtomicBoolean tracking;
 
     public TenantBreakerEntry(RuntimePolicy runtimePolicy, long now) {
 
@@ -39,6 +41,7 @@ class TenantBreakerEntry {
         this.window = new SlidingWindow(runtimePolicy.getWindowSize());
         this.stateSince = now;
         this.lastAccess = now;
+        this.tracking = new AtomicBoolean(true);
     }
 
     public Decision allowRequest(long now) {
@@ -101,14 +104,19 @@ class TenantBreakerEntry {
             }
         }
 
-        fullyRecovered = state == CircuitState.CLOSED
+        tracking.set(!(state == CircuitState.CLOSED
                 && window.calls() >= runtimePolicy.getMinCallsToEvaluate()
-                && window.failures() == 0;
+                && window.failures() == 0));
     }
 
-    public boolean isFullyRecovered() {
+    public boolean isTracking() {
 
-        return fullyRecovered;
+        return tracking.get();
+    }
+
+    public void untrack() {
+
+        tracking.set(false);
     }
 
     public boolean isEvictable(long now, long idleEvict) {
