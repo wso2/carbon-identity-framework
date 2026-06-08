@@ -222,15 +222,17 @@ public class CircuitBreakerManager {
         for (Map.Entry<String, TenantBreakerEntry> mapEntry : entries.entrySet()) {
             TenantBreakerEntry entry = mapEntry.getValue();
             if (entry.isEvictable(now, idleTimeout)) {
-                TenantBreakerEntry result = entries.computeIfPresent(mapEntry.getKey(), (k, current) -> {
+                boolean[] didEvict = {false};
+                entries.computeIfPresent(mapEntry.getKey(), (k, current) -> {
                     if (!current.isEvictable(now, idleTimeout)) {
                         return current;
                     }
                     current.untrack();
                     entryCount.decrementAndGet();
+                    didEvict[0] = true;
                     return null;
                 });
-                if (result == null) {
+                if (didEvict[0]) {
                     anyIdleEvicted = true;
                     evictedKeys.add(mapEntry.getKey());
                     continue;
@@ -250,36 +252,42 @@ public class CircuitBreakerManager {
         }
 
         if (oldestInactive != null) {
-            TenantBreakerEntry result = entries.computeIfPresent(oldestInactive.tenantKey, (k, current) -> {
+            boolean[] didEvict = {false};
+            entries.computeIfPresent(oldestInactive.tenantKey, (k, current) -> {
                 if (current.hasInFlightRequests()) {
                     return current;
                 }
                 current.untrack();
                 entryCount.decrementAndGet();
+                didEvict[0] = true;
                 return null;
             });
-            if (result == null) {
+            if (didEvict[0]) {
                 evictedKeys.add(oldestInactive.tenantKey);
                 return;
             }
         }
-        
-        entries.computeIfPresent(oldestOverall.tenantKey, (k, current) -> {
-            current.untrack();
-            entryCount.decrementAndGet();
-            return null;
-        });
-        evictedKeys.add(oldestOverall.tenantKey);
+
+        if (oldestOverall != null) {
+            boolean[] didEvict = {false};
+            entries.computeIfPresent(oldestOverall.tenantKey, (k, current) -> {
+                current.untrack();
+                entryCount.decrementAndGet();
+                didEvict[0] = true;
+                return null;
+            });
+            if (didEvict[0]) {
+                evictedKeys.add(oldestOverall.tenantKey);
+            }
+        }
     }
 
     private TenantBreakerEntry putIfAbsentEntry(String tenantKey, RuntimePolicy entryPolicy, long now) {
 
-        TenantBreakerEntry created = new TenantBreakerEntry(entryPolicy, now);
-        entries.computeIfAbsent(tenantKey, (k) -> {
+        return entries.computeIfAbsent(tenantKey, (k) -> {
             entryCount.incrementAndGet();
-            return created;
+            return new TenantBreakerEntry(entryPolicy, now);
         });
-        return created;
     }
 
     private void notifyForcedEviction(String tenantKey) {
