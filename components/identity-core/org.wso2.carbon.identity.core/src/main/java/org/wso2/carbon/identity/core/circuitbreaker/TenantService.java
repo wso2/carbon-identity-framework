@@ -23,6 +23,5 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  */
 public enum TenantService {
 
-    SMS_OTP,
     EMAIL_OTP
 }

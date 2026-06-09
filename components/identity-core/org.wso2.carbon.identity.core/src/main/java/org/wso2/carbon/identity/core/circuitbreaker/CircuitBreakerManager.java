@@ -139,7 +139,6 @@ public class CircuitBreakerManager {
             return;
         }
 
-
         CircuitState prevState;
         CircuitState currState;
         int calls, failures;
