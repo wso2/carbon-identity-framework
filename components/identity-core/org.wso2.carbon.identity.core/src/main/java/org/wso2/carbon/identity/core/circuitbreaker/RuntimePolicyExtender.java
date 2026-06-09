@@ -26,6 +26,9 @@ public interface RuntimePolicyExtender {
     /**
      * Returns the final effective runtime policy for the given tenant and service.
      *
+     * Note: This method is invoked on the hot path of the circuit breaker.
+     * Implementations must cache their results to avoid latency impact on request processing.
+     *
      * @param tenantDomain  The tenant domain.
      * @param service       The tenant service.
      * @param currentPolicy The policy after service-level loader overrides have been applied.

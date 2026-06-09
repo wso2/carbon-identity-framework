@@ -38,11 +38,21 @@ public final class StaticPolicy {
         this.tenantServiceEntryIdleTimeout = builder.tenantServiceEntryIdleTimeout;
     }
 
+    /**
+     * Returns a new {@link Builder} with default values.
+     *
+     * @return a new builder instance.
+     */
     public static Builder builder() {
 
         return new Builder();
     }
 
+    /**
+     * Returns {@code true} if the circuit breaker is enabled.
+     *
+     * @return {@code true} if enabled; {@code false} otherwise.
+     */
     public boolean isEnabled() {
 
         return enabled;
@@ -59,6 +69,11 @@ public final class StaticPolicy {
         return tenantServiceCacheCapacity;
     }
 
+    /**
+     * Returns the entry count at which eviction is triggered before admitting a new entry.
+     *
+     * @return eviction threshold as an absolute entry count.
+     */
     public int getTenantServiceEvictionThreshold() {
 
         return tenantServiceEvictionThreshold;
@@ -85,6 +100,12 @@ public final class StaticPolicy {
         private double tenantServiceEvictionThreshold = CircuitBreakerConstants.Defaults.TENANT_SERVICE_EVICTION_THRESHOLD;
         private long tenantServiceEntryIdleTimeout = CircuitBreakerConstants.Defaults.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT;
 
+        /**
+         * Builds and returns a validated {@link StaticPolicy}.
+         *
+         * @return the built {@link StaticPolicy}.
+         * @throws IllegalArgumentException if any field is out of range.
+         */
         public StaticPolicy build() {
 
             if (tenantServiceCacheCapacity < 1) {
@@ -99,18 +120,36 @@ public final class StaticPolicy {
             return new StaticPolicy(this);
         }
 
+        /**
+         * Sets whether the circuit breaker is enabled.
+         *
+         * @param enabled {@code true} to enable; {@code false} to disable.
+         * @return this builder.
+         */
         public Builder setEnabled(boolean enabled) {
 
             this.enabled = enabled;
             return this;
         }
 
+        /**
+         * Sets the maximum number of (tenant, service) entries held in memory.
+         *
+         * @param tenantServiceCacheCapacity maximum entry count.
+         * @return this builder.
+         */
         public Builder setTenantServiceCacheCapacity(int tenantServiceCacheCapacity) {
 
             this.tenantServiceCacheCapacity = tenantServiceCacheCapacity;
             return this;
         }
 
+        /**
+         * Sets the fill fraction (0.0–1.0) of the cache at which eviction is triggered.
+         *
+         * @param tenantServiceEvictionThreshold eviction threshold fraction.
+         * @return this builder.
+         */
         public Builder setTenantServiceEvictionThreshold(double tenantServiceEvictionThreshold) {
 
             this.tenantServiceEvictionThreshold = tenantServiceEvictionThreshold;

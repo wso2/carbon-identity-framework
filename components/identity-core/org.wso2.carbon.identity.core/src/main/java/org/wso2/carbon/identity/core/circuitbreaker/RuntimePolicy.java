@@ -40,6 +40,11 @@ public final class RuntimePolicy {
         this.maxInFlight = builder.maxInFlight;
     }
 
+    /**
+     * Returns a new {@link Builder} with default values.
+     *
+     * @return a new builder instance.
+     */
     public static Builder builder() {
 
         return new Builder();
@@ -111,6 +116,12 @@ public final class RuntimePolicy {
         private long openDuration = CircuitBreakerConstants.Defaults.OPEN_DURATION;
         private int maxInFlight = CircuitBreakerConstants.Defaults.MAX_IN_FLIGHT;
 
+        /**
+         * Builds and returns a validated {@link RuntimePolicy}.
+         *
+         * @return the built {@link RuntimePolicy}.
+         * @throws IllegalArgumentException if any field is out of range.
+         */
         public RuntimePolicy build() {
 
             if (windowSize < 1) {
@@ -131,18 +142,36 @@ public final class RuntimePolicy {
             return new RuntimePolicy(this);
         }
 
+        /**
+         * Sets the sliding window size.
+         *
+         * @param windowSize number of calls in the window.
+         * @return this builder.
+         */
         public Builder setWindowSize(int windowSize) {
 
             this.windowSize = windowSize;
             return this;
         }
 
+        /**
+         * Sets the minimum calls required before the failure rate is evaluated.
+         *
+         * @param minCallsToEvaluate minimum call count.
+         * @return this builder.
+         */
         public Builder setMinCallsToEvaluate(int minCallsToEvaluate) {
 
             this.minCallsToEvaluate = minCallsToEvaluate;
             return this;
         }
 
+        /**
+         * Sets the failure rate threshold that opens the circuit (0.0–1.0).
+         *
+         * @param failureRateThreshold failure rate threshold.
+         * @return this builder.
+         */
         public Builder setFailureRateThreshold(double failureRateThreshold) {
 
             this.failureRateThreshold = failureRateThreshold;
@@ -161,6 +190,12 @@ public final class RuntimePolicy {
             return this;
         }
 
+        /**
+         * Sets the maximum number of concurrent in-flight calls allowed.
+         *
+         * @param maxInFlight maximum concurrent calls.
+         * @return this builder.
+         */
         public Builder setMaxInFlight(int maxInFlight) {
 
             this.maxInFlight = maxInFlight;

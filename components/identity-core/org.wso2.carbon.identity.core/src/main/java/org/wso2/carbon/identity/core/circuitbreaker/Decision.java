@@ -44,16 +44,32 @@ public final class Decision {
         this.rejectReason = rejectReason;
     }
 
+    /**
+     * Returns the shared allowed decision.
+     *
+     * @return a {@link Decision} that permits the request.
+     */
     public static Decision allowed() {
 
         return ALLOWED;
     }
 
+    /**
+     * Returns the shared skip decision.
+     *
+     * @return a {@link Decision} that permits the request without tracking.
+     */
     public static Decision skip() {
 
         return ALLOWED_SKIP;
     }
 
+    /**
+     * Returns the shared rejected decision for the given reason.
+     *
+     * @param reason The reason for rejection.
+     * @return a {@link Decision} that denies the request.
+     */
     public static Decision rejected(RejectReason reason) {
 
         switch (reason) {
@@ -66,16 +82,31 @@ public final class Decision {
         }
     }
 
+    /**
+     * Returns {@code true} if the request is permitted (including skipped decisions).
+     *
+     * @return {@code true} if allowed or skipped; {@code false} if rejected.
+     */
     public boolean isAllowed() {
 
         return allowReason != null;
     }
 
+    /**
+     * Returns {@code true} if this decision was produced when no tracking entry existed for the tenant and service.
+     *
+     * @return {@code true} if the decision is a skip; {@code false} otherwise.
+     */
     public boolean isSkip() {
 
         return allowReason == AllowReason.SKIPPED;
     }
 
+    /**
+     * Returns the reason this request was rejected, or {@code null} if the request was allowed.
+     *
+     * @return the {@link RejectReason}, or {@code null} if allowed.
+     */
     public RejectReason getRejectReason() {
 
         return rejectReason;

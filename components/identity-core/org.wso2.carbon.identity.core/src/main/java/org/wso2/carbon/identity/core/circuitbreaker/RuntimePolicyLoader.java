@@ -33,6 +33,9 @@ public interface RuntimePolicyLoader {
     /**
      * Returns the effective runtime policy for the given tenant and service.
      *
+     * Note: This method is invoked on the hot path of the circuit breaker.
+     * Implementations must cache their results to avoid latency impact on request processing.
+     *
      * @param tenantDomain  The tenant domain.
      * @param service       The tenant service.
      * @param currentPolicy The current effective policy (immutable). Use {@link RuntimePolicy#builder()} to construct

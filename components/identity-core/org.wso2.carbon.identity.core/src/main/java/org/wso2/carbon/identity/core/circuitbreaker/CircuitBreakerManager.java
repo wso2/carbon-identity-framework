@@ -41,6 +41,11 @@ public class CircuitBreakerManager {
     private final StaticPolicy staticPolicy;
     private final RuntimePolicy defaultRuntimePolicy;
 
+    /**
+     * Returns the singleton instance.
+     *
+     * @return the {@link CircuitBreakerManager} instance
+     */
     public static CircuitBreakerManager getInstance() {
 
         return INSTANCE;
@@ -52,6 +57,13 @@ public class CircuitBreakerManager {
         this.defaultRuntimePolicy = DefaultPolicyConfigurationLoader.getRuntimePolicy();
     }
 
+    /**
+     * Attempts to acquire a permit for the given tenant and service.
+     *
+     * @param tenantDomain The tenant domain.
+     * @param service      The service being called.
+     * @return The acquire decision.
+     */
     public Decision tryAcquire(String tenantDomain, TenantService service) {
 
         if (!staticPolicy.isEnabled()) {
@@ -99,6 +111,15 @@ public class CircuitBreakerManager {
         return snapshot.decision();
     }
 
+    /**
+     * Records the outcome of a previously acquired call. Must be called with the {@link Decision} returned by
+     * {@link #tryAcquire}.
+     *
+     * @param tenantDomain    The tenant domain.
+     * @param service         The service that was called.
+     * @param acquireDecision The decision returned by {@link #tryAcquire}.
+     * @param success         {@code true} if the call succeeded.
+     */
     public void onComplete(String tenantDomain, TenantService service, Decision acquireDecision, boolean success) {
 
         if (StringUtils.isBlank(tenantDomain) || !staticPolicy.isEnabled() || !acquireDecision.isAllowed()) {
@@ -136,6 +157,11 @@ public class CircuitBreakerManager {
                 snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.failureRateThreshold());
     }
 
+    /**
+     * Removes all circuit-breaker entries for the given tenant across every {@link TenantService}.
+     *
+     * @param tenantDomain The tenant domain to invalidate.
+     */
     public void invalidateTenant(String tenantDomain) {
 
         if (StringUtils.isBlank(tenantDomain)) {
@@ -151,6 +177,12 @@ public class CircuitBreakerManager {
         }
     }
 
+    /**
+     * Removes the circuit-breaker entry for the given tenant and service.
+     *
+     * @param tenantDomain The tenant domain.
+     * @param service      The service whose entry should be removed.
+     */
     public void invalidateTenantService(String tenantDomain, TenantService service) {
 
         if (StringUtils.isBlank(tenantDomain)) {
@@ -164,6 +196,14 @@ public class CircuitBreakerManager {
         });
     }
 
+    /**
+     * Returns the existing entry for {@code tenantKey}, or creates and registers a new one.
+     * Returns {@code null} when the cache is at full capacity and no eviction could free a slot.
+     *
+     * @param tenantKey Composite key built from tenant domain and service name.
+     * @param now       Current epoch-millis timestamp.
+     * @return The entry, or {@code null} if the cache is full.
+     */
     private TenantBreakerEntry getOrCreateEntry(String tenantKey, long now) {
 
         TenantBreakerEntry existing = entries.get(tenantKey);
@@ -200,6 +240,13 @@ public class CircuitBreakerManager {
         return result;
     }
 
+    /**
+     * Evicts one or more entries to bring the cache below the eviction threshold.
+     * Note: Not standalone thread-safe. Must be called while holding {@link #admissionLock}.
+     *
+     * @param now         Current epoch-millis timestamp.
+     * @param evictedKeys List to collect keys of evicted entries.
+     */
     private void ensureCapacity(long now, List<String> evictedKeys) {
 
         if (entries.size() < staticPolicy.getTenantServiceEvictionThreshold()) {
@@ -271,6 +318,11 @@ public class CircuitBreakerManager {
         }
     }
 
+    /**
+     * Dispatches an {@link TenantServiceBreakerObserver#onForcedEviction} event for the given key.
+     *
+     * @param tenantKey Composite key of the evicted entry.
+     */
     private void notifyForcedEviction(String tenantKey) {
 
         TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(tenantKey);
@@ -281,6 +333,11 @@ public class CircuitBreakerManager {
         }
     }
 
+    /**
+     * Dispatches an {@link TenantServiceBreakerObserver#onCacheFull} event for the given key.
+     *
+     * @param tenantKey Composite key of the entry that could not be admitted.
+     */
     private void notifyCacheFull(String tenantKey) {
 
         TenantKeyUtil.TenantKeyParts parts = TenantKeyUtil.parse(tenantKey);
@@ -291,6 +348,18 @@ public class CircuitBreakerManager {
         }
     }
 
+    /**
+     * Dispatches a {@link TenantServiceBreakerObserver#onStateTransition} event only when the circuit state changed.
+     *
+     * @param tenantDomain         The tenant domain.
+     * @param service              The service.
+     * @param previousState        State before the last operation.
+     * @param currentState         State after the last operation.
+     * @param calls                Total calls in the current window.
+     * @param failures             Failed calls in the current window.
+     * @param failureRate          Current failure rate.
+     * @param failureRateThreshold Configured threshold that triggered the transition.
+     */
     private void notifyTransitionIfRequired(String tenantDomain, TenantService service, CircuitState previousState,
                                             CircuitState currentState, int calls, int failures, double failureRate,
                                             double failureRateThreshold) {
@@ -306,6 +375,18 @@ public class CircuitBreakerManager {
         }
     }
 
+    /**
+     * Dispatches a {@link TenantServiceBreakerObserver#onRejection} event for a denied acquire decision.
+     *
+     * @param tenantDomain The tenant domain.
+     * @param service      The service.
+     * @param decision     The rejected decision carrying the {@link RejectReason}.
+     * @param state        Current circuit state at the time of rejection.
+     * @param calls        Total calls in the current window.
+     * @param failures     Failed calls in the current window.
+     * @param failureRate  Current failure rate.
+     * @param inFlight     Number of in-flight requests at the time of rejection.
+     */
     private void notifyRejection(String tenantDomain, TenantService service, Decision decision,
                                  CircuitState state, int calls, int failures, double failureRate,
                                  int inFlight) {
@@ -317,6 +398,12 @@ public class CircuitBreakerManager {
         }
     }
 
+    /**
+     * Returns the registered observer for the given service, or {@code null} if none is registered.
+     *
+     * @param service The service.
+     * @return The observer, or {@code null}.
+     */
     private TenantServiceBreakerObserver observerFor(TenantService service) {
 
         return IdentityCoreServiceDataHolder.getInstance().getTenantServiceBreakerObserver(service);

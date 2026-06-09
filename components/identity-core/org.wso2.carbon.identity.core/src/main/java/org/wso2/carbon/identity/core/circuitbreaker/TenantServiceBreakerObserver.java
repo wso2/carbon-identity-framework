@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.core.circuitbreaker;
 
 /**
  * Observer hook for transition and rejection events for a specific tenant service.
+ *
+ * Note: All methods are invoked on the circuit breaker request path. Implementations must not
+ * perform blocking or high-overhead operations — use asynchronous dispatch if heavy work is needed.
  */
 public interface TenantServiceBreakerObserver {
 

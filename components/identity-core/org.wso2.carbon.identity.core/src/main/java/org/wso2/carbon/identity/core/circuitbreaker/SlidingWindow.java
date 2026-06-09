@@ -28,11 +28,25 @@ class SlidingWindow {
     private int filled;
     private int failures;
 
+    /**
+     * Creates a new window with the given capacity.
+     *
+     * Note: Not standalone thread-safe. Must be accessed under the caller's synchronization.
+     *
+     * @param windowSize maximum number of outcomes tracked.
+     */
     public SlidingWindow(int windowSize) {
 
         this.outcomes = new byte[windowSize];
     }
 
+    /**
+     * Records a call outcome, evicting the oldest entry when the window is full.
+     *
+     * Note: Not standalone thread-safe. Must be accessed under the caller's synchronization.
+     *
+     * @param success {@code true} if the call succeeded; {@code false} if it failed.
+     */
     public void record(boolean success) {
 
         byte next = (byte) (success ? 1 : 0);
@@ -53,16 +67,37 @@ class SlidingWindow {
         index = (index + 1) % outcomes.length;
     }
 
+    /**
+     * Returns the number of recorded calls in the window.
+     *
+     * Note: Not standalone thread-safe. Must be accessed under the caller's synchronization.
+     *
+     * @return total calls recorded.
+     */
     public int calls() {
 
         return filled;
     }
 
+    /**
+     * Returns the number of failed calls in the window.
+     *
+     * Note: Not standalone thread-safe. Must be accessed under the caller's synchronization.
+     *
+     * @return total failures recorded.
+     */
     public int failures() {
 
         return failures;
     }
 
+    /**
+     * Returns the failure rate as a fraction between 0.0 and 1.0.
+     *
+     * Note: Not standalone thread-safe. Must be accessed under the caller's synchronization.
+     *
+     * @return failure rate, or {@code 0.0} if no calls have been recorded.
+     */
     public double failureRate() {
 
         if (filled == 0) {
@@ -71,6 +106,11 @@ class SlidingWindow {
         return (double) failures / (double) filled;
     }
 
+    /**
+     * Resets the window, clearing all recorded outcomes.
+     *
+     * Note: Not standalone thread-safe. Must be accessed under the caller's synchronization.
+     */
     public void reset() {
 
         index = 0;

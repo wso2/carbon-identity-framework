@@ -28,6 +28,11 @@ public class RuntimePolicyResolver {
 
     private static final RuntimePolicyResolver INSTANCE = new RuntimePolicyResolver();
 
+    /**
+     * Returns the singleton instance.
+     *
+     * @return the {@link RuntimePolicyResolver} instance.
+     */
     public static RuntimePolicyResolver getInstance() {
 
         return INSTANCE;
