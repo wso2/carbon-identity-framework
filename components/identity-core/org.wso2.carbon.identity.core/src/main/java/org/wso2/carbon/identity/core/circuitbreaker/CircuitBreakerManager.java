@@ -81,34 +81,36 @@ public class CircuitBreakerManager {
         }
 
         long now = System.currentTimeMillis();
-        AcquireSnapshot[] snap = new AcquireSnapshot[1];
-        entries.computeIfPresent(tenantKey, (key, currentEntry) -> {
-            if (!currentEntry.isTracking()) {
-                return currentEntry;
+        CircuitState prevState;
+        CircuitState currState;
+        Decision decision;
+        int calls, failures, inFlight;
+        double failureRate, failureRateThreshold;
+
+        synchronized (entry) {
+            if (!entry.isTracking()) {
+                return Decision.skip();
             }
-            CircuitState prev = currentEntry.getState();
-            Decision decision = currentEntry.allowRequest(now);
+            prevState = entry.getState();
+            decision = entry.allowRequest(now);
             if (decision.isAllowed()) {
-                decision = currentEntry.acquireBulkhead();
+                decision = entry.acquireBulkhead();
             }
-            snap[0] = new AcquireSnapshot(prev, currentEntry.getState(), decision,
-                    currentEntry.getCalls(), currentEntry.getFailures(), currentEntry.getInFlight(),
-                    currentEntry.getFailureRate(), currentEntry.getFailureRateThreshold());
-            return currentEntry;
-        });
-
-        if (snap[0] == null) {
-            return Decision.skip();
+            currState = entry.getState();
+            calls = entry.getCalls();
+            failures = entry.getFailures();
+            inFlight = entry.getInFlight();
+            failureRate = entry.getFailureRate();
+            failureRateThreshold = entry.getFailureRateThreshold();
         }
 
-        AcquireSnapshot snapshot = snap[0];
-        notifyTransitionIfRequired(tenantDomain, service, snapshot.previousState(), snapshot.currentState(),
-                snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.failureRateThreshold());
-        if (!snapshot.decision().isAllowed()) {
-            notifyRejection(tenantDomain, service, snapshot.decision(), snapshot.currentState(),
-                    snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.inFlight());
+        notifyTransitionIfRequired(tenantDomain, service, prevState, currState,
+                calls, failures, failureRate, failureRateThreshold);
+        if (!decision.isAllowed()) {
+            notifyRejection(tenantDomain, service, decision, currState,
+                    calls, failures, failureRate, inFlight);
         }
-        return snapshot.decision();
+        return decision;
     }
 
     /**
@@ -132,29 +134,32 @@ public class CircuitBreakerManager {
 
         long now = System.currentTimeMillis();
         String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
-        if (acquireDecision.isSkip() && getOrCreateEntry(tenantKey, now) == null) {
+        TenantBreakerEntry entry = getOrCreateEntry(tenantKey, now);
+        if (entry == null) {
             return;
         }
 
-        CompleteSnapshot[] snap = new CompleteSnapshot[1];
-        entries.computeIfPresent(tenantKey, (key, entry) -> {
+
+        CircuitState prevState;
+        CircuitState currState;
+        int calls, failures;
+        double failureRate, failureRateThreshold;
+
+        synchronized (entry) {
             if (!acquireDecision.isSkip()) {
                 entry.releaseBulkhead(now);
             }
-            CircuitState prev = entry.getState();
+            prevState = entry.getState();
             entry.recordResult(success, now);
-            snap[0] = new CompleteSnapshot(prev, entry.getState(),
-                    entry.getCalls(), entry.getFailures(), entry.getFailureRate(), entry.getFailureRateThreshold());
-            return entry;
-        });
-
-        if (snap[0] == null) {
-            return;
+            currState = entry.getState();
+            calls = entry.getCalls();
+            failures = entry.getFailures();
+            failureRate = entry.getFailureRate();
+            failureRateThreshold = entry.getFailureRateThreshold();
         }
 
-        CompleteSnapshot snapshot = snap[0];
-        notifyTransitionIfRequired(tenantDomain, service, snapshot.previousState(), snapshot.currentState(),
-                snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.failureRateThreshold());
+        notifyTransitionIfRequired(tenantDomain, service, prevState, currState,
+                calls, failures, failureRate, failureRateThreshold);
     }
 
     /**
@@ -407,28 +412,6 @@ public class CircuitBreakerManager {
     private TenantServiceBreakerObserver observerFor(TenantService service) {
 
         return IdentityCoreServiceDataHolder.getInstance().getTenantServiceBreakerObserver(service);
-    }
-
-    private record AcquireSnapshot(
-            CircuitState previousState,
-            CircuitState currentState,
-            Decision decision,
-            int calls,
-            int failures,
-            int inFlight,
-            double failureRate,
-            double failureRateThreshold) {
-
-    }
-
-    private record CompleteSnapshot(
-            CircuitState previousState,
-            CircuitState currentState,
-            int calls,
-            int failures,
-            double failureRate,
-            double failureRateThreshold) {
-
     }
 
     private record EvictionCandidate(String tenantKey, long lastAccess) {
