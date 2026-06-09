@@ -69,40 +69,34 @@ public class CircuitBreakerManager {
         }
 
         long now = System.currentTimeMillis();
-        CircuitState[] states = new CircuitState[2];
-        Decision[] decision = new Decision[1];
-        int[] intStats = new int[3];       // [0]=calls, [1]=failures, [2]=inFlight.
-        double[] doubleStats = new double[2]; // [0]=failureRate, [1]=failureRateThreshold.
-        entries.computeIfPresent(tenantKey, (k, e) -> {
-            if (!e.isTracking()) {
-                return e;
+        AcquireSnapshot[] snap = new AcquireSnapshot[1];
+        entries.computeIfPresent(tenantKey, (key, currentEntry) -> {
+            if (!currentEntry.isTracking()) {
+                return currentEntry;
             }
-            states[0] = e.getState();
-            Decision d = e.allowRequest(now);
-            if (d.isAllowed()) {
-                d = e.acquireBulkhead();
+            CircuitState prev = currentEntry.getState();
+            Decision decision = currentEntry.allowRequest(now);
+            if (decision.isAllowed()) {
+                decision = currentEntry.acquireBulkhead();
             }
-            states[1] = e.getState();
-            decision[0] = d;
-            intStats[0] = e.getCalls();
-            intStats[1] = e.getFailures();
-            intStats[2] = e.getInFlight();
-            doubleStats[0] = e.getFailureRate();
-            doubleStats[1] = e.getFailureRateThreshold();
-            return e;
+            snap[0] = new AcquireSnapshot(prev, currentEntry.getState(), decision,
+                    currentEntry.getCalls(), currentEntry.getFailures(), currentEntry.getInFlight(),
+                    currentEntry.getFailureRate(), currentEntry.getFailureRateThreshold());
+            return currentEntry;
         });
 
-        if (decision[0] == null) {
+        if (snap[0] == null) {
             return Decision.skip();
         }
 
-        notifyTransitionIfRequired(tenantDomain, service, states[0], states[1],
-                intStats[0], intStats[1], doubleStats[0], doubleStats[1]);
-        if (!decision[0].isAllowed()) {
-            notifyRejection(tenantDomain, service, decision[0], states[1],
-                    intStats[0], intStats[1], doubleStats[0], intStats[2]);
+        AcquireSnapshot snapshot = snap[0];
+        notifyTransitionIfRequired(tenantDomain, service, snapshot.previousState(), snapshot.currentState(),
+                snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.failureRateThreshold());
+        if (!snapshot.decision().isAllowed()) {
+            notifyRejection(tenantDomain, service, snapshot.decision(), snapshot.currentState(),
+                    snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.inFlight());
         }
-        return decision[0];
+        return snapshot.decision();
     }
 
     public void onComplete(String tenantDomain, TenantService service, Decision acquireDecision, boolean success) {
@@ -121,29 +115,25 @@ public class CircuitBreakerManager {
             return;
         }
 
-        CircuitState[] states = new CircuitState[2];
-        int[] intStats = new int[2];          // [0]=calls, [1]=failures.
-        double[] doubleStats = new double[2]; // [0]=failureRate, [1]=failureRateThreshold.
-        entries.computeIfPresent(tenantKey, (k, e) -> {
-            states[0] = e.getState();
+        CompleteSnapshot[] snap = new CompleteSnapshot[1];
+        entries.computeIfPresent(tenantKey, (key, entry) -> {
+            CircuitState prev = entry.getState();
             if (!acquireDecision.isSkip()) {
-                e.releaseBulkhead(now);
+                entry.releaseBulkhead(now);
             }
-            e.recordResult(success, now);
-            states[1] = e.getState();
-            intStats[0] = e.getCalls();
-            intStats[1] = e.getFailures();
-            doubleStats[0] = e.getFailureRate();
-            doubleStats[1] = e.getFailureRateThreshold();
-            return e;
+            entry.recordResult(success, now);
+            snap[0] = new CompleteSnapshot(prev, entry.getState(),
+                    entry.getCalls(), entry.getFailures(), entry.getFailureRate(), entry.getFailureRateThreshold());
+            return entry;
         });
 
-        if (states[1] == null) {
+        if (snap[0] == null) {
             return;
         }
 
-        notifyTransitionIfRequired(tenantDomain, service, states[0], states[1],
-                intStats[0], intStats[1], doubleStats[0], doubleStats[1]);
+        CompleteSnapshot snapshot = snap[0];
+        notifyTransitionIfRequired(tenantDomain, service, snapshot.previousState(), snapshot.currentState(),
+                snapshot.calls(), snapshot.failures(), snapshot.failureRate(), snapshot.failureRateThreshold());
     }
 
     public void invalidateTenant(String tenantDomain) {
@@ -154,7 +144,7 @@ public class CircuitBreakerManager {
 
         for (TenantService service : TenantService.values()) {
             String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
-            entries.computeIfPresent(tenantKey, (k, current) -> {
+            entries.computeIfPresent(tenantKey, (key, current) -> {
                 current.untrack();
                 return null;
             });
@@ -168,7 +158,7 @@ public class CircuitBreakerManager {
         }
 
         String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
-        entries.computeIfPresent(tenantKey, (k, current) -> {
+        entries.computeIfPresent(tenantKey, (key, current) -> {
             current.untrack();
             return null;
         });
@@ -183,18 +173,19 @@ public class CircuitBreakerManager {
 
         List<String> evictedKeys = new ArrayList<>();
         TenantBreakerEntry result;
+        RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimePolicy);
         admissionLock.lock();
         try {
             existing = entries.get(tenantKey);
             if (existing != null) {
                 return existing;
             }
-            RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimePolicy);
             ensureCapacity(now, evictedKeys);
             if (entries.size() >= staticPolicy.getTenantServiceCacheCapacity()) {
                 result = null;
             } else {
-                result = entries.computeIfAbsent(tenantKey, k -> new TenantBreakerEntry(entryPolicy, now));
+                result = new TenantBreakerEntry(entryPolicy, now);
+                entries.put(tenantKey, result);
             }
         } finally {
             admissionLock.unlock();
@@ -224,7 +215,7 @@ public class CircuitBreakerManager {
             TenantBreakerEntry entry = mapEntry.getValue();
             if (entry.isEvictable(now, idleTimeout)) {
                 boolean[] didEvict = {false};
-                entries.computeIfPresent(mapEntry.getKey(), (k, current) -> {
+                entries.computeIfPresent(mapEntry.getKey(), (key, current) -> {
                     if (!current.isEvictable(now, idleTimeout)) {
                         return current;
                     }
@@ -239,10 +230,10 @@ public class CircuitBreakerManager {
                 }
             }
             long lastAccess = entry.getLastAccess();
-            if (!entry.hasInFlightRequests() && (oldestInactive == null || lastAccess < oldestInactive.lastAccess)) {
+            if (!entry.hasInFlightRequests() && (oldestInactive == null || lastAccess < oldestInactive.lastAccess())) {
                 oldestInactive = new EvictionCandidate(mapEntry.getKey(), lastAccess);
             }
-            if (oldestOverall == null || lastAccess < oldestOverall.lastAccess) {
+            if (oldestOverall == null || lastAccess < oldestOverall.lastAccess()) {
                 oldestOverall = new EvictionCandidate(mapEntry.getKey(), lastAccess);
             }
         }
@@ -253,7 +244,7 @@ public class CircuitBreakerManager {
 
         if (oldestInactive != null) {
             boolean[] didEvict = {false};
-            entries.computeIfPresent(oldestInactive.tenantKey, (k, current) -> {
+            entries.computeIfPresent(oldestInactive.tenantKey(), (key, current) -> {
                 if (current.hasInFlightRequests()) {
                     return current;
                 }
@@ -262,20 +253,20 @@ public class CircuitBreakerManager {
                 return null;
             });
             if (didEvict[0]) {
-                evictedKeys.add(oldestInactive.tenantKey);
+                evictedKeys.add(oldestInactive.tenantKey());
                 return;
             }
         }
 
         if (oldestOverall != null) {
             boolean[] didEvict = {false};
-            entries.computeIfPresent(oldestOverall.tenantKey, (k, current) -> {
+            entries.computeIfPresent(oldestOverall.tenantKey(), (key, current) -> {
                 current.untrack();
                 didEvict[0] = true;
                 return null;
             });
             if (didEvict[0]) {
-                evictedKeys.add(oldestOverall.tenantKey);
+                evictedKeys.add(oldestOverall.tenantKey());
             }
         }
     }
@@ -331,15 +322,29 @@ public class CircuitBreakerManager {
         return IdentityCoreServiceDataHolder.getInstance().getTenantServiceBreakerObserver(service);
     }
 
-    private static final class EvictionCandidate {
+    private record AcquireSnapshot(
+            CircuitState previousState,
+            CircuitState currentState,
+            Decision decision,
+            int calls,
+            int failures,
+            int inFlight,
+            double failureRate,
+            double failureRateThreshold) {
 
-        private final String tenantKey;
-        private final long lastAccess;
+    }
 
-        private EvictionCandidate(String tenantKey, long lastAccess) {
+    private record CompleteSnapshot(
+            CircuitState previousState,
+            CircuitState currentState,
+            int calls,
+            int failures,
+            double failureRate,
+            double failureRateThreshold) {
 
-            this.tenantKey = tenantKey;
-            this.lastAccess = lastAccess;
-        }
+    }
+
+    private record EvictionCandidate(String tenantKey, long lastAccess) {
+
     }
 }

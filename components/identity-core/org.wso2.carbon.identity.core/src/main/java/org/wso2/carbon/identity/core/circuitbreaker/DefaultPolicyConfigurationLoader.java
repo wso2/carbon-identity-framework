@@ -101,8 +101,8 @@ public final class DefaultPolicyConfigurationLoader {
         }
         try {
             return Math.max(Integer.parseInt(value.trim()), min);
-        } catch (NumberFormatException e) {
-            LOG.warn("Invalid integer for property '" + key + "', using default " + defaultValue + ".", e);
+        } catch (NumberFormatException ex) {
+            LOG.warn("Invalid integer for property '" + key + "', using default " + defaultValue + ".", ex);
             return defaultValue;
         }
     }
@@ -115,8 +115,8 @@ public final class DefaultPolicyConfigurationLoader {
         }
         try {
             return Math.max(Long.parseLong(value.trim()), min);
-        } catch (NumberFormatException e) {
-            LOG.warn("Invalid long for property '" + key + "', using default " + defaultValue + ".", e);
+        } catch (NumberFormatException ex) {
+            LOG.warn("Invalid long for property '" + key + "', using default " + defaultValue + ".", ex);
             return defaultValue;
         }
     }
@@ -129,8 +129,8 @@ public final class DefaultPolicyConfigurationLoader {
         }
         try {
             return Math.max(Math.min(Double.parseDouble(value.trim()), max), min);
-        } catch (NumberFormatException e) {
-            LOG.warn("Invalid double for property '" + key + "', using default " + defaultValue + ".", e);
+        } catch (NumberFormatException ex) {
+            LOG.warn("Invalid double for property '" + key + "', using default " + defaultValue + ".", ex);
             return defaultValue;
         }
     }

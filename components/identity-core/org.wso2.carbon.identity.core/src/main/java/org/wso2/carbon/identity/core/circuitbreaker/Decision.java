@@ -25,6 +25,9 @@ public final class Decision {
 
     private static final Decision ALLOWED = new Decision(AllowReason.NONE);
     private static final Decision ALLOWED_SKIP = new Decision(AllowReason.SKIPPED);
+    private static final Decision REJECTED_INVALID_DATA = new Decision(RejectReason.INVALID_DATA);
+    private static final Decision REJECTED_CIRCUIT_OPEN = new Decision(RejectReason.CIRCUIT_OPEN);
+    private static final Decision REJECTED_BULKHEAD_FULL = new Decision(RejectReason.BULKHEAD_FULL);
 
     private final AllowReason allowReason;
     private final RejectReason rejectReason;
@@ -53,7 +56,14 @@ public final class Decision {
 
     public static Decision rejected(RejectReason reason) {
 
-        return new Decision(reason);
+        switch (reason) {
+            case RejectReason.CIRCUIT_OPEN:
+                return REJECTED_CIRCUIT_OPEN;
+            case RejectReason.BULKHEAD_FULL:
+                return REJECTED_BULKHEAD_FULL;
+            default:
+                return REJECTED_INVALID_DATA;
+        }
     }
 
     public boolean isAllowed() {
