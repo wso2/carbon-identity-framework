@@ -62,7 +62,7 @@ public final class DefaultPolicyConfigurationLoader {
                 .setTenantServiceCacheCapacity(parseInt(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_CACHE_CAPACITY,
                         CircuitBreakerConstants.Defaults.TENANT_SERVICE_CACHE_CAPACITY, 1))
                 .setTenantServiceEvictionThreshold(parseDouble(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_EVICTION_THRESHOLD,
-                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_EVICTION_THRESHOLD, 0.0, 1.0))
+                        CircuitBreakerConstants.Defaults.TENANT_SERVICE_EVICTION_THRESHOLD, 0.01, 0.99))
                 .setTenantServiceEntryIdleTimeout(parseLong(CircuitBreakerConstants.PropertyKeys.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT,
                         CircuitBreakerConstants.Defaults.TENANT_SERVICE_ENTRY_IDLE_TIMEOUT, 1L))
                 .build();
@@ -76,7 +76,7 @@ public final class DefaultPolicyConfigurationLoader {
                 .setMinCallsToEvaluate(parseInt(CircuitBreakerConstants.PropertyKeys.MIN_CALLS_TO_EVALUATE,
                         CircuitBreakerConstants.Defaults.MIN_CALLS_TO_EVALUATE, 1))
                 .setFailureRateThreshold(parseDouble(CircuitBreakerConstants.PropertyKeys.FAILURE_RATE_THRESHOLD,
-                        CircuitBreakerConstants.Defaults.FAILURE_RATE_THRESHOLD, 0D, 1D))
+                        CircuitBreakerConstants.Defaults.FAILURE_RATE_THRESHOLD, 0.01D, 1D))
                 .setOpenDuration(parseLong(CircuitBreakerConstants.PropertyKeys.OPEN_DURATION,
                         CircuitBreakerConstants.Defaults.OPEN_DURATION, 1L))
                 .setMaxInFlight(parseInt(CircuitBreakerConstants.PropertyKeys.MAX_IN_FLIGHT,

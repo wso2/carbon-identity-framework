@@ -138,10 +138,13 @@ public class CircuitBreakerManager {
 
         CompleteSnapshot[] snap = new CompleteSnapshot[1];
         entries.computeIfPresent(tenantKey, (key, entry) -> {
-            CircuitState prev = entry.getState();
             if (!acquireDecision.isSkip()) {
                 entry.releaseBulkhead(now);
             }
+            if (!entry.isTracking()) {
+                return entry;
+            }
+            CircuitState prev = entry.getState();
             entry.recordResult(success, now);
             snap[0] = new CompleteSnapshot(prev, entry.getState(),
                     entry.getCalls(), entry.getFailures(), entry.getFailureRate(), entry.getFailureRateThreshold());

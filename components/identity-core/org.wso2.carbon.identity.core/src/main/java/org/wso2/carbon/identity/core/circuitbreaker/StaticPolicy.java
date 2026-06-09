@@ -115,7 +115,7 @@ public final class StaticPolicy {
                 throw new IllegalArgumentException("tenantServiceEntryIdleTimeout must be >= 1");
             }
             if (tenantServiceEvictionThreshold <= 0 || tenantServiceEvictionThreshold > 1) {
-                throw new IllegalArgumentException("tenantServiceEvictionThreshold must be between 0 (exclusive) and 1 (inclusive)");
+                throw new IllegalArgumentException("tenantServiceEvictionThreshold must be between 0 and 1");
             }
             return new StaticPolicy(this);
         }

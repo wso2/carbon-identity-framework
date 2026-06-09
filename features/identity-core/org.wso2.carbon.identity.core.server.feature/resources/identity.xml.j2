@@ -5321,7 +5321,7 @@
              Each unique tenant-service pair occupies one slot. -->
         <TenantServiceCacheCapacity>{{circuit_breaker.tenant_service_cache_capacity}}</TenantServiceCacheCapacity>
         <!-- Fraction of TenantServiceCacheCapacity at which eviction is triggered to make room for new entries.
-             Must be between 0 (exclusive) and 1 (inclusive). -->
+             Must be between 0 and 1. -->
         <TenantServiceEvictionThreshold>{{circuit_breaker.tenant_service_eviction_threshold}}</TenantServiceEvictionThreshold>
         <!-- Time after which an idle (tenant, service) entry with no active calls is eligible for eviction.
              Controls memory reclamation for inactive tenants. Value in milliseconds. -->
