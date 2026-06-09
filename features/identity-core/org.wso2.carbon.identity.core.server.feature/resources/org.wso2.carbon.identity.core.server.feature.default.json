@@ -917,7 +917,8 @@
     "/samlartresolve",
     "/passivests",
     "/longwaitstatus(.*)",
-    "/push-auth/(.*)"
+    "/push-auth/(.*)",
+    "/.well-known/openid-configuration(.*)"
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
