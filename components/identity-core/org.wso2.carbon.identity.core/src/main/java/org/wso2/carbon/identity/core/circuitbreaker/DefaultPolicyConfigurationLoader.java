@@ -128,7 +128,7 @@ public final class DefaultPolicyConfigurationLoader {
             return defaultValue;
         }
         try {
-            return Math.max(Math.min(Double.parseDouble(value.trim()), max), min);
+            return Math.clamp(Double.parseDouble(value.trim()), min, max);
         } catch (NumberFormatException ex) {
             LOG.warn("Invalid double for property '" + key + "', using default " + defaultValue + ".", ex);
             return defaultValue;

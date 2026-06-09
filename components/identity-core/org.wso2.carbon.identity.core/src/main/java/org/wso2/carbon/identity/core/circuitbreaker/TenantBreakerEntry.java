@@ -71,10 +71,8 @@ class TenantBreakerEntry {
             stateSince = now;
         }
 
-        if (state == CircuitState.HALF_OPEN) {
-            if (inFlight > 0) {
-                return Decision.rejected(RejectReason.CIRCUIT_OPEN);
-            }
+        if (state == CircuitState.HALF_OPEN && inFlight > 0) {
+            return Decision.rejected(RejectReason.CIRCUIT_OPEN);
         }
 
         return Decision.allowed();
