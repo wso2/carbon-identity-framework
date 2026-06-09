@@ -58,7 +58,7 @@ public interface TenantServiceBreakerObserver {
      * @param failureRate  Current failure rate.
      * @param inFlight     Number of in-flight requests at the time of rejection.
      */
-    public void onRejection(String tenantDomain, TenantService service, DecisionReason rejectReason, CircuitState state,
+    public void onRejection(String tenantDomain, TenantService service, RejectReason rejectReason, CircuitState state,
                             int calls, int failures, double failureRate, int inFlight);
 
     /**
@@ -68,4 +68,12 @@ public interface TenantServiceBreakerObserver {
      * @param service      The tenant service whose entry was evicted.
      */
     public void onForcedEviction(String tenantDomain, TenantService service);
+
+    /**
+     * Invoked when a new breaker entry cannot be admitted because the cache is at capacity.
+     *
+     * @param tenantDomain The tenant domain that was rejected.
+     * @param service      The tenant service that was rejected.
+     */
+    public void onCacheFull(String tenantDomain, TenantService service);
 }

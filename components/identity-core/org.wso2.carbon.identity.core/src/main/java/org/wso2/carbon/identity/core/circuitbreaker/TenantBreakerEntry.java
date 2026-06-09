@@ -49,7 +49,7 @@ class TenantBreakerEntry {
         lastAccess = now;
         if (state == CircuitState.OPEN) {
             if ((now - stateSince) < runtimePolicy.getOpenDuration()) {
-                return Decision.rejected(DecisionReason.CIRCUIT_OPEN);
+                return Decision.rejected(RejectReason.CIRCUIT_OPEN);
             }
             state = CircuitState.HALF_OPEN;
             stateSince = now;
@@ -57,7 +57,7 @@ class TenantBreakerEntry {
 
         if (state == CircuitState.HALF_OPEN) {
             if (inFlight > 0) {
-                return Decision.rejected(DecisionReason.CIRCUIT_OPEN);
+                return Decision.rejected(RejectReason.CIRCUIT_OPEN);
             }
         }
 
@@ -67,7 +67,7 @@ class TenantBreakerEntry {
     public Decision acquireBulkhead() {
 
         if (inFlight >= runtimePolicy.getMaxInFlight()) {
-            return Decision.rejected(DecisionReason.BULKHEAD_FULL);
+            return Decision.rejected(RejectReason.BULKHEAD_FULL);
         }
 
         inFlight++;

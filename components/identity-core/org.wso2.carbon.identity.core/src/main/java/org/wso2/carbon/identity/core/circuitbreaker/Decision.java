@@ -23,15 +23,22 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  */
 public final class Decision {
 
-    private static final Decision ALLOWED = new Decision(true, DecisionReason.NONE);
+    private static final Decision ALLOWED = new Decision(AllowReason.NONE);
+    private static final Decision ALLOWED_SKIP = new Decision(AllowReason.SKIPPED);
 
-    private final boolean allowed;
-    private final DecisionReason reason;
+    private final AllowReason allowReason;
+    private final RejectReason rejectReason;
 
-    private Decision(boolean allowed, DecisionReason reason) {
+    private Decision(AllowReason allowReason) {
 
-        this.allowed = allowed;
-        this.reason = reason;
+        this.allowReason = allowReason;
+        this.rejectReason = null;
+    }
+
+    private Decision(RejectReason rejectReason) {
+
+        this.allowReason = null;
+        this.rejectReason = rejectReason;
     }
 
     public static Decision allowed() {
@@ -39,23 +46,28 @@ public final class Decision {
         return ALLOWED;
     }
 
-    public static Decision allowed(DecisionReason reason) {
+    public static Decision skip() {
 
-        return new Decision(true, reason);
+        return ALLOWED_SKIP;
     }
 
-    public static Decision rejected(DecisionReason reason) {
+    public static Decision rejected(RejectReason reason) {
 
-        return new Decision(false, reason);
+        return new Decision(reason);
     }
 
     public boolean isAllowed() {
 
-        return allowed;
+        return allowReason != null;
     }
 
-    public DecisionReason getReason() {
+    public boolean isSkip() {
 
-        return reason;
+        return allowReason == AllowReason.SKIPPED;
+    }
+
+    public RejectReason getRejectReason() {
+
+        return rejectReason;
     }
 }

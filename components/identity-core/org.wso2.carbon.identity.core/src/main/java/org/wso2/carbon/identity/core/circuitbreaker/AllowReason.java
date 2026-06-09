@@ -19,14 +19,10 @@
 package org.wso2.carbon.identity.core.circuitbreaker;
 
 /**
- * Reasons produced by the breaker manager for both allowed and rejected decisions.
+ * Reasons for an allowed decision produced by the breaker manager.
  */
-public enum DecisionReason {
+public enum AllowReason {
 
     NONE,
-    INVALID_DATA,
-    BREAKER_SKIPPED,
-    CIRCUIT_OPEN,
-    BULKHEAD_FULL,
-    BREAKER_CACHE_FULL
+    SKIPPED
 }
