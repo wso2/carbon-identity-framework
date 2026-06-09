@@ -65,7 +65,7 @@ import java.util.Optional;
 
 /**
  * Processes responses from In-Flow Extension actions, applying {@code REPLACE} operations on
- * flow properties, user claims, and user credentials. Updates are collected into pending maps on
+ * user claims and user credentials. Updates are collected into pending maps on
  * {@link FlowContext} for the executor to forward via
  * {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse}.
  *
@@ -115,7 +115,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         Map<String, Object> pendingClaims = new HashMap<>();
         Map<String, char[]> pendingCredentials = new HashMap<>();
-        Map<String, Object> pendingProperties = new HashMap<>();
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -129,7 +128,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                 }
                 results.add(processOperation(
                         operation, pathTypeAnnotations, pendingClaims, pendingCredentials,
-                        pendingProperties, tenantDomain));
+                        tenantDomain));
             }
         } else {
             if (LOG.isDebugEnabled()) {
@@ -142,9 +141,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
         if (!pendingCredentials.isEmpty()) {
             flowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
-        }
-        if (!pendingProperties.isEmpty()) {
-            flowContext.add(FlowExtensionConstants.PENDING_PROPERTIES_KEY, pendingProperties);
         }
 
         logOperationExecutionResults(results);
@@ -162,7 +158,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * @param pathTypeAnnotations Map of clean paths to their type annotations from allowed operations.
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
-     * @param pendingProperties   Accumulator map for flow property updates.
      * @param tenantDomain        Tenant domain, used for claim URI validation.
      * @return The result of the operation execution.
      */
@@ -170,7 +165,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                                                       Map<String, String> pathTypeAnnotations,
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
-                                                      Map<String, Object> pendingProperties,
                                                       String tenantDomain)
             throws ActionExecutionResponseProcessorException {
 
@@ -190,9 +184,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Modifications are not allowed for the read-only paths" );
         }
 
-        if (path.startsWith(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
-            return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
-        } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
+        if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
@@ -200,57 +192,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                 "Unknown path");
-    }
-
-    /**
-     * Handle operation on flow properties — collect into pending properties map.
-     *
-     * <p>Only flat property paths are supported (e.g., {@code /properties/riskScore}).
-     * Value coercion is applied based on path type annotations from the request builder via
-     * {@link PathTypeAnnotationUtil#coerceValue}.</p>
-     *
-     * @param operation           The performable operation.
-     * @param pathTypeAnnotations Path type annotations map from request builder.
-     * @param pendingProperties   Accumulator map for property updates.
-     */
-    private OperationExecutionResult handlePropertyOperation(PerformableOperation operation,
-                                                             Map<String, String> pathTypeAnnotations, Map<String, Object> pendingProperties) {
-
-        String propertyName = extractNameFromPath(operation.getPath(),
-                FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX);
-
-        if (StringUtils.isBlank(propertyName)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Invalid property path. Property name is required.");
-        }
-
-        if (operation.getValue() == null) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    ERROR_VALUE_REQUIRED_FOR_REPLACE);
-        }
-
-        // Validate complex object structure against annotation schema before coercion.
-        if (!PathTypeAnnotationUtil.validateValueAgainstAnnotation(
-                operation.getPath(), operation.getValue(), pathTypeAnnotations)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Value does not match annotation schema for path: " + operation.getPath());
-        }
-
-        // Coerce value based on path type annotation.
-        Object coercedValue = PathTypeAnnotationUtil.coerceValue(
-                operation.getPath(), operation.getValue(), pathTypeAnnotations);
-
-        // Enforce array item limits after coercion.
-        if (!PathTypeAnnotationUtil.enforceArrayItemLimit(
-                operation.getPath(), coercedValue, pathTypeAnnotations)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Array value exceeds maximum item limit for path.");
-        }
-
-        pendingProperties.put(propertyName, coercedValue);
-
-        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                "Property replace applied.");
     }
 
     /**

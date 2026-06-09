@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Builds the controlled In-Flow Extension context tree returned by the metadata endpoint.
  * The set of exposed attributes is governed at code level by this builder so the frontend
- * receives the user/flow/properties tree shape the Console UI expects.
+ * receives the user/flow tree shape the Console UI expects.
  */
 public class FlowExtensionContextTreeBuilder {
 
@@ -47,7 +47,6 @@ public class FlowExtensionContextTreeBuilder {
 
         List<FlowExtensionContextTreeNode> tree = new ArrayList<>();
         tree.add(buildUserNode());
-//        tree.add(buildPropertiesNode());
 //        tree.add(buildTenantNode());
         tree.add(buildApplicationNode());
 //        tree.add(buildOrganizationNode());
@@ -240,21 +239,6 @@ public class FlowExtensionContextTreeBuilder {
                 .readOnly(true)
                 .build();
     }
-
-//    private FlowExtensionContextTreeNode buildPropertiesNode() {
-//
-//        return FlowExtensionContextTreeNode.builder()
-//                .key("properties")
-//                .title("Properties")
-//                .path("/properties/")
-//                .dataType("Map<String, Object>")
-//                .nodeType(ContextTree.NODE_COMPLEX_MAP)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_MODIFY))
-//                .dynamicEntryAllowed(true)
-//                .dynamicEntryType("Object")
-//                .children(Collections.emptyList())
-//                .build();
-//    }
 
     private static String attrTitle(String attr) {
 

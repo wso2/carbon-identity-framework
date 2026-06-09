@@ -37,7 +37,6 @@ public class FlowExtensionConstants {
     public static final String MODIFY_PATHS_KEY = "modifyPaths";
     public static final String PENDING_CLAIMS_KEY = "pendingClaims";
     public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
-    public static final String PENDING_PROPERTIES_KEY = "pendingProperties";
     public static final String PENDING_REDIRECT_URL_KEY = "pendingRedirectUrl";
 
     public static final String FAILURE_TYPE_KEY = "failureType";
@@ -198,8 +197,6 @@ public class FlowExtensionConstants {
         public static final String USER_CLAIMS_SELECTOR_PREFIX = "/user/claims[uri=";
         public static final String USER_CLAIMS_SELECTOR_SUFFIX = "]";
         public static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
-
-        public static final String PROPERTIES_PATH_PREFIX = "/properties/";
 
         public static final String FLOW_PREFIX = "/flow/";
         public static final String FLOW_TYPE_PATH = "/flow/flowType";

@@ -164,7 +164,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         applyApplication(eventBuilder, context, expose);
         applyUserAndUserStore(flowBuilder, context, expose, accessConfig, certificatePEM);
         applyFlowMetadata(flowBuilder, context, expose);
-        applyFlowProperties(eventBuilder, context, expose, accessConfig, certificatePEM);
 
         eventBuilder.flow(flowBuilder.build());
         return eventBuilder.build();
@@ -502,32 +501,6 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         }
     }
 
-    private void applyFlowProperties(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
-                                     List<String> expose, AccessConfig accessConfig,
-                                     String certificatePEM) throws ActionExecutionRequestBuilderException {
-
-        if (!isAreaExposed(FlowContextPaths.PROPERTIES_PATH_PREFIX, expose)) {
-            return;
-        }
-
-        Map<String, Object> properties = context.getProperties();
-        Map<String, Object> filteredProperties = new HashMap<>();
-
-        for (String exposePath : expose) {
-            if (!exposePath.startsWith(FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
-                continue;
-            }
-            String propKey = exposePath.substring(FlowContextPaths.PROPERTIES_PATH_PREFIX.length());
-            Object value = properties != null ? properties.get(propKey) : null;
-            if (value != null && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
-                value = encryptValue(String.valueOf(value), certificatePEM);
-            }
-            filteredProperties.put(propKey, value != null ? value : "");
-        }
-
-        eventBuilder.flowProperties(filteredProperties);
-    }
-
     private String resolveUserId(FlowUser flowUser, List<String> expose) {
 
         if (isLeafExposed(FlowContextPaths.USER_ID_PATH, expose)) {
@@ -634,7 +607,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
 
     /**
      * Check if any exposed leaf path falls under the given area prefix.
-     * Used as a gate before iterating a data block (claims, credentials, properties).
+     * Used as a gate before iterating a data block (claims, credentials).
      */
     private boolean isAreaExposed(String areaPrefix, List<String> expose) {
 

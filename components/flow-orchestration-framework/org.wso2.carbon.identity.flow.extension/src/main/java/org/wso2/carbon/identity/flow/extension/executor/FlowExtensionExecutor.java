@@ -53,7 +53,7 @@ import java.util.Map;
 /**
  * Executes In-Flow Extension actions during flow execution by delegating to
  * {@link ActionExecutorService} and mapping the result to an {@link ExecutorResponse}.
- * On success, pending context updates (claims, credentials, properties) are forwarded
+ * On success, pending context updates (claims, credentials) are forwarded
  * to the flow engine through the response object.
  */
 public class FlowExtensionExecutor implements Executor {
@@ -295,17 +295,10 @@ public class FlowExtensionExecutor implements Executor {
             response.setUserCredentials(pendingCredentials);
         }
 
-        Map<String, Object> pendingProperties =
-                flowContext.getValue(FlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
-        if (pendingProperties != null && !pendingProperties.isEmpty()) {
-            response.setContextProperty(pendingProperties);
-        }
-
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow Extension action succeeded. actionId: " + actionId
                     + ", pendingClaims: " + (pendingClaims != null ? pendingClaims.size() : 0)
-                    + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0)
-                    + ", pendingProperties: " + (pendingProperties != null ? pendingProperties.size() : 0));
+                    + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0));
         }
     }
 
