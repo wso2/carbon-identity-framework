@@ -25,7 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Node-local per-tenant, per-service circuit breaker manager.
@@ -35,8 +36,7 @@ public class CircuitBreakerManager {
     private static final CircuitBreakerManager INSTANCE = new CircuitBreakerManager();
 
     private final ConcurrentHashMap<String, TenantBreakerEntry> entries = new ConcurrentHashMap<>();
-    private final AtomicInteger entryCount = new AtomicInteger();
-    private final Object admissionLock = new Object();
+    private final Lock admissionLock = new ReentrantLock();
 
     private final StaticPolicy staticPolicy;
     private final RuntimePolicy defaultRuntimePolicy;
@@ -57,55 +57,52 @@ public class CircuitBreakerManager {
         if (!staticPolicy.isEnabled()) {
             return Decision.allowed();
         }
-        
+
         if (StringUtils.isBlank(tenantDomain)) {
             return Decision.rejected(DecisionReason.INVALID_DATA);
         }
 
         String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
-        if (!entries.containsKey(tenantKey)) {
+        TenantBreakerEntry entry = entries.get(tenantKey);
+        if (entry == null || !entry.isTracking()) {
             return Decision.allowed(DecisionReason.BREAKER_SKIPPED);
         }
 
         long now = System.currentTimeMillis();
-        TenantBreakerEntry entry = getOrCreateEntry(tenantKey, now);
-        if (entry == null) {
-            Decision decision = Decision.rejected(DecisionReason.BREAKER_CACHE_FULL);
-            notifyRejection(tenantDomain, service, decision, null, null, null, null, null);
-            return decision;
-        }
+        CircuitState[] states = new CircuitState[2];
+        Decision[] decision = new Decision[1];
+        int[] intStats = new int[3];       // [0]=calls, [1]=failures, [2]=inFlight.
+        double[] doubleStats = new double[2]; // [0]=failureRate, [1]=failureRateThreshold.
+        entries.computeIfPresent(tenantKey, (k, e) -> {
+            if (!e.isTracking()) {
+                return e;
+            }
+            states[0] = e.getState();
+            Decision d = e.allowRequest(now);
+            if (d.isAllowed()) {
+                d = e.acquireBulkhead();
+            }
+            states[1] = e.getState();
+            decision[0] = d;
+            intStats[0] = e.getCalls();
+            intStats[1] = e.getFailures();
+            intStats[2] = e.getInFlight();
+            doubleStats[0] = e.getFailureRate();
+            doubleStats[1] = e.getFailureRateThreshold();
+            return e;
+        });
 
-        if (!entry.isTracking()) {
+        if (decision[0] == null) {
             return Decision.allowed(DecisionReason.BREAKER_SKIPPED);
         }
 
-        CircuitState previousState;
-        CircuitState currentState;
-        Decision decision;
-        int calls, failures, inFlight;
-        double failureRate;
-
-        synchronized (entry) {
-            if (!entry.isTracking()) {
-                return Decision.allowed(DecisionReason.BREAKER_SKIPPED);
-            }
-            previousState = entry.getState();
-            decision = entry.allowRequest(now);
-            if (decision.isAllowed()) {
-                decision = entry.acquireBulkhead();
-            }
-            currentState = entry.getState();
-            calls = entry.getCalls();
-            failures = entry.getFailures();
-            failureRate = entry.getFailureRate();
-            inFlight = entry.getInFlight();
+        notifyTransitionIfRequired(tenantDomain, service, states[0], states[1],
+                intStats[0], intStats[1], doubleStats[0], doubleStats[1]);
+        if (!decision[0].isAllowed()) {
+            notifyRejection(tenantDomain, service, decision[0], states[1],
+                    intStats[0], intStats[1], doubleStats[0], intStats[2]);
         }
-
-        notifyTransitionIfRequired(tenantDomain, service, previousState, currentState, calls, failures, failureRate);
-        if (!decision.isAllowed()) {
-            notifyRejection(tenantDomain, service, decision, currentState, calls, failures, failureRate, inFlight);
-        }
-        return decision;
+        return decision[0];
     }
 
     public void onComplete(String tenantDomain, TenantService service, Decision acquireDecision, boolean success) {
@@ -122,29 +119,33 @@ public class CircuitBreakerManager {
 
         long now = System.currentTimeMillis();
         String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
-        TenantBreakerEntry entry = isSkipped ? getOrCreateEntry(tenantKey, now) : entries.get(tenantKey);
-        if (entry == null) {
+        if (isSkipped && getOrCreateEntry(tenantKey, now) == null) {
             return;
         }
 
-        CircuitState previousState;
-        CircuitState currentState;
-        int calls, failures;
-        double failureRate;
-
-        synchronized (entry) {
-            previousState = entry.getState();
+        CircuitState[] states = new CircuitState[2];
+        int[] intStats = new int[2];          // [0]=calls, [1]=failures.
+        double[] doubleStats = new double[2]; // [0]=failureRate, [1]=failureRateThreshold.
+        entries.computeIfPresent(tenantKey, (k, e) -> {
+            states[0] = e.getState();
             if (!isSkipped) {
-                entry.releaseBulkhead(now);
+                e.releaseBulkhead(now);
             }
-            entry.recordResult(success, now);
-            currentState = entry.getState();
-            calls = entry.getCalls();
-            failures = entry.getFailures();
-            failureRate = entry.getFailureRate();
+            e.recordResult(success, now);
+            states[1] = e.getState();
+            intStats[0] = e.getCalls();
+            intStats[1] = e.getFailures();
+            doubleStats[0] = e.getFailureRate();
+            doubleStats[1] = e.getFailureRateThreshold();
+            return e;
+        });
+
+        if (states[1] == null) {
+            return;
         }
 
-        notifyTransitionIfRequired(tenantDomain, service, previousState, currentState, calls, failures, failureRate);
+        notifyTransitionIfRequired(tenantDomain, service, states[0], states[1],
+                intStats[0], intStats[1], doubleStats[0], doubleStats[1]);
     }
 
     public void invalidateTenant(String tenantDomain) {
@@ -157,7 +158,6 @@ public class CircuitBreakerManager {
             String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
             entries.computeIfPresent(tenantKey, (k, current) -> {
                 current.untrack();
-                entryCount.decrementAndGet();
                 return null;
             });
         }
@@ -172,34 +172,34 @@ public class CircuitBreakerManager {
         String tenantKey = TenantKeyUtil.buildTenantServiceKey(tenantDomain, service.name());
         entries.computeIfPresent(tenantKey, (k, current) -> {
             current.untrack();
-            entryCount.decrementAndGet();
             return null;
         });
     }
 
     private TenantBreakerEntry getOrCreateEntry(String tenantKey, long now) {
 
-        TenantBreakerEntry existingEntry = entries.get(tenantKey);
-        if (existingEntry != null) {
-            return existingEntry;
+        TenantBreakerEntry existing = entries.get(tenantKey);
+        if (existing != null) {
+            return existing;
         }
-
-        RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimePolicy);
 
         List<String> evictedKeys = new ArrayList<>();
         TenantBreakerEntry result;
-        synchronized (admissionLock) {
-            existingEntry = entries.get(tenantKey);
-            if (existingEntry != null) {
-                return existingEntry;
+        admissionLock.lock();
+        try {
+            existing = entries.get(tenantKey);
+            if (existing != null) {
+                return existing;
             }
-
+            RuntimePolicy entryPolicy = RuntimePolicyResolver.getInstance().resolve(tenantKey, defaultRuntimePolicy);
             ensureCapacity(now, evictedKeys);
-            if (entryCount.get() >= staticPolicy.getTenantServiceCacheCapacity()) {
+            if (entries.size() >= staticPolicy.getTenantServiceCacheCapacity()) {
                 result = null;
             } else {
-                result = putIfAbsentEntry(tenantKey, entryPolicy, now);
+                result = entries.computeIfAbsent(tenantKey, k -> new TenantBreakerEntry(entryPolicy, now));
             }
+        } finally {
+            admissionLock.unlock();
         }
 
         for (String evictedKey : evictedKeys) {
@@ -210,7 +210,7 @@ public class CircuitBreakerManager {
 
     private void ensureCapacity(long now, List<String> evictedKeys) {
 
-        if (entryCount.get() < staticPolicy.getTenantServiceEvictionThreshold()) {
+        if (entries.size() < staticPolicy.getTenantServiceEvictionThreshold()) {
             return;
         }
 
@@ -228,7 +228,6 @@ public class CircuitBreakerManager {
                         return current;
                     }
                     current.untrack();
-                    entryCount.decrementAndGet();
                     didEvict[0] = true;
                     return null;
                 });
@@ -258,7 +257,6 @@ public class CircuitBreakerManager {
                     return current;
                 }
                 current.untrack();
-                entryCount.decrementAndGet();
                 didEvict[0] = true;
                 return null;
             });
@@ -272,7 +270,6 @@ public class CircuitBreakerManager {
             boolean[] didEvict = {false};
             entries.computeIfPresent(oldestOverall.tenantKey, (k, current) -> {
                 current.untrack();
-                entryCount.decrementAndGet();
                 didEvict[0] = true;
                 return null;
             });
@@ -280,14 +277,6 @@ public class CircuitBreakerManager {
                 evictedKeys.add(oldestOverall.tenantKey);
             }
         }
-    }
-
-    private TenantBreakerEntry putIfAbsentEntry(String tenantKey, RuntimePolicy entryPolicy, long now) {
-
-        return entries.computeIfAbsent(tenantKey, (k) -> {
-            entryCount.incrementAndGet();
-            return new TenantBreakerEntry(entryPolicy, now);
-        });
     }
 
     private void notifyForcedEviction(String tenantKey) {
@@ -301,7 +290,8 @@ public class CircuitBreakerManager {
     }
 
     private void notifyTransitionIfRequired(String tenantDomain, TenantService service, CircuitState previousState,
-                                            CircuitState currentState, int calls, int failures, double failureRate) {
+                                            CircuitState currentState, int calls, int failures, double failureRate,
+                                            double failureRateThreshold) {
 
         if (previousState == currentState) {
             return;
@@ -310,13 +300,13 @@ public class CircuitBreakerManager {
         TenantServiceBreakerObserver obs = observerFor(service);
         if (obs != null) {
             obs.onStateTransition(tenantDomain, service, previousState, currentState,
-                    calls, failures, failureRate, defaultRuntimePolicy.getFailureRateThreshold());
+                    calls, failures, failureRate, failureRateThreshold);
         }
     }
 
     private void notifyRejection(String tenantDomain, TenantService service, Decision decision,
-                                 CircuitState state, Integer calls, Integer failures, Double failureRate,
-                                 Integer inFlight) {
+                                 CircuitState state, int calls, int failures, double failureRate,
+                                 int inFlight) {
 
         TenantServiceBreakerObserver obs = observerFor(service);
         if (obs != null) {

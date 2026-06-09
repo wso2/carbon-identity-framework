@@ -158,4 +158,9 @@ class TenantBreakerEntry {
 
         return lastAccess;
     }
+
+    public double getFailureRateThreshold() {
+
+        return runtimePolicy.getFailureRateThreshold();
+    }
 }

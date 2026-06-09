@@ -59,7 +59,7 @@ public interface TenantServiceBreakerObserver {
      * @param inFlight     Number of in-flight requests at the time of rejection.
      */
     public void onRejection(String tenantDomain, TenantService service, DecisionReason rejectReason, CircuitState state,
-                            Integer calls, Integer failures, Double failureRate, Integer inFlight);
+                            int calls, int failures, double failureRate, int inFlight);
 
     /**
      * Invoked when the entry for a tenant-service pair is forcibly evicted from the breaker cache.
