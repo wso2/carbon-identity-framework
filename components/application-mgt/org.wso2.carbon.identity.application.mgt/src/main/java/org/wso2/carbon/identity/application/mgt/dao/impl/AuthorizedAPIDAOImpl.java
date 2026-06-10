@@ -125,9 +125,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                             .apiId(apiId)
                             .policyId(resultSet.getString(
                                     ApplicationConstants.ApplicationTableColumns.POLICY_ID))
-                            .scopes(scope == null ? Collections.emptyList() : Collections.singletonList(scope))
+                            .scopes(scope == null ? new ArrayList<>()
+                                    : new ArrayList<>(Collections.singletonList(scope)))
                             .authorizationDetailsTypes(type == null
-                                    ? Collections.emptyList() : Collections.singletonList(type));
+                                    ? new ArrayList<>() : new ArrayList<>(Collections.singletonList(type)));
                     authorizedAPIMap.put(apiId, authorizedAPIBuilder.build());
                 } else {
                     AuthorizedAPI authorizedAPI = authorizedAPIMap.get(apiId);
@@ -188,8 +189,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     AuthorizedScopes.AuthorizedScopesBuilder authorizedScopesBuilder =
                             new AuthorizedScopes.AuthorizedScopesBuilder()
                                     .policyId(policyId)
-                                    .scopes(Collections.singletonList(resultSet.getString(
-                                            ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)));
+                                    .scopes(new ArrayList<>(Collections.singletonList(resultSet.getString(
+                                            ApplicationConstants.ApplicationTableColumns.SCOPE_NAME))));
                     authorizedScopesMap.put(policyId, authorizedScopesBuilder.build());
                 } else {
                     AuthorizedScopes authorizedScopes = authorizedScopesMap.get(policyId);
@@ -229,7 +230,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                         Scope scope = new Scope.ScopeBuilder()
                                 .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME))
                                 .build();
-                        authorizedAPI.setScopes(Collections.singletonList(scope));
+                        authorizedAPI.setScopes(new ArrayList<>(Collections.singletonList(scope)));
                     }
                     addAuthorizationDetailsTypeToAuthorizedApi(authorizedAPI, buildAuthorizationDetailsType(resultSet));
                 } else {
