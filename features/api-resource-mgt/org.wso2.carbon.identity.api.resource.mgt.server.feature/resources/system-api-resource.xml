@@ -2387,6 +2387,30 @@
                    description="Delete credentials of end users in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Credential Management API v2" identifier="/api/users/v2/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API v2" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_user_credential_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Create Credential" name="internal_user_credential_mgt_create"
+                   description="Create credentials for end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_user_credential_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Credential Management API v2" identifier="/o/api/users/v2/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API v2" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_org_user_credential_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Create Credential" name="internal_org_user_credential_mgt_create"
+                   description="Create credentials for end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_org_user_credential_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc-templates"
                  requiresAuthorization="true"
                  description="API representation of the VC Templates Management API" type="TENANT">
