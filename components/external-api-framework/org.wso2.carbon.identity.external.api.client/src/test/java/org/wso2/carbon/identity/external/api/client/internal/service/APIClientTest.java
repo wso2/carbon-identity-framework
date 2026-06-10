@@ -606,6 +606,99 @@ public class APIClientTest {
     }
 
     /**
+     * Test successful API call with PUT method and JSON payload.
+     */
+    @Test
+    public void testCallAPISuccessfulPutRequest() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                if (!"PUT".equals(exchange.getRequestMethod())) {
+                    exchange.sendResponseHeaders(405, -1);
+                    return;
+                }
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.PUT)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity("{\"test\":\"data\"}", StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
+    /**
+     * Test PUT request forwards the payload body to the server.
+     */
+    @Test
+    public void testCallAPIWithPutRequestForwardsPayload() throws Exception {
+
+        final String requestPayload = "{\"name\":\"updated\"}";
+        final String[] receivedPayload = {null};
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] body = exchange.getRequestBody().readAllBytes();
+                receivedPayload[0] = new String(body, StandardCharsets.UTF_8);
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.PUT)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .payload(new StringEntity(requestPayload, StandardCharsets.UTF_8))
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        apiClient.callAPI(requestContext, invocationConfig);
+
+        assertEquals(receivedPayload[0], requestPayload);
+    }
+
+    /**
      * Test that a per-invocation response limit override higher than the client default allows a
      * response that would otherwise be blocked by the client-level limit.
      */
