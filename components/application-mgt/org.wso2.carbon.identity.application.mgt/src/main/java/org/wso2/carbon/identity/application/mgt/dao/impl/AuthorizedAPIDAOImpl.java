@@ -120,15 +120,21 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 final AuthorizationDetailsType type = this.buildAuthorizationDetailsType(resultSet);
 
                 if (!authorizedAPIMap.containsKey(apiId)) {
+                    List<Scope> scopes = new ArrayList<>();
+                    if (scope != null) {
+                        scopes.add(scope);
+                    }
+                    List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
+                    if (type != null) {
+                        authorizationDetailsTypes.add(type);
+                    }
                     AuthorizedAPI.AuthorizedAPIBuilder authorizedAPIBuilder = new AuthorizedAPI.AuthorizedAPIBuilder()
                             .appId(applicationId)
                             .apiId(apiId)
                             .policyId(resultSet.getString(
                                     ApplicationConstants.ApplicationTableColumns.POLICY_ID))
-                            .scopes(scope == null ? new ArrayList<>()
-                                    : new ArrayList<>(Collections.singletonList(scope)))
-                            .authorizationDetailsTypes(type == null
-                                    ? new ArrayList<>() : new ArrayList<>(Collections.singletonList(type)));
+                            .scopes(scopes)
+                            .authorizationDetailsTypes(authorizationDetailsTypes);
                     authorizedAPIMap.put(apiId, authorizedAPIBuilder.build());
                 } else {
                     AuthorizedAPI authorizedAPI = authorizedAPIMap.get(apiId);
@@ -186,11 +192,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             while (resultSet.next()) {
                 String policyId = resultSet.getString(ApplicationConstants.ApplicationTableColumns.POLICY_ID);
                 if (!authorizedScopesMap.containsKey(policyId)) {
+                    List<String> scopes = new ArrayList<>();
+                    scopes.add(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME));
                     AuthorizedScopes.AuthorizedScopesBuilder authorizedScopesBuilder =
                             new AuthorizedScopes.AuthorizedScopesBuilder()
                                     .policyId(policyId)
-                                    .scopes(new ArrayList<>(Collections.singletonList(resultSet.getString(
-                                            ApplicationConstants.ApplicationTableColumns.SCOPE_NAME))));
+                                    .scopes(scopes);
                     authorizedScopesMap.put(policyId, authorizedScopesBuilder.build());
                 } else {
                     AuthorizedScopes authorizedScopes = authorizedScopesMap.get(policyId);
@@ -226,11 +233,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                             .appId(applicationId)
                             .policyId(resultSet.getString(ApplicationConstants.ApplicationTableColumns.POLICY_ID))
                             .build();
-                    if (resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME) != null) {
-                        Scope scope = new Scope.ScopeBuilder()
-                                .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME))
-                                .build();
-                        authorizedAPI.setScopes(new ArrayList<>(Collections.singletonList(scope)));
+                    String scopeName = resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME);
+                    if (scopeName != null) {
+                        List<Scope> scopes = new ArrayList<>();
+                        scopes.add(new Scope.ScopeBuilder().name(scopeName).build());
+                        authorizedAPI.setScopes(scopes);
                     }
                     addAuthorizationDetailsTypeToAuthorizedApi(authorizedAPI, buildAuthorizationDetailsType(resultSet));
                 } else {
