@@ -1783,7 +1783,7 @@ public class RoleDAOImpl implements RoleDAO {
                     List<Permission> permissions = getPermissions(mainRoleId, mainTenantDomain);
                     return permissions.stream()
                             .filter(permission -> isValidSubOrgPermission(permission.getName()))
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toCollection(ArrayList::new));
                 }
             }
         } catch (SQLException | IdentityRoleManagementException e) {
@@ -3281,7 +3281,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         // If the system roles are not enabled in the system no need to continue.
         if (!IdentityUtil.isSystemRolesEnabled()) {
-            return Collections.emptySet();
+            return new HashSet<>();
         }
         Set<String> systemRoles = new HashSet<>();
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
@@ -3292,7 +3292,7 @@ public class RoleDAOImpl implements RoleDAO {
                 LOG.debug("'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT
                         + "' config cannot be found.");
             }
-            return Collections.emptySet();
+            return new HashSet<>();
         }
 
         Iterator roleIdentifierIterator = systemRolesConfig
@@ -3301,7 +3301,7 @@ public class RoleDAOImpl implements RoleDAO {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
             }
-            return Collections.emptySet();
+            return new HashSet<>();
         }
 
         while (roleIdentifierIterator.hasNext()) {

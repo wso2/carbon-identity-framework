@@ -264,10 +264,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     List<String> filteredScopes = authorizedScopes.getScopes().stream()
                             .filter(scope -> !scope.startsWith(INTERNAL_SCOPE_PREFIX))
                             .filter(scope -> !scope.startsWith(CONSOLE_SCOPE_PREFIX))
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toCollection(ArrayList::new));
                     return new AuthorizedScopes(authorizedScopes.getPolicyId(), filteredScopes);
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
