@@ -235,6 +235,45 @@ public class APIRequestContextTest {
     }
 
     /**
+     * Test successful creation of APIRequestContext with PUT method and payload.
+     */
+    @Test
+    public void testCreateAPIRequestContextWithPutMethod() throws APIClientRequestException {
+
+        APIRequestContext context = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.PUT)
+                .apiAuthentication(apiAuthentication)
+                .endpointUrl(ENDPOINT_URL)
+                .headers(headers)
+                .payload(PAYLOAD)
+                .build();
+
+        assertNotNull(context);
+        assertEquals(context.getHttpMethod(), APIRequestContext.HttpMethod.PUT);
+        assertEquals(context.getApiAuthentication(), apiAuthentication);
+        assertEquals(context.getEndpointUrl(), ENDPOINT_URL);
+        assertEquals(context.getPayload(), PAYLOAD);
+    }
+
+    /**
+     * Test creation of PUT context without payload throws exception.
+     */
+    @Test
+    public void testCreateAPIRequestContextWithNullPayloadForPut() {
+
+        try {
+            new APIRequestContext.Builder()
+                    .httpMethod(APIRequestContext.HttpMethod.PUT)
+                    .apiAuthentication(apiAuthentication)
+                    .endpointUrl(ENDPOINT_URL)
+                    .build();
+            fail("Expected APIClientRequestException was not thrown");
+        } catch (APIClientRequestException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD.getCode());
+        }
+    }
+
+    /**
      * Test with multiple headers.
      */
     @Test

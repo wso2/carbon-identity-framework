@@ -140,7 +140,7 @@ public class APIRequestContext {
             /* Todo: Payload can be optional for certain HTTP methods like GET.
                      Adjust validation accordingly when introducing new HTTP Method supports
              */
-            if (httpMethod == HttpMethod.POST && (payload == null)) {
+            if ((httpMethod == HttpMethod.POST || httpMethod == HttpMethod.PUT) && payload == null) {
                 throw new APIClientRequestException(ErrorMessage.ERROR_CODE_MISSING_REQUEST_FIELD, "payload");
             }
             if (payload != null && !payload.isRepeatable()) {
@@ -157,7 +157,8 @@ public class APIRequestContext {
     public enum HttpMethod {
 
         POST("post"),
-        GET("get");
+        GET("get"),
+        PUT("put");
 
         private final String name;
 

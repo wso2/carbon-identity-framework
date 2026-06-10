@@ -28,6 +28,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -125,6 +126,12 @@ public class APIClient {
                         new HttpPost(requestContext.getEndpointUrl());
                 httpEntityEnclosingRequestBase.setEntity(requestContext.getPayload());
                 httpRequestBase = httpEntityEnclosingRequestBase;
+                break;
+            case PUT:
+                HttpEntityEnclosingRequestBase httpPutRequestBase =
+                        new HttpPut(requestContext.getEndpointUrl());
+                httpPutRequestBase.setEntity(requestContext.getPayload());
+                httpRequestBase = httpPutRequestBase;
                 break;
             case GET:
                 httpRequestBase = new HttpGet(requestContext.getEndpointUrl());
