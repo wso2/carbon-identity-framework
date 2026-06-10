@@ -3078,13 +3078,13 @@
     <!-- Circuit Breaker configuration -->
     <CircuitBreaker>
         <Enabled>true</Enabled>
-        <TenantServiceCacheCapacity>2</TenantServiceCacheCapacity>
-        <TenantServiceEvictionThreshold>0.8</TenantServiceEvictionThreshold>
+        <TenantServiceCacheCapacity>5000</TenantServiceCacheCapacity>
+        <TenantServiceEvictionThreshold>0.75</TenantServiceEvictionThreshold>
         <TenantServiceEntryIdleTimeout>600000</TenantServiceEntryIdleTimeout> <!-- value in milliseconds -->
-        <WindowSize>2</WindowSize>
-        <MinCallsToEvaluate>2</MinCallsToEvaluate>
-        <FailureRateThreshold>0.50</FailureRateThreshold>
-        <OpenDuration>600000</OpenDuration> <!-- value in milliseconds -->
-        <MaxInFlight>2</MaxInFlight>
+        <WindowSize>30</WindowSize>
+        <MinCallsToEvaluate>15</MinCallsToEvaluate>
+        <FailureRateThreshold>0.5</FailureRateThreshold>
+        <OpenDuration>60000</OpenDuration> <!-- value in milliseconds -->
+        <MaxInFlight>20</MaxInFlight>
     </CircuitBreaker>
 </Server>
