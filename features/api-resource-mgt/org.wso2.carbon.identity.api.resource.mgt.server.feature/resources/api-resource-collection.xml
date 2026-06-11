@@ -1636,14 +1636,17 @@
             <Delete>
                 <Scope name="internal_consent_mgt_element_delete"/>
                 <Scope name="internal_consent_mgt_purpose_delete"/>
+                <Scope name="internal_consent_mgt_purpose_app_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_consent_mgt_element_create"/>
                 <Scope name="internal_consent_mgt_purpose_create"/>
+                <Scope name="internal_consent_mgt_purpose_app_create"/>
             </Create>
             <Read>
                 <Scope name="internal_consent_mgt_element_view"/>
                 <Scope name="internal_consent_mgt_purpose_view"/>
+                <Scope name="internal_consent_mgt_purpose_app_view"/>
                 <Scope name="internal_claim_meta_view"/>
                 <Scope name="internal_application_mgt_view"/>
             </Read>
@@ -1663,14 +1666,17 @@
             <Delete>
                 <Scope name="internal_org_consent_mgt_element_delete"/>
                 <Scope name="internal_org_consent_mgt_purpose_delete"/>
+                <Scope name="internal_org_consent_mgt_purpose_app_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_consent_mgt_element_create"/>
                 <Scope name="internal_org_consent_mgt_purpose_create"/>
+                <Scope name="internal_org_consent_mgt_purpose_app_create"/>
             </Create>
             <Read>
                 <Scope name="internal_org_consent_mgt_element_view"/>
                 <Scope name="internal_org_consent_mgt_purpose_view"/>
+                <Scope name="internal_org_consent_mgt_purpose_app_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
                 <Scope name="internal_org_application_mgt_view"/>
             </Read>
