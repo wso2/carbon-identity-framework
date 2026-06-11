@@ -61,16 +61,16 @@ final class CircuitBreakerConstants {
 
         // StaticPolicy defaults.
         public static final boolean ENABLED = true;
-        public static final int TENANT_SERVICE_CACHE_CAPACITY = 2;
-        public static final double TENANT_SERVICE_EVICTION_THRESHOLD = 0.8;
+        public static final int TENANT_SERVICE_CACHE_CAPACITY = 5000;
+        public static final double TENANT_SERVICE_EVICTION_THRESHOLD = 0.75;
         public static final long TENANT_SERVICE_ENTRY_IDLE_TIMEOUT = 600000L;
 
         // RuntimePolicy defaults.
-        public static final int WINDOW_SIZE = 2;
-        public static final int MIN_CALLS_TO_EVALUATE = 2;
-        public static final double FAILURE_RATE_THRESHOLD = 0.50D;
-        public static final long OPEN_DURATION = 600000L;
-        public static final int MAX_IN_FLIGHT = 2;
+        public static final int WINDOW_SIZE = 30;
+        public static final int MIN_CALLS_TO_EVALUATE = 15;
+        public static final double FAILURE_RATE_THRESHOLD = 0.5D;
+        public static final long OPEN_DURATION = 60000L;
+        public static final int MAX_IN_FLIGHT = 20;
 
         private Defaults() {
 
