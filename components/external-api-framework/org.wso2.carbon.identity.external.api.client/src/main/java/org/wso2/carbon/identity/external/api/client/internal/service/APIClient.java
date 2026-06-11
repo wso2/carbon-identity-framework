@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.external.api.client.internal.service;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -79,8 +81,13 @@ public class APIClient {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setMaxTotal(apiClientConfig.getPoolSizeToBeSet());
         connectionManager.setDefaultMaxPerRoute(apiClientConfig.getMaxPerRoute());
-        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
-                .build();
+        HttpClientBuilder clientBuilder = HttpClientBuilder.create()
+                .setDefaultRequestConfig(config)
+                .setConnectionManager(connectionManager);
+        if (StringUtils.isNotBlank(apiClientConfig.getProxyHost())) {
+            clientBuilder.setProxy(new HttpHost(apiClientConfig.getProxyHost(), apiClientConfig.getProxyPort()));
+        }
+        httpClient = clientBuilder.build();
         defaultResponseLimitInBytes = apiClientConfig.getResponseLimitInBytes();
 
         if (LOG.isDebugEnabled()) {
