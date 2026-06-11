@@ -1631,7 +1631,7 @@
             </Feature>
             <Update>
                 <Scope name="internal_consent_mgt_purpose_update"/>
-                <Scope name="internal_branding_preference_update"/>
+                <Scope name="internal_branding_preference_policy_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_consent_mgt_element_delete"/>
@@ -1658,7 +1658,7 @@
             </Feature>
             <Update>
                 <Scope name="internal_org_consent_mgt_purpose_update"/>
-                <Scope name="internal_org_branding_preference_update"/>
+                <Scope name="internal_org_branding_preference_policy_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_consent_mgt_element_delete"/>

@@ -354,6 +354,11 @@
         </Resource>
         <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
             <Scopes>internal_org_branding_preference_update</Scopes>
+            <Operations mandatory="false">
+                <Operation name="updatePolicyUrl">
+                    <scope>internal_org_branding_preference_policy_update</scope>
+                </Operation>
+            </Operations>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_branding_preference_update</Scopes>
@@ -366,6 +371,11 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
             <Scopes>internal_branding_preference_update</Scopes>
+            <Operations mandatory="false">
+                <Operation name="updatePolicyUrl">
+                    <scope>internal_branding_preference_policy_update</scope>
+                </Operation>
+            </Operations>
         </Resource>
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_branding_preference_update</Scopes>
