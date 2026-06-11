@@ -3074,4 +3074,17 @@
             <Enabled>false</Enabled>
         </Moesif>
     </Analytics>
+
+    <!-- Circuit Breaker configuration -->
+    <CircuitBreaker>
+        <Enabled>true</Enabled>
+        <TenantServiceCacheCapacity>5000</TenantServiceCacheCapacity>
+        <TenantServiceEvictionThreshold>0.75</TenantServiceEvictionThreshold>
+        <TenantServiceEntryIdleTimeout>600000</TenantServiceEntryIdleTimeout> <!-- value in milliseconds -->
+        <WindowSize>30</WindowSize>
+        <MinCallsToEvaluate>15</MinCallsToEvaluate>
+        <FailureRateThreshold>0.5</FailureRateThreshold>
+        <OpenDuration>60000</OpenDuration> <!-- value in milliseconds -->
+        <MaxInFlight>20</MaxInFlight>
+    </CircuitBreaker>
 </Server>

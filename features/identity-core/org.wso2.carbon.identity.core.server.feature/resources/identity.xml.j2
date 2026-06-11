@@ -5312,4 +5312,34 @@
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>{{app_native_authentication.handle_fail_completed_authenticator_status}}</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>
+
+    <!-- Circuit Breaker configuration -->
+    <CircuitBreaker>
+        <!-- Master switch. Set to false to disable the circuit breaker globally across all tenants and services. -->
+        <Enabled>{{circuit_breaker.enabled}}</Enabled>
+        <!-- Maximum number of (tenant, service) breaker entries held in memory at once.
+             Each unique tenant-service pair occupies one slot. -->
+        <TenantServiceCacheCapacity>{{circuit_breaker.tenant_service_cache_capacity}}</TenantServiceCacheCapacity>
+        <!-- Fraction of TenantServiceCacheCapacity at which eviction is triggered to make room for new entries.
+             Must be between 0 and 1. -->
+        <TenantServiceEvictionThreshold>{{circuit_breaker.tenant_service_eviction_threshold}}</TenantServiceEvictionThreshold>
+        <!-- Time after which an idle (tenant, service) entry with no active calls is eligible for eviction.
+             Controls memory reclamation for inactive tenants. Value in milliseconds. -->
+        <TenantServiceEntryIdleTimeout>{{circuit_breaker.tenant_service_entry_idle_timeout}}</TenantServiceEntryIdleTimeout>
+        <!-- Size of the sliding call window per (tenant, service) entry.
+             The breaker tracks the last N calls to compute the live failure rate. -->
+        <WindowSize>{{circuit_breaker.window_size}}</WindowSize>
+        <!-- Minimum number of recorded calls required in the window before the failure rate is acted on.
+             Prevents premature tripping on a statistically insignificant sample. -->
+        <MinCallsToEvaluate>{{circuit_breaker.min_calls_to_evaluate}}</MinCallsToEvaluate>
+        <!-- Fraction of failures (0.0–1.0) within the window that triggers the circuit to open.
+             For example, 0.5 means 50% failure rate opens the circuit. -->
+        <FailureRateThreshold>{{circuit_breaker.failure_rate_threshold}}</FailureRateThreshold>
+        <!-- Duration the circuit stays OPEN before transitioning to HALF_OPEN and allowing one probe
+             call to test service recovery. Value in milliseconds. -->
+        <OpenDuration>{{circuit_breaker.open_duration}}</OpenDuration>
+        <!-- Maximum number of concurrent in-flight calls allowed per (tenant, service) entry.
+             Excess calls are rejected with BULKHEAD_FULL before reaching the downstream service. -->
+        <MaxInFlight>{{circuit_breaker.max_in_flight}}</MaxInFlight>
+    </CircuitBreaker>
 </Server>

@@ -2385,5 +2385,15 @@
   "analytics.moesif.stream_name": "org.wso2.is.analytics.stream.MoesifData",
   "analytics.moesif.stream_version": "1.0.0",
   "analytics.moesif.inline_body": "",
-  "analytics.moesif.enabled": false
+  "analytics.moesif.enabled": false,
+
+  "circuit_breaker.enabled": true,
+  "circuit_breaker.tenant_service_cache_capacity": 5000,
+  "circuit_breaker.tenant_service_eviction_threshold": 0.75,
+  "circuit_breaker.tenant_service_entry_idle_timeout": 600000,
+  "circuit_breaker.window_size": 30,
+  "circuit_breaker.min_calls_to_evaluate": 15,
+  "circuit_breaker.failure_rate_threshold": 0.5,
+  "circuit_breaker.open_duration": 60000,
+  "circuit_breaker.max_in_flight": 20
 }
