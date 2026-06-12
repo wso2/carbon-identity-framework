@@ -46,8 +46,6 @@ public class ConsentAppMappingServiceImpl implements ConsentAppMappingService {
 
     private static final String RESOURCE_TYPE = "consent-purpose-mapping";
 
-    private static final String ERROR_CODE_ALREADY_MAPPED = "CPM-60001";
-    private static final String ERROR_CODE_MAPPING_NOT_FOUND = "CPM-60002";
 
     @Override
     public List<String> getApplicationsForPurpose(String purposeId) throws ConsentAppMappingException {
@@ -59,12 +57,14 @@ public class ConsentAppMappingServiceImpl implements ConsentAppMappingService {
             Resource resource = FrameworkServiceDataHolder.getInstance().getConfigurationManager()
                     .getResource(RESOURCE_TYPE, purposeId, false);
             if (resource == null || resource.getAttributes() == null) {
-                return Collections.emptyList();
+                throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode(),
+                        "No consent purpose mapping found for purpose ID: " + purposeId);
             }
             return resource.getAttributes().stream().map(Attribute::getKey).toList();
         } catch (ConfigurationManagementClientException e) {
             if (isResourceTypeNotFound(e) || isResourceNotFound(e)) {
-                return Collections.emptyList();
+                throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode(),
+                        "No consent purpose mapping found for purpose ID: " + purposeId);
             }
             throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_GET_RESOURCE.getCode(),
                     "Error retrieving application mappings for consent purpose: " + purposeId, e);
@@ -102,12 +102,12 @@ public class ConsentAppMappingServiceImpl implements ConsentAppMappingService {
 
         if (resource != null && resource.getAttributes() != null &&
                 resource.getAttributes().stream().anyMatch(a -> applicationId.equals(a.getKey()))) {
-            throw new ConsentAppMappingException(ERROR_CODE_ALREADY_MAPPED,
+            throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_ATTRIBUTE_ALREADY_EXISTS.getCode(),
                     "Application " + applicationId + " is already mapped to consent purpose: " + purposeId);
         }
 
         try {
-            Attribute attribute = new Attribute(applicationId, applicationId);
+            Attribute attribute = new Attribute(applicationId, null);
             if (resource == null) {
                 Resource newResource = new Resource(purposeId, RESOURCE_TYPE);
                 newResource.setAttributes(Collections.singletonList(attribute));
@@ -136,7 +136,7 @@ public class ConsentAppMappingServiceImpl implements ConsentAppMappingService {
                     .getResource(RESOURCE_TYPE, purposeId, false);
         } catch (ConfigurationManagementClientException e) {
             if (isResourceNotFound(e)) {
-                throw new ConsentAppMappingException(ERROR_CODE_MAPPING_NOT_FOUND,
+                throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS.getCode(),
                         "Application " + applicationId + " is not mapped to consent purpose: " + purposeId);
             }
             throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_GET_RESOURCE.getCode(),
@@ -148,7 +148,7 @@ public class ConsentAppMappingServiceImpl implements ConsentAppMappingService {
 
         if (resource == null || resource.getAttributes() == null ||
                 resource.getAttributes().stream().noneMatch(a -> applicationId.equals(a.getKey()))) {
-            throw new ConsentAppMappingException(ERROR_CODE_MAPPING_NOT_FOUND,
+            throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS.getCode(),
                     "Application " + applicationId + " is not mapped to consent purpose: " + purposeId);
         }
 
