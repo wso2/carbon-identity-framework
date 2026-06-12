@@ -466,5 +466,13 @@
   "identity_mgt.events.schemes.moesifOAuthTokenIssuancePublisher.properties.enable": false,
   "identity_mgt.events.schemes.moesifOAuthTokenIssuancePublisher.subscriptions": [
     "POST_ISSUE_ACCESS_TOKEN_V2"
+  ],
+  "identity_mgt.events.schemes.moesifConsentPublisher.module_index": "71",
+  "identity_mgt.events.schemes.moesifConsentPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.moesifConsentPublisher.subscriptions": [
+    "POST_ADD_RECEIPT",
+    "POST_AUTHORIZE_CONSENT",
+    "POST_REVOKE_RECEIPT",
+    "POST_DELETE_RECEIPT"
   ]
 }
