@@ -1672,6 +1672,7 @@
   "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
   "console.flow_extensions.enabled": true,
+  "console.flow_extensions.feature_flags": [],
   "console.flow_extensions.scopes.feature": ["console:flowExtensions"],
   "console.flow_extensions.disabled_features": [],
   "console.flow_extensions.scopes.create": ["internal_flow_extension_create"],
