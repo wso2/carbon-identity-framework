@@ -192,6 +192,7 @@ public class FlowExtensionConstants {
 
         public static final String USER_PREFIX = "/user/";
         public static final String USER_ID_PATH = "/user/id";
+        public static final String USER_USERNAME_PATH = "/user/username";
         public static final String USER_STORE_DOMAIN_PATH = "/user/userStoreDomain";
         public static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
         public static final String USER_CLAIMS_SELECTOR_PREFIX = "/user/claims[uri=";

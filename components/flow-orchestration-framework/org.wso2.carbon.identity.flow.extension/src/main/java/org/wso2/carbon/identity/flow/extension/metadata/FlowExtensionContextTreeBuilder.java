@@ -47,7 +47,7 @@ public class FlowExtensionContextTreeBuilder {
 
         List<FlowExtensionContextTreeNode> tree = new ArrayList<>();
         tree.add(buildUserNode());
-//        tree.add(buildTenantNode());
+        tree.add(buildTenantNode());
         tree.add(buildApplicationNode());
 //        tree.add(buildOrganizationNode());
         tree.add(buildFlowNode());
@@ -86,33 +86,33 @@ public class FlowExtensionContextTreeBuilder {
 
         List<FlowExtensionContextTreeNode> children = new ArrayList<>();
 
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("id")
-//                .title("User ID")
-//                .path("/user/id")
-//                .dataType(ContextTree.DATA_TYPE_STRING)
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .replaceable(false)
-//                .build());
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("username")
-//                .title("Username")
-//                .path("/user/username")
-//                .dataType(ContextTree.DATA_TYPE_STRING)
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .replaceable(false)
-//                .build());
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("userStoreDomain")
-//                .title("User Store Domain")
-//                .path("/user/userStoreDomain")
-//                .dataType(ContextTree.DATA_TYPE_STRING)
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .replaceable(false)
-//                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("id")
+                .title("User ID")
+                .path(FlowContextPaths.USER_ID_PATH)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .replaceable(false)
+                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("username")
+                .title("Username")
+                .path(FlowContextPaths.USER_USERNAME_PATH)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .replaceable(false)
+                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("userStoreDomain")
+                .title("User Store Domain")
+                .path(FlowContextPaths.USER_STORE_DOMAIN_PATH)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .replaceable(false)
+                .build());
 
         children.add(FlowExtensionContextTreeNode.builder()
                 .key("claims")
@@ -176,21 +176,21 @@ public class FlowExtensionContextTreeBuilder {
                 .build();
     }
 
-//    private FlowExtensionContextTreeNode buildTenantNode() {
-//
-//        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
-//        children.add(readOnlyLeaf("domain", "Tenant Domain", FlowContextPaths.TENANT_DOMAIN_PATH));
-//        return FlowExtensionContextTreeNode.builder()
-//                .key("tenant")
-//                .title("Tenant")
-//                .path(FlowContextPaths.TENANT_PREFIX)
-//                .dataType("")
-//                .nodeType(ContextTree.NODE_OBJECT)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .readOnly(true)
-//                .children(children)
-//                .build();
-//    }
+    private FlowExtensionContextTreeNode buildTenantNode() {
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(readOnlyLeaf("domain", "Tenant Domain", FlowContextPaths.TENANT_DOMAIN_PATH));
+        return FlowExtensionContextTreeNode.builder()
+                .key("tenant")
+                .title("Tenant")
+                .path(FlowContextPaths.TENANT_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .children(children)
+                .build();
+    }
 
     private FlowExtensionContextTreeNode buildApplicationNode() {
 

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlow;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
@@ -183,7 +184,18 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                            AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        User.Builder userBuilder = new User.Builder(resolveUserId(flowUser, expose));
+        FlowExtensionUser.Builder userBuilder =
+                new FlowExtensionUser.Builder(resolveUserId(flowUser, expose));
+
+        if (isLeafExposed(FlowContextPaths.USER_USERNAME_PATH, expose)) {
+            String username = flowUser.getUsername();
+            userBuilder.username(username != null ? username : "");
+        }
+        if (isLeafExposed(FlowContextPaths.USER_STORE_DOMAIN_PATH, expose)) {
+            String userStoreDomain = flowUser.getUserStoreDomain();
+            userBuilder.userStoreDomain(userStoreDomain != null ? userStoreDomain : "");
+        }
+
         List<UserClaim> userClaims = buildFilteredClaims(flowUser, expose, accessConfig, certificatePEM);
         if (!userClaims.isEmpty()) {
             userBuilder.claims(userClaims);

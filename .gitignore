@@ -17,9 +17,19 @@
 *.jar
 *.war
 *.ear
+*.versionsBackup
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
 # Ignore everything in this directory
 target
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/README.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-02-enable-tenant-node.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-03-enable-organization-node.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-04-enable-user-identity-leaves.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-05-enable-user-credentials-node.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-06-validate-user-claims-path-format.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-07-harden-credential-plaintext-handling.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-08-credential-key-validation.md
+/components/flow-orchestration-framework/org.wso2.carbon.identity.flow.extension/tasks/task-09-configurable-key-cache-ttl.md
