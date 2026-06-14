@@ -242,6 +242,7 @@
   "oauth.dcr.authentication_required": true,
   "oauth.dcr.mandate_ssa": false,
   "oauth.allow_default_requested_scopes_for_back_channel_grant": false,
+  "oauth.use_app_authorized_scopes_as_default": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,

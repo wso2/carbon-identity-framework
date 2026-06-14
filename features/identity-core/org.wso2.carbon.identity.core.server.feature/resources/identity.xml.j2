@@ -1391,6 +1391,12 @@
             <EnableDefaultRequestedScopesForBackChannelGrant>{{oauth.allow_default_requested_scopes_for_back_channel_grant}}</EnableDefaultRequestedScopesForBackChannelGrant>
         {% endif %}
 
+        {% if oauth.use_app_authorized_scopes_as_default is defined %}
+            <!-- When enabled, requests with no scope default to the application's authorized scopes
+                 (filtered by the caller's entitlement) instead of the static DefaultRequestedScopes list. -->
+            <UseAppAuthorizedScopesAsDefault>{{oauth.use_app_authorized_scopes_as_default}}</UseAppAuthorizedScopesAsDefault>
+        {% endif %}
+
         {% if oauth.drop_unregistered_scopes is defined %}
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
