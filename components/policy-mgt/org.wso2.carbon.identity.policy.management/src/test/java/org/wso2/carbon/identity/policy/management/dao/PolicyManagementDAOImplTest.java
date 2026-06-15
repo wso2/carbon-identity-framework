@@ -28,10 +28,12 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManagementDAOImpl;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -140,5 +142,83 @@ public class PolicyManagementDAOImplTest {
 
         Policy result = policyManagementDAO.getPolicyById(createdPolicyId, TENANT_ID);
         Assert.assertNull(result);
+    }
+
+    private String addPolicy(String name) throws PolicyManagementException {
+
+        Policy policy = new Policy(UUID.randomUUID().toString(), name, TENANT_DOMAIN, Collections.emptyList());
+        return policyManagementDAO.addPolicy(policy, TENANT_ID).getId();
+    }
+
+    @Test(priority = 6)
+    public void testGetPoliciesPaginationAndCount() throws PolicyManagementException {
+
+        addPolicy("PageTestAlpha");
+        addPolicy("PageTestBeta");
+        addPolicy("PageTestGamma");
+
+        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, "PageTest"), 3);
+
+        List<PolicyBasicInfo> firstPage = policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 0, 2);
+        Assert.assertEquals(firstPage.size(), 2);
+        // Results are ordered by policy name ascending.
+        Assert.assertEquals(firstPage.get(0).getName(), "PageTestAlpha");
+        Assert.assertEquals(firstPage.get(1).getName(), "PageTestBeta");
+
+        List<PolicyBasicInfo> secondPage = policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 2, 2);
+        Assert.assertEquals(secondPage.size(), 1);
+        Assert.assertEquals(secondPage.get(0).getName(), "PageTestGamma");
+
+        // A non-positive limit yields an empty page.
+        Assert.assertTrue(policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 0, 0).isEmpty());
+    }
+
+    @Test(priority = 7)
+    public void testGetPoliciesWithFilter() throws PolicyManagementException {
+
+        addPolicy("FilterTestUnique");
+
+        Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, "FilterTestUnique"), 1);
+        List<PolicyBasicInfo> result = policyManagementDAO.getPolicies(TENANT_ID, "FilterTestUnique", 0, 10);
+        Assert.assertEquals(result.size(), 1);
+        Assert.assertEquals(result.get(0).getName(), "FilterTestUnique");
+    }
+
+    @Test(priority = 8)
+    public void testGetPolicyByName() throws PolicyManagementException {
+
+        addPolicy("NameLookupPolicy");
+
+        Policy result = policyManagementDAO.getPolicyByName("NameLookupPolicy", TENANT_ID);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getName(), "NameLookupPolicy");
+    }
+
+    @Test(priority = 9)
+    public void testResourceRoundTripAndTypeStored() throws PolicyManagementException {
+
+        String ruleId = UUID.randomUUID().toString();
+        Policy policy = new Policy(UUID.randomUUID().toString(), "ResourceRoundTrip", TENANT_DOMAIN,
+                Collections.singletonList(new PolicyResource(null, "ios", ResourceType.RULE, ruleId, null)));
+        String id = policyManagementDAO.addPolicy(policy, TENANT_ID).getId();
+
+        Policy fetched = policyManagementDAO.getPolicyById(id, TENANT_ID);
+        Assert.assertEquals(fetched.getResources().size(), 1);
+        PolicyResource resource = fetched.getResources().get(0);
+        Assert.assertEquals(resource.getResourceType(), ResourceType.RULE);
+        Assert.assertEquals(resource.getTarget(), "ios");
+        Assert.assertEquals(resource.getResourceId(), ruleId);
+    }
+
+    @Test(priority = 10, expectedExceptions = PolicyManagementException.class)
+    public void testDuplicateTargetPerTypeRejected() throws PolicyManagementException {
+
+        // Two RULE resources for the same target violate UNIQUE (POLICY_ID, TARGET, RESOURCE_TYPE).
+        Policy policy = new Policy(UUID.randomUUID().toString(), "DuplicateTargetPolicy", TENANT_DOMAIN,
+                Arrays.asList(
+                        new PolicyResource(null, "ios", ResourceType.RULE, UUID.randomUUID().toString(), null),
+                        new PolicyResource(null, "ios", ResourceType.RULE, UUID.randomUUID().toString(), null)));
+
+        policyManagementDAO.addPolicy(policy, TENANT_ID);
     }
 }

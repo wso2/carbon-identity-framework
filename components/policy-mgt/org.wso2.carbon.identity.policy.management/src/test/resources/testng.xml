@@ -22,11 +22,14 @@
     <test name="policy-management-dao-test">
         <classes>
             <class name="org.wso2.carbon.identity.policy.management.dao.PolicyManagementDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.policy.management.dao.CacheBackedPolicyManagementDAOTest"/>
+            <class name="org.wso2.carbon.identity.policy.management.dao.PolicyManagementDAOFacadeTest"/>
         </classes>
     </test>
     <test name="policy-management-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.policy.management.service.PolicyManagementServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.policy.management.service.PolicyEvaluationServiceImplTest"/>
         </classes>
     </test>
 </suite>
