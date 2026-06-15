@@ -27,10 +27,14 @@ import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ConsentAppMappingException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -130,20 +134,28 @@ public final class PolicyConsentUtil {
         if (user == null) {
             return emptyResult();
         }
+        Set<String> mappedPolicyIds = getMappedPolicyIds(context);
+        if (mappedPolicyIds.isEmpty()) {
+            return emptyResult();
+        }
         String subjectId = UserCoreUtil.addDomainToName(user.getUserName(), user.getUserStoreDomain());
         String tenantDomain = user.getTenantDomain();
-        return classifyUnconsentedPolicies(subjectId, tenantDomain);
+        return classifyUnconsentedPolicies(subjectId, tenantDomain, mappedPolicyIds);
     }
 
     /**
-     * Classifies unconsented policy purposes for the given user.
+     * Classifies unconsented policy purposes for the given user, restricted to the given set of policy IDs.
+     * When {@code policyIds} is non-empty only purposes whose UUID is in that set are evaluated;
+     * an empty set means all policy purposes are considered.
      *
      * @param subjectId    the user's subject identifier (domain-qualified)
      * @param tenantDomain the user's tenant domain
+     * @param policyIds    the set of policy purpose UUIDs to restrict the check to (empty = all)
      * @return classified policy purposes
      * @throws ConsentManagementException if an error occurs during consent lookup
      */
-    public static ClassifiedPolicies classifyUnconsentedPolicies(String subjectId, String tenantDomain)
+    public static ClassifiedPolicies classifyUnconsentedPolicies(String subjectId, String tenantDomain,
+                                                                 Set<String> policyIds)
             throws ConsentManagementException {
 
         ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
@@ -157,6 +169,9 @@ public final class PolicyConsentUtil {
             startTenantFlow(subjectId, tenantDomain);
             policyPurposes = getPolicyPurposes(consentManager);
             for (Purpose purpose : policyPurposes) {
+                if (!policyIds.isEmpty() && !policyIds.contains(purpose.getUuid())) {
+                    continue;
+                }
                 if (!isPolicyConsentMissing(subjectId, purpose, consentManager)) {
                     continue;
                 }
@@ -357,6 +372,33 @@ public final class PolicyConsentUtil {
             metadataList.add(metadata);
         }
         return new Gson().toJson(metadataList);
+    }
+
+    /**
+     * Resolves the set of policy purpose IDs mapped to the application of the given authentication context.
+     *
+     * @param context the authentication context
+     * @return the set of mapped policy purpose UUIDs (empty if none or if the application cannot be resolved)
+     * @throws ConsentManagementException if an error occurs while retrieving the application policy mappings
+     */
+    private static Set<String> getMappedPolicyIds(AuthenticationContext context) throws ConsentManagementException {
+
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        ApplicationConfig applicationConfig = sequenceConfig != null ? sequenceConfig.getApplicationConfig() : null;
+        ServiceProvider serviceProvider = applicationConfig != null ? applicationConfig.getServiceProvider() : null;
+        if (serviceProvider == null || serviceProvider.getApplicationResourceId() == null) {
+            return Collections.emptySet();
+        }
+        String appResourceId = serviceProvider.getApplicationResourceId();
+        try {
+            List<String> purposeIds = FrameworkServiceDataHolder.getInstance()
+                    .getConsentAppMappingService()
+                    .getPurposesForApplication(appResourceId);
+            return new HashSet<>(purposeIds);
+        } catch (ConsentAppMappingException e) {
+            throw new ConsentManagementException(
+                    "Error retrieving policy mappings for application: " + appResourceId, e.getErrorCode(), e);
+        }
     }
 
     private static ClassifiedPolicies emptyResult() {

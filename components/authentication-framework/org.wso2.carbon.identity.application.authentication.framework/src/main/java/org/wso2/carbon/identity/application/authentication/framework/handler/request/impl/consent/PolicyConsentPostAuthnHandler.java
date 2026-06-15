@@ -159,12 +159,12 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 authenticatedUser.getUserStoreDomain());
         String tenantDomain = authenticatedUser.getTenantDomain();
 
-        String appResourceId = getServiceProvider(context).getApplicationResourceId();
-        Set<String> mappedPolicyIds = getMappedPolicyIds(appResourceId, tenantDomain);
+        Set<String> mappedPolicyIds = getMappedPolicyIds(context);
         if (mappedPolicyIds.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("No policy mappings found for application: %s. "
-                        + "Skipping policy consent handling.", appResourceId));
+                        + "Skipping policy consent handling.",
+                        getServiceProvider(context).getApplicationResourceId()));
             }
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
@@ -256,11 +256,13 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
                 ? new ArrayList<>(Arrays.asList(optionalParam))
                 : Collections.emptyList();
 
+        Set<String> mappedPolicyIds = getMappedPolicyIds(context);
+
         Set<String> allowedMandatoryIds;
         Set<String> allowedOptionalIds;
         try {
             PolicyConsentUtil.ClassifiedPolicies classified =
-                    PolicyConsentUtil.classifyUnconsentedPolicies(subjectId, tenantDomain);
+                    PolicyConsentUtil.classifyUnconsentedPolicies(subjectId, tenantDomain, mappedPolicyIds);
             Set<String> expectedMandatoryIds = new HashSet<>(classified.getMandatoryUnconsentedIds());
             expectedMandatoryIds.addAll(classified.getMandatoryNewVersionIds());
             if (!new HashSet<>(mandatoryIds).containsAll(expectedMandatoryIds)) {
@@ -387,9 +389,10 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
         return PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
     }
 
-    private Set<String> getMappedPolicyIds(String appResourceId, String tenantDomain)
+    private Set<String> getMappedPolicyIds(AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
+        String appResourceId = getServiceProvider(context).getApplicationResourceId();
         try {
             List<String> purposeIds = FrameworkServiceDataHolder.getInstance()
                     .getConsentAppMappingService()
@@ -399,12 +402,23 @@ public class PolicyConsentPostAuthnHandler extends AbstractPostAuthnHandler {
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_PROCESSING_POLICY_CONSENT.getCode(),
                     String.format("Error retrieving policy config mappings for application: %s in tenant: %s.",
-                            appResourceId, tenantDomain), e);
+                            appResourceId, context.getTenantDomain()), e);
         }
     }
 
+    /**
+     * Resolves the service provider for the authentication context.
+     * Prefers the service provider already loaded into the sequence configuration to avoid a redundant
+     * database lookup, and only falls back to the application management service if it is unavailable.
+     */
     private ServiceProvider getServiceProvider(AuthenticationContext context) throws PostAuthenticationFailedException {
 
+        if (context.getSequenceConfig() != null && context.getSequenceConfig().getApplicationConfig() != null) {
+            ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
+            if (serviceProvider != null) {
+                return serviceProvider;
+            }
+        }
         try {
             return FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
                     .getServiceProvider(context.getServiceProviderName(), context.getTenantDomain());

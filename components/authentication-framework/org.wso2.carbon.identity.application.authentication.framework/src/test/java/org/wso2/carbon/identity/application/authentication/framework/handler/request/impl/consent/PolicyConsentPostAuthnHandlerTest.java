@@ -452,7 +452,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(piiCategory.getId()).thenReturn(1);
         when(consentManager.getPIICategoryByName("Policy")).thenReturn(piiCategory);
 
-        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString(), any()))
                 .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
                         Arrays.asList(PURPOSE_UUID_1, PURPOSE_UUID_2),
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), ""));
@@ -492,7 +492,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(piiCategory.getId()).thenReturn(1);
         when(consentManager.getPIICategoryByName("Policy")).thenReturn(piiCategory);
 
-        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString(), any()))
                 .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
                         Collections.emptyList(), Collections.emptyList(),
                         Arrays.asList(PURPOSE_UUID_1), Collections.emptyList(), ""));
@@ -524,7 +524,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(defaultCategory.getId()).thenReturn(10);
         when(consentManager.getPurposeCategoryByName("DEFAULT")).thenReturn(defaultCategory);
 
-        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString(), any()))
                 .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
                         Collections.emptyList(), Collections.emptyList(),
                         Arrays.asList(PURPOSE_UUID_1), Collections.emptyList(), ""));
@@ -559,7 +559,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(defaultCategory.getId()).thenReturn(10);
         when(consentManager.getPurposeCategoryByName("DEFAULT")).thenReturn(defaultCategory);
 
-        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString(), any()))
                 .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
                         Collections.emptyList(), Collections.emptyList(),
                         Arrays.asList(PURPOSE_UUID_1, PURPOSE_UUID_2), Collections.emptyList(), ""));
@@ -595,7 +595,7 @@ public class PolicyConsentPostAuthnHandlerTest {
         when(newCategory.getId()).thenReturn(2);
         when(consentManager.addPIICategoryWithUuid(any())).thenReturn(newCategory);
 
-        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString()))
+        consentUtilMock.when(() -> PolicyConsentUtil.classifyUnconsentedPolicies(anyString(), anyString(), any()))
                 .thenReturn(new PolicyConsentUtil.ClassifiedPolicies(
                         Arrays.asList(PURPOSE_UUID_1), Collections.emptyList(),
                         Collections.emptyList(), Collections.emptyList(), ""));
