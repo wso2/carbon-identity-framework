@@ -1447,12 +1447,28 @@ public class FrameworkUtils {
     public static SessionContext getSessionContextFromCache(HttpServletRequest request, AuthenticationContext context
             , String sessionContextKey) throws FrameworkException {
 
+        return getSessionContextFromCache(request, context, sessionContextKey, context.getLoginTenantDomain());
+    }
+
+    /**
+     * Retrieve session context from the session cache.
+     *
+     * @param request           HttpServletRequest.
+     * @param context           Authentication context.
+     * @param sessionContextKey Session context key.
+     * @param tenantDomain Tenant Domain.
+     * @return Session context key.
+     * @throws FrameworkException Error in triggering session expire event.
+     */
+    public static SessionContext getSessionContextFromCache(HttpServletRequest request, AuthenticationContext context
+            , String sessionContextKey, String tenantDomain) throws FrameworkException {
+
         SessionContext sessionContext = null;
         if (StringUtils.isNotBlank(sessionContextKey)) {
             SessionContextCacheKey cacheKey = new SessionContextCacheKey(sessionContextKey);
             SessionContextCache sessionContextCache = SessionContextCache.getInstance();
             SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey,
-                    context.getLoginTenantDomain());
+                    tenantDomain);
 
             if (cacheEntry != null) {
                 sessionContext = cacheEntry.getContext();

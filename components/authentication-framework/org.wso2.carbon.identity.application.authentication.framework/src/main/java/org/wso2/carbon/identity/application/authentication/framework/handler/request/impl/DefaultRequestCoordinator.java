@@ -83,6 +83,8 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.api.Tenant;
@@ -106,6 +108,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1225,26 +1228,35 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if  (previousSessionOrgId.isPresent()) {
                     orgIdForSessionDataLookup = previousSessionOrgId.get();
                     sessionContext = loadedSessionContext;
-                }
-
-                // Handle session context loading for root sessions if organization sessions are not applicable.
-                boolean hasRootSessionContext = (loadedSessionContext.getAuthenticatedIdPs() != null);
-                if (previousSessionOrgId.isEmpty() && hasRootSessionContext) {
-                    boolean invalidSessionInCurrentContext = false;
-                    if (applicationConfig != null && !applicationConfig.isSaaSApp()
-                            && loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN) != null) {
-                        /*
-                        Consider the session context as invalid if the tenant domain in the session context is
-                        different from the login tenant domain in the current context for non-SaaS applications.
-                         */
-                        invalidSessionInCurrentContext = !StringUtils.equals(
-                                loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
-                                context.getLoginTenantDomain());
-                    }
-                    if (invalidSessionInCurrentContext) {
-                        request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
-                    } else {
-                        sessionContext = loadedSessionContext;
+                } else if (context.isOrgApplicationLogin()
+                        && MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData())) {
+                    // The accessing org has no session in the loaded session context. Reuse the authenticators
+                    // already satisfied in other organizations to honor SSO for the current organization
+                    // application login.
+                    String accessingOrgId =
+                            PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+                    populateContextWithPreviousAuthenticatedOrganizationSessions(accessingOrgId, context,
+                            effectiveSequence, loadedSessionContext, sessionContextKey);
+                } else {
+                    // Handle session context loading for root sessions if organization sessions are not applicable.
+                    boolean hasRootSessionContext = (loadedSessionContext.getAuthenticatedIdPs() != null);
+                    if (hasRootSessionContext) {
+                        boolean invalidSessionInCurrentContext = false;
+                        if (applicationConfig != null && !applicationConfig.isSaaSApp()
+                                && loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN) != null) {
+                            /*
+                            Consider the session context as invalid if the tenant domain in the session context is
+                            different from the login tenant domain in the current context for non-SaaS applications.
+                             */
+                            invalidSessionInCurrentContext = !StringUtils.equals(
+                                    loadedSessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN).toString(),
+                                    context.getLoginTenantDomain());
+                        }
+                        if (invalidSessionInCurrentContext) {
+                            request.setAttribute(FrameworkConstants.REMOVE_COMMONAUTH_COOKIE, true);
+                        } else {
+                            sessionContext = loadedSessionContext;
+                        }
                     }
                 }
             }
@@ -1261,6 +1273,23 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         // set the sequence for the current authentication/logout flow
         context.setSequenceConfig(effectiveSequence);
+    }
+
+    /**
+     * Checks whether the request carries any organization discovery input parameter.
+     *
+     * @param request The HTTP servlet request.
+     * @return {@code true} if at least one organization discovery parameter is present in the request.
+     */
+    private boolean hasOrganizationDiscoveryParameters(HttpServletRequest request) {
+
+        return StringUtils.isNotEmpty(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID))
+                || StringUtils.isNotEmpty(
+                        request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE))
+                || StringUtils.isNotEmpty(
+                        request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME))
+                || StringUtils.isNotEmpty(
+                        request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT));
     }
 
     protected void findPreviousOrganizationSession(HttpServletRequest request, AuthenticationContext context)
@@ -1284,6 +1313,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (accessingOrgId != null) {
                     if (loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
                         sessionContext = loadedSessionContext;
+                    } else {
+                        // The accessing org has no session in the loaded session context. Reuse the authenticators
+                        // already satisfied in other organizations to honor SSO for the current organization
+                        // application login.
+                        populateContextWithPreviousAuthenticatedOrganizationSessions(accessingOrgId,
+                                context, effectiveSequence, loadedSessionContext, sessionContextKey);
                     }
                 }
             }
@@ -1298,6 +1333,186 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         context.setSequenceConfig(effectiveSequence);
+    }
+
+    /**
+     * Updates the effective sequence config to reflect the authenticators which the shared user has already
+     * authenticated with in other sub-organizations, providing SSO capabilities for shared user logins across
+     * sub-organizations.
+     * <p>
+     * Even though there is no session for the currently accessing organization, the user may have already
+     * authenticated with one or more of the authenticators required by the current application's sequence in another
+     * organization. For each authenticator in the effective sequence steps that is found among the authenticated
+     * authenticators of any organization, the corresponding step is marked as already authenticated and the
+     * authenticated IdP data is carried over to the context.
+     *
+     * @param context              The authentication context.
+     * @param effectiveSequence    The effective sequence config of the current authentication flow.
+     * @param loadedSessionContext The loaded session context holding the authenticated organization data.
+     * @param sessionContextKey    The session context key of the reused session.
+     */
+    private void populateContextWithPreviousAuthenticatedOrganizationSessions(String accessingOrgId,
+                                                                              AuthenticationContext context,
+                                                                              SequenceConfig effectiveSequence,
+                                                                              SessionContext loadedSessionContext,
+                                                                              String sessionContextKey) {
+
+        Map<String, AuthenticatedOrgData> authenticatedOrgData = loadedSessionContext.getAuthenticatedOrgData();
+        if (MapUtils.isEmpty(authenticatedOrgData)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticated organization data found in the session context. Skipping the " +
+                        "population of the sequence config with previously authenticated organization sessions.");
+            }
+            return;
+        }
+
+        if (!isAuthenticatedUserSharedToAccessingOrg(loadedSessionContext, accessingOrgId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("The authenticated user is not shared to the accessing organization: " + accessingOrgId +
+                        ". Skipping the population of the sequence config with previously authenticated " +
+                        "organization sessions.");
+            }
+            return;
+        }
+
+        Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<>();
+
+        for (StepConfig stepConfig : effectiveSequence.getStepMap().values()) {
+            for (Map.Entry<String, AuthenticatedOrgData> orgDataEntry : authenticatedOrgData.entrySet()) {
+                Map<String, AuthenticatedIdPData> orgAuthenticatedIdPs = orgDataEntry.getValue().getAuthenticatedIdPs();
+                Map<String, AuthenticatorConfig> authenticatedStepIdPs =
+                        FrameworkUtils.getAuthenticatedStepIdPs(stepConfig, orgAuthenticatedIdPs);
+                if (authenticatedStepIdPs.isEmpty()) {
+                    continue;
+                }
+
+                Map.Entry<String, AuthenticatorConfig> authenticatedStepIdP =
+                        authenticatedStepIdPs.entrySet().iterator().next();
+                String authenticatedIdPName = authenticatedStepIdP.getKey();
+                AuthenticatorConfig authenticatedAuthenticator = authenticatedStepIdP.getValue();
+                AuthenticatedIdPData authenticatedIdPData = orgAuthenticatedIdPs.get(authenticatedIdPName);
+
+                stepConfig.setAuthenticatedAutenticator(authenticatedAuthenticator);
+                stepConfig.setAuthenticatedAuthenticatorName(authenticatedAuthenticator.getName());
+                stepConfig.setAuthenticatedIdP(authenticatedIdPName);
+
+                AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
+                // Switch the accessing org of the authenticated user to the current accessing org.
+                // Copying to avoid modifying the cache entry.
+                boolean updateAccessingOrganization = authenticatedUser != null
+                        && StringUtils.isNotBlank(authenticatedUser.getAccessingOrganization());
+                if (updateAccessingOrganization) {
+                    authenticatedUser = new AuthenticatedUser(authenticatedUser);
+                    authenticatedUser.setAccessingOrganization(accessingOrgId);
+
+                    // Clone the authenticated IdP data and switch its user's accessing org similarly.
+                    try {
+                        AuthenticatedIdPData clonedAuthenticatedIdPData =
+                                (AuthenticatedIdPData) authenticatedIdPData.clone();
+                        clonedAuthenticatedIdPData.setUser(authenticatedUser);
+                        authenticatedIdPData = clonedAuthenticatedIdPData;
+                    } catch (CloneNotSupportedException e) {
+                        log.error("Error while cloning the authenticated IdP data of the IdP: " +
+                                authenticatedIdPName + ". Proceeding with the loaded authenticated IdP data.", e);
+                    }
+                }
+                stepConfig.setAuthenticatedUser(authenticatedUser);
+
+                // Carry over the authenticated IdP data so the framework can honor the SSO downstream.
+                AuthenticatedIdPData existingAuthenticatedIdPData = previousAuthenticatedIdPs.get(authenticatedIdPName);
+                if (existingAuthenticatedIdPData == null) {
+                    previousAuthenticatedIdPs.put(authenticatedIdPName, authenticatedIdPData);
+                } else {
+                    // An entry for the same IdP is already carried over (from another organization). Append only
+                    // the authenticators which are not already present in the existing entry.
+                    List<AuthenticatorConfig> existingAuthenticators =
+                            existingAuthenticatedIdPData.getAuthenticators();
+                    List<AuthenticatorConfig> newAuthenticators = authenticatedIdPData.getAuthenticators();
+                    if (CollectionUtils.isNotEmpty(newAuthenticators)) {
+                        for (AuthenticatorConfig newAuthenticator : newAuthenticators) {
+                            boolean alreadyPresent = existingAuthenticators != null && existingAuthenticators.stream()
+                                    .anyMatch(existing -> StringUtils.equals(existing.getName(),
+                                            newAuthenticator.getName()));
+                            if (!alreadyPresent) {
+                                existingAuthenticatedIdPData.addAuthenticator(newAuthenticator);
+                            }
+                        }
+                    }
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Marking step %d as authenticated with the authenticator '%s' of the " +
+                                    "IdP '%s' from the previously authenticated organization '%s'.",
+                            stepConfig.getOrder(), authenticatedAuthenticator.getName(), authenticatedIdPName,
+                            orgDataEntry.getKey()));
+                }
+                break;
+            }
+        }
+
+        if (!previousAuthenticatedIdPs.isEmpty()) {
+            context.setPreviousSessionFound(true);
+            Map<String, AuthenticatedIdPData> existingPreviousAuthenticatedIdPs =
+                    context.getPreviousAuthenticatedIdPs();
+            if (MapUtils.isNotEmpty(existingPreviousAuthenticatedIdPs)) {
+                existingPreviousAuthenticatedIdPs.putAll(previousAuthenticatedIdPs);
+            } else {
+                context.setPreviousAuthenticatedIdPs(previousAuthenticatedIdPs);
+            }
+        }
+    }
+
+    /**
+     * Checks whether the authenticated user held in the loaded session context's authenticated organization data is
+     * shared to the accessing organization.
+     *
+     * @param loadedSessionContext The loaded session context holding the authenticated organization data.
+     * @param accessingOrgId       The organization ID the user is currently accessing.
+     * @return {@code true} if the authenticated user is shared to the accessing organization, {@code false} otherwise.
+     */
+    private boolean isAuthenticatedUserSharedToAccessingOrg(SessionContext loadedSessionContext,
+                                                            String accessingOrgId) {
+
+        if (StringUtils.isBlank(accessingOrgId)) {
+            return false;
+        }
+
+        AuthenticatedUser authenticatedUser = null;
+        Iterator<AuthenticatedOrgData> authenticatedOrgDataIterator =
+                loadedSessionContext.getAuthenticatedOrgData().values().iterator();
+        if (authenticatedOrgDataIterator.hasNext()) {
+            AuthenticatedOrgData firstAuthenticatedOrgData = authenticatedOrgDataIterator.next();
+            for (SequenceConfig sequenceConfig : firstAuthenticatedOrgData.getAuthenticatedSequences().values()) {
+                if (sequenceConfig != null && sequenceConfig.getAuthenticatedUser() != null) {
+                    authenticatedUser = sequenceConfig.getAuthenticatedUser();
+                    break;
+                }
+            }
+        }
+
+        if (authenticatedUser == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticated user found in the authenticated organization data of the loaded " +
+                        "session context.");
+            }
+            return false;
+        }
+
+        try {
+            OrganizationUserSharingService organizationUserSharingService =
+                    FrameworkServiceDataHolder.getInstance().getOrganizationUserSharingService();
+            UserAssociation userAssociation = organizationUserSharingService
+                    .getUserAssociationOfAssociatedUserByOrgId(authenticatedUser.getUserId(), accessingOrgId);
+            return userAssociation != null;
+        } catch (OrganizationManagementException e) {
+            log.error("Error while resolving the shared user association of the authenticated user for the " +
+                    "accessing organization: " + accessingOrgId, e);
+            return false;
+        } catch (UserIdNotFoundException e) {
+            log.error("Authenticated user ID not found while resolving the shared user association for the " +
+                    "accessing organization: " + accessingOrgId, e);
+            return false;
+        }
     }
 
     /**
@@ -1423,6 +1638,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                                         AuthenticationContext context,
                                                         ApplicationConfig applicationConfig)
             throws FrameworkException {
+
+        if (hasOrganizationDiscoveryParameters(request)) {
+            return Optional.empty();
+        }
 
         boolean sharedAppLoginSession = (loadedSessionContext.getAuthenticatedSharedAppOrgId() != null) &&
                 (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()));
@@ -1553,10 +1772,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                 }
             }
+            String primaryApplicationTenantDomain = context.getTenantDomain();
+            if (context.getOrganizationLoginData() != null &&
+                    context.getOrganizationLoginData().getPrimaryAppData() != null &&
+                    StringUtils.isNotBlank(context.getOrganizationLoginData().getPrimaryAppData().getTenantDomain())) {
+                primaryApplicationTenantDomain =
+                        context.getOrganizationLoginData().getPrimaryAppData().getTenantDomain();
+            }
             // This is done to reflect the changes done in SP to the sequence config. So, the requested claim
             // updates, authentication step updates will be reflected.
             refreshAppConfig(effectiveSequence, request.getParameter(FrameworkConstants.RequestParams.ISSUER),
-                    context.getRequestType(), context.getTenantDomain());
+                    context.getRequestType(), primaryApplicationTenantDomain);
 
             Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp;
             if (orgId != null) {
@@ -1600,10 +1826,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         SessionContext sessionContext;
         try {
+            String rootTenantDomain = context.getTenantDomain();
+            if (context.getOrganizationLoginData() != null &&
+                    StringUtils.isNotBlank(context.getOrganizationLoginData().getRootOrganizationTenantDomain())) {
+                rootTenantDomain = context.getOrganizationLoginData().getRootOrganizationTenantDomain();
+            }
             // Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
             // tenant wise session expiry time
-            FrameworkUtils.startTenantFlow(context.getTenantDomain());
-            sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
+            FrameworkUtils.startTenantFlow(rootTenantDomain);
+            sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey,
+                    rootTenantDomain);
         } finally {
             FrameworkUtils.endTenantFlow();
         }
@@ -2005,6 +2237,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         int primaryAppId = applicationConfig.getApplicationID();
         PrimaryAppData primaryAppData = new PrimaryAppData();
         primaryAppData.setId(primaryAppId);
+        primaryAppData.setTenantDomain(applicationConfig.getServiceProvider().getTenantDomain());
         context.getOrganizationLoginData().setPrimaryAppData(primaryAppData);
 
         // Setting the sequence config of the shared application to the context.
