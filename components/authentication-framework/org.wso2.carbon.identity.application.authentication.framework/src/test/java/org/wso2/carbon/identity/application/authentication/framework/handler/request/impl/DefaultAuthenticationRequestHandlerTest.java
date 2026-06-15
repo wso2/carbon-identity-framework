@@ -28,16 +28,19 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedToken;
+import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -51,7 +54,9 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -75,6 +80,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -632,6 +638,136 @@ public class DefaultAuthenticationRequestHandlerTest {
             assertFalse(exceptionThrown, "FrameworkException should NOT be thrown for tenant domain mismatch "
                     + "when user is a shared user");
         }
+    }
+
+    private String invokeResolveRootTenantDomain(AuthenticationContext context) throws Exception {
+
+        Method method = DefaultAuthenticationRequestHandler.class.getDeclaredMethod(
+                "resolveRootTenantDomain", AuthenticationContext.class);
+        method.setAccessible(true);
+        return (String) method.invoke(new DefaultAuthenticationRequestHandler(), context);
+    }
+
+    @Test(description = "Root tenant domain resolves to the login tenant domain when no organization login data " +
+            "is present.")
+    public void testResolveRootTenantDomainWithoutOrganizationLoginData() throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain("carbon.super");
+        context.setLoginTenantDomain("carbon.super");
+
+        assertEquals(invokeResolveRootTenantDomain(context), "carbon.super");
+    }
+
+    @Test(description = "Root tenant domain falls back to the login tenant domain when the root organization tenant " +
+            "domain is blank.")
+    public void testResolveRootTenantDomainWithBlankRootOrgTenantDomain() throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setTenantDomain("login-tenant.com");
+        context.setLoginTenantDomain("login-tenant.com");
+        OrganizationLoginData orgLoginData = new OrganizationLoginData();
+        orgLoginData.setRootOrganizationTenantDomain("   ");
+        context.setOrganizationLoginData(orgLoginData);
+
+        assertEquals(invokeResolveRootTenantDomain(context), "login-tenant.com");
+    }
+
+    @Test(description = "Root tenant domain resolves to the root organization tenant domain when it is available.")
+    public void testResolveRootTenantDomainWithRootOrgTenantDomain() throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        context.setLoginTenantDomain("login-tenant.com");
+        OrganizationLoginData orgLoginData = new OrganizationLoginData();
+        orgLoginData.setRootOrganizationTenantDomain("root-tenant.com");
+        context.setOrganizationLoginData(orgLoginData);
+
+        assertEquals(invokeResolveRootTenantDomain(context), "root-tenant.com");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, AuthenticatedIdPData> invokeMergeAuthenticatedIdPs(
+            Map<String, AuthenticatedIdPData> previous,
+            Map<String, AuthenticatedIdPData> current) throws Exception {
+
+        Method method = DefaultAuthenticationRequestHandler.class.getDeclaredMethod(
+                "mergeAuthenticatedIdPs", Map.class, Map.class);
+        method.setAccessible(true);
+        return (Map<String, AuthenticatedIdPData>) method.invoke(
+                new DefaultAuthenticationRequestHandler(), previous, current);
+    }
+
+    private AuthenticatedIdPData buildAuthenticatedIdPData(String idpName, String... authenticatorNames) {
+
+        AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+        authenticatedIdPData.setIdpName(idpName);
+        authenticatedIdPData.setUser(new AuthenticatedUser());
+        List<AuthenticatorConfig> authenticators = new ArrayList<>();
+        for (String authenticatorName : authenticatorNames) {
+            authenticators.add(new AuthenticatorConfig(authenticatorName, true, null));
+        }
+        authenticatedIdPData.setAuthenticators(authenticators);
+        return authenticatedIdPData;
+    }
+
+    private List<String> authenticatorNames(AuthenticatedIdPData authenticatedIdPData) {
+
+        List<String> names = new ArrayList<>();
+        for (AuthenticatorConfig authenticatorConfig : authenticatedIdPData.getAuthenticators()) {
+            names.add(authenticatorConfig.getName());
+        }
+        return names;
+    }
+
+    @Test(description = "Merging disjoint authenticated IdP maps keeps all IdPs from both maps.")
+    public void testMergeAuthenticatedIdPsWithDisjointIdPs() throws Exception {
+
+        Map<String, AuthenticatedIdPData> previous = new HashMap<>();
+        previous.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator"));
+        Map<String, AuthenticatedIdPData> current = new HashMap<>();
+        current.put("FederatedIdP", buildAuthenticatedIdPData("FederatedIdP", "OpenIDConnectAuthenticator"));
+
+        Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(previous, current);
+
+        assertEquals(merged.size(), 2);
+        assertTrue(merged.containsKey("LOCAL"));
+        assertTrue(merged.containsKey("FederatedIdP"));
+        assertNotNull(merged.get("LOCAL"));
+        assertNotSame(merged.get("LOCAL"), previous.get("LOCAL"));
+    }
+
+    @Test(description = "Merging IdP maps that share an IdP appends only the authenticators not already present.")
+    public void testMergeAuthenticatedIdPsAppendsMissingAuthenticators() throws Exception {
+
+        Map<String, AuthenticatedIdPData> previous = new HashMap<>();
+        previous.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator"));
+        Map<String, AuthenticatedIdPData> current = new HashMap<>();
+        // Same IdP with a duplicate authenticator and a new authenticator.
+        current.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator", "TOTPAuthenticator"));
+
+        Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(previous, current);
+
+        assertEquals(merged.size(), 1);
+        List<String> mergedAuthenticators = authenticatorNames(merged.get("LOCAL"));
+        assertEquals(mergedAuthenticators.size(), 2, "Duplicate authenticator should not be added twice.");
+        assertTrue(mergedAuthenticators.contains("BasicAuthenticator"));
+        assertTrue(mergedAuthenticators.contains("TOTPAuthenticator"));
+    }
+
+    @Test(description = "Merging handles null and empty authenticated IdP maps gracefully.")
+    public void testMergeAuthenticatedIdPsWithNullAndEmptyMaps() throws Exception {
+
+        Map<String, AuthenticatedIdPData> current = new HashMap<>();
+        current.put("LOCAL", buildAuthenticatedIdPData("LOCAL", "BasicAuthenticator"));
+
+        // Previous map is null.
+        Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(null, current);
+        assertEquals(merged.size(), 1);
+        assertTrue(merged.containsKey("LOCAL"));
+
+        // Both maps empty/null.
+        Map<String, AuthenticatedIdPData> emptyMerge = invokeMergeAuthenticatedIdPs(null, new HashMap<>());
+        assertTrue(emptyMerge.isEmpty());
     }
 }
 
