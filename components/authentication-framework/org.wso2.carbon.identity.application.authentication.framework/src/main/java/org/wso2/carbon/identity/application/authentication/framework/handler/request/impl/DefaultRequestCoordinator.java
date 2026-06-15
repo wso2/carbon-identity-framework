@@ -1236,7 +1236,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     String accessingOrgId =
                             PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
                     populateContextWithPreviousAuthenticatedOrganizationSessions(accessingOrgId, context,
-                            effectiveSequence, loadedSessionContext, sessionContextKey);
+                            effectiveSequence, loadedSessionContext);
                 } else {
                     // Handle session context loading for root sessions if organization sessions are not applicable.
                     boolean hasRootSessionContext = (loadedSessionContext.getAuthenticatedIdPs() != null);
@@ -1318,7 +1318,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         // already satisfied in other organizations to honor SSO for the current organization
                         // application login.
                         populateContextWithPreviousAuthenticatedOrganizationSessions(accessingOrgId,
-                                context, effectiveSequence, loadedSessionContext, sessionContextKey);
+                                context, effectiveSequence, loadedSessionContext);
                     }
                 }
             }
@@ -1349,13 +1349,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @param context              The authentication context.
      * @param effectiveSequence    The effective sequence config of the current authentication flow.
      * @param loadedSessionContext The loaded session context holding the authenticated organization data.
-     * @param sessionContextKey    The session context key of the reused session.
      */
     private void populateContextWithPreviousAuthenticatedOrganizationSessions(String accessingOrgId,
                                                                               AuthenticationContext context,
                                                                               SequenceConfig effectiveSequence,
-                                                                              SessionContext loadedSessionContext,
-                                                                              String sessionContextKey) {
+                                                                              SessionContext loadedSessionContext) {
 
         Map<String, AuthenticatedOrgData> authenticatedOrgData = loadedSessionContext.getAuthenticatedOrgData();
         if (MapUtils.isEmpty(authenticatedOrgData)) {

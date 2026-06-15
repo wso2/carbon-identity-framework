@@ -1140,7 +1140,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         SessionContext sessionContext = new SessionContext();
         sessionContext.setAuthenticatedOrgData(new HashMap<>());
 
-        invokePopulateContext("accessing-org-id", context, new SequenceConfig(), sessionContext, "session-key");
+        invokePopulateContext("accessing-org-id", context, new SequenceConfig(), sessionContext);
 
         assertFalse(context.isPreviousSessionFound());
         assertTrue(context.getPreviousAuthenticatedIdPs().isEmpty());
@@ -1160,7 +1160,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
         AuthenticationContext context = new AuthenticationContext();
         try {
-            invokePopulateContext("accessing-org-id", context, new SequenceConfig(), sessionContext, "session-key");
+            invokePopulateContext("accessing-org-id", context, new SequenceConfig(), sessionContext);
             assertFalse(context.isPreviousSessionFound());
         } finally {
             FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
@@ -1210,7 +1210,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
         AuthenticationContext context = new AuthenticationContext();
         try {
-            invokePopulateContext("accessing-org-id", context, effectiveSequence, sessionContext, "session-key");
+            invokePopulateContext("accessing-org-id", context, effectiveSequence, sessionContext);
 
             assertTrue(context.isPreviousSessionFound());
             Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = context.getPreviousAuthenticatedIdPs();
@@ -1375,14 +1375,13 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     }
 
     private void invokePopulateContext(String accessingOrgId, AuthenticationContext context,
-                                       SequenceConfig effectiveSequence, SessionContext loadedSessionContext,
-                                       String sessionContextKey) throws Exception {
+                                       SequenceConfig effectiveSequence, SessionContext loadedSessionContext)
+            throws Exception {
 
         Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
                 "populateContextWithPreviousAuthenticatedOrganizationSessions", String.class,
-                AuthenticationContext.class, SequenceConfig.class, SessionContext.class, String.class);
+                AuthenticationContext.class, SequenceConfig.class, SessionContext.class);
         method.setAccessible(true);
-        method.invoke(requestCoordinator, accessingOrgId, context, effectiveSequence, loadedSessionContext,
-                sessionContextKey);
+        method.invoke(requestCoordinator, accessingOrgId, context, effectiveSequence, loadedSessionContext);
     }
 }
