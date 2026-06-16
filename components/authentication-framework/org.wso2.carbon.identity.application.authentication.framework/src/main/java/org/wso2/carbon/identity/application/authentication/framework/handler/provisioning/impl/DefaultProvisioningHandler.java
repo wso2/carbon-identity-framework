@@ -651,7 +651,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private void updateExistingUserClaims(String username, Map<String, String> userClaims,
                                          Map<String, String> attributes, UserStoreManager userStoreManager)
             throws org.wso2.carbon.user.api.UserStoreException, FrameworkException {
-        
+
+        if (userStoreManager.isReadOnly()) {
+            log.warn("User store of user: " + username + " is read only. Skipping claim updates during JIT " +
+                    "provisioning.");
+            return;
+        }
+
         List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
         if (!FrameworkUtils.isPreserveLocallyAddedClaims()) {
             /*
