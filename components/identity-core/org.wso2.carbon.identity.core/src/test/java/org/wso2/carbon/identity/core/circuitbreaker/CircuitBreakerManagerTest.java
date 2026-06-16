@@ -76,14 +76,14 @@ public class CircuitBreakerManagerTest {
     public void setUp() {
 
         mockObserver = mock(TenantServiceBreakerObserver.class);
-        when(mockObserver.getService()).thenReturn(TenantService.EMAIL_OTP);
+        when(mockObserver.getService()).thenReturn(TenantService.EMAIL_NOTIFICATION);
     }
 
     @AfterMethod
     public void tearDown() {
 
-        dataHolder.removeTenantServiceBreakerObserver(TenantService.EMAIL_OTP);
-        dataHolder.removeRuntimePolicyLoader(TenantService.EMAIL_OTP);
+        dataHolder.removeTenantServiceBreakerObserver(TenantService.EMAIL_NOTIFICATION);
+        dataHolder.removeRuntimePolicyLoader(TenantService.EMAIL_NOTIFICATION);
     }
 
     // ─────────────────────────── tryAcquire ───────────────────────────
@@ -91,7 +91,7 @@ public class CircuitBreakerManagerTest {
     @Test
     public void testTryAcquireNullTenantReturnsInvalidData() {
 
-        Decision decision = manager.tryAcquire(null, TenantService.EMAIL_OTP);
+        Decision decision = manager.tryAcquire(null, TenantService.EMAIL_NOTIFICATION);
 
         assertFalse(decision.isAllowed());
         assertEquals(decision.getRejectReason(), RejectReason.INVALID_DATA);
@@ -100,7 +100,7 @@ public class CircuitBreakerManagerTest {
     @Test
     public void testTryAcquireBlankTenantReturnsInvalidData() {
 
-        Decision decision = manager.tryAcquire("   ", TenantService.EMAIL_OTP);
+        Decision decision = manager.tryAcquire("   ", TenantService.EMAIL_NOTIFICATION);
 
         assertFalse(decision.isAllowed());
         assertEquals(decision.getRejectReason(), RejectReason.INVALID_DATA);
@@ -111,7 +111,7 @@ public class CircuitBreakerManagerTest {
 
         String tenant = "try-unknown-1.example.com";
 
-        Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+        Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
         assertTrue(decision.isAllowed());
         assertTrue(decision.isSkip());
@@ -125,12 +125,12 @@ public class CircuitBreakerManagerTest {
             registerLoader(largeWindowPolicy());
             createEntry(tenant);
 
-            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             assertTrue(decision.isAllowed());
             assertFalse(decision.isSkip());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -142,12 +142,12 @@ public class CircuitBreakerManagerTest {
             registerLoader(standardPolicy());
             openCircuit(tenant);
 
-            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             assertFalse(decision.isAllowed());
             assertEquals(decision.getRejectReason(), RejectReason.CIRCUIT_OPEN);
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -159,17 +159,17 @@ public class CircuitBreakerManagerTest {
             registerLoader(largeWindowPolicy());
             createEntry(tenant);
 
-            Decision d1 = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
-            Decision d2 = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision d1 = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
+            Decision d2 = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertTrue(d1.isAllowed() && !d1.isSkip());
             assertTrue(d2.isAllowed() && !d2.isSkip());
 
-            Decision d3 = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision d3 = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             assertFalse(d3.isAllowed());
             assertEquals(d3.getRejectReason(), RejectReason.BULKHEAD_FULL);
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -182,12 +182,12 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant);
             Thread.sleep(SHORT_OPEN_DURATION_MS * 4);
 
-            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             assertTrue(probe.isAllowed());
             assertFalse(probe.isSkip());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -200,16 +200,16 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant);
             Thread.sleep(SHORT_OPEN_DURATION_MS * 4);
 
-            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertTrue(probe.isAllowed());
 
             // Second call while the probe is still in-flight.
-            Decision second = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision second = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             assertFalse(second.isAllowed());
             assertEquals(second.getRejectReason(), RejectReason.CIRCUIT_OPEN);
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -218,13 +218,13 @@ public class CircuitBreakerManagerTest {
     @Test
     public void testOnCompleteNullTenantDoesNothing() {
 
-        manager.onComplete(null, TenantService.EMAIL_OTP, Decision.skip(), false);
+        manager.onComplete(null, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
     }
 
     @Test
     public void testOnCompleteBlankTenantDoesNothing() {
 
-        manager.onComplete("  ", TenantService.EMAIL_OTP, Decision.skip(), false);
+        manager.onComplete("  ", TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
     }
 
     @Test
@@ -232,10 +232,10 @@ public class CircuitBreakerManagerTest {
 
         String tenant = "complete-rejected-1.example.com";
 
-        manager.onComplete(tenant, TenantService.EMAIL_OTP,
+        manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION,
                 Decision.rejected(RejectReason.CIRCUIT_OPEN), false);
 
-        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_OTP).isSkip());
+        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION).isSkip());
     }
 
     @Test
@@ -243,9 +243,9 @@ public class CircuitBreakerManagerTest {
 
         String tenant = "complete-skip-success-1.example.com";
 
-        manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), true);
+        manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), true);
 
-        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_OTP).isSkip());
+        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION).isSkip());
     }
 
     @Test
@@ -255,13 +255,13 @@ public class CircuitBreakerManagerTest {
         try {
             registerLoader(largeWindowPolicy());
 
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
 
-            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertTrue(decision.isAllowed());
             assertFalse(decision.isSkip());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -271,15 +271,15 @@ public class CircuitBreakerManagerTest {
         String tenant = "complete-threshold-1.example.com";
         try {
             registerLoader(standardPolicy());
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), false);
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
 
-            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision decision = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             assertFalse(decision.isAllowed());
             assertEquals(decision.getRejectReason(), RejectReason.CIRCUIT_OPEN);
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -292,14 +292,14 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant);
             Thread.sleep(SHORT_OPEN_DURATION_MS * 4);
 
-            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertTrue(probe.isAllowed());
 
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, probe, true);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, probe, true);
 
-            assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_OTP).isAllowed());
+            assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION).isAllowed());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -312,16 +312,16 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant);
             Thread.sleep(SHORT_OPEN_DURATION_MS * 4);
 
-            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertTrue(probe.isAllowed());
 
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, probe, false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, probe, false);
 
-            Decision next = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision next = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertFalse(next.isAllowed());
             assertEquals(next.getRejectReason(), RejectReason.CIRCUIT_OPEN);
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -337,14 +337,14 @@ public class CircuitBreakerManagerTest {
             createEntry(tenant);
 
             for (int i = 0; i < 5; i++) {
-                Decision d = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+                Decision d = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
                 assertTrue(d.isAllowed() && !d.isSkip(), "Expected tracked allow at iteration " + i);
-                manager.onComplete(tenant, TenantService.EMAIL_OTP, d, true);
+                manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, d, true);
             }
 
-            assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_OTP).isSkip());
+            assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION).isSkip());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -386,13 +386,13 @@ public class CircuitBreakerManagerTest {
     @Test
     public void testInvalidateTenantServiceNullDoesNothing() {
 
-        manager.invalidateTenantService(null, TenantService.EMAIL_OTP);
+        manager.invalidateTenantService(null, TenantService.EMAIL_NOTIFICATION);
     }
 
     @Test
     public void testInvalidateTenantServiceBlankDoesNothing() {
 
-        manager.invalidateTenantService("", TenantService.EMAIL_OTP);
+        manager.invalidateTenantService("", TenantService.EMAIL_NOTIFICATION);
     }
 
     @Test
@@ -402,9 +402,9 @@ public class CircuitBreakerManagerTest {
         registerLoader(standardPolicy());
         openCircuit(tenant);
 
-        manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+        manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
 
-        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_OTP).isSkip());
+        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION).isSkip());
     }
 
     @Test
@@ -417,15 +417,15 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant1);
             openCircuit(tenant2);
 
-            manager.invalidateTenantService(tenant1, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant1, TenantService.EMAIL_NOTIFICATION);
 
-            assertTrue(manager.tryAcquire(tenant1, TenantService.EMAIL_OTP).isSkip());
-            Decision d2 = manager.tryAcquire(tenant2, TenantService.EMAIL_OTP);
+            assertTrue(manager.tryAcquire(tenant1, TenantService.EMAIL_NOTIFICATION).isSkip());
+            Decision d2 = manager.tryAcquire(tenant2, TenantService.EMAIL_NOTIFICATION);
             assertFalse(d2.isAllowed());
             assertEquals(d2.getRejectReason(), RejectReason.CIRCUIT_OPEN);
         } finally {
-            manager.invalidateTenantService(tenant1, TenantService.EMAIL_OTP);
-            manager.invalidateTenantService(tenant2, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant1, TenantService.EMAIL_NOTIFICATION);
+            manager.invalidateTenantService(tenant2, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -438,9 +438,9 @@ public class CircuitBreakerManagerTest {
         try {
             registerLoader(standardPolicy());
             openCircuit(tenant);
-            manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -451,15 +451,15 @@ public class CircuitBreakerManagerTest {
         try {
             registerLoader(standardPolicy());
             dataHolder.addTenantServiceBreakerObserver(mockObserver);
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), false);
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
 
             verify(mockObserver).onStateTransition(
-                    eq(tenant), eq(TenantService.EMAIL_OTP),
+                    eq(tenant), eq(TenantService.EMAIL_NOTIFICATION),
                     eq(CircuitState.CLOSED), eq(CircuitState.OPEN),
                     anyInt(), anyInt(), anyDouble(), anyDouble());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -473,14 +473,14 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant);
             Thread.sleep(SHORT_OPEN_DURATION_MS * 4);
 
-            manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             verify(mockObserver).onStateTransition(
-                    eq(tenant), eq(TenantService.EMAIL_OTP),
+                    eq(tenant), eq(TenantService.EMAIL_NOTIFICATION),
                     eq(CircuitState.OPEN), eq(CircuitState.HALF_OPEN),
                     anyInt(), anyInt(), anyDouble(), anyDouble());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -494,17 +494,17 @@ public class CircuitBreakerManagerTest {
             openCircuit(tenant);
             Thread.sleep(SHORT_OPEN_DURATION_MS * 4);
 
-            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            Decision probe = manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
             assertTrue(probe.isAllowed());
 
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, probe, true);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, probe, true);
 
             verify(mockObserver).onStateTransition(
-                    eq(tenant), eq(TenantService.EMAIL_OTP),
+                    eq(tenant), eq(TenantService.EMAIL_NOTIFICATION),
                     eq(CircuitState.HALF_OPEN), eq(CircuitState.CLOSED),
                     anyInt(), anyInt(), anyDouble(), anyDouble());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -517,15 +517,15 @@ public class CircuitBreakerManagerTest {
             dataHolder.addTenantServiceBreakerObserver(mockObserver);
             openCircuit(tenant);
 
-            manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             verify(mockObserver).onRejection(
-                    eq(tenant), eq(TenantService.EMAIL_OTP),
+                    eq(tenant), eq(TenantService.EMAIL_NOTIFICATION),
                     eq(RejectReason.CIRCUIT_OPEN),
                     eq(CircuitState.OPEN),
                     anyInt(), anyInt(), anyDouble(), anyInt());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -538,17 +538,17 @@ public class CircuitBreakerManagerTest {
             dataHolder.addTenantServiceBreakerObserver(mockObserver);
             createEntry(tenant);
 
-            manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
-            manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
-            manager.tryAcquire(tenant, TenantService.EMAIL_OTP);
+            manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
+            manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
+            manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION);
 
             verify(mockObserver).onRejection(
-                    eq(tenant), eq(TenantService.EMAIL_OTP),
+                    eq(tenant), eq(TenantService.EMAIL_NOTIFICATION),
                     eq(RejectReason.BULKHEAD_FULL),
                     eq(CircuitState.CLOSED),
                     anyInt(), anyInt(), anyDouble(), anyInt());
         } finally {
-            manager.invalidateTenantService(tenant, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -564,10 +564,10 @@ public class CircuitBreakerManagerTest {
             createEntry(tenant1);
             createEntry(tenant2);
 
-            verify(mockObserver).onForcedEviction(eq(tenant1), eq(TenantService.EMAIL_OTP));
+            verify(mockObserver).onForcedEviction(eq(tenant1), eq(TenantService.EMAIL_NOTIFICATION));
         } finally {
-            manager.invalidateTenantService(tenant1, TenantService.EMAIL_OTP);
-            manager.invalidateTenantService(tenant2, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant1, TenantService.EMAIL_NOTIFICATION);
+            manager.invalidateTenantService(tenant2, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -578,7 +578,7 @@ public class CircuitBreakerManagerTest {
 
         StaticPolicy original = swapStaticPolicy(disabledPolicy());
         try {
-            Decision d = manager.tryAcquire("disabled-acq.example.com", TenantService.EMAIL_OTP);
+            Decision d = manager.tryAcquire("disabled-acq.example.com", TenantService.EMAIL_NOTIFICATION);
 
             assertTrue(d.isAllowed());
             assertFalse(d.isSkip());
@@ -594,12 +594,12 @@ public class CircuitBreakerManagerTest {
         StaticPolicy original = swapStaticPolicy(disabledPolicy());
         try {
             registerLoader(largeWindowPolicy());
-            manager.onComplete(tenant, TenantService.EMAIL_OTP, Decision.skip(), false);
+            manager.onComplete(tenant, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
         } finally {
             swapStaticPolicy(original);
         }
 
-        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_OTP).isSkip());
+        assertTrue(manager.tryAcquire(tenant, TenantService.EMAIL_NOTIFICATION).isSkip());
     }
 
     // ─────────────────────────── Idle eviction ───────────────────────────
@@ -623,11 +623,11 @@ public class CircuitBreakerManagerTest {
             Thread.sleep(10);
             createEntry(tenant2);
 
-            verify(mockObserver).onForcedEviction(eq(tenant1), eq(TenantService.EMAIL_OTP));
+            verify(mockObserver).onForcedEviction(eq(tenant1), eq(TenantService.EMAIL_NOTIFICATION));
         } finally {
             swapStaticPolicy(original);
-            manager.invalidateTenantService(tenant1, TenantService.EMAIL_OTP);
-            manager.invalidateTenantService(tenant2, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant1, TenantService.EMAIL_NOTIFICATION);
+            manager.invalidateTenantService(tenant2, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -642,15 +642,15 @@ public class CircuitBreakerManagerTest {
             registerLoader(largeWindowPolicy());
             dataHolder.addTenantServiceBreakerObserver(mockObserver);
             createEntry(tenant1);
-            Decision inFlight = manager.tryAcquire(tenant1, TenantService.EMAIL_OTP);
+            Decision inFlight = manager.tryAcquire(tenant1, TenantService.EMAIL_NOTIFICATION);
             assertTrue(inFlight.isAllowed() && !inFlight.isSkip());
 
             createEntry(tenant2);
 
-            verify(mockObserver).onForcedEviction(eq(tenant1), eq(TenantService.EMAIL_OTP));
+            verify(mockObserver).onForcedEviction(eq(tenant1), eq(TenantService.EMAIL_NOTIFICATION));
         } finally {
-            manager.invalidateTenantService(tenant1, TenantService.EMAIL_OTP);
-            manager.invalidateTenantService(tenant2, TenantService.EMAIL_OTP);
+            manager.invalidateTenantService(tenant1, TenantService.EMAIL_NOTIFICATION);
+            manager.invalidateTenantService(tenant2, TenantService.EMAIL_NOTIFICATION);
         }
     }
 
@@ -659,20 +659,20 @@ public class CircuitBreakerManagerTest {
     private void registerLoader(RuntimePolicy policy) {
 
         RuntimePolicyLoader loader = mock(RuntimePolicyLoader.class);
-        when(loader.getService()).thenReturn(TenantService.EMAIL_OTP);
+        when(loader.getService()).thenReturn(TenantService.EMAIL_NOTIFICATION);
         when(loader.load(anyString(), any(), any())).thenReturn(policy);
         dataHolder.addRuntimePolicyLoader(loader);
     }
 
     private void createEntry(String tenantDomain) {
 
-        manager.onComplete(tenantDomain, TenantService.EMAIL_OTP, Decision.skip(), false);
+        manager.onComplete(tenantDomain, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
     }
 
     private void openCircuit(String tenantDomain) {
 
-        manager.onComplete(tenantDomain, TenantService.EMAIL_OTP, Decision.skip(), false);
-        manager.onComplete(tenantDomain, TenantService.EMAIL_OTP, Decision.skip(), false);
+        manager.onComplete(tenantDomain, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
+        manager.onComplete(tenantDomain, TenantService.EMAIL_NOTIFICATION, Decision.skip(), false);
     }
 
     private RuntimePolicy standardPolicy() {
