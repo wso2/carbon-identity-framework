@@ -686,24 +686,31 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         userClaims.remove(FrameworkConstants.PASSWORD);
         userClaims.remove(USERNAME_CLAIM);
         userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
-        /*
-        Since the user is exist following code is get all active claims of user and crosschecking against
-        tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
-        will be deleted.
-        */
-        if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
-            Claim[] userActiveClaims =
-                    userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
-            for (Claim claim : userActiveClaims) {
-                if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Claim from external attributes " + claim.getClaimUri() +
-                                " has null value But user has not null claim value for Claim " +
-                                claim.getClaimUri() + ". Hence user claim value will be deleted.");
-                    }
-                    userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
-                            claim.getClaimUri(), null);
+        deleteObsoleteUserClaims(username, toBeDeletedUserClaims, userStoreManager);
+    }
+
+    /**
+     * Since the user exists, get all active claims of the user and cross-check against the toBeDeleted claims
+     * (claims that came from the federated IDP as null). If there is a match, those claims will be deleted.
+     */
+    private void deleteObsoleteUserClaims(String username, List<String> toBeDeletedUserClaims,
+                                          UserStoreManager userStoreManager)
+            throws org.wso2.carbon.user.api.UserStoreException {
+
+        if (CollectionUtils.isEmpty(toBeDeletedUserClaims)) {
+            return;
+        }
+        Claim[] userActiveClaims =
+                userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
+        for (Claim claim : userActiveClaims) {
+            if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Claim from external attributes " + claim.getClaimUri() +
+                            " has null value But user has not null claim value for Claim " +
+                            claim.getClaimUri() + ". Hence user claim value will be deleted.");
                 }
+                userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
+                        claim.getClaimUri(), null);
             }
         }
     }
