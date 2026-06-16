@@ -1681,6 +1681,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('3e5b1f91-72d8-4fbc-94d1-1b9a4f8c3b07', 'IMPERSONATION_CONFIGURATION', 'A resource type to keep the tenant impersonation preferences.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('91116e95-ca63-4787-be2d-de13d04d1b55', 'CERTIFICATE_VALIDATOR', 'A resource type to keep the certificate validators.')
