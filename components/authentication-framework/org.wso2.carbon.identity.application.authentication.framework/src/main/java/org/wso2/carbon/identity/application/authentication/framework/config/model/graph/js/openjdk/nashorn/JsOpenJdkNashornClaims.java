@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.IdentityClaimManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
@@ -61,6 +62,7 @@ import java.util.Optional;
 public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implements AbstractOpenJdkNashornJsObject {
 
     private static final Log LOG = LogFactory.getLog(JsOpenJdkNashornClaims.class);
+    private static final String SAAS_ENABLE_CROSS_TENANT_OPERATIONS = "SaaS.EnableCrossTenantOperations";
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
@@ -454,6 +456,10 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
             return false;
         }
 
+        if (isSaasApp(getContext()) && isSaaSCrossTenantOperationsEnabled()) {
+            return true;
+        }
+
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             return StringUtils.equals(authenticatedUser.getTenantDomain(),
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
@@ -466,5 +472,25 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
             return false;
         }
         return StringUtils.equals(authenticatedUser.getTenantDomain(), context.getTenantDomain());
+    }
+
+    private static boolean isSaaSCrossTenantOperationsEnabled() {
+
+        String value = IdentityUtil.getProperty(SAAS_ENABLE_CROSS_TENANT_OPERATIONS);
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    private static boolean isSaasApp(AuthenticationContext context) {
+
+        if (context == null || context.getSequenceConfig() == null
+                || context.getSequenceConfig().getApplicationConfig() == null
+                || context.getSequenceConfig().getApplicationConfig().getServiceProvider() == null) {
+            LOG.debug("Unable to determine if the application is a SaaS app. Treating as non-SaaS app.");
+            return false;
+        }
+        return context.getSequenceConfig().getApplicationConfig().getServiceProvider().isSaasApp();
     }
 }

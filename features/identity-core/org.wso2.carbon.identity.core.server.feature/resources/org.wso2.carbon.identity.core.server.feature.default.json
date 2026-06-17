@@ -929,5 +929,7 @@
   "identity_util.enable_sha256": false,
   "cert_thumbprint.enable_sha256": false,
   "request_parameters.allow_sensitive_data_in_url": true,
-  "authentication.mark_step_completed_on_interrupt": true
+  "authentication.mark_step_completed_on_interrupt": true,
+
+  "saas.enable_cross_tenant_operations": false
 }
