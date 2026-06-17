@@ -29,14 +29,12 @@ import org.wso2.carbon.identity.policy.management.internal.cache.PolicyCacheKey;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Cache-backed Policy Management DAO.
  * Wraps a PolicyManagementDAO with an in-process cache to reduce DB hits on the hot path.
  * Hot path: getPolicyByName (called on every device evaluation) is served from cache after first read.
- * Cache is invalidated on add, update, and delete.
- * Both name-based and ID-based entries are maintained so either lookup type can benefit.
+ * Cache is keyed by policy name only and is precisely invalidated on update and delete.
  */
 public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
@@ -68,8 +66,8 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
     /**
      * Update an existing Policy.
-     * This method clears both the ID-based and name-based cache entries upon policy update.
-     * If the policy name has changed, the old name's cache entry is also cleared.
+     * Reads the persisted policy first to detect renames, then delegates the update,
+     * and finally clears the name-based cache entries for both the old and new names.
      *
      * @param policy   Policy object with updated state.
      * @param tenantId Tenant ID.
@@ -79,27 +77,26 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public Policy updatePolicy(Policy policy, int tenantId) throws PolicyManagementException {
 
-        // Resolve the persisted name from the underlying store (not the cache) so a renamed
-        // policy's old name-based entry is always invalidated, even if its ID entry has expired.
         Policy existingPolicy = policyManagementDAO.getPolicyById(policy.getId(), tenantId);
-        if (existingPolicy != null && !Objects.equals(existingPolicy.getName(), policy.getName())) {
-            policyCache.clearCacheEntry(PolicyCacheKey.forName(existingPolicy.getName()), tenantId);
+        Policy updatedPolicy = policyManagementDAO.updatePolicy(policy, tenantId);
+
+        if (existingPolicy != null) {
+            policyCache.clearCacheEntry(new PolicyCacheKey(existingPolicy.getName()), tenantId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Policy cache cleared for old name: " + existingPolicy.getName() + " on update.");
             }
         }
-        policyCache.clearCacheEntry(PolicyCacheKey.forId(policy.getId()), tenantId);
-        policyCache.clearCacheEntry(PolicyCacheKey.forName(policy.getName()), tenantId);
+        policyCache.clearCacheEntry(new PolicyCacheKey(policy.getName()), tenantId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Policy cache cleared for ID: " + policy.getId()
-                    + " and name: " + policy.getName() + " on update.");
+            LOG.debug("Policy cache cleared for name: " + policy.getName() + " on update.");
         }
-        return policyManagementDAO.updatePolicy(policy, tenantId);
+        return updatedPolicy;
     }
 
     /**
      * Delete a Policy.
-     * This method clears both the ID-based and name-based cache entries upon policy deletion.
+     * Reads the persisted policy first to resolve its name, delegates the delete,
+     * then clears the name-based cache entry.
      *
      * @param policyId Policy ID.
      * @param tenantId Tenant ID.
@@ -108,26 +105,19 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public void deletePolicy(String policyId, int tenantId) throws PolicyManagementException {
 
-        // Resolve the persisted name from the underlying store (not the cache) so the name-based
-        // entry is always invalidated, even if the ID entry has expired from the cache.
         Policy existingPolicy = policyManagementDAO.getPolicyById(policyId, tenantId);
+        policyManagementDAO.deletePolicy(policyId, tenantId);
         if (existingPolicy != null) {
-            policyCache.clearCacheEntry(PolicyCacheKey.forName(existingPolicy.getName()), tenantId);
+            policyCache.clearCacheEntry(new PolicyCacheKey(existingPolicy.getName()), tenantId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Policy cache cleared for name: " + existingPolicy.getName() + " on delete.");
             }
         }
-        policyCache.clearCacheEntry(PolicyCacheKey.forId(policyId), tenantId);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Policy cache cleared for ID: " + policyId + " on delete.");
-        }
-        policyManagementDAO.deletePolicy(policyId, tenantId);
     }
 
     /**
      * Get a Policy by Policy ID.
-     * This method first checks the cache for the Policy object.
-     * If the Policy object is not found in the cache, it invokes the data layer operation to get the Policy.
+     * Not cached; always delegates to the underlying DAO.
      *
      * @param policyId Policy ID.
      * @param tenantId Tenant ID.
@@ -137,27 +127,14 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public Policy getPolicyById(String policyId, int tenantId) throws PolicyManagementException {
 
-        PolicyCacheEntry cacheEntry = policyCache.getValueFromCache(
-                PolicyCacheKey.forId(policyId), tenantId);
-        if (cacheEntry != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy cache hit for ID: " + policyId);
-            }
-            return cacheEntry.getPolicy();
-        }
-        Policy policy = policyManagementDAO.getPolicyById(policyId, tenantId);
-        if (policy != null) {
-            policyCache.addToCacheOnRead(
-                    PolicyCacheKey.forId(policyId), new PolicyCacheEntry(policy), tenantId);
-        }
-        return policy;
+        return policyManagementDAO.getPolicyById(policyId, tenantId);
     }
 
     /**
      * Get a Policy by Policy name.
      * This method first checks the cache for the Policy object.
-     * If the Policy object is not found in the cache, it invokes the data layer operation to get the Policy.
-     * On a cache miss, both the name-based and ID-based cache entries are populated.
+     * If the Policy object is not found in the cache, it invokes the data layer operation
+     * and caches the result under the name-based key.
      *
      * @param policyName Policy name.
      * @param tenantId   Tenant ID.
@@ -168,7 +145,7 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     public Policy getPolicyByName(String policyName, int tenantId) throws PolicyManagementException {
 
         PolicyCacheEntry cacheEntry = policyCache.getValueFromCache(
-                PolicyCacheKey.forName(policyName), tenantId);
+                new PolicyCacheKey(policyName), tenantId);
         if (cacheEntry != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Policy cache hit for name: " + policyName);
@@ -177,19 +154,15 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
         }
         Policy policy = policyManagementDAO.getPolicyByName(policyName, tenantId);
         if (policy != null) {
-            // Populate both name-based and ID-based entries so either lookup type benefits.
             policyCache.addToCacheOnRead(
-                    PolicyCacheKey.forName(policyName), new PolicyCacheEntry(policy), tenantId);
-            policyCache.addToCacheOnRead(
-                    PolicyCacheKey.forId(policy.getId()), new PolicyCacheEntry(policy), tenantId);
+                    new PolicyCacheKey(policyName), new PolicyCacheEntry(policy), tenantId);
         }
         return policy;
     }
 
     /**
      * Get a page of Policy summaries for a tenant, optionally filtered by name.
-     * Paginated lists are not cached (every filter/page combination is distinct and any mutation
-     * would invalidate them), so this directly invokes the data layer operation.
+     * Paginated lists are not cached; this directly invokes the data layer operation.
      *
      * @param tenantId Tenant ID.
      * @param filter   Name filter; {@code null} or blank means no filter.

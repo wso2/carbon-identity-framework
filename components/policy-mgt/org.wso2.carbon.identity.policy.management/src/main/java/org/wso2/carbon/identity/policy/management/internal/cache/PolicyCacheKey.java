@@ -22,28 +22,22 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for Policy Management.
- * Supports lookup by policy ID or by policy name using prefixed string keys,
- * so both types can share a single cache instance without collision.
+ * Identifies a cached policy by its name; tenant scoping is handled by the cache's tenantId parameter.
  */
 public class PolicyCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 1861274580132498765L;
 
-    private final String key;
+    private final String policyName;
 
-    private PolicyCacheKey(String key) {
+    public PolicyCacheKey(String policyName) {
 
-        this.key = key;
+        this.policyName = policyName;
     }
 
-    public static PolicyCacheKey forId(String policyId) {
+    public String getPolicyName() {
 
-        return new PolicyCacheKey("id:" + policyId);
-    }
-
-    public static PolicyCacheKey forName(String policyName) {
-
-        return new PolicyCacheKey("name:" + policyName);
+        return policyName;
     }
 
     @Override
@@ -52,12 +46,12 @@ public class PolicyCacheKey extends CacheKey {
         if (!(o instanceof PolicyCacheKey)) {
             return false;
         }
-        return key.equals(((PolicyCacheKey) o).key);
+        return policyName.equals(((PolicyCacheKey) o).getPolicyName());
     }
 
     @Override
     public int hashCode() {
 
-        return key.hashCode();
+        return policyName.hashCode();
     }
 }

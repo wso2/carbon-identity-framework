@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.policy.management.api.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,7 +37,8 @@ public class Policy {
         this.id = id;
         this.name = name;
         this.tenantDomain = tenantDomain;
-        this.resources = resources != null ? Collections.unmodifiableList(resources) : Collections.emptyList();
+        this.resources = resources != null
+                ? Collections.unmodifiableList(new ArrayList<>(resources)) : Collections.emptyList();
     }
 
     public String getId() {

@@ -37,22 +37,6 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
 
     private static final Log LOG = LogFactory.getLog(PolicyEvaluationServiceImpl.class);
 
-    private static final PolicyEvaluationServiceImpl INSTANCE = new PolicyEvaluationServiceImpl();
-
-    private PolicyEvaluationServiceImpl() {
-
-    }
-
-    /**
-     * Returns the singleton instance.
-     *
-     * @return Singleton instance.
-     */
-    public static PolicyEvaluationServiceImpl getInstance() {
-
-        return INSTANCE;
-    }
-
     @Override
     public RuleEvaluationResult evaluate(String policyName, String ruleSelector,
                                          FlowContext flowContext, String tenantDomain)
@@ -69,8 +53,16 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             return null;
         }
 
+        if (ruleSelector == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Rule selector is null for policy '" + policyName + "' — treating as compliant.");
+            }
+            return new RuleEvaluationResult(null, true);
+        }
+
         PolicyResource matchingResource = policy.getResources().stream()
                 .filter(r -> r.getResourceType() == ResourceType.RULE
+                        && r.getTarget() != null
                         && ruleSelector.equalsIgnoreCase(r.getTarget()))
                 .findFirst()
                 .orElse(null);

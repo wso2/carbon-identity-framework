@@ -29,7 +29,7 @@ public class PolicyCache extends BaseCache<PolicyCacheKey, PolicyCacheEntry> {
     private static final String CACHE_NAME = "PolicyCache";
     private static final PolicyCache INSTANCE = new PolicyCache();
 
-    public PolicyCache() {
+    private PolicyCache() {
 
         super(CACHE_NAME);
     }

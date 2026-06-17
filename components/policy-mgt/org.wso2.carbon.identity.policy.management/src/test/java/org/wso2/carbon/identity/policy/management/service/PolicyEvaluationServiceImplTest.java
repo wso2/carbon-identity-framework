@@ -63,7 +63,7 @@ public class PolicyEvaluationServiceImplTest {
         ruleEvaluationService = mock(RuleEvaluationService.class);
         PolicyMgtComponentServiceHolder.getInstance().setPolicyManagementService(policyManagementService);
         PolicyMgtComponentServiceHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
-        policyEvaluationService = PolicyEvaluationServiceImpl.getInstance();
+        policyEvaluationService = new PolicyEvaluationServiceImpl();
         flowContext = mock(FlowContext.class);
     }
 
@@ -116,6 +116,42 @@ public class PolicyEvaluationServiceImplTest {
 
         Assert.assertEquals(result, expected);
         verify(ruleEvaluationService).evaluate(RULE_ID, flowContext, TENANT_DOMAIN);
+    }
+
+    @Test
+    public void testNullSelectorReturnsCompliant() throws PolicyManagementException, RuleEvaluationException {
+
+        Policy policy = policyWithRule("ios");
+        when(policyManagementService.getPolicyByName(POLICY_NAME, TENANT_DOMAIN)).thenReturn(policy);
+
+        RuleEvaluationResult result = policyEvaluationService.evaluate(
+                POLICY_NAME, null, flowContext, TENANT_DOMAIN);
+
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.isRuleSatisfied());
+        verify(ruleEvaluationService, org.mockito.Mockito.never())
+                .evaluate(eq(RULE_ID), eq(flowContext), eq(TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testResourceWithNullTargetIsSkipped() throws PolicyManagementException, RuleEvaluationException {
+
+        Rule rule = mock(Rule.class);
+        when(rule.getId()).thenReturn(RULE_ID);
+        // Resource with a null target — the filter must not NPE on equalsIgnoreCase.
+        PolicyResource nullTargetResource = new PolicyResource(
+                UUID.randomUUID().toString(), null, ResourceType.RULE, RULE_ID, rule);
+        Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
+                Collections.singletonList(nullTargetResource));
+        when(policyManagementService.getPolicyByName(POLICY_NAME, TENANT_DOMAIN)).thenReturn(policy);
+
+        RuleEvaluationResult result = policyEvaluationService.evaluate(
+                POLICY_NAME, "ios", flowContext, TENANT_DOMAIN);
+
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.isRuleSatisfied());
+        verify(ruleEvaluationService, org.mockito.Mockito.never())
+                .evaluate(eq(RULE_ID), eq(flowContext), eq(TENANT_DOMAIN));
     }
 
     @Test

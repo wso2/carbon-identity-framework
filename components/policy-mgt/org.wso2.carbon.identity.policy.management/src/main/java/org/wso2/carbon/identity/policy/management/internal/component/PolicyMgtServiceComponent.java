@@ -51,11 +51,11 @@ public class PolicyMgtServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            PolicyManagementServiceImpl policyManagementService = PolicyManagementServiceImpl.getInstance();
+            PolicyManagementServiceImpl policyManagementService = new PolicyManagementServiceImpl();
             bundleCtx.registerService(PolicyManagementService.class.getName(), policyManagementService, null);
             PolicyMgtComponentServiceHolder.getInstance().setPolicyManagementService(policyManagementService);
 
-            PolicyEvaluationServiceImpl policyEvaluationService = PolicyEvaluationServiceImpl.getInstance();
+            PolicyEvaluationServiceImpl policyEvaluationService = new PolicyEvaluationServiceImpl();
             bundleCtx.registerService(PolicyEvaluationService.class.getName(), policyEvaluationService, null);
             LOG.debug("Policy management bundle activated.");
         } catch (Throwable e) {
@@ -84,7 +84,10 @@ public class PolicyMgtServiceComponent {
 
     protected void unsetRuleManagementService(RuleManagementService ruleManagementService) {
 
-        PolicyMgtComponentServiceHolder.getInstance().setRuleManagementService(null);
+        PolicyMgtComponentServiceHolder holder = PolicyMgtComponentServiceHolder.getInstance();
+        if (holder.getRuleManagementService() == ruleManagementService) {
+            holder.setRuleManagementService(null);
+        }
         LOG.debug("RuleManagementService unset in Policy Management component.");
     }
 
@@ -103,7 +106,10 @@ public class PolicyMgtServiceComponent {
 
     protected void unsetRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
 
-        PolicyMgtComponentServiceHolder.getInstance().setRuleEvaluationService(null);
+        PolicyMgtComponentServiceHolder holder = PolicyMgtComponentServiceHolder.getInstance();
+        if (holder.getRuleEvaluationService() == ruleEvaluationService) {
+            holder.setRuleEvaluationService(null);
+        }
         LOG.debug("RuleEvaluationService unset in Policy Management component.");
     }
 }

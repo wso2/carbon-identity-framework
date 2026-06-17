@@ -36,6 +36,7 @@ import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -43,6 +44,7 @@ import static org.testng.Assert.assertNull;
 
 /**
  * Unit tests for CacheBackedPolicyManagementDAO.
+ * Verifies name-only caching, pass-through for ID lookups, and precise cache invalidation on writes.
  */
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
@@ -84,36 +86,11 @@ public class CacheBackedPolicyManagementDAOTest {
         cacheBackedPolicyManagementDAO.addPolicy(policy, TENANT_ID);
 
         verify(policyManagementDAO).addPolicy(policy, TENANT_ID);
-        assertNull(policyCache.getValueFromCache(PolicyCacheKey.forId(POLICY_ID), TENANT_ID));
+        assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_NAME), TENANT_ID));
     }
 
     @Test
-    public void testGetPolicyByIdCacheHit() throws PolicyManagementException {
-
-        Policy policy = policy();
-        policyCache.addToCacheOnRead(PolicyCacheKey.forId(POLICY_ID), new PolicyCacheEntry(policy), TENANT_ID);
-
-        Policy result = cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID);
-
-        assertEquals(result, policy);
-        verify(policyManagementDAO, never()).getPolicyById(POLICY_ID, TENANT_ID);
-    }
-
-    @Test
-    public void testGetPolicyByIdCacheMiss() throws PolicyManagementException {
-
-        Policy policy = policy();
-        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
-
-        Policy result = cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID);
-
-        assertEquals(result, policy);
-        verify(policyManagementDAO).getPolicyById(POLICY_ID, TENANT_ID);
-        assertEquals(policyCache.getValueFromCache(PolicyCacheKey.forId(POLICY_ID), TENANT_ID).getPolicy(), policy);
-    }
-
-    @Test
-    public void testGetPolicyByNameCacheMissPopulatesBothEntries() throws PolicyManagementException {
+    public void testGetPolicyByNameCacheMissPopulatesNameEntry() throws PolicyManagementException {
 
         Policy policy = policy();
         when(policyManagementDAO.getPolicyByName(POLICY_NAME, TENANT_ID)).thenReturn(policy);
@@ -122,16 +99,15 @@ public class CacheBackedPolicyManagementDAOTest {
 
         assertEquals(result, policy);
         verify(policyManagementDAO).getPolicyByName(POLICY_NAME, TENANT_ID);
-        // Both name-based and id-based entries should be populated so either lookup benefits.
-        assertEquals(policyCache.getValueFromCache(PolicyCacheKey.forName(POLICY_NAME), TENANT_ID).getPolicy(), policy);
-        assertEquals(policyCache.getValueFromCache(PolicyCacheKey.forId(POLICY_ID), TENANT_ID).getPolicy(), policy);
+        assertEquals(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_NAME), TENANT_ID).getPolicy(),
+                policy);
     }
 
     @Test
     public void testGetPolicyByNameCacheHit() throws PolicyManagementException {
 
         Policy policy = policy();
-        policyCache.addToCacheOnRead(PolicyCacheKey.forName(POLICY_NAME), new PolicyCacheEntry(policy), TENANT_ID);
+        policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_NAME), new PolicyCacheEntry(policy), TENANT_ID);
 
         Policy result = cacheBackedPolicyManagementDAO.getPolicyByName(POLICY_NAME, TENANT_ID);
 
@@ -140,28 +116,61 @@ public class CacheBackedPolicyManagementDAOTest {
     }
 
     @Test
-    public void testUpdatePolicyClearsCache() throws PolicyManagementException {
+    public void testGetPolicyByIdAlwaysDelegates() throws PolicyManagementException {
 
         Policy policy = policy();
-        policyCache.addToCacheOnRead(PolicyCacheKey.forId(POLICY_ID), new PolicyCacheEntry(policy), TENANT_ID);
-        policyCache.addToCacheOnRead(PolicyCacheKey.forName(POLICY_NAME), new PolicyCacheEntry(policy), TENANT_ID);
+        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
+
+        Policy first = cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID);
+        Policy second = cacheBackedPolicyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID);
+
+        assertEquals(first, policy);
+        assertEquals(second, policy);
+        // Both calls must go to the underlying DAO — getPolicyById is never cached.
+        verify(policyManagementDAO, times(2)).getPolicyById(POLICY_ID, TENANT_ID);
+    }
+
+    @Test
+    public void testUpdatePolicyClearsNameEntry() throws PolicyManagementException {
+
+        Policy policy = policy();
+        policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_NAME), new PolicyCacheEntry(policy), TENANT_ID);
+        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
+        when(policyManagementDAO.updatePolicy(policy, TENANT_ID)).thenReturn(policy);
 
         cacheBackedPolicyManagementDAO.updatePolicy(policy, TENANT_ID);
 
         verify(policyManagementDAO).updatePolicy(policy, TENANT_ID);
-        assertNull(policyCache.getValueFromCache(PolicyCacheKey.forId(POLICY_ID), TENANT_ID));
-        assertNull(policyCache.getValueFromCache(PolicyCacheKey.forName(POLICY_NAME), TENANT_ID));
+        assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_NAME), TENANT_ID));
     }
 
     @Test
-    public void testDeletePolicyClearsCache() throws PolicyManagementException {
+    public void testUpdatePolicyRenamesClearsBothOldAndNewName() throws PolicyManagementException {
+
+        String oldName = "OldPolicy";
+        Policy existing = new Policy(POLICY_ID, oldName, TENANT_DOMAIN, Collections.emptyList());
+        Policy renamed = new Policy(POLICY_ID, POLICY_NAME, TENANT_DOMAIN, Collections.emptyList());
+        policyCache.addToCacheOnRead(new PolicyCacheKey(oldName), new PolicyCacheEntry(existing), TENANT_ID);
+        policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_NAME), new PolicyCacheEntry(existing), TENANT_ID);
+        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(existing);
+        when(policyManagementDAO.updatePolicy(renamed, TENANT_ID)).thenReturn(renamed);
+
+        cacheBackedPolicyManagementDAO.updatePolicy(renamed, TENANT_ID);
+
+        assertNull(policyCache.getValueFromCache(new PolicyCacheKey(oldName), TENANT_ID));
+        assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_NAME), TENANT_ID));
+    }
+
+    @Test
+    public void testDeletePolicyClearsNameEntry() throws PolicyManagementException {
 
         Policy policy = policy();
-        policyCache.addToCacheOnRead(PolicyCacheKey.forId(POLICY_ID), new PolicyCacheEntry(policy), TENANT_ID);
+        policyCache.addToCacheOnRead(new PolicyCacheKey(POLICY_NAME), new PolicyCacheEntry(policy), TENANT_ID);
+        when(policyManagementDAO.getPolicyById(POLICY_ID, TENANT_ID)).thenReturn(policy);
 
         cacheBackedPolicyManagementDAO.deletePolicy(POLICY_ID, TENANT_ID);
 
         verify(policyManagementDAO).deletePolicy(POLICY_ID, TENANT_ID);
-        assertNull(policyCache.getValueFromCache(PolicyCacheKey.forId(POLICY_ID), TENANT_ID));
+        assertNull(policyCache.getValueFromCache(new PolicyCacheKey(POLICY_NAME), TENANT_ID));
     }
 }
