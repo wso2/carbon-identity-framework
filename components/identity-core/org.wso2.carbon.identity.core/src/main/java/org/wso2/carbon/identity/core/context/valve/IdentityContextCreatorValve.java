@@ -60,7 +60,7 @@ public class IdentityContextCreatorValve extends ValveBase {
                 authHeaderCount++;
                 if (authHeaderCount > 1) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Rejecting request with multiple Authorization headers for URI: " + request.getRequestURI());
+                        LOG.debug("Multiple Authorization headers detected.");
                     }
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Multiple Authorization headers are not allowed.");
                     return;
