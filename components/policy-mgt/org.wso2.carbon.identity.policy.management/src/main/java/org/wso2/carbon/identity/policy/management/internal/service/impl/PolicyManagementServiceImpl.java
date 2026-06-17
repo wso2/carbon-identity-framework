@@ -224,6 +224,10 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException {
 
+        if (policyName == null || policyName.trim().isEmpty()) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, "Policy name");
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving policy with name: %s for tenant: %s",
                     policyName, tenantDomain));
