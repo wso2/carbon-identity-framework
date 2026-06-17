@@ -29,6 +29,7 @@ public class IdentityContextCreatorValveTest {
 
     @BeforeMethod
     public void setUp() {
+        System.setProperty("carbon.home", ".");
         closeable = MockitoAnnotations.openMocks(this);
         identityContextCreatorValve = new IdentityContextCreatorValve();
         identityContextCreatorValve.setNext(nextValve);
