@@ -49,6 +49,9 @@ public class IdentityContextCreatorValve extends ValveBase {
     @Override
     public void invoke(Request request, Response response) throws IOException, ServletException {
 
+        // Enforce RFC 9110 §11.6.1: The Authorization header is a single-value field.
+        // Rejecting requests with multiple Authorization headers early at the transport/valve layer
+        // prevents potential header manipulation and security vulnerabilities.
         Enumeration<String> authHeaders = request.getHeaders("Authorization");
         if (authHeaders != null) {
             int authHeaderCount = 0;
@@ -56,6 +59,9 @@ public class IdentityContextCreatorValve extends ValveBase {
                 authHeaders.nextElement();
                 authHeaderCount++;
                 if (authHeaderCount > 1) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Rejecting request with multiple Authorization headers for URI: " + request.getRequestURI());
+                    }
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Multiple Authorization headers are not allowed.");
                     return;
                 }
