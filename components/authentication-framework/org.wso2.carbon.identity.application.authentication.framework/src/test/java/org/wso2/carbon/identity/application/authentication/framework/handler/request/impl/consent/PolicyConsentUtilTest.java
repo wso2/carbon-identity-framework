@@ -40,6 +40,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -128,7 +129,7 @@ public class PolicyConsentUtilTest {
         when(consentManager.listPurposes(anyList(), anyInt())).thenReturn(Collections.emptyList());
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         assertTrue(result.isEmpty());
         assertEquals(result.getPurposeMetadataJson(), "[]");
@@ -161,7 +162,7 @@ public class PolicyConsentUtilTest {
                 .thenReturn(Collections.emptyList());
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         assertFalse(result.isEmpty());
         assertTrue(result.getMandatoryUnconsentedIds().contains(PURPOSE_UUID_1));
@@ -197,7 +198,7 @@ public class PolicyConsentUtilTest {
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         assertFalse(result.isEmpty());
         assertTrue(result.getMandatoryNewVersionIds().contains(PURPOSE_UUID_1));
@@ -228,7 +229,7 @@ public class PolicyConsentUtilTest {
                 .thenReturn(Collections.emptyList());
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         assertFalse(result.isEmpty());
         assertTrue(result.getOptionalUnconsentedIds().contains(PURPOSE_UUID_1));
@@ -260,7 +261,7 @@ public class PolicyConsentUtilTest {
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         assertFalse(result.isEmpty());
         assertTrue(result.getOptionalNewVersionIds().contains(PURPOSE_UUID_1));
@@ -288,10 +289,49 @@ public class PolicyConsentUtilTest {
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         assertTrue(result.isEmpty());
         assertEquals(result.getPurposeMetadataJson(), "[]");
+    }
+
+    @Test(description = "Restricts classification to the given policyIds and ignores unmapped purposes.")
+    public void testClassifyUnconsentedPoliciesFiltersToSpecifiedPolicyIds()
+            throws ConsentManagementException {
+
+        PurposePIICategory mandatoryCat = mock(PurposePIICategory.class);
+        when(mandatoryCat.getMandatory()).thenReturn(true);
+
+        PurposeVersion v2 = mock(PurposeVersion.class);
+        when(v2.getUuid()).thenReturn(VERSION_UUID_2);
+        when(v2.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
+        when(v2.getPurposePIICategories()).thenReturn(Collections.singletonList(mandatoryCat));
+
+        Purpose p1 = mock(Purpose.class);
+        when(p1.getUuid()).thenReturn(PURPOSE_UUID_1);
+
+        Purpose p2 = mock(Purpose.class);
+        when(p2.getUuid()).thenReturn(PURPOSE_UUID_2);
+        when(p2.getLatestVersion()).thenReturn(v2);
+
+        when(consentManager.listPurposes(anyList(), anyInt())).thenReturn(Arrays.asList(p1, p2));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_2)).thenReturn(Collections.singletonList(v2));
+        when(consentManager.getPurposeVersion(PURPOSE_UUID_2, VERSION_UUID_2)).thenReturn(v2);
+        when(consentManager.listReceipts(eq(SUBJECT_ID), eq(RESIDENT_IDP), isNull(),
+                eq(PURPOSE_UUID_2), eq(VERSION_UUID_2), isNull(), isNull(), eq(1)))
+                .thenReturn(Collections.emptyList());
+        when(consentManager.listReceipts(eq(SUBJECT_ID), eq(RESIDENT_IDP), isNull(),
+                eq(PURPOSE_UUID_2), isNull(), isNull(), isNull(), eq(1)))
+                .thenReturn(Collections.emptyList());
+
+        // Restrict to PURPOSE_UUID_2 only — PURPOSE_UUID_1 must not be evaluated.
+        PolicyConsentUtil.ClassifiedPolicies result = PolicyConsentUtil.classifyUnconsentedPolicies(
+                SUBJECT_ID, TENANT_DOMAIN, new HashSet<>(Collections.singletonList(PURPOSE_UUID_2)));
+
+        assertFalse(result.isEmpty());
+        assertTrue(result.getMandatoryUnconsentedIds().contains(PURPOSE_UUID_2));
+        assertFalse(result.getMandatoryUnconsentedIds().contains(PURPOSE_UUID_1));
+        verify(consentManager, never()).listPurposeVersions(PURPOSE_UUID_1);
     }
 
     @Test(description = "Metadata JSON includes all expected fields for an unconsented mandatory purpose.")
@@ -327,7 +367,7 @@ public class PolicyConsentUtilTest {
                 .thenReturn(Collections.emptyList());
 
         PolicyConsentUtil.ClassifiedPolicies result =
-                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN);
+                PolicyConsentUtil.classifyUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet());
 
         Type listType = new TypeToken<List<Map<String, Object>>>() { }.getType();
         List<Map<String, Object>> parsed = new Gson().fromJson(result.getPurposeMetadataJson(), listType);
@@ -347,7 +387,7 @@ public class PolicyConsentUtilTest {
 
         when(consentManager.listPurposes(anyList(), anyInt())).thenReturn(Collections.emptyList());
 
-        assertFalse(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN));
+        assertFalse(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet()));
     }
 
     @Test(description = "Returns true when at least one purpose has no consent.")
@@ -368,7 +408,7 @@ public class PolicyConsentUtilTest {
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
-        assertTrue(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN));
+        assertTrue(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet()));
     }
 
     @Test(description = "Returns false when all purposes have consent.")
@@ -389,7 +429,7 @@ public class PolicyConsentUtilTest {
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.singletonList(mock(Receipt.class)));
 
-        assertFalse(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN));
+        assertFalse(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet()));
     }
 
     @Test(description = "Short-circuits and returns true on first unconsented purpose without checking others.")
@@ -413,8 +453,35 @@ public class PolicyConsentUtilTest {
                 eq(PURPOSE_UUID_1), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
                 .thenReturn(Collections.emptyList());
 
-        assertTrue(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN));
+        assertTrue(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN, Collections.emptySet()));
         verify(consentManager, never()).listPurposeVersions(PURPOSE_UUID_2);
+    }
+
+    @Test(description = "Filters purposes by policyIds set when non-empty.")
+    public void testHasUnconsentedPoliciesFiltersToSpecifiedPolicyIds()
+            throws ConsentManagementException {
+
+        PurposeVersion v1 = mock(PurposeVersion.class);
+        when(v1.getUuid()).thenReturn(VERSION_UUID_1);
+        when(v1.getProperties()).thenReturn(Collections.singletonMap("promptOnLogin", "true"));
+
+        Purpose p1 = mock(Purpose.class);
+        when(p1.getUuid()).thenReturn(PURPOSE_UUID_1);
+
+        Purpose p2 = mock(Purpose.class);
+        when(p2.getUuid()).thenReturn(PURPOSE_UUID_2);
+
+        when(consentManager.listPurposes(anyList(), anyInt())).thenReturn(Arrays.asList(p1, p2));
+        when(consentManager.listPurposeVersions(PURPOSE_UUID_2)).thenReturn(Collections.singletonList(v1));
+        when(consentManager.getPurposeVersion(PURPOSE_UUID_2, VERSION_UUID_1)).thenReturn(v1);
+        when(consentManager.listReceipts(eq(SUBJECT_ID), eq(RESIDENT_IDP), isNull(),
+                eq(PURPOSE_UUID_2), eq(VERSION_UUID_1), isNull(), isNull(), eq(1)))
+                .thenReturn(Collections.singletonList(mock(Receipt.class)));
+
+        // Filter to only PURPOSE_UUID_2 (which is consented) — PURPOSE_UUID_1 is ignored.
+        assertFalse(PolicyConsentUtil.hasUnconsentedPolicies(SUBJECT_ID, TENANT_DOMAIN,
+                new HashSet<>(Collections.singletonList(PURPOSE_UUID_2))));
+        verify(consentManager, never()).listPurposeVersions(PURPOSE_UUID_1);
     }
 
     @Test(description = "isEmpty returns true only when all four lists are empty.")

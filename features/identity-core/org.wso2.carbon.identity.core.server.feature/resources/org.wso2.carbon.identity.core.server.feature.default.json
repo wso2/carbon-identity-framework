@@ -1654,22 +1654,30 @@
   "console.consents.disabled_features": [],
   "console.consents.scopes.create": [
     "internal_consent_mgt_element_create",
+    "internal_consent_mgt_purpose_app_create",
     "internal_consent_mgt_purpose_create"
   ],
   "console.consents.scopes.read": [
+    "internal_application_mgt_view",
+    "internal_claim_meta_view",
     "internal_consent_mgt_element_view",
+    "internal_consent_mgt_purpose_app_view",
     "internal_consent_mgt_purpose_view"
   ],
-  "console.consents.scopes.update": ["internal_consent_mgt_purpose_update"],
+  "console.consents.scopes.update": [
+    "internal_branding_preference_policy_update",
+    "internal_consent_mgt_purpose_update"
+  ],
   "console.consents.scopes.delete": [
     "internal_consent_mgt_element_delete",
+    "internal_consent_mgt_purpose_app_delete",
     "internal_consent_mgt_purpose_delete"
   ],
   "console.flows.enabled": true,
   "console.flows.scopes.feature": ["console:flows"],
   "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
-  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view"],
+  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view", "internal_consent_mgt_purpose_view"],
   "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
   "console.flow_extensions.enabled": true,

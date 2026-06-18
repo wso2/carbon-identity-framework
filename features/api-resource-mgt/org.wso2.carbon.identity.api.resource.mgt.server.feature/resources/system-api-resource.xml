@@ -1034,6 +1034,38 @@
                    description="Delete Consent Purpose in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Purpose Application Mapping API"
+                 identifier="/api/server/v1/configs/consent/purposes"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Purpose Application Mapping API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Consent Purpose Application Mapping"
+                   name="internal_consent_mgt_purpose_app_view"
+                   description="View Consent Purpose Application Mappings"/>
+            <Scope displayName="Add Application to Consent Purpose"
+                   name="internal_consent_mgt_purpose_app_create"
+                   description="Add Application to Consent Purpose"/>
+            <Scope displayName="Remove Application from Consent Purpose"
+                   name="internal_consent_mgt_purpose_app_delete"
+                   description="Remove Application from Consent Purpose"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Purpose Application Mapping API"
+                 identifier="/o/api/server/v1/configs/consent/purposes"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Purpose Application Mapping API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Consent Purpose Application Mapping"
+                   name="internal_org_consent_mgt_purpose_app_view"
+                   description="View Consent Purpose Application Mappings in the organization"/>
+            <Scope displayName="Add Application to Consent Purpose"
+                   name="internal_org_consent_mgt_purpose_app_create"
+                   description="Add Application to Consent Purpose in the organization"/>
+            <Scope displayName="Remove Application from Consent Purpose"
+                   name="internal_org_consent_mgt_purpose_app_delete"
+                   description="Remove Application from Consent Purpose in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
                  requiresAuthorization="true" description="API representation of the Identity Recovery API" type="TENANT">
         <Scopes>
