@@ -1595,7 +1595,6 @@
             <Read>
                 <Scope name="internal_flow_view"/>
                 <Scope name="internal_governance_view"/>
-                <Scope name="internal_consent_mgt_element_view"/>
                 <Scope name="internal_consent_mgt_purpose_view"/>
             </Read>
         </Scopes>
@@ -2240,7 +2239,6 @@
             <Read>
                 <Scope name="internal_org_flow_view"/>
                 <Scope name="internal_org_governance_view"/>
-                <Scope name="internal_org_consent_mgt_element_view"/>
                 <Scope name="internal_org_consent_mgt_purpose_view"/>
             </Read>
         </Scopes>
