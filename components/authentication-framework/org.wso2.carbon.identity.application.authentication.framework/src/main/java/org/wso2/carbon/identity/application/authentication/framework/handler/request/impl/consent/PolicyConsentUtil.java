@@ -208,18 +208,20 @@ public final class PolicyConsentUtil {
 
     /**
      * Checks whether the user has any unconsented policy purpose among the given set of policy IDs.
-     * When {@code policyIds} is non-empty only purposes whose UUID is in that set are evaluated;
-     * an empty set means all policy purposes are considered.
+     * When {@code policyIds} is non-empty only purposes whose UUID is in that set are evaluated.
      *
      * @param subjectId    the user's subject identifier (domain-qualified)
      * @param tenantDomain the user's tenant domain
-     * @param policyIds    the set of policy purpose UUIDs to restrict the check to (empty = all)
+     * @param policyIds    the set of policy purpose UUIDs to restrict the check to
      * @return {@code true} if at least one matching policy purpose requires consent
      * @throws ConsentManagementException if an error occurs during consent lookup
      */
     public static boolean hasUnconsentedPolicies(String subjectId, String tenantDomain, Set<String> policyIds)
             throws ConsentManagementException {
 
+        if (policyIds == null || policyIds.isEmpty()) {
+            return false;
+        }
         ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
         try {
             startTenantFlow(subjectId, tenantDomain);
