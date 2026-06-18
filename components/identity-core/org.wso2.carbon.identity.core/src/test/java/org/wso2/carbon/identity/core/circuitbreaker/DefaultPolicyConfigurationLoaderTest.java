@@ -249,6 +249,22 @@ public class DefaultPolicyConfigurationLoaderTest {
         assertEquals(invokeParseInt(TEST_KEY, 1, 1), 15);
     }
 
+    @Test
+    public void testParseIntHandlesFloatFormattedInteger() throws Exception {
+
+        identityConfig.put(TEST_KEY, "20.0");
+
+        assertEquals(invokeParseInt(TEST_KEY, 1, 1), 20);
+    }
+
+    @Test
+    public void testParseIntReturnsDefaultOnFractionalFloat() throws Exception {
+
+        identityConfig.put(TEST_KEY, "20.7");
+
+        assertEquals(invokeParseInt(TEST_KEY, 8, 1), 8);
+    }
+
     // ─────────────────────────── parseLong ───────────────────────────
 
     @Test
@@ -295,6 +311,22 @@ public class DefaultPolicyConfigurationLoaderTest {
         identityConfig.put(TEST_KEY, "  500  ");
 
         assertEquals(invokeParseLong(TEST_KEY, 1L, 1L), 500L);
+    }
+
+    @Test
+    public void testParseLongHandlesFloatFormattedInteger() throws Exception {
+
+        identityConfig.put(TEST_KEY, "60000.0");
+
+        assertEquals(invokeParseLong(TEST_KEY, 1L, 1L), 60000L);
+    }
+
+    @Test
+    public void testParseLongReturnsDefaultOnFractionalFloat() throws Exception {
+
+        identityConfig.put(TEST_KEY, "60000.7");
+
+        assertEquals(invokeParseLong(TEST_KEY, 20L, 1L), 20L);
     }
 
     // ─────────────────────────── parseDouble ───────────────────────────
