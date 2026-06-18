@@ -142,12 +142,11 @@ public final class PolicyConsentUtil {
 
     /**
      * Classifies unconsented policy purposes for the given user, restricted to the given set of policy IDs.
-     * When {@code policyIds} is non-empty only purposes whose UUID is in that set are evaluated;
-     * an empty set means all policy purposes are considered.
+     * Only purposes whose UUID is in {`@code` policyIds} are evaluated.
      *
      * @param subjectId    the user's subject identifier (domain-qualified)
      * @param tenantDomain the user's tenant domain
-     * @param policyIds    the set of policy purpose UUIDs to restrict the check to (empty = all)
+     * @param policyIds    the set of policy purpose UUIDs to restrict the check to
      * @return classified policy purposes
      * @throws ConsentManagementException if an error occurs during consent lookup
      */
