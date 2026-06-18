@@ -93,7 +93,8 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     public List<AuthorizedScopes> getAuthorizedScopes(String applicationId, int tenantId)
             throws IdentityApplicationManagementException {
 
-        // Sub-orgs inherit root org API resources; cache only for tenants and resolve orgs live to avoid stale entries.
+        // Sub-orgs inherit root org API resources; cache only for root organizations and resolve sub-orgs live to
+        // avoid stale entries.
         if (isOrganization(tenantId)) {
             return authorizedAPIDAO.getAuthorizedScopes(applicationId, tenantId);
         }
@@ -108,10 +109,6 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         return authorizedScopes;
     }
 
-    /**
-     * Whether the tenant is an organization, defaulting to {@code true} (bypass cache) if it cannot be resolved,
-     * so an org-resolution error degrades to a live read rather than breaking the lookup.
-     */
     private boolean isOrganization(int tenantId) {
 
         try {

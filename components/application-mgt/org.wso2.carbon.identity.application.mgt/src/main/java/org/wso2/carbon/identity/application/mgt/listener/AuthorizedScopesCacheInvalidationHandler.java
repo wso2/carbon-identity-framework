@@ -63,6 +63,10 @@ public class AuthorizedScopesCacheInvalidationHandler extends AbstractEventHandl
 
     private void clearCachesForTenant(Map<String, Object> eventProperties) {
 
+        if (eventProperties == null) {
+            LOG.warn("Event properties are null. Cannot clear authorized scopes cache.");
+            return;
+        }
         Object tenantDomain = eventProperties.get(IdentityEventConstants.EventProperty.TENANT_DOMAIN);
         if (!(tenantDomain instanceof String) || StringUtils.isBlank((String) tenantDomain)) {
             LOG.warn("Tenant domain is missing in event properties. Cannot clear authorized scopes cache.");

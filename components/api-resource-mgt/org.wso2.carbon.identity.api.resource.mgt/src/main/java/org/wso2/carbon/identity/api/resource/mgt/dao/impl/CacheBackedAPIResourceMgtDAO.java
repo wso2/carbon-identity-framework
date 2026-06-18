@@ -106,9 +106,9 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     @Override
     public APIResource addAPIResource(APIResource apiResource, Integer tenantId) throws APIResourceMgtException {
 
-        // A new API resource introduces new tenant scopes; invalidate the tenant scope metadata cache.
+        APIResource addedAPIResource = apiResourceManagementDAO.addAPIResource(apiResource, tenantId);
         clearScopeMetadataCache(tenantId);
-        return apiResourceManagementDAO.addAPIResource(apiResource, tenantId);
+        return addedAPIResource;
     }
 
     @Override
@@ -227,35 +227,35 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public void updateAPIResource(APIResource apiResource, List<Scope> addedScopes, List<String> removedScopes,
                                   Integer tenantId) throws APIResourceMgtException {
 
+        apiResourceManagementDAO.updateAPIResource(apiResource, addedScopes, removedScopes, tenantId);
         clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.updateAPIResource(apiResource, addedScopes, removedScopes, tenantId);
     }
 
     @Override
     public void updateScopeMetadata(Scope scope, APIResource apiResource, Integer tenantId)
             throws APIResourceMgtException {
 
+        apiResourceManagementDAO.updateScopeMetadata(scope, apiResource, tenantId);
         clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.updateScopeMetadata(scope, apiResource, tenantId);
     }
 
     @Override
     public void updateScopeMetadataById(Scope scope, APIResource apiResource, Integer tenantId)
             throws APIResourceMgtException {
 
+        apiResourceManagementDAO.updateScopeMetadataById(scope, apiResource, tenantId);
         clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.updateScopeMetadataById(scope, apiResource, tenantId);
     }
 
     @Override
     public void deleteAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
+        apiResourceManagementDAO.deleteAPIResourceById(apiId, tenantId);
         clearAPIResourceCache(null, apiId, tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.deleteAPIResourceById(apiId, tenantId);
     }
 
     @Override
@@ -293,8 +293,7 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
             return apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
         }
 
-        // Sub-orgs inherit root org scopes; cache only for tenants and resolve orgs live to avoid stale entries.
-        if (isOrganization(tenantId)) {
+        if (tenantId == 0 || isOrganization(tenantId)) {
             return apiResourceManagementDAO.getScopesByTenantId(tenantId, expressionNodes);
         }
 
@@ -315,10 +314,6 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
         return scopes;
     }
 
-    /**
-     * Whether the tenant is an organization, defaulting to {@code true} (bypass cache) if it cannot be resolved,
-     * so an org-resolution error degrades to a live read rather than breaking the lookup.
-     */
     private boolean isOrganization(int tenantId) {
 
         try {
@@ -343,42 +338,42 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     @Override
     public void addScopes(List<Scope> scopes, String apiId, Integer tenantId) throws APIResourceMgtException {
 
+        apiResourceManagementDAO.addScopes(scopes, apiId, tenantId);
         clearAPIResourceCache(null, apiId, tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.addScopes(scopes, apiId, tenantId);
     }
 
     @Override
     public void deleteAllScopes(String apiId, Integer tenantId) throws APIResourceMgtException {
 
+        apiResourceManagementDAO.deleteAllScopes(apiId, tenantId);
         clearAPIResourceCache(null, apiId, tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.deleteAllScopes(apiId, tenantId);
     }
 
     @Override
     public void deleteScope(String apiId, String scopeName, Integer tenantId) throws APIResourceMgtException {
 
+        apiResourceManagementDAO.deleteScope(apiId, scopeName, tenantId);
         clearAPIResourceCache(null, apiId, tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.deleteScope(apiId, scopeName, tenantId);
     }
 
     @Override
     public void deleteScopeById(String apiId, String scopeId, Integer tenantId) throws APIResourceMgtException {
 
+        apiResourceManagementDAO.deleteScopeById(apiId, scopeId, tenantId);
         clearAPIResourceCache(null, apiId, tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.deleteScopeById(apiId, scopeId, tenantId);
     }
 
     @Override
     public void putScopes(String apiId, List<Scope> currentScopes, List<Scope> scopes, Integer tenantId)
             throws APIResourceMgtException {
 
+        apiResourceManagementDAO.putScopes(apiId, currentScopes, scopes, tenantId);
         clearAPIResourceCache(null, apiId, tenantId);
         clearScopeMetadataCache(tenantId);
-        apiResourceManagementDAO.putScopes(apiId, currentScopes, scopes, tenantId);
     }
 
     @Override
