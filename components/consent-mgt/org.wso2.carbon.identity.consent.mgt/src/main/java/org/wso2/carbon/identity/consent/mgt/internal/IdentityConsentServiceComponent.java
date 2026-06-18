@@ -147,5 +147,4 @@ public class IdentityConsentServiceComponent {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
-
 }

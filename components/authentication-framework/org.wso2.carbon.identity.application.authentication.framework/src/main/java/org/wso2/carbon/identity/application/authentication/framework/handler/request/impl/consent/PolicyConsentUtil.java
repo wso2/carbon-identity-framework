@@ -135,9 +135,6 @@ public final class PolicyConsentUtil {
             return emptyResult();
         }
         Set<String> mappedPolicyIds = getMappedPolicyIds(context);
-        if (mappedPolicyIds.isEmpty()) {
-            return emptyResult();
-        }
         String subjectId = UserCoreUtil.addDomainToName(user.getUserName(), user.getUserStoreDomain());
         String tenantDomain = user.getTenantDomain();
         return classifyUnconsentedPolicies(subjectId, tenantDomain, mappedPolicyIds);
@@ -158,8 +155,12 @@ public final class PolicyConsentUtil {
                                                                  Set<String> policyIds)
             throws ConsentManagementException {
 
+        if (policyIds == null || policyIds.isEmpty()) {
+            return emptyResult();
+        }
+
         ConsentManager consentManager = FrameworkServiceDataHolder.getInstance().getConsentManager();
-        List<Purpose> policyPurposes = Collections.emptyList();
+        List<Purpose> policyPurposes;
         List<String> mandatoryUnconsentedIds = new ArrayList<>();
         List<String> mandatoryNewVersionIds = new ArrayList<>();
         List<String> optionalUnconsentedIds = new ArrayList<>();
@@ -169,7 +170,7 @@ public final class PolicyConsentUtil {
             startTenantFlow(subjectId, tenantDomain);
             policyPurposes = getPolicyPurposes(consentManager);
             for (Purpose purpose : policyPurposes) {
-                if (!policyIds.isEmpty() && !policyIds.contains(purpose.getUuid())) {
+                if (!policyIds.contains(purpose.getUuid())) {
                     continue;
                 }
                 if (!isPolicyConsentMissing(subjectId, purpose, consentManager)) {

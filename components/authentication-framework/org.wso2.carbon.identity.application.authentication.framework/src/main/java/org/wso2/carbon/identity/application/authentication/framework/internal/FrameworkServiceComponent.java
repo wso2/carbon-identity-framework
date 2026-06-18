@@ -1136,5 +1136,4 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
         log.debug("OrganizationUserSharingService unset in FrameworkServiceComponent bundle.");
     }
-
 }

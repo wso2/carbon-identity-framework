@@ -89,8 +89,6 @@ public class ConsentAppMappingServiceImplTest {
         return new ConfigurationManagementException(new RuntimeException("Server error"));
     }
 
-    // ── getApplicationsForPurpose ─────────────────────────────────────────────
-
     @Test
     public void testGetApplicationsForPurpose_success() throws Exception {
 
@@ -162,8 +160,6 @@ public class ConsentAppMappingServiceImplTest {
 
         service.getApplicationsForPurpose(PURPOSE_ID);
     }
-
-    // ── addApplicationToPurpose ───────────────────────────────────────────────
 
     @Test
     public void testAddApplicationToPurpose_newResource() throws Exception {
@@ -252,8 +248,6 @@ public class ConsentAppMappingServiceImplTest {
         service.addApplicationToPurpose(PURPOSE_ID, APP_ID);
     }
 
-    // ── removeApplicationFromPurpose ─────────────────────────────────────────
-
     @Test
     public void testRemoveApplicationFromPurpose_success() throws Exception {
 
@@ -322,8 +316,6 @@ public class ConsentAppMappingServiceImplTest {
 
         service.removeApplicationFromPurpose(PURPOSE_ID, APP_ID);
     }
-
-    // ── getPurposesForApplication ─────────────────────────────────────────────
 
     @Test
     public void testGetPurposesForApplication_success() throws Exception {
@@ -394,8 +386,6 @@ public class ConsentAppMappingServiceImplTest {
         service.getPurposesForApplication(APP_ID);
     }
 
-    // ── removeAllPurposeMappingsForApplication ────────────────────────────────
-
     @Test
     public void testRemoveAllPurposeMappingsForApplication_success() throws Exception {
 
@@ -462,8 +452,6 @@ public class ConsentAppMappingServiceImplTest {
 
         service.removeAllPurposeMappingsForApplication(APP_ID);
     }
-
-    // ── removeAllApplicationMappingsForPurpose ────────────────────────────────
 
     @Test
     public void testRemoveAllApplicationMappingsForPurpose_success() throws Exception {
