@@ -2325,6 +2325,7 @@
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,
+  "oauth.merge_authorized_scopes_by_policy": true,
   "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],

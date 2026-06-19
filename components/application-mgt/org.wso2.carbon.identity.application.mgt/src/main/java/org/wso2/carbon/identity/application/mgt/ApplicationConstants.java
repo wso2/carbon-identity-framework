@@ -149,6 +149,7 @@ public class ApplicationConstants {
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
     public static final String AUTHORIZE_INTERNAL_SCOPES = "OAuth.AuthorizeInternalScopes";
+    public static final String MERGE_AUTHORIZED_SCOPES_BY_POLICY = "OAuth.MergeAuthorizedScopesByPolicy";
     public static final String RBAC = "RBAC";
     public static final String SYSTEM_PORTALS = "SystemPortals";
     public static final String IMPERSONATE_SCOPE_NAME = "internal_user_impersonate";
