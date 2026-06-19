@@ -1655,7 +1655,6 @@
   "console.consents.disabled_features": [],
   "console.consents.scopes.create": [
     "internal_consent_mgt_element_create",
-    "internal_consent_mgt_purpose_app_create",
     "internal_consent_mgt_purpose_create"
   ],
   "console.consents.scopes.read": [
@@ -1667,11 +1666,12 @@
   ],
   "console.consents.scopes.update": [
     "internal_branding_preference_policy_update",
+    "internal_consent_mgt_purpose_app_create",
+    "internal_consent_mgt_purpose_app_delete",
     "internal_consent_mgt_purpose_update"
   ],
   "console.consents.scopes.delete": [
     "internal_consent_mgt_element_delete",
-    "internal_consent_mgt_purpose_app_delete",
     "internal_consent_mgt_purpose_delete"
   ],
   "console.flows.enabled": true,
