@@ -61,6 +61,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTH
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MERGE_AUTHORIZED_SCOPES_BY_POLICY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
@@ -243,11 +244,39 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 if (authoriseInternalScopes) {
                     authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
                 } else {
-                    authorizedScopes = new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
                     List<AuthorizedScopes> appAuthorisedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                             IdentityTenantUtil.getTenantId(tenantDomain));
-                    // Get the scopes authorised in the application and add them too.
-                    authorizedScopes.addAll(appAuthorisedScopes);
+                    boolean mergeByPolicy = !Boolean.FALSE.toString().equalsIgnoreCase(
+                            IdentityUtil.getProperty(MERGE_AUTHORIZED_SCOPES_BY_POLICY));
+                    if (mergeByPolicy) {
+                        List<AuthorizedScopes> nonInternalTenantScopes =
+                                new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                        // Tenant scopes are always RBAC-only; merge in internal/console scopes from
+                        // the app's RBAC subscription into that single entry.
+                        List<String> appRbacInternalScopes = appAuthorisedScopes.stream()
+                                .filter(as -> RBAC.equals(as.getPolicyId()))
+                                .flatMap(as -> as.getScopes().stream())
+                                .filter(s -> s.startsWith(INTERNAL_SCOPE_PREFIX)
+                                        || s.startsWith(CONSOLE_SCOPE_PREFIX))
+                                .distinct()
+                                .collect(Collectors.toList());
+                        if (!appRbacInternalScopes.isEmpty() && !nonInternalTenantScopes.isEmpty()) {
+                            AuthorizedScopes rbacEntry = nonInternalTenantScopes.get(0);
+                            List<String> merged = new ArrayList<>(rbacEntry.getScopes());
+                            appRbacInternalScopes.stream()
+                                    .filter(s -> !merged.contains(s))
+                                    .forEach(merged::add);
+                            nonInternalTenantScopes.set(0, new AuthorizedScopes(RBAC, merged));
+                        }
+                        authorizedScopes = nonInternalTenantScopes;
+                        // Non-RBAC app policies have no tenant-level conflict; add them directly.
+                        appAuthorisedScopes.stream()
+                                .filter(as -> !RBAC.equals(as.getPolicyId()))
+                                .forEach(authorizedScopes::add);
+                    } else {
+                        authorizedScopes = new ArrayList<>(getScopesExcludingInternalScopes(authorizedScopesMap));
+                        authorizedScopes.addAll(appAuthorisedScopes);
+                    }
                 }
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
