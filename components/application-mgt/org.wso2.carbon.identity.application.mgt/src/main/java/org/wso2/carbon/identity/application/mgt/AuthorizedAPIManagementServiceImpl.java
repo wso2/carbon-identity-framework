@@ -60,8 +60,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MERGE_AUTHORIZED_SCOPES_BY_POLICY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MERGE_AUTHORIZED_SCOPES_BY_POLICY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
