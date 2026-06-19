@@ -466,5 +466,13 @@
   "identity_mgt.events.schemes.moesifOAuthTokenIssuancePublisher.properties.enable": false,
   "identity_mgt.events.schemes.moesifOAuthTokenIssuancePublisher.subscriptions": [
     "POST_ISSUE_ACCESS_TOKEN_V2"
+  ],
+  "identity_mgt.events.schemes.authorizedScopesCacheInvalidationHandler.module_index": "71",
+  "identity_mgt.events.schemes.authorizedScopesCacheInvalidationHandler.subscriptions": [
+    "POST_DELETE_API_RESOURCE",
+    "POST_DELETE_API_RESOURCE_SCOPES",
+    "POST_DELETE_SCOPE",
+    "POST_PUT_API_RESOURCE_SCOPES",
+    "POST_UPDATE_API_RESOURCE"
   ]
 }

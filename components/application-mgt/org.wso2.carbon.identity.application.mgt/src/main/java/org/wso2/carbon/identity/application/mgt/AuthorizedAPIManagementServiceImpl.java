@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AuthorizedAPIDAOImpl;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,6 +60,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
@@ -206,12 +209,17 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             for (AuthorizedAPIManagementListener listener : listeners) {
                 listener.preGetAuthorizedScopes(appId, tenantDomain);
             }
-            // Check if the application is a main application else get the main application id and main tenant id.
-            String mainAppId = applicationManagementService.getMainAppId(appId);
-            if (mainAppId != null) {
-                appId = mainAppId;
-                int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
-                tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            // Resolve the main application id only for fragment (shared) applications; for others getMainAppId
+            // returns null, so skip its SP_SHARED_APP query using the cached service provider.
+            ServiceProvider serviceProvider = applicationManagementService.getApplicationByResourceId(appId,
+                    tenantDomain);
+            if (serviceProvider == null || isFragmentApp(serviceProvider)) {
+                String mainAppId = applicationManagementService.getMainAppId(appId);
+                if (mainAppId != null) {
+                    appId = mainAppId;
+                    int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
+                    tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                }
             }
 
             List<AuthorizedScopes> authorizedScopes;
@@ -417,5 +425,18 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                         "Application does not belong to the tenant domain: " + tenantDomain);
             }
         }
+    }
+
+    /**
+     * Check whether the service provider is a fragment (shared) application.
+     */
+    private static boolean isFragmentApp(ServiceProvider serviceProvider) {
+
+        if (serviceProvider.getSpProperties() == null) {
+            return false;
+        }
+        return Arrays.stream(serviceProvider.getSpProperties())
+                .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                        Boolean.parseBoolean(property.getValue()));
     }
 }
