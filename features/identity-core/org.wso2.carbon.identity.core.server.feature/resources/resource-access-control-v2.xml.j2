@@ -354,6 +354,11 @@
         </Resource>
         <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
             <Scopes>internal_org_branding_preference_update</Scopes>
+            <Operations mandatory="false">
+                <Operation name="updatePolicyUrl">
+                    <scope>internal_org_branding_preference_policy_update</scope>
+                </Operation>
+            </Operations>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_branding_preference_update</Scopes>
@@ -366,6 +371,11 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
             <Scopes>internal_branding_preference_update</Scopes>
+            <Operations mandatory="false">
+                <Operation name="updatePolicyUrl">
+                    <scope>internal_branding_preference_policy_update</scope>
+                </Operation>
+            </Operations>
         </Resource>
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_branding_preference_update</Scopes>
@@ -522,6 +532,28 @@
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
+
+        <!-- [Organization] Consent Purpose Application Mapping API -->
+        <Resource context="(.*)/o/api/server/v1/configs/consent/purposes/(.+)/applications" secured="true" http-method="GET">
+            <Scopes>internal_org_consent_mgt_purpose_app_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/configs/consent/purposes/(.+)/applications" secured="true" http-method="POST">
+            <Scopes>internal_org_consent_mgt_purpose_app_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/configs/consent/purposes/(.+)/applications/(.+)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_consent_mgt_purpose_app_delete</Scopes>
+        </Resource>
+
+        <!-- Consent Purpose Application Mapping API -->
+        <Resource context="(.*)/api/server/v1/configs/consent/purposes/(.+)/applications" secured="true" http-method="GET">
+            <Scopes>internal_consent_mgt_purpose_app_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs/consent/purposes/(.+)/applications" secured="true" http-method="POST">
+            <Scopes>internal_consent_mgt_purpose_app_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs/consent/purposes/(.+)/applications/(.+)" secured="true" http-method="DELETE">
+            <Scopes>internal_consent_mgt_purpose_app_delete</Scopes>
+        </Resource>
         {% endif %}
 
         <!-- [Organization] Identity Recovery API -->

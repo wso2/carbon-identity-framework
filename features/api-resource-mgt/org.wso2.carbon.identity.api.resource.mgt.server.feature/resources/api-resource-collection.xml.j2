@@ -1703,6 +1703,9 @@
             <Read>
                 <Scope name="internal_flow_view"/>
                 <Scope name="internal_governance_view"/>
+                {% if consent_mgt.enable_v2_api %}
+                <Scope name="internal_consent_mgt_purpose_view"/>
+                {% endif %}
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1738,18 +1741,24 @@
             </Feature>
             <Update>
                 <Scope name="internal_consent_mgt_purpose_update"/>
+                <Scope name="internal_branding_preference_policy_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_consent_mgt_element_delete"/>
                 <Scope name="internal_consent_mgt_purpose_delete"/>
+                <Scope name="internal_consent_mgt_purpose_app_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_consent_mgt_element_create"/>
                 <Scope name="internal_consent_mgt_purpose_create"/>
+                <Scope name="internal_consent_mgt_purpose_app_create"/>
             </Create>
             <Read>
                 <Scope name="internal_consent_mgt_element_view"/>
                 <Scope name="internal_consent_mgt_purpose_view"/>
+                <Scope name="internal_consent_mgt_purpose_app_view"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_application_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -1762,18 +1771,24 @@
             </Feature>
             <Update>
                 <Scope name="internal_org_consent_mgt_purpose_update"/>
+                <Scope name="internal_org_branding_preference_policy_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_consent_mgt_element_delete"/>
                 <Scope name="internal_org_consent_mgt_purpose_delete"/>
+                <Scope name="internal_org_consent_mgt_purpose_app_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_consent_mgt_element_create"/>
                 <Scope name="internal_org_consent_mgt_purpose_create"/>
+                <Scope name="internal_org_consent_mgt_purpose_app_create"/>
             </Create>
             <Read>
                 <Scope name="internal_org_consent_mgt_element_view"/>
                 <Scope name="internal_org_consent_mgt_purpose_view"/>
+                <Scope name="internal_org_consent_mgt_purpose_app_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -2414,6 +2429,9 @@
             <Read>
                 <Scope name="internal_org_flow_view"/>
                 <Scope name="internal_org_governance_view"/>
+                {% if consent_mgt.enable_v2_api %}
+                <Scope name="internal_org_consent_mgt_purpose_view"/>
+                {% endif %}
             </Read>
         </Scopes>
     </APIResourceCollection>

@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
+import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
@@ -92,6 +93,7 @@ public class FrameworkServiceDataHolder {
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
+    private ConsentAppMappingService consentAppMappingService = null;
     private ClaimMetadataManagementService claimMetadataManagementService = null;
     private SSOConsentService ssoConsentService;
     private JsFunctionRegistry jsFunctionRegistry;
@@ -380,6 +382,26 @@ public class FrameworkServiceDataHolder {
     public void setConsentManager(ConsentManager consentManager) {
 
         this.consentManager = consentManager;
+    }
+
+    /**
+     * Get {@link ConsentAppMappingService}.
+     *
+     * @return ConsentAppMappingService.
+     */
+    public ConsentAppMappingService getConsentAppMappingService() {
+
+        return consentAppMappingService;
+    }
+
+    /**
+     * Set {@link ConsentAppMappingService}.
+     *
+     * @param consentAppMappingService Instance of {@link ConsentAppMappingService}.
+     */
+    public void setConsentAppMappingService(ConsentAppMappingService consentAppMappingService) {
+
+        this.consentAppMappingService = consentAppMappingService;
     }
 
     /**
