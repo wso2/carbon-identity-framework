@@ -23,7 +23,7 @@ DECLARE cleanUpDateTimeLimitStr VARCHAR(26);
 SET batchSize    = 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
 SET chunkSize    = 500000; -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
 SET enableLog    = 0; -- ENABLE LOGGING [DEFAULT : 0]
-SET backupTables = 0; -- SET IF RECOVERY DATA TABLE NEEDS TO BACKED-UP BEFORE DELETE [DEFAULT : 0]. WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+SET backupTables = 0; -- SET IF RECOVERY DATA TABLE NEEDS TO BE BACKED-UP BEFORE DELETE [DEFAULT : 0]. WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
 SET cleanUpCodesTimeLimit = 720;  -- SET SAFE PERIOD OF HOURS FOR CODE DELETE [DEFAULT : 720 hrs (30 days)]. CODES OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
 
 SET rowCount = 0;
@@ -95,6 +95,7 @@ DO
         INSERT INTO IDN_RECOVERY_DATA_BATCH_TMP SELECT CODE FROM IDN_RECOVERY_DATA_CHUNK_TMP LIMIT batchSize;
         GET DIAGNOSTICS v_rowCount = ROW_COUNT;
         SET batchCount = v_rowCount;
+        CREATE INDEX IDN_RECOVERY_DATA_BATCH_TMP_INDX ON IDN_RECOVERY_DATA_BATCH_TMP (CODE);
         COMMIT;
 
         IF (enableLog = 1) THEN
@@ -121,6 +122,11 @@ END WHILE;
 -- ------------------------------------------
 -- CLEANUP IDN_RECOVERY_FLOW_DATA
 -- ------------------------------------------
+-- NOTE: IDN_RECOVERY_FLOW_DATA only exists on schemas with the recovery V2 API.
+-- This block is intentionally built with dynamic SQL (EXECUTE IMMEDIATE) and
+-- guarded by the catalog existence check below so the procedure still compiles
+-- and runs on older schemas where the table is absent. Do not convert it to
+-- static SQL.
 
 SELECT COUNT(*) INTO v_rowCount FROM SYSIBM.SYSTABLES WHERE CREATOR = CURRENT SCHEMA AND NAME = 'IDN_RECOVERY_FLOW_DATA';
 IF (v_rowCount > 0) THEN
@@ -150,6 +156,7 @@ IF (v_rowCount > 0) THEN
             EXECUTE IMMEDIATE 'INSERT INTO IDN_RECOVERY_FLOW_DATA_BATCH_TMP SELECT RECOVERY_FLOW_ID FROM IDN_RECOVERY_FLOW_DATA_CHUNK_TMP FETCH FIRST ' || CAST(batchSize AS VARCHAR(10)) || ' ROWS ONLY';
             GET DIAGNOSTICS v_rowCount = ROW_COUNT;
             SET batchCount = v_rowCount;
+            EXECUTE IMMEDIATE 'CREATE INDEX IDN_RECOVERY_FLOW_DATA_BATCH_TMP_INDX ON IDN_RECOVERY_FLOW_DATA_BATCH_TMP (RECOVERY_FLOW_ID)';
             COMMIT;
 
             IF (enableLog = 1) THEN
