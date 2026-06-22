@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedToken;
-import org.wso2.carbon.identity.application.authentication.framework.model.OrganizationLoginData;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -638,51 +637,6 @@ public class DefaultAuthenticationRequestHandlerTest {
             assertFalse(exceptionThrown, "FrameworkException should NOT be thrown for tenant domain mismatch "
                     + "when user is a shared user");
         }
-    }
-
-    private String invokeResolveRootTenantDomain(AuthenticationContext context) throws Exception {
-
-        Method method = DefaultAuthenticationRequestHandler.class.getDeclaredMethod(
-                "resolveRootTenantDomain", AuthenticationContext.class);
-        method.setAccessible(true);
-        return (String) method.invoke(new DefaultAuthenticationRequestHandler(), context);
-    }
-
-    @Test(description = "Root tenant domain resolves to the login tenant domain when no organization login data " +
-            "is present.")
-    public void testResolveRootTenantDomainWithoutOrganizationLoginData() throws Exception {
-
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain("carbon.super");
-        context.setLoginTenantDomain("carbon.super");
-
-        assertEquals(invokeResolveRootTenantDomain(context), "carbon.super");
-    }
-
-    @Test(description = "Root tenant domain falls back to the login tenant domain when the root organization tenant " +
-            "domain is blank.")
-    public void testResolveRootTenantDomainWithBlankRootOrgTenantDomain() throws Exception {
-
-        AuthenticationContext context = new AuthenticationContext();
-        context.setTenantDomain("login-tenant.com");
-        context.setLoginTenantDomain("login-tenant.com");
-        OrganizationLoginData orgLoginData = new OrganizationLoginData();
-        orgLoginData.setRootOrganizationTenantDomain("   ");
-        context.setOrganizationLoginData(orgLoginData);
-
-        assertEquals(invokeResolveRootTenantDomain(context), "login-tenant.com");
-    }
-
-    @Test(description = "Root tenant domain resolves to the root organization tenant domain when it is available.")
-    public void testResolveRootTenantDomainWithRootOrgTenantDomain() throws Exception {
-
-        AuthenticationContext context = new AuthenticationContext();
-        context.setLoginTenantDomain("login-tenant.com");
-        OrganizationLoginData orgLoginData = new OrganizationLoginData();
-        orgLoginData.setRootOrganizationTenantDomain("root-tenant.com");
-        context.setOrganizationLoginData(orgLoginData);
-
-        assertEquals(invokeResolveRootTenantDomain(context), "root-tenant.com");
     }
 
     @SuppressWarnings("unchecked")

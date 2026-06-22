@@ -1339,12 +1339,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * Updates the effective sequence config to reflect the authenticators which the shared user has already
      * authenticated with in other sub-organizations, providing SSO capabilities for shared user logins across
      * sub-organizations.
-     * <p>
-     * Even though there is no session for the currently accessing organization, the user may have already
-     * authenticated with one or more of the authenticators required by the current application's sequence in another
-     * organization. For each authenticator in the effective sequence steps that is found among the authenticated
-     * authenticators of any organization, the corresponding step is marked as already authenticated and the
-     * authenticated IdP data is carried over to the context.
      *
      * @param context              The authentication context.
      * @param effectiveSequence    The effective sequence config of the current authentication flow.
@@ -1824,16 +1818,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         SessionContext sessionContext;
         try {
-            String rootTenantDomain = context.getTenantDomain();
-            if (context.getOrganizationLoginData() != null &&
-                    StringUtils.isNotBlank(context.getOrganizationLoginData().getRootOrganizationTenantDomain())) {
-                rootTenantDomain = context.getOrganizationLoginData().getRootOrganizationTenantDomain();
-            }
             // Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
             // tenant wise session expiry time
-            FrameworkUtils.startTenantFlow(rootTenantDomain);
-            sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey,
-                    rootTenantDomain);
+            FrameworkUtils.startTenantFlow(context.getTenantDomain());
+            sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
         } finally {
             FrameworkUtils.endTenantFlow();
         }

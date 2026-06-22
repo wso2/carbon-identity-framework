@@ -83,6 +83,25 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     }
 
     /**
+     * Add the given session context entry to the cache only, without persisting it to the session data store.
+     *
+     * @param key               Key which the cache entry is indexed by.
+     * @param entry             Value to be stored in the cache.
+     * @param loginTenantDomain Login tenant domain under which the cache entry is stored.
+     */
+    public void addToCacheWithoutPersisting(SessionContextCacheKey key, SessionContextCacheEntry entry,
+                                            String loginTenantDomain) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding session context to cache without updating the session data store corresponding " +
+                    "to the key : " + key.getContextId() + " with accessed time " + entry.getAccessedTime() +
+                    " and validity time " + entry.getValidityPeriod());
+        }
+        entry.setAccessedTime();
+        super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
+    }
+
+    /**
      * Add a cache entry during a READ operation.
      * <p>
      * This populates the cache only if the key does not already have a value.

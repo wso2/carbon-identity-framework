@@ -682,10 +682,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                     .thenReturn(true);
             SessionContext sessionContext = mock(SessionContext.class);
             when(sessionContext.getProperty(FrameworkUtils.TENANT_DOMAIN)).thenReturn(testTenantDomain);
-            // The session context is now looked up with the resolved root tenant domain (4-arg overload).
             frameworkUtilsMockedStatic.
-                    when(() -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId,
-                            testTenantDomain))
+                    when(() -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId))
                     .thenReturn(sessionContext);
 
             // Mock ApplicationManagementService.
