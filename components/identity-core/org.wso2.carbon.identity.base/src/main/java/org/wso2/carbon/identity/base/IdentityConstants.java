@@ -457,6 +457,8 @@ public class IdentityConstants {
                 "PassiveSTS.EnableDefaultSignatureAndDigestAlgorithm";
         public static final String PASSIVE_STS_LOGOUT_WREPLY_VALIDATION =
                 "PassiveSTS.EnableLogoutWreplyValidation";
+        public static final String PASSIVE_STS_ENABLE_CLAIM_DESCRIPTION_IN_ATTRIBUTE_NAME =
+                "PassiveSTS.EnableClaimDescriptionInAttributeName";
     }
 
     /**
