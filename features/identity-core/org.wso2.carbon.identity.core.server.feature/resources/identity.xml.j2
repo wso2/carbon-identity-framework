@@ -5085,6 +5085,11 @@
         <Origin>{{console.origin}}</Origin>
     </Console>
 
+    <!-- Console settings -->
+    <ConsoleSettings>
+        <UseGranularConsolePermissions>{{console.console_settings.use_granular_console_permissions | default('true')}}</UseGranularConsolePermissions>
+    </ConsoleSettings>
+
     <!-- MyAccount Application configurations -->
     <MyAccount>
         <CallbackURL>{{myaccount.callback_url}}</CallbackURL>

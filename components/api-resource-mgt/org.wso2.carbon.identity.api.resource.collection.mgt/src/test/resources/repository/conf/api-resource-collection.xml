@@ -45,6 +45,9 @@
                 <Scope name="console:apiResources"/>
                 <Scope name="console:apiResources_view"/>
                 <Scope name="console:apiResources_edit"/>
+                <Scope name="console:apiResources_create"/>
+                <Scope name="console:apiResources_update"/>
+                <Scope name="console:apiResources_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_api_resource_update"/>

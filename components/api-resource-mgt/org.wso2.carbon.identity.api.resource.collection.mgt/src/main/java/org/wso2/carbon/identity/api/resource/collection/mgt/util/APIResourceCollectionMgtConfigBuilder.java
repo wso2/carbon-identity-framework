@@ -127,12 +127,16 @@ public class APIResourceCollectionMgtConfigBuilder {
             if (scopesElement != null) {
                 Set<String> readScopeSet = new HashSet<>();
                 Set<String> writeScopeSet = new HashSet<>();
+                Set<String> createScopeSet = new HashSet<>();
+                Set<String> updateScopeSet = new HashSet<>();
+                Set<String> deleteScopeSet = new HashSet<>();
                 Iterator<?> actionElements = scopesElement.getChildElements();
                 while (actionElements.hasNext()) {
                     OMElement actionElement = (OMElement) actionElements.next();
                     if (actionElement == null) {
                         continue;
                     }
+                    String actionName = actionElement.getLocalName();
                     Iterator<OMElement> scopes = actionElement.getChildrenWithName(
                             new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
                     while (scopes.hasNext()) {
@@ -140,21 +144,40 @@ public class APIResourceCollectionMgtConfigBuilder {
                         String scopeName = scope.getAttributeValue(
                                 new QName(APIResourceCollectionConfigBuilderConstants.NAME));
                         // Read and old Feature scope are considered as read scopes.
-                        boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
-                                .equals(actionElement.getLocalName());
-                        boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
-                                equals(actionElement.getLocalName());
+                        boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ.equals(actionName);
+                        boolean isCreateAction = APIResourceCollectionConfigBuilderConstants.CREATE.equals(actionName);
+                        boolean isUpdateAction = APIResourceCollectionConfigBuilderConstants.UPDATE.equals(actionName);
+                        boolean isDeleteAction = APIResourceCollectionConfigBuilderConstants.DELETE.equals(actionName);
+                        boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE
+                            .equals(actionName);
                         if (APIResourceCollectionConfigBuilderConstants.COLLECTION_VERSION_V0
                                 .equals(collectionVersion)) {
                             if (isReadAction || isFeatureAction) {
                                 readScopeSet.add(scopeName);
                             } else {
+                                // Create / Update / Delete actions aggregate into write and into their own bucket.
                                 writeScopeSet.add(scopeName);
+                                if (isCreateAction) {
+                                    createScopeSet.add(scopeName);
+                                } else if (isUpdateAction) {
+                                    updateScopeSet.add(scopeName);
+                                } else if (isDeleteAction) {
+                                    deleteScopeSet.add(scopeName);
+                                }
                             }
                         } else {
                             // Process new scopes with feature scopes.
                             if (isReadAction) {
                                 readScopeSet.add(scopeName);
+                            } else if (isCreateAction) {
+                                createScopeSet.add(scopeName);
+                                writeScopeSet.add(scopeName);
+                            } else if (isUpdateAction) {
+                                updateScopeSet.add(scopeName);
+                                writeScopeSet.add(scopeName);
+                            } else if (isDeleteAction) {
+                                deleteScopeSet.add(scopeName);
+                                writeScopeSet.add(scopeName);
                             } else if (isFeatureAction) {
                                 if (isViewFeatureScope(scopeName)) {
                                     apiResourceCollectionObj.setViewFeatureScope(scopeName);
@@ -162,6 +185,15 @@ public class APIResourceCollectionMgtConfigBuilder {
                                 } else if (isEditFeatureScope(scopeName)) {
                                     apiResourceCollectionObj.setEditFeatureScope(scopeName);
                                     writeScopeSet.add(scopeName);
+                                } else if (isCreateFeatureScope(scopeName)) {
+                                    apiResourceCollectionObj.setCreateFeatureScope(scopeName);
+                                    createScopeSet.add(scopeName);
+                                } else if (isUpdateFeatureScope(scopeName)) {
+                                    apiResourceCollectionObj.setUpdateFeatureScope(scopeName);
+                                    updateScopeSet.add(scopeName);
+                                } else if (isDeleteFeatureScope(scopeName)) {
+                                    apiResourceCollectionObj.setDeleteFeatureScope(scopeName);
+                                    deleteScopeSet.add(scopeName);
                                 } else {
                                     readScopeSet.add(scopeName);
                                 }
@@ -181,9 +213,21 @@ public class APIResourceCollectionMgtConfigBuilder {
                     if (apiResourceCollectionObj.getWriteScopes() == null) {
                         apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
                     }
+                    if (apiResourceCollectionObj.getCreateScopes() == null) {
+                        apiResourceCollectionObj.setCreateScopes(new ArrayList<>(createScopeSet));
+                    }
+                    if (apiResourceCollectionObj.getUpdateScopes() == null) {
+                        apiResourceCollectionObj.setUpdateScopes(new ArrayList<>(updateScopeSet));
+                    }
+                    if (apiResourceCollectionObj.getDeleteScopes() == null) {
+                        apiResourceCollectionObj.setDeleteScopes(new ArrayList<>(deleteScopeSet));
+                    }
                 } else {
                     apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
                     apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
+                    apiResourceCollectionObj.setCreateScopes(new ArrayList<>(createScopeSet));
+                    apiResourceCollectionObj.setUpdateScopes(new ArrayList<>(updateScopeSet));
+                    apiResourceCollectionObj.setDeleteScopes(new ArrayList<>(deleteScopeSet));
                 }
             }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
@@ -221,5 +265,26 @@ public class APIResourceCollectionMgtConfigBuilder {
         return StringUtils.isNotBlank(scope) &&
                 scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
                 scope.endsWith(APIResourceCollectionConfigBuilderConstants.EDIT_FEATURE_SCOPE_SUFFIX);
+    }
+
+    private boolean isCreateFeatureScope(String scope) {
+
+        return StringUtils.isNotBlank(scope) &&
+                scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.CREATE_FEATURE_SCOPE_SUFFIX);
+    }
+
+    private boolean isUpdateFeatureScope(String scope) {
+
+        return StringUtils.isNotBlank(scope) &&
+                scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.UPDATE_FEATURE_SCOPE_SUFFIX);
+    }
+
+    private boolean isDeleteFeatureScope(String scope) {
+
+        return StringUtils.isNotBlank(scope) &&
+                scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.DELETE_FEATURE_SCOPE_SUFFIX);
     }
 }
