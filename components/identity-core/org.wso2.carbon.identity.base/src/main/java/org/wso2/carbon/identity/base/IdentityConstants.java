@@ -265,6 +265,7 @@ public class IdentityConstants {
         public final static String SSO_IDP_URL = "SSOService.IdentityProviderURL";
         public final static String SSO_ARTIFACT_URL = "SSOService.ArtifactResolutionEndpoint";
         public final static String DEFAULT_LOGOUT_ENDPOINT = "SSOService.DefaultLogoutEndpoint";
+        public static final String DEFAULT_LOGOUT_ENDPOINT_V2 = "SSOService.V2.DefaultLogoutEndpoint";
         public final static String NOTIFICATION_ENDPOINT = "SSOService.NotificationEndpoint";
         public final static String SSO_ATTRIB_CLAIM_DIALECT = "SSOService.AttributesClaimDialect";
         public static final String SINGLE_LOGOUT_RETRY_COUNT = "SSOService.SingleLogoutRetryCount";
