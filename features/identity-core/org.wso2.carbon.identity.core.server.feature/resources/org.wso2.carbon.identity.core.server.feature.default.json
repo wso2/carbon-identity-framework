@@ -2408,5 +2408,7 @@
   "circuit_breaker.min_calls_to_evaluate": 15,
   "circuit_breaker.failure_rate_threshold": 0.5,
   "circuit_breaker.open_duration": 60000,
-  "circuit_breaker.max_in_flight": 20
+  "circuit_breaker.max_in_flight": 20,
+
+  "saas_apps.return_roles_in_id_token": false
 }
