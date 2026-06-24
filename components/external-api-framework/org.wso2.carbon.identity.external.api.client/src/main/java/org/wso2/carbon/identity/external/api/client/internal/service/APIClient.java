@@ -252,4 +252,14 @@ public class APIClient {
 
         return new APIResponse(statusCode, responseBody);
     }
+
+    /**
+     * Closes the underlying HTTP client and releases all associated resources.
+     *
+     * @throws IOException if an error occurs while closing the HTTP client.
+     */
+    public void close() throws IOException {
+
+        httpClient.close();
+    }
 }

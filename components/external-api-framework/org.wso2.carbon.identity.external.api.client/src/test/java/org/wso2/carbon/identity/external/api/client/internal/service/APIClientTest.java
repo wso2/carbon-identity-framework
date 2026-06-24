@@ -91,10 +91,13 @@ public class APIClientTest {
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws IOException {
 
         if (httpServer != null) {
             httpServer.stop(0);
+        }
+        if (apiClient != null) {
+            apiClient.close();
         }
         System.clearProperty(ServerConstants.CARBON_HOME);
     }
@@ -857,5 +860,54 @@ public class APIClientTest {
 
         assertNotNull(response);
         assertEquals(response.getResponseBody(), body);
+    }
+
+    /**
+     * Test that close() completes without throwing an exception on a newly created client.
+     */
+    @Test
+    public void testCloseSucceeds() throws IOException {
+
+        apiClient.close();
+    }
+
+    /**
+     * Test that close() completes without throwing an exception after the client has served requests.
+     */
+    @Test
+    public void testCloseAfterSuccessfulRequestSucceeds() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+
+        apiClient.close();
     }
 }

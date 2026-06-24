@@ -23,5 +23,5 @@ package org.wso2.carbon.identity.core.circuitbreaker;
  */
 public enum TenantService {
 
-    EMAIL_OTP
+    EMAIL_NOTIFICATION
 }

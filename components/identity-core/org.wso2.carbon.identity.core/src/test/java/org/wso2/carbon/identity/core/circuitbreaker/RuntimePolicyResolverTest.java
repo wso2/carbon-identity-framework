@@ -38,7 +38,7 @@ public class RuntimePolicyResolverTest {
             IdentityCoreServiceDataHolder.getInstance();
     private static final RuntimePolicyResolver RESOLVER = RuntimePolicyResolver.getInstance();
 
-    private static final TenantService SERVICE = TenantService.EMAIL_OTP;
+    private static final TenantService SERVICE = TenantService.EMAIL_NOTIFICATION;
     private static final String TENANT_DOMAIN = "resolver-test.example.com";
     private static final String TENANT_KEY =
             TenantKeyUtil.buildTenantServiceKey(TENANT_DOMAIN, SERVICE.name());

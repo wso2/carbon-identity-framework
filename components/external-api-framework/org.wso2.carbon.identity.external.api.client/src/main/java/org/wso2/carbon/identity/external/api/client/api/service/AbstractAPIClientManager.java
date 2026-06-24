@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.external.api.client.api.model.APIRequestContext;
 import org.wso2.carbon.identity.external.api.client.api.model.APIResponse;
 import org.wso2.carbon.identity.external.api.client.internal.service.APIClient;
 
+import java.io.IOException;
+
 /**
  * Abstract class for API Client Manager implementations which responsible for handling API calls and responses.
  */
@@ -66,5 +68,15 @@ public abstract class AbstractAPIClientManager {
         }
 
         return apiClient.callAPI(requestContext, apiInvocationConfig);
+    }
+
+    /**
+     * Closes the underlying API client and releases all associated resources.
+     *
+     * @throws IOException if an error occurs while closing the API client.
+     */
+    public void close() throws IOException {
+
+        apiClient.close();
     }
 }

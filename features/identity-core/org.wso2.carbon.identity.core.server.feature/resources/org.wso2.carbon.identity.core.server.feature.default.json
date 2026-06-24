@@ -242,6 +242,7 @@
   "oauth.dcr.authentication_required": true,
   "oauth.dcr.mandate_ssa": false,
   "oauth.allow_default_requested_scopes_for_back_channel_grant": false,
+  "oauth.use_app_authorized_scopes_as_default": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,
@@ -321,6 +322,7 @@
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
   "oauth.oidc.enable_claims_separation_for_access_tokens": true,
+  "oauth.oidc.restrict_assertion_claims_to_configured_attributes": false,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -1656,10 +1658,18 @@
     "internal_consent_mgt_purpose_create"
   ],
   "console.consents.scopes.read": [
+    "internal_application_mgt_view",
+    "internal_claim_meta_view",
     "internal_consent_mgt_element_view",
+    "internal_consent_mgt_purpose_app_view",
     "internal_consent_mgt_purpose_view"
   ],
-  "console.consents.scopes.update": ["internal_consent_mgt_purpose_update"],
+  "console.consents.scopes.update": [
+    "internal_branding_preference_policy_update",
+    "internal_consent_mgt_purpose_app_create",
+    "internal_consent_mgt_purpose_app_delete",
+    "internal_consent_mgt_purpose_update"
+  ],
   "console.consents.scopes.delete": [
     "internal_consent_mgt_element_delete",
     "internal_consent_mgt_purpose_delete"
@@ -1668,10 +1678,11 @@
   "console.flows.scopes.feature": ["console:flows"],
   "console.flows.disabled_features": [],
   "console.flows.scopes.create": [],
-  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view"],
+  "console.flows.scopes.read": ["internal_flow_view", "internal_governance_view", "internal_consent_mgt_purpose_view"],
   "console.flows.scopes.update": ["internal_flow_update", "internal_governance_update"],
   "console.flows.scopes.delete": [],
   "console.flow_extensions.enabled": true,
+  "console.flow_extensions.feature_flags": [],
   "console.flow_extensions.scopes.feature": ["console:flowExtensions"],
   "console.flow_extensions.disabled_features": [],
   "console.flow_extensions.scopes.create": ["internal_flow_extension_create"],
@@ -2314,6 +2325,7 @@
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,
+  "oauth.merge_authorized_scopes_by_policy": true,
   "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],
@@ -2347,6 +2359,7 @@
   "flow_execution.registration.display_claim_availability": false,
   "consent_mgt.enable_v2_api": true,
   "branding_configuration.custom_content.max_file_size": "1048576",
+  "captcha.disable_for_console.login": false,
   "captcha.enable_captcha_for_local_otp_authenticators": true,
 
   "console.ui.organizations.organization_display_name.enable": true,

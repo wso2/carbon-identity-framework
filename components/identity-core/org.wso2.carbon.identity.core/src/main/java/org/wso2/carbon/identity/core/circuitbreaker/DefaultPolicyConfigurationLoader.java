@@ -102,6 +102,15 @@ public final class DefaultPolicyConfigurationLoader {
         try {
             return Math.max(Integer.parseInt(value.trim()), min);
         } catch (NumberFormatException ex) {
+            // Attempt a double parse and truncate if the value has no fractional part.
+            try {
+                double d = Double.parseDouble(value.trim());
+                if (d == Math.floor(d) && !Double.isInfinite(d)) {
+                    return Math.max((int) d, min);
+                }
+            } catch (NumberFormatException ignored) {
+                // fall through to default.
+            }
             LOG.warn("Invalid integer for property '" + key + "', using default " + defaultValue + ".", ex);
             return defaultValue;
         }
@@ -116,6 +125,15 @@ public final class DefaultPolicyConfigurationLoader {
         try {
             return Math.max(Long.parseLong(value.trim()), min);
         } catch (NumberFormatException ex) {
+            // Attempt a double parse and truncate if the value has no fractional part.
+            try {
+                double d = Double.parseDouble(value.trim());
+                if (d == Math.floor(d) && !Double.isInfinite(d)) {
+                    return Math.max((long) d, min);
+                }
+            } catch (NumberFormatException ignored) {
+                // fall through to default.
+            }
             LOG.warn("Invalid long for property '" + key + "', using default " + defaultValue + ".", ex);
             return defaultValue;
         }

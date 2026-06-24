@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>7.11.122-SNAPSHOT</version>
+        <version>7.11.138-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -317,9 +317,12 @@
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core.constant; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.role.v2.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.consent.mgt.core.listener; version="${carbon.consent.mgt.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.application.mgt.listener; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service.exception;
                             version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.organization.management.service.util;
