@@ -131,6 +131,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
@@ -1288,8 +1289,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE))
                 || StringUtils.isNotEmpty(
                         request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME))
-                || StringUtils.isNotEmpty(
-                        request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT));
+                || (StringUtils.isNotEmpty(
+                        request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT)) &&
+                                StringUtils.isNotEmpty(request.getParameter(ORG_DISCOVERY_TYPE)));
     }
 
     protected void findPreviousOrganizationSession(HttpServletRequest request, AuthenticationContext context)

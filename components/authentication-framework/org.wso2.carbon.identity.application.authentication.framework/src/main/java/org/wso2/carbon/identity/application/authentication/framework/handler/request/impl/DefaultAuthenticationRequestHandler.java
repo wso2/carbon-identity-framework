@@ -1474,26 +1474,28 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
             String idpName = entry.getKey();
-            AuthenticatedIdPData authenticatedIdPData = entry.getValue();
-            AuthenticatedIdPData existingAuthenticatedIdPData = mergedAuthenticatedIdPs.get(idpName);
-            if (existingAuthenticatedIdPData == null) {
-                try {
-                    mergedAuthenticatedIdPs.put(idpName, (AuthenticatedIdPData) authenticatedIdPData.clone());
-                } catch (CloneNotSupportedException e) {
-                    throw new FrameworkException("Error while cloning AuthenticatedIdPData object.", e);
-                }
-            } else {
-                // An IdP with the same name is already added. Add only the authenticators which are not already
-                // present in the existing entry.
-                List<AuthenticatorConfig> existingAuthenticators = existingAuthenticatedIdPData.getAuthenticators();
-                List<AuthenticatorConfig> newAuthenticators = authenticatedIdPData.getAuthenticators();
-                if (CollectionUtils.isNotEmpty(newAuthenticators)) {
-                    for (AuthenticatorConfig newAuthenticator : newAuthenticators) {
-                        boolean alreadyPresent = existingAuthenticators != null && existingAuthenticators.stream()
-                                .anyMatch(existing -> StringUtils.equals(existing.getName(),
-                                        newAuthenticator.getName()));
-                        if (!alreadyPresent) {
-                            existingAuthenticatedIdPData.addAuthenticator(newAuthenticator);
+            if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
+                AuthenticatedIdPData authenticatedIdPData = entry.getValue();
+                AuthenticatedIdPData existingAuthenticatedIdPData = mergedAuthenticatedIdPs.get(idpName);
+                if (existingAuthenticatedIdPData == null) {
+                    try {
+                        mergedAuthenticatedIdPs.put(idpName, (AuthenticatedIdPData) authenticatedIdPData.clone());
+                    } catch (CloneNotSupportedException e) {
+                        throw new FrameworkException("Error while cloning AuthenticatedIdPData object.", e);
+                    }
+                } else {
+                    // An IdP with the same name is already added. Add only the authenticators which are not already
+                    // present in the existing entry.
+                    List<AuthenticatorConfig> existingAuthenticators = existingAuthenticatedIdPData.getAuthenticators();
+                    List<AuthenticatorConfig> newAuthenticators = authenticatedIdPData.getAuthenticators();
+                    if (CollectionUtils.isNotEmpty(newAuthenticators)) {
+                        for (AuthenticatorConfig newAuthenticator : newAuthenticators) {
+                            boolean alreadyPresent = existingAuthenticators != null && existingAuthenticators.stream()
+                                    .anyMatch(existing -> StringUtils.equals(existing.getName(),
+                                            newAuthenticator.getName()));
+                            if (!alreadyPresent) {
+                                existingAuthenticatedIdPData.addAuthenticator(newAuthenticator);
+                            }
                         }
                     }
                 }

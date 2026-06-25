@@ -79,7 +79,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -673,7 +672,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         return names;
     }
 
-    @Test(description = "Merging disjoint authenticated IdP maps keeps all IdPs from both maps.")
+    @Test(description = "Test merging a federated IDP with the local IDP keeps only the local IDP.")
     public void testMergeAuthenticatedIdPsWithDisjointIdPs() throws Exception {
 
         Map<String, AuthenticatedIdPData> previous = new HashMap<>();
@@ -683,11 +682,10 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         Map<String, AuthenticatedIdPData> merged = invokeMergeAuthenticatedIdPs(previous, current);
 
-        assertEquals(merged.size(), 2);
+        assertEquals(merged.size(), 1);
         assertTrue(merged.containsKey("LOCAL"));
-        assertTrue(merged.containsKey("FederatedIdP"));
+        assertFalse(merged.containsKey("FederatedIdP"));
         assertNotNull(merged.get("LOCAL"));
-        assertNotSame(merged.get("LOCAL"), previous.get("LOCAL"));
     }
 
     @Test(description = "Merging IdP maps that share an IdP appends only the authenticators not already present.")

@@ -1334,18 +1334,19 @@ public class FrameworkUtils {
      *
      * @param key               Session context cache key.
      * @param sessionContext    Session context to be cached.
-     * @param tenantDomain      Application tenant domain used to resolve session timeout configurations.
-     * @param loginTenantDomain Login tenant domain under which the cache entry is stored.
+     * @param applicationTenantDomain      Application tenant domain used to resolve session timeout configurations.
+     * @param tenantDomain      Tenant domain under which the cache entry is stored.
      * @param orgId             Organization id used to look up authenticated sequences from
      *                          {@link SessionContext#getAuthenticatedOrgData()}.
      */
     public static void addSessionContextToCacheWithoutPersisting(String key, SessionContext sessionContext,
-                                                                 String tenantDomain, String loginTenantDomain,
+                                                                 String applicationTenantDomain, String tenantDomain,
                                                                  String orgId) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-        SessionContextCacheEntry cacheEntry = buildSessionContextCacheEntry(key, sessionContext, tenantDomain, orgId);
-        SessionContextCache.getInstance().addToCacheWithoutPersisting(cacheKey, cacheEntry, loginTenantDomain);
+        SessionContextCacheEntry cacheEntry =
+                buildSessionContextCacheEntry(key, sessionContext, applicationTenantDomain, orgId);
+        SessionContextCache.getInstance().addToCacheWithoutPersisting(cacheKey, cacheEntry, tenantDomain);
     }
 
     /**

@@ -87,10 +87,10 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
      *
      * @param key               Key which the cache entry is indexed by.
      * @param entry             Value to be stored in the cache.
-     * @param loginTenantDomain Login tenant domain under which the cache entry is stored.
+     * @param tenantDomain      Tenant domain under which the cache entry is stored.
      */
     public void addToCacheWithoutPersisting(SessionContextCacheKey key, SessionContextCacheEntry entry,
-                                            String loginTenantDomain) {
+                                            String tenantDomain) {
 
         if (log.isDebugEnabled()) {
             log.debug("Adding session context to cache without updating the session data store corresponding " +
@@ -98,7 +98,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
                     " and validity time " + entry.getValidityPeriod());
         }
         entry.setAccessedTime();
-        super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
+        super.addToCache(key, entry, resolveLoginTenantDomain(tenantDomain));
     }
 
     /**

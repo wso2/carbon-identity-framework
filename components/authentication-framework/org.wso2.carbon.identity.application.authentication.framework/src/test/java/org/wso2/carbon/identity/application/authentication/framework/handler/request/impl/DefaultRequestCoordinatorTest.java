@@ -104,6 +104,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CALLER_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
@@ -1007,25 +1008,28 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public Object[][] provideOrgDiscoveryParams() {
 
         return new Object[][]{
-                // orgId, orgHandle, org, login_hint, expected.
-                {null, null, null, null, false},
-                {"org-id-123", null, null, null, true},
-                {null, "org.example.com", null, null, true},
-                {null, null, "exampleOrg", null, true},
-                {null, null, null, "user@example.com", true},
-                {"", "", "", "", false},
+                // orgId, orgHandle, org, login_hint, orgDiscoveryType, expected.
+                {null, null, null, null, null, false},
+                {"org-id-123", null, null, null, null, true},
+                {null, "org.example.com", null, null, null, true},
+                {null, null, "exampleOrg", null, null, true},
+                {null, null, null, "user@example.com", null, false},
+                {null, null, null, "user@example.com", "email", true},
+                {null, null, null, null, "email", false},
+                {"", "", "", "", "", false},
         };
     }
 
     @Test(dataProvider = "orgDiscoveryParamProvider")
     public void testHasOrganizationDiscoveryParameters(String orgId, String orgHandle, String org, String loginHint,
-                                                       boolean expected) throws Exception {
+                                                       String orgDiscoveryType, boolean expected) throws Exception {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID)).thenReturn(orgId);
         when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE)).thenReturn(orgHandle);
         when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME)).thenReturn(org);
         when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT)).thenReturn(loginHint);
+        when(request.getParameter(ORG_DISCOVERY_TYPE)).thenReturn(orgDiscoveryType);
 
         Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
                 "hasOrganizationDiscoveryParameters", HttpServletRequest.class);
