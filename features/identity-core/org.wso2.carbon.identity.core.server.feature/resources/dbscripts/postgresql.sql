@@ -1177,7 +1177,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('32360745-9c3e-4391-b563-66f17f0eb93a', 'ADMIN_ADVISORY_BANNER', 'A resource type to store admin advisory banner configurations.'),
 ('82ab7001-fb0e-44da-9169-1f63e4964d9b', 'REMOTE_LOGGING_CONFIG', 'A resource type to store remote server logger configurations.'),
 ('08fbc096-56c5-4ae6-9edc-54198a07e0dc', 'ISSUER_USAGE_SCOPE', 'A resource type to store issuer usage scope for organizations.'),
-('12c78d11-65cd-4b6e-b482-98538ecd7a5c', 'FAPI_CONFIGURATION', 'A resource type to keep the FAPI configurations.');
+('12c78d11-65cd-4b6e-b482-98538ecd7a5c', 'FAPI_CONFIGURATION', 'A resource type to keep the FAPI configurations.'),
+('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.');
 
 CREATE TABLE IF NOT EXISTS IDN_CONFIG_RESOURCE (
     ID VARCHAR(255) NOT NULL,
