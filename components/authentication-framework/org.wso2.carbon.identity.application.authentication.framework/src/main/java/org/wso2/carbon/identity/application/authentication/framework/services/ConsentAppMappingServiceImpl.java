@@ -222,7 +222,7 @@ public class ConsentAppMappingServiceImpl implements ConsentAppMappingService {
             FrameworkServiceDataHolder.getInstance().getConfigurationManager()
                     .deleteResource(RESOURCE_TYPE, purposeId);
         } catch (ConfigurationManagementClientException e) {
-            if (isResourceNotFound(e)) {
+            if (isResourceNotFound(e) || isResourceTypeNotFound(e)) {
                 return;
             }
             throw new ConsentAppMappingException(ErrorMessages.ERROR_CODE_DELETE_RESOURCE.getCode(),
