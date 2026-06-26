@@ -2399,6 +2399,7 @@
   "analytics.moesif.stream_version": "1.0.0",
   "analytics.moesif.inline_body": "",
   "analytics.moesif.enabled": false,
+  "analytics.moesif.always_publish": false,
 
   "circuit_breaker.enabled": true,
   "circuit_breaker.tenant_service_cache_capacity": 5000,
