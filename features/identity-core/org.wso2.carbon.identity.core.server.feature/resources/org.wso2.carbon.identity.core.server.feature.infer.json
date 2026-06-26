@@ -442,6 +442,15 @@
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false
+    },
+    "IS_7.3.0": {
+      "consent_mgt.enable_v2_api": false,
+      "identity_mgt.events.schemes.ConsentEventHook.properties.enable": false,
+      "identity_mgt.events.schemes.ConsentPurposeEventHook.properties.enable": false,
+      "webhooks.event_profiles.disabled_channels": [
+        "https://schemas.identity.wso2.org/events/consent-purpose",
+        "https://schemas.identity.wso2.org/events/consent"
+      ]
     }
   }
 }

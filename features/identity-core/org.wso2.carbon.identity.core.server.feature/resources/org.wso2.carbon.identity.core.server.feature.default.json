@@ -2322,6 +2322,7 @@
 
   "webhooks.maximum_webhooks_per_tenant": "10",
   "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": true,
+  "webhooks.event_profiles.disabled_channels": [],
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,

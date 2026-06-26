@@ -474,5 +474,16 @@
     "POST_DELETE_SCOPE",
     "POST_PUT_API_RESOURCE_SCOPES",
     "POST_UPDATE_API_RESOURCE"
+  ],
+  "identity_mgt.events.schemes.ConsentEventHook.module_index": "72",
+  "identity_mgt.events.schemes.ConsentEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.ConsentEventHook.subscriptions": [
+    "POST_ADD_RECEIPT",
+    "POST_AUTHORIZE_CONSENT"
+  ],
+  "identity_mgt.events.schemes.ConsentPurposeEventHook.module_index": "73",
+  "identity_mgt.events.schemes.ConsentPurposeEventHook.properties.enable": true,
+  "identity_mgt.events.schemes.ConsentPurposeEventHook.subscriptions": [
+    "POST_ADD_PURPOSE_VERSION"
   ]
 }

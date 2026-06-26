@@ -128,6 +128,35 @@
           "eventUri": "https://schemas.identity.wso2.org/events/credential/event-type/credentialUpdated"
         }
       ]
+    },
+    {
+      "name": "Consent purpose",
+      "description": "Consent purpose updated",
+      "uri": "https://schemas.identity.wso2.org/events/consent-purpose",
+      "events": [
+        {
+          "eventName": "Purpose version added",
+          "eventDescription": "Notify if a new version is added to a consent purpose",
+          "eventUri": "https://schemas.identity.wso2.org/events/consent-purpose/event-type/purposeVersionAdded"
+        }
+      ]
+    },
+    {
+      "name": "Consents",
+      "description": "Consent accepted, rejected, or revoked",
+      "uri": "https://schemas.identity.wso2.org/events/consent",
+      "events": [
+        {
+          "eventName": "Consent added",
+          "eventDescription": "Notify if a user consent is accepted or rejected",
+          "eventUri": "https://schemas.identity.wso2.org/events/consent/event-type/consentAdded"
+        },
+        {
+          "eventName": "Consent revoked",
+          "eventDescription": "Notify if a user consent is revoked",
+          "eventUri": "https://schemas.identity.wso2.org/events/consent/event-type/consentRevoked"
+        }
+      ]
     }
   ]
 }

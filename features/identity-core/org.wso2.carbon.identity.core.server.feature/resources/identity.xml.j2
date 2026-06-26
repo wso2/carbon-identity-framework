@@ -2568,6 +2568,15 @@
         <Registration>
             <SkipSignupConfirmationIfAccountLockDisabled>{{webhooks.registration.skip_signup_confirmation_if_account_lock_disabled}}</SkipSignupConfirmationIfAccountLockDisabled>
         </Registration>
+        {% if webhooks.event_profiles.disabled_channels is defined %}
+        <EventProfiles>
+            <DisabledChannels>
+                {% for channel in webhooks.event_profiles.disabled_channels %}
+                <ChannelUri>{{channel}}</ChannelUri>
+                {% endfor %}
+            </DisabledChannels>
+        </EventProfiles>
+        {% endif %}
     </Webhooks>
 
     <LocalAuthenticators>
