@@ -1215,15 +1215,23 @@ public class ApplicationMgtUtil {
         }
 
         if (StringUtils.isEmpty(basePath)) {
-            return resolveOriginUrlFromPlaceholders(absoluteUrl);
+            basePath = getAbsolutePublicUrlWithoutPath();
         }
         absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
 
         if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            if (StringUtils.isEmpty(consoleBasePath)) {
+                consoleBasePath = getAbsolutePublicUrlWithoutPath();
+            }
             absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_CUSTOM_PLACEHOLDER, consoleBasePath);
         }
         return absoluteUrl;
+    }
+
+    private static String getAbsolutePublicUrlWithoutPath() throws URLBuilderException {
+
+        return ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
     }
 
     /**
