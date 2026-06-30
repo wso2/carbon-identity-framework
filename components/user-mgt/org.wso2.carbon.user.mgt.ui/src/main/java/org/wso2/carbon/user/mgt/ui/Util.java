@@ -152,6 +152,9 @@ public class Util {
 
         if (userName != null && userName.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
             String domainName = userName.substring(0, userName.indexOf(UserAdminUIConstants.DOMAIN_SEPARATOR));
+            if (realmInfo.getUserStoresInfo() == null) {
+                return null;
+            }
             for (UserStoreInfo info : realmInfo.getUserStoresInfo()) {
                 if (domainName != null && domainName.equalsIgnoreCase(info.getDomainName())) {
                     return info;

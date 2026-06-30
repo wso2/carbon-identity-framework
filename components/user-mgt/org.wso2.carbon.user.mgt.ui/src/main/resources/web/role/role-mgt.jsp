@@ -160,8 +160,8 @@
     session.setAttribute(UserAdminUIConstants.ROLE_LIST_FILTER, filter.trim());
     session.setAttribute(UserAdminUIConstants.ROLE_COUNT_FILTER, countFilter.trim());
 
-    String currentUser = (String) session.getAttribute("logged-user");
-    currentUser = UserCoreUtil.removeDomainFromName(currentUser);
+    String loggedInUser = (String) session.getAttribute("logged-user");
+    String currentUser = UserCoreUtil.removeDomainFromName(loggedInUser);
     userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
     if (userRealmInfo != null) {
         multipleUserStores = userRealmInfo.getMultipleUserStore();
@@ -578,7 +578,7 @@
                                     continue;
                                 }
                                 if (userRealmInfo.getAdminRole().equals(data.getItemName()) &&
-                                        !Util.isRealmAdminUser(currentUser, userRealmInfo)) {
+                                        !Util.isRealmAdminUser(loggedInUser, userRealmInfo)) {
                                     continue;
                                 }
                                 String roleName = data.getItemName();
