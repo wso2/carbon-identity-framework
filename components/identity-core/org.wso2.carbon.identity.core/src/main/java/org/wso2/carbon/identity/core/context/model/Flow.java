@@ -118,6 +118,15 @@ public class Flow {
         FLOW_DEFINITIONS.put(Name.GROUP_UPDATE,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
+
+        // -------------------------- Consent management flows -------------------------------------------
+        FLOW_DEFINITIONS.put(Name.CONSENT_ACCEPT, EnumSet.of(InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.CONSENT_REJECT, EnumSet.of(InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.CONSENT_PENDING, EnumSet.of(InitiatingPersona.ADMIN));
+        FLOW_DEFINITIONS.put(Name.CONSENT_REVOKE, EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.USER));
+
+        FLOW_DEFINITIONS.put(Name.CONSENT_PURPOSE_VERSION_ADD, EnumSet.of(InitiatingPersona.ADMIN));
+        // -----------------------------------------------------------------------------------------------
     }
 
     /**
@@ -182,7 +191,15 @@ public class Flow {
 
         // ---------User Group management flows--------------
         USER_GROUP_UPDATE,
-        GROUP_UPDATE
+        GROUP_UPDATE,
+        // --------------------------------------------------
+
+        // ---------Consent management flows-----------------
+        CONSENT_ACCEPT,
+        CONSENT_REJECT,
+        CONSENT_PENDING,
+        CONSENT_REVOKE,
+        CONSENT_PURPOSE_VERSION_ADD
         // --------------------------------------------------
     }
 
