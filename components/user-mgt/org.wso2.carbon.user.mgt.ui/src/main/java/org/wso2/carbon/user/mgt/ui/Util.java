@@ -466,6 +466,42 @@ public class Util {
         return UserCoreUtil.removeDomainFromName(currentUsername).equalsIgnoreCase(username);
     }
 
+    /**
+     * Returns true if the given logged-in user is the configured admin user, honoring the
+     * case-sensitivity of the admin user's user store. Case is ignored only for case-insensitive
+     * stores (where login itself is case-insensitive, so "admin" and "ADMIN" are the same account);
+     * on case-sensitive stores an exact match is required so that distinct accounts differing only
+     * by case (e.g. "admin" vs "Admin") are never treated as the same admin user.
+     *
+     * @param currentUsername the logged-in user (may carry a domain prefix)
+     * @param userRealmInfo   the user realm info holding the configured admin user and store info
+     * @return true if currentUsername resolves to the configured admin user
+     */
+    public static boolean isRealmAdminUser(String currentUsername, UserRealmInfo userRealmInfo) {
+
+        if (currentUsername == null || userRealmInfo == null || userRealmInfo.getAdminUser() == null) {
+            return false;
+        }
+
+        String adminUser = userRealmInfo.getAdminUser();
+        UserStoreInfo storeInfo = getUserStoreInfoForUser(adminUser, userRealmInfo);
+        // Fall back to case-sensitive (no over-grant) when the store cannot be resolved.
+        boolean caseSensitive = storeInfo == null || storeInfo.getCaseSensitiveUsername();
+
+        if (adminUser.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            return caseSensitive ? currentUsername.equals(adminUser) : currentUsername.equalsIgnoreCase(adminUser);
+        }
+
+        if (currentUsername.contains(UserCoreConstants.DOMAIN_SEPARATOR)
+                && !UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME
+                .equalsIgnoreCase(UserCoreUtil.extractDomainFromName(currentUsername))) {
+            return false;
+        }
+
+        String bareName = UserCoreUtil.removeDomainFromName(currentUsername);
+        return caseSensitive ? bareName.equals(adminUser) : bareName.equalsIgnoreCase(adminUser);
+    }
+
     private static boolean isUsernameEncryptionEnabled() throws CarbonException, UserStoreException {
         return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
                 .getRealmProperties().get(ENCRYPT_USERNAME_IN_URL));

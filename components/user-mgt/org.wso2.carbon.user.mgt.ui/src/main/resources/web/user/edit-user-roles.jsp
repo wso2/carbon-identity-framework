@@ -461,8 +461,8 @@
                                             if (name != null) {
                                                 String doEdit = "";
                                                 String doCheck = "";
-                                                if (name.getItemName().equals(CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME)||(!currentUser
-                                                        .equals(userRealmInfo.getAdminUser()) && name.getItemName()
+                                                if (name.getItemName().equals(CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME)||(!Util
+                                                        .isRealmAdminUser(currentUser, userRealmInfo) && name.getItemName()
                                                         .equals(userRealmInfo.getAdminRole()))) {
                                                     continue;
                                                 } else if (!name.getEditable()) {

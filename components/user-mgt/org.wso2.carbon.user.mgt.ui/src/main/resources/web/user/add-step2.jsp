@@ -329,7 +329,7 @@
                                                         String doEdit = "";
                                                         if (name.getItemName()
                                                                 .equals(CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME) ||
-                                                                (!currentUser.equals(userRealmInfo.getAdminUser()) && name
+                                                                (!Util.isRealmAdminUser(currentUser, userRealmInfo) && name
                                                                         .getItemName().equals(userRealmInfo.getAdminRole()))) {
                                                             continue;
                                                         } else if (userRealmInfo.getEveryOneRole()

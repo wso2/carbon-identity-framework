@@ -578,7 +578,7 @@
                                     continue;
                                 }
                                 if (userRealmInfo.getAdminRole().equals(data.getItemName()) &&
-                                        !userRealmInfo.getAdminUser().equals(currentUser)) {
+                                        !Util.isRealmAdminUser(currentUser, userRealmInfo)) {
                                     continue;
                                 }
                                 String roleName = data.getItemName();
