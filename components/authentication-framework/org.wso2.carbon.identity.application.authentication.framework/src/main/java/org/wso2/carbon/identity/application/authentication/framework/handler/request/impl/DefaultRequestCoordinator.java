@@ -298,7 +298,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
                 associateTransientRequestData(request, responseWrapper, context);
 
-                if (isCommonAuthEndpoint(request.getRequestURI())) {
+                if (context != null && isCommonAuthEndpoint(request.getRequestURI())) {
                     if (log.isDebugEnabled()) {
                         log.debug("Common Auth Endpoint is found in the request: " + request.getRequestURI());
                     }
