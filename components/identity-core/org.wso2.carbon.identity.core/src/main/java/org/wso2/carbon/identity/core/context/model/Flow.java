@@ -120,12 +120,11 @@ public class Flow {
         // -----------------------------------------------------------------------------------------------
 
         // -------------------------- Consent management flows -------------------------------------------
-        FLOW_DEFINITIONS.put(Name.CONSENT_ACCEPT, EnumSet.of(InitiatingPersona.USER));
-        FLOW_DEFINITIONS.put(Name.CONSENT_REJECT, EnumSet.of(InitiatingPersona.USER));
-        FLOW_DEFINITIONS.put(Name.CONSENT_PENDING, EnumSet.of(InitiatingPersona.ADMIN));
+        FLOW_DEFINITIONS.put(Name.CONSENT_GRANT, EnumSet.of(InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.CONSENT_CREATE, EnumSet.of(InitiatingPersona.ADMIN));
         FLOW_DEFINITIONS.put(Name.CONSENT_REVOKE, EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.USER));
 
-        FLOW_DEFINITIONS.put(Name.CONSENT_PURPOSE_VERSION_ADD, EnumSet.of(InitiatingPersona.ADMIN));
+        FLOW_DEFINITIONS.put(Name.PURPOSE_UPDATE, EnumSet.of(InitiatingPersona.ADMIN));
         // -----------------------------------------------------------------------------------------------
     }
 
@@ -195,11 +194,10 @@ public class Flow {
         // --------------------------------------------------
 
         // ---------Consent management flows-----------------
-        CONSENT_ACCEPT,
-        CONSENT_REJECT,
-        CONSENT_PENDING,
+        CONSENT_CREATE,
+        CONSENT_GRANT,
         CONSENT_REVOKE,
-        CONSENT_PURPOSE_VERSION_ADD
+        PURPOSE_UPDATE
         // --------------------------------------------------
     }
 
