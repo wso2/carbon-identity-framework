@@ -1350,6 +1350,30 @@
                    description="Update the attributes of users shared with organizations"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Connection Sharing API" identifier="/api/server/v1/connections"
+                 requiresAuthorization="true"
+                 description="API representation of the connection share API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Share Connections" name="internal_connection_share"
+                   description="Share connections with organizations"/>
+            <Scope displayName="Unshare Connections" name="internal_connection_unshare"
+                   description="Unshare connections from organizations"/>
+            <Scope displayName="View Shared Connections" name="internal_connection_shared_access_view"
+                   description="View connections shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Connection Sharing API" identifier="/o/api/server/v1/connections"
+                 requiresAuthorization="true"
+                 description="API representation of the connection share API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Share Connections" name="internal_org_connection_share"
+                   description="Share connections with organizations"/>
+            <Scope displayName="Unshare Connections" name="internal_org_connection_unshare"
+                   description="Unshare connections from organizations"/>
+            <Scope displayName="View Shared Connections" name="internal_org_connection_shared_access_view"
+                   description="View connections shared with organizations"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Agent Sharing API" identifier="/api/server/v1/agents"
                  requiresAuthorization="true"
                  description="API representation of the agent share API" type="TENANT">
@@ -1857,6 +1881,19 @@
                    description="Update user sharing status from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Connection Sharing Management Feature" identifier="console:connectionSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Connection Sharing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Connection Sharing Management Feature" name="console:connectionSharing"
+                   description="Manage connection sharing from the Console"/>
+            <Scope displayName="Connection Sharing Management View Feature" name="console:connectionSharing_view"
+                   description="View connection sharing status from the Console"/>
+            <Scope displayName="Connection Sharing Management Edit Feature" name="console:connectionSharing_edit"
+                   description="Update connection sharing status from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
@@ -1881,6 +1918,21 @@
                    description="View the shared status of users within the organization from the Console"/>
             <Scope displayName="User Sharing Management Edit Feature" name="console:org:userSharing_edit"
                    description="Manage edits of user sharing status in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Connection Sharing Management Feature" identifier="console:org:connectionSharing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Connection Sharing Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Connection Sharing Management Feature" name="console:org:connectionSharing"
+                   description="Manage connection sharing in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management View Feature"
+                   name="console:org:connectionSharing_view"
+                   description="View connection sharing status in the organization from the Console"/>
+            <Scope displayName="Connection Sharing Management Edit Feature"
+                   name="console:org:connectionSharing_edit"
+                   description="Manage edits of connection sharing status in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"
