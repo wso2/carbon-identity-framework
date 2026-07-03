@@ -119,6 +119,15 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
 
+        // -------------------------- Role management flows ----------------------------------------------
+        FLOW_DEFINITIONS.put(Name.ROLE_CREATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ROLE_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.ROLE_DELETE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        // -----------------------------------------------------------------------------------------------
+
         // -------------------------- Consent management flows -------------------------------------------
         FLOW_DEFINITIONS.put(Name.CONSENT_ACCEPT, EnumSet.of(InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.CONSENT_REJECT, EnumSet.of(InitiatingPersona.USER));
@@ -192,6 +201,12 @@ public class Flow {
         // ---------User Group management flows--------------
         USER_GROUP_UPDATE,
         GROUP_UPDATE,
+        // --------------------------------------------------
+
+        // ---------Role management flows--------------------
+        ROLE_CREATE,
+        ROLE_UPDATE,
+        ROLE_DELETE,
         // --------------------------------------------------
 
         // ---------Consent management flows-----------------
