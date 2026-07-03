@@ -211,11 +211,13 @@ public class Flow {
     private final Name name;
     private final InitiatingPersona initiatingPersona;
     private CredentialType credentialType;
+    private String anonymousProfileTracker;
 
     private Flow(Builder builder) {
 
         this.name = builder.name;
         this.initiatingPersona = builder.initiatingPersona;
+        this.anonymousProfileTracker = builder.anonymousProfileTracker;
     }
 
     private Flow(CredentialFlowBuilder builder) {
@@ -241,6 +243,18 @@ public class Flow {
     }
 
     /**
+     * Returns the anonymous profile tracker identifier associated with the flow, if any.
+     * This is used to correlate an anonymous, pre-authentication profile (e.g. for external profile linking)
+     * with the user created/updated as a result of this flow.
+     *
+     * @return The anonymous profile tracker identifier, or null if not applicable.
+     */
+    public String getAnonymousProfileTracker() {
+
+        return anonymousProfileTracker;
+    }
+
+    /**
      * Checks if the given flow name corresponds to a credential flow.
      *
      * @param name The name of the flow.
@@ -258,6 +272,7 @@ public class Flow {
 
         private Name name;
         private InitiatingPersona initiatingPersona;
+        private String anonymousProfileTracker;
 
         public Builder name(Name name) {
 
@@ -268,6 +283,12 @@ public class Flow {
         public Builder initiatingPersona(InitiatingPersona initiatingPersona) {
 
             this.initiatingPersona = initiatingPersona;
+            return this;
+        }
+
+        public Builder anonymousProfileTracker(String anonymousProfileTracker) {
+
+            this.anonymousProfileTracker = anonymousProfileTracker;
             return this;
         }
 
