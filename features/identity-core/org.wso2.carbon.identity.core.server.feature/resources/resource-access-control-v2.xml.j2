@@ -136,7 +136,7 @@
         <Resource context="(.*)/oid4vp/v1/response" secured="false" http-method="POST"/>
         <Resource context="(.*)/oid4vp/v1/verifications" secured="false" http-method="POST"/>
         <Resource context="(.*)/oid4vp/v1/verifications(.*)" secured="false" http-method="GET"/>
-        <!-- [Organization] VP Template Management API -->
+        <!-- [Organization] Verifiable Presentation Definition Management API -->
         <Resource context="(.*)/o/api/server/v1/vp/template(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_vp_template_view</Scopes>
         </Resource>
@@ -149,7 +149,7 @@
         <Resource context="(.*)/o/api/server/v1/vp/template(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_vp_template_delete</Scopes>
         </Resource>
-        <!-- VP Template Management API -->
+        <!-- Verifiable Presentation Definition Management API -->
         <Resource context="(.*)/api/server/v1/vp/template(.*)" secured="true" http-method="GET">
             <Scopes>internal_vp_template_view</Scopes>
         </Resource>
@@ -162,14 +162,14 @@
         <Resource context="(.*)/api/server/v1/vp/template(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_vp_template_delete</Scopes>
         </Resource>
-        <!-- VP Verification API -->
+        <!-- Verifiable Presentation Verification API -->
         <Resource context="(.*)/api/server/v1/vp/verification/initiate" secured="true" http-method="POST">
             <Scopes>internal_vp_verification_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/vp/verification/status/(.*)" secured="true" http-method="GET">
             <Scopes>internal_vp_verification_view</Scopes>
         </Resource>
-        <!-- [Organization] VP Verification API -->
+        <!-- [Organization] Verifiable Presentation Verification API -->
         <Resource context="(.*)/o/api/server/v1/vp/verification/initiate" secured="true" http-method="POST">
             <Scopes>internal_org_vp_verification_create</Scopes>
         </Resource>
