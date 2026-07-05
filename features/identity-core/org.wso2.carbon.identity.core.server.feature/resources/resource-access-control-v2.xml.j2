@@ -136,6 +136,12 @@
         <Resource context="(.*)/oid4vp/v1/response" secured="false" http-method="POST"/>
         <Resource context="(.*)/oid4vp/v1/verifications" secured="false" http-method="POST"/>
         <Resource context="(.*)/oid4vp/v1/verifications(.*)" secured="false" http-method="GET"/>
+
+        {% if resource_access_control.login_only_mode.enable is sameas true %}
+            <Resource context="^(?!/api/identity/user/v1.0/introspect-code|/t/.*/o/.*/oauth2/introspect|/oauth2/introspect|/o/api/server/v1/guests/invitation/introspect|/api/identity/entitlement).*" secured="true" http-method="POST, PUT, PATCH">
+                <Scopes>no_access_granted</Scopes>
+            </Resource>
+        {% endif %}
         <!-- [Organization] Verifiable Presentation Definition Management API -->
         <Resource context="(.*)/o/api/server/v1/vp/template(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_vp_template_view</Scopes>
@@ -176,13 +182,6 @@
         <Resource context="(.*)/o/api/server/v1/vp/verification/status/(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_vp_verification_view</Scopes>
         </Resource>
-
-        <!-- 'Login only' mode migration configuration -->
-        {% if resource_access_control.login_only_mode.enable is sameas true %}
-            <Resource context="^(?!/api/identity/user/v1.0/introspect-code|/t/.*/o/.*/oauth2/introspect|/oauth2/introspect|/o/api/server/v1/guests/invitation/introspect|/api/identity/entitlement).*" secured="true" http-method="POST, PUT, PATCH">
-                <Scopes>no_access_granted</Scopes>
-            </Resource>
-        {% endif %}
 
         <!-- [Organization] User Code Management API -->
         <Resource context="(.*)/o/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
