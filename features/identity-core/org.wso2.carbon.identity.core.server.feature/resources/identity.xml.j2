@@ -5425,4 +5425,11 @@
             <MaxExpressionsCombinedWithAnd>{{rules.device_policy.max_expressions_combined_with_and}}</MaxExpressionsCombinedWithAnd>
         </DevicePolicy>
     </Rules>
+
+    {% if openid4vp is defined %}
+    <OpenID4VP>
+        <Enabled>{{openid4vp.enabled}}</Enabled>
+        <RequestAudience>{{openid4vp.request_audience}}</RequestAudience>
+    </OpenID4VP>
+    {% endif %}
 </Server>
