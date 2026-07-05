@@ -3087,4 +3087,10 @@
         <OpenDuration>60000</OpenDuration> <!-- value in milliseconds -->
         <MaxInFlight>20</MaxInFlight>
     </CircuitBreaker>
+
+    <OpenID4VP>
+        <Enabled>false</Enabled>
+        <!-- aud claim for the VP request JWT; per OpenID4VP spec should be "https://self-issued.me/v2" -->
+        <RequestAudience>https://self-issued.me/v2</RequestAudience>
+    </OpenID4VP>
 </Server>

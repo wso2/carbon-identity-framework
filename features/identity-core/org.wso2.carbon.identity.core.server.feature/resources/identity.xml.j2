@@ -5342,4 +5342,11 @@
              Excess calls are rejected with BULKHEAD_FULL before reaching the downstream service. -->
         <MaxInFlight>{{circuit_breaker.max_in_flight}}</MaxInFlight>
     </CircuitBreaker>
+
+    {% if openid4vp is defined %}
+    <OpenID4VP>
+        <Enabled>{{openid4vp.enabled}}</Enabled>
+        <RequestAudience>{{openid4vp.request_audience}}</RequestAudience>
+    </OpenID4VP>
+    {% endif %}
 </Server>

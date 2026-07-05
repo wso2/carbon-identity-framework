@@ -2438,4 +2438,52 @@
                    description="Manage edits of VC templates from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="VP Template Management API" identifier="/api/server/v1/vp/template"
+                 requiresAuthorization="true"
+                 description="API representation of the VP Template Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View VP Templates" name="internal_vp_template_view"
+                   description="View VP Templates"/>
+            <Scope displayName="Create VP Template" name="internal_vp_template_create"
+                   description="Create new VP Template"/>
+            <Scope displayName="Update VP Template" name="internal_vp_template_update"
+                   description="Update VP Template"/>
+            <Scope displayName="Delete VP Template" name="internal_vp_template_delete"
+                   description="Delete VP Template"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="VP Template Management API" identifier="/o/api/server/v1/vp/template"
+                 requiresAuthorization="true"
+                 description="API representation of the VP Template Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View VP Templates" name="internal_org_vp_template_view"
+                   description="View VP Templates"/>
+            <Scope displayName="Create VP Template" name="internal_org_vp_template_create"
+                   description="Create new VP Template"/>
+            <Scope displayName="Update VP Template" name="internal_org_vp_template_update"
+                   description="Update VP Template"/>
+            <Scope displayName="Delete VP Template" name="internal_org_vp_template_delete"
+                   description="Delete VP Template"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="VP Verification API" identifier="/api/server/v1/vp/verification"
+                 requiresAuthorization="true"
+                 description="API for standalone VP (Verifiable Presentation) verification" type="TENANT">
+        <Scopes>
+            <Scope displayName="Initiate VP Verification" name="internal_vp_verification_create"
+                   description="Initiate a new VP verification session"/>
+            <Scope displayName="View VP Verification Status" name="internal_vp_verification_view"
+                   description="Poll the status of a VP verification session"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="VP Verification API" identifier="/o/api/server/v1/vp/verification"
+                 requiresAuthorization="true"
+                 description="API for standalone VP (Verifiable Presentation) verification" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Initiate VP Verification" name="internal_org_vp_verification_create"
+                   description="Initiate a new VP verification session"/>
+            <Scope displayName="View VP Verification Status" name="internal_org_vp_verification_view"
+                   description="Poll the status of a VP verification session"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
