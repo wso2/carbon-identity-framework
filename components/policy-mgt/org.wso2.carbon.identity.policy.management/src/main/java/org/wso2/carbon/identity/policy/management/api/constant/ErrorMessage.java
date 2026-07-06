@@ -49,7 +49,9 @@ public enum ErrorMessage {
     ERROR_WHILE_UPDATING_RULE_FOR_POLICY("PM-65006", "Error while updating Rule for Policy.",
             "Error while updating Rule for Policy: %s in the system."),
     ERROR_WHILE_DELETING_RULE_FOR_POLICY("PM-65007", "Error while deleting Rule for Policy.",
-            "Error while deleting Rule for Policy: %s from the system.");
+            "Error while deleting Rule for Policy: %s from the system."),
+    ERROR_NO_RESOURCE_MANAGER_FOR_TYPE("PM-65008", "No resource manager for type.",
+            "No resource manager registered for resource type: %s.");
 
     private final String code;
     private final String message;

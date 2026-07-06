@@ -30,14 +30,17 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementServerException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
+import org.wso2.carbon.identity.policy.management.internal.manager.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
@@ -57,7 +60,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for PolicyManagementServiceImpl.
- * Covers validation, rule-mgt orchestration, and best-effort saga compensation.
+ * Covers validation, per-type resource manager dispatch, and best-effort saga compensation.
  */
 @WithCarbonHome
 @WithRealmService
@@ -79,6 +82,24 @@ public class PolicyManagementServiceImplTest {
     private AutoCloseable mocks;
     // Reflection fields removed; tests now construct the service with a mock DAO.
 
+    /**
+     * Minimal non-rule stand-in used to exercise dispatch for a resource type with no registered
+     * manager, without introducing a production ActionPolicyResource class.
+     */
+    private static class TestActionPolicyResource extends PolicyResource {
+
+        TestActionPolicyResource(String id, String target, String resourceId) {
+
+            super(id, target, resourceId);
+        }
+
+        @Override
+        public ResourceType getResourceType() {
+
+            return ResourceType.ACTION;
+        }
+    }
+
     @BeforeClass
     public void setUp() throws Exception {
 
@@ -86,6 +107,7 @@ public class PolicyManagementServiceImplTest {
         policyManagementService = new PolicyManagementServiceImpl(policyManagementDAO);
 
         PolicyMgtComponentServiceHolder.getInstance().setRuleManagementService(ruleManagementService);
+        PolicyMgtComponentServiceHolder.getInstance().addResourceManager(new RuleResourceManager());
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
@@ -157,6 +179,26 @@ public class PolicyManagementServiceImplTest {
     }
 
     @Test
+    public void testGetPolicyById_HydratesRuleResource() throws PolicyManagementException, RuleManagementException {
+
+        String ruleId = UUID.randomUUID().toString();
+        Rule hydratedRule = mock(Rule.class);
+        Policy existingPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
+                Collections.singletonList(new RulePolicyResource(null, "ios", ruleId, null)));
+
+        when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
+        when(ruleManagementService.getRuleByRuleId(ruleId, TENANT_DOMAIN)).thenReturn(hydratedRule);
+
+        Policy result = policyManagementService.getPolicyById(TEST_POLICY_ID, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.getResources().size(), 1);
+        PolicyResource resource = result.getResources().get(0);
+        Assert.assertTrue(resource instanceof RulePolicyResource);
+        Assert.assertEquals(((RulePolicyResource) resource).getRule(), hydratedRule);
+        Assert.assertEquals(resource.getResourceId(), ruleId);
+    }
+
+    @Test
     public void testUpdatePolicy() throws PolicyManagementException {
 
         Policy existingPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
@@ -208,7 +250,7 @@ public class PolicyManagementServiceImplTest {
         verify(policyManagementDAO, org.mockito.Mockito.never()).deletePolicy(any(), eq(TENANT_ID));
     }
 
-    // --- Rule orchestration and saga compensation tests ---
+    // --- Resource manager dispatch and saga compensation tests ---
 
     @Test
     public void testAddPolicyWithRuleResource_CreatesRuleAndPersistsWithResourceId()
@@ -218,7 +260,7 @@ public class PolicyManagementServiceImplTest {
         when(created.getId()).thenReturn("rule-1");
         when(ruleManagementService.addRule(any(Rule.class), eq(TENANT_DOMAIN))).thenReturn(created);
 
-        PolicyResource ruleRes = new PolicyResource(null, "ios", ResourceType.RULE, null, mock(Rule.class));
+        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
         Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(ruleRes));
         Policy savedPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
@@ -237,25 +279,20 @@ public class PolicyManagementServiceImplTest {
     }
 
     @Test
-    public void testAddPolicyWithActionResource_PassesThrough()
-            throws PolicyManagementException, RuleManagementException {
+    public void testAddPolicyWithUnsupportedResourceType_Throws() {
 
-        PolicyResource action = new PolicyResource(null, "ios", ResourceType.ACTION, "action-1", null);
+        PolicyResource action = new TestActionPolicyResource(null, "ios", "action-1");
         Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(action));
-        Policy savedPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(action));
-        when(policyManagementDAO.addPolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(savedPolicy);
 
-        policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
-
-        // ACTION resources are not created through rule-mgt; they pass through unchanged.
-        verify(ruleManagementService, never()).addRule(any(Rule.class), eq(TENANT_DOMAIN));
-        ArgumentCaptor<Policy> captor = ArgumentCaptor.forClass(Policy.class);
-        verify(policyManagementDAO).addPolicy(captor.capture(), eq(TENANT_ID));
-        PolicyResource persisted = captor.getValue().getResources().get(0);
-        Assert.assertEquals(persisted.getResourceType(), ResourceType.ACTION);
-        Assert.assertEquals(persisted.getResourceId(), "action-1");
+        try {
+            policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
+            Assert.fail("Expected PolicyManagementException");
+        } catch (PolicyManagementException e) {
+            Assert.assertTrue(e instanceof PolicyManagementServerException);
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_NO_RESOURCE_MANAGER_FOR_TYPE.getCode());
+            Assert.assertTrue(e.getDescription().contains("ACTION"));
+        }
     }
 
     @Test
@@ -268,8 +305,8 @@ public class PolicyManagementServiceImplTest {
                 .thenReturn(created)
                 .thenThrow(RuleManagementException.class);
 
-        PolicyResource r1 = new PolicyResource(null, "ios", ResourceType.RULE, null, mock(Rule.class));
-        PolicyResource r2 = new PolicyResource(null, "android", ResourceType.RULE, null, mock(Rule.class));
+        PolicyResource r1 = new RulePolicyResource(null, "ios", null, mock(Rule.class));
+        PolicyResource r2 = new RulePolicyResource(null, "android", null, mock(Rule.class));
         Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN, Arrays.asList(r1, r2));
 
         try {
@@ -294,7 +331,7 @@ public class PolicyManagementServiceImplTest {
         when(policyManagementDAO.addPolicy(any(Policy.class), eq(TENANT_ID)))
                 .thenThrow(PolicyManagementServerException.class);
 
-        PolicyResource ruleRes = new PolicyResource(null, "ios", ResourceType.RULE, null, mock(Rule.class));
+        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
         Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(ruleRes));
 
@@ -315,14 +352,14 @@ public class PolicyManagementServiceImplTest {
 
         Policy existing = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(
-                        new PolicyResource(null, "ios", ResourceType.RULE, "old-rule", null)));
+                        new RulePolicyResource(null, "ios", "old-rule", null)));
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existing);
 
         Rule created = mock(Rule.class);
         when(created.getId()).thenReturn("new-rule");
         when(ruleManagementService.addRule(any(Rule.class), eq(TENANT_DOMAIN))).thenReturn(created);
 
-        PolicyResource ruleRes = new PolicyResource(null, "ios", ResourceType.RULE, null, mock(Rule.class));
+        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
         Policy update = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(ruleRes));
         when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(update);
@@ -340,7 +377,7 @@ public class PolicyManagementServiceImplTest {
 
         Policy existing = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(
-                        new PolicyResource(null, "ios", ResourceType.RULE, "old-rule", null)));
+                        new RulePolicyResource(null, "ios", "old-rule", null)));
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existing);
 
         Rule created = mock(Rule.class);
@@ -349,7 +386,7 @@ public class PolicyManagementServiceImplTest {
         when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID)))
                 .thenThrow(PolicyManagementServerException.class);
 
-        PolicyResource ruleRes = new PolicyResource(null, "ios", ResourceType.RULE, null, mock(Rule.class));
+        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
         Policy update = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(ruleRes));
 
@@ -371,7 +408,7 @@ public class PolicyManagementServiceImplTest {
 
         Policy existing = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(
-                        new PolicyResource(null, "ios", ResourceType.RULE, "rule-1", null)));
+                        new RulePolicyResource(null, "ios", "rule-1", null)));
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existing);
 
         policyManagementService.deletePolicy(TEST_POLICY_ID, TENANT_DOMAIN);

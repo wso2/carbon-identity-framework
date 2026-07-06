@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import java.util.List;
 
 /**
- * Service interface for managing device compliance policies.
+ * Service interface for managing policies.
  */
 public interface PolicyManagementService {
 

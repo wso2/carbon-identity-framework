@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Device compliance policy.
+ * Represents a policy.
  */
 public class Policy {
 

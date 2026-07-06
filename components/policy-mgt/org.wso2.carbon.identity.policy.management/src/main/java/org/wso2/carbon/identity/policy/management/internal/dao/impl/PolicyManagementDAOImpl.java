@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.api.util.PolicyManagementExceptionHandler;
 import org.wso2.carbon.identity.policy.management.internal.constant.PolicyMgtSQLConstants;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
@@ -386,15 +387,27 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
 
         List<PolicyResource> resources = template.executeQuery(
                 PolicyMgtSQLConstants.Query.GET_POLICY_RESOURCES,
-                (resultSet, rowNumber) -> new PolicyResource(
+                (resultSet, rowNumber) -> mapPolicyResource(
                         resultSet.getString(PolicyMgtSQLConstants.Column.ID),
                         resultSet.getString(PolicyMgtSQLConstants.Column.TARGET),
-                        ResourceType.valueOf(resultSet.getString(PolicyMgtSQLConstants.Column.RESOURCE_TYPE)),
-                        resultSet.getString(PolicyMgtSQLConstants.Column.RESOURCE_ID),
-                        null),
+                        resultSet.getString(PolicyMgtSQLConstants.Column.RESOURCE_TYPE),
+                        resultSet.getString(PolicyMgtSQLConstants.Column.RESOURCE_ID)),
                 preparedStatement -> preparedStatement.setString(
                         PolicyMgtSQLConstants.Column.POLICY_ID, policyId));
         return resources != null ? resources : Collections.emptyList();
+    }
+
+    // Single extension point: add a case here (and a matching subclass of PolicyResource) for each new resource type.
+    private PolicyResource mapPolicyResource(String id, String target, String resourceType, String resourceId)
+            throws SQLException {
+
+        ResourceType type = ResourceType.valueOf(resourceType);
+        switch (type) {
+            case RULE:
+                return new RulePolicyResource(id, target, resourceId, null);
+            default:
+                throw new SQLException("Unsupported policy resource type: " + type);
+        }
     }
 
 }

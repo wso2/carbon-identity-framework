@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Cache-backed Policy Management DAO.
  * Wraps a PolicyManagementDAO with an in-process cache to reduce DB hits on the hot path.
- * Hot path: getPolicyByName (called on every device evaluation) is served from cache after first read.
+ * Hot path: getPolicyByName (called on every policy evaluation) is served from cache after first read.
  * Cache is keyed by policy name only and is precisely invalidated on update and delete.
  */
 public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {

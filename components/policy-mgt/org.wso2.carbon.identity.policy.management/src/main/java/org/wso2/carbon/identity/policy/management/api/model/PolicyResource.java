@@ -18,28 +18,23 @@
 
 package org.wso2.carbon.identity.policy.management.api.model;
 
-import org.wso2.carbon.identity.rule.management.api.model.Rule;
-
 /**
  * Association between a Policy and a resource (a Rule or an Action) for a specific target.
- * The target is a selector value (e.g. a device platform); one target may have at most one
- * resource of each {@link ResourceType} per policy.
+ * The target is a selector value (e.g. a platform or category); one target may have at most one
+ * resource of each {@link ResourceType} per policy. Concrete subclasses own the type-specific
+ * payload for their {@link ResourceType}, e.g. {@link RulePolicyResource}.
  */
-public class PolicyResource {
+public abstract class PolicyResource {
 
     private final String id;
     private final String target;
-    private final ResourceType resourceType;
     private final String resourceId;
-    private final Rule rule;
 
-    public PolicyResource(String id, String target, ResourceType resourceType, String resourceId, Rule rule) {
+    protected PolicyResource(String id, String target, String resourceId) {
 
         this.id = id;
         this.target = target;
-        this.resourceType = resourceType;
         this.resourceId = resourceId;
-        this.rule = rule;
     }
 
     public String getId() {
@@ -52,24 +47,15 @@ public class PolicyResource {
         return target;
     }
 
-    public ResourceType getResourceType() {
-
-        return resourceType;
-    }
-
     public String getResourceId() {
 
         return resourceId;
     }
 
     /**
-     * Returns the hydrated rule. Non-null only when {@link #getResourceType()} is {@link ResourceType#RULE}
-     * and the resource has been hydrated by the service layer.
+     * Returns the resource type this policy resource represents.
      *
-     * @return Hydrated rule, or {@code null}.
+     * @return The resource type.
      */
-    public Rule getRule() {
-
-        return rule;
-    }
+    public abstract ResourceType getResourceType();
 }

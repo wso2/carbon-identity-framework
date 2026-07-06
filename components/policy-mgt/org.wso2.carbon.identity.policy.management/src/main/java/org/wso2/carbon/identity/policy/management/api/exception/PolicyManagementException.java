@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.policy.management.api.exception;
 
 /**
- * Base exception for Device Policy Management.
+ * Base exception for Policy Management.
  */
 public class PolicyManagementException extends Exception {
 

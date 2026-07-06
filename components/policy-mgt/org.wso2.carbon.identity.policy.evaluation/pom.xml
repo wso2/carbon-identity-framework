@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -17,11 +17,7 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>policy-mgt</artifactId>
@@ -30,54 +26,21 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
+    <artifactId>org.wso2.carbon.identity.policy.evaluation</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Policy Management Component</name>
-    <description>Generic policy management backend component</description>
+    <name>WSO2 Carbon - Policy Evaluation Component</name>
+    <description>Generic policy evaluation backend component</description>
     <url>http://wso2.org</url>
 
     <dependencies>
-
-        <!-- OSGi -->
-        <dependency>
-            <groupId>org.eclipse.platform</groupId>
-            <artifactId>org.eclipse.osgi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.platform</groupId>
-            <artifactId>org.eclipse.osgi.services</artifactId>
-        </dependency>
-
-        <!-- Database utils - NamedJdbcTemplate, TransactionException -->
-        <dependency>
-            <groupId>org.wso2.carbon.utils</groupId>
-            <artifactId>org.wso2.carbon.database.utils</artifactId>
-        </dependency>
-
-        <!-- Identity core - IdentityDatabaseUtil, IdentityTenantUtil -->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.core</artifactId>
+            <artifactId>org.wso2.carbon.identity.policy.management</artifactId>
         </dependency>
-
-        <!-- Commons logging - Log, LogFactory -->
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-        </dependency>
-
-        <!-- Commons lang - ArrayUtils used by PolicyManagementExceptionHandler -->
-        <dependency>
-            <groupId>commons-lang.wso2</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-
-        <!-- Rule management - RuleManagementService, Rule -->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
+            <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
         </dependency>
-
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -90,16 +53,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-testng</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.testutil</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -115,38 +72,29 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.policy.management.internal.*
+                            org.wso2.carbon.identity.policy.evaluation.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.policy.management.internal.*,
-                            org.wso2.carbon.identity.policy.management.api.*;
+                            !org.wso2.carbon.identity.policy.evaluation.internal.*,
+                            org.wso2.carbon.identity.policy.evaluation.api.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
-                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.osgi.service.component.annotations;
-                            version="${osgi.service.component.imp.pkg.version.range}",
-                            org.wso2.carbon.database.utils.jdbc;
-                            version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.database.utils.jdbc.exceptions;
-                            version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.core.util;
+                            org.wso2.carbon.identity.policy.management.api.service;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.api.exception;
+                            org.wso2.carbon.identity.policy.management.api.model;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.api.model;
+                            org.wso2.carbon.identity.policy.management.api.exception;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.api.service;
+                            org.wso2.carbon.identity.rule.evaluation.api.service;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.api.util;
+                            org.wso2.carbon.identity.rule.evaluation.api.model;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.utils;
-                            version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.identity.core.cache;
-                            version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.rule.evaluation.api.exception;
+                            version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -173,5 +121,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

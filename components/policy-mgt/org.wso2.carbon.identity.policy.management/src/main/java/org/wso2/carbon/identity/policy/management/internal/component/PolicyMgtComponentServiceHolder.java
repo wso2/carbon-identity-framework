@@ -18,9 +18,13 @@
 
 package org.wso2.carbon.identity.policy.management.internal.component;
 
+import org.wso2.carbon.identity.policy.management.api.manager.PolicyResourceManager;
+import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
-import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Service holder for the policy management component.
@@ -31,8 +35,8 @@ public class PolicyMgtComponentServiceHolder {
     private static final PolicyMgtComponentServiceHolder INSTANCE = new PolicyMgtComponentServiceHolder();
 
     private RuleManagementService ruleManagementService;
-    private RuleEvaluationService ruleEvaluationService;
     private PolicyManagementService policyManagementService;
+    private final Map<ResourceType, PolicyResourceManager> resourceManagers = new EnumMap<>(ResourceType.class);
 
     private PolicyMgtComponentServiceHolder() {
 
@@ -58,16 +62,6 @@ public class PolicyMgtComponentServiceHolder {
         this.ruleManagementService = ruleManagementService;
     }
 
-    public RuleEvaluationService getRuleEvaluationService() {
-
-        return ruleEvaluationService;
-    }
-
-    public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
-
-        this.ruleEvaluationService = ruleEvaluationService;
-    }
-
     public PolicyManagementService getPolicyManagementService() {
 
         return policyManagementService;
@@ -76,5 +70,36 @@ public class PolicyMgtComponentServiceHolder {
     public void setPolicyManagementService(PolicyManagementService policyManagementService) {
 
         this.policyManagementService = policyManagementService;
+    }
+
+    /**
+     * Registers a policy resource manager, keyed by the resource type it supports.
+     *
+     * @param resourceManager Manager to register.
+     */
+    public void addResourceManager(PolicyResourceManager resourceManager) {
+
+        resourceManagers.put(resourceManager.getSupportedResourceType(), resourceManager);
+    }
+
+    /**
+     * Unregisters a policy resource manager.
+     *
+     * @param resourceManager Manager to unregister.
+     */
+    public void removeResourceManager(PolicyResourceManager resourceManager) {
+
+        resourceManagers.remove(resourceManager.getSupportedResourceType());
+    }
+
+    /**
+     * Returns the manager registered for the given resource type.
+     *
+     * @param resourceType Resource type.
+     * @return Manager for the resource type, or {@code null} if none is registered.
+     */
+    public PolicyResourceManager getResourceManager(ResourceType resourceType) {
+
+        return resourceManagers.get(resourceType);
     }
 }

@@ -40,6 +40,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.policy.management</module>
+        <module>org.wso2.carbon.identity.policy.evaluation</module>
     </modules>
 
 </project>

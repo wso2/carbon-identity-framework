@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManagementDAOImpl;
 
 import java.util.Arrays;
@@ -77,7 +78,7 @@ public class PolicyManagementDAOImplTest {
     public void testAddPolicy() throws PolicyManagementException {
 
         List<PolicyResource> resources = Collections.singletonList(
-                new PolicyResource(null, "android", ResourceType.RULE, TEST_RULE_ID, null));
+                new RulePolicyResource(null, "android", TEST_RULE_ID, null));
 
         Policy policy = new Policy(
                 UUID.randomUUID().toString(),
@@ -114,7 +115,7 @@ public class PolicyManagementDAOImplTest {
         String updatedRuleId = UUID.randomUUID().toString();
 
         List<PolicyResource> updatedResources = Collections.singletonList(
-                new PolicyResource(null, "ios", ResourceType.RULE, updatedRuleId, null));
+                new RulePolicyResource(null, "ios", updatedRuleId, null));
 
         Policy updatedPolicy = new Policy(createdPolicyId, updatedName, TENANT_DOMAIN, updatedResources);
 
@@ -199,7 +200,7 @@ public class PolicyManagementDAOImplTest {
 
         String ruleId = UUID.randomUUID().toString();
         Policy policy = new Policy(UUID.randomUUID().toString(), "ResourceRoundTrip", TENANT_DOMAIN,
-                Collections.singletonList(new PolicyResource(null, "ios", ResourceType.RULE, ruleId, null)));
+                Collections.singletonList(new RulePolicyResource(null, "ios", ruleId, null)));
         String id = policyManagementDAO.addPolicy(policy, TENANT_ID).getId();
 
         Policy fetched = policyManagementDAO.getPolicyById(id, TENANT_ID);
@@ -216,8 +217,8 @@ public class PolicyManagementDAOImplTest {
         // Two RULE resources for the same target violate UNIQUE (POLICY_ID, TARGET, RESOURCE_TYPE).
         Policy policy = new Policy(UUID.randomUUID().toString(), "DuplicateTargetPolicy", TENANT_DOMAIN,
                 Arrays.asList(
-                        new PolicyResource(null, "ios", ResourceType.RULE, UUID.randomUUID().toString(), null),
-                        new PolicyResource(null, "ios", ResourceType.RULE, UUID.randomUUID().toString(), null)));
+                        new RulePolicyResource(null, "ios", UUID.randomUUID().toString(), null),
+                        new RulePolicyResource(null, "ios", UUID.randomUUID().toString(), null)));
 
         policyManagementDAO.addPolicy(policy, TENANT_ID);
     }

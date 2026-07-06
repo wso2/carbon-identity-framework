@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.policy.management.api.manager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
@@ -34,9 +35,6 @@ import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtCo
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.CacheBackedPolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManagementDAOImpl;
-import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
-import org.wso2.carbon.identity.rule.management.api.model.Rule;
-import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,7 +45,8 @@ import java.util.UUID;
 
 /**
  * Implementation of Policy Management Service.
- * Orchestrates rule-mgt service calls and best-effort saga compensation around the DAO layer.
+ * Dispatches per-resource create/hydrate/delete to the {@link PolicyResourceManager} registered for
+ * each resource's type, and orchestrates best-effort saga compensation around the DAO layer.
  */
 public class PolicyManagementServiceImpl implements PolicyManagementService {
 
@@ -89,31 +88,18 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                 tenantDomain,
                 policy.getResources());
 
-        RuleManagementService ruleManagementService =
-                PolicyMgtComponentServiceHolder.getInstance().getRuleManagementService();
-        List<String> createdRuleIds = new ArrayList<>();
+        List<PolicyResource> createdResources = new ArrayList<>();
         List<PolicyResource> resourcesWithIds = new ArrayList<>();
 
         try {
             for (PolicyResource pr : policyWithId.getResources()) {
-                if (pr.getResourceType() != ResourceType.RULE) {
-                    // ACTION (and future types): resourceId already references an existing resource.
-                    resourcesWithIds.add(pr);
-                    continue;
-                }
-                Rule createdRule = ruleManagementService.addRule(pr.getRule(), tenantDomain);
-                createdRuleIds.add(createdRule.getId());
-                resourcesWithIds.add(new PolicyResource(
-                        pr.getId(), pr.getTarget(), ResourceType.RULE, createdRule.getId(), null));
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Rule added for policy target '" + pr.getTarget()
-                            + "' with ruleId: " + createdRule.getId());
-                }
+                PolicyResource stored = getResourceManager(pr.getResourceType()).create(pr, tenantDomain);
+                createdResources.add(stored);
+                resourcesWithIds.add(stored);
             }
-        } catch (RuleManagementException e) {
-            compensateCreatedRules(createdRuleIds, tenantDomain, ruleManagementService);
-            throw PolicyManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_ADDING_RULE_FOR_POLICY, e, policyWithId.getName());
+        } catch (PolicyManagementException e) {
+            deleteResources(createdResources, tenantDomain);
+            throw e;
         }
 
         Policy policyWithResourceIds = new Policy(
@@ -122,7 +108,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         try {
             return policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);
         } catch (PolicyManagementException e) {
-            compensateCreatedRules(createdRuleIds, tenantDomain, ruleManagementService);
+            deleteResources(createdResources, tenantDomain);
             throw e;
         }
     }
@@ -143,30 +129,21 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
         validateUniquePolicyName(policy.getName(), policy.getId(), tenantId);
 
-        RuleManagementService ruleManagementService =
-                PolicyMgtComponentServiceHolder.getInstance().getRuleManagementService();
-
-        // Create the new rules first so the old rules remain intact until the DB commit succeeds. The old rules
-        // are only deleted after the policy is durably updated, keeping the operation recoverable on any failure.
-        List<String> createdRuleIds = new ArrayList<>();
+        // Create the new resources first so the old ones remain intact until the DB commit succeeds. The old
+        // resources are only deleted after the policy is durably updated, keeping the operation recoverable on
+        // any failure.
+        List<PolicyResource> createdResources = new ArrayList<>();
         List<PolicyResource> resourcesWithIds = new ArrayList<>();
 
         try {
             for (PolicyResource pr : policy.getResources()) {
-                if (pr.getResourceType() != ResourceType.RULE) {
-                    // ACTION (and future types): resourceId already references an existing resource.
-                    resourcesWithIds.add(pr);
-                    continue;
-                }
-                Rule createdRule = ruleManagementService.addRule(pr.getRule(), tenantDomain);
-                createdRuleIds.add(createdRule.getId());
-                resourcesWithIds.add(new PolicyResource(
-                        pr.getId(), pr.getTarget(), ResourceType.RULE, createdRule.getId(), null));
+                PolicyResource stored = getResourceManager(pr.getResourceType()).create(pr, tenantDomain);
+                createdResources.add(stored);
+                resourcesWithIds.add(stored);
             }
-        } catch (RuleManagementException e) {
-            compensateCreatedRules(createdRuleIds, tenantDomain, ruleManagementService);
-            throw PolicyManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_UPDATING_RULE_FOR_POLICY, e, policy.getId());
+        } catch (PolicyManagementException e) {
+            deleteResources(createdResources, tenantDomain);
+            throw e;
         }
 
         Policy policyWithResourceIds = new Policy(
@@ -176,13 +153,12 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         try {
             updatedPolicy = policyManagementDAO.updatePolicy(policyWithResourceIds, tenantId);
         } catch (PolicyManagementException e) {
-            compensateCreatedRules(createdRuleIds, tenantDomain, ruleManagementService);
+            deleteResources(createdResources, tenantDomain);
             throw e;
         }
 
-        // DB commit succeeded; the old rules are now safe to remove (best-effort).
-        deleteRulesFromRuleManagementService(existingPolicy.getResources(), tenantDomain, ruleManagementService,
-                policy.getId());
+        // DB commit succeeded; the old resources are now safe to remove (best-effort).
+        deleteResources(existingPolicy.getResources(), tenantDomain);
 
         return updatedPolicy;
     }
@@ -195,15 +171,12 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     policyId, tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        RuleManagementService ruleManagementService =
-                PolicyMgtComponentServiceHolder.getInstance().getRuleManagementService();
         Policy existingPolicy = policyManagementDAO.getPolicyById(policyId, tenantId);
         if (existingPolicy == null) {
             return;
         }
         policyManagementDAO.deletePolicy(policyId, tenantId);
-        deleteRulesFromRuleManagementService(existingPolicy.getResources(), tenantDomain, ruleManagementService,
-                policyId);
+        deleteResources(existingPolicy.getResources(), tenantDomain);
     }
 
     @Override
@@ -261,57 +234,39 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         return policyManagementDAO.getPolicyCount(IdentityTenantUtil.getTenantId(tenantDomain), filter);
     }
 
-    // Only RULE resources are hydrated; actions are referenced by id and need no hydration here.
     private Policy hydrateResources(Policy policy, String tenantDomain) throws PolicyManagementException {
 
         List<PolicyResource> hydratedResources = new ArrayList<>();
         for (PolicyResource pr : policy.getResources()) {
-            if (pr.getResourceType() != ResourceType.RULE) {
-                hydratedResources.add(pr);
-                continue;
-            }
-            try {
-                Rule rule = PolicyMgtComponentServiceHolder.getInstance()
-                        .getRuleManagementService()
-                        .getRuleByRuleId(pr.getResourceId(), tenantDomain);
-                hydratedResources.add(new PolicyResource(
-                        pr.getId(), pr.getTarget(), ResourceType.RULE, pr.getResourceId(), rule));
-            } catch (RuleManagementException e) {
-                throw PolicyManagementExceptionHandler.handleServerException(
-                        ErrorMessage.ERROR_WHILE_RETRIEVING_POLICY, e);
-            }
+            hydratedResources.add(getResourceManager(pr.getResourceType()).hydrate(pr, tenantDomain));
         }
         return new Policy(policy.getId(), policy.getName(), policy.getTenantDomain(), hydratedResources);
     }
 
-    private void deleteRulesFromRuleManagementService(List<PolicyResource> resources, String tenantDomain,
-                                                      RuleManagementService ruleManagementService,
-                                                      String policyId) {
+    // Best-effort: used both for saga compensation (rolling back resources created before a later failure)
+    // and for routine cleanup of resources superseded by an update or removed by a delete.
+    private void deleteResources(List<PolicyResource> resources, String tenantDomain) {
 
-        for (PolicyResource pr : resources) {
-            if (pr.getResourceType() != ResourceType.RULE) {
-                continue;
-            }
+        for (PolicyResource resource : resources) {
             try {
-                ruleManagementService.deleteRule(pr.getResourceId(), tenantDomain);
-            } catch (RuleManagementException e) {
-                LOG.error("Failed to delete rule " + pr.getResourceId()
-                        + " from rule-mgt for policy " + policyId + ". Rule may be orphaned.", e);
+                getResourceManager(resource.getResourceType()).delete(resource, tenantDomain);
+            } catch (PolicyManagementException e) {
+                LOG.error("No resource manager for type " + resource.getResourceType()
+                        + " while deleting policy resource " + resource.getResourceId()
+                        + ". Resource may be orphaned.", e);
             }
         }
     }
 
-    private void compensateCreatedRules(List<String> ruleIds, String tenantDomain,
-                                        RuleManagementService ruleManagementService) {
+    private PolicyResourceManager getResourceManager(ResourceType resourceType) throws PolicyManagementException {
 
-        for (String ruleId : ruleIds) {
-            try {
-                ruleManagementService.deleteRule(ruleId, tenantDomain);
-            } catch (RuleManagementException ex) {
-                LOG.error("Saga compensation failed: could not delete rule " + ruleId
-                        + " from rule-mgt after policy persistence failure.", ex);
-            }
+        PolicyResourceManager manager = PolicyMgtComponentServiceHolder.getInstance()
+                .getResourceManager(resourceType);
+        if (manager == null) {
+            throw PolicyManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_NO_RESOURCE_MANAGER_FOR_TYPE, String.valueOf(resourceType));
         }
+        return manager;
     }
 
     private void validatePolicyFields(Policy policy) throws PolicyManagementClientException {

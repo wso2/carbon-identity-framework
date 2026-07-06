@@ -16,21 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.policy.management.api.exception;
+package org.wso2.carbon.identity.policy.evaluation.api.exception;
 
 /**
- * Client exception for Policy Management.
+ * Policy evaluation exception.
+ * This exception is thrown when an error occurs while evaluating a policy.
  */
-public class PolicyManagementClientException extends PolicyManagementException {
+public class PolicyEvaluationException extends Exception {
 
-    public PolicyManagementClientException(String message, String description, String errorCode) {
+    public PolicyEvaluationException(String message) {
 
-        super(message, description, errorCode);
+        super(message);
     }
 
-    public PolicyManagementClientException(String message, String description, String errorCode,
-                                           Throwable cause) {
+    public PolicyEvaluationException(String message, Throwable cause) {
 
-        super(message, description, errorCode, cause);
+        super(message, cause);
     }
 }
