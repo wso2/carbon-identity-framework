@@ -4517,6 +4517,10 @@
         <AsyncSequenceExecutorPoolSize>{{authentication.adaptive.async_executer_pool_size}}</AsyncSequenceExecutorPoolSize>
         <MaxTotalConnections>{{authentication.adaptive.http_connections.max}}</MaxTotalConnections>
         <MaxTotalConnectionsPerRoute>{{authentication.adaptive.http_connections.max_per_route}}</MaxTotalConnectionsPerRoute>
+        <HTTPFunctions>
+            <MaxConnections>{{authentication.adaptive.http_functions.max_connections}}</MaxConnections>
+            <MaxConnectionsPerRoute>{{authentication.adaptive.http_functions.max_connections_per_route}}</MaxConnectionsPerRoute>
+        </HTTPFunctions>
 
         <!--Timeouts in milliseconds-->
         <!--Default configs for timeouts-->
