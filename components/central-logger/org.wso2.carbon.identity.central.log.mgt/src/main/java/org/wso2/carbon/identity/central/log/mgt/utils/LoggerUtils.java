@@ -332,7 +332,7 @@ public class LoggerUtils {
      */
     public static String getSanitizedErrorMessage(String errorMessage, String userName) {
 
-        if (LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
+        if (LoggerUtils.isLogMaskingEnable && userName != null && errorMessage.contains(userName)) {
             return errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
         }
         return errorMessage;
