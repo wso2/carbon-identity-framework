@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.policy.evaluation.api.model;
 
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Outcome of evaluating a single policy resource.
  */
@@ -28,9 +31,10 @@ public class ResourceEvaluationOutcome {
     private final String resourceId;
     private final ResourceType resourceType;
     private final boolean satisfied;
+    private final List<String> failedFields;
 
     /**
-     * Creates a resource evaluation outcome.
+     * Creates a resource evaluation outcome with no field-level detail.
      *
      * @param resourceId   ID of the underlying resource that was evaluated (e.g. a rule ID).
      * @param resourceType Type of the resource that was evaluated.
@@ -38,9 +42,26 @@ public class ResourceEvaluationOutcome {
      */
     public ResourceEvaluationOutcome(String resourceId, ResourceType resourceType, boolean satisfied) {
 
+        this(resourceId, resourceType, satisfied, Collections.emptyList());
+    }
+
+    /**
+     * Creates a resource evaluation outcome.
+     *
+     * @param resourceId   ID of the underlying resource that was evaluated (e.g. a rule ID).
+     * @param resourceType Type of the resource that was evaluated.
+     * @param satisfied    Whether the resource's evaluation was satisfied.
+     * @param failedFields Fields that caused the evaluation to fail, or empty if satisfied or not applicable.
+     */
+    public ResourceEvaluationOutcome(String resourceId, ResourceType resourceType, boolean satisfied,
+                                      List<String> failedFields) {
+
         this.resourceId = resourceId;
         this.resourceType = resourceType;
         this.satisfied = satisfied;
+        this.failedFields = failedFields == null
+                ? Collections.emptyList()
+                : Collections.unmodifiableList(failedFields);
     }
 
     public String getResourceId() {
@@ -56,5 +77,10 @@ public class ResourceEvaluationOutcome {
     public boolean isSatisfied() {
 
         return satisfied;
+    }
+
+    public List<String> getFailedFields() {
+
+        return failedFields;
     }
 }

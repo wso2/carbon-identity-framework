@@ -55,7 +55,7 @@ public class RuleResourceEvaluator implements PolicyResourceEvaluator {
                     .getRuleEvaluationService()
                     .evaluate(ruleResource.getRule().getId(), flowContext, tenantDomain);
             return new ResourceEvaluationOutcome(ruleResource.getResourceId(), ResourceType.RULE,
-                    result.isRuleSatisfied());
+                    result.isRuleSatisfied(), result.getFailedFields());
         } catch (RuleEvaluationException e) {
             throw new PolicyEvaluationException(
                     "Error evaluating rule resource '" + ruleResource.getResourceId() + "'.", e);
