@@ -476,12 +476,24 @@
             <Scopes>internal_org_consent_mgt_purpose_update</Scopes>
         </Resource>
 
-        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST"/>
-        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET"/>
-        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET"/>
-        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
-        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
-        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
+        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST">
+            <Scopes>internal_org_consent_mgt_consent_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET">
+            <Scopes>internal_org_consent_mgt_consent_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET">
+            <Scopes>internal_org_consent_mgt_consent_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="PATCH">
+            <Scopes>internal_org_consent_mgt_consent_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST">
+            <Scopes>internal_org_consent_mgt_consent_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET">
+            <Scopes>internal_org_consent_mgt_consent_view</Scopes>
+        </Resource>
 
         <!-- Consent Management V2 API -->
         <Resource context="(.*)/api/identity/consent-mgt/v2.0/elements" secured="true" http-method="POST">
@@ -526,12 +538,24 @@
             <Scopes>internal_consent_mgt_purpose_update</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/authorize" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="POST">
+            <Scopes>internal_consent_mgt_consent_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents" secured="true" http-method="GET">
+            <Scopes>internal_consent_mgt_consent_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="GET">
+            <Scopes>internal_consent_mgt_consent_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)$" secured="true" http-method="PATCH">
+            <Scopes>internal_consent_mgt_consent_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/revoke" secured="true" http-method="POST">
+            <Scopes>internal_consent_mgt_consent_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v2.0/consents/(.+)/validate" secured="true" http-method="GET">
+            <Scopes>internal_consent_mgt_consent_view</Scopes>
+        </Resource>
 
         <!-- [Organization] Consent Purpose Application Mapping API -->
         <Resource context="(.*)/o/api/server/v1/configs/consent/purposes/(.+)/applications" secured="true" http-method="GET">
@@ -1059,6 +1083,26 @@
         <Resource context="(.*)/api/users/v1/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
             <Scopes>internal_login</Scopes>
         </Resource>
+        {% if consent_mgt.enable_v2_api %}
+        <Resource context="(.*)/api/users/v1/me/consents" secured="true" http-method="POST">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/consents" secured="true" http-method="GET">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/consents/(.+)" secured="true" http-method="GET">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/consents/(.+)/revoke" secured="true" http-method="POST">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/consents/(.+)/authorize" secured="true" http-method="POST">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/consents/(.+)/validate" secured="true" http-method="GET">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        {% endif %}
         <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
             <Scopes>internal_login</Scopes>
         </Resource>

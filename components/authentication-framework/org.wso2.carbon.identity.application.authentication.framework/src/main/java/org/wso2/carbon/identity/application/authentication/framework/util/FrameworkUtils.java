@@ -1324,6 +1324,47 @@ public class FrameworkUtils {
                                                 String loginTenantDomain, String orgId) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = buildSessionContextCacheEntry(key, sessionContext, tenantDomain, orgId);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
+    }
+
+    /**
+     * Adds the given session context to the session context cache only, without persisting it to the session data
+     * store.
+     *
+     * @param key               Session context cache key.
+     * @param sessionContext    Session context to be cached.
+     * @param applicationTenantDomain      Application tenant domain used to resolve session timeout configurations.
+     * @param tenantDomain      Tenant domain under which the cache entry is stored.
+     * @param orgId             Organization id used to look up authenticated sequences from
+     *                          {@link SessionContext#getAuthenticatedOrgData()}.
+     */
+    public static void addSessionContextToCacheWithoutPersisting(String key, SessionContext sessionContext,
+                                                                 String applicationTenantDomain, String tenantDomain,
+                                                                 String orgId) {
+
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry =
+                buildSessionContextCacheEntry(key, sessionContext, applicationTenantDomain, orgId);
+        SessionContextCache.getInstance().addToCacheWithoutPersisting(cacheKey, cacheEntry, tenantDomain);
+    }
+
+    /**
+     * Builds a {@link SessionContextCacheEntry} for the given session context. When an {@code orgId} is provided and
+     * the session context holds an {@link AuthenticatedOrgData} entry for that organization, the authenticated
+     * sequences of that organization are used for cleanup (clearing user attributes and the authentication graph).
+     * Otherwise, the top-level authenticated sequences of the session context are used.
+     *
+     * @param key            Session context cache key.
+     * @param sessionContext Session context to be cached.
+     * @param tenantDomain   Application tenant domain used to resolve session timeout configurations.
+     * @param orgId          Organization id used to look up authenticated sequences from
+     *                       {@link SessionContext#getAuthenticatedOrgData()}.
+     * @return The built session context cache entry.
+     */
+    private static SessionContextCacheEntry buildSessionContextCacheEntry(String key, SessionContext sessionContext,
+                                                                          String tenantDomain, String orgId) {
+
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
         cacheEntry.setContextIdentifier(key);
 
@@ -1364,7 +1405,7 @@ public class FrameworkUtils {
 
         cacheEntry.setContext(sessionContext);
         cacheEntry.setValidityPeriod(timeoutPeriod);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
+        return cacheEntry;
     }
 
     /**

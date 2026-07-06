@@ -3049,6 +3049,7 @@
     </NotificationChannel>
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
+    <ReturnRolesInSaaSAppsInIDToken>false</ReturnRolesInSaaSAppsInIDToken>
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>true</EnhancedOrganizationAuthenticationFeatureEnabled>
@@ -3072,6 +3073,7 @@
             <StreamVersion>1.0.0</StreamVersion>
             <InlineBody></InlineBody>
             <Enabled>false</Enabled>
+            <AlwaysPublish>false</AlwaysPublish>
         </Moesif>
     </Analytics>
 
