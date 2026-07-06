@@ -451,7 +451,6 @@
         "https://schemas.identity.wso2.org/events/consent-purpose",
         "https://schemas.identity.wso2.org/events/consent"
       ]
-
     }
   }
 }
