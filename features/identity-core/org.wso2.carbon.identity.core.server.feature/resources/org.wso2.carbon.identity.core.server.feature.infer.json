@@ -439,9 +439,11 @@
       "actions.action_request.case_insensitive_header_filtering": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
-      "saas.enable_cross_tenant_operations": false
+      "saas.enable_cross_tenant_operations": false,
+      "oauth.dcrm.decode_redirect_uris_in_response": false
     },
     "IS_7.3.0": {
+      "oauth.dcrm.decode_redirect_uris_in_response": false,
       "consent_mgt.enable_v2_api": false,
       "identity_mgt.events.schemes.ConsentEventHook.properties.enable": false,
       "identity_mgt.events.schemes.ConsentPurposeEventHook.properties.enable": false,
