@@ -2322,6 +2322,7 @@
 
   "webhooks.maximum_webhooks_per_tenant": "10",
   "webhooks.registration.skip_signup_confirmation_if_account_lock_disabled": true,
+  "webhooks.event_profiles.disabled_channels": [],
 
   "oauth.authorize_all_scopes": false,
   "oauth.authorize_internal_scopes": false,
@@ -2359,6 +2360,7 @@
   "flow_execution.registration.display_claim_availability": false,
   "consent_mgt.enable_v2_api": true,
   "branding_configuration.custom_content.max_file_size": "1048576",
+  "captcha.disable_for_console.login": false,
   "captcha.enable_captcha_for_local_otp_authenticators": true,
 
   "console.ui.organizations.organization_display_name.enable": true,
@@ -2398,6 +2400,7 @@
   "analytics.moesif.stream_version": "1.0.0",
   "analytics.moesif.inline_body": "",
   "analytics.moesif.enabled": false,
+  "analytics.moesif.always_publish": false,
 
   "circuit_breaker.enabled": true,
   "circuit_breaker.tenant_service_cache_capacity": 5000,
@@ -2407,5 +2410,7 @@
   "circuit_breaker.min_calls_to_evaluate": 15,
   "circuit_breaker.failure_rate_threshold": 0.5,
   "circuit_breaker.open_duration": 60000,
-  "circuit_breaker.max_in_flight": 20
+  "circuit_breaker.max_in_flight": 20,
+
+  "saas_apps.return_roles_in_id_token": false
 }

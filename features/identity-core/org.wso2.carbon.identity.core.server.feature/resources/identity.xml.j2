@@ -1619,6 +1619,14 @@
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
         <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
         <SAMLAllowNestedAssertionsInResponse>{{saml.response.allow_nested_assertions}}</SAMLAllowNestedAssertionsInResponse>
+        {% if saml.endpoints.v2 is defined %}
+        <!-- V2 configs for saml endpoints -->
+        <V2>
+            {% if saml.endpoints.v2.logout is defined %}
+            <DefaultLogoutEndpoint>{{saml.endpoints.v2.logout}}</DefaultLogoutEndpoint>
+            {% endif %}
+        </V2>
+        {% endif %}
     </SSOService>
 
     <Consent>
@@ -1657,6 +1665,7 @@
         <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
         <SOAPEnabled>{{passive_sts.soap_enabled}}</SOAPEnabled>
+        <EnableClaimDescriptionInAttributeName>{{passive_sts.enable_claim_description_in_attribute_name}}</EnableClaimDescriptionInAttributeName>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1883,6 +1892,9 @@
     </SCIM2>
 
     <Captcha>
+        <DisableForConsole>
+            <Login>{{captcha.disable_for_console.login}}</Login>
+        </DisableForConsole>
         <EnableCaptchaForLocalOTPAuthenticators>{{captcha.enable_captcha_for_local_otp_authenticators}}</EnableCaptchaForLocalOTPAuthenticators>
     </Captcha>
 
@@ -2556,6 +2568,15 @@
         <Registration>
             <SkipSignupConfirmationIfAccountLockDisabled>{{webhooks.registration.skip_signup_confirmation_if_account_lock_disabled}}</SkipSignupConfirmationIfAccountLockDisabled>
         </Registration>
+        {% if webhooks.event_profiles.disabled_channels is defined %}
+        <EventProfiles>
+            <DisabledChannels>
+                {% for channel in webhooks.event_profiles.disabled_channels %}
+                <ChannelUri>{{channel}}</ChannelUri>
+                {% endfor %}
+            </DisabledChannels>
+        </EventProfiles>
+        {% endif %}
     </Webhooks>
 
     <LocalAuthenticators>
@@ -2936,6 +2957,7 @@
                 <StreamVersion>{{analytics.moesif.stream_version}}</StreamVersion>
                 <InlineBody>{{analytics.moesif.inline_body}}</InlineBody>
                 <Enabled>{{analytics.moesif.enabled}}</Enabled>
+                <AlwaysPublish>{{analytics.moesif.always_publish}}</AlwaysPublish>
             </Moesif>
             {% endif %}
     </Analytics>
@@ -5300,6 +5322,7 @@
     <PASTRCookieMaxAge>{{pastr_cookie.max_age}}</PASTRCookieMaxAge>
     <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
     <MarkStepCompletedOnInterrupt>{{authentication.mark_step_completed_on_interrupt}}</MarkStepCompletedOnInterrupt>
+    <ReturnRolesInSaaSAppsInIDToken>{{saas_apps.return_roles_in_id_token}}</ReturnRolesInSaaSAppsInIDToken>
 
     <!-- API filtering controls -->
     <APIFiltering>

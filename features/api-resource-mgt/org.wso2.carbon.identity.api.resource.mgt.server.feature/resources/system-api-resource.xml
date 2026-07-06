@@ -1012,6 +1012,18 @@
                    description="Delete Consent Purpose"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Management V2 Consents API" identifier="/api/identity/consent-mgt/v2.0/consents"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Consents API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Consent" name="internal_consent_mgt_consent_view"
+                   description="View Consents"/>
+            <Scope displayName="Create Consent" name="internal_consent_mgt_consent_create"
+                   description="Create new Consent"/>
+            <Scope displayName="Update Consent" name="internal_consent_mgt_consent_update"
+                   description="Update Consent"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Consent Management V2 Elements API" identifier="/o/api/identity/consent-mgt/v2.0/elements"
                  requiresAuthorization="true"
                  description="API representation of the Consent Management V2 Elements API for organizations" type="ORGANIZATION">
@@ -1036,6 +1048,18 @@
                    description="Update Consent Purpose in the organization"/>
             <Scope displayName="Delete Consent Purpose" name="internal_org_consent_mgt_purpose_delete"
                    description="Delete Consent Purpose in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Management V2 Consents API" identifier="/o/api/identity/consent-mgt/v2.0/consents"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Consents API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Consent" name="internal_org_consent_mgt_consent_view"
+                   description="View Consents in the organization"/>
+            <Scope displayName="Create Consent" name="internal_org_consent_mgt_consent_create"
+                   description="Create new Consent in the organization"/>
+            <Scope displayName="Update Consent" name="internal_org_consent_mgt_consent_update"
+                   description="Update Consent in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Consent Purpose Application Mapping API"
