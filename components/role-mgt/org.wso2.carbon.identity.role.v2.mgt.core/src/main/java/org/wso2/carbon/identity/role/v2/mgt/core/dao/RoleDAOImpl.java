@@ -1398,7 +1398,10 @@ public class RoleDAOImpl implements RoleDAO {
                     // Delete the role from IDN_SCIM_GROUP table.
                     deleteSCIMRole(role.getId(), role.getName(), role.getAudienceRefId(), null,
                             tenantDomain);
-                    deletedRoles.add(new RoleBasicInfo(role.getId(), role.getName()));
+                    RoleBasicInfo deletedRole = new RoleBasicInfo(role.getId(), role.getName());
+                    deletedRole.setAudience(APPLICATION);
+                    deletedRole.setAudienceId(applicationId);
+                    deletedRoles.add(deletedRole);
                 }
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException | IdentityRoleManagementException e) {

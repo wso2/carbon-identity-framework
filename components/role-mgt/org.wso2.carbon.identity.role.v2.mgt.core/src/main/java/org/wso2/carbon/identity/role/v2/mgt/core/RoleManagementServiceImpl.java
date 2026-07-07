@@ -399,14 +399,9 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
-        String roleName = roleDAO.getRoleBasicInfoById(roleId, tenantDomain).getName();
         RoleBasicInfo roleBasicInfo = roleDAO.getRoleBasicInfoById(roleId, tenantDomain);
-        if (roleBasicInfo == null) {
-            throw new IdentityRoleManagementException(String.format(
-                    "Role with id: %s does not exist in tenant domain: %s.", roleId, tenantDomain));
-        }
         roleDAO.deleteRole(roleId, tenantDomain);
-        roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, roleName, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostDeleteRole(roleBasicInfo, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postDeleteRole(roleId, tenantDomain);
@@ -956,16 +951,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 .getInstance();
         List<RoleBasicInfo> deletedRoles = roleDAO.deleteRolesByApplicationAndReturnRoles(applicationId,
                 tenantDomain);
-        // Publish a post delete role event (with the role name) for each role that was deleted along with the
-        // application.
         for (RoleBasicInfo deletedRole : deletedRoles) {
-            roleManagementEventPublisherProxy.publishPostDeleteRole(deletedRole.getId(), deletedRole.getName(),
-                    tenantDomain);
-            for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
-                if (roleManagementListener.isEnable()) {
-                    roleManagementListener.postDeleteRole(deletedRole.getId(), tenantDomain);
-                }
-            }
+            roleManagementEventPublisherProxy.publishPostDeleteRole(deletedRole, tenantDomain);
         }
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {

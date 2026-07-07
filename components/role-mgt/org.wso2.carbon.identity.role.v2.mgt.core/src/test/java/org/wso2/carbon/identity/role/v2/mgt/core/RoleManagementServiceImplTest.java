@@ -283,8 +283,8 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         roleManagementService.deleteRolesByApplication(applicationId, tenantDomain);
 
         verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
-        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId1", "roleName1", tenantDomain);
-        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId2", "roleName2", tenantDomain);
+        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole(deletedRoles.get(0), tenantDomain);
+        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole(deletedRoles.get(1), tenantDomain);
     }
 
     @Test
@@ -305,7 +305,7 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
         // No post delete role events should be published when no roles are associated with the application.
         verify(mockRoleMgtEventPublisherProxy, never())
-                .publishPostDeleteRole(anyString(), anyString(), eq(tenantDomain));
+                .publishPostDeleteRole(any(RoleBasicInfo.class), eq(tenantDomain));
     }
 
     private void mockCarbonContextForTenant() {

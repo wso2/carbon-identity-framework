@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 
 import java.util.HashMap;
 import java.util.List;
@@ -470,9 +471,10 @@ public class RoleManagementEventPublisherProxy {
      *
      * @param roleId       The unique identifier of the role to be deleted.
      * @param tenantDomain The domain in which the operation is being performed.
-     * @Deprecated Use {@link #publishPostDeleteRole(String, String, String)} instead to include the role name in
+     * @deprecated Use {@link #publishPostDeleteRole(RoleBasicInfo, String)} instead to include the role name in
      * the event.
      */
+    @Deprecated
     public void publishPostDeleteRole(String roleId, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
@@ -489,15 +491,17 @@ public class RoleManagementEventPublisherProxy {
     /**
      * Publish event after deleting a specific role, including the name of the deleted role.
      *
-     * @param roleId       The unique identifier of the deleted role.
-     * @param roleName     The name of the deleted role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleBasicInfo     The basic information of the deleted role, including its ID and name.
+     * @param tenantDomain      The domain in which the operation is being performed.
      */
-    public void publishPostDeleteRole(String roleId, String roleName, String tenantDomain) {
+    public void publishPostDeleteRole(RoleBasicInfo roleBasicInfo, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
-        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleId);
-        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_NAME, roleName);
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleBasicInfo.getId());
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_NAME, roleBasicInfo.getName());
+        eventProperties.put(IdentityEventConstants.EventProperty.AUDIENCE, roleBasicInfo.getAudience());
+        eventProperties.put(IdentityEventConstants.EventProperty.AUDIENCE_ID, roleBasicInfo.getAudienceId());
+        eventProperties.put(IdentityEventConstants.EventProperty.AUDIENCE_NAME, roleBasicInfo.getAudienceName());
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_ROLE_V2_EVENT);
         try {
