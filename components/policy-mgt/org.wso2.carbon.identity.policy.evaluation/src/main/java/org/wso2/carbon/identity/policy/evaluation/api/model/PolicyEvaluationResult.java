@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Aggregate result of evaluating a policy against a rule selector.
+ * Aggregate result of evaluating a policy against a resource target.
  * {@link #isSatisfied()} is {@code true} only if every {@link ResourceEvaluationOutcome} in
  * {@link #getOutcomes()} is satisfied.
  */

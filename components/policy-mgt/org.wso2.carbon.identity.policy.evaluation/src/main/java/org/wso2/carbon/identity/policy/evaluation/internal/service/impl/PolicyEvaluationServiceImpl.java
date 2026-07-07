@@ -44,7 +44,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
     private static final Log LOG = LogFactory.getLog(PolicyEvaluationServiceImpl.class);
 
     @Override
-    public PolicyEvaluationResult evaluate(String policyName, String ruleSelector,
+    public PolicyEvaluationResult evaluate(String policyName, String target,
                                            FlowContext flowContext, String tenantDomain)
             throws PolicyEvaluationException {
 
@@ -65,20 +65,20 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             return null;
         }
 
-        if (ruleSelector == null) {
+        if (target == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Rule selector is null for policy '" + policyName + "' — treating as compliant.");
+                LOG.debug("Target is null for policy '" + policyName + "' — treating as compliant.");
             }
             return new PolicyEvaluationResult(true, Collections.emptyList());
         }
 
         List<PolicyResource> matchingResources = policy.getResources().stream()
-                .filter(r -> r.getTarget() != null && ruleSelector.equalsIgnoreCase(r.getTarget()))
+                .filter(r -> r.getTarget() != null && target.equalsIgnoreCase(r.getTarget()))
                 .collect(Collectors.toList());
 
         if (matchingResources.isEmpty()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("No resources for selector '" + ruleSelector + "' in policy '" + policyName
+                LOG.debug("No resources for target '" + target + "' in policy '" + policyName
                         + "' — treating as compliant.");
             }
             return new PolicyEvaluationResult(true, Collections.emptyList());
