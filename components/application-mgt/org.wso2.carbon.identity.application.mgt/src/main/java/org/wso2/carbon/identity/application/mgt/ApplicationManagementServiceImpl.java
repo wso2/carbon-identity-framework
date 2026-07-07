@@ -251,11 +251,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                          String username, String templateName)
             throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
             return doCreateApplicationWithTemplate(serviceProvider, tenantDomain, username, templateName);
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 
@@ -795,11 +797,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
             doUpdateApplication(serviceProvider, tenantDomain, username);
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 
@@ -936,11 +940,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void deleteApplication(String applicationName, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
             doDeleteApplication(applicationName, tenantDomain, username);
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 
@@ -2687,11 +2693,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
             return doCreateApplication(application, tenantDomain, username);
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 
@@ -2886,11 +2894,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
             doUpdateApplicationByResourceId(resourceId, updatedApp, tenantDomain, username);
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 
@@ -3332,11 +3342,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                               String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
             doDeleteApplicationByResourceId(resourceId, tenantDomain, username);
         } finally {
-            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
         }
     }
 

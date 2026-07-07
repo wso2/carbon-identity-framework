@@ -86,9 +86,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
@@ -871,8 +873,9 @@ public class ApplicationMgtUtilTest {
         try {
             IdentityContext.getThreadLocalIdentityContext().setActor(new ApplicationActor.Builder()
                     .applicationId("app-id").build());
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
 
+            assertTrue(flowStarted);
             Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
             assertNotNull(currentFlow);
             assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_CREATE);
@@ -888,8 +891,9 @@ public class ApplicationMgtUtilTest {
         try {
             IdentityContext.getThreadLocalIdentityContext().setActor(new UserActor.Builder()
                     .username("admin").build());
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
 
+            assertTrue(flowStarted);
             Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
             assertNotNull(currentFlow);
             assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_UPDATE);
@@ -901,20 +905,22 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    public void testEnterApplicationManagementFlowInheritsExistingFlowPersona() {
+    public void testEnterApplicationManagementFlowSkippedWhenFlowAlreadyActive() {
 
         try {
-            // Simulate an outer flow initiated by an application.
+            // Simulate an outer flow that is already active.
             IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
                     .name(Flow.Name.APPLICATION_CREATE)
                     .initiatingPersona(Flow.InitiatingPersona.APPLICATION)
                     .build());
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
 
+            // A new flow should not be started when a flow is already active.
+            assertFalse(flowStarted);
             Flow currentFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
             assertNotNull(currentFlow);
-            assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_DELETE);
-            // The persona should be inherited from the already active flow.
+            // The already active flow should be preserved.
+            assertEquals(currentFlow.getName(), Flow.Name.APPLICATION_CREATE);
             assertEquals(currentFlow.getInitiatingPersona(), Flow.InitiatingPersona.APPLICATION);
         } finally {
             IdentityContext.destroyCurrentContext();
@@ -925,8 +931,9 @@ public class ApplicationMgtUtilTest {
     public void testEnterApplicationManagementFlowWithoutActorDoesNotEnterFlow() {
 
         try {
-            ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
+            boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
             // With no actor and no existing flow, the persona cannot be resolved, so no flow should be entered.
+            assertFalse(flowStarted);
             assertNull(IdentityContext.getThreadLocalIdentityContext().getCurrentFlow());
         } finally {
             IdentityContext.destroyCurrentContext();

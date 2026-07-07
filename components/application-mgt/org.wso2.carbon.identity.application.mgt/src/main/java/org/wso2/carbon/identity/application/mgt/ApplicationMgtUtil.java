@@ -138,42 +138,50 @@ public class ApplicationMgtUtil {
     /**
      * Enter an application management flow in the {@link IdentityContext} so that downstream components
      * (e.g. event handlers/webhooks) can identify the application operation being performed.
-     * The initiating persona is resolved from the current identity context. If it cannot be resolved,
-     * the flow will not be entered.
      * <p>
-     * Callers must always invoke {@link IdentityContext#exitFlow()} in a finally block to balance this call.
+     * If a flow is already active in the current context, a new flow will not be started (the existing flow is
+     * preserved). The flow is also not started if the initiating persona cannot be resolved from the actor.
+     * <p>
+     * Callers must invoke {@link IdentityContext#exitFlow()} in a finally block only when this method returns
+     * {@code true}.
      *
      * @param flowName The name of the application management flow being started.
+     * @return {@code true} if a new flow was started (and must be exited by the caller); {@code false} otherwise.
      */
-    public static void enterApplicationManagementFlow(Flow.Name flowName) {
+    public static boolean enterApplicationManagementFlow(Flow.Name flowName) {
 
+        IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
+        if (identityContext.getCurrentFlow() != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("A flow is already active in the identity context. Hence, not starting the flow: "
+                        + flowName);
+            }
+            return false;
+        }
         Flow.InitiatingPersona initiatingPersona = resolveFlowInitiatingPersona();
         if (initiatingPersona == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Unable to resolve the initiating persona. Hence, not entering the flow: " + flowName);
             }
-            return;
+            return false;
         }
-        IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+        identityContext.enterFlow(new Flow.Builder()
                 .name(flowName)
                 .initiatingPersona(initiatingPersona)
                 .build());
+        return true;
     }
 
     /**
-     * Resolve the initiating persona for an application management flow based on the current identity context.
-     * If a flow is already active, its initiating persona is reused. Otherwise, the persona is derived from the
-     * actor set in the context.
+     * Resolve the initiating persona for an application management flow based on the actor set in the current
+     * identity context.
      *
      * @return The resolved initiating persona, or {@code null} if it cannot be determined.
      */
     private static Flow.InitiatingPersona resolveFlowInitiatingPersona() {
 
         IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
-        Flow existingFlow = identityContext.getCurrentFlow();
-        if (existingFlow != null) {
-            return existingFlow.getInitiatingPersona();
-        } else if (identityContext.isApplicationActor()) {
+        if (identityContext.isApplicationActor()) {
             return Flow.InitiatingPersona.APPLICATION;
         } else if (identityContext.isUserActor()) {
             return Flow.InitiatingPersona.ADMIN;
