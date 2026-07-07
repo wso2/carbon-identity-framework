@@ -58,6 +58,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -131,6 +133,55 @@ public class ApplicationMgtUtil {
 
     private ApplicationMgtUtil() {
 
+    }
+
+    /**
+     * Enter an application management flow in the {@link IdentityContext} so that downstream components
+     * (e.g. event handlers/webhooks) can identify the application operation being performed.
+     * The initiating persona is resolved from the current identity context. If it cannot be resolved,
+     * the flow will not be entered.
+     * <p>
+     * Callers must always invoke {@link IdentityContext#exitFlow()} in a finally block to balance this call.
+     *
+     * @param flowName The name of the application management flow being started.
+     */
+    public static void enterApplicationManagementFlow(Flow.Name flowName) {
+
+        Flow.InitiatingPersona initiatingPersona = resolveFlowInitiatingPersona();
+        if (initiatingPersona == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Unable to resolve the initiating persona. Hence, not entering the flow: " + flowName);
+            }
+            return;
+        }
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(new Flow.Builder()
+                .name(flowName)
+                .initiatingPersona(initiatingPersona)
+                .build());
+    }
+
+    /**
+     * Resolve the initiating persona for an application management flow based on the current identity context.
+     * If a flow is already active, its initiating persona is reused. Otherwise, the persona is derived from the
+     * actor set in the context.
+     *
+     * @return The resolved initiating persona, or {@code null} if it cannot be determined.
+     */
+    private static Flow.InitiatingPersona resolveFlowInitiatingPersona() {
+
+        IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
+        Flow existingFlow = identityContext.getCurrentFlow();
+        if (existingFlow != null) {
+            return existingFlow.getInitiatingPersona();
+        } else if (identityContext.isApplicationActor()) {
+            return Flow.InitiatingPersona.APPLICATION;
+        } else if (identityContext.isUserActor()) {
+            return Flow.InitiatingPersona.ADMIN;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Actor is not set in the identity context.");
+        }
+        return null;
     }
 
     public static org.wso2.carbon.user.api.Permission[] buildPermissions(String applicationName,

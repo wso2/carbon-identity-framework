@@ -128,6 +128,15 @@ public class Flow {
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
         // -----------------------------------------------------------------------------------------------
 
+        // -------------------------- Application management flows ---------------------------------------
+        FLOW_DEFINITIONS.put(Name.APPLICATION_CREATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.APPLICATION_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.APPLICATION_DELETE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        // -----------------------------------------------------------------------------------------------
+
         // -------------------------- Consent management flows -------------------------------------------
         FLOW_DEFINITIONS.put(Name.CONSENT_GRANT, EnumSet.of(InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.CONSENT_CREATE, EnumSet.of(InitiatingPersona.ADMIN));
@@ -206,6 +215,12 @@ public class Flow {
         ROLE_CREATE,
         ROLE_UPDATE,
         ROLE_DELETE,
+        // --------------------------------------------------
+
+        // ---------Application management flows-------------
+        APPLICATION_CREATE,
+        APPLICATION_UPDATE,
+        APPLICATION_DELETE,
         // --------------------------------------------------
 
         // ---------Consent management flows-----------------
