@@ -946,7 +946,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 roleManagementListener.preDeleteRolesByApplication(applicationId, tenantDomain);
             }
         }
-        roleDAO.deleteRolesByApplication(applicationId, tenantDomain);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        List<String> deletedRoleIds = roleDAO.deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
+        // Publish a post delete role event for each role that was deleted along with the application.
+        for (String deletedRoleId : deletedRoleIds) {
+            roleManagementEventPublisherProxy.publishPostDeleteRole(deletedRoleId, tenantDomain);
+        }
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postDeleteRolesByApplication(applicationId, tenantDomain);

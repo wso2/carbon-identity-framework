@@ -474,8 +474,22 @@ public interface RoleDAO {
      * @param applicationId Idp Group IDs.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     * @deprecated Use {@link #deleteRolesByApplicationAndReturnIds(String, String)} which returns the ids of the
+     * deleted roles so that the corresponding events can be published.
      */
+    @Deprecated
     void deleteRolesByApplication(String applicationId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Delete all roles associated app by id and return the ids of the deleted roles.
+     *
+     * @param applicationId Application ID.
+     * @param tenantDomain  Tenant domain.
+     * @return The list of role ids that were deleted.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<String> deleteRolesByApplicationAndReturnIds(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException;
 
     /**
      * Get main role to shared role mappings by subOrg.

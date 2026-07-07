@@ -43,17 +43,23 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -257,6 +263,48 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         when(roleDAO.getUserListOfRoles(any(), anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString()))
                 .thenReturn(new ArrayList<>());
         Assert.assertNotNull(userBasicInfoList);
+    }
+
+    @Test
+    public void testDeleteRolesByApplicationPublishesPostDeleteRoleEvents()
+            throws IdentityRoleManagementException {
+
+        String applicationId = "app-1";
+        List<String> deletedRoleIds = Arrays.asList("roleId1", "roleId2");
+        when(roleDAO.deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain))
+                .thenReturn(deletedRoleIds);
+
+        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy =
+                mock(RoleManagementEventPublisherProxy.class);
+        roleManagementEventPublisherProxy.when(RoleManagementEventPublisherProxy::getInstance)
+                .thenReturn(mockRoleMgtEventPublisherProxy);
+
+        roleManagementService.deleteRolesByApplication(applicationId, tenantDomain);
+
+        verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
+        // A post delete role event should be published for each role deleted with the application.
+        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId1", tenantDomain);
+        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId2", tenantDomain);
+    }
+
+    @Test
+    public void testDeleteRolesByApplicationWithNoAssociatedRoles()
+            throws IdentityRoleManagementException {
+
+        String applicationId = "app-without-roles";
+        when(roleDAO.deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain))
+                .thenReturn(Collections.emptyList());
+
+        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy =
+                mock(RoleManagementEventPublisherProxy.class);
+        roleManagementEventPublisherProxy.when(RoleManagementEventPublisherProxy::getInstance)
+                .thenReturn(mockRoleMgtEventPublisherProxy);
+
+        roleManagementService.deleteRolesByApplication(applicationId, tenantDomain);
+
+        verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
+        // No post delete role events should be published when no roles are associated with the application.
+        verify(mockRoleMgtEventPublisherProxy, never()).publishPostDeleteRole(anyString(), eq(tenantDomain));
     }
 
     private void mockCarbonContextForTenant() {
