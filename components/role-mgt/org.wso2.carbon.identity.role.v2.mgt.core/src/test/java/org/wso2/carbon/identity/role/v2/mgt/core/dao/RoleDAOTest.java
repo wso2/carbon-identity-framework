@@ -531,7 +531,7 @@ public class RoleDAOTest {
     }
 
     @Test
-    public void testDeleteRolesByApplicationAndReturnIds() throws Exception {
+    public void testDeleteRolesByApplicationAndReturnDeletedRoles() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
         mockCacheClearing(roleDAO);
@@ -553,12 +553,18 @@ public class RoleDAOTest {
         addRole(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
         mockRealmConfiguration();
 
-        List<String> deletedRoleIds = roleDAO.deleteRolesByApplicationAndReturnIds(SAMPLE_APP_ID,
+        List<RoleBasicInfo> deletedRoles = roleDAO.deleteRolesByApplicationAndReturnRoles(SAMPLE_APP_ID,
                 SAMPLE_TENANT_DOMAIN);
 
-        assertEquals(deletedRoleIds.size(), 2);
+        assertEquals(deletedRoles.size(), 2);
+        List<String> deletedRoleIds = deletedRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.toList());
         assertTrue(deletedRoleIds.contains(appRole1.getId()));
         assertTrue(deletedRoleIds.contains(appRole2.getId()));
+        // The deleted roles should carry their names.
+        List<String> deletedRoleNames = deletedRoles.stream().map(RoleBasicInfo::getName)
+                .collect(Collectors.toList());
+        assertTrue(deletedRoleNames.contains(roleNamesList.get(0)));
+        assertTrue(deletedRoleNames.contains(roleNamesList.get(1)));
         assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
                 SAMPLE_TENANT_DOMAIN));
         assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID,

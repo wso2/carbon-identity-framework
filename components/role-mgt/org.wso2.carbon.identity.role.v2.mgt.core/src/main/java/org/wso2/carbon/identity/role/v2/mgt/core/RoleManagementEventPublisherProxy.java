@@ -41,7 +41,6 @@ public class RoleManagementEventPublisherProxy {
     private static final Log log = LogFactory.getLog(RoleManagementEventPublisherProxy.class);
     private static final RoleManagementEventPublisherProxy proxy = new RoleManagementEventPublisherProxy();
 
-
     private RoleManagementEventPublisherProxy() {
 
     }
@@ -433,7 +432,7 @@ public class RoleManagementEventPublisherProxy {
      * @param deletedPermissions A list of permissions to be disassociated from the role.
      */
     public void publishPostUpdatePermissionsForRole(String roleId, List<Permission> addedPermissions,
-                                                 List<Permission> deletedPermissions, String tenantDomain) {
+                                                    List<Permission> deletedPermissions, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleId);
@@ -471,11 +470,34 @@ public class RoleManagementEventPublisherProxy {
      *
      * @param roleId       The unique identifier of the role to be deleted.
      * @param tenantDomain The domain in which the operation is being performed.
+     * @Deprecated Use {@link #publishPostDeleteRole(String, String, String)} instead to include the role name in
+     * the event.
      */
     public void publishPostDeleteRole(String roleId, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleId);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_ROLE_V2_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Publish event after deleting a specific role, including the name of the deleted role.
+     *
+     * @param roleId       The unique identifier of the deleted role.
+     * @param roleName     The name of the deleted role.
+     * @param tenantDomain The domain in which the operation is being performed.
+     */
+    public void publishPostDeleteRole(String roleId, String roleName, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleId);
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_NAME, roleName);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_ROLE_V2_EVENT);
         try {
@@ -736,7 +758,7 @@ public class RoleManagementEventPublisherProxy {
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
     public void publishPreUpdateIdpGroupListOfRoleWithException(String roleId, List<IdpGroup> newGroupIDList,
-                                                             List<IdpGroup> deletedGroupIDList, String tenantDomain)
+                                                                List<IdpGroup> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
@@ -758,7 +780,7 @@ public class RoleManagementEventPublisherProxy {
      * @param tenantDomain       The domain in which the operation is being performed.
      */
     public void publishPostUpdateIdpGroupListOfRole(String roleId, List<IdpGroup> newGroupIDList,
-                                                 List<IdpGroup> deletedGroupIDList, String tenantDomain) {
+                                                    List<IdpGroup> deletedGroupIDList, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleId);

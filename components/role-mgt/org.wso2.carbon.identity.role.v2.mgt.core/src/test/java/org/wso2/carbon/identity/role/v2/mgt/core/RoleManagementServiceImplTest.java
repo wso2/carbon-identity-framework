@@ -270,9 +270,10 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
             throws IdentityRoleManagementException {
 
         String applicationId = "app-1";
-        List<String> deletedRoleIds = Arrays.asList("roleId1", "roleId2");
-        when(roleDAO.deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain))
-                .thenReturn(deletedRoleIds);
+        List<RoleBasicInfo> deletedRoles = Arrays.asList(new RoleBasicInfo("roleId1", "roleName1"),
+                new RoleBasicInfo("roleId2", "roleName2"));
+        when(roleDAO.deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain))
+                .thenReturn(deletedRoles);
 
         RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy =
                 mock(RoleManagementEventPublisherProxy.class);
@@ -281,10 +282,9 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
 
         roleManagementService.deleteRolesByApplication(applicationId, tenantDomain);
 
-        verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
-        // A post delete role event should be published for each role deleted with the application.
-        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId1", tenantDomain);
-        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId2", tenantDomain);
+        verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
+        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId1", "roleName1", tenantDomain);
+        verify(mockRoleMgtEventPublisherProxy, times(1)).publishPostDeleteRole("roleId2", "roleName2", tenantDomain);
     }
 
     @Test
@@ -292,7 +292,7 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
             throws IdentityRoleManagementException {
 
         String applicationId = "app-without-roles";
-        when(roleDAO.deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain))
+        when(roleDAO.deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain))
                 .thenReturn(Collections.emptyList());
 
         RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy =
@@ -302,9 +302,10 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
 
         roleManagementService.deleteRolesByApplication(applicationId, tenantDomain);
 
-        verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
+        verify(roleDAO, times(1)).deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
         // No post delete role events should be published when no roles are associated with the application.
-        verify(mockRoleMgtEventPublisherProxy, never()).publishPostDeleteRole(anyString(), eq(tenantDomain));
+        verify(mockRoleMgtEventPublisherProxy, never())
+                .publishPostDeleteRole(anyString(), anyString(), eq(tenantDomain));
     }
 
     private void mockCarbonContextForTenant() {

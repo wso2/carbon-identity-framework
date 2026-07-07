@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -474,22 +475,27 @@ public interface RoleDAO {
      * @param applicationId Idp Group IDs.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     * @deprecated Use {@link #deleteRolesByApplicationAndReturnIds(String, String)} which returns the ids of the
+     * @deprecated Use {@link #deleteRolesByApplicationAndReturnRoles(String, String)} which returns the
      * deleted roles so that the corresponding events can be published.
      */
     @Deprecated
     void deleteRolesByApplication(String applicationId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Delete all roles associated app by id and return the ids of the deleted roles.
+     * Delete all roles associated app by id and return the deleted roles.
      *
      * @param applicationId Application ID.
      * @param tenantDomain  Tenant domain.
-     * @return The list of role ids that were deleted.
+     * @return The list of roles (basic info) that were deleted.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<String> deleteRolesByApplicationAndReturnIds(String applicationId, String tenantDomain)
-            throws IdentityRoleManagementException;
+    default List<RoleBasicInfo> deleteRolesByApplicationAndReturnRoles(String applicationId,
+                                                                              String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        deleteRolesByApplication(applicationId, tenantDomain);
+        return new ArrayList<>();
+    }
 
     /**
      * Get main role to shared role mappings by subOrg.

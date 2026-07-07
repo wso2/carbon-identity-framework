@@ -130,18 +130,19 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
     public void deleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
+        deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
     }
 
     @Override
-    public List<String> deleteRolesByApplicationAndReturnIds(String applicationId, String tenantDomain)
+    public List<RoleBasicInfo> deleteRolesByApplicationAndReturnRoles(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        List<String> deletedRoleIds = super.deleteRolesByApplicationAndReturnIds(applicationId, tenantDomain);
-        for (String roleId : deletedRoleIds) {
-            clearRoleBasicInfoCache(roleId, tenantDomain);
+        List<RoleBasicInfo> deletedRoles = super.deleteRolesByApplicationAndReturnRoles(applicationId,
+                tenantDomain);
+        for (RoleBasicInfo deletedRole : deletedRoles) {
+            clearRoleBasicInfoCache(deletedRole.getId(), tenantDomain);
         }
-        return deletedRoleIds;
+        return deletedRoles;
     }
 
     /**
