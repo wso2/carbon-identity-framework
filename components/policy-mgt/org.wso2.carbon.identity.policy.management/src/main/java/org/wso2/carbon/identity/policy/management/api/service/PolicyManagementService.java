@@ -80,6 +80,17 @@ public interface PolicyManagementService {
     Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException;
 
     /**
+     * Resolves a policy name to its immutable policy ID. Useful for callers that reference a policy
+     * by name but need its ID (e.g. to evaluate the policy by ID).
+     *
+     * @param policyName   Policy name.
+     * @param tenantDomain Tenant domain.
+     * @return Policy ID, or {@code null} if no policy with the given name exists.
+     * @throws PolicyManagementException If retrieval fails.
+     */
+    String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException;
+
+    /**
      * Returns a page of policy summaries for the tenant, optionally filtered by name. Summaries are
      * lightweight (no hydrated rules); call {@link #getPolicyById} for the full hydrated policy.
      *

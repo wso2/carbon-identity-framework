@@ -214,6 +214,20 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     }
 
     @Override
+    public String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException {
+
+        if (policyName == null || policyName.trim().isEmpty()) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, "Policy name");
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Resolving policy ID for name: %s for tenant: %s",
+                    policyName, tenantDomain));
+        }
+        return policyManagementDAO.getPolicyIdByName(policyName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
     public List<PolicyBasicInfo> getPolicies(String tenantDomain, String filter, int offset, int limit)
             throws PolicyManagementException {
 

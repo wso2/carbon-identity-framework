@@ -28,23 +28,23 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 public interface PolicyEvaluationService {
 
     /**
-     * Evaluates every resource matching {@code target} within the named policy against the provided
-     * {@link FlowContext}, dispatching each resource to the evaluator registered for its resource type.
+     * Evaluates a policy identified by its immutable ID against the provided {@link FlowContext}.
      *
-     * <p>Returns {@code null} when no policy with {@code policyName} exists — the caller interprets
-     * this as "no constraint" and decides the appropriate response. Returns a satisfied result with
-     * no outcomes when a policy exists but no resource matches the target (compliant by default).
+     * <p>Evaluates every resource matching {@code target} within the policy, dispatching each resource
+     * to the evaluator registered for its resource type. Returns {@code null} when no policy with
+     * {@code policyId} exists — the caller interprets this as "no constraint". Returns a satisfied result
+     * with no outcomes when a policy exists but no resource matches the target (compliant by default).
      * The overall result is satisfied only if every matching resource's outcome is satisfied.
      *
-     * @param policyName   Name of the policy to evaluate.
+     * @param policyId     ID of the policy to evaluate.
      * @param target       Resource target used to select resources within the policy (e.g. platform or category).
      * @param flowContext  Context carrying the data fields for evaluation.
      * @param tenantDomain Tenant domain.
-     * @return Aggregate evaluation result, or {@code null} if the named policy does not exist.
+     * @return Aggregate evaluation result, or {@code null} if the policy does not exist.
      * @throws PolicyEvaluationException If policy retrieval fails, a resource fails to evaluate, or no
      *                                   evaluator is registered for a matching resource's type.
      */
-    PolicyEvaluationResult evaluate(String policyName, String target,
+    PolicyEvaluationResult evaluate(String policyId, String target,
                                     FlowContext flowContext, String tenantDomain)
             throws PolicyEvaluationException;
 }
