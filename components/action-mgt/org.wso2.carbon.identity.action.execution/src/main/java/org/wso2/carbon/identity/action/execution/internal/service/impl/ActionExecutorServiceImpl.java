@@ -488,8 +488,16 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throws ActionExecutionResponseProcessorException {
 
         logFailureResponse(action, failureResponse);
+        List<PerformableOperation> requestedOperations = failureResponse.getOperations();
+        List<PerformableOperation> allowedPerformableOperations = validatePerformableOperations(actionRequest,
+                requestedOperations == null ? Collections.emptyList() : requestedOperations, action);
+        ActionInvocationFailureResponse.Builder failureResponseBuilder = new ActionInvocationFailureResponse.Builder()
+                .actionStatus(ActionInvocationResponse.Status.FAILED)
+                .failureReason(failureResponse.getFailureReason())
+                .failureDescription(failureResponse.getFailureDescription())
+                .operations(allowedPerformableOperations);
         return actionExecutionResponseProcessor.processFailureResponse(flowContext,
-                ActionExecutionResponseContext.create(actionRequest.getEvent(), failureResponse));
+                ActionExecutionResponseContext.create(actionRequest.getEvent(), failureResponseBuilder.build()));
     }
 
     private void logActionRuleEvaluation(Action action, RuleEvaluationResult ruleEvaluationResult) {

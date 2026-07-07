@@ -23,11 +23,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
  * This class is used to represent the failure response of an action invocation.
- * This response will contain the failure reason and the failure description.
+ * This response will contain the failure reason and the failure description, and optionally a
+ * list of operations that need to be performed.
  */
 @JsonDeserialize(builder = ActionInvocationFailureResponse.Builder.class)
 public class ActionInvocationFailureResponse implements ActionInvocationResponse.APIResponse {
@@ -35,12 +38,14 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
     private final ActionInvocationResponse.Status actionStatus;
     private final String failureReason;
     private final String failureDescription;
+    private final List<PerformableOperation> operations;
 
     private ActionInvocationFailureResponse(ActionInvocationFailureResponse.Builder builder) {
 
         this.actionStatus = builder.actionStatus;
         this.failureReason = builder.failureReason;
         this.failureDescription = builder.failureDescription;
+        this.operations = builder.operations;
     }
 
     public ActionInvocationResponse.Status getActionStatus() {
@@ -58,6 +63,11 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
         return failureDescription;
     }
 
+    public List<PerformableOperation> getOperations() {
+
+        return operations;
+    }
+
     /**
      * This class is used to build the {@link ActionInvocationFailureResponse}.
      */
@@ -67,6 +77,7 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
         private ActionInvocationResponse.Status actionStatus;
         private String failureReason;
         private String failureDescription;
+        private List<PerformableOperation> operations = new ArrayList<>();
 
         private static final Pattern FAILURE_REASON_VALIDATION_PATTERN =
                 Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,100}$");
@@ -91,6 +102,14 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
         public ActionInvocationFailureResponse.Builder failureDescription(String failureDescription) {
 
             this.failureDescription = failureDescription;
+            return this;
+        }
+
+        @JsonProperty("operations")
+        public ActionInvocationFailureResponse.Builder operations(
+                @JsonProperty("operations") List<PerformableOperation> operations) {
+
+            this.operations = operations;
             return this;
         }
 

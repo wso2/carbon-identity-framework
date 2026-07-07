@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution.impl;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -32,6 +33,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.api.model.ActionInvocationFailureResponse;
@@ -654,6 +656,69 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
                 actionType, action.getId(), FlowContext.create(), "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
+    }
+
+    @Test
+    public void testActionExecuteFailureWithOperations() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Action action = createAction();
+
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any(), any()))
+                .thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any(), any()))
+                .thenReturn(new ArrayList<Param>());
+
+        ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any(), any())).thenReturn(
+                actionExecutionRequest);
+
+        PerformableOperation allowedOp = new PerformableOperation();
+        allowedOp.setOp(Operation.ADD);
+        allowedOp.setPath("/accessToken/claims/-");
+        allowedOp.setValue("testValue");
+
+        PerformableOperation disallowedOp = new PerformableOperation();
+        disallowedOp.setOp(Operation.ADD);
+        disallowedOp.setPath("/notAllowedPath/-");
+        disallowedOp.setValue("testValue");
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.FAILED);
+        when(failureResponse.getFailureReason()).thenReturn("Error_reason");
+        when(failureResponse.getFailureDescription()).thenReturn("Error_description");
+        when(failureResponse.getOperations()).thenReturn(new ArrayList<>(Arrays.asList(allowedOp, disallowedOp)));
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        when(actionInvocationResponse.isFailure()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(failureResponse);
+        when(apiClient.callAPI(any(), any(), any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        ActionExecutionStatus expectedStatus = new FailedStatus(new Failure("Error_reason", "Error_description"));
+        when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionResponseProcessor.processFailureResponse(any(), any())).thenReturn(expectedStatus);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        actionExecutorService.execute(actionType, FlowContext.create(), "tenantDomain");
+
+        ArgumentCaptor<ActionExecutionResponseContext> contextCaptor =
+                ArgumentCaptor.forClass(ActionExecutionResponseContext.class);
+        verify(actionExecutionResponseProcessor).processFailureResponse(any(), contextCaptor.capture());
+        List<PerformableOperation> filteredOperations =
+                ((ActionInvocationFailureResponse) contextCaptor.getValue().getActionInvocationResponse())
+                        .getOperations();
+        assertEquals(filteredOperations.size(), 1);
+        assertEquals(filteredOperations.get(0).getPath(), "/accessToken/claims/-");
     }
 
     @Test
