@@ -225,6 +225,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP_UUID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
@@ -759,8 +760,8 @@ public class FrameworkUtils {
     }
 
     /**
-     * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
-     * be fetched from request parameters or referer.
+     * This method is used to append sp name, sp uuid and sp tenant domain as parameter to a given url. Those
+     * information will be fetched from request parameters or referer.
      *
      * @param redirectURL Redirect URL.
      * @param request     HttpServlet Request.
@@ -769,9 +770,14 @@ public class FrameworkUtils {
     public static String getRedirectURL(String redirectURL, HttpServletRequest request) {
 
         String spName = (String) request.getAttribute(REQUEST_PARAM_SP);
+        String spId = (String) request.getAttribute(REQUEST_PARAM_SP_UUID);
         String tenantDomain = (String) request.getAttribute(TENANT_DOMAIN);
         if (StringUtils.isBlank(spName)) {
             spName = getServiceProviderNameByReferer(request);
+        }
+
+        if (StringUtils.isBlank(spId)) {
+            spId = getServiceProviderUuidByReferer(request);
         }
 
         if (StringUtils.isBlank(tenantDomain)) {
@@ -781,6 +787,10 @@ public class FrameworkUtils {
         try {
             if (StringUtils.isNotBlank(spName)) {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
+            }
+
+            if (StringUtils.isNotBlank(spId)) {
+                redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP_UUID, spId);
             }
 
             if (StringUtils.isNotBlank(MDC.get(CORRELATION_ID_MDC))) {
@@ -943,6 +953,23 @@ public class FrameworkUtils {
         }
 
         return serviceProviderName;
+    }
+
+    private static String getServiceProviderUuidByReferer(HttpServletRequest request) {
+
+        String serviceProviderUuid = null;
+        String refererHeader = request.getHeader("referer");
+        if (StringUtils.isNotBlank(refererHeader)) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(REQUEST_PARAM_SP_UUID + EQUAL)) {
+                    serviceProviderUuid = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
+        }
+
+        return serviceProviderUuid;
     }
 
     private static String getTenantDomainByReferer(HttpServletRequest request) {
