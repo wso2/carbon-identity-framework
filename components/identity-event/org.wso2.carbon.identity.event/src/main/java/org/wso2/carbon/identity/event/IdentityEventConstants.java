@@ -475,6 +475,7 @@ public class IdentityEventConstants {
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
         public static final String AUDIENCE = "audience";
         public static final String AUDIENCE_ID = "audienceId";
+        public static final String AUDIENCE_NAME = "audienceName";
 
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
         public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
