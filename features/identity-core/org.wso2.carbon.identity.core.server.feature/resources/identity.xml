@@ -2794,7 +2794,7 @@
         <MaxTotalConnectionsPerRoute>20</MaxTotalConnectionsPerRoute>
         <HTTPFunctions>
             <MaxConnections>20</MaxConnections>
-            <MaxConnectionsPerRoute>20</MaxConnectionsPerRoute>
+            <MaxConnectionsPerRoute>2</MaxConnectionsPerRoute>
         </HTTPFunctions>
 
         <!--Timeouts in milliseconds-->

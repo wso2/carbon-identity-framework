@@ -950,7 +950,7 @@
   "authentication.adaptive.http_connections.max": "20",
   "authentication.adaptive.http_connections.max_per_route": "20",
   "authentication.adaptive.http_functions.max_connections": "20",
-  "authentication.adaptive.http_functions.max_connections_per_route": "20",
+  "authentication.adaptive.http_functions.max_connections_per_route": "2",
   "authentication.adaptive.choreo_token_endpoint": "https://sts.choreo.dev/oauth2/token",
   "authentication.adaptive.http_connections.default_timeout": "3s",
   "authentication.adaptive.http_connections.connection_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
