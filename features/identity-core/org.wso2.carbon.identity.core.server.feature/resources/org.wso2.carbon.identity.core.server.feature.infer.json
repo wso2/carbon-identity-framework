@@ -340,7 +340,13 @@
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
-      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -457,7 +463,6 @@
         "https://schemas.identity.wso2.org/events/consent-purpose",
         "https://schemas.identity.wso2.org/events/consent"
       ],
-      "saas.enable_cross_tenant_operations": false,
       "console.console_settings.use_granular_console_permissions": false,
       "console.console_settings.disabled_features": [
         "consoleSettings.invitedExternalAdmins",

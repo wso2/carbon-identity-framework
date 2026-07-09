@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,6 +111,8 @@ public class APIResourceCollectionMgtConfigBuilder {
 
     private void buildAPIResourceCollectionConfig() {
 
+        Map<String, Set<String>> holderResolutionMap = buildHolderResolutionMap();
+
         Iterator<OMElement> apiResourceCollections = this.documentElement.getChildrenWithName(
                 new QName(APIResourceCollectionConfigBuilderConstants.API_RESOURCE_COLLECTION_ELEMENT));
 
@@ -168,16 +171,42 @@ public class APIResourceCollectionMgtConfigBuilder {
                         } else {
                             // Process new scopes with feature scopes.
                             if (isReadAction) {
-                                readScopeSet.add(scopeName);
+                                if (isHolderScope(scopeName)) {
+                                    readScopeSet.addAll(holderResolutionMap.getOrDefault(
+                                            scopeName, Collections.emptySet()));
+                                } else {
+                                    readScopeSet.add(scopeName);
+                                }
                             } else if (isCreateAction) {
-                                createScopeSet.add(scopeName);
-                                writeScopeSet.add(scopeName);
+                                if (isHolderScope(scopeName)) {
+                                    Set<String> resolved = holderResolutionMap.getOrDefault(
+                                            scopeName, Collections.emptySet());
+                                    createScopeSet.addAll(resolved);
+                                    writeScopeSet.addAll(resolved);
+                                } else {
+                                    createScopeSet.add(scopeName);
+                                    writeScopeSet.add(scopeName);
+                                }
                             } else if (isUpdateAction) {
-                                updateScopeSet.add(scopeName);
-                                writeScopeSet.add(scopeName);
+                                if (isHolderScope(scopeName)) {
+                                    Set<String> resolved = holderResolutionMap.getOrDefault(
+                                            scopeName, Collections.emptySet());
+                                    updateScopeSet.addAll(resolved);
+                                    writeScopeSet.addAll(resolved);
+                                } else {
+                                    updateScopeSet.add(scopeName);
+                                    writeScopeSet.add(scopeName);
+                                }
                             } else if (isDeleteAction) {
-                                deleteScopeSet.add(scopeName);
-                                writeScopeSet.add(scopeName);
+                                if (isHolderScope(scopeName)) {
+                                    Set<String> resolved = holderResolutionMap.getOrDefault(
+                                            scopeName, Collections.emptySet());
+                                    deleteScopeSet.addAll(resolved);
+                                    writeScopeSet.addAll(resolved);
+                                } else {
+                                    deleteScopeSet.add(scopeName);
+                                    writeScopeSet.add(scopeName);
+                                }
                             } else if (isFeatureAction) {
                                 if (isViewFeatureScope(scopeName)) {
                                     apiResourceCollectionObj.setViewFeatureScope(scopeName);
@@ -286,5 +315,128 @@ public class APIResourceCollectionMgtConfigBuilder {
         return StringUtils.isNotBlank(scope) &&
                 scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
                 scope.endsWith(APIResourceCollectionConfigBuilderConstants.DELETE_FEATURE_SCOPE_SUFFIX);
+    }
+
+    private boolean isHolderScope(String scope) {
+
+        return isViewFeatureScope(scope) || isEditFeatureScope(scope) || isCreateFeatureScope(scope)
+                || isUpdateFeatureScope(scope) || isDeleteFeatureScope(scope);
+    }
+
+    /**
+     * Build a map of holder scopes to their raw leaf scopes. Any nested holders are left unresolved.
+     * Cycles are short-circuited to an empty branch.
+     */
+    private Map<String, Set<String>> buildHolderResolutionMap() {
+
+        Map<String, Set<String>> rawMap = new HashMap<>();
+        Iterator<OMElement> collections = this.documentElement.getChildrenWithName(
+                new QName(APIResourceCollectionConfigBuilderConstants.API_RESOURCE_COLLECTION_ELEMENT));
+        while (collections.hasNext()) {
+            OMElement collection = collections.next();
+            String version = collection.getAttributeValue(
+                    new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
+            if (APIResourceCollectionConfigBuilderConstants.COLLECTION_VERSION_V0.equals(version)) {
+                continue;
+            }
+            OMElement scopesElement = collection.getFirstChildWithName(
+                    new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
+            if (scopesElement == null) {
+                continue;
+            }
+            Map<String, Set<String>> scopesByBlock = collectScopesByBlock(scopesElement);
+            Set<String> featureScopes = scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.FEATURE, Collections.emptySet());
+            for (String featureScope : featureScopes) {
+                Set<String> raw = resolveOwnerActionScopes(featureScope, scopesByBlock);
+                if (raw != null) {
+                    rawMap.put(featureScope, raw);
+                }
+            }
+        }
+
+        Map<String, Set<String>> resolvedMap = new HashMap<>();
+        for (String holder : rawMap.keySet()) {
+            resolveLeaves(holder, rawMap, resolvedMap, new HashSet<>());
+        }
+        return resolvedMap;
+    }
+
+    /**
+     * Recursively flatten a holder's raw scope set into its leaf scopes. Any nested holder is replaced by
+     * its own resolved leaves; cycles short-circuit to an empty branch. Memoized in {@code memo}.
+     */
+    private Set<String> resolveLeaves(String holder, Map<String, Set<String>> rawMap,
+                                      Map<String, Set<String>> memo, Set<String> visiting) {
+
+        if (memo.containsKey(holder)) {
+            return memo.get(holder);
+        }
+        if (!visiting.add(holder)) {
+            return Collections.emptySet();
+        }
+        Set<String> leaves = new HashSet<>();
+        for (String scope : rawMap.getOrDefault(holder, Collections.emptySet())) {
+            if (isHolderScope(scope)) {
+                leaves.addAll(resolveLeaves(scope, rawMap, memo, visiting));
+            } else {
+                leaves.add(scope);
+            }
+        }
+        visiting.remove(holder);
+        memo.put(holder, leaves);
+        return leaves;
+    }
+
+    private Map<String, Set<String>> collectScopesByBlock(OMElement scopesElement) {
+
+        Map<String, Set<String>> scopesByBlock = new HashMap<>();
+        Iterator<?> actionElements = scopesElement.getChildElements();
+        while (actionElements.hasNext()) {
+            OMElement actionElement = (OMElement) actionElements.next();
+            if (actionElement == null) {
+                continue;
+            }
+            String blockName = actionElement.getLocalName();
+            Set<String> blockScopes = scopesByBlock.computeIfAbsent(blockName, k -> new HashSet<>());
+            Iterator<OMElement> scopes = actionElement.getChildrenWithName(
+                    new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
+            while (scopes.hasNext()) {
+                String name = scopes.next().getAttributeValue(
+                        new QName(APIResourceCollectionConfigBuilderConstants.NAME));
+                if (StringUtils.isNotBlank(name)) {
+                    blockScopes.add(name);
+                }
+            }
+        }
+        return scopesByBlock;
+    }
+
+    private Set<String> resolveOwnerActionScopes(String featureScope, Map<String, Set<String>> scopesByBlock) {
+
+        if (isViewFeatureScope(featureScope)) {
+            return new HashSet<>(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.READ, Collections.emptySet()));
+        } else if (isCreateFeatureScope(featureScope)) {
+            return new HashSet<>(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.CREATE, Collections.emptySet()));
+        } else if (isUpdateFeatureScope(featureScope)) {
+            return new HashSet<>(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.UPDATE, Collections.emptySet()));
+        } else if (isDeleteFeatureScope(featureScope)) {
+            return new HashSet<>(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.DELETE, Collections.emptySet()));
+        } else if (isEditFeatureScope(featureScope)) {
+            // Legacy coarse write — union of Create + Update + Delete leaf scopes.
+            Set<String> union = new HashSet<>();
+            union.addAll(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.CREATE, Collections.emptySet()));
+            union.addAll(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.UPDATE, Collections.emptySet()));
+            union.addAll(scopesByBlock.getOrDefault(
+                    APIResourceCollectionConfigBuilderConstants.DELETE, Collections.emptySet()));
+            return union;
+        }
+        return null;
     }
 }

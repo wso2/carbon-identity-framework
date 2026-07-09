@@ -290,25 +290,25 @@ public class APIResourceCollectionManagerTest {
     }
 
     /**
-     * Asserts that the given bucket exists and the union of scopes across its API resources contains every expected
-     * scope. The bucket may legitimately hold more (e.g. the write bucket also inherits read scopes), so this checks
-     * containment rather than equality.
+     * Asserts that the given bucket exists and the union of scopes across its API resources matches exactly the
+     * expected set. Exact equality is required so that scopes from one granular bucket (create/update/delete)
+     * cannot silently leak into another.
      */
     private static void assertBucketScopes(Map<String, List<APIResource>> apiResources, String bucketKey,
                                            String... expectedScopes) {
 
         List<APIResource> bucket = apiResources.get(bucketKey);
         Assert.assertNotNull(bucket, "Bucket should be present: " + bucketKey);
-        Set<String> scopeNames = new HashSet<>();
+        Set<String> actual = new HashSet<>();
         for (APIResource apiResource : bucket) {
             for (Scope scope : apiResource.getScopes()) {
-                scopeNames.add(scope.getName());
+                actual.add(scope.getName());
             }
         }
-        for (String expectedScope : expectedScopes) {
-            Assert.assertTrue(scopeNames.contains(expectedScope),
-                    "Bucket '" + bucketKey + "' should expose scope '" + expectedScope + "' but had " + scopeNames);
-        }
+        Set<String> expected = new HashSet<>(Arrays.asList(expectedScopes));
+        Assert.assertEquals(actual, expected,
+                "Bucket '" + bucketKey + "' scope set must match exactly. Expected " + expected
+                        + " but had " + actual);
     }
 
     private static APIResource apiResourceWithScopes(String name, String... scopeNames) {

@@ -63,4 +63,76 @@
             </Delete>
         </Scopes>
     </APIResourceCollection>
+
+    <!-- Collections used to exercise holder-scope resolution.
+         holderOwner declares the full set of granular console feature action scopes (view/edit/create/update/delete)
+         in its <Feature> block, with one internal_* leaf per matching action block.
+         holderTransitive's own <Update> block carries a holder pointing back at holderOwner_update — that lets a
+         consumer's holder of holderTransitive_update exercise recursive (transitive) resolution.
+         holderConsumer references holderOwner_edit + holderTransitive_update from its <Update> block, and
+         holderOwner_view from its <Read> block; none of these holder names should appear in any bucket. -->
+    <APIResourceCollection name="holderOwner" displayName="Holder Owner" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:holderOwner"/>
+                <Scope name="console:holderOwner_view"/>
+                <Scope name="console:holderOwner_edit"/>
+                <Scope name="console:holderOwner_create"/>
+                <Scope name="console:holderOwner_update"/>
+                <Scope name="console:holderOwner_delete"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_holder_owner_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_holder_owner_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_holder_owner_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_holder_owner_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="holderTransitive" displayName="Holder Transitive" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:holderTransitive"/>
+                <Scope name="console:holderTransitive_view"/>
+                <Scope name="console:holderTransitive_edit"/>
+                <Scope name="console:holderTransitive_create"/>
+                <Scope name="console:holderTransitive_update"/>
+                <Scope name="console:holderTransitive_delete"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_holder_transitive_update"/>
+                <Scope name="console:holderOwner_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_holder_transitive_create"/>
+            </Create>
+            <Delete>
+                <Scope name="internal_holder_transitive_delete"/>
+            </Delete>
+            <Read>
+                <Scope name="internal_holder_transitive_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="holderConsumer" displayName="Holder Consumer" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:holderConsumer"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_holder_consumer_update"/>
+                <Scope name="console:holderOwner_edit"/>
+                <Scope name="console:holderTransitive_update"/>
+            </Update>
+            <Read>
+                <Scope name="console:holderOwner_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 </APIResourceCollections>

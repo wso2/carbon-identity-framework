@@ -228,17 +228,135 @@ public class APIResourceCollectionMgtConfigBuilderTest {
         Assert.assertTrue(collection.getLegacyWriteScopes().contains(DELETE_SCOPE));
     }
 
+    private static final String HOLDER_CONSUMER_NAME = "holderConsumer";
+
+    @Test(groups = "holderResolution",
+            description = "A holder scope (e.g. console:holderOwner_update) inside another collection's <Update> "
+                    + "block is replaced by the owner's Update-block leaf scopes; the holder name itself is dropped.")
+    public void testUpdateHolderResolvesToOwnerUpdateLeaves() {
+
+        APIResourceCollection collection = getCollectionByName(HOLDER_CONSUMER_NAME);
+
+        // holderConsumer's <Update> references console:holderTransitive_update, which (recursively) yields
+        // internal_holder_transitive_update + internal_holder_owner_update.
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_transitive_update"));
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_owner_update"));
+
+        // The holder name itself must not be in updateScopes.
+        Assert.assertFalse(collection.getUpdateScopes().contains("console:holderTransitive_update"),
+                "Holder scope name must be dropped after resolution.");
+    }
+
+    @Test(groups = "holderResolution",
+            description = "_edit holder resolves to the union of the owner's Create + Update + Delete leaves "
+                    + "(legacy coarse write semantic).")
+    public void testEditHolderResolvesToCreateUpdateDeleteUnion() {
+
+        APIResourceCollection collection = getCollectionByName(HOLDER_CONSUMER_NAME);
+
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_owner_create"),
+                "_edit holder should pull in the owner's Create leaves.");
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_owner_update"),
+                "_edit holder should pull in the owner's Update leaves.");
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_owner_delete"),
+                "_edit holder should pull in the owner's Delete leaves.");
+
+        Assert.assertFalse(collection.getUpdateScopes().contains("console:holderOwner_edit"),
+                "The _edit holder name itself must not appear in updateScopes.");
+    }
+
+    @Test(groups = "holderResolution",
+            description = "_view holder inside a <Read> block resolves to the owner's Read-block leaves; the "
+                    + "holder name itself is dropped from readScopes.")
+    public void testViewHolderInReadBlockResolvesToOwnerReadLeaves() {
+
+        APIResourceCollection collection = getCollectionByName(HOLDER_CONSUMER_NAME);
+
+        Assert.assertTrue(collection.getReadScopes().contains("internal_holder_owner_view"),
+                "_view holder should resolve to the owner's Read leaves.");
+        Assert.assertFalse(collection.getReadScopes().contains("console:holderOwner_view"),
+                "The _view holder name itself must not appear in readScopes.");
+    }
+
+    @Test(groups = "holderResolution",
+            description = "writeScopes also receives the leaves resolved from any holder in <Create>/<Update>/"
+                    + "<Delete> blocks — and does not receive the holder name itself.")
+    public void testHolderResolutionPropagatesToWriteScopes() {
+
+        APIResourceCollection collection = getCollectionByName(HOLDER_CONSUMER_NAME);
+
+        Assert.assertTrue(collection.getWriteScopes().contains("internal_holder_owner_create"));
+        Assert.assertTrue(collection.getWriteScopes().contains("internal_holder_owner_update"));
+        Assert.assertTrue(collection.getWriteScopes().contains("internal_holder_owner_delete"));
+        Assert.assertTrue(collection.getWriteScopes().contains("internal_holder_transitive_update"));
+        Assert.assertTrue(collection.getWriteScopes().contains("internal_holder_consumer_update"));
+
+        Assert.assertFalse(collection.getWriteScopes().contains("console:holderOwner_edit"));
+        Assert.assertFalse(collection.getWriteScopes().contains("console:holderTransitive_update"));
+    }
+
+    @Test(groups = "holderResolution",
+            description = "Holder resolution recurses through nested holders: holderConsumer references "
+                    + "holderTransitive_update, whose own <Update> block contains the holder holderOwner_update; "
+                    + "the consumer's bucket must end up with the deepest leaf and contain no holder names.")
+    public void testHolderResolutionRecursesThroughNestedHolders() {
+
+        APIResourceCollection collection = getCollectionByName(HOLDER_CONSUMER_NAME);
+
+        // Deepest leaf from the holderOwner_update branch reached through holderTransitive_update.
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_owner_update"),
+                "Nested holder must be transitively resolved to its leaf.");
+
+        // No intermediate holder names should remain.
+        Assert.assertFalse(collection.getUpdateScopes().contains("console:holderTransitive_update"));
+        Assert.assertFalse(collection.getUpdateScopes().contains("console:holderOwner_update"));
+    }
+
+    @Test(groups = "holderResolution",
+            description = "Literal (non-holder) scopes declared next to holders are preserved verbatim.")
+    public void testLiteralScopesAlongsideHoldersArePreserved() {
+
+        APIResourceCollection collection = getCollectionByName(HOLDER_CONSUMER_NAME);
+
+        Assert.assertTrue(collection.getUpdateScopes().contains("internal_holder_consumer_update"),
+                "Literal scope in <Update> alongside holders must be kept.");
+    }
+
+    @Test(groups = "holderResolution",
+            description = "The owner collection's own buckets are unaffected by holder resolution: its Feature-block "
+                    + "feature action scopes still land in their dedicated buckets and singleton fields.")
+    public void testOwnerCollectionUnaffectedByHolderResolution() {
+
+        APIResourceCollection owner = getCollectionByName("holderOwner");
+
+        Assert.assertEquals(owner.getCreateFeatureScope(), "console:holderOwner_create");
+        Assert.assertEquals(owner.getUpdateFeatureScope(), "console:holderOwner_update");
+        Assert.assertEquals(owner.getDeleteFeatureScope(), "console:holderOwner_delete");
+        Assert.assertEquals(owner.getViewFeatureScope(), "console:holderOwner_view");
+        Assert.assertEquals(owner.getEditFeatureScope(), "console:holderOwner_edit");
+
+        Assert.assertTrue(owner.getCreateScopes().contains("internal_holder_owner_create"));
+        Assert.assertTrue(owner.getUpdateScopes().contains("internal_holder_owner_update"));
+        Assert.assertTrue(owner.getDeleteScopes().contains("internal_holder_owner_delete"));
+        Assert.assertTrue(owner.getReadScopes().contains("internal_holder_owner_view"));
+    }
+
     /**
      * Resolves the single merged {@code apiResources} collection from the parsed config.
      */
     private APIResourceCollection getApiResourcesCollection() {
 
+        return getCollectionByName(COLLECTION_NAME);
+    }
+
+    private APIResourceCollection getCollectionByName(String name) {
+
         Map<String, APIResourceCollection> configurations = configBuilder.getApiResourceCollectionMgtConfigurations();
         APIResourceCollection collection = configurations.values().stream()
-                .filter(c -> COLLECTION_NAME.equals(c.getName()))
+                .filter(c -> name.equals(c.getName()))
                 .findFirst()
                 .orElse(null);
-        Assert.assertNotNull(collection, "apiResources collection should be present in the parsed config.");
+        Assert.assertNotNull(collection, name + " collection should be present in the parsed config.");
         return collection;
     }
 }
