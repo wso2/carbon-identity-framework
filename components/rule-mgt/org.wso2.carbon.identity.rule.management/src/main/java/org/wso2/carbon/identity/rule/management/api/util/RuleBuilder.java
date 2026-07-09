@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.rule.management.internal.component.RuleManagemen
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType;
 
 import java.util.List;
 import java.util.Map;
@@ -254,19 +255,11 @@ public class RuleBuilder {
     }
 
     private Value resolveValue(FieldDefinition fieldDefinition,
-                               String rawValue) throws RuleManagementClientException {
-
-        return resolveValue(fieldDefinition, rawValue, null);
-    }
-
-    private Value resolveValue(FieldDefinition fieldDefinition,
                                String rawValue, Value originalValue) throws RuleManagementClientException {
 
-        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType
-                fieldDefinitionValueType = fieldDefinition.getValue().getValueType();
+        ValueType fieldDefinitionValueType = fieldDefinition.getValue().getValueType();
 
-        boolean isSymbolicField = fieldDefinitionValueType ==
-                org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.SYMBOLIC;
+        boolean isSymbolicField = fieldDefinitionValueType == ValueType.SYMBOLIC;
         if (originalValue != null && originalValue.getType() == Value.Type.LIST && !isSymbolicField) {
             return new Value(Value.Type.LIST, rawValue);
         }
@@ -291,8 +284,7 @@ public class RuleBuilder {
 
     private boolean isValidValueType(FieldDefinition fieldDefinition, Value value) {
 
-        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType fieldDefinitionValueType =
-                fieldDefinition.getValue().getValueType();
+        ValueType fieldDefinitionValueType = fieldDefinition.getValue().getValueType();
         Value.Type valueType = value.getType();
 
         // RAW and LIST bypass strict type matching — RAW is stored as-is, LIST is for multi-value (in) operator.
