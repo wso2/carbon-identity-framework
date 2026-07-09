@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.flow.extension.metadata;
 
 /**
- * Public-API entry point for retrieving the controlled In-Flow Extension context tree.
+ * Public-API entry point for retrieving the controlled Flow Extension context tree.
  * Lives in the {@code metadata} package (which is exported by the engine OSGi bundle), so
  * external bundles such as the flow-management API server can call it without depending on
  * the engine's {@code internal} package.

@@ -23,32 +23,23 @@ import org.wso2.carbon.identity.action.execution.api.model.Application;
 import org.wso2.carbon.identity.action.execution.api.model.Event;
 import org.wso2.carbon.identity.action.execution.api.model.Organization;
 import org.wso2.carbon.identity.action.execution.api.model.Tenant;
-import org.wso2.carbon.identity.action.execution.api.model.UserStore;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * This class models the In-Flow Extension Event.
- * It represents the event sent to the In-Flow Extension action over the Action Execution Request.
+ * This class models the Flow Extension Event.
+ * It represents the event sent to the Flow Extension action over the Action Execution Request.
  */
 public class FlowExtensionEvent extends Event {
 
     private final FlowExtensionFlow flow;
     private final String callbackUrl;
-    private final Map<String, Object> flowProperties;
 
     private FlowExtensionEvent(Builder builder) {
 
         this.tenant = builder.tenant;
         this.organization = builder.organization;
-        this.userStore = builder.userStore;
         this.application = builder.application;
         this.flow = builder.flow;
         this.callbackUrl = builder.callbackUrl;
-        this.flowProperties = builder.flowProperties != null ?
-                Collections.unmodifiableMap(new HashMap<>(builder.flowProperties)) : Collections.emptyMap();
     }
 
     /**
@@ -76,16 +67,6 @@ public class FlowExtensionEvent extends Event {
     }
 
     /**
-     * Get the flow properties/context data.
-     *
-     * @return Unmodifiable map of flow properties.
-     */
-    public Map<String, Object> getFlowProperties() {
-
-        return flowProperties;
-    }
-
-    /**
      * Builder for the InFlowExtensionEvent.
      */
     public static class Builder {
@@ -93,10 +74,8 @@ public class FlowExtensionEvent extends Event {
         private FlowExtensionFlow flow;
         private Tenant tenant;
         private Organization organization;
-        private UserStore userStore;
         private Application application;
         private String callbackUrl;
-        private Map<String, Object> flowProperties;
 
         public Builder flow(FlowExtensionFlow flow) {
 
@@ -116,12 +95,6 @@ public class FlowExtensionEvent extends Event {
             return this;
         }
 
-        public Builder userStore(UserStore userStore) {
-
-            this.userStore = userStore;
-            return this;
-        }
-
         public Builder application(Application application) {
 
             this.application = application;
@@ -131,12 +104,6 @@ public class FlowExtensionEvent extends Event {
         public Builder callbackUrl(String callbackUrl) {
 
             this.callbackUrl = callbackUrl;
-            return this;
-        }
-
-        public Builder flowProperties(Map<String, Object> flowProperties) {
-
-            this.flowProperties = flowProperties != null ? new HashMap<>(flowProperties) : null;
             return this;
         }
 

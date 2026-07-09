@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Single node in the In-Flow Extension context tree returned by the metadata service.
+ * Single node in the Flow Extension context tree returned by the metadata service.
  * Mirrors the shape of {@code default-flow-context-tree.json} on the Console side so the
  * existing tree component can render this without translation.
  */

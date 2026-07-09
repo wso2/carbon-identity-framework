@@ -32,11 +32,15 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
@@ -44,19 +48,17 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 /**
- * JWE encryption and decryption helpers for In-Flow Extension actions.
+ * JWE encryption and decryption helpers for Flow Extension actions.
  */
 public final class JWEEncryptionUtil {
 
     private static final Log LOG = LogFactory.getLog(JWEEncryptionUtil.class);
 
-    private static final Map<String, CachedKey> PRIVATE_KEYS = new ConcurrentHashMap<>();
-    private static final long PRIVATE_KEY_CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(30);
+    // Number of segments in a JWE compact serialization
+    private static final int JWE_COMPACT_SEGMENT_COUNT = 5;
 
     private JWEEncryptionUtil() {
 
@@ -72,6 +74,38 @@ public final class JWEEncryptionUtil {
      */
     public static String encrypt(String plaintext, String certificatePEM) throws ActionExecutionException {
 
+        return encryptPayload(new Payload(plaintext), certificatePEM);
+    }
+
+    /**
+     * Char-array overload of {@link #encrypt(String, String)}. Encrypts credentials held as a
+     * {@code char[]} using JWE, without ever materializing the credentials as an immutable String.
+     *
+     * @param credentials    The credentials JSON content to encrypt, as a char array.
+     * @param certificatePEM The external service's X.509 certificate in PEM format.
+     * @return JWE compact serialization string.
+     * @throws ActionExecutionException If encryption fails.
+     */
+    public static String encrypt(char[] credentials, String certificatePEM) throws ActionExecutionException {
+
+        byte[] credentialsBytes = charsToUtf8Bytes(credentials);
+        try {
+            return encryptPayload(new Payload(credentialsBytes), certificatePEM);
+        } finally {
+            // Securely wipe the temporary byte array
+            Arrays.fill(credentialsBytes, (byte) 0);
+        }
+    }
+
+    /**
+     * Core encryption logic shared by all overloads.
+     * @param payload        The Nimbus Payload object containing the data to encrypt.
+     * @param certificatePEM The external service's X.509 certificate in PEM format.
+     * @return JWE compact serialization string.
+     * @throws ActionExecutionException If encryption fails.
+     */
+    private static String encryptPayload(Payload payload, String certificatePEM) throws ActionExecutionException {
+
         try {
             X509Certificate certificate = parsePEMCertificate(certificatePEM);
             RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
@@ -80,14 +114,31 @@ public final class JWEEncryptionUtil {
                     .contentType("application/json")
                     .build();
 
-            JWEObject jweObject = new JWEObject(header, new Payload(plaintext));
+            JWEObject jweObject = new JWEObject(header, payload);
             jweObject.encrypt(new RSAEncrypter(publicKey));
 
             return jweObject.serialize();
         } catch (JOSEException e) {
             throw new ActionExecutionException(
-                    "Failed to JWE-encrypt data for In-Flow Extension action.", e);
+                    "Failed to JWE-encrypt data for Flow Extension action.", e);
         }
+    }
+
+    /**
+     * Converts a char array to UTF-8 encoded bytes without allocating an intermediate String,
+     * so sensitive plaintext never lands in the String pool or as an immutable object.
+     */
+    private static byte[] charsToUtf8Bytes(char[] chars) {
+
+        CharBuffer charBuffer = CharBuffer.wrap(chars);
+        ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(charBuffer);
+        byte[] bytes = new byte[byteBuffer.remaining()];
+        byteBuffer.get(bytes);
+
+        if (byteBuffer.hasArray()) {
+            Arrays.fill(byteBuffer.array(), (byte) 0);
+        }
+        return bytes;
     }
 
     /**
@@ -111,45 +162,29 @@ public final class JWEEncryptionUtil {
             return jweObject.getPayload().toString();
         } catch (ParseException e) {
             throw new ActionExecutionException(
-                    "Failed to parse JWE string from In-Flow Extension response.", e);
+                    "Failed to parse JWE string from Flow Extension response.", e);
         } catch (JOSEException e) {
             throw new ActionExecutionException(
-                    "Failed to decrypt JWE value from In-Flow Extension response.", e);
+                    "Failed to decrypt JWE value from Flow Extension response.", e);
         } catch (ActionExecutionException e) {
             throw e;
         } catch (Exception e) {
             throw new ActionExecutionException(
-                    "Error resolving IS private key for In-Flow Extension JWE decryption.", e);
+                    "Error resolving IS private key for Flow Extension JWE decryption.", e);
         }
     }
 
-    private static Key getPrivateKey(String tenantDomain) throws ActionExecutionException {
+    private static Key getPrivateKey(String tenantDomain) throws Exception {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        String cacheKey = String.valueOf(tenantId);
-        CachedKey cached = PRIVATE_KEYS.get(cacheKey);
-        if (cached != null && !cached.isExpired()) {
-            return cached.getKey();
+        IdentityTenantUtil.initializeRegistry(tenantId);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            return keyStoreManager.getDefaultPrivateKey();
         }
-
-        try {
-            IdentityTenantUtil.initializeRegistry(tenantId);
-            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-            Key privateKey;
-
-            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-                privateKey = keyStoreManager.getDefaultPrivateKey();
-            } else {
-                String tenantKeyStoreName = tenantDomain.trim().replace(".", "-") + ".jks";
-                privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
-            }
-
-            PRIVATE_KEYS.put(cacheKey, new CachedKey(privateKey));
-            return privateKey;
-        } catch (Exception e) {
-            throw new ActionExecutionException(
-                    "Error retrieving private key for tenant: " + tenantDomain, e);
-        }
+        String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+        return keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
     }
 
     /**
@@ -163,16 +198,30 @@ public final class JWEEncryptionUtil {
         if (value == null || value.isEmpty()) {
             return false;
         }
-        int dotCount = 0;
-        for (int i = 0; i < value.length(); i++) {
-            if (value.charAt(i) == '.') {
-                dotCount++;
-                if (dotCount > 4) {
-                    return false;
-                }
+        return isJWECompactSerialization(value);
+    }
+
+    /**
+     * Check whether {@code value} has the structure of a JWE compact serialization: exactly
+     * {@value #JWE_COMPACT_SEGMENT_COUNT} non-empty Base64URL segments separated by dots
+     * ({@code header.encryptedKey.iv.ciphertext.tag}). RSA-OAEP always yields a non-empty
+     * encrypted-key segment, so an empty segment means this is not a value we produced.
+     *
+     * @param value The value to check.
+     * @return {@code true} if the value has the JWE compact structure.
+     */
+    private static boolean isJWECompactSerialization(String value) {
+
+        String[] segments = value.split("\\.", -1);
+        if (segments.length != JWE_COMPACT_SEGMENT_COUNT) {
+            return false;
+        }
+        for (String segment : segments) {
+            if (segment.isEmpty()) {
+                return false;
             }
         }
-        return dotCount == 4;
+        return true;
     }
 
     /**
@@ -199,38 +248,16 @@ public final class JWEEncryptionUtil {
 
         } catch (CertificateExpiredException e) {
             throw new ActionExecutionException(
-                    "Certificate has expired for In-Flow Extension action.", e);
+                    "Certificate has expired for Flow Extension action.", e);
         } catch (CertificateNotYetValidException e) {
             throw new ActionExecutionException(
-                    "Certificate is not yet valid for In-Flow Extension action.", e);
+                    "Certificate is not yet valid for Flow Extension action.", e);
         } catch (IllegalArgumentException e) {
             throw new ActionExecutionException(
                     "Failed to decode certificate: Input is not valid Base64.", e);
-        } catch (Exception e) {
+        } catch (CertificateException e) {
             throw new ActionExecutionException(
-                    "Failed to parse the decoded PEM certificate for In-Flow Extension action.", e);
-        }
-    }
-
-    private static class CachedKey {
-
-        private final Key key;
-        private final long createdAt;
-
-        CachedKey(Key key) {
-
-            this.key = key;
-            this.createdAt = System.currentTimeMillis();
-        }
-
-        Key getKey() {
-
-            return key;
-        }
-
-        boolean isExpired() {
-
-            return (System.currentTimeMillis() - createdAt) > PRIVATE_KEY_CACHE_TTL_MS;
+                    "Failed to parse the decoded PEM certificate for Flow Extension action.", e);
         }
     }
 }
