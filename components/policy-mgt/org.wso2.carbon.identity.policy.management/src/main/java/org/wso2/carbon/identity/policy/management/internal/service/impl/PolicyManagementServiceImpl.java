@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.policy.management.api.manager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
@@ -35,6 +34,7 @@ import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtCo
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.CacheBackedPolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManagementDAOImpl;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -82,17 +82,13 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         validateUniquePolicyName(policy.getName(), null, tenantId);
 
-        Policy policyWithId = new Policy(
-                UUID.randomUUID().toString(),
-                policy.getName(),
-                tenantDomain,
-                policy.getResources());
+        String policyId = UUID.randomUUID().toString();
 
         List<PolicyResource> createdResources = new ArrayList<>();
         List<PolicyResource> resourcesWithIds = new ArrayList<>();
 
         try {
-            for (PolicyResource pr : policyWithId.getResources()) {
+            for (PolicyResource pr : policy.getResources()) {
                 PolicyResource stored = getResourceManager(pr.getResourceType()).create(pr, tenantDomain);
                 createdResources.add(stored);
                 resourcesWithIds.add(stored);
@@ -103,7 +99,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
 
         Policy policyWithResourceIds = new Policy(
-                policyWithId.getId(), policyWithId.getName(), tenantDomain, resourcesWithIds);
+                policyId, policy.getName(), tenantDomain, resourcesWithIds);
 
         try {
             return policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);

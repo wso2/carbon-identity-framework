@@ -16,13 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.policy.management.internal.manager;
+package org.wso2.carbon.identity.policy.management.internal.resourcemanager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
-import org.wso2.carbon.identity.policy.management.api.manager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;

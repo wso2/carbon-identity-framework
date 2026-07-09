@@ -28,9 +28,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.policy.management.api.manager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
-import org.wso2.carbon.identity.policy.management.internal.manager.RuleResourceManager;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 
@@ -54,7 +53,7 @@ public class PolicyMgtServiceComponent {
             bundleCtx.registerService(PolicyManagementService.class.getName(), policyManagementService, null);
             PolicyMgtComponentServiceHolder.getInstance().setPolicyManagementService(policyManagementService);
 
-            bundleCtx.registerService(PolicyResourceManager.class, new RuleResourceManager(), null);
+            PolicyMgtComponentServiceHolder.getInstance().addResourceManager(new RuleResourceManager());
             LOG.debug("Policy management bundle activated.");
         } catch (Throwable e) {
             LOG.error("Error while initializing policy management service component.", e);
@@ -87,30 +86,5 @@ public class PolicyMgtServiceComponent {
             holder.setRuleManagementService(null);
         }
         LOG.debug("RuleManagementService unset in Policy Management component.");
-    }
-
-    @Reference(
-            name = "policy.resource.manager",
-            service = PolicyResourceManager.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetResourceManager"
-    )
-    protected void setResourceManager(PolicyResourceManager resourceManager) {
-
-        PolicyMgtComponentServiceHolder.getInstance().addResourceManager(resourceManager);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering PolicyResourceManager: " + resourceManager.getClass().getName()
-                    + " in policy management service component.");
-        }
-    }
-
-    protected void unsetResourceManager(PolicyResourceManager resourceManager) {
-
-        PolicyMgtComponentServiceHolder.getInstance().removeResourceManager(resourceManager);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering PolicyResourceManager: " + resourceManager.getClass().getName()
-                    + " in policy management service component.");
-        }
     }
 }

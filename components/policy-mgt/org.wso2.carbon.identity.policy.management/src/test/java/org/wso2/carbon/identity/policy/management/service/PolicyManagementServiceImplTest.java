@@ -40,7 +40,7 @@ import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
-import org.wso2.carbon.identity.policy.management.internal.manager.RuleResourceManager;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;

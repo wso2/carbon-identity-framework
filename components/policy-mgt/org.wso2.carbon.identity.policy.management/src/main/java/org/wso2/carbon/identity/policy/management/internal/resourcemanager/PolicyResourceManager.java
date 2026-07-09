@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.policy.management.api.manager;
+package org.wso2.carbon.identity.policy.management.internal.resourcemanager;
 
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 
 /**
- * SPI for managing a specific {@link ResourceType} of policy resource in its backing service.
- * Implementations are registered as OSGi services and dispatched to by {@link ResourceType}.
+ * Internal contract for managing a specific {@link ResourceType} of policy resource in its backing
+ * service. Implementations are registered in the component holder and dispatched to by {@link ResourceType}.
  */
 public interface PolicyResourceManager {
 

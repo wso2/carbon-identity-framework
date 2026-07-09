@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.policy.management.internal.component;
 
-import org.wso2.carbon.identity.policy.management.api.manager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 
 import java.util.EnumMap;
@@ -80,16 +80,6 @@ public class PolicyMgtComponentServiceHolder {
     public void addResourceManager(PolicyResourceManager resourceManager) {
 
         resourceManagers.put(resourceManager.getSupportedResourceType(), resourceManager);
-    }
-
-    /**
-     * Unregisters a policy resource manager.
-     *
-     * @param resourceManager Manager to unregister.
-     */
-    public void removeResourceManager(PolicyResourceManager resourceManager) {
-
-        resourceManagers.remove(resourceManager.getSupportedResourceType());
     }
 
     /**
