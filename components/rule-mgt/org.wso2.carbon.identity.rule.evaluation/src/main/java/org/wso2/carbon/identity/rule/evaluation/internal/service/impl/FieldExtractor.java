@@ -91,6 +91,8 @@ public class FieldExtractor {
             case REFERENCE:
                 OptionsReferenceValue referenceValue = (OptionsReferenceValue) fieldDefinitionValue;
                 return ValueType.createReferenceType(referenceValue.getValueReferenceAttribute());
+            case SYMBOLIC:
+                return ValueType.NUMBER;
             default:
                 throw new IllegalArgumentException("Unsupported value type: " + fieldDefinitionValueType);
         }

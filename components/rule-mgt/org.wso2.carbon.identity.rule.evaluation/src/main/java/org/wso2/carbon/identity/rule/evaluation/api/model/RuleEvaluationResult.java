@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.rule.evaluation.api.model;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Rule evaluation result.
  * This class is used to represent the result of a rule evaluation.
@@ -26,11 +29,18 @@ public class RuleEvaluationResult {
 
     private final String ruleId;
     private final boolean ruleSatisfied;
+    private final List<String> failedFields;
 
     public RuleEvaluationResult(String ruleId, boolean ruleSatisfied) {
 
+        this(ruleId, ruleSatisfied, Collections.emptyList());
+    }
+
+    public RuleEvaluationResult(String ruleId, boolean ruleSatisfied, List<String> failedFields) {
+
         this.ruleId = ruleId;
         this.ruleSatisfied = ruleSatisfied;
+        this.failedFields = failedFields != null ? failedFields : Collections.emptyList();
     }
 
     public String getRuleId() {
@@ -41,5 +51,14 @@ public class RuleEvaluationResult {
     public boolean isRuleSatisfied() {
 
         return ruleSatisfied;
+    }
+
+    /**
+     * Returns the list of fields that failed evaluation.
+     * Empty when the rule is satisfied.
+     */
+    public List<String> getFailedFields() {
+
+        return Collections.unmodifiableList(failedFields);
     }
 }

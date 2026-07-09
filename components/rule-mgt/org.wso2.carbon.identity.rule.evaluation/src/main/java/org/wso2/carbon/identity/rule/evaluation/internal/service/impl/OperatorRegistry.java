@@ -45,6 +45,8 @@ public class OperatorRegistry {
         supportedOperators.put("endsWith", stringPredicate(String::endsWith));
         supportedOperators.put("greaterThan", comparablePredicate(result -> result > 0));
         supportedOperators.put("lessThan", comparablePredicate(result -> result < 0));
+        supportedOperators.put("greaterThanOrEquals", comparablePredicate(result -> result >= 0));
+        supportedOperators.put("in", stringPredicate((a, b) -> java.util.Arrays.asList(b.split(",")).contains(a)));
     }
 
     private OperatorRegistry() {

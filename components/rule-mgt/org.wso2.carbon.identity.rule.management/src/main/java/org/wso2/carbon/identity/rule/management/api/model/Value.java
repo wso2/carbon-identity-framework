@@ -50,6 +50,6 @@ public class Value {
      * Represents the type of the value.
      */
     public enum Type {
-        STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE, RAW
+        STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE, RAW, LIST, SYMBOLIC
     }
 }

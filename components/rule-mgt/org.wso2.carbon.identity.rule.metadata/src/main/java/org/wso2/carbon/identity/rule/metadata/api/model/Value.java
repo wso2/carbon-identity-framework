@@ -57,6 +57,6 @@ public abstract class Value {
      * Represents the value type of the value.
      */
     public enum ValueType {
-        STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE
+        STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE, SYMBOLIC
     }
 }

@@ -43,7 +43,7 @@ import java.util.Map;
  */
 public class RuleBuilder {
 
-    private static final int MAX_EXPRESSIONS_COMBINED_WITH_AND = 5;
+    private static final int MAX_EXPRESSIONS_COMBINED_WITH_AND = 15;
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
@@ -241,12 +241,12 @@ public class RuleBuilder {
             return value;
         }
 
-        if (!isValidOptionsInputValue(fieldDefinition, rawValue)) {
+        if (!isValidOptionsInputValue(fieldDefinition, rawValue, value.getType())) {
             return value;
         }
 
         try {
-            return resolveValue(fieldDefinition, rawValue);
+            return resolveValue(fieldDefinition, rawValue, value);
         } catch (RuleManagementClientException e) {
             setValidationError(e.getMessage());
             return value;
@@ -256,8 +256,20 @@ public class RuleBuilder {
     private Value resolveValue(FieldDefinition fieldDefinition,
                                String rawValue) throws RuleManagementClientException {
 
+        return resolveValue(fieldDefinition, rawValue, null);
+    }
+
+    private Value resolveValue(FieldDefinition fieldDefinition,
+                               String rawValue, Value originalValue) throws RuleManagementClientException {
+
         org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType
                 fieldDefinitionValueType = fieldDefinition.getValue().getValueType();
+
+        boolean isSymbolicField = fieldDefinitionValueType ==
+                org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.SYMBOLIC;
+        if (originalValue != null && originalValue.getType() == Value.Type.LIST && !isSymbolicField) {
+            return new Value(Value.Type.LIST, rawValue);
+        }
 
         switch (fieldDefinitionValueType) {
             case STRING:
@@ -268,6 +280,8 @@ public class RuleBuilder {
                 return validateBooleanValue(rawValue);
             case REFERENCE:
                 return new Value(Value.Type.REFERENCE, rawValue);
+            case SYMBOLIC:
+                return new Value(Value.Type.SYMBOLIC, rawValue);
             default:
                 throw new RuleManagementClientException(
                         "Unsupported value type: " + fieldDefinitionValueType + " for field: " +
@@ -281,7 +295,11 @@ public class RuleBuilder {
                 fieldDefinition.getValue().getValueType();
         Value.Type valueType = value.getType();
 
-        if (valueType != Value.Type.RAW && !valueType.name().equals(fieldDefinitionValueType.name())) {
+        // RAW and LIST bypass strict type matching — RAW is stored as-is, LIST is for multi-value (in) operator.
+        if (valueType == Value.Type.RAW || valueType == Value.Type.LIST) {
+            return true;
+        }
+        if (!valueType.name().equals(fieldDefinitionValueType.name())) {
             setValidationError(
                     "Value type " + valueType + " is not supported for field " + fieldDefinition.getField().getName());
             return false;
@@ -289,16 +307,29 @@ public class RuleBuilder {
         return true;
     }
 
-    private boolean isValidOptionsInputValue(FieldDefinition fieldDefinition, String fieldValue) {
+    private boolean isValidOptionsInputValue(FieldDefinition fieldDefinition, String fieldValue,
+                                             Value.Type valueType) {
 
-        if (fieldDefinition.getValue() instanceof OptionsInputValue &&
-                ((OptionsInputValue) fieldDefinition.getValue()).getValues().stream()
-                        .noneMatch(optionsValue -> optionsValue.getName().equals(fieldValue))) {
-            setValidationError(
-                    "Value " + fieldValue + " is not supported for field " + fieldDefinition.getField().getName());
-            return false;
+        // Only fields backed by a fixed set of options need membership validation.
+        if (!(fieldDefinition.getValue() instanceof OptionsInputValue)) {
+            return true;
         }
 
+        OptionsInputValue optionsInputValue = (OptionsInputValue) fieldDefinition.getValue();
+
+        // The 'in' operator packs multiple comma-separated values into a single LIST string; validate each
+        // item individually. A single-value operator has exactly one item to validate.
+        String[] items = valueType == Value.Type.LIST ? fieldValue.split(",") : new String[] {fieldValue};
+
+        for (String item : items) {
+            String token = item.trim();
+            if (optionsInputValue.getValues().stream()
+                    .noneMatch(optionsValue -> optionsValue.getName().equals(token))) {
+                setValidationError(
+                        "Value " + token + " is not supported for field " + fieldDefinition.getField().getName());
+                return false;
+            }
+        }
         return true;
     }
 

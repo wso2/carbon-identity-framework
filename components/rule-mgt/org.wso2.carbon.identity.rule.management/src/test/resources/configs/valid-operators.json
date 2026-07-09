@@ -10,5 +10,9 @@
   "contains": {
     "name": "contains",
     "displayName": "contains"
+  },
+  "in": {
+    "name": "in",
+    "displayName": "in"
   }
 }
