@@ -146,12 +146,18 @@ public class RuleEvaluator {
         throw new IllegalStateException("Unsupported value type: " + fieldValue.getValueType());
     }
 
-    private boolean evaluateInForNumber(Double deviceValue, String commaSeparated) {
+    private boolean evaluateInForNumber(Double deviceValue, String commaSeparated)
+            throws RuleEvaluationException {
 
-        return Arrays.stream(commaSeparated.split(","))
-                .map(String::trim)
-                .map(Double::parseDouble)
-                .anyMatch(v -> v.equals(deviceValue));
+        try {
+            return Arrays.stream(commaSeparated.split(","))
+                    .map(String::trim)
+                    .map(Double::parseDouble)
+                    .anyMatch(v -> v.equals(deviceValue));
+        } catch (NumberFormatException e) {
+            throw new RuleEvaluationException(
+                    "Failed to parse numeric value in 'in' expression: " + commaSeparated, e);
+        }
     }
 
     private boolean evaluateSymbolicExpression(Expression expression, FieldValue fieldValue, Operator operator)
@@ -164,13 +170,16 @@ public class RuleEvaluator {
                     "No symbolic resolver registered for field: " + expression.getField());
         }
         Value resolved = resolver.resolve(expression.getValue().getFieldValue());
-        if (resolved.getType() == Value.Type.NUMBER) {
-            return operator.apply(fieldValue.getValue(), Double.parseDouble(resolved.getFieldValue()));
-        } else if (resolved.getType() == Value.Type.LIST) {
+        if (resolved.getType() != Value.Type.NUMBER && resolved.getType() != Value.Type.LIST) {
+            throw new RuleEvaluationException(
+                    "Symbolic resolver returned unsupported type: " + resolved.getType());
+        }
+
+        // Route on the operator (consistent with evaluateExpression), not on the resolved value shape.
+        if (IN.equals(expression.getOperator())) {
             return evaluateInForNumber((Double) fieldValue.getValue(), resolved.getFieldValue());
         }
-        throw new RuleEvaluationException(
-                "Symbolic resolver returned unsupported type: " + resolved.getType());
+        return operator.apply(fieldValue.getValue(), Double.parseDouble(resolved.getFieldValue()));
     }
 
     private boolean applyOperatorForList(Operator operator, Object fieldValue, Object expressionValue) {
