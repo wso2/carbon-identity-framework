@@ -146,14 +146,14 @@ public class RuleEvaluator {
         throw new IllegalStateException("Unsupported value type: " + fieldValue.getValueType());
     }
 
-    private boolean evaluateInForNumber(Double deviceValue, String commaSeparated)
+    private boolean evaluateInForNumber(Double numericValue, String commaSeparated)
             throws RuleEvaluationException {
 
         try {
             return Arrays.stream(commaSeparated.split(","))
                     .map(String::trim)
                     .map(Double::parseDouble)
-                    .anyMatch(v -> v.equals(deviceValue));
+                    .anyMatch(v -> v.equals(numericValue));
         } catch (NumberFormatException e) {
             throw new RuleEvaluationException(
                     "Failed to parse numeric value in 'in' expression: " + commaSeparated, e);
