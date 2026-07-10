@@ -77,7 +77,9 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
         RuleEvaluator ruleEvaluator = new RuleEvaluator(RuleEvaluationComponentServiceHolder.getInstance()
                 .getOperatorRegistry());
         RuleEvaluationResult result = ruleEvaluator.evaluate(ruleId, rule, evaluationData);
-        LOG.debug("Evaluated rule: " + rule.getId() + " to: " + result.isRuleSatisfied() + ".");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Evaluated rule: " + rule.getId() + " to: " + result.isRuleSatisfied() + ".");
+        }
 
         return result;
     }
