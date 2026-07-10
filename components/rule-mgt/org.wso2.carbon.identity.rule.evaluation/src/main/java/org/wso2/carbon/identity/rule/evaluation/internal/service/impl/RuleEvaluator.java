@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +48,7 @@ public class RuleEvaluator {
     private static final Log LOG = LogFactory.getLog(RuleEvaluator.class);
 
     private final OperatorRegistry operatorRegistry;
+    private final List<String> failedFields = new ArrayList<>();
 
     // Operators
     private static final String EQUALS = "equals";
@@ -71,22 +74,38 @@ public class RuleEvaluator {
         return evaluateORCombinedRule(orRule, evaluationData);
     }
 
+    /**
+     * Returns the list of fields that failed evaluation for the last evaluated rule.
+     * Empty when the rule is satisfied.
+     *
+     * @return List of failed field names.
+     */
+    public List<String> getFailedFields() {
+
+        return Collections.unmodifiableList(failedFields);
+    }
+
     private boolean evaluateORCombinedRule(ORCombinedRule orRule, Map<String, FieldValue> evaluationData)
             throws RuleEvaluationException {
 
         for (ANDCombinedRule andRule : orRule.getRules()) {
-            if (evaluateANDCombinedRule(andRule, evaluationData)) {
+            List<String> branchFailedFields = new ArrayList<>();
+            if (evaluateANDCombinedRule(andRule, evaluationData, branchFailedFields)) {
+                failedFields.clear();
                 return true; // If any ANDCombinedRule evaluates to true, the ORCombinedRule passes
             }
+            failedFields.addAll(branchFailedFields);
         }
         return false; // If none of the ANDCombinedRules pass, the ORCombinedRule fails
     }
 
-    private boolean evaluateANDCombinedRule(ANDCombinedRule andRule, Map<String, FieldValue> evaluationData)
+    private boolean evaluateANDCombinedRule(ANDCombinedRule andRule, Map<String, FieldValue> evaluationData,
+                                            List<String> branchFailedFields)
             throws RuleEvaluationException {
 
         for (Expression expression : andRule.getExpressions()) {
             if (!evaluateExpression(expression, evaluationData)) {
+                branchFailedFields.add(expression.getField());
                 return false; // If any expression fails, the ANDCombinedRule fails
             }
         }
