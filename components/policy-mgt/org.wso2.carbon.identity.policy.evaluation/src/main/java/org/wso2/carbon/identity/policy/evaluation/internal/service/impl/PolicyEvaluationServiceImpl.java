@@ -75,7 +75,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Target is null for policy '" + policy.getName() + "' — treating as compliant.");
             }
-            return new PolicyEvaluationResult(true, Collections.emptyList());
+            return new PolicyEvaluationResult(Collections.emptyList());
         }
 
         List<PolicyResource> matchingResources = policy.getResources().stream()
@@ -87,7 +87,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
                 LOG.debug("No resources for target '" + target + "' in policy '" + policy.getName()
                         + "' — treating as compliant.");
             }
-            return new PolicyEvaluationResult(true, Collections.emptyList());
+            return new PolicyEvaluationResult(Collections.emptyList());
         }
 
         List<ResourceEvaluationOutcome> outcomes = new ArrayList<>();
@@ -101,7 +101,6 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             outcomes.add(evaluator.evaluate(resource, flowContext, tenantDomain));
         }
 
-        boolean satisfied = outcomes.stream().allMatch(ResourceEvaluationOutcome::isSatisfied);
-        return new PolicyEvaluationResult(satisfied, outcomes);
+        return new PolicyEvaluationResult(outcomes);
     }
 }

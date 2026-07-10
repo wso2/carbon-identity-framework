@@ -85,13 +85,10 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         String policyId = UUID.randomUUID().toString();
 
         List<PolicyResource> createdResources = new ArrayList<>();
-        List<PolicyResource> resourcesWithIds = new ArrayList<>();
 
         try {
             for (PolicyResource pr : policy.getResources()) {
-                PolicyResource stored = getResourceManager(pr.getResourceType()).create(pr, tenantDomain);
-                createdResources.add(stored);
-                resourcesWithIds.add(stored);
+                createdResources.add(getResourceManager(pr.getResourceType()).create(pr, tenantDomain));
             }
         } catch (PolicyManagementException e) {
             deleteResources(createdResources, tenantDomain);
@@ -99,7 +96,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
 
         Policy policyWithResourceIds = new Policy(
-                policyId, policy.getName(), tenantDomain, resourcesWithIds);
+                policyId, policy.getName(), tenantDomain, createdResources);
 
         try {
             return policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);
@@ -129,13 +126,10 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         // resources are only deleted after the policy is durably updated, keeping the operation recoverable on
         // any failure.
         List<PolicyResource> createdResources = new ArrayList<>();
-        List<PolicyResource> resourcesWithIds = new ArrayList<>();
 
         try {
             for (PolicyResource pr : policy.getResources()) {
-                PolicyResource stored = getResourceManager(pr.getResourceType()).create(pr, tenantDomain);
-                createdResources.add(stored);
-                resourcesWithIds.add(stored);
+                createdResources.add(getResourceManager(pr.getResourceType()).create(pr, tenantDomain));
             }
         } catch (PolicyManagementException e) {
             deleteResources(createdResources, tenantDomain);
@@ -143,7 +137,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
 
         Policy policyWithResourceIds = new Policy(
-                policy.getId(), policy.getName(), tenantDomain, resourcesWithIds);
+                policy.getId(), policy.getName(), tenantDomain, createdResources);
 
         Policy updatedPolicy;
         try {
@@ -253,8 +247,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         return new Policy(policy.getId(), policy.getName(), policy.getTenantDomain(), hydratedResources);
     }
 
-    // Best-effort: used both for saga compensation (rolling back resources created before a later failure)
-    // and for routine cleanup of resources superseded by an update or removed by a delete.
+
     private void deleteResources(List<PolicyResource> resources, String tenantDomain) {
 
         for (PolicyResource resource : resources) {
