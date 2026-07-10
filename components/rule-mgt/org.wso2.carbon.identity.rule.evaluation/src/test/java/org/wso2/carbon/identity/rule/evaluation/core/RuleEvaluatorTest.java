@@ -26,6 +26,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.OperatorRegistry;
@@ -181,24 +182,24 @@ public class RuleEvaluatorTest {
     @Test
     public void testFailedFieldsPopulatedWhenRuleFails() throws Exception {
 
-        boolean result = ruleEvaluator.evaluate(
+        RuleEvaluationResult result = ruleEvaluator.evaluate("rule1",
                 createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 createEvaluationData("testApp", "client-credentials"));
 
-        assertFalse(result);
+        assertFalse(result.isRuleSatisfied());
         // The rule fails on the first failing expression (application), so it is reported as a failed field.
-        assertEquals(ruleEvaluator.getFailedFields(), Collections.singletonList("application"));
+        assertEquals(result.getFailedFields(), Collections.singletonList("application"));
     }
 
     @Test
     public void testFailedFieldsEmptyWhenRulePasses() throws Exception {
 
-        boolean result = ruleEvaluator.evaluate(
+        RuleEvaluationResult result = ruleEvaluator.evaluate("rule1",
                 createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 createEvaluationData("testapp", "authorization_code"));
 
-        assertTrue(result);
-        assertTrue(ruleEvaluator.getFailedFields().isEmpty());
+        assertTrue(result.isRuleSatisfied());
+        assertTrue(result.getFailedFields().isEmpty());
     }
 
     private Rule createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes() throws Exception {

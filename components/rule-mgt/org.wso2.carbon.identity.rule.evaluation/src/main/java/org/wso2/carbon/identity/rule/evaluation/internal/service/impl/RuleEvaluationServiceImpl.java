@@ -62,7 +62,7 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
 
         if (!rule.isActive()) {
             LOG.debug("Rule: " + rule.getId() + " is inactive. Skip evaluation of rule.");
-            return new RuleEvaluationResult(ruleId, false);
+            return new RuleEvaluationResult(ruleId, false, null);
         }
 
         LOG.debug("Starting to evaluate rule: " + rule.getId() + ".");
@@ -76,10 +76,10 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
 
         RuleEvaluator ruleEvaluator = new RuleEvaluator(RuleEvaluationComponentServiceHolder.getInstance()
                 .getOperatorRegistry());
-        boolean evaluationStatus = ruleEvaluator.evaluate(rule, evaluationData);
-        LOG.debug("Evaluated rule: " + rule.getId() + " to: " + evaluationStatus + ".");
+        RuleEvaluationResult result = ruleEvaluator.evaluate(ruleId, rule, evaluationData);
+        LOG.debug("Evaluated rule: " + rule.getId() + " to: " + result.isRuleSatisfied() + ".");
 
-        return new RuleEvaluationResult(ruleId, evaluationStatus, ruleEvaluator.getFailedFields());
+        return result;
     }
 
     private Map<String, FieldValue> getEvaluationData(String ruleId, FlowContext flowContext,

@@ -31,16 +31,25 @@ public class RuleEvaluationResult {
     private final boolean ruleSatisfied;
     private final List<String> failedFields;
 
+    /**
+     * Creates a result without setting the failed fields.
+     *
+     * @deprecated Use {@link #RuleEvaluationResult(String, boolean, List)} which also captures the failed
+     *             fields. This constructor leaves the failed fields unset ({@code null}), so callers cannot
+     *             distinguish "no fields failed" from "failed fields were not computed".
+     */
+    @Deprecated
     public RuleEvaluationResult(String ruleId, boolean ruleSatisfied) {
 
-        this(ruleId, ruleSatisfied, Collections.emptyList());
+        this(ruleId, ruleSatisfied, null);
     }
 
     public RuleEvaluationResult(String ruleId, boolean ruleSatisfied, List<String> failedFields) {
 
         this.ruleId = ruleId;
         this.ruleSatisfied = ruleSatisfied;
-        this.failedFields = failedFields != null ? failedFields : Collections.emptyList();
+        // Keep as-is: null means the failed fields were not set, which is different from an empty list.
+        this.failedFields = failedFields;
     }
 
     public String getRuleId() {
@@ -54,11 +63,13 @@ public class RuleEvaluationResult {
     }
 
     /**
-     * Returns the list of fields that failed evaluation.
+     * Returns the list of fields that failed evaluation, or {@code null} if the failed fields were not set.
      * Empty when the rule is satisfied.
+     *
+     * @return Unmodifiable list of failed field names, or {@code null} if not set.
      */
     public List<String> getFailedFields() {
 
-        return Collections.unmodifiableList(failedFields);
+        return failedFields == null ? null : Collections.unmodifiableList(failedFields);
     }
 }
