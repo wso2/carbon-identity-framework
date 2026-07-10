@@ -60,6 +60,7 @@ import java.util.Objects;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -175,6 +176,29 @@ public class RuleEvaluatorTest {
 
         ruleEvaluator.evaluate(createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 Collections.emptyMap());
+    }
+
+    @Test
+    public void testFailedFieldsPopulatedWhenRuleFails() throws Exception {
+
+        boolean result = ruleEvaluator.evaluate(
+                createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
+                createEvaluationData("testApp", "client-credentials"));
+
+        assertFalse(result);
+        // The rule fails on the first failing expression (application), so it is reported as a failed field.
+        assertEquals(ruleEvaluator.getFailedFields(), Collections.singletonList("application"));
+    }
+
+    @Test
+    public void testFailedFieldsEmptyWhenRulePasses() throws Exception {
+
+        boolean result = ruleEvaluator.evaluate(
+                createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
+                createEvaluationData("testapp", "authorization_code"));
+
+        assertTrue(result);
+        assertTrue(ruleEvaluator.getFailedFields().isEmpty());
     }
 
     private Rule createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes() throws Exception {
