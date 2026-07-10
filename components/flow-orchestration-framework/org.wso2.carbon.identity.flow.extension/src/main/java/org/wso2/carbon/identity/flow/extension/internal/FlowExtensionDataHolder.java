@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.certificate.management.service.CertificateManage
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 
 /**
- * Data holder for the In-Flow Extension bundle.
+ * Data holder for the Flow Extension bundle.
  *
  * <p>This singleton is used by DS bind/unbind methods to expose dynamic OSGi references
  * to classes outside the component lifecycle methods.</p>

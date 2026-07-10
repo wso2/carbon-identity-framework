@@ -2792,6 +2792,10 @@
         <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
         <MaxTotalConnections>20</MaxTotalConnections>
         <MaxTotalConnectionsPerRoute>20</MaxTotalConnectionsPerRoute>
+        <HTTPFunctions>
+            <MaxConnections>20</MaxConnections>
+            <MaxConnectionsPerRoute>2</MaxConnectionsPerRoute>
+        </HTTPFunctions>
 
         <!--Timeouts in milliseconds-->
         <!--Default configs for timeouts-->

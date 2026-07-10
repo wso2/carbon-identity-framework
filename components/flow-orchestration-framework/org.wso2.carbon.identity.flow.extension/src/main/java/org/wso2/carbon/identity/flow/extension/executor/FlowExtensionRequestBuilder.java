@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.flow.extension.executor;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
@@ -28,6 +30,7 @@ import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionEvent;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionFlow;
+import org.wso2.carbon.identity.flow.extension.model.FlowExtensionUser;
 import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
@@ -47,17 +50,24 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.FlowContextPaths;
+import org.wso2.carbon.identity.flow.extension.util.CredentialWireFormatUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.flow.extension.executor.JWEEncryptionUtil.encrypt;
+
 /**
- * This class is responsible for building the {@link ActionExecutionRequest} for In-Flow Extension
+ * This class is responsible for building the {@link ActionExecutionRequest} for Flow Extension
  * actions.
  *
  * <p><b>Responsibility</b>: expose-based filtering and request construction.
@@ -80,11 +90,11 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
     }
 
     @Override
-    public ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
+    public ActionExecutionRequest buildActionExecutionRequest(FlowContext actionFlowContext,
                                                               ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-        FlowExecutionContext execCtx = getFlowExecutionContext(flowContext);
+        FlowExecutionContext execCtx = getFlowExecutionContext(actionFlowContext);
         FlowExtensionAction flowExtensionAction = getFlowExtensionAction(actionExecutionContext);
 
         AccessConfig accessConfig = flowExtensionAction.getAccessConfig();
@@ -92,9 +102,9 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
         List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
-        flowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
+        actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
-        List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, flowContext);
+        List<AllowedOperation> allowedOperations = buildAllowedOperations(accessConfig, actionFlowContext);
         String certificatePEM = resolveOutboundCertificate(accessConfig, certificate);
         ExposeResolution exposeResolution = pruneEncryptedExposePathsWithoutCertificate(
                 exposePaths, accessConfig, certificatePEM);
@@ -116,18 +126,18 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
      * for the response processor.
      *
      * @param accessConfig The access config containing modify paths (may be null).
-     * @param flowContext  The FlowContext to store path annotations.
+     * @param actionFlowContext  The FlowContext to store path annotations.
      * @return List of allowed operations (REPLACE if applicable, plus REDIRECT).
      */
     private List<AllowedOperation> buildAllowedOperations(AccessConfig accessConfig,
-                                                          FlowContext flowContext) {
+                                                          FlowContext actionFlowContext) {
 
         List<AllowedOperation> allowedOps = new ArrayList<>();
 
         if (hasModifyPaths(accessConfig)) {
             AllowedModifyExtraction extraction = extractAllowedModifyPaths(accessConfig.getModify());
             addReplaceOperationIfAny(allowedOps, extraction.getCleanPaths());
-            storeAnnotationsIfAny(flowContext, extraction.getPathTypeAnnotations());
+            storeAnnotationsIfAny(actionFlowContext, extraction.getPathTypeAnnotations());
 
             if (LOG.isDebugEnabled() && !extraction.getSkippedPaths().isEmpty()) {
                 LOG.debug("Skipped " + extraction.getSkippedPaths().size()
@@ -150,7 +160,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
      * @param expose         The expose prefix list controlling which data is included.
      * @param accessConfig   The access config (may be null if no encryption).
      * @param certificatePEM The external service's certificate PEM for JWE encryption (may be null).
-     * @return The InFlowExtensionEvent.
+     * @return The FlowExtensionEvent.
      */
     private FlowExtensionEvent buildEvent(FlowExecutionContext context, List<String> expose,
                                             AccessConfig accessConfig, String certificatePEM)
@@ -162,9 +172,8 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         applyTenant(eventBuilder, context, expose);
         applyOrganization(eventBuilder, expose);
         applyApplication(eventBuilder, context, expose);
-        applyUserAndUserStore(flowBuilder, context, expose, accessConfig, certificatePEM);
+        applyUser(flowBuilder, context, expose, accessConfig, certificatePEM);
         applyFlowMetadata(flowBuilder, context, expose);
-        applyFlowProperties(eventBuilder, context, expose, accessConfig, certificatePEM);
 
         eventBuilder.flow(flowBuilder.build());
         return eventBuilder.build();
@@ -184,19 +193,45 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                            AccessConfig accessConfig, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
-        User.Builder userBuilder = new User.Builder(resolveUserId(flowUser, expose));
+        FlowExtensionUser.Builder userBuilder =
+                new FlowExtensionUser.Builder(resolveUserId(flowUser, expose, accessConfig, certificatePEM));
+
+
+
+        if (isLeafExposed(FlowContextPaths.USER_USERNAME_PATH, expose)) {
+            String username = encryptIfConfigured(
+                    FlowContextPaths.USER_USERNAME_PATH, UserCoreUtil.removeDomainFromName(flowUser.getUsername()),
+                    accessConfig, certificatePEM);
+            if (username != null) {
+                userBuilder.username(username);
+            }
+        }
+        if (isLeafExposed(FlowContextPaths.USER_STORE_DOMAIN_PATH, expose)) {
+            String userStoreDomain = encryptIfConfigured(
+                    FlowContextPaths.USER_STORE_DOMAIN_PATH, normalizeUserStoreDomain(flowUser.getUsername(),
+                            flowUser.getUserStoreDomain()), accessConfig, certificatePEM);
+            if (userStoreDomain != null) {
+                userBuilder.userStoreDomain(userStoreDomain);
+            }
+        }
+
         List<UserClaim> userClaims = buildFilteredClaims(flowUser, expose, accessConfig, certificatePEM);
         if (!userClaims.isEmpty()) {
             userBuilder.claims(userClaims);
         }
 
+        Map<String, Object> credentials = buildFilteredCredentials(flowUser, expose, accessConfig, certificatePEM);
+        if (!credentials.isEmpty()) {
+            userBuilder.credentials(credentials);
+        }
+
         return userBuilder.build();
     }
 
-    private FlowExecutionContext getFlowExecutionContext(FlowContext flowContext)
+    private FlowExecutionContext getFlowExecutionContext(FlowContext actionFlowContext)
             throws ActionExecutionRequestBuilderException {
 
-        FlowExecutionContext execCtx = flowContext.getValue(
+        FlowExecutionContext execCtx = actionFlowContext.getValue(
                 FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
         if (execCtx == null) {
             throw new ActionExecutionRequestBuilderException("FlowExecutionContext not found in FlowContext.");
@@ -395,10 +430,10 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         allowedOperations.add(replaceOp);
     }
 
-    private void storeAnnotationsIfAny(FlowContext flowContext, Map<String, String> pathTypeAnnotations) {
+    private void storeAnnotationsIfAny(FlowContext actionFlowContext, Map<String, String> pathTypeAnnotations) {
 
         if (!pathTypeAnnotations.isEmpty()) {
-            flowContext.add(FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
+            actionFlowContext.add(FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, pathTypeAnnotations);
         }
     }
 
@@ -470,9 +505,9 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         eventBuilder.application(new Application(appId != null ? appId : "", null));
     }
 
-    private void applyUserAndUserStore(FlowExtensionFlow.Builder flowBuilder, FlowExecutionContext context,
-                                       List<String> expose, AccessConfig accessConfig,
-                                       String certificatePEM) throws ActionExecutionRequestBuilderException {
+    private void applyUser(FlowExtensionFlow.Builder flowBuilder, FlowExecutionContext context,
+                           List<String> expose, AccessConfig accessConfig,
+                           String certificatePEM) throws ActionExecutionRequestBuilderException {
 
         if (!isAreaExposed(FlowContextPaths.USER_PREFIX, expose)) {
             return;
@@ -502,37 +537,13 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         }
     }
 
-    private void applyFlowProperties(FlowExtensionEvent.Builder eventBuilder, FlowExecutionContext context,
-                                     List<String> expose, AccessConfig accessConfig,
-                                     String certificatePEM) throws ActionExecutionRequestBuilderException {
-
-        if (!isAreaExposed(FlowContextPaths.PROPERTIES_PATH_PREFIX, expose)) {
-            return;
-        }
-
-        Map<String, Object> properties = context.getProperties();
-        Map<String, Object> filteredProperties = new HashMap<>();
-
-        for (String exposePath : expose) {
-            if (!exposePath.startsWith(FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
-                continue;
-            }
-            String propKey = exposePath.substring(FlowContextPaths.PROPERTIES_PATH_PREFIX.length());
-            Object value = properties != null ? properties.get(propKey) : null;
-            if (value != null && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
-                value = encryptValue(String.valueOf(value), certificatePEM);
-            }
-            filteredProperties.put(propKey, value != null ? value : "");
-        }
-
-        eventBuilder.flowProperties(filteredProperties);
-    }
-
-    private String resolveUserId(FlowUser flowUser, List<String> expose) {
+    private String resolveUserId(FlowUser flowUser, List<String> expose,
+                                 AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
 
         if (isLeafExposed(FlowContextPaths.USER_ID_PATH, expose)) {
-            String userId = flowUser.getUserId();
-            return userId != null ? userId : "";
+            return encryptIfConfigured(
+                    FlowContextPaths.USER_ID_PATH, flowUser.getUserId(), accessConfig, certificatePEM);
         }
         return null;
     }
@@ -554,13 +565,116 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
                 continue;
             }
             String claimValue = claims != null ? claims.get(claimUri) : null;
-            claimValue = claimValue != null ? claimValue : "";
-            if (!claimValue.isEmpty() && shouldEncrypt(exposePath, accessConfig, certificatePEM)) {
-                claimValue = encryptValue(claimValue, certificatePEM);
+            claimValue = encryptIfConfigured(exposePath, claimValue, accessConfig, certificatePEM);
+            if (claimValue != null) {
+                userClaims.add(new UserClaim(claimUri, claimValue));
             }
-            userClaims.add(new UserClaim(claimUri, claimValue));
         }
         return userClaims;
+    }
+
+    /**
+     * Build the exposed user credentials map, reading each exposed {@code /user/credentials/<key>}
+     * leaf from {@link FlowUser#getUserCredentials()} and routing it through
+     * {@link #buildCredentialValue} to produce its per-path wire form (typed object when plaintext,
+     * JWE compact string when {@code encrypted: true}).
+     */
+    private Map<String, Object> buildFilteredCredentials(FlowUser flowUser, List<String> expose,
+                                                         AccessConfig accessConfig, String certificatePEM)
+            throws ActionExecutionRequestBuilderException {
+
+        if (!isAreaExposed(FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX, expose)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, char[]> userCredentials = flowUser.getUserCredentials();
+        if (userCredentials == null || userCredentials.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Object> credentials = new HashMap<>();
+        for (String exposePath : expose) {
+            String credentialKey = extractCredentialKeyFromPath(exposePath);
+            if (credentialKey == null) {
+                continue;
+            }
+            char[] secret = userCredentials.get(credentialKey);
+            if (isBlankExposedValue(secret)) {
+                continue;
+            }
+            credentials.put(credentialKey,
+                    buildCredentialValue(exposePath, secret, accessConfig, certificatePEM));
+        }
+        return credentials;
+    }
+
+    /**
+     * Build the wire form of a single exposed credential. The secret is always wrapped in the typed
+     * credential object {@code {"type": "PLAIN_TEXT", "value": "<secret>"}}. When the path is
+     * configured for encryption that object is serialized and JWE-encrypted, and the returned value
+     * is the JWE compact string; otherwise the typed object is returned directly for the mapper to
+     * serialize as a nested JSON object.
+     *
+     * @param exposePath     The credential expose path, used to look up the {@code encrypted} flag.
+     * @param secret         The raw credential secret.
+     * @param accessConfig   The access config with encryption flags (may be null).
+     * @param certificatePEM The certificate PEM for JWE encryption (may be null).
+     * @return A {@code Map} typed credential object, or a JWE compact {@code String} when encrypted.
+     * @throws ActionExecutionRequestBuilderException if the path requires encryption but no
+     *                                                outbound certificate is configured.
+     */
+    private Object buildCredentialValue(String exposePath, char[] secret, AccessConfig accessConfig,
+                                        String certificatePEM) throws ActionExecutionRequestBuilderException {
+
+        boolean encryptionRequired = accessConfig != null && accessConfig.isExposePathEncrypted(exposePath);
+        if (!encryptionRequired) {
+            return buildPlainTextCredential(secret);
+        }
+
+        if (certificatePEM == null) {
+            LOG.error("Outbound encryption is configured for path: " + exposePath
+                    + " but no outbound certificate is available.");
+            throw new ActionExecutionRequestBuilderException(
+                    "Missing outbound certificate for encrypted expose path: " + exposePath);
+        }
+
+        char[] credentialJson = CredentialWireFormatUtil.toPlainTextCredentialJson(secret);
+        try {
+            return encryptValue(credentialJson, certificatePEM);
+        } finally {
+            Arrays.fill(credentialJson, '\0');
+        }
+    }
+
+    /**
+     * Build the typed credential object {@code {"type": "PLAIN_TEXT", "value": "<secret>"}} for the
+     * unencrypted path, to be serialized by the mapper as a nested JSON object.
+     */
+    private Map<String, String> buildPlainTextCredential(char[] secret) {
+
+        Map<String, String> credential = new LinkedHashMap<>();
+        credential.put(FlowExtensionConstants.Credentials.TYPE_KEY,
+                FlowExtensionConstants.Credentials.TYPE_PLAIN_TEXT);
+        credential.put(FlowExtensionConstants.Credentials.VALUE_KEY, new String(secret));
+        return credential;
+    }
+
+    /**
+     * Extract the credential key from a credentials leaf path.
+     * Accepts {@code /user/credentials/<key>} and returns {@code <key>}.
+     * Returns {@code null} if the path is not a single-segment credentials leaf.
+     */
+    private static String extractCredentialKeyFromPath(String path) {
+
+        String prefix = FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX;
+        if (path == null || !path.startsWith(prefix)) {
+            return null;
+        }
+        String remaining = path.substring(prefix.length());
+        if (remaining.isEmpty() || remaining.contains("/")) {
+            return null;
+        }
+        return remaining;
     }
 
     /**
@@ -634,7 +748,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
 
     /**
      * Check if any exposed leaf path falls under the given area prefix.
-     * Used as a gate before iterating a data block (claims, credentials, properties).
+     * Used as a gate before iterating a data block (claims, credentials).
      */
     private boolean isAreaExposed(String areaPrefix, List<String> expose) {
 
@@ -651,38 +765,104 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
     }
 
     /**
-     * Determine if a value at the given path should be JWE-encrypted before sending to the
-     * external service. Only expose paths with {@code encrypted: true} trigger outbound encryption.
+     * Outbound encryption gate for every exposed user value: returns {@code null} to signal the value
+     * must be omitted from the payload when it is blank, the JWE compact form when the path is
+     * configured for encryption, otherwise the value unchanged. Blank values are never emitted, so an
+     * encrypted path that yields a value always yields a JWE compact string.
      *
-     * @param path           The expose path.
-     * @param accessConfig   The access config with encryption flags.
-     * @param certificatePEM The certificate PEM (null if no encryption configured).
-     * @return {@code true} if the value should be encrypted.
+     * @param path           The target context path to check for encryption rules.
+     * @param value          The raw value to be evaluated and potentially encrypted.
+     * @param accessConfig   The access configuration containing encryption rules.
+     * @param certificatePEM The public certificate content used for encryption.
+     * @return The plain text string, the encrypted payload, or null if the value is blank.
+     * @throws ActionExecutionRequestBuilderException If encryption is required but the certificate is missing.
      */
-    private boolean shouldEncrypt(String path, AccessConfig accessConfig, String certificatePEM) {
+    private String encryptIfConfigured(String path, Object value, AccessConfig accessConfig,
+                                       String certificatePEM) throws ActionExecutionRequestBuilderException {
 
-        if (certificatePEM == null || accessConfig == null) {
-            return false;
+        if (isBlankExposedValue(value)) {
+            return null;
         }
-        return accessConfig.isExposePathEncrypted(path);
+
+        boolean encryptionRequired = accessConfig != null && accessConfig.isExposePathEncrypted(path);
+        if (!encryptionRequired) {
+            return value instanceof char[] ? new String((char[]) value) : value.toString();
+        }
+
+        if (certificatePEM == null) {
+            throw new ActionExecutionRequestBuilderException(
+                    "Missing outbound certificate for encrypted expose path: " + path);
+        }
+
+        return encryptValue(value, certificatePEM);
     }
 
     /**
-     * JWE-encrypt a plaintext value using the external service's certificate.
+     * JWE-encrypt a value using the external service's certificate.
      *
-     * @param plaintext      The value to encrypt.
+     * @param value      The value to encrypt.
      * @param certificatePEM The external service's certificate PEM.
      * @return The JWE compact serialization string.
      * @throws ActionExecutionRequestBuilderException If encryption fails.
      */
-    private String encryptValue(String plaintext, String certificatePEM)
+    private String encryptValue(Object value, String certificatePEM)
             throws ActionExecutionRequestBuilderException {
 
         try {
-            return JWEEncryptionUtil.encrypt(plaintext, certificatePEM);
-        } catch (Exception e) {
+            if (value instanceof char[]) {
+                return encrypt((char[]) value, certificatePEM);
+            } else if (value instanceof String) {
+                return encrypt((String) value, certificatePEM);
+            } else {
+                throw new ActionExecutionRequestBuilderException(
+                        "Unsupported value type for JWE encryption: " +
+                                (value == null ? "null" : value.getClass().getName()));
+            }
+        } catch (ActionExecutionException e) {
             throw new ActionExecutionRequestBuilderException(
-                    "Failed to JWE-encrypt outbound value for In-Flow Extension action.", e);
+                    "Failed to JWE-encrypt outbound value for Flow Extension action.", e);
         }
+    }
+
+    /**
+     * Resolve the userstore domain, deriving it from a domain-qualified username (e.g. {@code "LDAP/john"} -> {@code
+     * "LDAP"}) when it is not already set explicitly.
+     *
+     * @param username        The raw username (may be null or domain-qualified).
+     * @param userStoreDomain The raw userstore domain (may be null or blank).
+     * @return The resolved userstore domain.
+     */
+    private String normalizeUserStoreDomain(String username, String userStoreDomain) {
+
+        userStoreDomain = userStoreDomain != null ? userStoreDomain : "";
+        if (StringUtils.isBlank(userStoreDomain) && username != null
+                && username.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
+            userStoreDomain = UserCoreUtil.extractDomainFromName(username);
+        }
+        return userStoreDomain;
+    }
+
+    /**
+     * Determines whether an exposed value should be treated as blank: null, an empty or
+     * all-whitespace char array, or a blank String. Any other type is never blank.
+     */
+    private boolean isBlankExposedValue(Object value) {
+
+        if (value == null) {
+            return true;
+        }
+        if (value instanceof char[]) {
+            char[] chars = (char[]) value;
+            for (char c : chars) {
+                if (!Character.isWhitespace(c)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (value instanceof String) {
+            return StringUtils.isBlank((String) value);
+        }
+        return false;
     }
 }
