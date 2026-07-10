@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.policy.evaluation.api.evaluator;
 
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
-import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationOutcome;
+import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
@@ -46,6 +46,6 @@ public interface PolicyResourceEvaluator {
      * @return Evaluation outcome for the resource.
      * @throws PolicyEvaluationException If evaluation fails.
      */
-    ResourceEvaluationOutcome evaluate(PolicyResource resource, FlowContext flowContext,
+    ResourceEvaluationResult evaluate(PolicyResource resource, FlowContext flowContext,
                                        String tenantDomain) throws PolicyEvaluationException;
 }

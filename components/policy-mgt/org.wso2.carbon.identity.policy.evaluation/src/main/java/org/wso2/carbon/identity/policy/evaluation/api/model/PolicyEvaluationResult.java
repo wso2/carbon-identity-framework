@@ -23,26 +23,26 @@ import java.util.List;
 
 /**
  * Aggregate result of evaluating a policy against a resource target.
- * {@link #isSatisfied()} is {@code true} only if every {@link ResourceEvaluationOutcome} in
- * {@link #getOutcomes()} is satisfied.
+ * {@link #isSatisfied()} is {@code true} only if every {@link ResourceEvaluationResult} in
+ * {@link #getResults()} is satisfied.
  */
 public class PolicyEvaluationResult {
 
     private final boolean satisfied;
-    private final List<ResourceEvaluationOutcome> outcomes;
+    private final List<ResourceEvaluationResult> results;
 
     /**
-     * Creates a policy evaluation result. Overall satisfaction is derived from the outcomes: the result
+     * Creates a policy evaluation result. Overall satisfaction is derived from the results: the result
      * is satisfied only if every outcome is satisfied (an empty outcome list is satisfied by default).
      *
-     * @param outcomes Per-resource evaluation outcomes.
+     * @param results Per-resource evaluation results.
      */
-    public PolicyEvaluationResult(List<ResourceEvaluationOutcome> outcomes) {
+    public PolicyEvaluationResult(List<ResourceEvaluationResult> results) {
 
-        this.outcomes = outcomes == null
+        this.results = results == null
                 ? Collections.emptyList()
-                : Collections.unmodifiableList(outcomes);
-        this.satisfied = this.outcomes.stream().allMatch(ResourceEvaluationOutcome::isSatisfied);
+                : Collections.unmodifiableList(results);
+        this.satisfied = this.results.stream().allMatch(ResourceEvaluationResult::isSatisfied);
     }
 
     public boolean isSatisfied() {
@@ -50,8 +50,8 @@ public class PolicyEvaluationResult {
         return satisfied;
     }
 
-    public List<ResourceEvaluationOutcome> getOutcomes() {
+    public List<ResourceEvaluationResult> getResults() {
 
-        return outcomes;
+        return results;
     }
 }

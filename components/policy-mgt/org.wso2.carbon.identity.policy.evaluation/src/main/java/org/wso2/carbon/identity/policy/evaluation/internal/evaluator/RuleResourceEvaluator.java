@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.policy.evaluation.internal.evaluator;
 
 import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
-import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationOutcome;
+import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
+import org.wso2.carbon.identity.policy.evaluation.api.model.RuleResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
@@ -28,6 +29,8 @@ import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+
+import java.util.Collections;
 
 /**
  * {@link PolicyResourceEvaluator} for {@link ResourceType#RULE} resources.
@@ -41,20 +44,24 @@ public class RuleResourceEvaluator implements PolicyResourceEvaluator {
     }
 
     @Override
-    public ResourceEvaluationOutcome evaluate(PolicyResource resource, FlowContext flowContext,
+    public ResourceEvaluationResult evaluate(PolicyResource resource, FlowContext flowContext,
                                               String tenantDomain) throws PolicyEvaluationException {
 
+        if (!(resource instanceof RulePolicyResource)) {
+            throw new PolicyEvaluationException("RuleResourceEvaluator received an unsupported resource type: "
+                    + (resource == null ? "null" : resource.getClass().getName()));
+        }
         RulePolicyResource ruleResource = (RulePolicyResource) resource;
 
         if (ruleResource.getRule() == null) {
-            return new ResourceEvaluationOutcome(ruleResource.getResourceId(), ResourceType.RULE, true);
+            return new RuleResourceEvaluationResult(ruleResource, true, Collections.emptyList());
         }
 
         try {
             RuleEvaluationResult result = PolicyEvaluationComponentServiceHolder.getInstance()
                     .getRuleEvaluationService()
                     .evaluate(ruleResource.getRule().getId(), flowContext, tenantDomain);
-            return new ResourceEvaluationOutcome(ruleResource.getResourceId(), ResourceType.RULE,
+            return new RuleResourceEvaluationResult(ruleResource,
                     result.isRuleSatisfied(), result.getFailedFields());
         } catch (RuleEvaluationException e) {
             throw new PolicyEvaluationException(

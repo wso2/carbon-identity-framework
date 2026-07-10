@@ -33,7 +33,7 @@ public interface PolicyEvaluationService {
      * <p>Evaluates every resource matching {@code target} within the policy, dispatching each resource
      * to the evaluator registered for its resource type. Returns {@code null} when no policy with
      * {@code policyId} exists — the caller interprets this as "no constraint". Returns a satisfied result
-     * with no outcomes when a policy exists but no resource matches the target (compliant by default).
+     * with no results when a policy exists but no resource matches the target (compliant by default).
      * The overall result is satisfied only if every matching resource's outcome is satisfied.
      *
      * @param policyId     ID of the policy to evaluate.

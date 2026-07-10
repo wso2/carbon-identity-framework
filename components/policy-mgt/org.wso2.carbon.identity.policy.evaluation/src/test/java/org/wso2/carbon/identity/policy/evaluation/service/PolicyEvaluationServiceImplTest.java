@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
-import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationOutcome;
+import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.policy.evaluation.internal.evaluator.RuleResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.internal.service.impl.PolicyEvaluationServiceImpl;
@@ -82,6 +82,17 @@ public class PolicyEvaluationServiceImplTest {
         }
     }
 
+    /**
+     * Minimal concrete {@link ResourceEvaluationResult} for stub evaluators, since the base is abstract.
+     */
+    private static class StubResourceEvaluationResult extends ResourceEvaluationResult {
+
+        StubResourceEvaluationResult(PolicyResource resource, boolean satisfied) {
+
+            super(resource, satisfied);
+        }
+    }
+
     @BeforeMethod
     public void setUp() {
 
@@ -115,10 +126,10 @@ public class PolicyEvaluationServiceImplTest {
             }
 
             @Override
-            public ResourceEvaluationOutcome evaluate(PolicyResource resource, FlowContext flowContext,
+            public ResourceEvaluationResult evaluate(PolicyResource resource, FlowContext flowContext,
                                                       String tenantDomain) {
 
-                return new ResourceEvaluationOutcome(resource.getResourceId(), resourceType, satisfied);
+                return new StubResourceEvaluationResult(resource, satisfied);
             }
         };
     }
@@ -144,7 +155,7 @@ public class PolicyEvaluationServiceImplTest {
 
         Assert.assertNotNull(result);
         Assert.assertTrue(result.isSatisfied());
-        Assert.assertTrue(result.getOutcomes().isEmpty());
+        Assert.assertTrue(result.getResults().isEmpty());
         verify(ruleEvaluationService, org.mockito.Mockito.never())
                 .evaluate(eq(RULE_ID), eq(flowContext), eq(TENANT_DOMAIN));
     }
@@ -161,10 +172,10 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
-        Assert.assertEquals(result.getOutcomes().size(), 1);
-        Assert.assertTrue(result.getOutcomes().get(0).isSatisfied());
-        Assert.assertEquals(result.getOutcomes().get(0).getResourceType(), ResourceType.RULE);
-        Assert.assertEquals(result.getOutcomes().get(0).getResourceId(), RULE_ID);
+        Assert.assertEquals(result.getResults().size(), 1);
+        Assert.assertTrue(result.getResults().get(0).isSatisfied());
+        Assert.assertEquals(result.getResults().get(0).getResourceType(), ResourceType.RULE);
+        Assert.assertEquals(result.getResults().get(0).getResourceId(), RULE_ID);
         verify(ruleEvaluationService).evaluate(RULE_ID, flowContext, TENANT_DOMAIN);
     }
 
@@ -180,8 +191,8 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
 
         Assert.assertFalse(result.isSatisfied());
-        Assert.assertEquals(result.getOutcomes().size(), 1);
-        Assert.assertFalse(result.getOutcomes().get(0).isSatisfied());
+        Assert.assertEquals(result.getResults().size(), 1);
+        Assert.assertFalse(result.getResults().get(0).isSatisfied());
     }
 
     @Test
@@ -193,7 +204,7 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, null, flowContext, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
-        Assert.assertTrue(result.getOutcomes().isEmpty());
+        Assert.assertTrue(result.getResults().isEmpty());
     }
 
     @Test
@@ -211,7 +222,7 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
-        Assert.assertTrue(result.getOutcomes().isEmpty());
+        Assert.assertTrue(result.getResults().isEmpty());
     }
 
     @Test
@@ -251,7 +262,7 @@ public class PolicyEvaluationServiceImplTest {
                     POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
 
             Assert.assertTrue(result.isSatisfied());
-            Assert.assertEquals(result.getOutcomes().size(), 2);
+            Assert.assertEquals(result.getResults().size(), 2);
         } finally {
             PolicyEvaluationComponentServiceHolder.getInstance().removePolicyResourceEvaluator(stubActionEvaluator);
         }
@@ -279,7 +290,7 @@ public class PolicyEvaluationServiceImplTest {
                     POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
 
             Assert.assertFalse(result.isSatisfied());
-            Assert.assertEquals(result.getOutcomes().size(), 2);
+            Assert.assertEquals(result.getResults().size(), 2);
         } finally {
             PolicyEvaluationComponentServiceHolder.getInstance().removePolicyResourceEvaluator(stubActionEvaluator);
         }

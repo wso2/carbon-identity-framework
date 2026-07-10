@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
-import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationOutcome;
+import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
@@ -90,7 +90,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             return new PolicyEvaluationResult(Collections.emptyList());
         }
 
-        List<ResourceEvaluationOutcome> outcomes = new ArrayList<>();
+        List<ResourceEvaluationResult> results = new ArrayList<>();
         for (PolicyResource resource : matchingResources) {
             PolicyResourceEvaluator evaluator = PolicyEvaluationComponentServiceHolder.getInstance()
                     .getPolicyResourceEvaluator(resource.getResourceType());
@@ -98,9 +98,9 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
                 throw new PolicyEvaluationException(
                         "No evaluator for resource type: " + resource.getResourceType());
             }
-            outcomes.add(evaluator.evaluate(resource, flowContext, tenantDomain));
+            results.add(evaluator.evaluate(resource, flowContext, tenantDomain));
         }
 
-        return new PolicyEvaluationResult(outcomes);
+        return new PolicyEvaluationResult(results);
     }
 }
