@@ -182,7 +182,7 @@ public class RuleEvaluatorTest {
     @Test
     public void testFailedFieldsPopulatedWhenRuleFails() throws Exception {
 
-        RuleEvaluationResult result = ruleEvaluator.evaluate("rule1",
+        RuleEvaluationResult result = ruleEvaluator.evaluateResult(
                 createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 createEvaluationData("testApp", "client-credentials"));
 
@@ -194,7 +194,7 @@ public class RuleEvaluatorTest {
     @Test
     public void testFailedFieldsEmptyWhenRulePasses() throws Exception {
 
-        RuleEvaluationResult result = ruleEvaluator.evaluate("rule1",
+        RuleEvaluationResult result = ruleEvaluator.evaluateResult(
                 createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 createEvaluationData("testapp", "authorization_code"));
 

@@ -70,25 +70,24 @@ public class RuleEvaluator {
      */
     public boolean evaluate(Rule rule, Map<String, FieldValue> evaluationData) throws RuleEvaluationException {
 
-        return evaluate(null, rule, evaluationData).isRuleSatisfied();
+        return evaluateResult(rule, evaluationData).isRuleSatisfied();
     }
 
     /**
      * Evaluate a given rule and return the result, including the fields that failed evaluation.
      *
-     * @param ruleId         Rule ID.
      * @param rule           Rule to evaluate.
      * @param evaluationData Evaluation data.
      * @return Rule evaluation result with the satisfied status and the failed fields.
      * @throws RuleEvaluationException If an error occurs while evaluating the rule.
      */
-    public RuleEvaluationResult evaluate(String ruleId, Rule rule, Map<String, FieldValue> evaluationData)
+    public RuleEvaluationResult evaluateResult(Rule rule, Map<String, FieldValue> evaluationData)
             throws RuleEvaluationException {
 
         List<String> failedFields = new ArrayList<>();
         ORCombinedRule orRule = (ORCombinedRule) rule;
         boolean ruleSatisfied = evaluateORCombinedRule(orRule, evaluationData, failedFields);
-        return new RuleEvaluationResult(ruleId, ruleSatisfied, failedFields);
+        return new RuleEvaluationResult(rule.getId(), ruleSatisfied, failedFields);
     }
 
     private boolean evaluateORCombinedRule(ORCombinedRule orRule, Map<String, FieldValue> evaluationData,
