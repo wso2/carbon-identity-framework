@@ -59,10 +59,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
         }
 
         if (policy == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy not found with ID: " + policyId + " for tenant: " + tenantDomain);
-            }
-            return null;
+            throw new PolicyEvaluationException("Policy not found for the given policyId: " + policyId);
         }
         return evaluate(policy, target, flowContext, tenantDomain);
     }

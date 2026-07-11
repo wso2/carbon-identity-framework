@@ -134,14 +134,12 @@ public class PolicyEvaluationServiceImplTest {
         };
     }
 
-    @Test
-    public void testPolicyNotFoundReturnsNull() throws PolicyManagementException, PolicyEvaluationException {
+    @Test(expectedExceptions = PolicyEvaluationException.class)
+    public void testPolicyNotFoundThrows() throws PolicyManagementException, PolicyEvaluationException {
 
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(null);
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
-
-        Assert.assertNull(result);
+        policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
     }
 
     @Test

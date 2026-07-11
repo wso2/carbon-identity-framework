@@ -251,12 +251,11 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     private void deleteResources(List<PolicyResource> resources, String tenantDomain) {
 
         for (PolicyResource resource : resources) {
-            try {
-                getResourceManager(resource.getResourceType()).delete(resource, tenantDomain);
-            } catch (PolicyManagementException e) {
-                LOG.error("No resource manager for type " + resource.getResourceType()
-                        + " while deleting policy resource " + resource.getResourceId()
-                        + ". Resource may be orphaned.", e);
+            // Best-effort cleanup: look up the manager without throwing and skip if none is registered.
+            PolicyResourceManager manager = PolicyMgtComponentServiceHolder.getInstance()
+                    .getResourceManager(resource.getResourceType());
+            if (manager != null) {
+                manager.delete(resource, tenantDomain);
             }
         }
     }
