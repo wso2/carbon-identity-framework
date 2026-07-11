@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationExce
 import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 
-import java.util.Collections;
-
 /**
  * {@link PolicyResourceEvaluator} for {@link ResourceType#RULE} resources.
  */
@@ -54,15 +52,16 @@ public class RuleResourceEvaluator implements PolicyResourceEvaluator {
         RulePolicyResource ruleResource = (RulePolicyResource) resource;
 
         if (ruleResource.getRule() == null) {
-            return new RuleResourceEvaluationResult(ruleResource, true, Collections.emptyList());
+            return RuleResourceEvaluationResult.satisfied(ruleResource);
         }
 
         try {
             RuleEvaluationResult result = PolicyEvaluationComponentServiceHolder.getInstance()
                     .getRuleEvaluationService()
                     .evaluate(ruleResource.getRule().getId(), flowContext, tenantDomain);
-            return new RuleResourceEvaluationResult(ruleResource,
-                    result.isRuleSatisfied(), result.getFailedFields());
+            return result.isRuleSatisfied()
+                    ? RuleResourceEvaluationResult.satisfied(ruleResource)
+                    : RuleResourceEvaluationResult.unsatisfied(ruleResource, result.getFailedFields());
         } catch (RuleEvaluationException e) {
             throw new PolicyEvaluationException(
                     "Error evaluating rule resource '" + ruleResource.getResourceId() + "'.", e);

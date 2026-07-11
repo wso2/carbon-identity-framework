@@ -31,19 +31,35 @@ public class RuleResourceEvaluationResult extends ResourceEvaluationResult {
 
     private final List<String> failedFields;
 
-    /**
-     * Creates a rule resource evaluation result.
-     *
-     * @param resource     The evaluated rule resource.
-     * @param satisfied    Whether the rule evaluation was satisfied.
-     * @param failedFields Fields that caused the rule to fail, or empty if satisfied.
-     */
-    public RuleResourceEvaluationResult(PolicyResource resource, boolean satisfied, List<String> failedFields) {
+    private RuleResourceEvaluationResult(PolicyResource resource, boolean satisfied, List<String> failedFields) {
 
         super(resource, satisfied);
         this.failedFields = failedFields == null
                 ? Collections.emptyList()
                 : Collections.unmodifiableList(failedFields);
+    }
+
+    /**
+     * Creates a satisfied result for a rule resource (no failed fields).
+     *
+     * @param resource The evaluated rule resource.
+     * @return A satisfied rule resource evaluation result.
+     */
+    public static RuleResourceEvaluationResult satisfied(PolicyResource resource) {
+
+        return new RuleResourceEvaluationResult(resource, true, Collections.emptyList());
+    }
+
+    /**
+     * Creates an unsatisfied result for a rule resource, carrying the fields that caused the failure.
+     *
+     * @param resource     The evaluated rule resource.
+     * @param failedFields Fields that caused the rule to fail.
+     * @return An unsatisfied rule resource evaluation result.
+     */
+    public static RuleResourceEvaluationResult unsatisfied(PolicyResource resource, List<String> failedFields) {
+
+        return new RuleResourceEvaluationResult(resource, false, failedFields);
     }
 
     public List<String> getFailedFields() {
