@@ -193,6 +193,51 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
+    public void testGetActiveDeviceByIdReturnsDeviceWhenActive() throws Exception {
+
+        Device active = buildDevice("d1", "alice@example.com", Device.Status.ACTIVE);
+        when(dao.getDeviceById("d1", TENANT_ID)).thenReturn(active);
+
+        Device result = service.getActiveDeviceById("d1", TENANT_DOMAIN);
+
+        Assert.assertEquals(result, active);
+    }
+
+    @Test
+    public void testGetActiveDeviceByIdReturnsNullWhenInactive() throws Exception {
+
+        // The security-critical case: a deactivated (revoked) device must not be returned,
+        // even though the record still exists and getDeviceById would return it.
+        Device inactive = buildDevice("d1", "alice@example.com", Device.Status.INACTIVE);
+        when(dao.getDeviceById("d1", TENANT_ID)).thenReturn(inactive);
+
+        Device result = service.getActiveDeviceById("d1", TENANT_DOMAIN);
+
+        Assert.assertNull(result);
+    }
+
+    @Test
+    public void testGetActiveDeviceByIdReturnsNullWhenDeviceDoesNotExist() throws Exception {
+
+        when(dao.getDeviceById("unknown", TENANT_ID)).thenReturn(null);
+
+        Device result = service.getActiveDeviceById("unknown", TENANT_DOMAIN);
+
+        Assert.assertNull(result);
+    }
+
+    @Test
+    public void testGetActiveDeviceByIdWithBlankIdThrows() {
+
+        try {
+            service.getActiveDeviceById("", TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtClientException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
+        }
+    }
+
+    @Test
     public void testUpdateDeviceNameWhenDeviceMissingThrows() throws Exception {
 
         when(dao.getDeviceById("d1", TENANT_ID)).thenReturn(null);

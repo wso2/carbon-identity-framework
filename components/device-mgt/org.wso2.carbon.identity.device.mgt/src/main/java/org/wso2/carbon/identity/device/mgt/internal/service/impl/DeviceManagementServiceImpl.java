@@ -82,6 +82,16 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
+    public Device getActiveDeviceById(String deviceId, String tenantDomain) throws DeviceMgtException {
+
+        Device device = getDeviceById(deviceId, tenantDomain);
+        if (device == null || device.getStatus() != Device.Status.ACTIVE) {
+            return null;
+        }
+        return device;
+    }
+
+    @Override
     public List<Device> getDevicesByUserId(String userId, String tenantDomain)
             throws DeviceMgtException {
 

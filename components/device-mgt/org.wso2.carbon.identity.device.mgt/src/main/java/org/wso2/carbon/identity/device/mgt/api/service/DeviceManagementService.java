@@ -39,12 +39,30 @@ public interface DeviceManagementService {
     /**
      * Retrieves a device by its UUID. Returns the device regardless of its status (ACTIVE or
      * INACTIVE) — this is an admin/tenant-scoped lookup, not a filtered "my devices" view.
+     * Do not use this to decide whether a device should be trusted for authentication — a
+     * deactivated (revoked) device is still returned. Use {@link #getActiveDeviceById} for that.
      *
      * @param deviceId     UUID of the device (IDN_DEVICE.ID).
      * @param tenantDomain Tenant domain.
      * @return The Device, or null if not found.
      */
     Device getDeviceById(String deviceId, String tenantDomain)
+            throws DeviceMgtException;
+
+    /**
+     * Retrieves a device by its UUID, but only if its status is {@link Device.Status#ACTIVE}.
+     * Returns {@code null} both when the device does not exist and when it exists but has been
+     * deactivated (revoked) — callers that use the result to decide whether to trust a device
+     * (e.g. token/signature validation) must not be able to distinguish the two cases from the
+     * return value alone, since doing so would leak whether a given device id was ever registered.
+     * This is the method authentication/authorization paths must use; {@link #getDeviceById} is
+     * for management/admin views where an inactive device should still be visible.
+     *
+     * @param deviceId     UUID of the device (IDN_DEVICE.ID).
+     * @param tenantDomain Tenant domain.
+     * @return The Device if it exists and is ACTIVE; {@code null} otherwise.
+     */
+    Device getActiveDeviceById(String deviceId, String tenantDomain)
             throws DeviceMgtException;
 
     /**
