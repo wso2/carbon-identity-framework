@@ -44,24 +44,25 @@ public class DeviceManagementExceptionHandlerTest {
     @Test
     public void testHandleClientExceptionWithCause() {
 
-        ErrorMessage error = ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE;
-        Throwable cause = new RuntimeException("sig error");
-        DeviceMgtClientException ex = DeviceManagementExceptionHandler.handleClientException(error, cause, "reg123");
+        ErrorMessage error = ErrorMessage.ERROR_INVALID_DEVICE_FIELD;
+        Throwable cause = new RuntimeException("field error");
+        DeviceMgtClientException ex =
+                DeviceManagementExceptionHandler.handleClientException(error, cause, "deviceId");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
-        Assert.assertTrue(ex.getDescription().contains("reg123"));
+        Assert.assertTrue(ex.getDescription().contains("deviceId"));
         Assert.assertEquals(ex.getCause(), cause);
     }
 
     @Test
     public void testHandleServerExceptionWithCause() {
 
-        ErrorMessage error = ErrorMessage.ERROR_WHILE_VERIFYING_SIGNATURE;
-        Throwable cause = new RuntimeException("verify error");
-        DeviceMgtServerException ex = DeviceManagementExceptionHandler.handleServerException(error, cause, "reg456");
+        ErrorMessage error = ErrorMessage.ERROR_WHILE_UPDATING_DEVICE;
+        Throwable cause = new RuntimeException("update error");
+        DeviceMgtServerException ex = DeviceManagementExceptionHandler.handleServerException(error, cause);
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
-        Assert.assertTrue(ex.getDescription().contains("reg456"));
+        Assert.assertNotNull(ex.getDescription());
         Assert.assertEquals(ex.getCause(), cause);
     }
 
@@ -79,13 +80,13 @@ public class DeviceManagementExceptionHandlerTest {
     @Test
     public void testDescriptionSubstitutionFormatting() {
 
-        ErrorMessage error = ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND;
-        String regId = "test-reg-id-999";
-        DeviceMgtClientException ex = DeviceManagementExceptionHandler.handleClientException(error, regId);
+        ErrorMessage error = ErrorMessage.ERROR_DEVICE_NOT_FOUND;
+        String deviceId = "test-device-id-999";
+        DeviceMgtClientException ex = DeviceManagementExceptionHandler.handleClientException(error, deviceId);
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
-        Assert.assertTrue(ex.getDescription().contains(regId),
-                "Description should contain substituted value: " + regId);
+        Assert.assertTrue(ex.getDescription().contains(deviceId),
+                "Description should contain substituted value: " + deviceId);
     }
 
     @Test

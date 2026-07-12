@@ -54,13 +54,13 @@ public class DeviceManagementDAOImplTest {
     @Test(priority = 1)
     public void testRegisterDevice() throws DeviceMgtException {
 
-        Device device = buildDevice(UUID.randomUUID().toString(), "Alice Phone", "ACTIVE");
+        Device device = buildDevice(UUID.randomUUID().toString(), "Alice Phone", Device.Status.ACTIVE);
         Device result = deviceManagementDAO.registerDevice(device, TENANT_ID);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getId(), device.getId());
         Assert.assertEquals(result.getDeviceName(), "Alice Phone");
-        Assert.assertEquals(result.getStatus(), "ACTIVE");
+        Assert.assertEquals(result.getStatus(), Device.Status.ACTIVE);
 
         createdDeviceId = result.getId();
     }
@@ -100,13 +100,13 @@ public class DeviceManagementDAOImplTest {
     @Test(priority = 4, dependsOnMethods = {"testRegisterDevice"})
     public void testGetDevicesByUserIdOnlyActive() throws DeviceMgtException {
 
-        Device revokedDevice = buildDevice(UUID.randomUUID().toString(), "Old Device", "REVOKED");
-        deviceManagementDAO.registerDevice(revokedDevice, TENANT_ID);
+        Device inactiveDevice = buildDevice(UUID.randomUUID().toString(), "Old Device", Device.Status.INACTIVE);
+        deviceManagementDAO.registerDevice(inactiveDevice, TENANT_ID);
 
         List<Device> devices = deviceManagementDAO.getDevicesByUserId(TEST_USER_ID, TENANT_ID);
 
         Assert.assertEquals(devices.size(), 1);
-        Assert.assertEquals(devices.get(0).getStatus(), "ACTIVE");
+        Assert.assertEquals(devices.get(0).getStatus(), Device.Status.ACTIVE);
         Assert.assertEquals(devices.get(0).getId(), createdDeviceId);
     }
 
@@ -153,7 +153,7 @@ public class DeviceManagementDAOImplTest {
                 .deviceName("Carol Phone")
                 .deviceModel("Pixel 8 Pro")
                 .publicKey("pk-full-" + id)
-                .status("ACTIVE")
+                .status(Device.Status.ACTIVE)
                 .registeredAt(Timestamp.from(Instant.now()))
                 .metadata("{\"env\":\"test\"}")
                 .build();
@@ -167,7 +167,7 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(result.getDeviceName(), "Carol Phone");
         Assert.assertEquals(result.getDeviceModel(), "Pixel 8 Pro");
         Assert.assertEquals(result.getPublicKey(), "pk-full-" + id);
-        Assert.assertEquals(result.getStatus(), "ACTIVE");
+        Assert.assertEquals(result.getStatus(), Device.Status.ACTIVE);
         Assert.assertNotNull(result.getRegisteredAt());
         Assert.assertEquals(result.getMetadata(), "{\"env\":\"test\"}");
     }
@@ -181,31 +181,33 @@ public class DeviceManagementDAOImplTest {
     public void testTenantIsolation() throws DeviceMgtException {
 
         String id = UUID.randomUUID().toString();
-        deviceManagementDAO.registerDevice(buildDevice(id, "Tenant Device", "ACTIVE"), TENANT_ID);
+        deviceManagementDAO.registerDevice(buildDevice(id, "Tenant Device", Device.Status.ACTIVE), TENANT_ID);
 
         Device fromOtherTenant = deviceManagementDAO.getDeviceById(id, OTHER_TENANT_ID);
         Assert.assertNull(fromOtherTenant);
 
-        List<Device> allOtherTenant = deviceManagementDAO.getAllDevices(OTHER_TENANT_ID);
+        List<Device> allOtherTenant = deviceManagementDAO.getDevices(OTHER_TENANT_ID, 0, 100);
         long found = allOtherTenant.stream().filter(d -> d.getId().equals(id)).count();
         Assert.assertEquals(found, 0);
     }
 
     /**
-     * Tests that getAllDevices returns every device registered under the tenant.
+     * Tests that getDevices returns every device registered under the tenant.
      *
      * @throws DeviceMgtException If the DAO operation fails.
      */
     @Test(priority = 9)
-    public void testGetAllDevices() throws DeviceMgtException {
+    public void testGetDevicesReturnsAllForTenant() throws DeviceMgtException {
 
         String userId = "dave@example.com";
         String id1 = UUID.randomUUID().toString();
         String id2 = UUID.randomUUID().toString();
-        deviceManagementDAO.registerDevice(buildDeviceForUser(id1, "Dave Phone 1", userId, "ACTIVE"), OTHER_TENANT_ID);
-        deviceManagementDAO.registerDevice(buildDeviceForUser(id2, "Dave Phone 2", userId, "ACTIVE"), OTHER_TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id1, "Dave Phone 1", userId, Device.Status.ACTIVE), OTHER_TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id2, "Dave Phone 2", userId, Device.Status.ACTIVE), OTHER_TENANT_ID);
 
-        List<Device> all = deviceManagementDAO.getAllDevices(OTHER_TENANT_ID);
+        List<Device> all = deviceManagementDAO.getDevices(OTHER_TENANT_ID, 0, 100);
 
         Assert.assertEquals(all.size(), 2);
         long count = all.stream().filter(d -> d.getUserId().equals(userId)).count();
@@ -223,8 +225,10 @@ public class DeviceManagementDAOImplTest {
         String userId = "eve@example.com";
         String id1 = UUID.randomUUID().toString();
         String id2 = UUID.randomUUID().toString();
-        deviceManagementDAO.registerDevice(buildDeviceForUser(id1, "Eve Phone 1", userId, "ACTIVE"), TENANT_ID);
-        deviceManagementDAO.registerDevice(buildDeviceForUser(id2, "Eve Phone 2", userId, "ACTIVE"), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id1, "Eve Phone 1", userId, Device.Status.ACTIVE), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id2, "Eve Phone 2", userId, Device.Status.ACTIVE), TENANT_ID);
 
         List<Device> devices = deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID);
 
@@ -254,7 +258,7 @@ public class DeviceManagementDAOImplTest {
     public void testUpdateDeviceNameWrongTenantNoOp() throws DeviceMgtException {
 
         String id = UUID.randomUUID().toString();
-        deviceManagementDAO.registerDevice(buildDevice(id, "Frank Phone", "ACTIVE"), TENANT_ID);
+        deviceManagementDAO.registerDevice(buildDevice(id, "Frank Phone", Device.Status.ACTIVE), TENANT_ID);
 
         deviceManagementDAO.updateDeviceName(id, "Frank New Name", OTHER_TENANT_ID);
 
@@ -272,7 +276,7 @@ public class DeviceManagementDAOImplTest {
     public void testDeleteDeviceWrongTenantNoOp() throws DeviceMgtException {
 
         String id = UUID.randomUUID().toString();
-        deviceManagementDAO.registerDevice(buildDevice(id, "Grace Phone", "ACTIVE"), TENANT_ID);
+        deviceManagementDAO.registerDevice(buildDevice(id, "Grace Phone", Device.Status.ACTIVE), TENANT_ID);
 
         deviceManagementDAO.deleteDevice(id, OTHER_TENANT_ID);
 
@@ -281,7 +285,66 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(result.getDeviceName(), "Grace Phone");
     }
 
-    private Device buildDevice(String id, String deviceName, String status) {
+    /**
+     * Tests that changeDeviceStatus(INACTIVE) removes the device from getDevicesByUserId results
+     * while it remains visible via getDeviceById and getDevices.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 14)
+    public void testChangeDeviceStatusDeactivateExcludesFromUserDeviceList() throws DeviceMgtException {
+
+        String userId = "heidi@example.com";
+        String id = UUID.randomUUID().toString();
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id, "Heidi Phone", userId, Device.Status.ACTIVE), TENANT_ID);
+
+        Device updated = deviceManagementDAO.changeDeviceStatus(id, Device.Status.INACTIVE, TENANT_ID);
+
+        Assert.assertNotNull(updated);
+        Assert.assertEquals(updated.getStatus(), Device.Status.INACTIVE);
+
+        List<Device> userDevices = deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID);
+        Assert.assertTrue(userDevices.isEmpty());
+
+        Device byId = deviceManagementDAO.getDeviceById(id, TENANT_ID);
+        Assert.assertNotNull(byId);
+        Assert.assertEquals(byId.getStatus(), Device.Status.INACTIVE);
+
+        List<Device> pagedDevices = deviceManagementDAO.getDevices(TENANT_ID, 0, 100);
+        long foundInPage = pagedDevices.stream().filter(d -> d.getId().equals(id)).count();
+        Assert.assertEquals(foundInPage, 1);
+    }
+
+    /**
+     * Tests that changeDeviceStatus(ACTIVE) reinstates a device into getDevicesByUserId results.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 15, dependsOnMethods = {"testChangeDeviceStatusDeactivateExcludesFromUserDeviceList"})
+    public void testChangeDeviceStatusActivateReincludesInUserDeviceList() throws DeviceMgtException {
+
+        String userId = "heidi@example.com";
+        List<Device> beforeActivation = deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID);
+        Assert.assertTrue(beforeActivation.isEmpty());
+
+        List<Device> allDevices = deviceManagementDAO.getDevices(TENANT_ID, 0, 100);
+        String id = allDevices.stream()
+                .filter(d -> d.getUserId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected Heidi's device to still exist"))
+                .getId();
+
+        Device updated = deviceManagementDAO.changeDeviceStatus(id, Device.Status.ACTIVE, TENANT_ID);
+
+        Assert.assertEquals(updated.getStatus(), Device.Status.ACTIVE);
+
+        List<Device> userDevices = deviceManagementDAO.getDevicesByUserId(userId, TENANT_ID);
+        Assert.assertEquals(userDevices.size(), 1);
+        Assert.assertEquals(userDevices.get(0).getId(), id);
+    }
+
+    private Device buildDevice(String id, String deviceName, Device.Status status) {
 
         return new Device.Builder()
                 .id(id)
@@ -295,7 +358,7 @@ public class DeviceManagementDAOImplTest {
                 .build();
     }
 
-    private Device buildDeviceForUser(String id, String deviceName, String userId, String status) {
+    private Device buildDeviceForUser(String id, String deviceName, String userId, Device.Status status) {
 
         return new Device.Builder()
                 .id(id)

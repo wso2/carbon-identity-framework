@@ -4,6 +4,7 @@
     <test name="Device_Management_DAO_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.mgt.dao.DeviceManagementDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.device.mgt.dao.CacheBackedDeviceManagementDAOTest"/>
         </classes>
     </test>
     <test name="Device_Management_Service_Tests">

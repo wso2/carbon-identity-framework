@@ -47,10 +47,14 @@ public class DeviceManagementAuditLogger {
      * Print an audit log for an operation that carries the full device state.
      *
      * @param operation Operation associated with the state change.
-     * @param device    Device to be logged.
+     * @param device    Device to be logged, or {@code null} if unavailable.
      */
     public void printAuditLog(Operation operation, Device device) {
 
+        if (device == null) {
+            printAuditLog(operation, (String) null);
+            return;
+        }
         JSONObject data = createAuditLogEntry(device);
         buildAuditLog(device.getId(), operation, data);
     }
@@ -104,7 +108,8 @@ public class DeviceManagementAuditLogger {
                 device.getDeviceName() != null ? device.getDeviceName() : JSONObject.NULL);
         data.put(LogConstants.DEVICE_MODEL_FIELD,
                 device.getDeviceModel() != null ? device.getDeviceModel() : JSONObject.NULL);
-        data.put(LogConstants.STATUS_FIELD, device.getStatus() != null ? device.getStatus() : JSONObject.NULL);
+        data.put(LogConstants.STATUS_FIELD,
+                device.getStatus() != null ? device.getStatus().name() : JSONObject.NULL);
         data.put(LogConstants.REGISTERED_AT_FIELD,
                 device.getRegisteredAt() != null ? String.valueOf(device.getRegisteredAt()) : JSONObject.NULL);
         data.put(LogConstants.USER_ID_FIELD, device.getUserId() != null
@@ -160,7 +165,9 @@ public class DeviceManagementAuditLogger {
     public enum Operation {
         REGISTER("register-device"),
         UPDATE("update-device"),
-        DELETE("delete-device");
+        DELETE("delete-device"),
+        ACTIVATE("activate-device"),
+        DEACTIVATE("deactivate-device");
 
         private final String logAction;
 

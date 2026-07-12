@@ -87,12 +87,9 @@ public final class DeviceMgtSQLConstants {
                 "UPDATE IDN_DEVICE SET DEVICE_NAME = :DEVICE_NAME; " +
                         "WHERE ID = :ID; AND TENANT_ID = :TENANT_ID;";
 
-        public static final String GET_ALL_DEVICES =
-                "SELECT D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
-                        "D.REGISTERED_AT, D.METADATA, D.TENANT_ID " +
-                        "FROM IDN_DEVICE D " +
-                        "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
-                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC";
+        public static final String CHANGE_DEVICE_STATUS =
+                "UPDATE IDN_DEVICE SET STATUS = :STATUS; " +
+                        "WHERE ID = :ID; AND TENANT_ID = :TENANT_ID;";
 
         // Paginated tenant-wide device listing. Pagination syntax differs per database, so a variant
         // is selected at runtime based on the detected database type.

@@ -25,12 +25,20 @@ import java.sql.Timestamp;
  */
 public class Device {
 
+    /**
+     * Device Status Enum.
+     */
+    public enum Status {
+        ACTIVE,
+        INACTIVE
+    }
+
     private final String id;
     private final String userId;
     private final String deviceName;
     private final String deviceModel;
     private final String publicKey;
-    private final String status;
+    private final Status status;
     private final Timestamp registeredAt;
     private final String metadata;
 
@@ -101,7 +109,7 @@ public class Device {
      *
      * @return Device status.
      */
-    public String getStatus() {
+    public Status getStatus() {
 
         return status;
     }
@@ -136,7 +144,7 @@ public class Device {
         private String deviceName;
         private String deviceModel;
         private String publicKey;
-        private String status = "ACTIVE";
+        private Status status = Status.ACTIVE;
         private Timestamp registeredAt;
         private String metadata;
 
@@ -229,7 +237,7 @@ public class Device {
          * @param status Device status.
          * @return Builder instance.
          */
-        public Builder status(String status) {
+        public Builder status(Status status) {
 
             this.status = status;
             return this;

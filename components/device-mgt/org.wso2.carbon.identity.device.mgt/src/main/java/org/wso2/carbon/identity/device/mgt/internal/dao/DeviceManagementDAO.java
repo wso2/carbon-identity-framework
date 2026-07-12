@@ -62,16 +62,6 @@ public interface DeviceManagementDAO {
             throws DeviceMgtException;
 
     /**
-     * Finds all devices registered in the tenant.
-     *
-     * @param tenantId Tenant identifier.
-     * @return All devices in the tenant.
-     * @throws DeviceMgtException If retrieval fails.
-     */
-    List<Device> getAllDevices(int tenantId)
-            throws DeviceMgtException;
-
-    /**
      * Finds a page of devices registered in the tenant, ordered by registration time (newest first).
      *
      * @param tenantId Tenant identifier.
@@ -103,6 +93,18 @@ public interface DeviceManagementDAO {
      * @throws DeviceMgtException If update fails.
      */
     Device updateDeviceName(String deviceId, String deviceName, int tenantId)
+            throws DeviceMgtException;
+
+    /**
+     * Updates the status of a device and returns the updated record.
+     *
+     * @param deviceId Device identifier.
+     * @param status   New status for the device.
+     * @param tenantId Tenant identifier.
+     * @return Updated device.
+     * @throws DeviceMgtException If the status update fails.
+     */
+    Device changeDeviceStatus(String deviceId, Device.Status status, int tenantId)
             throws DeviceMgtException;
 
     /**
