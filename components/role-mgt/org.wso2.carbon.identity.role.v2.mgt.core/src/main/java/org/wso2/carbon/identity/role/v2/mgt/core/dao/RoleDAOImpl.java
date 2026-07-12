@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,8 +27,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -99,6 +102,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SC
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.PERMISSION_ALREADY_ADDED;
@@ -125,6 +129,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SCOPE_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
@@ -297,7 +302,10 @@ public class RoleDAOImpl implements RoleDAO {
 
                     IdentityDatabaseUtil.commitUserDBTransaction(connection);
                 } catch (SQLException | IdentityRoleManagementException e) {
-                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                    if (e instanceof IdentityRoleManagementClientException) {
+                        throw (IdentityRoleManagementClientException) e;
+                    }
                     String errorMessage = "Error while creating the role: %s in the tenantDomain: %s";
                     throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                             String.format(errorMessage, roleName, tenantDomain), e);
@@ -658,21 +666,23 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            addPermissions(roleId, addedPermissions, tenantDomain, connection);
-            for (Permission permission : deletedPermissions) {
-                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                        DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL)) {
-                    statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
-                    statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
-                    statement.executeUpdate();
-                } catch (SQLException e) {
-                    IdentityDatabaseUtil.rollbackTransaction(connection);
-                    String errorMessage = "Error while adding permissions to roleId : " + roleId;
-                    throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                            errorMessage, e);
+            try {
+                addPermissions(roleId, addedPermissions, tenantDomain, connection);
+                for (Permission permission : deletedPermissions) {
+                    try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                            DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL)) {
+                        statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
+                        statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
+                        statement.executeUpdate();
+                    }
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException | IdentityRoleManagementException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw e;
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (IdentityRoleManagementClientException e) {
+            throw e;
         } catch (SQLException | IdentityRoleManagementException e) {
             String errorMessage = "Error while adding permissions to roleId : " + roleId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -1688,6 +1698,9 @@ public class RoleDAOImpl implements RoleDAO {
                 IdentityDatabaseUtil.commitTransaction(connection);
             } catch (IdentityRoleManagementException e) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (e instanceof IdentityRoleManagementClientException) {
+                    throw e;
+                }
                 String errorMessage = "Error while adding role info for role : " + roleName;
                 throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
             }
@@ -1941,17 +1954,40 @@ public class RoleDAOImpl implements RoleDAO {
             return;
         }
         checkPermissionsAlreadyAdded(roleId, permissions, tenantDomain, connection);
-        // Resolve the tenant ID to search the scope details.
-        int tenantIdToSearchScopes = IdentityTenantUtil.getTenantId(
-                isOrganization(tenantDomain) ? getPrimaryOrgTenantDomain(tenantDomain) : tenantDomain);
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SCOPE_SQL)) {
-            for (Permission permission : permissions) {
-                statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
-                statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
-                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantIdToSearchScopes);
-                statement.addBatch();
+        // Resolve the tenant domain to search the scope details.
+        String tenantDomainToSearchScopes = isOrganization(tenantDomain) ?
+                getPrimaryOrgTenantDomain(tenantDomain) : tenantDomain;
+        Set<String> blockedAPIResourceIds = getBlockedAPIResourceIds(tenantDomainToSearchScopes);
+        try {
+            // If there are blocked API resources, resolve the scope IDs for the permissions while excluding the
+            // scopes of the blocked API resources, and add the permissions with scope IDs.
+            // Otherwise, add the permissions with scope names.
+            if (!blockedAPIResourceIds.isEmpty()) {
+                List<String> addedScopeIds = resolveScopeIdsExcludingBlockedAPIResourceScopes(roleId, permissions,
+                        blockedAPIResourceIds, tenantDomainToSearchScopes);
+                if (!addedScopeIds.isEmpty()) {
+                    try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                            ADD_ROLE_SCOPE_BY_ID_SQL)) {
+                        for (String scopeId : addedScopeIds) {
+                            statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
+                            statement.setString(RoleConstants.RoleTableColumns.SCOPE_ID, scopeId);
+                            statement.addBatch();
+                        }
+                        statement.executeBatch();
+                    }
+                }
+            } else {
+                int tenantIdToSearchScopes = IdentityTenantUtil.getTenantId(tenantDomainToSearchScopes);
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SCOPE_SQL)) {
+                    for (Permission permission : permissions) {
+                        statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
+                        statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
+                        statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantIdToSearchScopes);
+                        statement.addBatch();
+                    }
+                    statement.executeBatch();
+                }
             }
-            statement.executeBatch();
         } catch (SQLException e) {
             String errorMessage = "Error while adding permissions to roleId : " + roleId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -1978,6 +2014,77 @@ public class RoleDAOImpl implements RoleDAO {
                         "Permission: " + permission.getName() + " already assigned to role : " + roleId);
             }
         }
+    }
+
+    private List<String> resolveScopeIdsExcludingBlockedAPIResourceScopes(String roleId, List<Permission> permissions,
+                                                                          Set<String> blockedApiResourceIds,
+                                                                          String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (permissions == null || permissions.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            List<Scope> allScopes = RoleManagementServiceComponentHolder.getInstance().getApiResourceManager()
+                    .getScopesByTenantDomain(tenantDomain, StringUtils.EMPTY);
+            Map<String, List<Scope>> nameToScopes = allScopes.stream().collect(Collectors.groupingBy(Scope::getName));
+
+            List<String> resolvedScopeIds = new ArrayList<>();
+            for (Permission permission : permissions) {
+                List<Scope> scopesOfSameName = nameToScopes.get(permission.getName());
+                if (CollectionUtils.isEmpty(scopesOfSameName)) {
+                    throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                            "No scope found for the permission: " + permission.getName());
+                }
+
+                for (Scope scope : scopesOfSameName) {
+                    if (!blockedApiResourceIds.contains(scope.getApiID())) {
+                        resolvedScopeIds.add(scope.getId());
+                    } else if (scopesOfSameName.size() == 1) {
+                        // If there is only one scope with the given name, and it belongs to a blocked API resource,
+                        // permission assignment should be blocked.
+                        throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
+                                "Permission: " + permission.getName() + " is blocked from being assigned to roles");
+                    } else if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("There are multiple scopes with the permission name: '%s' and the " +
+                                "scope id: '%s' belongs to API resource id: '%s' which is on the blocked list. Hence " +
+                                "skipping this scope during permission update of role id: '%s'. Other scopes may get " +
+                                "added as permissions to the role.", permission.getName(), scope.getId(),
+                                scope.getApiID(), roleId));
+                    }
+                }
+            }
+            return resolvedScopeIds;
+        } catch (APIResourceMgtException e) {
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while resolving permission scope IDs for tenant domain: " + tenantDomain, e);
+        }
+    }
+
+    private Set<String> getBlockedAPIResourceIds(String tenantDomain) throws IdentityRoleManagementException {
+
+        List<String> blockedIdentifiers = IdentityUtil.getPropertyAsList(
+                RoleConstants.ROLE_PERMISSION_ASSIGNMENT_BLOCKED_API_RESOURCES);
+        if (blockedIdentifiers.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<String> blockedApiIds = new HashSet<>();
+        for (String identifier : blockedIdentifiers) {
+            if (StringUtils.isBlank(identifier)) {
+                continue;
+            }
+            try {
+                APIResource apiResource = RoleManagementServiceComponentHolder.getInstance().getApiResourceManager()
+                        .getAPIResourceByIdentifier(identifier, tenantDomain);
+                if (apiResource != null && StringUtils.isNotBlank(apiResource.getId())) {
+                    blockedApiIds.add(apiResource.getId());
+                }
+            } catch (APIResourceMgtException e) {
+                throw new IdentityRoleManagementException("Error while retrieving API resource by identifier: " +
+                        identifier, e);
+            }
+        }
+        return blockedApiIds;
     }
 
     /**

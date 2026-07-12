@@ -2382,6 +2382,34 @@
         {% endif %}
     </RoleMgt>
 
+    {% if api_resource_management is defined %}
+    <!-- API resource management service configurations -->
+    <APIResourceManagement>
+        {% if api_resource_management.application_api_authorization is defined %}
+        <ApplicationAPIAuthorization>
+            {% if api_resource_management.application_api_authorization.blocked_api_resources is defined %}
+            <BlockedAPIResources>
+                {% for identifier in api_resource_management.application_api_authorization.blocked_api_resources %}
+                <Identifier>{{identifier}}</Identifier>
+                {% endfor %}
+            </BlockedAPIResources>
+            {% endif %}
+        </ApplicationAPIAuthorization>
+        {% endif %}
+        {% if api_resource_management.role_permission_assignment is defined %}
+        <RolePermissionAssignment>
+            {% if api_resource_management.role_permission_assignment.blocked_api_resources is defined %}
+            <BlockedAPIResources>
+                {% for identifier in api_resource_management.role_permission_assignment.blocked_api_resources %}
+                <Identifier>{{identifier}}</Identifier>
+                {% endfor %}
+            </BlockedAPIResources>
+            {% endif %}
+        </RolePermissionAssignment>
+        {% endif %}
+    </APIResourceManagement>
+    {% endif %}
+
     <OutboundProvisioning>
         {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
             <!--

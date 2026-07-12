@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_API_AUTHORIZATION_BLOCKED_API_RESOURCES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_INTERNAL_SCOPES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_CROSS_TENANT_AUTHORIZED_API_VALIDATION_PROPERTY;
@@ -87,6 +88,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
 
         ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
         validateTenantDomain(applicationId, tenantDomain, applicationManagementService);
+        validateAPIResourceNotBlocked(authorizedAPI.getAPIId(), tenantDomain);
 
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
@@ -360,6 +362,29 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         return new IdentityApplicationManagementClientException(errorMessage.getCode(), message);
     }
 
+    private void validateAPIResourceNotBlocked(String apiId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isBlank(apiId)) {
+            return;
+        }
+        try {
+            APIResource apiResource = ApplicationManagementServiceComponentHolder.getInstance()
+                    .getAPIResourceManager().getAPIResourceById(apiId, tenantDomain);
+            if (apiResource == null || StringUtils.isBlank(apiResource.getIdentifier())) {
+                return;
+            }
+            List<String> blockedIdentifiers = IdentityUtil.getPropertyAsList(
+                    APPLICATION_API_AUTHORIZATION_BLOCKED_API_RESOURCES);
+            if (blockedIdentifiers.contains(apiResource.getIdentifier())) {
+                throw buildClientException(INVALID_REQUEST, "API resource '" + apiResource.getIdentifier()
+                        + "' is blocked from being authorized to applications.");
+            }
+        } catch (APIResourceMgtException e) {
+            throw buildServerException("Error while retrieving API resource for apiId: " + apiId, e);
+        }
+    }
+
     private IdentityApplicationManagementServerException buildServerException(String message, Throwable ex) {
 
         return new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), message, ex);
@@ -407,6 +432,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
 
         ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
         validateTenantDomain(appId, tenantDomain, applicationManagementService);
+        validateAPIResourceNotBlocked(apiId, tenantDomain);
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
         publisherProxy.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,

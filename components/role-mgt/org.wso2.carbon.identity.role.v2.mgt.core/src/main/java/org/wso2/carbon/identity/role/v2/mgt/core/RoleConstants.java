@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -85,6 +85,8 @@ public class RoleConstants {
 
     // Role management service configurations.
     public static final String ALLOW_SYSTEM_PREFIX_FOR_ROLES = "RoleMgt.AllowSystemPrefixForRoles";
+    public static final String ROLE_PERMISSION_ASSIGNMENT_BLOCKED_API_RESOURCES =
+            "APIResourceManagement.RolePermissionAssignment.BlockedAPIResources.Identifier";
 
     // Role properties
     public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
@@ -114,6 +116,7 @@ public class RoleConstants {
         public static final String ROLE_ID = "ROLE_ID";
         public static final String UM_ROLE_ID = "UM_ROLE_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
+        public static final String SCOPE_ID = "SCOPE_ID";
         public static final String APP_ID = "APP_ID";
         public static final String UM_SHARED_ROLE_ID = "UM_SHARED_ROLE_ID";
         public static final String UM_SHARED_ROLE_TENANT_ID = "UM_SHARED_ROLE_TENANT_ID";
