@@ -1,0 +1,622 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.device.registration;
+
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
+import org.wso2.carbon.identity.device.mgt.api.model.Device;
+import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
+import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
+import org.wso2.carbon.identity.device.policy.api.service.IntegrityDataEnricher;
+import org.wso2.carbon.identity.device.registration.internal.DeviceRegistrationExecutorDataHolder;
+import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.registration.internal.handler.DeviceRegistrationHandler;
+import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
+import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistrationExceptionHandler;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
+import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
+import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
+import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
+import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
+import org.wso2.carbon.user.core.service.RealmService;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_CLIENT_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_ERROR;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
+import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
+
+/**
+ * Unit tests for {@link DeviceRegistrationExecutor}.
+ */
+@WithCarbonHome
+public class DeviceRegistrationExecutorTest {
+
+    private static final String TENANT_DOMAIN = "test.com";
+    private static final int TENANT_ID = 1;
+    private static final String USER_ID = "user-123";
+    private static final String USERNAME = "alice";
+    private static final String REGISTRATION_ID = "reg-abc-123";
+    private static final String CHALLENGE = "challenge-b64url";
+
+    // Mirrors the private field/form-field constants declared in DeviceRegistrationExecutor.
+    private static final String META_POLICY_NAME = "policyName";
+    private static final String FIELD_PUBLIC_KEY = "publicKey";
+    private static final String FIELD_SIGNATURE = "signature";
+    private static final String FIELD_DEVICE_DATA = "deviceData";
+
+    private AutoCloseable closeable;
+    private DeviceRegistrationExecutor executor;
+
+    @Mock
+    private DeviceManagementService deviceManagementService;
+
+    @Mock
+    private DevicePolicyEvaluator devicePolicyEvaluator;
+
+    @Mock
+    private DeviceTokenVerifier deviceTokenVerifier;
+
+    @Mock
+    private IntegrityDataEnricher integrityDataEnricher;
+
+    @Mock
+    private RealmService realmService;
+
+    private DeviceManagementService originalDeviceManagementService;
+    private DevicePolicyEvaluator originalDevicePolicyEvaluator;
+    private DeviceTokenVerifier originalDeviceTokenVerifier;
+    private IntegrityDataEnricher originalIntegrityDataEnricher;
+    private RealmService originalRealmService;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMocked;
+    private MockedStatic<LoggerUtils> loggerUtilsMocked;
+
+    @BeforeClass
+    public void setUpClass() {
+
+        closeable = MockitoAnnotations.openMocks(this);
+        executor = new DeviceRegistrationExecutor();
+
+        // "test.com" is not a real registered tenant, so anything that resolves it via
+        // IdentityTenantUtil (diagnostic logging, FlowUser's claim resolution) needs this stubbed —
+        // mirrors the existing DeviceRegistrationHandlerTest's setup.
+        identityTenantUtilMocked = mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+
+        // Diagnostic logging would otherwise try to publish a real event through an
+        // IdentityEventService that isn't wired up in this unit test environment; the executor's
+        // diagnostic calls are a side effect, not something under test, so disable them.
+        loggerUtilsMocked = mockStatic(LoggerUtils.class, CALLS_REAL_METHODS);
+        loggerUtilsMocked.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+        DeviceRegistrationExecutorDataHolder holder = DeviceRegistrationExecutorDataHolder.getInstance();
+        originalDeviceManagementService = holder.getDeviceManagementService();
+        originalDevicePolicyEvaluator = holder.getDevicePolicyEvaluator();
+        originalDeviceTokenVerifier = holder.getDeviceTokenVerifier();
+        originalIntegrityDataEnricher = holder.getIntegrityDataEnricher();
+        originalRealmService = holder.getRealmService();
+
+        holder.setDeviceManagementService(deviceManagementService);
+        holder.setDevicePolicyEvaluator(devicePolicyEvaluator);
+        holder.setDeviceTokenVerifier(deviceTokenVerifier);
+        holder.setIntegrityDataEnricher(integrityDataEnricher);
+        holder.setRealmService(realmService);
+    }
+
+    @AfterClass
+    public void tearDownClass() throws Exception {
+
+        DeviceRegistrationExecutorDataHolder holder = DeviceRegistrationExecutorDataHolder.getInstance();
+        holder.setDeviceManagementService(originalDeviceManagementService);
+        holder.setDevicePolicyEvaluator(originalDevicePolicyEvaluator);
+        holder.setDeviceTokenVerifier(originalDeviceTokenVerifier);
+        holder.setIntegrityDataEnricher(originalIntegrityDataEnricher);
+        holder.setRealmService(originalRealmService);
+
+        identityTenantUtilMocked.close();
+        loggerUtilsMocked.close();
+
+        if (closeable != null) {
+            closeable.close();
+        }
+    }
+
+    @BeforeMethod
+    public void setUp() {
+
+        reset(deviceManagementService, devicePolicyEvaluator, deviceTokenVerifier, integrityDataEnricher,
+                realmService);
+        // The executor's diagnostic logger (and FlowUser's own claim-resolution fallback) reads the
+        // tenant domain off the thread-local carbon context, not off FlowExecutionContext — seed it
+        // here so those calls resolve instead of failing with "Invalid tenant domain null".
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(TENANT_DOMAIN);
+    }
+
+    @AfterMethod
+    public void tearDownMethod() {
+
+        PrivilegedCarbonContext.endTenantFlow();
+    }
+
+    @Test
+    public void testGetNameReturnsExecutorName() {
+
+        assertEquals(executor.getName(), DeviceRegistrationExecutorConstants.EXECUTOR_NAME);
+    }
+
+    @Test
+    public void testGetInitiationDataReturnsUsernameClaim() {
+
+        assertEquals(executor.getInitiationData(), java.util.Collections.singletonList(USERNAME_CLAIM_URI));
+    }
+
+    // ----- execute() : initiation leg -----
+
+    @Test
+    public void testExecuteInitiationReturnsClientInputRequiredWithChallenge() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            response = executor.execute(context);
+        }
+
+        assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+        assertTrue(response.getRequiredData().contains(FIELD_PUBLIC_KEY));
+        assertTrue(response.getRequiredData().contains(FIELD_SIGNATURE));
+        assertFalse(response.getRequiredData().contains(FIELD_DEVICE_DATA));
+        assertEquals(response.getAdditionalInfo().get("registrationId"), REGISTRATION_ID);
+        assertEquals(response.getAdditionalInfo().get("challenge"), CHALLENGE);
+        assertNotNull(response.getContextProperties());
+        assertEquals(response.getContextProperties().size(), 1);
+    }
+
+    @Test
+    public void testExecuteInitiationRequiresDeviceDataWhenPolicyConfigured() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCurrentNode(nodeConfigWithPolicy("strictPolicy"));
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            response = executor.execute(context);
+        }
+
+        assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+        assertTrue(response.getRequiredData().contains(FIELD_DEVICE_DATA));
+    }
+
+    @Test
+    public void testExecuteInitiationFallsBackToUsernameWhenUserIdBlank() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId("  ");
+        context.getFlowUser().setUsername(USERNAME);
+
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            ExecutorResponse response = executor.execute(context);
+            assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+            mocked.verify(() -> DeviceRegistrationHandler.initiate(eq(USERNAME), eq(TENANT_DOMAIN)));
+        }
+    }
+
+    @Test
+    public void testExecuteInitiationNoAuthenticatedUserReturnsUserNotIdentifiedError() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        // A real FlowUser's getUsername() never actually returns blank — when the username field
+        // itself is unset it falls back to resolving one (email claim, else a random UUID). Mock
+        // FlowUser directly so both accessors report blank, exercising the "no user identified" branch.
+        FlowUser unidentifiedUser = mock(FlowUser.class);
+        when(unidentifiedUser.getUserId()).thenReturn("");
+        when(unidentifiedUser.getUsername()).thenReturn("  ");
+        context.setFlowUser(unidentifiedUser);
+
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class)) {
+            ExecutorResponse response = executor.execute(context);
+
+            assertEquals(response.getResult(), STATUS_ERROR);
+            assertEquals(response.getErrorCode(), ErrorMessage.ERROR_USER_NOT_IDENTIFIED.getCode());
+            mocked.verify(() -> DeviceRegistrationHandler.initiate(any(), any()), never());
+        }
+    }
+
+    @Test
+    public void testExecuteInitiationWithNullCurrentNodeDoesNotNpe() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        // context.getCurrentNode() is null by default — must not NPE inside resolvePolicyName().
+
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            ExecutorResponse response = executor.execute(context);
+            assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+            assertFalse(response.getRequiredData().contains(FIELD_DEVICE_DATA));
+        }
+    }
+
+    @Test
+    public void testExecuteInitiationWithNodeHavingNoExecutorConfigDoesNotNpe() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCurrentNode(new NodeConfig.Builder().id("node1").type("TASK_EXECUTION").build());
+
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            ExecutorResponse response = executor.execute(context);
+            assertEquals(response.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+            assertFalse(response.getRequiredData().contains(FIELD_DEVICE_DATA));
+        }
+    }
+
+    // ----- execute() : completion leg -----
+
+    @Test
+    public void testExecuteCompletionValidSignatureRegistrationFlowReturnsCompleteWithDeviceOnContext()
+            throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setFlowType(FlowTypes.REGISTRATION.getType());
+        context.setUserInputData(completionInput());
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+        Device verified = buildDevice(null);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_COMPLETE);
+        assertEquals(response.getContextProperties()
+                .get(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION), verified);
+        verify(deviceManagementService, never()).persistDevice(any(), any());
+    }
+
+    @Test
+    public void testExecuteCompletionValidSignatureNonRegistrationFlowPersistsDeviceImmediately()
+            throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        // No flow type set — takes the "persist immediately" branch, not the REGISTRATION defer branch.
+        context.setUserInputData(completionInput());
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+        Device verified = buildDevice(null);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_COMPLETE);
+        verify(deviceManagementService, times(1)).persistDevice(any(Device.class), eq(TENANT_DOMAIN));
+        assertNotNull(response.getContextProperties());
+        assertEquals(response.getContextProperties().size(), 1);
+    }
+
+    @Test
+    public void testExecuteCompletionUnknownRegistrationIdReturnsContextNotFoundError() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setUserInputData(completionInput());
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+
+        DeviceMgtException notFound = DeviceRegistrationExceptionHandler.handleClientException(
+                ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND, REGISTRATION_ID);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifyThrows(notFound)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
+        verify(deviceManagementService, never()).persistDevice(any(), any());
+    }
+
+    @Test
+    public void testExecuteCompletionInvalidSignatureReturnsErrorResponseNotException() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setUserInputData(completionInput());
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+
+        DeviceMgtException invalidSignature = DeviceRegistrationExceptionHandler.handleClientException(
+                ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE, REGISTRATION_ID);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifyThrows(invalidSignature)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertNotNull(response);
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE.getCode());
+    }
+
+    @Test
+    public void testExecuteCompletionPolicyConfiguredButNoDeviceDataReturnsDeviceDataRequiredError()
+            throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCurrentNode(nodeConfigWithPolicy("strictPolicy"));
+        Map<String, String> input = completionInput();
+        input.remove(FIELD_DEVICE_DATA);
+        context.setUserInputData(input);
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+        Device verified = buildDevice(null);
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_DEVICE_DATA_REQUIRED.getCode());
+        verify(devicePolicyEvaluator, never()).evaluate(any(), any(), any());
+    }
+
+    @Test
+    public void testExecuteCompletionPolicyNotCompliantReturnsUserError() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCurrentNode(nodeConfigWithPolicy("strictPolicy"));
+        Map<String, String> input = completionInput();
+        input.put(FIELD_DEVICE_DATA, "{\"osVersion\":\"9\"}");
+        context.setUserInputData(input);
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+        Device verified = buildDevice(null);
+
+        when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), eq(TENANT_DOMAIN)))
+                .thenReturn("osVersion,imei");
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_USER_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_DEVICE_POLICY_NOT_COMPLIANT.getCode());
+        verify(deviceManagementService, never()).persistDevice(any(), any());
+    }
+
+    @Test
+    public void testExecuteCompletionPolicyEvaluationThrowsReturnsEvaluatingPolicyError() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setCurrentNode(nodeConfigWithPolicy("strictPolicy"));
+        Map<String, String> input = completionInput();
+        input.put(FIELD_DEVICE_DATA, "{\"osVersion\":\"9\"}");
+        context.setUserInputData(input);
+
+        FlowExecutionContext afterInitiation = runInitiation(context);
+        Device verified = buildDevice(null);
+
+        when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), eq(TENANT_DOMAIN)))
+                .thenThrow(new PolicyEvaluationException("boom"));
+
+        ExecutorResponse response;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            response = executor.execute(afterInitiation);
+        }
+
+        assertEquals(response.getResult(), STATUS_ERROR);
+        assertEquals(response.getErrorCode(), ErrorMessage.ERROR_WHILE_EVALUATING_POLICY.getCode());
+    }
+
+    // ----- rollback() -----
+
+    @Test
+    public void testRollbackWithPersistedDeviceIdCallsDeleteDevice() throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setUserInputData(completionInput());
+        FlowExecutionContext afterInitiation = runInitiation(context);
+
+        Device verified = buildDevice(null);
+        ExecutorResponse completionResponse;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            completionResponse = executor.execute(afterInitiation);
+        }
+        afterInitiation.addProperties(completionResponse.getContextProperties());
+
+        ExecutorResponse rollbackResponse = executor.rollback(afterInitiation);
+
+        assertEquals(rollbackResponse.getResult(), STATUS_COMPLETE);
+        verify(deviceManagementService, times(1)).deleteDevice(any(), eq(TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testRollbackWithNoPersistedDeviceIdIsNoOp() throws Exception {
+
+        FlowExecutionContext context = newContext();
+
+        ExecutorResponse response = executor.rollback(context);
+
+        assertEquals(response.getResult(), STATUS_COMPLETE);
+        verify(deviceManagementService, never()).deleteDevice(any(), any());
+    }
+
+    /**
+     * Pins the current behaviour of {@link DeviceRegistrationExecutor#rollback} when
+     * {@code DeviceManagementService.deleteDevice} throws: the catch block builds
+     * {@code new ExecutorResponse(STATUS_ERROR)} (the single-arg constructor) and then calls
+     * {@code setErrorCode}/{@code setErrorMessage}/{@code setErrorDescription} on it. That
+     * constructor leaves {@code ExecutorResponse.errorObject} {@code null} (only the no-arg
+     * constructor initializes it — see {@code ExecutorResponse.java}), so those setters NPE.
+     * This is a genuine bug, not intended behaviour — see the test report for details; not fixed
+     * here since this task is test-only.
+     */
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testRollbackWhenDeleteDeviceThrowsCurrentlyThrowsNpeInsteadOfHandlingGracefully()
+            throws Exception {
+
+        FlowExecutionContext context = newContext();
+        context.getFlowUser().setUserId(USER_ID);
+        context.setUserInputData(completionInput());
+        FlowExecutionContext afterInitiation = runInitiation(context);
+
+        Device verified = buildDevice(null);
+        ExecutorResponse completionResponse;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            completionResponse = executor.execute(afterInitiation);
+        }
+        afterInitiation.addProperties(completionResponse.getContextProperties());
+
+        DeviceMgtException deleteFailure = DeviceRegistrationExceptionHandler.handleServerException(
+                ErrorMessage.ERROR_WHILE_VERIFYING_SIGNATURE, "rollback delete failed");
+        doThrow(deleteFailure).when(deviceManagementService).deleteDevice(any(), any());
+
+        executor.rollback(afterInitiation);
+    }
+
+    // ----- helpers -----
+
+    private FlowExecutionContext newContext() {
+
+        FlowExecutionContext context = new FlowExecutionContext();
+        context.setTenantDomain(TENANT_DOMAIN);
+        context.setGraphConfig(new GraphConfig());
+        context.setFlowUser(new FlowUser());
+        return context;
+    }
+
+    private NodeConfig nodeConfigWithPolicy(String policyName) {
+
+        ExecutorDTO executorDTO = new ExecutorDTO();
+        executorDTO.setName(DeviceRegistrationExecutorConstants.EXECUTOR_NAME);
+        executorDTO.addMetadata(META_POLICY_NAME, policyName);
+        return new NodeConfig.Builder().id("node1").type("TASK_EXECUTION").executorConfig(executorDTO).build();
+    }
+
+    private Map<String, String> completionInput() {
+
+        Map<String, String> input = new HashMap<>();
+        input.put(FIELD_PUBLIC_KEY, "base64PublicKey");
+        input.put(FIELD_SIGNATURE, "base64Signature");
+        return input;
+    }
+
+    private Device buildDevice(String userId) {
+
+        return new Device.Builder()
+                .id(REGISTRATION_ID)
+                .userId(userId)
+                .deviceName("Alice's Device")
+                .publicKey("base64PublicKey")
+                .status(Device.Status.ACTIVE)
+                .registeredAt(Timestamp.from(Instant.now()))
+                .build();
+    }
+
+    private MockedStatic<DeviceRegistrationHandler> mockInitiate() {
+
+        MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class);
+        mocked.when(() -> DeviceRegistrationHandler.initiate(any(), any()))
+                .thenReturn(new DeviceRegistrationChallenge(REGISTRATION_ID, CHALLENGE));
+        return mocked;
+    }
+
+    private MockedStatic<DeviceRegistrationHandler> mockVerifySuccess(Device device) {
+
+        MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class);
+        mocked.when(() -> DeviceRegistrationHandler.verify(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(device);
+        return mocked;
+    }
+
+    private MockedStatic<DeviceRegistrationHandler> mockVerifyThrows(DeviceMgtException exception) {
+
+        MockedStatic<DeviceRegistrationHandler> mocked = mockStatic(DeviceRegistrationHandler.class);
+        mocked.when(() -> DeviceRegistrationHandler.verify(any(), any(), any(), any(), any(), any(), any()))
+                .thenThrow(exception);
+        return mocked;
+    }
+
+    /**
+     * Runs the initiation leg (mocking {@code DeviceRegistrationHandler.initiate}) and merges the
+     * returned context properties (the registration id) back onto the context, so a subsequent
+     * {@code executor.execute(context)} call takes the completion leg — without ever hardcoding
+     * the executor's private context-property key.
+     */
+    private FlowExecutionContext runInitiation(FlowExecutionContext context) throws Exception {
+
+        ExecutorResponse initiationResponse;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockInitiate()) {
+            initiationResponse = executor.execute(context);
+        }
+        assertEquals(initiationResponse.getResult(), STATUS_CLIENT_INPUT_REQUIRED);
+        context.addProperties(initiationResponse.getContextProperties());
+        return context;
+    }
+}
