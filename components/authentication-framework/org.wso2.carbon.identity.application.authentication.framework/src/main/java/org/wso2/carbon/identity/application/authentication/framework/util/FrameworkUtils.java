@@ -204,6 +204,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTH_ENTITY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTH_ENTITY_AGENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
@@ -4323,6 +4325,11 @@ public class FrameworkUtils {
             throws InvalidCredentialsException {
 
         if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (context != null && context.getProperties() != null
+                    && context.getProperties().containsKey(AUTH_ENTITY)
+                    && AUTH_ENTITY_AGENT.equals(context.getProperty(AUTH_ENTITY))) {
+                return;
+            }
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
                 context.setProperty(CONTEXT_PROP_INVALID_EMAIL_USERNAME, true);
