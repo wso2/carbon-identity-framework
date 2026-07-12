@@ -37,7 +37,9 @@ public enum ErrorMessage {
     ERROR_WHILE_DELETING_DEVICE("DM-65004", "Error while deleting device.",
             "Error while deleting device from the system."),
     ERROR_USER_ID_REQUIRED("DM-65007", "User identifier required.",
-            "Cannot persist device: a valid user identifier (userId) was not set before persistence.");
+            "Cannot persist device: a valid user identifier (userId) was not set before persistence."),
+    ERROR_DEVICE_FIELD_REQUIRED("DM-65008", "Required device field missing.",
+            "Cannot persist device: the required field '%s' was not set before persistence.");
 
     private final String code;
     private final String message;

@@ -23,6 +23,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -108,6 +109,65 @@ public class DeviceManagementServiceImplTest {
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_USER_ID_REQUIRED.getCode());
         }
+    }
+
+    @Test
+    public void testPersistNullDeviceThrows() {
+
+        assertPersistFailsWithFieldRequired(null);
+    }
+
+    @DataProvider(name = "incompleteDevices")
+    public Object[][] incompleteDevices() {
+
+        return new Object[][]{
+                {"id", completeDeviceBuilder().id(null).build()},
+                {"deviceName", completeDeviceBuilder().deviceName(null).build()},
+                {"publicKey", completeDeviceBuilder().publicKey(null).build()},
+                {"status", completeDeviceBuilder().status(null).build()},
+                {"registeredAt", completeDeviceBuilder().registeredAt(null).build()},
+        };
+    }
+
+    @Test(dataProvider = "incompleteDevices")
+    public void testPersistDeviceWithMissingRequiredFieldThrows(String fieldName, Device device) {
+
+        // A required field left unset must surface as a coded error, not as a DB constraint
+        // violation or an NPE raised inside the DAO.
+        assertPersistFailsWithFieldRequired(device);
+    }
+
+    @Test
+    public void testPersistDeviceWithoutOptionalFieldsSucceeds() throws Exception {
+
+        // Device model and metadata are nullable in the schema, so they must not be validated.
+        Device device = completeDeviceBuilder().deviceModel(null).metadata(null).build();
+
+        service.persistDevice(device, TENANT_DOMAIN);
+
+        verify(dao).registerDevice(any(), eq(TENANT_ID));
+    }
+
+    private void assertPersistFailsWithFieldRequired(Device device) {
+
+        try {
+            service.persistDevice(device, TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtServerException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());
+        }
+    }
+
+    private static Device.Builder completeDeviceBuilder() {
+
+        return new Device.Builder()
+                .id("d1")
+                .userId("alice@example.com")
+                .deviceName("Alice's iPhone")
+                .deviceModel("iPhone 15")
+                .publicKey("dummy-public-key")
+                .status(Device.Status.ACTIVE)
+                .registeredAt(Timestamp.from(Instant.now()));
     }
 
     @Test

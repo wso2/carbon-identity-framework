@@ -61,10 +61,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public void persistDevice(Device device, String tenantDomain) throws DeviceMgtException {
 
-        if (device.getUserId() == null || device.getUserId().trim().isEmpty()) {
-            throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_USER_ID_REQUIRED);
-        }
+        validateDeviceForPersistence(device);
         deviceManagementDAO.registerDevice(device, IdentityTenantUtil.getTenantId(tenantDomain));
 
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.REGISTER, device);
@@ -204,6 +201,57 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         if (value == null || value.trim().isEmpty()) {
             throw DeviceManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_DEVICE_FIELD, fieldName);
+        }
+    }
+
+    /**
+     * Validates that the device carries every field the persistence layer requires.
+     * The device is constructed internally during the registration flow, so a missing field indicates
+     * that the device was not fully built before persistence rather than invalid user input. Validating
+     * here keeps such a failure a clear, coded error instead of a constraint violation or a
+     * NullPointerException raised inside the data layer.
+     * The device model and the metadata are optional and are therefore not validated.
+     *
+     * @param device Device to be persisted.
+     * @throws DeviceMgtException If the device or any of its required fields is not set.
+     */
+    private void validateDeviceForPersistence(Device device) throws DeviceMgtException {
+
+        if (device == null) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED, "device");
+        }
+        if (device.getUserId() == null || device.getUserId().trim().isEmpty()) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_USER_ID_REQUIRED);
+        }
+
+        validateRequiredDeviceField(device.getId(), "id");
+        validateRequiredDeviceField(device.getDeviceName(), "deviceName");
+        validateRequiredDeviceField(device.getPublicKey(), "publicKey");
+
+        if (device.getStatus() == null) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED, "status");
+        }
+        if (device.getRegisteredAt() == null) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED, "registeredAt");
+        }
+    }
+
+    /**
+     * Validates a required device field that is expected to be set before persistence.
+     *
+     * @param value     Value of the field.
+     * @param fieldName Name of the field.
+     * @throws DeviceMgtException If the field is not set.
+     */
+    private void validateRequiredDeviceField(String value, String fieldName) throws DeviceMgtException {
+
+        if (value == null || value.trim().isEmpty()) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED, fieldName);
         }
     }
 
