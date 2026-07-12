@@ -26,6 +26,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
@@ -206,6 +207,36 @@ public class DeviceManagementServiceImplTest {
 
         try {
             service.getDevicesByUserId("", TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtClientException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
+        }
+    }
+
+    @Test
+    public void testGetDevicesPassesValidLimitThrough() throws Exception {
+
+        service.getDevices(TENANT_DOMAIN, 5, 20);
+
+        verify(dao).getDevices(TENANT_ID, 5, 20);
+    }
+
+    @Test
+    public void testGetDevicesCapsLimitAtMaximumItemsPerPage() throws Exception {
+
+        int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
+
+        service.getDevices(TENANT_DOMAIN, 0, maximumItemsPerPage + 5000);
+
+        // The oversized page size must be capped, so the DAO never sees the caller's value.
+        verify(dao).getDevices(TENANT_ID, 0, maximumItemsPerPage);
+    }
+
+    @Test
+    public void testGetDevicesWithNegativeLimitThrows() {
+
+        try {
+            service.getDevices(TENANT_DOMAIN, 0, -1);
             Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());

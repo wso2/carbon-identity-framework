@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.device.mgt.internal.service.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
@@ -95,7 +96,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public List<Device> getDevices(String tenantDomain, int offset, int limit) throws DeviceMgtException {
 
-        return deviceManagementDAO.getDevices(IdentityTenantUtil.getTenantId(tenantDomain), offset, limit);
+        return deviceManagementDAO.getDevices(
+                IdentityTenantUtil.getTenantId(tenantDomain), offset, validateLimit(limit));
     }
 
     @Override
@@ -203,6 +205,33 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
             throw DeviceManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_DEVICE_FIELD, fieldName);
         }
+    }
+
+    /**
+     * Validates the requested page size against the maximum items per page configured for the server.
+     * A page size larger than the configured maximum is capped, so that a caller cannot load an
+     * unbounded number of devices into memory.
+     *
+     * @param limit Requested page size.
+     * @return The page size to use, capped at the configured maximum.
+     * @throws DeviceMgtClientException If the requested page size is negative.
+     */
+    private int validateLimit(int limit) throws DeviceMgtClientException {
+
+        if (limit < 0) {
+            throw DeviceManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_DEVICE_FIELD, "limit");
+        }
+
+        int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
+        if (limit > maximumItemsPerPage) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Given limit: " + limit + " exceeds the maximum items per page. Using the maximum: "
+                        + maximumItemsPerPage);
+            }
+            return maximumItemsPerPage;
+        }
+        return limit;
     }
 }
 
