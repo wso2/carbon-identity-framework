@@ -2140,6 +2140,13 @@
     "internal_userstore_view"
   ],
   "console.user_roles_v3.scopes.update": ["internal_role_mgt_meta_update"],
+  "console.fapi.enabled": true,
+  "console.fapi.disabled_features": [],
+  "console.fapi.feature_flags": [],
+  "console.fapi.scopes.create": [],
+  "console.fapi.scopes.read": [],
+  "console.fapi.scopes.update": [],
+  "console.fapi.scopes.delete": [],
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "",
