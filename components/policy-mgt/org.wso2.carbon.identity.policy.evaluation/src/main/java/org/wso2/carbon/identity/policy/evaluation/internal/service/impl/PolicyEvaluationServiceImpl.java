@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
+import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
@@ -29,7 +30,6 @@ import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvalu
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +45,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
 
     @Override
     public PolicyEvaluationResult evaluate(String policyId, String target,
-                                           FlowContext flowContext, String tenantDomain)
+                                           PolicyEvaluationContext context, String tenantDomain)
             throws PolicyEvaluationException {
 
         Policy policy;
@@ -61,11 +61,11 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
         if (policy == null) {
             throw new PolicyEvaluationException("Policy not found for the given policyId: " + policyId);
         }
-        return evaluate(policy, target, flowContext, tenantDomain);
+        return evaluate(policy, target, context, tenantDomain);
     }
 
     private PolicyEvaluationResult evaluate(Policy policy, String target,
-                                            FlowContext flowContext, String tenantDomain)
+                                            PolicyEvaluationContext context, String tenantDomain)
             throws PolicyEvaluationException {
 
         if (target == null) {
@@ -95,7 +95,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
                 throw new PolicyEvaluationException(
                         "No evaluator for resource type: " + resource.getResourceType());
             }
-            results.add(evaluator.evaluate(resource, flowContext, tenantDomain));
+            results.add(evaluator.evaluate(resource, context, tenantDomain));
         }
 
         return new PolicyEvaluationResult(results);

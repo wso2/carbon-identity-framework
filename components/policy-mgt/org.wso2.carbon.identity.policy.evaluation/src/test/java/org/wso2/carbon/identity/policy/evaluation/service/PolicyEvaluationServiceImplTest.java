@@ -23,6 +23,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
+import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -62,7 +64,7 @@ public class PolicyEvaluationServiceImplTest {
     private PolicyManagementService policyManagementService;
     private RuleEvaluationService ruleEvaluationService;
     private PolicyEvaluationServiceImpl policyEvaluationService;
-    private FlowContext flowContext;
+    private PolicyEvaluationContext context;
 
     /**
      * Minimal non-rule stand-in used to exercise dispatch for a resource type, without introducing
@@ -102,7 +104,7 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationComponentServiceHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
         PolicyEvaluationComponentServiceHolder.getInstance().addPolicyResourceEvaluator(new RuleResourceEvaluator());
         policyEvaluationService = new PolicyEvaluationServiceImpl();
-        flowContext = mock(FlowContext.class);
+        context = PolicyEvaluationContext.create("PRE_ISSUE_ACCESS_TOKEN");
     }
 
     private Policy policyWithRule(String target) {
@@ -126,7 +128,7 @@ public class PolicyEvaluationServiceImplTest {
             }
 
             @Override
-            public ResourceEvaluationResult evaluate(PolicyResource resource, FlowContext flowContext,
+            public ResourceEvaluationResult evaluate(PolicyResource resource, PolicyEvaluationContext context,
                                                       String tenantDomain) {
 
                 return new StubResourceEvaluationResult(resource, satisfied);
@@ -139,7 +141,7 @@ public class PolicyEvaluationServiceImplTest {
 
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(null);
 
-        policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
     }
 
     @Test
@@ -149,13 +151,13 @@ public class PolicyEvaluationServiceImplTest {
         Policy policy = policyWithRule("android");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
         Assert.assertTrue(result.isSatisfied());
         Assert.assertTrue(result.getResults().isEmpty());
         verify(ruleEvaluationService, org.mockito.Mockito.never())
-                .evaluate(eq(RULE_ID), eq(flowContext), eq(TENANT_DOMAIN));
+                .evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -164,17 +166,17 @@ public class PolicyEvaluationServiceImplTest {
 
         Policy policy = policyWithRule("ios");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(RULE_ID, flowContext, TENANT_DOMAIN))
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
                 .thenReturn(new RuleEvaluationResult(RULE_ID, true));
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
         Assert.assertEquals(result.getResults().size(), 1);
         Assert.assertTrue(result.getResults().get(0).isSatisfied());
         Assert.assertEquals(result.getResults().get(0).getResourceType(), ResourceType.RULE);
         Assert.assertEquals(result.getResults().get(0).getResourceId(), RULE_ID);
-        verify(ruleEvaluationService).evaluate(RULE_ID, flowContext, TENANT_DOMAIN);
+        verify(ruleEvaluationService).evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -183,10 +185,10 @@ public class PolicyEvaluationServiceImplTest {
 
         Policy policy = policyWithRule("ios");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(RULE_ID, flowContext, TENANT_DOMAIN))
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
                 .thenReturn(new RuleEvaluationResult(RULE_ID, false));
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
         Assert.assertFalse(result.isSatisfied());
         Assert.assertEquals(result.getResults().size(), 1);
@@ -199,7 +201,7 @@ public class PolicyEvaluationServiceImplTest {
         Policy policy = policyWithRule("ios");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, null, flowContext, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, null, context, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
         Assert.assertTrue(result.getResults().isEmpty());
@@ -217,7 +219,7 @@ public class PolicyEvaluationServiceImplTest {
                 Collections.singletonList(nullTargetResource));
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
         Assert.assertTrue(result.getResults().isEmpty());
@@ -229,13 +231,13 @@ public class PolicyEvaluationServiceImplTest {
 
         Policy policy = policyWithRule("iOS");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(RULE_ID, flowContext, TENANT_DOMAIN))
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
                 .thenReturn(new RuleEvaluationResult(RULE_ID, true));
 
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
         Assert.assertTrue(result.isSatisfied());
-        verify(ruleEvaluationService).evaluate(RULE_ID, flowContext, TENANT_DOMAIN);
+        verify(ruleEvaluationService).evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -253,11 +255,11 @@ public class PolicyEvaluationServiceImplTest {
             Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
                     Arrays.asList(ruleResource, actionResource));
             when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-            when(ruleEvaluationService.evaluate(RULE_ID, flowContext, TENANT_DOMAIN))
+            when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
                     .thenReturn(new RuleEvaluationResult(RULE_ID, true));
 
             PolicyEvaluationResult result = policyEvaluationService.evaluate(
-                    POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+                    POLICY_ID, "ios", context, TENANT_DOMAIN);
 
             Assert.assertTrue(result.isSatisfied());
             Assert.assertEquals(result.getResults().size(), 2);
@@ -281,11 +283,11 @@ public class PolicyEvaluationServiceImplTest {
             Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
                     Arrays.asList(ruleResource, actionResource));
             when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-            when(ruleEvaluationService.evaluate(RULE_ID, flowContext, TENANT_DOMAIN))
+            when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
                     .thenReturn(new RuleEvaluationResult(RULE_ID, true));
 
             PolicyEvaluationResult result = policyEvaluationService.evaluate(
-                    POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+                    POLICY_ID, "ios", context, TENANT_DOMAIN);
 
             Assert.assertFalse(result.isSatisfied());
             Assert.assertEquals(result.getResults().size(), 2);
@@ -303,7 +305,7 @@ public class PolicyEvaluationServiceImplTest {
                 Collections.singletonList(actionResource));
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
 
-        policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
     }
 
     @Test
@@ -313,7 +315,7 @@ public class PolicyEvaluationServiceImplTest {
                 .thenThrow(new PolicyManagementException("boom", "boom description", "PM-000"));
 
         try {
-            policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+            policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
             Assert.fail("Expected PolicyEvaluationException");
         } catch (PolicyEvaluationException e) {
             Assert.assertTrue(e.getCause() instanceof PolicyManagementException);
@@ -325,14 +327,25 @@ public class PolicyEvaluationServiceImplTest {
 
         Policy policy = policyWithRule("ios");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(RULE_ID, flowContext, TENANT_DOMAIN))
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
                 .thenThrow(new RuleEvaluationException("boom"));
 
         try {
-            policyEvaluationService.evaluate(POLICY_ID, "ios", flowContext, TENANT_DOMAIN);
+            policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
             Assert.fail("Expected PolicyEvaluationException");
         } catch (PolicyEvaluationException e) {
             Assert.assertTrue(e.getCause() instanceof RuleEvaluationException);
         }
+    }
+
+    @Test(expectedExceptions = PolicyEvaluationException.class)
+    public void testUnsupportedFlowTypeThrows() throws PolicyManagementException, PolicyEvaluationException {
+
+        Policy policy = policyWithRule("ios");
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+
+        PolicyEvaluationContext unknownFlow = PolicyEvaluationContext.create("NOT_A_REAL_FLOW");
+
+        policyEvaluationService.evaluate(POLICY_ID, "ios", unknownFlow, TENANT_DOMAIN);
     }
 }

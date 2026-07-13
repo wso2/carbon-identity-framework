@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.policy.evaluation.api.service;
 
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
+import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
-import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 
 /**
  * Service interface for evaluating compliance policies against a caller-supplied rule context.
@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 public interface PolicyEvaluationService {
 
     /**
-     * Evaluates a policy identified by its immutable ID against the provided {@link FlowContext}.
+     * Evaluates a policy identified by its immutable ID against the provided {@link PolicyEvaluationContext}.
      *
      * <p>Evaluates every resource matching {@code target} within the policy, dispatching each resource
      * to the evaluator registered for its resource type. Returns a satisfied result with no results when
@@ -37,7 +37,7 @@ public interface PolicyEvaluationService {
      *
      * @param policyId     ID of the policy to evaluate.
      * @param target       Resource target used to select resources within the policy (e.g. platform or category).
-     * @param flowContext  Context carrying the data fields for evaluation.
+     * @param context      Engine-neutral context carrying the data for evaluation.
      * @param tenantDomain Tenant domain.
      * @return Aggregate evaluation result.
      * @throws PolicyEvaluationException If no policy exists for {@code policyId}, policy retrieval fails,
@@ -45,6 +45,6 @@ public interface PolicyEvaluationService {
      *                                   matching resource's type.
      */
     PolicyEvaluationResult evaluate(String policyId, String target,
-                                    FlowContext flowContext, String tenantDomain)
+                                    PolicyEvaluationContext context, String tenantDomain)
             throws PolicyEvaluationException;
 }

@@ -19,14 +19,16 @@
 package org.wso2.carbon.identity.policy.evaluation.api.evaluator;
 
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
+import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
-import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 
 /**
  * SPI for evaluating a single {@link PolicyResource} of a specific {@link ResourceType}.
  * Implementations are registered as OSGi services and dispatched to by {@link ResourceType}.
+ * Implementations adapt the engine-neutral {@link PolicyEvaluationContext} into whatever their
+ * backing engine requires, so this contract stays independent of any specific engine.
  */
 public interface PolicyResourceEvaluator {
 
@@ -38,14 +40,14 @@ public interface PolicyResourceEvaluator {
     ResourceType getSupportedResourceType();
 
     /**
-     * Evaluates the given resource against the provided flow context.
+     * Evaluates the given resource against the provided evaluation context.
      *
      * @param resource     Policy resource to evaluate.
-     * @param flowContext  Context carrying the data fields for evaluation.
+     * @param context      Engine-neutral context carrying the data for evaluation.
      * @param tenantDomain Tenant domain.
-     * @return Evaluation outcome for the resource.
+     * @return Evaluation result for the resource.
      * @throws PolicyEvaluationException If evaluation fails.
      */
-    ResourceEvaluationResult evaluate(PolicyResource resource, FlowContext flowContext,
+    ResourceEvaluationResult evaluate(PolicyResource resource, PolicyEvaluationContext context,
                                        String tenantDomain) throws PolicyEvaluationException;
 }
