@@ -82,17 +82,4 @@ public class PolicyEvaluationContext {
 
         return Collections.unmodifiableMap(contextData);
     }
-
-    /**
-     * Returns a context data value cast to the requested type.
-     *
-     * @param key  Data key.
-     * @param type Expected value type.
-     * @param <T>  Value type.
-     * @return The value, or {@code null} if absent.
-     */
-    public <T> T getValue(String key, Class<T> type) {
-
-        return type.cast(contextData.get(key));
-    }
 }
