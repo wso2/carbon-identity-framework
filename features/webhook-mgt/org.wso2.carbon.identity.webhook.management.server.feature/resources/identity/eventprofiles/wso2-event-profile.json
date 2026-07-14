@@ -157,6 +157,48 @@
           "eventUri": "https://schemas.identity.wso2.org/events/consent/event-type/consentRevoked"
         }
       ]
+    },
+    {
+      "name": "Role management",
+      "description": "Role created, updated, deleted, or role user/group/IdP-group/permission assignments changed",
+      "uri": "https://schemas.identity.wso2.org/events/role",
+      "events": [
+        {
+          "eventName": "Role created",
+          "eventDescription": "Notify if a role is created",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleCreated"
+        },
+        {
+          "eventName": "Role metadata updated",
+          "eventDescription": "Notify if role metadata (e.g. name) is updated",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleMetaUpdated"
+        },
+        {
+          "eventName": "Role deleted",
+          "eventDescription": "Notify if a role is deleted",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleDeleted"
+        },
+        {
+          "eventName": "Role users updated",
+          "eventDescription": "Notifies when users are assigned to or unassigned from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleUsersUpdated"
+        },
+        {
+          "eventName": "Role groups updated",
+          "eventDescription": "Notifies when local groups are assigned to or unassigned from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleGroupsUpdated"
+        },
+        {
+          "eventName": "Role IdP groups updated",
+          "eventDescription": "Notifies when federated IdP groups are assigned to or unassigned from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/roleIdpGroupsUpdated"
+        },
+        {
+          "eventName": "Role permissions updated",
+          "eventDescription": "Notifies when permissions are granted to or revoked from a role",
+          "eventUri": "https://schemas.identity.wso2.org/events/role/event-type/rolePermissionsUpdated"
+        }
+      ]
     }
   ]
 }
