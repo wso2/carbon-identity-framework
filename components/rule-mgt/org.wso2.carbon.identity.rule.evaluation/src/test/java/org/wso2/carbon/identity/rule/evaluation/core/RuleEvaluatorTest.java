@@ -163,7 +163,7 @@ public class RuleEvaluatorTest {
     public void testEvaluateRule(Rule rule, Map<String, FieldValue> evaluationData, boolean expectedResult) throws
             RuleEvaluationException {
 
-        boolean result = ruleEvaluator.evaluate(rule, evaluationData);
+        boolean result = ruleEvaluator.evaluate(rule, evaluationData).isRuleSatisfied();
         if (expectedResult) {
             assertTrue(result);
         } else {
@@ -182,7 +182,7 @@ public class RuleEvaluatorTest {
     @Test
     public void testFailedFieldsPopulatedWhenRuleFails() throws Exception {
 
-        RuleEvaluationResult result = ruleEvaluator.evaluateResult(
+        RuleEvaluationResult result = ruleEvaluator.evaluate(
                 createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 createEvaluationData("testApp", "client-credentials"));
 
@@ -194,7 +194,7 @@ public class RuleEvaluatorTest {
     @Test
     public void testFailedFieldsEmptyWhenRulePasses() throws Exception {
 
-        RuleEvaluationResult result = ruleEvaluator.evaluateResult(
+        RuleEvaluationResult result = ruleEvaluator.evaluate(
                 createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 createEvaluationData("testapp", "authorization_code"));
 

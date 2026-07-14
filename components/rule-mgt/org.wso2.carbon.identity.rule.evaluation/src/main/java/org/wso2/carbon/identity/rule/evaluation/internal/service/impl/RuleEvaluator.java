@@ -61,19 +61,6 @@ public class RuleEvaluator {
     }
 
     /**
-     * Evaluate a given rule.
-     *
-     * @param rule           Rule to evaluate.
-     * @param evaluationData Evaluation data.
-     * @return Evaluation result.
-     * @throws RuleEvaluationException If an error occurs while evaluating the rule.
-     */
-    public boolean evaluate(Rule rule, Map<String, FieldValue> evaluationData) throws RuleEvaluationException {
-
-        return evaluateResult(rule, evaluationData).isRuleSatisfied();
-    }
-
-    /**
      * Evaluate a given rule and return the result, including the fields that failed evaluation.
      *
      * @param rule           Rule to evaluate.
@@ -81,7 +68,7 @@ public class RuleEvaluator {
      * @return Rule evaluation result with the satisfied status and the failed fields.
      * @throws RuleEvaluationException If an error occurs while evaluating the rule.
      */
-    public RuleEvaluationResult evaluateResult(Rule rule, Map<String, FieldValue> evaluationData)
+    public RuleEvaluationResult evaluate(Rule rule, Map<String, FieldValue> evaluationData)
             throws RuleEvaluationException {
 
         List<String> failedFields = new ArrayList<>();
