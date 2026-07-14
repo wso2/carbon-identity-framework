@@ -299,7 +299,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     + resource.getTarget().toLowerCase(Locale.ROOT);
             if (!seenTargets.add(key)) {
                 throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_DUPLICATE_PLATFORM_IN_POLICY,
+                        ErrorMessage.ERROR_DUPLICATE_TARGET_IN_POLICY,
                         policy.getName(), resource.getTarget());
             }
         }
