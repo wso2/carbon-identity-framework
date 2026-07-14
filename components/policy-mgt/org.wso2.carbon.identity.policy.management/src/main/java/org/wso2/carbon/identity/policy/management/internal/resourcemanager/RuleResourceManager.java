@@ -47,6 +47,11 @@ public class RuleResourceManager implements PolicyResourceManager {
     @Override
     public PolicyResource create(PolicyResource resource, String tenantDomain) throws PolicyManagementException {
 
+        if (!(resource instanceof RulePolicyResource)) {
+            throw PolicyManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_MANAGER,
+                    resource == null ? "null" : resource.getClass().getName());
+        }
         RulePolicyResource ruleResource = (RulePolicyResource) resource;
         try {
             Rule createdRule = getRuleManagementService().addRule(ruleResource.getRule(), tenantDomain);

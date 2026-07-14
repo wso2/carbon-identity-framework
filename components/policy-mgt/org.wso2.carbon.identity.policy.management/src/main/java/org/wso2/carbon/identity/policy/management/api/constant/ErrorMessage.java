@@ -32,8 +32,8 @@ public enum ErrorMessage {
             "Policy rule validation failed: %s"),
     ERROR_POLICY_ALREADY_EXISTS("PM-60004", "Policy already exists.",
             "A policy with name '%s' already exists for the tenant."),
-    ERROR_DUPLICATE_PLATFORM_IN_POLICY("PM-60005", "Duplicate platform in policy.",
-            "Policy '%s' has more than one rule for platform '%s'."),
+    ERROR_DUPLICATE_TARGET_IN_POLICY("PM-60005", "Duplicate target in policy.",
+            "Policy '%s' has more than one resource of the same type for target '%s'."),
 
     // Server errors.
     ERROR_WHILE_ADDING_POLICY("PM-65001", "Error while adding Policy.",
@@ -51,7 +51,9 @@ public enum ErrorMessage {
     ERROR_WHILE_DELETING_RULE_FOR_POLICY("PM-65007", "Error while deleting Rule for Policy.",
             "Error while deleting Rule for Policy: %s from the system."),
     ERROR_NO_RESOURCE_MANAGER_FOR_TYPE("PM-65008", "No resource manager for type.",
-            "No resource manager registered for resource type: %s.");
+            "No resource manager registered for resource type: %s."),
+    ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_MANAGER("PM-65009", "Unsupported resource type for manager.",
+            "Resource manager received an unsupported resource type: %s.");
 
     private final String code;
     private final String message;
