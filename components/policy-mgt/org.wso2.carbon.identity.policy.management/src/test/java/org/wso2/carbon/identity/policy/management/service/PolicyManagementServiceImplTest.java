@@ -89,8 +89,9 @@ public class PolicyManagementServiceImplTest {
     // Reflection fields removed; tests now construct the service with a mock DAO.
 
     /**
-     * Minimal non-rule stand-in used to exercise dispatch for a resource type with no registered
-     * manager, without introducing a production ActionPolicyResource class.
+     * Minimal stand-in that reports {@link ResourceType#RULE} but is not a {@link RulePolicyResource},
+     * used to trip {@link RuleResourceManager}'s instanceof guard without introducing a production
+     * ActionPolicyResource class.
      */
     private static class TestActionPolicyResource extends PolicyResource {
 
@@ -302,19 +303,19 @@ public class PolicyManagementServiceImplTest {
     }
 
     @Test
-    public void testAddPolicyWithUnsupportedResourceType_Throws() {
+    public void testAddPolicyWithMismatchedResourceForManager_Throws() {
 
-        PolicyResource action = new TestActionPolicyResource(null, "ios", "action-1");
+        PolicyResource mismatched = new TestActionPolicyResource(null, "ios", "action-1");
         Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(action));
+                Collections.singletonList(mismatched));
 
         try {
             policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
             Assert.fail("Expected PolicyManagementException");
         } catch (PolicyManagementException e) {
             Assert.assertTrue(e instanceof PolicyManagementServerException);
-            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_NO_RESOURCE_MANAGER_FOR_TYPE.getCode());
-            Assert.assertTrue(e.getDescription().contains("ACTION"));
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_UNSUPPORTED_RESOURCE_TYPE_FOR_MANAGER.getCode());
+            Assert.assertTrue(e.getDescription().contains(TestActionPolicyResource.class.getName()));
         }
     }
 
