@@ -862,6 +862,9 @@
   "cache.push_device_registration_request_cache.timeout": "300",
   "cache.push_device_registration_request_cache.capacity": "$ref{cache.default_capacity}",
   "push_authenticator.device_registration_context.validity_period": "180",
+  "push_device_management.device_registration_notifications_enabled": true,
+  "push_device_management.max_device_limit_per_user": "10",
+  "push_device_management.multiple_device_support_enabled": true,
   "cache.saml_cert_cache.enable": true,
   "cache.saml_cert_cache.timeout": "900",
   "cache.saml_cert_cache.capacity": "100",
@@ -1322,6 +1325,11 @@
       "description": "This email is sent to the user to complete the CIBA authentication request.",
       "displayName": "CIBA Authentication Request",
       "id": "Q0lCQUF1dGhlbnRpY2F0aW9uTm90aWZpY2F0aW9u"
+    },
+    {
+      "description": "This email is sent to the user to inform when a new device has been registered for push notification.",
+      "displayName": "Push Device Registration",
+      "id": "UHVzaERldmljZVJlZ2lzdHJhdGlvbg"
     }
   ],
   "console.extensions.smsTemplates": [
