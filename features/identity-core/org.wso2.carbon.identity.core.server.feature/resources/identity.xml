@@ -831,6 +831,12 @@
         </DeviceRegistrationContext>
     </PushAuthenticator>
 
+    <PushDeviceManagement>
+        <DeviceRegistrationNotificationsEnabled>true</DeviceRegistrationNotificationsEnabled>
+        <MaxDeviceLimitPerUser>10</MaxDeviceLimitPerUser>
+        <MultipleDeviceSupportEnabled>true</MultipleDeviceSupportEnabled>
+    </PushDeviceManagement>
+
     <RestApiAuthentication>
         <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
         <AddRealmUserToError>false</AddRealmUserToError>
