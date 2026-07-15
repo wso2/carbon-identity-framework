@@ -58,6 +58,7 @@
                     <xs:element minOccurs="0" name="mandatory" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2408:Claim"/>
                     <xs:element minOccurs="0" name="requested" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="runtimeValue" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="Claim">
