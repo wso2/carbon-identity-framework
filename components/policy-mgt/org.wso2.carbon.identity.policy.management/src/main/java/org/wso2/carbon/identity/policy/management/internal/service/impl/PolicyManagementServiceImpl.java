@@ -29,12 +29,14 @@ import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
-import org.wso2.carbon.identity.policy.management.api.util.PolicyManagementExceptionHandler;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementExceptionHandler;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.CacheBackedPolicyManagementDAO;
 import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManagementDAOImpl;
 import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementAuditLogger;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementAuditLogger.Operation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,6 +53,7 @@ import java.util.UUID;
 public class PolicyManagementServiceImpl implements PolicyManagementService {
 
     private static final Log LOG = LogFactory.getLog(PolicyManagementServiceImpl.class);
+    private static final PolicyManagementAuditLogger AUDIT_LOGGER = new PolicyManagementAuditLogger();
     private final PolicyManagementDAO policyManagementDAO;
 
     /**
@@ -99,7 +102,9 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                 policyId, policy.getName(), tenantDomain, createdResources);
 
         try {
-            return policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);
+            Policy created = policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);
+            AUDIT_LOGGER.printAuditLog(Operation.ADD, created);
+            return created;
         } catch (PolicyManagementException e) {
             deleteResources(createdResources, tenantDomain);
             throw e;
@@ -149,6 +154,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
 
         // DB commit succeeded; the old resources are now safe to remove (best-effort).
         deleteResources(existingPolicy.getResources(), tenantDomain);
+        AUDIT_LOGGER.printAuditLog(Operation.UPDATE, updatedPolicy);
 
         return updatedPolicy;
     }
@@ -167,6 +173,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
         policyManagementDAO.deletePolicy(policyId, tenantId);
         deleteResources(existingPolicy.getResources(), tenantDomain);
+        AUDIT_LOGGER.printAuditLog(Operation.DELETE, existingPolicy);
     }
 
     @Override

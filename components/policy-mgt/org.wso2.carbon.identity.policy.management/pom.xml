@@ -78,6 +78,18 @@
             <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
         </dependency>
 
+        <!-- Central logger - LoggerUtils, used for audit logging -->
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
+
+        <!-- JSON - used to build audit log data -->
+        <dependency>
+            <groupId>org.json.wso2</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -135,6 +147,8 @@
                             version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.util;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.context;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.exception;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.model;
@@ -143,10 +157,15 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.util;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils;
                             version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.context;
+                            version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.core.cache;
-                            version="${carbon.identity.package.import.version.range}"
+                            version="${carbon.identity.package.import.version.range}",
+                            org.json.*; version="${json.wso2.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

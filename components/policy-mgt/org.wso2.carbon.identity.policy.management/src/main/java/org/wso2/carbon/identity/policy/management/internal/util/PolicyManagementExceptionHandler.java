@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.policy.management.api.util;
+package org.wso2.carbon.identity.policy.management.internal.util;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;

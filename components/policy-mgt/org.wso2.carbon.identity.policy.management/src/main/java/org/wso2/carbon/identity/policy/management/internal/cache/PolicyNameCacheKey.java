@@ -23,32 +23,32 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
 import java.util.Objects;
 
 /**
- * Cache key for the PolicyCache, keyed by policy ID.
+ * Cache key by policy name for PolicyIdByNameCache.
  */
-public class PolicyCacheKey extends CacheKey {
+public class PolicyNameCacheKey extends CacheKey {
 
-    private static final long serialVersionUID = 1861274580132498765L;
+    private static final long serialVersionUID = -8261947350129384756L;
 
-    private final String policyId;
+    private final String policyName;
 
     /**
-     * Constructor to create PolicyCacheKey.
+     * Constructor to create PolicyNameCacheKey.
      *
-     * @param policyId Policy ID.
+     * @param policyName Name of the policy.
      */
-    public PolicyCacheKey(String policyId) {
+    public PolicyNameCacheKey(String policyName) {
 
-        this.policyId = policyId;
+        this.policyName = policyName;
     }
 
     /**
-     * Get the policy ID.
+     * Get the policy name.
      *
-     * @return Policy ID.
+     * @return Policy name.
      */
-    public String getPolicyId() {
+    public String getPolicyName() {
 
-        return policyId;
+        return policyName;
     }
 
     @Override
@@ -64,13 +64,13 @@ public class PolicyCacheKey extends CacheKey {
             return false;
         }
 
-        PolicyCacheKey that = (PolicyCacheKey) o;
-        return Objects.equals(policyId, that.policyId);
+        PolicyNameCacheKey that = (PolicyNameCacheKey) o;
+        return Objects.equals(policyName, that.policyName);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(policyId);
+        return Objects.hash(policyName);
     }
 }

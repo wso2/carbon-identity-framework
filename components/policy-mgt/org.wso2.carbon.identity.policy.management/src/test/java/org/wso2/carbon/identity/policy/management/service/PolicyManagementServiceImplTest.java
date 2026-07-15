@@ -18,15 +18,18 @@
 
 package org.wso2.carbon.identity.policy.management.service;
 
+import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -45,6 +48,7 @@ import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyMa
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.utils.AuditLog;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,6 +59,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +84,7 @@ public class PolicyManagementServiceImplTest {
 
     private PolicyManagementServiceImpl policyManagementService;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<LoggerUtils> loggerUtils;
     private AutoCloseable mocks;
     // Reflection fields removed; tests now construct the service with a mock DAO.
 
@@ -96,7 +102,7 @@ public class PolicyManagementServiceImplTest {
         @Override
         public ResourceType getResourceType() {
 
-            return ResourceType.ACTION;
+            return ResourceType.RULE;
         }
     }
 
@@ -125,6 +131,17 @@ public class PolicyManagementServiceImplTest {
 
         org.mockito.Mockito.reset(policyManagementDAO);
         org.mockito.Mockito.reset(ruleManagementService);
+
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(() -> LoggerUtils.getInitiatorType(any())).thenReturn("USER");
+        loggerUtils.when(() -> LoggerUtils.getMaskedContent(any())).thenAnswer(i -> "****");
+        loggerUtils.when(() -> LoggerUtils.jsonObjectToMap(any(JSONObject.class))).thenCallRealMethod();
+    }
+
+    @AfterMethod
+    public void closeLoggerUtilsMock() {
+
+        loggerUtils.close();
     }
 
     // --- Basic validation tests ---
@@ -144,6 +161,7 @@ public class PolicyManagementServiceImplTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getName(), TEST_POLICY_NAME);
         verify(policyManagementDAO).addPolicy(any(Policy.class), eq(TENANT_ID));
+        loggerUtils.verify(() -> LoggerUtils.triggerAuditLogEvent(any(AuditLog.AuditLogBuilder.class)), times(1));
     }
 
     @Test(expectedExceptions = PolicyManagementClientException.class)
@@ -176,6 +194,7 @@ public class PolicyManagementServiceImplTest {
         Assert.assertEquals(result.getId(), TEST_POLICY_ID);
         Assert.assertEquals(result.getName(), TEST_POLICY_NAME);
         verify(policyManagementDAO).getPolicyById(TEST_POLICY_ID, TENANT_ID);
+        loggerUtils.verifyNoInteractions();
     }
 
     @Test
@@ -196,6 +215,7 @@ public class PolicyManagementServiceImplTest {
         Assert.assertTrue(resource instanceof RulePolicyResource);
         Assert.assertEquals(((RulePolicyResource) resource).getRule(), hydratedRule);
         Assert.assertEquals(resource.getResourceId(), ruleId);
+        loggerUtils.verifyNoInteractions();
     }
 
     @Test
@@ -214,6 +234,7 @@ public class PolicyManagementServiceImplTest {
         Assert.assertNotNull(result);
         Assert.assertEquals(result.getName(), "UpdatedPolicy");
         verify(policyManagementDAO).updatePolicy(any(Policy.class), eq(TENANT_ID));
+        loggerUtils.verify(() -> LoggerUtils.triggerAuditLogEvent(any(AuditLog.AuditLogBuilder.class)), times(1));
     }
 
     @Test(expectedExceptions = PolicyManagementClientException.class)
@@ -238,6 +259,7 @@ public class PolicyManagementServiceImplTest {
         policyManagementService.deletePolicy(TEST_POLICY_ID, TENANT_DOMAIN);
 
         verify(policyManagementDAO).deletePolicy(TEST_POLICY_ID, TENANT_ID);
+        loggerUtils.verify(() -> LoggerUtils.triggerAuditLogEvent(any(AuditLog.AuditLogBuilder.class)), times(1));
     }
 
     @Test
@@ -248,6 +270,7 @@ public class PolicyManagementServiceImplTest {
         policyManagementService.deletePolicy(TEST_POLICY_ID, TENANT_DOMAIN);
 
         verify(policyManagementDAO, org.mockito.Mockito.never()).deletePolicy(any(), eq(TENANT_ID));
+        loggerUtils.verifyNoInteractions();
     }
 
     // --- Resource manager dispatch and saga compensation tests ---

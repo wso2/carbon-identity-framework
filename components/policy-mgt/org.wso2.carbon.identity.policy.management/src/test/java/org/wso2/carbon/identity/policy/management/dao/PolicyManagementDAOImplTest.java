@@ -36,7 +36,9 @@ import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManage
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mockStatic;
@@ -160,15 +162,20 @@ public class PolicyManagementDAOImplTest {
 
         Assert.assertEquals(policyManagementDAO.getPolicyCount(TENANT_ID, "PageTest"), 3);
 
+        // Results are ordered by creation time, newest first. The two pages must together return all
+        // three policies exactly once, with no overlap (asserted on the set, since policies created in
+        // the same millisecond tie on CREATED_AT and fall back to the ID tiebreaker).
         List<PolicyBasicInfo> firstPage = policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 0, 2);
         Assert.assertEquals(firstPage.size(), 2);
-        // Results are ordered by policy name ascending.
-        Assert.assertEquals(firstPage.get(0).getName(), "PageTestAlpha");
-        Assert.assertEquals(firstPage.get(1).getName(), "PageTestBeta");
 
         List<PolicyBasicInfo> secondPage = policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 2, 2);
         Assert.assertEquals(secondPage.size(), 1);
-        Assert.assertEquals(secondPage.get(0).getName(), "PageTestGamma");
+
+        Set<String> pagedNames = new HashSet<>();
+        firstPage.forEach(policy -> pagedNames.add(policy.getName()));
+        secondPage.forEach(policy -> pagedNames.add(policy.getName()));
+        Assert.assertEquals(pagedNames,
+                new HashSet<>(Arrays.asList("PageTestAlpha", "PageTestBeta", "PageTestGamma")));
 
         // A non-positive limit yields an empty page.
         Assert.assertTrue(policyManagementDAO.getPolicies(TENANT_ID, "PageTest", 0, 0).isEmpty());

@@ -18,31 +18,34 @@
 
 package org.wso2.carbon.identity.policy.management.internal.cache;
 
-import org.wso2.carbon.identity.core.cache.BaseCache;
-import org.wso2.carbon.utils.CarbonUtils;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
- * Cache for Policy Management, keyed by policy ID.
- * This is the canonical cache: the full Policy object is stored here and only here.
+ * Policy Id Cache Entry for PolicyIdByNameCache cache.
  */
-public class PolicyCache extends BaseCache<PolicyCacheKey, PolicyCacheEntry> {
+public class PolicyIdCacheEntry extends CacheEntry {
 
-    private static final String CACHE_NAME = "PolicyCache";
-    private static final PolicyCache INSTANCE = new PolicyCache();
+    private static final long serialVersionUID = 6248357192038471593L;
 
-    private PolicyCache() {
+    private final String policyId;
 
-        super(CACHE_NAME);
+    /**
+     * Constructor to create PolicyIdCacheEntry.
+     *
+     * @param policyId Policy Id of the policy to be added to the cache.
+     */
+    public PolicyIdCacheEntry(String policyId) {
+
+        this.policyId = policyId;
     }
 
     /**
-     * Retrieve the singleton instance.
+     * Get the policy Id.
      *
-     * @return Singleton instance of PolicyCache.
+     * @return Policy Id.
      */
-    public static PolicyCache getInstance() {
+    public String getPolicyId() {
 
-        CarbonUtils.checkSecurity();
-        return INSTANCE;
+        return policyId;
     }
 }

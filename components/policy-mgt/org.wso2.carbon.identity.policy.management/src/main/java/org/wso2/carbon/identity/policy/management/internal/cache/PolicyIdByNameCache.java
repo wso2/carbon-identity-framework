@@ -22,15 +22,16 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**
- * Cache for Policy Management, keyed by policy ID.
- * This is the canonical cache: the full Policy object is stored here and only here.
+ * Policy Id cache based on the policy name.
+ * This is the index cache: it stores only the policy ID for a given name, not the full Policy.
+ * A name lookup resolves the ID here first, then fetches the full Policy from PolicyCache.
  */
-public class PolicyCache extends BaseCache<PolicyCacheKey, PolicyCacheEntry> {
+public class PolicyIdByNameCache extends BaseCache<PolicyNameCacheKey, PolicyIdCacheEntry> {
 
-    private static final String CACHE_NAME = "PolicyCache";
-    private static final PolicyCache INSTANCE = new PolicyCache();
+    private static final String CACHE_NAME = "PolicyIdByNameCache";
+    private static final PolicyIdByNameCache INSTANCE = new PolicyIdByNameCache();
 
-    private PolicyCache() {
+    private PolicyIdByNameCache() {
 
         super(CACHE_NAME);
     }
@@ -38,9 +39,9 @@ public class PolicyCache extends BaseCache<PolicyCacheKey, PolicyCacheEntry> {
     /**
      * Retrieve the singleton instance.
      *
-     * @return Singleton instance of PolicyCache.
+     * @return Singleton instance of PolicyIdByNameCache.
      */
-    public static PolicyCache getInstance() {
+    public static PolicyIdByNameCache getInstance() {
 
         CarbonUtils.checkSecurity();
         return INSTANCE;

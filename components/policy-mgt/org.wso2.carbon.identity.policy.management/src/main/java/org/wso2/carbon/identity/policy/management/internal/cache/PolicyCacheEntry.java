@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 
 /**
- * Cache entry for Policy Management.
+ * Cache entry for PolicyCache.
  * Stores an un-hydrated Policy (rule IDs only, no full Rule objects).
  */
 public class PolicyCacheEntry extends CacheEntry {
@@ -31,11 +31,21 @@ public class PolicyCacheEntry extends CacheEntry {
 
     private final Policy policy;
 
+    /**
+     * Constructor to create PolicyCacheEntry.
+     *
+     * @param policy Policy to be added to the cache.
+     */
     public PolicyCacheEntry(Policy policy) {
 
         this.policy = policy;
     }
 
+    /**
+     * Get the Policy.
+     *
+     * @return Policy.
+     */
     public Policy getPolicy() {
 
         return policy;

@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.internal.cache.PolicyCache;
 import org.wso2.carbon.identity.policy.management.internal.cache.PolicyCacheEntry;
 import org.wso2.carbon.identity.policy.management.internal.cache.PolicyCacheKey;
+import org.wso2.carbon.identity.policy.management.internal.cache.PolicyIdByNameCache;
+import org.wso2.carbon.identity.policy.management.internal.cache.PolicyIdCacheEntry;
+import org.wso2.carbon.identity.policy.management.internal.cache.PolicyNameCacheKey;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 
 import java.util.List;
@@ -35,7 +38,9 @@ import java.util.Objects;
  * Cache-backed Policy Management DAO.
  * Wraps a PolicyManagementDAO with an in-process cache to reduce DB hits on the hot path.
  * Hot path: getPolicyByName (called on every policy evaluation) is served from cache after first read.
- * Cache is keyed by policy name only and is precisely invalidated on update and delete.
+ * Caching is split into a canonical cache (policy ID to full Policy) and an index cache
+ * (policy name to policy ID). A name-based lookup resolves the ID via the index cache and then
+ * fetches the full Policy from the canonical cache, so the full Policy is never duplicated.
  */
 public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
@@ -43,11 +48,13 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
     private final PolicyManagementDAO policyManagementDAO;
     private final PolicyCache policyCache;
+    private final PolicyIdByNameCache policyIdByNameCache;
 
     public CacheBackedPolicyManagementDAO(PolicyManagementDAO policyManagementDAO) {
 
         this.policyManagementDAO = policyManagementDAO;
         policyCache = PolicyCache.getInstance();
+        policyIdByNameCache = PolicyIdByNameCache.getInstance();
     }
 
     /**
@@ -67,9 +74,9 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
     /**
      * Update an existing Policy.
-     * Reads the persisted policy first to detect renames, then delegates the update,
-     * and finally clears both the ID-based and name-based cache entries. If the policy name has
-     * changed, the old name's cache entry is also cleared.
+     * Reads the persisted policy first to detect renames, then delegates the update, and finally
+     * clears the canonical cache entry for the policy ID. If the policy name has changed, the old
+     * name's index cache entry is also cleared; a plain content update leaves the index untouched.
      *
      * @param policy   Policy object with updated state.
      * @param tenantId Tenant ID.
@@ -83,24 +90,23 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
         Policy updatedPolicy = policyManagementDAO.updatePolicy(policy, tenantId);
 
         if (existingPolicy != null && !Objects.equals(existingPolicy.getName(), policy.getName())) {
-            policyCache.clearCacheEntry(PolicyCacheKey.forName(existingPolicy.getName()), tenantId);
+            policyIdByNameCache.clearCacheEntry(new PolicyNameCacheKey(existingPolicy.getName()), tenantId);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy cache cleared for old name: " + existingPolicy.getName() + " on update.");
+                LOG.debug("Policy name index cache cleared for old name: " + existingPolicy.getName()
+                        + " on update.");
             }
         }
-        policyCache.clearCacheEntry(PolicyCacheKey.forId(policy.getId()), tenantId);
-        policyCache.clearCacheEntry(PolicyCacheKey.forName(policy.getName()), tenantId);
+        policyCache.clearCacheEntry(new PolicyCacheKey(policy.getId()), tenantId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Policy cache cleared for ID: " + policy.getId()
-                    + " and name: " + policy.getName() + " on update.");
+            LOG.debug("Policy cache cleared for ID: " + policy.getId() + " on update.");
         }
         return updatedPolicy;
     }
 
     /**
      * Delete a Policy.
-     * Reads the persisted policy first to resolve its name, delegates the delete,
-     * then clears both the ID-based and name-based cache entries.
+     * Reads the persisted policy first to resolve its name, delegates the delete, then clears
+     * both the canonical cache entry for the policy ID and the index cache entry for its name.
      *
      * @param policyId Policy ID.
      * @param tenantId Tenant ID.
@@ -112,12 +118,12 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
         Policy existingPolicy = policyManagementDAO.getPolicyById(policyId, tenantId);
         policyManagementDAO.deletePolicy(policyId, tenantId);
         if (existingPolicy != null) {
-            policyCache.clearCacheEntry(PolicyCacheKey.forName(existingPolicy.getName()), tenantId);
+            policyIdByNameCache.clearCacheEntry(new PolicyNameCacheKey(existingPolicy.getName()), tenantId);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy cache cleared for name: " + existingPolicy.getName() + " on delete.");
+                LOG.debug("Policy name index cache cleared for name: " + existingPolicy.getName() + " on delete.");
             }
         }
-        policyCache.clearCacheEntry(PolicyCacheKey.forId(policyId), tenantId);
+        policyCache.clearCacheEntry(new PolicyCacheKey(policyId), tenantId);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Policy cache cleared for ID: " + policyId + " on delete.");
         }
@@ -125,9 +131,9 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
     /**
      * Get a Policy by Policy ID.
-     * This method first checks the cache for the Policy object.
+     * This method first checks the canonical cache for the Policy object.
      * If the Policy object is not found in the cache, it invokes the data layer operation
-     * and caches the result under the ID-based key.
+     * and populates the canonical cache.
      *
      * @param policyId Policy ID.
      * @param tenantId Tenant ID.
@@ -137,8 +143,7 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public Policy getPolicyById(String policyId, int tenantId) throws PolicyManagementException {
 
-        PolicyCacheEntry cacheEntry = policyCache.getValueFromCache(
-                PolicyCacheKey.forId(policyId), tenantId);
+        PolicyCacheEntry cacheEntry = policyCache.getValueFromCache(new PolicyCacheKey(policyId), tenantId);
         if (cacheEntry != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Policy cache hit for ID: " + policyId);
@@ -147,17 +152,17 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
         }
         Policy policy = policyManagementDAO.getPolicyById(policyId, tenantId);
         if (policy != null) {
-            policyCache.addToCacheOnRead(
-                    PolicyCacheKey.forId(policyId), new PolicyCacheEntry(policy), tenantId);
+            policyCache.addToCacheOnRead(new PolicyCacheKey(policyId), new PolicyCacheEntry(policy), tenantId);
         }
         return policy;
     }
 
     /**
      * Get a Policy by Policy name.
-     * This method first checks the cache for the Policy object.
-     * If the Policy object is not found in the cache, it invokes the data layer operation and
-     * populates both the name-based and ID-based cache entries so either lookup type benefits.
+     * This method first checks the index cache for the policy ID mapped to the given name.
+     * On an index hit, the full Policy is resolved through the canonical ID-based lookup.
+     * On an index miss, it invokes the data layer operation and populates both the canonical
+     * cache (by ID) and the index cache (name to ID).
      *
      * @param policyName Policy name.
      * @param tenantId   Tenant ID.
@@ -167,20 +172,19 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public Policy getPolicyByName(String policyName, int tenantId) throws PolicyManagementException {
 
-        PolicyCacheEntry cacheEntry = policyCache.getValueFromCache(
-                PolicyCacheKey.forName(policyName), tenantId);
-        if (cacheEntry != null) {
+        PolicyIdCacheEntry idCacheEntry = policyIdByNameCache.getValueFromCache(
+                new PolicyNameCacheKey(policyName), tenantId);
+        if (idCacheEntry != null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy cache hit for name: " + policyName);
+                LOG.debug("Policy name index cache hit for name: " + policyName);
             }
-            return cacheEntry.getPolicy();
+            return getPolicyById(idCacheEntry.getPolicyId(), tenantId);
         }
         Policy policy = policyManagementDAO.getPolicyByName(policyName, tenantId);
         if (policy != null) {
-            policyCache.addToCacheOnRead(
-                    PolicyCacheKey.forName(policyName), new PolicyCacheEntry(policy), tenantId);
-            policyCache.addToCacheOnRead(
-                    PolicyCacheKey.forId(policy.getId()), new PolicyCacheEntry(policy), tenantId);
+            policyCache.addToCacheOnRead(new PolicyCacheKey(policy.getId()), new PolicyCacheEntry(policy), tenantId);
+            policyIdByNameCache.addToCacheOnRead(
+                    new PolicyNameCacheKey(policyName), new PolicyIdCacheEntry(policy.getId()), tenantId);
         }
         return policy;
     }
@@ -219,8 +223,9 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
 
     /**
      * Get a Policy ID by Policy name.
-     * Checks the name-based cache first and returns the cached policy's ID on a hit, avoiding the DB.
-     * On a miss, delegates to the underlying data layer's lightweight ID lookup.
+     * Checks the index cache first and returns the cached ID on a hit, avoiding the DB.
+     * On a miss, delegates to the underlying data layer's lightweight ID lookup and warms
+     * the index cache with the result.
      *
      * @param policyName Policy name.
      * @param tenantId   Tenant ID.
@@ -230,14 +235,19 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public String getPolicyIdByName(String policyName, int tenantId) throws PolicyManagementException {
 
-        PolicyCacheEntry cacheEntry = policyCache.getValueFromCache(
-                PolicyCacheKey.forName(policyName), tenantId);
-        if (cacheEntry != null) {
+        PolicyIdCacheEntry idCacheEntry = policyIdByNameCache.getValueFromCache(
+                new PolicyNameCacheKey(policyName), tenantId);
+        if (idCacheEntry != null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Policy cache hit for name: " + policyName + " while resolving policy ID.");
+                LOG.debug("Policy name index cache hit for name: " + policyName + " while resolving policy ID.");
             }
-            return cacheEntry.getPolicy().getId();
+            return idCacheEntry.getPolicyId();
         }
-        return policyManagementDAO.getPolicyIdByName(policyName, tenantId);
+        String policyId = policyManagementDAO.getPolicyIdByName(policyName, tenantId);
+        if (policyId != null) {
+            policyIdByNameCache.addToCacheOnRead(
+                    new PolicyNameCacheKey(policyName), new PolicyIdCacheEntry(policyId), tenantId);
+        }
+        return policyId;
     }
 }

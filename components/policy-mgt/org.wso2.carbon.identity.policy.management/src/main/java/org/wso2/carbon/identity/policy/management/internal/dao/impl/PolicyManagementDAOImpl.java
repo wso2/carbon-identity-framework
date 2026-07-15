@@ -35,11 +35,12 @@ import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
-import org.wso2.carbon.identity.policy.management.api.util.PolicyManagementExceptionHandler;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementExceptionHandler;
 import org.wso2.carbon.identity.policy.management.internal.constant.PolicyMgtSQLConstants;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +55,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     @Override
     public Policy addPolicy(Policy policy, int tenantId) throws PolicyManagementException {
 
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         NamedJdbcTemplate jdbcTemplate =
                 new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
@@ -64,6 +66,10 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.ID, policy.getId());
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policy.getName());
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
+                            preparedStatement.setTimeStamp(
+                                    PolicyMgtSQLConstants.Column.CREATED_AT, currentTimestamp, null);
+                            preparedStatement.setTimeStamp(
+                                    PolicyMgtSQLConstants.Column.UPDATED_AT, currentTimestamp, null);
                         },
                         policy,
                         false);
@@ -109,6 +115,8 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                         PolicyMgtSQLConstants.Query.UPDATE_POLICY,
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policy.getName());
+                            preparedStatement.setTimeStamp(PolicyMgtSQLConstants.Column.UPDATED_AT,
+                                    new Timestamp(System.currentTimeMillis()), null);
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_ID, policy.getId());
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
                         });

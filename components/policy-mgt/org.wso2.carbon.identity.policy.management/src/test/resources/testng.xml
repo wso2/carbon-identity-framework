@@ -30,4 +30,9 @@
             <class name="org.wso2.carbon.identity.policy.management.service.PolicyManagementServiceImplTest"/>
         </classes>
     </test>
+    <test name="policy-management-util-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.policy.management.util.PolicyManagementAuditLoggerTest"/>
+        </classes>
+    </test>
 </suite>
