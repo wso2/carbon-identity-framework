@@ -149,6 +149,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.context.model;
+                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.exception;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.api.model;
