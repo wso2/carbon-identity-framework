@@ -25,8 +25,5 @@ package org.wso2.carbon.identity.policy.management.api.model;
 public enum ResourceType {
 
     /** An IS-native rule managed by rule-mgt. */
-    RULE,
-
-    /** An external action managed by action-mgt. */
-    ACTION
+    RULE
 }

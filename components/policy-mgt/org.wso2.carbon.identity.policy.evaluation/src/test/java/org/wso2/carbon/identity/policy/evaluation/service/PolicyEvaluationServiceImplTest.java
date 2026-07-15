@@ -21,11 +21,9 @@ package org.wso2.carbon.identity.policy.evaluation.service;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.policy.evaluation.api.evaluator.PolicyResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
-import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.policy.evaluation.internal.evaluator.RuleResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.internal.service.impl.PolicyEvaluationServiceImpl;
@@ -66,35 +64,6 @@ public class PolicyEvaluationServiceImplTest {
     private PolicyEvaluationServiceImpl policyEvaluationService;
     private PolicyEvaluationContext context;
 
-    /**
-     * Minimal non-rule stand-in used to exercise dispatch for a resource type, without introducing
-     * a production ActionPolicyResource class.
-     */
-    private static class StubActionPolicyResource extends PolicyResource {
-
-        StubActionPolicyResource(String id, String target, String resourceId) {
-
-            super(id, target, resourceId);
-        }
-
-        @Override
-        public ResourceType getResourceType() {
-
-            return ResourceType.ACTION;
-        }
-    }
-
-    /**
-     * Minimal concrete {@link ResourceEvaluationResult} for stub evaluators, since the base is abstract.
-     */
-    private static class StubResourceEvaluationResult extends ResourceEvaluationResult {
-
-        StubResourceEvaluationResult(PolicyResource resource, boolean satisfied) {
-
-            super(resource, satisfied);
-        }
-    }
-
     @BeforeMethod
     public void setUp() {
 
@@ -115,25 +84,6 @@ public class PolicyEvaluationServiceImplTest {
                 UUID.randomUUID().toString(), target, RULE_ID, rule);
         return new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
                 Collections.singletonList(resource));
-    }
-
-    private PolicyResourceEvaluator stubEvaluator(ResourceType resourceType, boolean satisfied) {
-
-        return new PolicyResourceEvaluator() {
-
-            @Override
-            public ResourceType getSupportedResourceType() {
-
-                return resourceType;
-            }
-
-            @Override
-            public ResourceEvaluationResult evaluate(PolicyResource resource, PolicyEvaluationContext context,
-                                                      String tenantDomain) {
-
-                return new StubResourceEvaluationResult(resource, satisfied);
-            }
-        };
     }
 
     @Test(expectedExceptions = PolicyEvaluationException.class)
@@ -244,68 +194,67 @@ public class PolicyEvaluationServiceImplTest {
     public void testMultipleResourcesAndSemantics_AllSatisfied() throws PolicyManagementException,
             RuleEvaluationException, PolicyEvaluationException {
 
-        PolicyResourceEvaluator stubActionEvaluator = stubEvaluator(ResourceType.ACTION, true);
-        PolicyEvaluationComponentServiceHolder.getInstance().addPolicyResourceEvaluator(stubActionEvaluator);
-        try {
-            Rule rule = mock(Rule.class);
-            when(rule.getId()).thenReturn(RULE_ID);
-            PolicyResource ruleResource = new RulePolicyResource(UUID.randomUUID().toString(), "ios", RULE_ID, rule);
-            PolicyResource actionResource = new StubActionPolicyResource(
-                    UUID.randomUUID().toString(), "ios", "action-1");
-            Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
-                    Arrays.asList(ruleResource, actionResource));
-            when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-            when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                    .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+        String secondRuleId = UUID.randomUUID().toString();
+        Rule rule1 = mock(Rule.class);
+        when(rule1.getId()).thenReturn(RULE_ID);
+        Rule rule2 = mock(Rule.class);
+        when(rule2.getId()).thenReturn(secondRuleId);
+        PolicyResource ruleResource1 = new RulePolicyResource(UUID.randomUUID().toString(), "ios", RULE_ID, rule1);
+        PolicyResource ruleResource2 = new RulePolicyResource(
+                UUID.randomUUID().toString(), "ios", secondRuleId, rule2);
+        Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
+                Arrays.asList(ruleResource1, ruleResource2));
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+        when(ruleEvaluationService.evaluate(eq(secondRuleId), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(secondRuleId, true));
 
-            PolicyEvaluationResult result = policyEvaluationService.evaluate(
-                    POLICY_ID, "ios", context, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
-            Assert.assertTrue(result.isSatisfied());
-            Assert.assertEquals(result.getResults().size(), 2);
-        } finally {
-            PolicyEvaluationComponentServiceHolder.getInstance().removePolicyResourceEvaluator(stubActionEvaluator);
-        }
+        Assert.assertTrue(result.isSatisfied());
+        Assert.assertEquals(result.getResults().size(), 2);
     }
 
     @Test
     public void testMultipleResourcesAndSemantics_OneUnsatisfiedFailsAll() throws PolicyManagementException,
             RuleEvaluationException, PolicyEvaluationException {
 
-        PolicyResourceEvaluator stubActionEvaluator = stubEvaluator(ResourceType.ACTION, false);
-        PolicyEvaluationComponentServiceHolder.getInstance().addPolicyResourceEvaluator(stubActionEvaluator);
-        try {
-            Rule rule = mock(Rule.class);
-            when(rule.getId()).thenReturn(RULE_ID);
-            PolicyResource ruleResource = new RulePolicyResource(UUID.randomUUID().toString(), "ios", RULE_ID, rule);
-            PolicyResource actionResource = new StubActionPolicyResource(
-                    UUID.randomUUID().toString(), "ios", "action-1");
-            Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
-                    Arrays.asList(ruleResource, actionResource));
-            when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-            when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                    .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+        String secondRuleId = UUID.randomUUID().toString();
+        Rule rule1 = mock(Rule.class);
+        when(rule1.getId()).thenReturn(RULE_ID);
+        Rule rule2 = mock(Rule.class);
+        when(rule2.getId()).thenReturn(secondRuleId);
+        PolicyResource ruleResource1 = new RulePolicyResource(UUID.randomUUID().toString(), "ios", RULE_ID, rule1);
+        PolicyResource ruleResource2 = new RulePolicyResource(
+                UUID.randomUUID().toString(), "ios", secondRuleId, rule2);
+        Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
+                Arrays.asList(ruleResource1, ruleResource2));
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+        when(ruleEvaluationService.evaluate(eq(secondRuleId), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(secondRuleId, false));
 
-            PolicyEvaluationResult result = policyEvaluationService.evaluate(
-                    POLICY_ID, "ios", context, TENANT_DOMAIN);
+        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
-            Assert.assertFalse(result.isSatisfied());
-            Assert.assertEquals(result.getResults().size(), 2);
-        } finally {
-            PolicyEvaluationComponentServiceHolder.getInstance().removePolicyResourceEvaluator(stubActionEvaluator);
-        }
+        Assert.assertFalse(result.isSatisfied());
+        Assert.assertEquals(result.getResults().size(), 2);
     }
 
     @Test(expectedExceptions = PolicyEvaluationException.class)
     public void testMissingEvaluatorThrows() throws PolicyManagementException, PolicyEvaluationException {
 
-        PolicyResource actionResource = new StubActionPolicyResource(
-                UUID.randomUUID().toString(), "ios", "action-1");
-        Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(actionResource));
-        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+        RuleResourceEvaluator ruleResourceEvaluator = new RuleResourceEvaluator();
+        PolicyEvaluationComponentServiceHolder.getInstance().removePolicyResourceEvaluator(ruleResourceEvaluator);
+        try {
+            Policy policy = policyWithRule("ios");
+            when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
 
-        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
+            policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
+        } finally {
+            PolicyEvaluationComponentServiceHolder.getInstance().addPolicyResourceEvaluator(ruleResourceEvaluator);
+        }
     }
 
     @Test
