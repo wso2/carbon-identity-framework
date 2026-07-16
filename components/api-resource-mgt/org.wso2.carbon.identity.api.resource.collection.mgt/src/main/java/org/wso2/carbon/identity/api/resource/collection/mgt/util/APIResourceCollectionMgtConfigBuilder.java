@@ -171,14 +171,14 @@ public class APIResourceCollectionMgtConfigBuilder {
                         } else {
                             // Process new scopes with feature scopes.
                             if (isReadAction) {
-                                if (isHolderScope(scopeName)) {
+                                if (isFeatureScope(scopeName)) {
                                     readScopeSet.addAll(holderResolutionMap.getOrDefault(
                                             scopeName, Collections.emptySet()));
                                 } else {
                                     readScopeSet.add(scopeName);
                                 }
                             } else if (isCreateAction) {
-                                if (isHolderScope(scopeName)) {
+                                if (isFeatureScope(scopeName)) {
                                     Set<String> resolved = holderResolutionMap.getOrDefault(
                                             scopeName, Collections.emptySet());
                                     createScopeSet.addAll(resolved);
@@ -188,7 +188,7 @@ public class APIResourceCollectionMgtConfigBuilder {
                                     writeScopeSet.add(scopeName);
                                 }
                             } else if (isUpdateAction) {
-                                if (isHolderScope(scopeName)) {
+                                if (isFeatureScope(scopeName)) {
                                     Set<String> resolved = holderResolutionMap.getOrDefault(
                                             scopeName, Collections.emptySet());
                                     updateScopeSet.addAll(resolved);
@@ -198,7 +198,7 @@ public class APIResourceCollectionMgtConfigBuilder {
                                     writeScopeSet.add(scopeName);
                                 }
                             } else if (isDeleteAction) {
-                                if (isHolderScope(scopeName)) {
+                                if (isFeatureScope(scopeName)) {
                                     Set<String> resolved = holderResolutionMap.getOrDefault(
                                             scopeName, Collections.emptySet());
                                     deleteScopeSet.addAll(resolved);
@@ -317,7 +317,7 @@ public class APIResourceCollectionMgtConfigBuilder {
                 scope.endsWith(APIResourceCollectionConfigBuilderConstants.DELETE_FEATURE_SCOPE_SUFFIX);
     }
 
-    private boolean isHolderScope(String scope) {
+    private boolean isFeatureScope(String scope) {
 
         return isViewFeatureScope(scope) || isEditFeatureScope(scope) || isCreateFeatureScope(scope)
                 || isUpdateFeatureScope(scope) || isDeleteFeatureScope(scope);
@@ -377,7 +377,7 @@ public class APIResourceCollectionMgtConfigBuilder {
         }
         Set<String> leaves = new HashSet<>();
         for (String scope : rawMap.getOrDefault(holder, Collections.emptySet())) {
-            if (isHolderScope(scope)) {
+            if (isFeatureScope(scope)) {
                 leaves.addAll(resolveLeaves(scope, rawMap, memo, visiting));
             } else {
                 leaves.add(scope);
