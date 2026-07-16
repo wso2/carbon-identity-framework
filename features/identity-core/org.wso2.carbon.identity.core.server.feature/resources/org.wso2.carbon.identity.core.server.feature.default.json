@@ -2373,6 +2373,7 @@
 
   "workflow_engine.max_approver_notifications": 15,
   "use_resident_user_id_for_authenticated_shared_users.enabled": true,
+  "connection_sharing.default_provisioning_user_store": "PRIMARY",
   "app_native_authentication.handle_fail_completed_authenticator_status": true,
   "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": false,
   "enhanced_organization_authentication.enabled_by_default_for_new_apps": true,

@@ -992,4 +992,18 @@ public class IdentityProvider implements Serializable {
     public void setTrustedTokenIssuer(boolean trustedTokenIssuer) {
         this.trustedTokenIssuer = trustedTokenIssuer;
     }
+
+    public boolean isShared() {
+
+        IdentityProviderProperty[] idpProperties = getIdpProperties();
+        if (idpProperties == null) {
+            return false;
+        }
+        for (IdentityProviderProperty idpProperty : idpProperties) {
+            if (idpProperty.getName().equals("isShared")) {
+                return Boolean.parseBoolean(idpProperty.getValue());
+            }
+        }
+        return false;
+    }
 }

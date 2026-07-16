@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,6 +130,31 @@ public interface IdpManager {
     }
 
     /**
+     * Get all identity provider's Basic information along with additionally requested information, optionally
+     * resolving shared (shadow) identity providers against their parent.
+     *
+     * @param limit                      Limit per page.
+     * @param offset                     Offset value.
+     * @param filter                     Filter value for IdP search.
+     * @param sortOrder                  Order of IdP ASC/DESC.
+     * @param sortBy                     The column value need to sort.
+     * @param tenantDomain               TenantDomain of the user.
+     * @param requiredAttributes         Required attributes which needs to be return.
+     * @param resolveType                The resolution depth for shared (shadow) identity providers (raw / base
+     *                                   parent / full parent).
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     */
+    default IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                    String tenantDomain, List<String> requiredAttributes,
+                                    SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return getIdPs(limit, offset, filter, sortOrder, sortBy, tenantDomain, requiredAttributes);
+    }
+
+    /**
      * Get basic information of identity providers along with additionally requested information.
      *
      * @param limit              The limit per page.
@@ -146,6 +172,29 @@ public interface IdpManager {
             throws IdentityProviderManagementException {
 
         return null;
+    }
+
+    /**
+     * Get basic information of identity providers along with additionally requested information.
+     *
+     * @param limit              The limit per page.
+     * @param offset             The offset value.
+     * @param sortOrder          The order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       The tenant domain of the user.
+     * @param requiredAttributes The required attributes which needs to be returned.
+     * @param expressionNodes    The list of filters.
+     * @param resolveType        The resolution depth for shared (shadow) identity providers (raw / base parent /
+     *                           full parent).
+     * @return The basic information of identity providers along with requested attributes.
+     * @throws IdentityProviderManagementException Server/client related errors when getting list of identity providers.
+     */
+    default IdpSearchResult getIdPs(Integer limit, Integer offset, String sortOrder, String sortBy, String tenantDomain,
+                                    List<String> requiredAttributes, List<ExpressionNode> expressionNodes,
+                                    SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return getIdPs(limit, offset, sortOrder, sortBy, tenantDomain, requiredAttributes, expressionNodes);
     }
 
     /**
@@ -206,6 +255,24 @@ public interface IdpManager {
     }
 
     /**
+     * Returns IDP with passed ID, applying the given resolution depth to a shared (shadow) identity provider.
+     *
+     * @param id                  ID of the IDP.
+     * @param tenantDomain        Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @param resolveType         The resolution depth for a shared (shadow) identity provider (raw / base parent /
+     *                            full parent).
+     * @return IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    default IdentityProvider getIdPById(String id, String tenantDomain, boolean ignoreFileBasedIdps,
+                                        SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return getIdPById(id, tenantDomain, ignoreFileBasedIdps);
+    }
+
+    /**
      * Returns extended IDP with resource ID.
      * @param resourceId            Resource ID of the IDP.
      * @param tenantDomain          Tenant domain of the IDP.
@@ -216,6 +283,25 @@ public interface IdpManager {
     default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain,
                                         boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
         return null;
+    }
+
+    /**
+     * Returns extended IDP with resource ID, applying the given resolution depth to a shared (shadow) identity
+     * provider.
+     *
+     * @param resourceId          Resource ID of the IDP.
+     * @param tenantDomain        Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @param resolveType         The resolution depth for a shared (shadow) identity provider (raw / base parent /
+     *                            full parent).
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean ignoreFileBasedIdps,
+                                                SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return getIdPByResourceId(resourceId, tenantDomain, ignoreFileBasedIdps);
     }
 
     /**
@@ -462,6 +548,20 @@ public interface IdpManager {
      */
     default void deleteIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {}
+
+    /**
+     * Force delete an Identity Provider from a given tenant. This will remove any associations this Identity
+     * Provider has with any Service Providers in authentication steps or provisioning.
+     *
+     * @param resourceId   Resource ID of IDP to be deleted.
+     * @param tenantDomain Tenant Domain to which the IDP belongs to.
+     * @throws IdentityProviderManagementException If an error occurred while deleting the Identity Provider.
+     */
+    default void forceDeleteIdpByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        deleteIdPByResourceId(resourceId, tenantDomain);
+    }
 
     /**
      * Updates a given Identity Provider information

@@ -5302,6 +5302,12 @@
         <SupportMultipleCertificateExport>{{identity_providers.support_multiple_certificate_export}}</SupportMultipleCertificateExport>
     </IdentityProviders>
 
+    <ConnectionSharing>
+        <!-- The fallback provisioning user store applied when a shared (shadow) identity provider's inherited JIT
+             provisioning user store does not exist in the sub-organization. -->
+        <DefaultProvisioningUserStore>{{connection_sharing.default_provisioning_user_store}}</DefaultProvisioningUserStore>
+    </ConnectionSharing>
+
     <TenantLevelAuthenticationConfigForAuthSequence>{{tenant_level_application_authentication_config.enabled_for_auth_sequence}}</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>{{enhanced_organization_authentication_feature.enabled}}</EnhancedOrganizationAuthenticationFeatureEnabled>
     <WorkflowEngine>

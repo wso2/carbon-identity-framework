@@ -767,6 +767,11 @@ public class IdPManagementConstants {
                 " is already taken."),
         ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
                 " regex pattern %s."),
+        ERROR_CODE_RESTRICTED_SHARED_IDP_UPDATE("IDP-60016", "Restricted update on shared identity provider."),
+        ERROR_CODE_SHARED_IDP_DIRECT_CREATION("IDP-60017", "A shared identity provider cannot be created " +
+                "directly. It is created only through the connection sharing process."),
+        ERROR_CODE_SHARED_IDP_DIRECT_DELETION("IDP-60018", "A shared identity provider cannot be deleted " +
+                "directly. It is removed only through the connection unsharing process."),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
