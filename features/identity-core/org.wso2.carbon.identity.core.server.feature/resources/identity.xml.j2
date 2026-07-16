@@ -1038,6 +1038,7 @@
             <UserInfoEndpointRequestValidator>{{oauth.oidc.extensions.user_info_request_validator}}</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
             <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
+            <ConvertOnlyMultiValuedClaimsToArray>{{oauth.oidc.convert_only_multi_valued_claims_to_array}}</ConvertOnlyMultiValuedClaimsToArray>
             <UserInfoRemoveInternalPrefixFromRoles>{{oauth.oidc.user_info.remove_internal_prefix_from_roles}}</UserInfoRemoveInternalPrefixFromRoles>
             <ReturnOnlyAppAssociatedRolesInUserInfo>{{oauth.oidc.user_info.return_only_app_associated_roles}}</ReturnOnlyAppAssociatedRolesInUserInfo>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
