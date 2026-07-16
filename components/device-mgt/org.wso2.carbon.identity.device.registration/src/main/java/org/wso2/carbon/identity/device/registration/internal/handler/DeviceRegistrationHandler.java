@@ -73,8 +73,7 @@ public class DeviceRegistrationHandler {
         String registrationId = UUID.randomUUID().toString();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device registration initiated for user: " + username +
-                    " in tenant: " + tenantDomain +
+            LOG.debug("Device registration initiated in tenant: " + tenantDomain +
                     " with registrationId: " + registrationId);
         }
         return new DeviceRegistrationChallenge(registrationId, challenge);

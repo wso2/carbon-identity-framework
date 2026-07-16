@@ -51,7 +51,7 @@ public class VerifiedDevice implements Serializable {
         this.deviceName = builder.deviceName;
         this.deviceModel = builder.deviceModel;
         this.publicKey = builder.publicKey;
-        this.registeredAt = builder.registeredAt;
+        this.registeredAt = builder.registeredAt == null ? null : new Timestamp(builder.registeredAt.getTime());
         this.metadata = builder.metadata;
     }
 
@@ -102,7 +102,7 @@ public class VerifiedDevice implements Serializable {
      */
     public Timestamp getRegisteredAt() {
 
-        return registeredAt;
+        return registeredAt == null ? null : new Timestamp(registeredAt.getTime());
     }
 
     /**
@@ -129,7 +129,7 @@ public class VerifiedDevice implements Serializable {
                 .deviceName(deviceName)
                 .deviceModel(deviceModel)
                 .publicKey(publicKey)
-                .registeredAt(registeredAt)
+                .registeredAt(registeredAt == null ? null : new Timestamp(registeredAt.getTime()))
                 .metadata(metadata)
                 .build();
     }

@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.device.registration.executor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
@@ -138,8 +137,6 @@ public class DeviceRegistrationExecutor implements Executor {
                 return response;
             }
 
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
-
             DeviceRegistrationChallenge initiation =
                     DeviceRegistrationHandler.initiate(username, context.getTenantDomain());
 
@@ -218,8 +215,6 @@ public class DeviceRegistrationExecutor implements Executor {
                     deviceModel,
                     input.get(FIELD_METADATA));
 
-            context.getProperties().remove(CTX_CHALLENGE);
-
             // Step 2: Policy compliance check (skipped when policyName not configured).
             String policyName = resolvePolicyName(context);
             if (policyName != null) {
@@ -238,6 +233,8 @@ public class DeviceRegistrationExecutor implements Executor {
                     return policyResult;
                 }
             }
+
+            context.getProperties().remove(CTX_CHALLENGE);
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device registration verified for registrationId: " + registrationId);
@@ -334,6 +331,9 @@ public class DeviceRegistrationExecutor implements Executor {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device failed policy: " + policyName + " fields: [" + failedFields + "]");
             }
+
+            context.getProperties().remove(CTX_CHALLENGE);
+
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_USER_ERROR);
             response.setErrorCode(ErrorMessage.ERROR_DEVICE_POLICY_NOT_COMPLIANT.getCode());

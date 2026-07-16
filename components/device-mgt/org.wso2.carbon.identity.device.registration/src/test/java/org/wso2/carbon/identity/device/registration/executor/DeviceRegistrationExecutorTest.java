@@ -432,6 +432,24 @@ public class DeviceRegistrationExecutorTest {
         assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_DEVICE_DATA_REQUIRED.getCode());
         verify(devicePolicyEvaluator, never()).evaluate(any(), any(), any(), any());
+
+        // Retry on the same context with deviceData now supplied: this was a client input problem,
+        // not an actual policy verdict, so the challenge must still be valid for a retry to succeed.
+        Map<String, String> retryInput = completionInput();
+        retryInput.put(FIELD_DEVICE_DATA, "{\"osVersion\":\"12\"}");
+        afterInitiation.setUserInputData(retryInput);
+
+        when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
+        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
+                .thenReturn(null);
+
+        ExecutorResponse retryResponse;
+        try (MockedStatic<DeviceRegistrationHandler> mocked = mockVerifySuccess(verified)) {
+            retryResponse = executor.execute(afterInitiation);
+        }
+
+        assertEquals(retryResponse.getResult(), STATUS_COMPLETE);
+        verify(devicePolicyEvaluator).evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN));
     }
 
     @Test
