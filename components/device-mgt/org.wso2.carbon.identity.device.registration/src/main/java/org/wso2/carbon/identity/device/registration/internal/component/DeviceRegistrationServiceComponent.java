@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.registration.internal;
+package org.wso2.carbon.identity.device.registration.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,12 +31,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
-import org.wso2.carbon.identity.device.policy.api.service.IntegrityDataEnricher;
-import org.wso2.carbon.identity.device.registration.DeviceRegistrationExecutor;
-import org.wso2.carbon.identity.device.registration.RegistrationFlowCompletionListener;
+import org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutor;
+import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.listener.FlowExecutionListener;
-import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi DS component for the device registration executor bundle.
@@ -44,15 +42,15 @@ import org.wso2.carbon.user.core.service.RealmService;
  * On activation it registers {@link DeviceRegistrationExecutor} as an {@link Executor} OSGi
  * service. The flow execution engine's ServiceComponent picks it up automatically via its
  * MULTIPLE/DYNAMIC @Reference binding for Executor.class and adds it to the executor registry
- * keyed by the executor name defined in DeviceRegistrationExecutorConstants.
+ * keyed by the executor name defined in DeviceRegistrationConstants.
  */
 @Component(
         name = "device.registration.component",
         immediate = true
 )
-public class DeviceRegistrationExecutorServiceComponent {
+public class DeviceRegistrationServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(DeviceRegistrationExecutorServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(DeviceRegistrationServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -89,14 +87,14 @@ public class DeviceRegistrationExecutorServiceComponent {
     protected void setDeviceManagementService(DeviceManagementService deviceManagementService) {
 
         LOG.debug("Setting DeviceManagementService in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance()
+        DeviceRegistrationComponentServiceHolder.getInstance()
                 .setDeviceManagementService(deviceManagementService);
     }
 
     protected void unsetDeviceManagementService(DeviceManagementService deviceManagementService) {
 
         LOG.debug("Unsetting DeviceManagementService in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setDeviceManagementService(null);
+        DeviceRegistrationComponentServiceHolder.getInstance().setDeviceManagementService(null);
     }
 
     @Reference(
@@ -109,14 +107,14 @@ public class DeviceRegistrationExecutorServiceComponent {
     protected void setDevicePolicyEvaluator(DevicePolicyEvaluator devicePolicyEvaluator) {
 
         LOG.debug("Setting DevicePolicyEvaluator in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance()
+        DeviceRegistrationComponentServiceHolder.getInstance()
                 .setDevicePolicyEvaluator(devicePolicyEvaluator);
     }
 
     protected void unsetDevicePolicyEvaluator(DevicePolicyEvaluator devicePolicyEvaluator) {
 
         LOG.debug("Unsetting DevicePolicyEvaluator in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setDevicePolicyEvaluator(null);
+        DeviceRegistrationComponentServiceHolder.getInstance().setDevicePolicyEvaluator(null);
     }
 
     @Reference(
@@ -129,51 +127,12 @@ public class DeviceRegistrationExecutorServiceComponent {
     protected void setDeviceTokenVerifier(DeviceTokenVerifier deviceTokenVerifier) {
 
         LOG.debug("Setting DeviceTokenVerifier in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setDeviceTokenVerifier(deviceTokenVerifier);
+        DeviceRegistrationComponentServiceHolder.getInstance().setDeviceTokenVerifier(deviceTokenVerifier);
     }
 
     protected void unsetDeviceTokenVerifier(DeviceTokenVerifier deviceTokenVerifier) {
 
         LOG.debug("Unsetting DeviceTokenVerifier in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setDeviceTokenVerifier(null);
-    }
-
-    @Reference(
-            name = "IntegrityDataEnricher",
-            service = IntegrityDataEnricher.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIntegrityDataEnricher"
-    )
-    protected void setIntegrityDataEnricher(IntegrityDataEnricher integrityDataEnricher) {
-
-        LOG.debug("Setting IntegrityDataEnricher in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance()
-                .setIntegrityDataEnricher(integrityDataEnricher);
-    }
-
-    protected void unsetIntegrityDataEnricher(IntegrityDataEnricher integrityDataEnricher) {
-
-        LOG.debug("Unsetting IntegrityDataEnricher in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setIntegrityDataEnricher(null);
-    }
-
-    @Reference(
-            name = "RealmService",
-            service = RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService"
-    )
-    protected void setRealmService(RealmService realmService) {
-
-        LOG.debug("Setting RealmService in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setRealmService(realmService);
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        LOG.debug("Unsetting RealmService in the device registration executor.");
-        DeviceRegistrationExecutorDataHolder.getInstance().setRealmService(null);
+        DeviceRegistrationComponentServiceHolder.getInstance().setDeviceTokenVerifier(null);
     }
 }

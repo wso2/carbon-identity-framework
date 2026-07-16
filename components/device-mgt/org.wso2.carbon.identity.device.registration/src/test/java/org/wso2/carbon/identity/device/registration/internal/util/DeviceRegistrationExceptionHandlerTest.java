@@ -20,9 +20,8 @@ package org.wso2.carbon.identity.device.registration.internal.util;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 
 /**
  * Unit tests for {@link DeviceRegistrationExceptionHandler}.
@@ -33,7 +32,7 @@ public class DeviceRegistrationExceptionHandlerTest {
     public void testHandleClientException() {
 
         ErrorMessage error = ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND;
-        DeviceMgtClientException ex = DeviceRegistrationExceptionHandler.handleClientException(error, "reg-123");
+        DeviceRegistrationException ex = DeviceRegistrationExceptionHandler.handleClientException(error, "reg-123");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
         Assert.assertEquals(ex.getMessage(), error.getMessage());
@@ -46,7 +45,7 @@ public class DeviceRegistrationExceptionHandlerTest {
 
         ErrorMessage error = ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE;
         Throwable cause = new RuntimeException("signature error");
-        DeviceMgtClientException ex =
+        DeviceRegistrationException ex =
                 DeviceRegistrationExceptionHandler.handleClientException(error, cause, "reg-456");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
@@ -59,7 +58,7 @@ public class DeviceRegistrationExceptionHandlerTest {
     public void testHandleServerException() {
 
         ErrorMessage error = ErrorMessage.ERROR_WHILE_VERIFYING_SIGNATURE;
-        DeviceMgtServerException ex = DeviceRegistrationExceptionHandler.handleServerException(error, "reg-789");
+        DeviceRegistrationException ex = DeviceRegistrationExceptionHandler.handleServerException(error, "reg-789");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
         Assert.assertEquals(ex.getMessage(), error.getMessage());
@@ -72,7 +71,7 @@ public class DeviceRegistrationExceptionHandlerTest {
 
         ErrorMessage error = ErrorMessage.ERROR_WHILE_EVALUATING_POLICY;
         Throwable cause = new RuntimeException("evaluation error");
-        DeviceMgtServerException ex =
+        DeviceRegistrationException ex =
                 DeviceRegistrationExceptionHandler.handleServerException(error, cause, "strictPolicy");
 
         Assert.assertEquals(ex.getErrorCode(), error.getCode());
@@ -85,7 +84,7 @@ public class DeviceRegistrationExceptionHandlerTest {
     public void testDescriptionPlaceholderFormattingWithMultipleValues() {
 
         ErrorMessage error = ErrorMessage.ERROR_DEVICE_POLICY_NOT_COMPLIANT;
-        DeviceMgtClientException ex = DeviceRegistrationExceptionHandler.handleClientException(
+        DeviceRegistrationException ex = DeviceRegistrationExceptionHandler.handleClientException(
                 error, "strictPolicy", "osVersion,imei");
 
         Assert.assertTrue(ex.getDescription().contains("strictPolicy"));
@@ -96,7 +95,7 @@ public class DeviceRegistrationExceptionHandlerTest {
     public void testDescriptionWithNoPlaceholderDataLeavesDescriptionUnformatted() {
 
         ErrorMessage error = ErrorMessage.ERROR_USER_NOT_IDENTIFIED;
-        DeviceMgtClientException ex = DeviceRegistrationExceptionHandler.handleClientException(error);
+        DeviceRegistrationException ex = DeviceRegistrationExceptionHandler.handleClientException(error);
 
         Assert.assertEquals(ex.getDescription(), error.getDescription());
     }

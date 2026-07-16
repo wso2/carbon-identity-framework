@@ -18,15 +18,12 @@
 
 package org.wso2.carbon.identity.device.registration.internal.util;
 
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 
 /**
  * Utility class for constructing device registration exceptions with the standard
- * (message, description, code[, cause]) shape backed by ErrorMessage entries. Reuses device.mgt's
- * exported exception classes since their constructors take plain strings and carry no coupling to
- * the device.mgt ErrorMessage enum.
+ * (message, description, code[, cause]) shape backed by ErrorMessage entries.
  */
 public class DeviceRegistrationExceptionHandler {
 
@@ -41,9 +38,10 @@ public class DeviceRegistrationExceptionHandler {
      * @param data  Optional values to format into the description.
      * @return Device registration client exception.
      */
-    public static DeviceMgtClientException handleClientException(ErrorMessage error, String... data) {
+    public static DeviceRegistrationException handleClientException(ErrorMessage error, String... data) {
 
-        return new DeviceMgtClientException(error.getMessage(), formatDescription(error, data), error.getCode());
+        return new DeviceRegistrationException(DeviceRegistrationException.ErrorType.CLIENT, error.getMessage(),
+                formatDescription(error, data), error.getCode());
     }
 
     /**
@@ -54,9 +52,11 @@ public class DeviceRegistrationExceptionHandler {
      * @param data  Optional values to format into the description.
      * @return Device registration client exception.
      */
-    public static DeviceMgtClientException handleClientException(ErrorMessage error, Throwable e, String... data) {
+    public static DeviceRegistrationException handleClientException(ErrorMessage error, Throwable e,
+                                                                      String... data) {
 
-        return new DeviceMgtClientException(error.getMessage(), formatDescription(error, data), error.getCode(), e);
+        return new DeviceRegistrationException(DeviceRegistrationException.ErrorType.CLIENT, error.getMessage(),
+                formatDescription(error, data), error.getCode(), e);
     }
 
     /**
@@ -67,9 +67,11 @@ public class DeviceRegistrationExceptionHandler {
      * @param data  Optional values to format into the description.
      * @return Device registration server exception.
      */
-    public static DeviceMgtServerException handleServerException(ErrorMessage error, Throwable e, String... data) {
+    public static DeviceRegistrationException handleServerException(ErrorMessage error, Throwable e,
+                                                                      String... data) {
 
-        return new DeviceMgtServerException(error.getMessage(), formatDescription(error, data), error.getCode(), e);
+        return new DeviceRegistrationException(DeviceRegistrationException.ErrorType.SERVER, error.getMessage(),
+                formatDescription(error, data), error.getCode(), e);
     }
 
     /**
@@ -79,9 +81,10 @@ public class DeviceRegistrationExceptionHandler {
      * @param data  Optional values to format into the description.
      * @return Device registration server exception.
      */
-    public static DeviceMgtServerException handleServerException(ErrorMessage error, String... data) {
+    public static DeviceRegistrationException handleServerException(ErrorMessage error, String... data) {
 
-        return new DeviceMgtServerException(error.getMessage(), formatDescription(error, data), error.getCode());
+        return new DeviceRegistrationException(DeviceRegistrationException.ErrorType.SERVER, error.getMessage(),
+                formatDescription(error, data), error.getCode());
     }
 
     private static String formatDescription(ErrorMessage error, String... data) {

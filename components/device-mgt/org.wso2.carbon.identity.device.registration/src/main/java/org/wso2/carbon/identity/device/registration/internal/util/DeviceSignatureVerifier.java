@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.device.registration.internal.util;
 
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -48,11 +48,11 @@ public class DeviceSignatureVerifier {
      * @param challenge        Base64url encoded challenge that was signed.
      * @param publicKeyBase64  Base64 encoded EC public key (X.509/SubjectPublicKeyInfo DER).
      * @param signatureBase64  Base64 encoded ECDSA signature over the challenge bytes.
-     * @throws DeviceMgtException If the signature is invalid (client error) or verification fails
-     *                            for an unexpected reason (server error).
+     * @throws DeviceRegistrationException If the signature is invalid (client error) or
+     *                                      verification fails for an unexpected reason (server error).
      */
     public static void verify(String registrationId, String challenge,
-                               String publicKeyBase64, String signatureBase64) throws DeviceMgtException {
+                               String publicKeyBase64, String signatureBase64) throws DeviceRegistrationException {
 
         try {
             byte[] publicKeyBytes = Base64.getDecoder().decode(publicKeyBase64);

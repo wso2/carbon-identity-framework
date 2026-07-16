@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.device.registration.internal.util;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -58,9 +56,9 @@ public class DeviceSignatureVerifierTest {
 
         try {
             DeviceSignatureVerifier.verify(REGISTRATION_ID, challenge, publicKeyB64(kp), signature);
-            Assert.fail("Expected DeviceMgtClientException for a tampered signature");
-        } catch (DeviceMgtException ex) {
-            Assert.assertTrue(ex instanceof DeviceMgtClientException);
+            Assert.fail("Expected DeviceRegistrationException for a tampered signature");
+        } catch (DeviceRegistrationException ex) {
+            Assert.assertTrue(ex.isClientError());
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE.getCode());
         }
     }
@@ -76,9 +74,9 @@ public class DeviceSignatureVerifierTest {
         try {
             // Verifying against the wrong public key.
             DeviceSignatureVerifier.verify(REGISTRATION_ID, challenge, publicKeyB64(unrelatedKeyPair), signature);
-            Assert.fail("Expected DeviceMgtClientException for a signature made with a different key pair");
-        } catch (DeviceMgtException ex) {
-            Assert.assertTrue(ex instanceof DeviceMgtClientException);
+            Assert.fail("Expected DeviceRegistrationException for a signature made with a different key pair");
+        } catch (DeviceRegistrationException ex) {
+            Assert.assertTrue(ex.isClientError());
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE.getCode());
         }
     }
@@ -92,9 +90,9 @@ public class DeviceSignatureVerifierTest {
 
         try {
             DeviceSignatureVerifier.verify(REGISTRATION_ID, challenge, "not-valid-base64!!", signature);
-            Assert.fail("Expected DeviceMgtClientException, not a raw IllegalArgumentException");
-        } catch (DeviceMgtException ex) {
-            Assert.assertTrue(ex instanceof DeviceMgtClientException);
+            Assert.fail("Expected DeviceRegistrationException, not a raw IllegalArgumentException");
+        } catch (DeviceRegistrationException ex) {
+            Assert.assertTrue(ex.isClientError());
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE.getCode());
         }
     }
@@ -107,9 +105,9 @@ public class DeviceSignatureVerifierTest {
 
         try {
             DeviceSignatureVerifier.verify(REGISTRATION_ID, challenge, publicKeyB64(kp), "also-not-valid-base64!!");
-            Assert.fail("Expected DeviceMgtClientException, not a raw IllegalArgumentException");
-        } catch (DeviceMgtException ex) {
-            Assert.assertTrue(ex instanceof DeviceMgtClientException);
+            Assert.fail("Expected DeviceRegistrationException, not a raw IllegalArgumentException");
+        } catch (DeviceRegistrationException ex) {
+            Assert.assertTrue(ex.isClientError());
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_SIGNATURE.getCode());
         }
     }
@@ -124,9 +122,9 @@ public class DeviceSignatureVerifierTest {
 
         try {
             DeviceSignatureVerifier.verify(REGISTRATION_ID, challenge, garbageKey, fakeSignature);
-            Assert.fail("Expected DeviceMgtServerException for a structurally invalid key");
-        } catch (DeviceMgtException ex) {
-            Assert.assertTrue(ex instanceof DeviceMgtServerException);
+            Assert.fail("Expected DeviceRegistrationException for a structurally invalid key");
+        } catch (DeviceRegistrationException ex) {
+            Assert.assertFalse(ex.isClientError());
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_WHILE_VERIFYING_SIGNATURE.getCode());
         }
     }

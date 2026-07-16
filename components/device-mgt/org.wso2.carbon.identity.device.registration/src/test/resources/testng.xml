@@ -8,19 +8,14 @@
     </test>
     <test name="Device_Registration_Executor_Tests">
         <classes>
-            <class name="org.wso2.carbon.identity.device.registration.DeviceRegistrationExecutorTest"/>
-            <class name="org.wso2.carbon.identity.device.registration.RegistrationFlowCompletionListenerTest"/>
+            <class name="org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutorTest"/>
+            <class name="org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListenerTest"/>
         </classes>
     </test>
     <test name="Device_Registration_Util_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.registration.internal.util.DeviceSignatureVerifierTest"/>
             <class name="org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistrationExceptionHandlerTest"/>
-        </classes>
-    </test>
-    <test name="Device_Registration_Cache_Tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.device.registration.internal.cache.DeviceRegistrationCacheTest"/>
         </classes>
     </test>
 </suite>

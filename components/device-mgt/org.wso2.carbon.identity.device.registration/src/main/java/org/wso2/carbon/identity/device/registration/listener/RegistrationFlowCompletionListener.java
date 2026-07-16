@@ -16,36 +16,41 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.registration;
+package org.wso2.carbon.identity.device.registration.listener;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
-import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
-import org.wso2.carbon.identity.device.registration.internal.DeviceRegistrationExecutorDataHolder;
+import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
+import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
+import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistrationDiagnosticLogger;
+import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.listener.AbstractFlowExecutionListener;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
-import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 
 /**
- * Persists a verified device registration to the database once the registration flow is COMPLETE.
+ * Persists a verified device registration to the database once the whole flow is COMPLETE.
  *
- * During a REGISTRATION flow, DeviceRegistrationExecutor verifies the ECDSA challenge-response
- * (Phase 2) but defers the DB write because UserProvisioningExecutor has not yet run and
- * FlowUser.getUserId() is null at that point. This listener fires after UserProvisioningExecutor
- * sets the real userId, reads the verified Device from the flow context, rebinds it to
- * the provisioned userId, and calls DeviceManagementService.persistDevice().
+ * DeviceRegistrationExecutor verifies the ECDSA challenge-response (Phase 2) but never persists
+ * the device itself — it always stores the verified device in the flow context instead, since a
+ * userId is not guaranteed to be available on FlowUser at that point (e.g. a brand-new user is
+ * provisioned only later in a REGISTRATION flow). This listener fires once for every flow type,
+ * after the flow reaches STATUS_COMPLETE, reads the verified device from the flow context, binds
+ * it to the now-available userId, and calls DeviceManagementService.persistDevice(). Deferring to
+ * flow completion also means a later step failing never leaves a device that needs rolling back.
  */
 public class RegistrationFlowCompletionListener extends AbstractFlowExecutionListener {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowCompletionListener.class);
+
+    private final DeviceRegistrationDiagnosticLogger diagnosticLogger = new DeviceRegistrationDiagnosticLogger();
 
     @Override
     public int getExecutionOrderId() {
@@ -66,19 +71,16 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
     public boolean doPostExecute(FlowExecutionStep step, FlowExecutionContext context)
             throws FlowEngineException {
 
-        if (!FlowTypes.REGISTRATION.getType().equals(context.getFlowType())) {
-            return true;
-        }
         if (!STATUS_COMPLETE.equals(step.getFlowStatus())) {
             return true;
         }
 
-        Object deviceObj = context.getProperty(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION);
+        Object deviceObj = context.getProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION);
         if (deviceObj == null) {
             return true;
         }
 
-        Device pending = (Device) deviceObj;
+        VerifiedDevice pending = (VerifiedDevice) deviceObj;
         String userId = context.getFlowUser().getUserId();
 
         if (StringUtils.isBlank(userId)) {
@@ -88,18 +90,18 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
             return true;
         }
 
-        Device deviceWithUserId = new Device.Builder(pending).userId(userId).build();
-
         DeviceManagementService service =
-                DeviceRegistrationExecutorDataHolder.getInstance().getDeviceManagementService();
+                DeviceRegistrationComponentServiceHolder.getInstance().getDeviceManagementService();
         try {
-            service.persistDevice(deviceWithUserId, context.getTenantDomain());
+            service.persistDevice(pending.bindTo(userId), context.getTenantDomain());
+            diagnosticLogger.logRegistrationCompleted(pending.getId());
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device persisted for userId: " + userId
                         + " deviceId: " + pending.getId()
                         + " tenant: " + context.getTenantDomain());
             }
         } catch (DeviceMgtException e) {
+            diagnosticLogger.logRegistrationFailure("Failed to persist device registration: " + e.getMessage());
             LOG.error("Failed to persist device registration for userId: " + userId
                     + " deviceId: " + pending.getId(), e);
         }

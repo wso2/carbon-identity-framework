@@ -16,19 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.registration;
+package org.wso2.carbon.identity.device.registration.internal.constant;
+
+import org.wso2.carbon.identity.device.registration.executor.DeviceRegistrationExecutor;
+import org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener;
 
 /**
  * Constants shared between {@link DeviceRegistrationExecutor} and
  * {@link RegistrationFlowCompletionListener}.
  */
-public class DeviceRegistrationExecutorConstants {
+public class DeviceRegistrationConstants {
 
     public static final String EXECUTOR_NAME = "DeviceRegistrationExecutor";
 
     public static final String CTX_DEVICE_REGISTRATION = "device.registration.data";
 
-    private DeviceRegistrationExecutorConstants() {
+    private DeviceRegistrationConstants() {
 
     }
 }

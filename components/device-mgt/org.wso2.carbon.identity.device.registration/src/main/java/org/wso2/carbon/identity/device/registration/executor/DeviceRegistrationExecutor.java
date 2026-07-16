@@ -16,36 +16,30 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.registration;
+package org.wso2.carbon.identity.device.registration.executor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtClientException;
-import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
-import org.wso2.carbon.identity.device.mgt.api.model.Device;
-import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
-import org.wso2.carbon.identity.device.registration.internal.DeviceRegistrationDiagnosticLogger;
-import org.wso2.carbon.identity.device.registration.internal.DeviceRegistrationExecutorDataHolder;
+import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
+import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
+import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 import org.wso2.carbon.identity.device.registration.internal.handler.DeviceRegistrationHandler;
 import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
+import org.wso2.carbon.identity.device.registration.internal.util.DeviceRegistrationDiagnosticLogger;
+import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
 import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
 import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
-import org.wso2.carbon.identity.flow.mgt.Constants.FlowTypes;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.api.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,10 +67,11 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_
  *
  *   Phase 2 — second call, registrationId present in context:
  *     Verifies the ECDSA signature. If an optional policyName is configured in executor
- *     metadata, evaluates device compliance before persisting. In REGISTRATION flows the
- *     verified device is stored in context for RegistrationFlowCompletionListener to persist
- *     after UserProvisioningExecutor assigns the real userId. In other flows it is persisted
- *     immediately.
+ *     metadata, evaluates device compliance before persisting. The verified device is always
+ *     stored in context for RegistrationFlowCompletionListener to persist once the whole flow
+ *     reaches STATUS_COMPLETE — regardless of flow type — so a userId is guaranteed to be
+ *     available on FlowUser and a later step failing never leaves a device that needs rolling
+ *     back.
  */
 public class DeviceRegistrationExecutor implements Executor {
 
@@ -85,6 +80,7 @@ public class DeviceRegistrationExecutor implements Executor {
     private final DeviceRegistrationDiagnosticLogger diagnosticLogger = new DeviceRegistrationDiagnosticLogger();
 
     private static final String CTX_REGISTRATION_ID = "device.registration.id";
+    private static final String CTX_CHALLENGE = "device.registration.challenge";
 
     private static final String PROP_REGISTRATION_ID = "registrationId";
     private static final String PROP_CHALLENGE = "challenge";
@@ -97,12 +93,9 @@ public class DeviceRegistrationExecutor implements Executor {
 
     private static final String META_POLICY_NAME = "policyName";
 
-    // Written to context after persistDevice() so rollback() can delete the record if a later executor fails.
-    private static final String CTX_PERSISTED_DEVICE_ID = "device.persisted.id";
-
     @Override
     public String getName() {
-        return DeviceRegistrationExecutorConstants.EXECUTOR_NAME;
+        return DeviceRegistrationConstants.EXECUTOR_NAME;
     }
 
     @Override
@@ -119,28 +112,9 @@ public class DeviceRegistrationExecutor implements Executor {
     @Override
     public ExecutorResponse rollback(FlowExecutionContext context) throws FlowEngineException {
 
-        String persistedDeviceId = (String) context.getProperty(CTX_PERSISTED_DEVICE_ID);
-        if (persistedDeviceId != null) {
-            DeviceManagementService service =
-                    DeviceRegistrationExecutorDataHolder.getInstance().getDeviceManagementService();
-            try {
-                service.deleteDevice(persistedDeviceId, context.getTenantDomain());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Rolled back persisted device: " + persistedDeviceId
-                            + " for tenant: " + context.getTenantDomain());
-                }
-            } catch (DeviceMgtException e) {
-                LOG.error("Failed to rollback persisted device: " + persistedDeviceId
-                        + " in tenant: " + context.getTenantDomain(), e);
-                ExecutorResponse response = new ExecutorResponse(STATUS_ERROR);
-                response.setErrorCode(e.getErrorCode());
-                response.setErrorMessage(e.getMessage());
-                response.setErrorDescription(e.getDescription());
-                return response;
-            }
-        }
-        // Challenge cache entry expires automatically via TTL; nothing else to undo.
-        return new ExecutorResponse(STATUS_COMPLETE);
+        // Nothing to compensate: this executor never persists a device itself. Persistence is
+        // always deferred to RegistrationFlowCompletionListener, which only runs once the whole
+        return null;
     }
 
     @Override
@@ -148,27 +122,12 @@ public class DeviceRegistrationExecutor implements Executor {
         return Collections.singletonList(USERNAME_CLAIM_URI);
     }
 
-    private String resolvePolicyName(FlowExecutionContext context) {
-
-        NodeConfig node = context.getCurrentNode();
-        if (node == null || node.getExecutorConfig() == null) {
-            return null;
-        }
-        Map<String, String> meta = node.getExecutorConfig().getMetadata();
-        if (meta == null) {
-            return null;
-        }
-        String policyName = meta.get(META_POLICY_NAME);
-        return isBlank(policyName) ? null : policyName;
-    }
-
     private ExecutorResponse initiateRegistration(FlowExecutionContext context) {
 
         try {
-            String userId = context.getFlowUser().getUserId();
-            String userIdentifier = isNotBlank(userId) ? userId : context.getFlowUser().getUsername();
+            String username = context.getFlowUser().getUsername();
 
-            if (isBlank(userIdentifier)) {
+            if (isBlank(username)) {
                 diagnosticLogger.logRegistrationFailure("User could not be identified to initiate device "
                         + "registration.");
                 ExecutorResponse response = new ExecutorResponse();
@@ -178,16 +137,15 @@ public class DeviceRegistrationExecutor implements Executor {
                 response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_IDENTIFIED.getDescription());
                 return response;
             }
-            // Set the resolved user identifier on thread-local context so downstream services
-            // (audit, events) can read it.
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userIdentifier);
+
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
 
             DeviceRegistrationChallenge initiation =
-                    DeviceRegistrationHandler.initiate(userIdentifier, context.getTenantDomain());
+                    DeviceRegistrationHandler.initiate(username, context.getTenantDomain());
 
             diagnosticLogger.logRegistrationInitiated(initiation.getRegistrationId());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Device registration initiated for user: " + LoggerUtils.getMaskedContent(userIdentifier)
+                LOG.debug("Device registration initiated for user: " + LoggerUtils.getMaskedContent(username)
                         + " registrationId: " + initiation.getRegistrationId());
             }
 
@@ -197,6 +155,7 @@ public class DeviceRegistrationExecutor implements Executor {
 
             Map<String, Object> contextProperties = new HashMap<>();
             contextProperties.put(CTX_REGISTRATION_ID, initiation.getRegistrationId());
+            contextProperties.put(CTX_CHALLENGE, initiation.getChallenge());
 
             List<String> requiredFields = new ArrayList<>(
                     Arrays.asList(FIELD_PUBLIC_KEY, FIELD_SIGNATURE));
@@ -215,7 +174,7 @@ public class DeviceRegistrationExecutor implements Executor {
             response.setContextProperty(contextProperties);
             return response;
 
-        } catch (DeviceMgtException e) {
+        } catch (DeviceRegistrationException e) {
             diagnosticLogger.logRegistrationFailure("Error initiating device registration: " + e.getMessage());
             LOG.error("Error initiating device registration in tenant: "
                     + context.getTenantDomain(), e);
@@ -231,22 +190,35 @@ public class DeviceRegistrationExecutor implements Executor {
     private ExecutorResponse completeRegistration(FlowExecutionContext context,
             String registrationId) {
 
-        DeviceManagementService service =
-                DeviceRegistrationExecutorDataHolder.getInstance().getDeviceManagementService();
         try {
+            String challenge = (String) context.getProperty(CTX_CHALLENGE);
+            if (isBlank(challenge)) {
+                diagnosticLogger.logRegistrationFailure(
+                        "Registration context not found for registrationId: " + registrationId);
+                ExecutorResponse response = new ExecutorResponse();
+                response.setResult(STATUS_USER_ERROR);
+                response.setErrorCode(ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
+                response.setErrorMessage(ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getMessage());
+                response.setErrorDescription(String.format(
+                        ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getDescription(), registrationId));
+                return response;
+            }
+
             Map<String, String> input = context.getUserInputData();
             String deviceModel = input.get(FIELD_DEVICE_MODEL);
             String deviceName = buildDeviceName(context, deviceModel);
 
-            // Step 1: Verify signature and clear registration cache entry.
-            Device verified = DeviceRegistrationHandler.verify(
+            // Step 1: Verify signature.
+            VerifiedDevice verified = DeviceRegistrationHandler.verify(
                     registrationId,
+                    challenge,
                     input.get(FIELD_PUBLIC_KEY),
                     input.get(FIELD_SIGNATURE),
                     deviceName,
                     deviceModel,
-                    input.get(FIELD_METADATA),
-                    context.getTenantDomain());
+                    input.get(FIELD_METADATA));
+
+            context.getProperties().remove(CTX_CHALLENGE);
 
             // Step 2: Policy compliance check (skipped when policyName not configured).
             String policyName = resolvePolicyName(context);
@@ -267,100 +239,59 @@ public class DeviceRegistrationExecutor implements Executor {
                 }
             }
 
-            if (FlowTypes.REGISTRATION.getType().equals(context.getFlowType())) {
-                ExecutorResponse response = new ExecutorResponse();
-                response.setResult(STATUS_COMPLETE);
-                Map<String, Object> ctxProps = new HashMap<>();
-                ctxProps.put(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION, verified);
-                response.setContextProperty(ctxProps);
-                return response;
-            }
-
-            // Non-registration flow: the user already exists, so bind the real userId and persist now.
-            // Some flows (e.g. DEVICE_REGISTRATION) identify the user by username via UserResolveExecutor
-            // without setting a userId, so resolve it from the username when it is not already present.
-            String userId = context.getFlowUser().getUserId();
-            if (isBlank(userId)) {
-                userId = resolveUserIdFromUsername(context);
-            }
-            if (isBlank(userId)) {
-                diagnosticLogger.logRegistrationFailure("User could not be identified to persist the "
-                        + "registered device.");
-                ExecutorResponse response = new ExecutorResponse();
-                response.setResult(STATUS_ERROR);
-                response.setErrorCode(ErrorMessage.ERROR_USER_NOT_IDENTIFIED.getCode());
-                response.setErrorMessage(ErrorMessage.ERROR_USER_NOT_IDENTIFIED.getMessage());
-                response.setErrorDescription(ErrorMessage.ERROR_USER_NOT_IDENTIFIED.getDescription());
-                return response;
-            }
-            Device toPersist = new Device.Builder(verified).userId(userId).build();
-            service.persistDevice(toPersist, context.getTenantDomain());
-
-            diagnosticLogger.logRegistrationCompleted(registrationId);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Device registration completed for registrationId: " + registrationId);
+                LOG.debug("Device registration verified for registrationId: " + registrationId);
             }
-            // Record the device ID so rollback() can delete it if a subsequent executor fails.
-            ExecutorResponse response = new ExecutorResponse(STATUS_COMPLETE);
+            ExecutorResponse response = new ExecutorResponse();
+            response.setResult(STATUS_COMPLETE);
             Map<String, Object> ctxProps = new HashMap<>();
-            ctxProps.put(CTX_PERSISTED_DEVICE_ID, toPersist.getId());
+            ctxProps.put(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, verified);
             response.setContextProperty(ctxProps);
             return response;
 
-        } catch (DeviceMgtClientException e) {
+        } catch (DeviceRegistrationException e) {
             ExecutorResponse response = new ExecutorResponse();
-            response.setResult(STATUS_USER_ERROR);
+            if (e.isClientError()) {
+                response.setResult(STATUS_USER_ERROR);
+            } else {
+                diagnosticLogger.logRegistrationFailure("Error completing device registration: " + e.getMessage());
+                LOG.error("Error completing device registration for registrationId: "
+                        + registrationId, e);
+                response.setResult(STATUS_ERROR);
+            }
             response.setErrorCode(e.getErrorCode());
             response.setErrorMessage(e.getMessage());
             response.setErrorDescription(e.getDescription());
             return response;
-        } catch (DeviceMgtException e) {
-            diagnosticLogger.logRegistrationFailure("Error completing device registration: " + e.getMessage());
-            LOG.error("Error completing device registration for registrationId: "
-                    + registrationId, e);
-            ExecutorResponse response = new ExecutorResponse();
-            response.setResult(STATUS_ERROR);
-            response.setErrorCode(e.getErrorCode());
-            response.setErrorMessage(e.getMessage());
-            response.setErrorDescription(e.getDescription());
-            return response;
-        }
-    }
-
-    private String resolveUserIdFromUsername(FlowExecutionContext context) {
-
-        String username = context.getFlowUser().getUsername();
-        if (isBlank(username)) {
-            return null;
-        }
-        try {
-            RealmService realmService = DeviceRegistrationExecutorDataHolder.getInstance().getRealmService();
-            int tenantId = realmService.getTenantManager().getTenantId(context.getTenantDomain());
-            UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
-            return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
-        } catch (UserStoreException e) {
-            LOG.error("Error resolving userId from username for tenant: " + context.getTenantDomain(), e);
-            return null;
         }
     }
 
     private String buildDeviceName(FlowExecutionContext context, String deviceModel) {
 
-        String userId = context.getFlowUser().getUserId();
-        String username = isNotBlank(userId) ? userId : context.getFlowUser().getUsername();
+        String username = context.getFlowUser().getUsername();
         String base = isNotBlank(username) ? username : "Unknown";
         return isNotBlank(deviceModel) ? base + "'s " + deviceModel : base + "'s Device";
     }
 
+    private String resolvePolicyName(FlowExecutionContext context) {
+
+        NodeConfig node = context.getCurrentNode();
+        if (node == null || node.getExecutorConfig() == null) {
+            return null;
+        }
+        Map<String, String> meta = node.getExecutorConfig().getMetadata();
+        if (meta == null) {
+            return null;
+        }
+        String policyName = meta.get(META_POLICY_NAME);
+        return isBlank(policyName) ? null : policyName;
+    }
+
     private ExecutorResponse evaluatePolicy(String policyName, String registrationId, FlowExecutionContext context) {
 
-        DeviceRegistrationExecutorDataHolder holder = DeviceRegistrationExecutorDataHolder.getInstance();
+        DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
         DevicePolicyEvaluator evaluator = holder.getDevicePolicyEvaluator();
 
-        // The device data is a JWT signed with the same key that was just verified against the challenge,
-        // so its claims can be trusted after signature, freshness and replay verification. The challenge
-        // check (already passed above) binds this request to the registration, so no extra token binding
-        // is needed here; registrationId is passed only for diagnostic correlation.
         Map<String, Object> deviceData;
         try {
             deviceData = holder.getDeviceTokenVerifier().verifyWithPublicKey(
@@ -387,11 +318,9 @@ public class DeviceRegistrationExecutor implements Executor {
             return response;
         }
 
-        holder.getIntegrityDataEnricher().enrich(deviceData, context.getApplicationId(),
-                context.getTenantDomain());
-
         try {
-            String failedFields = evaluator.evaluate(policyName, deviceData, context.getTenantDomain());
+            String failedFields = evaluator.evaluate(policyName, deviceData, context.getApplicationId(),
+                    context.getTenantDomain());
             if (failedFields == null) {
                 // Device is compliant.
                 diagnosticLogger.logPolicyEvaluation(policyName, true, null);

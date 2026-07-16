@@ -16,10 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.device.registration;
+package org.wso2.carbon.identity.device.registration.listener;
 
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -27,11 +28,15 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtServerException;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
-import org.wso2.carbon.identity.device.registration.internal.DeviceRegistrationExecutorDataHolder;
+import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
+import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
+import org.wso2.carbon.identity.device.registration.model.VerifiedDevice;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowUser;
@@ -44,11 +49,14 @@ import java.time.Instant;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
@@ -71,6 +79,8 @@ public class RegistrationFlowCompletionListenerTest {
     private DeviceManagementService deviceManagementService;
 
     private DeviceManagementService originalDeviceManagementService;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMocked;
+    private MockedStatic<LoggerUtils> loggerUtilsMocked;
 
     @BeforeClass
     public void setUpClass() {
@@ -78,7 +88,18 @@ public class RegistrationFlowCompletionListenerTest {
         closeable = MockitoAnnotations.openMocks(this);
         listener = new RegistrationFlowCompletionListener();
 
-        DeviceRegistrationExecutorDataHolder holder = DeviceRegistrationExecutorDataHolder.getInstance();
+        // "test.com" is not a real registered tenant, so the listener's diagnostic logging (which
+        // resolves the tenant domain) needs this stubbed — mirrors DeviceRegistrationExecutorTest's
+        // setup.
+        identityTenantUtilMocked = mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(1);
+
+        // Diagnostic logging would otherwise try to publish a real event through an
+        // IdentityEventService that isn't wired up in this unit test environment.
+        loggerUtilsMocked = mockStatic(LoggerUtils.class, CALLS_REAL_METHODS);
+        loggerUtilsMocked.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+        DeviceRegistrationComponentServiceHolder holder = DeviceRegistrationComponentServiceHolder.getInstance();
         originalDeviceManagementService = holder.getDeviceManagementService();
         holder.setDeviceManagementService(deviceManagementService);
     }
@@ -86,7 +107,11 @@ public class RegistrationFlowCompletionListenerTest {
     @AfterClass
     public void tearDownClass() throws Exception {
 
-        DeviceRegistrationExecutorDataHolder.getInstance().setDeviceManagementService(originalDeviceManagementService);
+        DeviceRegistrationComponentServiceHolder.getInstance()
+                .setDeviceManagementService(originalDeviceManagementService);
+
+        identityTenantUtilMocked.close();
+        loggerUtilsMocked.close();
 
         if (closeable != null) {
             closeable.close();
@@ -130,7 +155,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         FlowExecutionContext context = registrationContext();
         context.getFlowUser().setUserId(PROVISIONED_USER_ID);
-        context.setProperty(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         boolean result = listener.doPostExecute(completeStep(), context);
 
@@ -153,20 +178,23 @@ public class RegistrationFlowCompletionListenerTest {
     }
 
     @Test
-    public void testDoPostExecuteNonRegistrationFlowIsNoOp() throws Exception {
+    public void testDoPostExecuteNonRegistrationFlowAlsoPersists() throws Exception {
 
+        // Persistence must happen regardless of flow type, not just for REGISTRATION — e.g. a
+        // DEVICE_REGISTRATION flow where the user already exists still defers to this listener.
         FlowExecutionContext context = new FlowExecutionContext();
         context.setTenantDomain(TENANT_DOMAIN);
         context.setGraphConfig(new GraphConfig());
         context.setFlowUser(new FlowUser());
         context.getFlowUser().setUserId(PROVISIONED_USER_ID);
         context.setFlowType(FlowTypes.PASSWORD_RECOVERY.getType());
-        context.setProperty(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         boolean result = listener.doPostExecute(completeStep(), context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, times(1))
+                .persistDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -174,7 +202,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         FlowExecutionContext context = registrationContext();
         context.getFlowUser().setUserId(PROVISIONED_USER_ID);
-        context.setProperty(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         FlowExecutionStep incompleteStep = new FlowExecutionStep();
         incompleteStep.setFlowStatus(STATUS_INCOMPLETE);
@@ -194,7 +222,7 @@ public class RegistrationFlowCompletionListenerTest {
         // resolution path that needs an optional module not on this test classpath, so set one.
         context.getFlowUser().setUsername("alice");
         context.getFlowUser().setUserId("  ");
-        context.setProperty(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         boolean result = listener.doPostExecute(completeStep(), context);
 
@@ -207,7 +235,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         FlowExecutionContext context = registrationContext();
         context.getFlowUser().setUserId(PROVISIONED_USER_ID);
-        context.setProperty(DeviceRegistrationExecutorConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
+        context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         doThrow(new DeviceMgtServerException("Persist failed.", "Simulated failure.", "TEST-001"))
                 .when(deviceManagementService).persistDevice(any(), any());
@@ -234,13 +262,12 @@ public class RegistrationFlowCompletionListenerTest {
         return step;
     }
 
-    private Device pendingDevice() {
+    private VerifiedDevice pendingDevice() {
 
-        return new Device.Builder()
+        return new VerifiedDevice.Builder()
                 .id(DEVICE_ID)
                 .deviceName("Alice's Device")
                 .publicKey("base64PublicKey")
-                .status(Device.Status.ACTIVE)
                 .registeredAt(Timestamp.from(Instant.now()))
                 .build();
     }
