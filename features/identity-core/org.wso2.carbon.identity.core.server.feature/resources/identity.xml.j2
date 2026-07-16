@@ -3103,6 +3103,11 @@
                    timeout="{{cache.saml_cert_cache.timeout}}"
                    capacity="{{cache.saml_cert_cache.capacity}}"
                    isDistributed="false"/>
+            <Cache id="vp_session_cache" name="VPSessionCache"
+                   enable="{{cache.vp_session_cache.enable | default('true')}}"
+                   timeout="{{cache.vp_session_cache.timeout | default('300')}}"
+                   capacity="{{cache.vp_session_cache.capacity | default('1000')}}"
+                   isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
                     enable="true"

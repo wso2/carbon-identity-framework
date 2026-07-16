@@ -137,6 +137,7 @@
         <Resource context="(.*)/oid4vp/v1/verifications" secured="false" http-method="POST"/>
         <Resource context="(.*)/oid4vp/v1/verifications(.*)" secured="false" http-method="GET"/>
 
+        <!-- 'Login only' mode migration configuration -->
         {% if resource_access_control.login_only_mode.enable is sameas true %}
             <Resource context="^(?!/api/identity/user/v1.0/introspect-code|/t/.*/o/.*/oauth2/introspect|/oauth2/introspect|/o/api/server/v1/guests/invitation/introspect|/api/identity/entitlement).*" secured="true" http-method="POST, PUT, PATCH">
                 <Scopes>no_access_granted</Scopes>

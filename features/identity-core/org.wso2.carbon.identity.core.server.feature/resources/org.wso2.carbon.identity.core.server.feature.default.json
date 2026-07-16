@@ -1985,7 +1985,6 @@
   "console.verifiable_credentials.scopes.update": ["internal_vc_template_update"],
   "console.verifiable_credentials.scopes.delete": ["internal_vc_template_delete"],
   "openid4vp.enabled": false,
-  "openid4vp.client_id_scheme": "redirect_uri",
   "openid4vp.request_audience": "https://self-issued.me/v2",
   "console.ws_fed_configuration.enabled": true,
   "console.self_app_identifier": "Console",
