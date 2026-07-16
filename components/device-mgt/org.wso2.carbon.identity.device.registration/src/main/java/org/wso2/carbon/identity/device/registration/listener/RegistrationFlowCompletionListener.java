@@ -84,6 +84,19 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
         String userId = context.getFlowUser().getUserId();
 
         if (StringUtils.isBlank(userId)) {
+            // Some executors (e.g. UserResolveExecutor) never populate the dedicated userId field;
+            // they only add claims to FlowUser. Fall back to the userid claim before giving up.
+            Object userIdClaim = context.getFlowUser().getClaim(DeviceRegistrationConstants.CLAIM_USER_ID);
+            if (userIdClaim != null) {
+                userId = String.valueOf(userIdClaim);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Resolved userId from userid claim for contextId: "
+                            + context.getContextIdentifier());
+                }
+            }
+        }
+
+        if (StringUtils.isBlank(userId)) {
             LOG.error("Cannot persist device registration: userId is blank after flow completion for user: "
                     + LoggerUtils.getMaskedContent(context.getFlowUser().getUsername())
                     + " contextId: " + context.getContextIdentifier());

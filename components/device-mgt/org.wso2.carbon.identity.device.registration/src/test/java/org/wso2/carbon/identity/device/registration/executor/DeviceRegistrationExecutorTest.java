@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.policy.api.service.DevicePolicyEvaluator;
 import org.wso2.carbon.identity.device.policy.api.service.DeviceTokenVerifier;
-import org.wso2.carbon.identity.device.policy.api.service.IntegrityDataEnricher;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.internal.constant.ErrorMessage;
@@ -107,13 +106,9 @@ public class DeviceRegistrationExecutorTest {
     @Mock
     private DeviceTokenVerifier deviceTokenVerifier;
 
-    @Mock
-    private IntegrityDataEnricher integrityDataEnricher;
-
     private DeviceManagementService originalDeviceManagementService;
     private DevicePolicyEvaluator originalDevicePolicyEvaluator;
     private DeviceTokenVerifier originalDeviceTokenVerifier;
-    private IntegrityDataEnricher originalIntegrityDataEnricher;
     private MockedStatic<IdentityTenantUtil> identityTenantUtilMocked;
     private MockedStatic<LoggerUtils> loggerUtilsMocked;
 
@@ -139,12 +134,10 @@ public class DeviceRegistrationExecutorTest {
         originalDeviceManagementService = holder.getDeviceManagementService();
         originalDevicePolicyEvaluator = holder.getDevicePolicyEvaluator();
         originalDeviceTokenVerifier = holder.getDeviceTokenVerifier();
-        originalIntegrityDataEnricher = holder.getIntegrityDataEnricher();
 
         holder.setDeviceManagementService(deviceManagementService);
         holder.setDevicePolicyEvaluator(devicePolicyEvaluator);
         holder.setDeviceTokenVerifier(deviceTokenVerifier);
-        holder.setIntegrityDataEnricher(integrityDataEnricher);
     }
 
     @AfterClass
@@ -154,7 +147,6 @@ public class DeviceRegistrationExecutorTest {
         holder.setDeviceManagementService(originalDeviceManagementService);
         holder.setDevicePolicyEvaluator(originalDevicePolicyEvaluator);
         holder.setDeviceTokenVerifier(originalDeviceTokenVerifier);
-        holder.setIntegrityDataEnricher(originalIntegrityDataEnricher);
 
         identityTenantUtilMocked.close();
         loggerUtilsMocked.close();
@@ -167,7 +159,7 @@ public class DeviceRegistrationExecutorTest {
     @BeforeMethod
     public void setUp() {
 
-        reset(deviceManagementService, devicePolicyEvaluator, deviceTokenVerifier, integrityDataEnricher);
+        reset(deviceManagementService, devicePolicyEvaluator, deviceTokenVerifier);
         // The executor's diagnostic logger (and FlowUser's own claim-resolution fallback) reads the
         // tenant domain off the thread-local carbon context, not off FlowExecutionContext — seed it
         // here so those calls resolve instead of failing with "Invalid tenant domain null".
@@ -439,7 +431,7 @@ public class DeviceRegistrationExecutorTest {
 
         assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_DEVICE_DATA_REQUIRED.getCode());
-        verify(devicePolicyEvaluator, never()).evaluate(any(), any(), any());
+        verify(devicePolicyEvaluator, never()).evaluate(any(), any(), any(), any());
     }
 
     @Test
@@ -456,7 +448,7 @@ public class DeviceRegistrationExecutorTest {
         VerifiedDevice verified = buildVerifiedDevice();
 
         when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
-        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), eq(TENANT_DOMAIN)))
+        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
                 .thenReturn("osVersion,imei");
 
         ExecutorResponse response;
@@ -483,7 +475,7 @@ public class DeviceRegistrationExecutorTest {
         VerifiedDevice verified = buildVerifiedDevice();
 
         when(deviceTokenVerifier.verifyWithPublicKey(any(), any(), any(), any())).thenReturn(new HashMap<>());
-        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), eq(TENANT_DOMAIN)))
+        when(devicePolicyEvaluator.evaluate(eq("strictPolicy"), any(), any(), eq(TENANT_DOMAIN)))
                 .thenThrow(new PolicyEvaluationException("boom"));
 
         ExecutorResponse response;

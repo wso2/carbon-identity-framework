@@ -31,6 +31,8 @@ public class DeviceRegistrationConstants {
 
     public static final String CTX_DEVICE_REGISTRATION = "device.registration.data";
 
+    public static final String CLAIM_USER_ID = "http://wso2.org/claims/userid";
+
     private DeviceRegistrationConstants() {
 
     }
