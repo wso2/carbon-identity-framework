@@ -135,6 +135,23 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
     }
 
     /**
+     * Finds a page of devices registered in the tenant, optionally filtered to a single user.
+     * This method is not cached; list results are not invalidated entry-by-entry.
+     *
+     * @param tenantId Tenant identifier.
+     * @param offset   Number of records to skip.
+     * @param limit    Maximum number of records to return.
+     * @param userId   User identifier to filter by, or {@code null}/blank for no filtering.
+     * @return Page of devices in the tenant.
+     * @throws DeviceMgtException If retrieval fails.
+     */
+    @Override
+    public List<Device> getDevices(int tenantId, int offset, int limit, String userId) throws DeviceMgtException {
+
+        return deviceManagementDAO.getDevices(tenantId, offset, limit, userId);
+    }
+
+    /**
      * Counts all devices registered in the tenant.
      * This method is not cached.
      *
@@ -146,6 +163,21 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
     public int getDeviceCount(int tenantId) throws DeviceMgtException {
 
         return deviceManagementDAO.getDeviceCount(tenantId);
+    }
+
+    /**
+     * Counts devices registered in the tenant, optionally filtered to a single user.
+     * This method is not cached.
+     *
+     * @param tenantId Tenant identifier.
+     * @param userId   User identifier to filter by, or {@code null}/blank for no filtering.
+     * @return Total number of matching devices in the tenant.
+     * @throws DeviceMgtException If the count fails.
+     */
+    @Override
+    public int getDeviceCount(int tenantId, String userId) throws DeviceMgtException {
+
+        return deviceManagementDAO.getDeviceCount(tenantId, userId);
     }
 
     /**

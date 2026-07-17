@@ -90,6 +90,23 @@ public interface DeviceManagementService {
             throws DeviceMgtException;
 
     /**
+     * Retrieves a page of devices registered in the tenant, ordered by registration time (newest
+     * first), optionally filtered to a single user's devices. This is an admin view: it returns
+     * devices of any status (ACTIVE or INACTIVE), unlike {@link #getDevicesByUserId}, which is the
+     * user-facing "my devices" list restricted to ACTIVE devices. Do not use
+     * {@link #getDevicesByUserId} in place of this method for admin views — it silently drops
+     * INACTIVE devices.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param offset       Number of records to skip.
+     * @param limit        Maximum number of records to return.
+     * @param userId       WSO2 user identifier to filter by, or {@code null}/blank for no filtering.
+     * @return Page of Device objects. Empty list if none found.
+     */
+    List<Device> getDevices(String tenantDomain, int offset, int limit, String userId)
+            throws DeviceMgtException;
+
+    /**
      * Counts all devices registered in the tenant, regardless of status (ACTIVE or INACTIVE) —
      * this is an admin/tenant-wide count, not filtered like {@link #getDevicesByUserId}.
      *
@@ -97,6 +114,18 @@ public interface DeviceManagementService {
      * @return Total number of devices in the tenant.
      */
     int getDeviceCount(String tenantDomain)
+            throws DeviceMgtException;
+
+    /**
+     * Counts devices registered in the tenant, optionally filtered to a single user, regardless of
+     * status (ACTIVE or INACTIVE). This is an admin/tenant-wide count, not filtered like
+     * {@link #getDevicesByUserId}, which only counts ACTIVE devices for the user-facing view.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param userId       WSO2 user identifier to filter by, or {@code null}/blank for no filtering.
+     * @return Total number of matching devices in the tenant.
+     */
+    int getDeviceCount(String tenantDomain, String userId)
             throws DeviceMgtException;
 
     /**

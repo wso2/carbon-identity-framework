@@ -94,8 +94,8 @@ public class DeviceManagementAuditLogger {
 
     /**
      * Create audit log data for the given device.
-     * The device owner is masked and the public key is reduced to a fingerprint; the raw public key
-     * and free-form metadata are never logged.
+     * The device owner is recorded as the opaque user ID (a UUID, not PII, so not masked) and the
+     * public key is reduced to a fingerprint; the raw public key and free-form metadata are never logged.
      *
      * @param device Device to be logged.
      * @return Audit log data as a JSONObject.
@@ -113,7 +113,7 @@ public class DeviceManagementAuditLogger {
         data.put(LogConstants.REGISTERED_AT_FIELD,
                 device.getRegisteredAt() != null ? String.valueOf(device.getRegisteredAt()) : JSONObject.NULL);
         data.put(LogConstants.USER_ID_FIELD, device.getUserId() != null
-                ? LoggerUtils.getMaskedContent(device.getUserId()) : JSONObject.NULL);
+                ? device.getUserId() : JSONObject.NULL);
         data.put(LogConstants.PUBLIC_KEY_FINGERPRINT_FIELD, device.getPublicKey() != null
                 ? fingerprint(device.getPublicKey()) : JSONObject.NULL);
         return data;

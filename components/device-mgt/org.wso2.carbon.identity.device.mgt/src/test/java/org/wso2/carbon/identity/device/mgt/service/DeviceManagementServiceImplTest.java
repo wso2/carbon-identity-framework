@@ -349,6 +349,51 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
+    public void testGetDevicesFilteredByUserPassesUserIdThrough() throws Exception {
+
+        service.getDevices(TENANT_DOMAIN, 5, 20, "alice@example.com");
+
+        verify(dao).getDevices(TENANT_ID, 5, 20, "alice@example.com");
+    }
+
+    @Test
+    public void testGetDevicesFilteredByUserCapsLimitAtMaximumItemsPerPage() throws Exception {
+
+        int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
+
+        service.getDevices(TENANT_DOMAIN, 0, maximumItemsPerPage + 5000, "alice@example.com");
+
+        verify(dao).getDevices(TENANT_ID, 0, maximumItemsPerPage, "alice@example.com");
+    }
+
+    @Test
+    public void testGetDevicesFilteredByUserWithNullUserIdDelegatesWithNull() throws Exception {
+
+        service.getDevices(TENANT_DOMAIN, 0, 20, null);
+
+        verify(dao).getDevices(TENANT_ID, 0, 20, null);
+    }
+
+    @Test
+    public void testGetDeviceCountFilteredByUserPassesUserIdThrough() throws Exception {
+
+        when(dao.getDeviceCount(TENANT_ID, "alice@example.com")).thenReturn(3);
+
+        int result = service.getDeviceCount(TENANT_DOMAIN, "alice@example.com");
+
+        Assert.assertEquals(result, 3);
+        verify(dao).getDeviceCount(TENANT_ID, "alice@example.com");
+    }
+
+    @Test
+    public void testGetDeviceCountFilteredByUserWithNullUserIdDelegatesWithNull() throws Exception {
+
+        service.getDeviceCount(TENANT_DOMAIN, null);
+
+        verify(dao).getDeviceCount(TENANT_ID, null);
+    }
+
+    @Test
     public void testDeactivateDeviceDelegatesToDao() throws Exception {
 
         Device existing = mock(Device.class);

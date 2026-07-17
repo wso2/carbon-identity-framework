@@ -74,6 +74,21 @@ public interface DeviceManagementDAO {
             throws DeviceMgtException;
 
     /**
+     * Finds a page of devices registered in the tenant, ordered by registration time (newest
+     * first), optionally filtered to a single user. This is an admin/tenant-scoped listing that
+     * returns devices of any status (ACTIVE or INACTIVE).
+     *
+     * @param tenantId Tenant identifier.
+     * @param offset   Number of records to skip.
+     * @param limit    Maximum number of records to return.
+     * @param userId   User identifier to filter by, or {@code null}/blank for no filtering.
+     * @return Page of devices in the tenant.
+     * @throws DeviceMgtException If retrieval fails.
+     */
+    List<Device> getDevices(int tenantId, int offset, int limit, String userId)
+            throws DeviceMgtException;
+
+    /**
      * Counts all devices registered in the tenant.
      *
      * @param tenantId Tenant identifier.
@@ -81,6 +96,18 @@ public interface DeviceManagementDAO {
      * @throws DeviceMgtException If the count fails.
      */
     int getDeviceCount(int tenantId)
+            throws DeviceMgtException;
+
+    /**
+     * Counts devices registered in the tenant, optionally filtered to a single user. This is an
+     * admin/tenant-scoped count that includes devices of any status (ACTIVE or INACTIVE).
+     *
+     * @param tenantId Tenant identifier.
+     * @param userId   User identifier to filter by, or {@code null}/blank for no filtering.
+     * @return Total number of matching devices in the tenant.
+     * @throws DeviceMgtException If the count fails.
+     */
+    int getDeviceCount(int tenantId, String userId)
             throws DeviceMgtException;
 
     /**

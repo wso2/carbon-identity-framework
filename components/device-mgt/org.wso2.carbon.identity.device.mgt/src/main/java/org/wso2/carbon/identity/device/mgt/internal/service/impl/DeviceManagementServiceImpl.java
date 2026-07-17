@@ -108,9 +108,23 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
+    public List<Device> getDevices(String tenantDomain, int offset, int limit, String userId)
+            throws DeviceMgtException {
+
+        return deviceManagementDAO.getDevices(
+                IdentityTenantUtil.getTenantId(tenantDomain), offset, validateLimit(limit), userId);
+    }
+
+    @Override
     public int getDeviceCount(String tenantDomain) throws DeviceMgtException {
 
         return deviceManagementDAO.getDeviceCount(IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public int getDeviceCount(String tenantDomain, String userId) throws DeviceMgtException {
+
+        return deviceManagementDAO.getDeviceCount(IdentityTenantUtil.getTenantId(tenantDomain), userId);
     }
 
     @Override

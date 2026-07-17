@@ -160,16 +160,23 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     @Override
     public List<Device> getDevices(int tenantId, int offset, int limit) throws DeviceMgtException {
 
+        return getDevices(tenantId, offset, limit, null);
+    }
+
+    @Override
+    public List<Device> getDevices(int tenantId, int offset, int limit, String userId) throws DeviceMgtException {
+
         // FETCH NEXT 0 ROWS (MS SQL) is invalid and an empty page is meaningless, so short-circuit.
         if (limit <= 0) {
             return Collections.emptyList();
         }
         int safeOffset = Math.max(offset, 0);
+        boolean filterByUser = isNotBlank(userId);
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             PaginationStyle style = resolvePaginationStyle();
-            String query = resolvePaginatedQuery(style);
+            String query = resolvePaginatedQuery(style, filterByUser);
             List<Device> devices = jdbcTemplate.<List<Device>, RuntimeException>withTransaction(
                     template -> template.executeQuery(
                             query,
@@ -186,6 +193,9 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                                     .build(),
                             preparedStatement -> {
                                 preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
+                                if (filterByUser) {
+                                    preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
+                                }
                                 bindPaginationParams(preparedStatement, style, safeOffset, limit);
                             }));
             return devices != null ? devices : Collections.emptyList();
@@ -198,19 +208,39 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     @Override
     public int getDeviceCount(int tenantId) throws DeviceMgtException {
 
+        return getDeviceCount(tenantId, null);
+    }
+
+    @Override
+    public int getDeviceCount(int tenantId, String userId) throws DeviceMgtException {
+
+        boolean filterByUser = isNotBlank(userId);
+        String query = filterByUser
+                ? DeviceMgtSQLConstants.Query.GET_DEVICES_COUNT_BY_USER
+                : DeviceMgtSQLConstants.Query.GET_DEVICES_COUNT;
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             Integer count = jdbcTemplate.<Integer, RuntimeException>withTransaction(
                     template -> template.fetchSingleRecord(
-                            DeviceMgtSQLConstants.Query.GET_DEVICES_COUNT,
+                            query,
                             (resultSet, rowNumber) -> resultSet.getInt(1),
-                            preparedStatement -> preparedStatement.setInt(
-                                    DeviceMgtSQLConstants.Column.TENANT_ID, tenantId)));
+                            preparedStatement -> {
+                                preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
+                                if (filterByUser) {
+                                    preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
+                                }
+                            }));
             return count != null ? count : 0;
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);
         }
+    }
+
+    private static boolean isNotBlank(String value) {
+
+        return value != null && !value.trim().isEmpty();
     }
 
     /**
@@ -235,8 +265,20 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
         return PaginationStyle.DEFAULT;
     }
 
-    private String resolvePaginatedQuery(PaginationStyle style) {
+    private String resolvePaginatedQuery(PaginationStyle style, boolean filterByUser) {
 
+        if (filterByUser) {
+            switch (style) {
+                case ORACLE:
+                    return DeviceMgtSQLConstants.Query.GET_ALL_DEVICES_PAGINATED_BY_USER_ORACLE;
+                case DB2:
+                    return DeviceMgtSQLConstants.Query.GET_ALL_DEVICES_PAGINATED_BY_USER_DB2;
+                case MSSQL:
+                    return DeviceMgtSQLConstants.Query.GET_ALL_DEVICES_PAGINATED_BY_USER_MSSQL;
+                default:
+                    return DeviceMgtSQLConstants.Query.GET_ALL_DEVICES_PAGINATED_BY_USER;
+            }
+        }
         switch (style) {
             case ORACLE:
                 return DeviceMgtSQLConstants.Query.GET_ALL_DEVICES_PAGINATED_ORACLE;

@@ -35,6 +35,9 @@ import org.wso2.carbon.identity.device.mgt.internal.cache.DeviceCacheKey;
 import org.wso2.carbon.identity.device.mgt.internal.dao.DeviceManagementDAO;
 import org.wso2.carbon.identity.device.mgt.internal.dao.impl.CacheBackedDeviceManagementDAO;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -203,6 +206,30 @@ public class CacheBackedDeviceManagementDAOTest {
 
         assertEquals(result, fresh);
         verify(deviceManagementDAO).getDeviceById(DEVICE_ID, TENANT_ID);
+    }
+
+    @Test
+    public void testGetDevicesFilteredByUserDelegatesToDao() throws DeviceMgtException {
+
+        Device device = mock(Device.class);
+        when(deviceManagementDAO.getDevices(TENANT_ID, 0, 100, "alice@example.com"))
+                .thenReturn(Collections.singletonList(device));
+
+        List<Device> result = cacheBackedDeviceManagementDAO.getDevices(TENANT_ID, 0, 100, "alice@example.com");
+
+        assertEquals(result, Collections.singletonList(device));
+        verify(deviceManagementDAO).getDevices(TENANT_ID, 0, 100, "alice@example.com");
+    }
+
+    @Test
+    public void testGetDeviceCountFilteredByUserDelegatesToDao() throws DeviceMgtException {
+
+        when(deviceManagementDAO.getDeviceCount(TENANT_ID, "alice@example.com")).thenReturn(2);
+
+        int result = cacheBackedDeviceManagementDAO.getDeviceCount(TENANT_ID, "alice@example.com");
+
+        assertEquals(result, 2);
+        verify(deviceManagementDAO).getDeviceCount(TENANT_ID, "alice@example.com");
     }
 
     @Test

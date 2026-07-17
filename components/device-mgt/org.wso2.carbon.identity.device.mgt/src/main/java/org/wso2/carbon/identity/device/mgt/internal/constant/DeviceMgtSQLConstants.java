@@ -137,6 +137,53 @@ public final class DeviceMgtSQLConstants {
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
                         "WHERE D.TENANT_ID = :TENANT_ID;";
 
+        // Paginated tenant-wide device listing filtered to a single user. Same DB-specific pagination
+        // variants as GET_ALL_DEVICES_PAGINATED, with an added user id condition.
+
+        // Default: H2, MySQL, MariaDB, PostgreSQL.
+        public static final String GET_ALL_DEVICES_PAGINATED_BY_USER =
+                "SELECT D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
+                        "D.REGISTERED_AT, D.METADATA, D.TENANT_ID " +
+                        "FROM IDN_DEVICE D " +
+                        "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; " +
+                        "ORDER BY D.REGISTERED_AT DESC LIMIT :LIMIT; OFFSET :OFFSET;";
+
+        // MS SQL Server.
+        public static final String GET_ALL_DEVICES_PAGINATED_BY_USER_MSSQL =
+                "SELECT D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
+                        "D.REGISTERED_AT, D.METADATA, D.TENANT_ID " +
+                        "FROM IDN_DEVICE D " +
+                        "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; " +
+                        "ORDER BY D.REGISTERED_AT DESC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
+
+        // Oracle.
+        public static final String GET_ALL_DEVICES_PAGINATED_BY_USER_ORACLE =
+                "SELECT ID, USER_ID, DEVICE_NAME, DEVICE_MODEL, PUBLIC_KEY, STATUS, REGISTERED_AT, " +
+                        "METADATA, TENANT_ID FROM (SELECT ID, USER_ID, DEVICE_NAME, DEVICE_MODEL, PUBLIC_KEY, " +
+                        "STATUS, REGISTERED_AT, METADATA, TENANT_ID, rownum AS rnum FROM " +
+                        "(SELECT D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
+                        "D.REGISTERED_AT, D.METADATA, D.TENANT_ID FROM IDN_DEVICE D " +
+                        "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; ORDER BY D.REGISTERED_AT DESC) " +
+                        "WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET;";
+
+        // DB2.
+        public static final String GET_ALL_DEVICES_PAGINATED_BY_USER_DB2 =
+                "SELECT ID, USER_ID, DEVICE_NAME, DEVICE_MODEL, PUBLIC_KEY, STATUS, REGISTERED_AT, " +
+                        "METADATA, TENANT_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY D.REGISTERED_AT DESC) AS rn, " +
+                        "D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
+                        "D.REGISTERED_AT, D.METADATA, D.TENANT_ID FROM IDN_DEVICE D " +
+                        "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID;) " +
+                        "WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND;";
+
+        public static final String GET_DEVICES_COUNT_BY_USER =
+                "SELECT COUNT(*) FROM IDN_DEVICE D " +
+                        "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID;";
+
         public static final String DELETE_USER_DEVICE =
                 "DELETE FROM IDN_USER_DEVICE " +
                         "WHERE DEVICE_ID = :DEVICE_ID; AND TENANT_ID = :TENANT_ID;";

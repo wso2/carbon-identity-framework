@@ -344,6 +344,64 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(userDevices.get(0).getId(), id);
     }
 
+    /**
+     * Tests that getDevices(tenantId, offset, limit, userId) returns only the given user's
+     * devices, including one that is INACTIVE.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 16)
+    public void testGetDevicesFilteredByUserIncludesInactive() throws DeviceMgtException {
+
+        String userId = "ivan@example.com";
+        String activeId = UUID.randomUUID().toString();
+        String inactiveId = UUID.randomUUID().toString();
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(activeId, "Ivan Phone", userId, Device.Status.ACTIVE), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(inactiveId, "Ivan Tablet", userId, Device.Status.INACTIVE), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDevice(UUID.randomUUID().toString(), "Someone Else Phone", Device.Status.ACTIVE), TENANT_ID);
+
+        List<Device> devices = deviceManagementDAO.getDevices(TENANT_ID, 0, 100, userId);
+
+        Assert.assertEquals(devices.size(), 2);
+        Assert.assertTrue(devices.stream().allMatch(d -> d.getUserId().equals(userId)));
+        Assert.assertTrue(devices.stream().anyMatch(
+                d -> d.getId().equals(inactiveId) && d.getStatus() == Device.Status.INACTIVE));
+    }
+
+    /**
+     * Tests that getDeviceCount(tenantId, userId) matches the number of devices returned by the
+     * filtered getDevices overload.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 17, dependsOnMethods = {"testGetDevicesFilteredByUserIncludesInactive"})
+    public void testGetDeviceCountFilteredByUser() throws DeviceMgtException {
+
+        int count = deviceManagementDAO.getDeviceCount(TENANT_ID, "ivan@example.com");
+
+        Assert.assertEquals(count, 2);
+    }
+
+    /**
+     * Tests that a null userId behaves exactly like the unfiltered getDevices/getDeviceCount.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 18)
+    public void testGetDevicesAndCountWithNullUserIdMatchesUnfiltered() throws DeviceMgtException {
+
+        List<Device> unfiltered = deviceManagementDAO.getDevices(TENANT_ID, 0, 100);
+        List<Device> withNullUser = deviceManagementDAO.getDevices(TENANT_ID, 0, 100, null);
+        int unfilteredCount = deviceManagementDAO.getDeviceCount(TENANT_ID);
+        int countWithNullUser = deviceManagementDAO.getDeviceCount(TENANT_ID, null);
+
+        Assert.assertEquals(withNullUser.size(), unfiltered.size());
+        Assert.assertEquals(countWithNullUser, unfilteredCount);
+    }
+
     private Device buildDevice(String id, String deviceName, Device.Status status) {
 
         return new Device.Builder()
