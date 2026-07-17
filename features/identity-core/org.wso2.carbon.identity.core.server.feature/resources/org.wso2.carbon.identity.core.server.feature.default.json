@@ -2055,6 +2055,7 @@
     "internal_validation_rule_mgt_update"
   ],
   "console.console_settings.enabled": true,
+  "console.console_settings.use_granular_console_permissions": true,
   "console.console_settings.disabled_features": [
     "consoleSettings.invitedExternalAdmins",
     "consoleSettings.privilegedUsers"
