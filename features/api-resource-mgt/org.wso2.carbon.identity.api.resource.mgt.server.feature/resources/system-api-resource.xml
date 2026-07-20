@@ -2486,4 +2486,17 @@
                    description="Poll the status of a Verifiable Presentation verification session"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Verifiable Presentation Management Feature" identifier="console:vp_templates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Verifiable Presentation Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="VP Templates Feature" name="console:vp_templates"
+                   description="Manage VP templates from the Console"/>
+            <Scope displayName="VP Templates View Feature" name="console:vp_templates_view"
+                   description="Manage views of VP templates from the Console"/>
+            <Scope displayName="VP Templates Edit Feature" name="console:vp_templates_edit"
+                   description="Manage edits of VP templates from the Console"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
