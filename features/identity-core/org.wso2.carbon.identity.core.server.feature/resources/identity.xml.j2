@@ -1298,6 +1298,7 @@
             <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
             <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
             <ReturnNullFieldsInResponse>{{oauth.dcrm.return_null_fields_in_response}}</ReturnNullFieldsInResponse>
+            <DecodeRedirectUrisInResponse>{{oauth.dcrm.decode_redirect_uris_in_response}}</DecodeRedirectUrisInResponse>
         </DCRM>
 
         <!--
@@ -1535,6 +1536,12 @@
             <ValidityPeriod>{{push_authenticator.device_registration_context.validity_period}}</ValidityPeriod>
         </DeviceRegistrationContext>
     </PushAuthenticator>
+
+    <PushDeviceManagement>
+        <DeviceRegistrationNotificationsEnabled>{{push_device_management.device_registration_notifications_enabled}}</DeviceRegistrationNotificationsEnabled>
+        <MaxDeviceLimitPerUser>{{push_device_management.max_device_limit_per_user}}</MaxDeviceLimitPerUser>
+        <MultipleDeviceSupportEnabled>{{push_device_management.multiple_device_support_enabled}}</MultipleDeviceSupportEnabled>
+    </PushDeviceManagement>
 
     <RestApiAuthentication>
             <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
@@ -4517,6 +4524,10 @@
         <AsyncSequenceExecutorPoolSize>{{authentication.adaptive.async_executer_pool_size}}</AsyncSequenceExecutorPoolSize>
         <MaxTotalConnections>{{authentication.adaptive.http_connections.max}}</MaxTotalConnections>
         <MaxTotalConnectionsPerRoute>{{authentication.adaptive.http_connections.max_per_route}}</MaxTotalConnectionsPerRoute>
+        <HTTPFunctions>
+            <MaxConnections>{{authentication.adaptive.http_functions.max_connections}}</MaxConnections>
+            <MaxConnectionsPerRoute>{{authentication.adaptive.http_functions.max_connections_per_route}}</MaxConnectionsPerRoute>
+        </HTTPFunctions>
 
         <!--Timeouts in milliseconds-->
         <!--Default configs for timeouts-->
@@ -5079,6 +5090,11 @@
         <AppBaseName>{{console.app_base_name}}</AppBaseName>
         <Origin>{{console.origin}}</Origin>
     </Console>
+
+    <!-- Console settings -->
+    <ConsoleSettings>
+        <UseGranularConsolePermissions>{{console.console_settings.use_granular_console_permissions | default('true')}}</UseGranularConsolePermissions>
+    </ConsoleSettings>
 
     <!-- MyAccount Application configurations -->
     <MyAccount>

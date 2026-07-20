@@ -1372,11 +1372,20 @@ public class RoleDAOImpl implements RoleDAO {
         return roleIds.stream().distinct().collect(Collectors.toList());
     }
 
+    @Deprecated
     @Override
     public void deleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
+    }
+
+    @Override
+    public List<RoleBasicInfo> deleteRolesByApplicationAndReturnRoles(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
         List<RoleDTO> hybridRoles = getHybridRolesByApplication(applicationId, tenantDomain);
+        List<RoleBasicInfo> deletedRoles = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLES_BY_APP_ID_SQL)) {
             try {
@@ -1389,6 +1398,10 @@ public class RoleDAOImpl implements RoleDAO {
                     // Delete the role from IDN_SCIM_GROUP table.
                     deleteSCIMRole(role.getId(), role.getName(), role.getAudienceRefId(), null,
                             tenantDomain);
+                    RoleBasicInfo deletedRole = new RoleBasicInfo(role.getId(), role.getName());
+                    deletedRole.setAudience(APPLICATION);
+                    deletedRole.setAudienceId(applicationId);
+                    deletedRoles.add(deletedRole);
                 }
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException | IdentityRoleManagementException e) {
@@ -1402,6 +1415,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     message, e);
         }
+        return deletedRoles;
     }
 
     @Override

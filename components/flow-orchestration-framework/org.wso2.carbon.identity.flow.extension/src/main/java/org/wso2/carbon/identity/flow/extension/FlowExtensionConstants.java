@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Constants for the In-Flow Extension executor pipeline.
+ * Constants for the Flow Extension executor pipeline.
  */
 public class FlowExtensionConstants {
 
@@ -37,37 +37,13 @@ public class FlowExtensionConstants {
     public static final String MODIFY_PATHS_KEY = "modifyPaths";
     public static final String PENDING_CLAIMS_KEY = "pendingClaims";
     public static final String PENDING_CREDENTIALS_KEY = "pendingCredentials";
-    public static final String PENDING_PROPERTIES_KEY = "pendingProperties";
     public static final String PENDING_REDIRECT_URL_KEY = "pendingRedirectUrl";
-
-    public static final String FAILURE_TYPE_KEY = "failureType";
-    public static final String FLOW_EXTENSION_FAILURE_TYPE = "FLOW_EXTENSION_FAILURE";
-    public static final String FAILURE_MESSAGE_KEY = "failureMessage";
-    public static final String FAILURE_DESCRIPTION_KEY = "failureDescription";
 
     public static final String ACTION_ID_METADATA_KEY = "actionId";
 
     /**
-     * Centralized constants for the Flow Extension framework, covering execution keys,
-     * error messages, handover policies, and JSON pointer style context paths.
-     */
-    public static final class ResponseContext {
-
-        public static final String FAILED_OPERATIONS_KEY = "failedOperations";
-        public static final String TOTAL_OPERATIONS_KEY = "totalOperations";
-
-        public static final String OP_PATH_KEY = "path";
-        public static final String OP_TYPE_KEY = "op";
-        public static final String OP_MESSAGE_KEY = "message";
-
-        private ResponseContext() {
-
-        }
-    }
-
-    /**
      * User-facing error message / description pairs returned via {@code ExecutorResponse}
-     * when In-Flow Extension execution fails or is unavailable.
+     * when Flow Extension execution fails or is unavailable.
      */
     public static final class ErrorMessages {
 
@@ -106,25 +82,6 @@ public class FlowExtensionConstants {
         }
     }
 
-    public static final class Log {
-
-        public static final String COMPONENT_ID = "inflow-extension";
-
-        private Log() {
-
-        }
-
-        public static final class ActionIDs {
-
-            public static final String EXECUTE = "execute-inflow-extension";
-            public static final String PROCESS_RESPONSE = "process-inflow-extension-response";
-
-            private ActionIDs() {
-
-            }
-        }
-    }
-
     /**
      * Default handover policy: which {@code FlowExecutionContext} and {@code FlowUser} fields
      * are forwarded to the action framework. Serves as the documented defaults for the
@@ -132,9 +89,6 @@ public class FlowExtensionConstants {
      */
     public static final class HandoverPolicy {
 
-        public static final String ATTR_FLOW_USER = "flowUser";
-        public static final String ATTR_CONTEXT_IDENTIFIER = "contextIdentifier";
-        public static final String ATTR_USER_CREDENTIALS = "userCredentials";
         public static final Set<String> INCLUDED_ATTRIBUTES = Collections.unmodifiableSet(
                 new HashSet<>(Arrays.asList(
                         "contextIdentifier",
@@ -161,7 +115,7 @@ public class FlowExtensionConstants {
     }
 
     /**
-     * Constants used when building the controlled In-Flow Extension context tree returned
+     * Constants used when building the controlled Flow Extension context tree returned
      * by the metadata endpoint.
      */
     public static final class ContextTree {
@@ -175,7 +129,6 @@ public class FlowExtensionConstants {
         public static final String NODE_OBJECT = "OBJECT";
         public static final String NODE_LEAF = "LEAF";
         public static final String NODE_MAP = "MAP";
-        public static final String NODE_COMPLEX_MAP = "COMPLEX_MAP";
 
         public static final String OP_EXPOSE = "EXPOSE";
         public static final String OP_MODIFY = "MODIFY";
@@ -187,19 +140,33 @@ public class FlowExtensionConstants {
     }
 
     /**
-     * JSON-pointer-style path constants for the In-Flow Extension context tree.
+     * Wire-format constants for the typed user credential object exposed on the read side.
+     * An unencrypted credential is sent as {@code {"type": "PLAIN_TEXT", "value": "<secret>"}};
+     * an encrypted credential is the JWE compact string of that same object.
+     */
+    public static final class Credentials {
+
+        public static final String TYPE_KEY = "type";
+        public static final String VALUE_KEY = "value";
+        public static final String TYPE_PLAIN_TEXT = "PLAIN_TEXT";
+
+        private Credentials() {
+
+        }
+    }
+
+    /**
+     * JSON-pointer-style path constants for the Flow Extension context tree.
      */
     public static final class FlowContextPaths {
 
         public static final String USER_PREFIX = "/user/";
         public static final String USER_ID_PATH = "/user/id";
+        public static final String USER_USERNAME_PATH = "/user/username";
         public static final String USER_STORE_DOMAIN_PATH = "/user/userStoreDomain";
-        public static final String USER_CLAIMS_PATH_PREFIX = "/user/claims/";
         public static final String USER_CLAIMS_SELECTOR_PREFIX = "/user/claims[uri=";
         public static final String USER_CLAIMS_SELECTOR_SUFFIX = "]";
         public static final String USER_CREDENTIALS_PATH_PREFIX = "/user/credentials/";
-
-        public static final String PROPERTIES_PATH_PREFIX = "/properties/";
 
         public static final String FLOW_PREFIX = "/flow/";
         public static final String FLOW_TYPE_PATH = "/flow/flowType";

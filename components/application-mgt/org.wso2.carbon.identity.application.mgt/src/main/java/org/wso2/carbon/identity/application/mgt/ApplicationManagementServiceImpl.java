@@ -87,6 +87,8 @@ import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorMa
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -247,6 +249,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String tenantDomain,
                                                          String username, String templateName)
+            throws IdentityApplicationManagementException {
+
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
+        try {
+            return doCreateApplicationWithTemplate(serviceProvider, tenantDomain, username, templateName);
+        } finally {
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+        }
+    }
+
+    private ServiceProvider doCreateApplicationWithTemplate(ServiceProvider serviceProvider, String tenantDomain,
+                                                            String username, String templateName)
             throws IdentityApplicationManagementException {
 
         // Call pre listeners.
@@ -781,6 +797,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
+        try {
+            doUpdateApplication(serviceProvider, tenantDomain, username);
+        } finally {
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+        }
+    }
+
+    private void doUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
 
         // invoking the listeners
@@ -909,6 +938,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     @Override
     public void deleteApplication(String applicationName, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
+        try {
+            doDeleteApplication(applicationName, tenantDomain, username);
+        } finally {
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+        }
+    }
+
+    private void doDeleteApplication(String applicationName, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider;
@@ -2651,6 +2693,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_CREATE);
+        try {
+            return doCreateApplication(application, tenantDomain, username);
+        } finally {
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+        }
+    }
+
+    private String doCreateApplication(ServiceProvider application, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
         // Invoking the listeners.
         Collection<ApplicationResourceManagementListener> listeners = ApplicationMgtListenerServiceComponent
                 .getApplicationResourceMgtListeners();
@@ -2838,9 +2893,22 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
-        
+
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_UPDATE);
+        try {
+            doUpdateApplicationByResourceId(resourceId, updatedApp, tenantDomain, username);
+        } finally {
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+        }
+    }
+
+    private void doUpdateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
+                                                 String username) throws IdentityApplicationManagementException {
+
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
-        
+
         updatedApp.setApplicationResourceId(resourceId);
         setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
@@ -3273,6 +3341,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void deleteApplicationByResourceId(String resourceId,
                                               String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
+
+        boolean flowStarted = ApplicationMgtUtil.enterApplicationManagementFlow(Flow.Name.APPLICATION_DELETE);
+        try {
+            doDeleteApplicationByResourceId(resourceId, tenantDomain, username);
+        } finally {
+            if (flowStarted) {
+                IdentityContext.getThreadLocalIdentityContext().exitFlow();
+            }
+        }
+    }
+
+    private void doDeleteApplicationByResourceId(String resourceId,
+                                                 String tenantDomain,
+                                                 String username) throws IdentityApplicationManagementException {
 
         // Invoking listeners.
         Collection<ApplicationResourceManagementListener> listeners =
