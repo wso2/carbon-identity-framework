@@ -48,7 +48,6 @@ public class RuleEvaluationResult {
 
         this.ruleId = ruleId;
         this.ruleSatisfied = ruleSatisfied;
-        // Keep as-is: null means the failed fields were not set, which is different from an empty list.
         this.failedFields = failedFields;
     }
 
