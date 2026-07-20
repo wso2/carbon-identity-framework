@@ -367,7 +367,8 @@ public class PolicyEvaluationServiceImplTest {
     }
 
     @Test
-    public void testDiagnosticLogsEnabled_PolicyNotFoundLogsInitiationAndNotFound() {
+    public void testDiagnosticLogsEnabled_PolicyNotFoundLogsInitiationAndNotFound()
+            throws PolicyManagementException, PolicyEvaluationException {
 
         loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
 
