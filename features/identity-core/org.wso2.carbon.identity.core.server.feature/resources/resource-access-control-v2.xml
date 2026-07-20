@@ -2253,8 +2253,7 @@
     <Resource context="(.*)/oid4vci/nonce" secured="false" http-method="POST"/>
     <Resource context="(.*)/oid4vp/v1/vp-request/(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/oid4vp/v1/response" secured="false" http-method="POST"/>
-    <Resource context="(.*)/oid4vp/v1/verifications" secured="false" http-method="POST"/>
-    <Resource context="(.*)/oid4vp/v1/verifications(.*)" secured="false" http-method="GET"/>
+
     <!-- [Organization] Verifiable Presentation Definition Management API -->
     <Resource context="(.*)/o/api/server/v1/vp/template(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_vp_template_view</Scopes>

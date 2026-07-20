@@ -2495,6 +2495,7 @@
                                    description="Manage edits of VC templates from the Console"/>
         </Scopes>
     </APIResource>
+    {% if openid4vp.enabled %}
     <APIResource name="Verifiable Presentation Definition Management API" identifier="/api/server/v1/vp/template"
                  requiresAuthorization="true"
                  description="API representation of the Verifiable Presentation Definition Management API" type="TENANT">
@@ -2543,4 +2544,5 @@
                    description="Poll the status of a Verifiable Presentation verification session"/>
         </Scopes>
     </APIResource>
+    {% endif %}
 </APIResources>
