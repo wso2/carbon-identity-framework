@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Se
 import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -70,6 +71,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Authentication framework data holder.
@@ -116,6 +119,16 @@ public class FrameworkServiceDataHolder {
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
+
+    // Registry of pluggable session data stores keyed by getStoreName(). Populated by the OSGi
+    // MULTIPLE/DYNAMIC reference for SessionDataStore.
+    // ConcurrentHashMap because bind/unbind can race SessionDataStore.getInstance()'s resolution.
+    private final Map<String, SessionDataStore> sessionDataStores = new ConcurrentHashMap<>();
+
+    // Supplier of the built-in default store, wired by the framework component. Kept behind a
+    // supplier (rather than eagerly registered) so the default implementation is instantiated only
+    // when it is actually selected; a deployment that configures a different store never triggers it.
+    private volatile Supplier<SessionDataStore> defaultSessionDataStoreSupplier;
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
@@ -734,6 +747,80 @@ public class FrameworkServiceDataHolder {
 
     public void setSessionSerializer(SessionSerializer sessionSerializer) {
         this.sessionSerializer = sessionSerializer;
+    }
+
+    /**
+     * Register a session data store, keyed by {@link SessionDataStore#getStoreName()}.
+     *
+     * @param store the store to register.
+     */
+    public void addSessionDataStore(SessionDataStore store) {
+
+        if (store != null && store.getStoreName() != null) {
+            sessionDataStores.put(normalizeStoreName(store.getStoreName()), store);
+        }
+    }
+
+    /**
+     * Deregister a previously registered session data store.
+     *
+     * @param store the store to remove.
+     */
+    public void removeSessionDataStore(SessionDataStore store) {
+
+        if (store != null && store.getStoreName() != null) {
+            // Remove only if the mapping still points to this exact service instance, so unbinding
+            // an older service does not evict a newer registration under the same name.
+            sessionDataStores.remove(normalizeStoreName(store.getStoreName()), store);
+        }
+    }
+
+    /**
+     * @param storeName the store name (e.g. "JDBC", "Redis"); matched case-insensitively.
+     * @return the registered store for the given name, or {@code null} if none.
+     */
+    public SessionDataStore getSessionDataStore(String storeName) {
+
+        return storeName == null ? null : sessionDataStores.get(normalizeStoreName(storeName));
+    }
+
+    /**
+     * Normalises a store name so registration, removal and lookup share the same case-insensitive
+     * semantics as the configured store selection.
+     */
+    private static String normalizeStoreName(String storeName) {
+
+        return storeName == null ? null : storeName.trim().toLowerCase(java.util.Locale.ENGLISH);
+    }
+
+    /**
+     * @return the live registry of session data stores, keyed by store name.
+     */
+    public Map<String, SessionDataStore> getSessionDataStores() {
+
+        return sessionDataStores;
+    }
+
+    /**
+     * Wires the supplier of the built-in default session data store. The framework component sets
+     * this so the selector can obtain the default store without depending on any concrete store
+     * type. The supplier is invoked lazily, so the default implementation is created only if it is
+     * selected.
+     *
+     * @param supplier supplier of the default store.
+     */
+    public void setDefaultSessionDataStoreSupplier(Supplier<SessionDataStore> supplier) {
+
+        this.defaultSessionDataStoreSupplier = supplier;
+    }
+
+    /**
+     * @return the built-in default session data store, or {@code null} if no default has been wired.
+     */
+    public SessionDataStore getDefaultSessionDataStore() {
+
+        Supplier<SessionDataStore> supplier = defaultSessionDataStoreSupplier;
+        return supplier == null ? null : supplier.get();
     }
 
     /**
