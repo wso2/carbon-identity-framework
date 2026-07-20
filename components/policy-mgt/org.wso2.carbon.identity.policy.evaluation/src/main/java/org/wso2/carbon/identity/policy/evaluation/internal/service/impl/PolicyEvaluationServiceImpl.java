@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link PolicyEvaluationService}.
@@ -83,7 +82,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
 
         List<PolicyResource> matchingResources = policy.getResources().stream()
                 .filter(r -> r.getTarget() != null && target.equalsIgnoreCase(r.getTarget()))
-                .collect(Collectors.toList());
+                .toList();
 
         if (matchingResources.isEmpty()) {
             if (LOG.isDebugEnabled()) {

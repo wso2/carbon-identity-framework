@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationServic
 public class PolicyEvaluationServiceComponent {
 
     private static final Log LOG = LogFactory.getLog(PolicyEvaluationServiceComponent.class);
+    private static final String SERVICE_COMPONENT = "service component.";
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -86,7 +87,7 @@ public class PolicyEvaluationServiceComponent {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registering a reference for PolicyManagementService in the policy evaluation " +
-                    "service component.");
+                    SERVICE_COMPONENT);
         }
         PolicyEvaluationComponentServiceHolder.getInstance().setPolicyManagementService(policyManagementService);
     }
@@ -95,9 +96,12 @@ public class PolicyEvaluationServiceComponent {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Unregistering reference for PolicyManagementService in the policy evaluation " +
-                    "service component.");
+                    SERVICE_COMPONENT);
         }
-        PolicyEvaluationComponentServiceHolder.getInstance().setPolicyManagementService(null);
+        PolicyEvaluationComponentServiceHolder holder = PolicyEvaluationComponentServiceHolder.getInstance();
+        if (holder.getPolicyManagementService() == policyManagementService) {
+            holder.setPolicyManagementService(null);
+        }
     }
 
     @Reference(
@@ -111,7 +115,7 @@ public class PolicyEvaluationServiceComponent {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registering a reference for RuleEvaluationService in the policy evaluation " +
-                    "service component.");
+                    SERVICE_COMPONENT);
         }
         PolicyEvaluationComponentServiceHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
     }
@@ -120,9 +124,12 @@ public class PolicyEvaluationServiceComponent {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Unregistering reference for RuleEvaluationService in the policy evaluation " +
-                    "service component.");
+                    SERVICE_COMPONENT);
         }
-        PolicyEvaluationComponentServiceHolder.getInstance().setRuleEvaluationService(null);
+        PolicyEvaluationComponentServiceHolder holder = PolicyEvaluationComponentServiceHolder.getInstance();
+        if (holder.getRuleEvaluationService() == ruleEvaluationService) {
+            holder.setRuleEvaluationService(null);
+        }
     }
 
     @Reference(
