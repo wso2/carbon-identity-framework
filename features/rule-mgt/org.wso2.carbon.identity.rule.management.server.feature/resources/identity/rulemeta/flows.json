@@ -113,6 +113,74 @@
       }
     }
   ],
+  "devicePolicy": [
+    {
+      "fieldName": "platform"
+    },
+    {
+      "fieldName": "androidOsVersion"
+    },
+    {
+      "fieldName": "iosOsVersion"
+    },
+    {
+      "fieldName": "macosOsVersion"
+    },
+    {
+      "fieldName": "windowsOsVersion"
+    },
+    {
+      "fieldName": "isRooted"
+    },
+    {
+      "fieldName": "usbDebugging"
+    },
+    {
+      "fieldName": "lockScreen"
+    },
+    {
+      "fieldName": "biometric"
+    },
+    {
+      "fieldName": "screenLockComplexity"
+    },
+    {
+      "fieldName": "hardwareKeystore"
+    },
+    {
+      "fieldName": "diskEncryption"
+    },
+    {
+      "fieldName": "networkProxies"
+    },
+    {
+      "fieldName": "wifiNetworkSecurity"
+    },
+    {
+      "fieldName": "androidIntegrity"
+    },
+    {
+      "fieldName": "iosIntegrity"
+    },
+    {
+      "fieldName": "passcode"
+    },
+    {
+      "fieldName": "touchIdOrFaceId"
+    },
+    {
+      "fieldName": "jailbreak"
+    },
+    {
+      "fieldName": "secureEnclave"
+    },
+    {
+      "fieldName": "windowsHello"
+    },
+    {
+      "fieldName": "trustedPlatformModule"
+    }
+  ],
   "preUpdateProfile": [
     {
       "fieldName": "flow",

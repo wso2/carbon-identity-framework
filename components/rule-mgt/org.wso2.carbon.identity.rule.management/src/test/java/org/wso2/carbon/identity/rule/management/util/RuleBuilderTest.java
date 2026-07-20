@@ -372,7 +372,7 @@ public class RuleBuilderTest {
 
     @Test(expectedExceptions = RuleManagementClientException.class,
             expectedExceptionsMessageRegExp = "Rule validation failed: " +
-                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 5 Provided: 6")
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 15 Provided: 16")
     public void testCreateRuleWithMaxAllowedExpressionsCombinedWithAND() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -382,7 +382,7 @@ public class RuleBuilderTest {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 16; i++) {
             Expression expression = new Expression.Builder().field("application").operator("equals")
                     .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
             ruleBuilder.addAndExpression(expression);
@@ -500,6 +500,110 @@ public class RuleBuilderTest {
 
         andCombinedRule = assertAndCombinedRule(orCombinedRule.getRules().get(2), 1);
         assertExpressions(andCombinedRule, expression5);
+    }
+
+    @Test
+    public void testCreateRuleWithInOperatorAndValidSymbolicValues() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitionsWithSymbolicField();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("osVersion").operator("in")
+                .value(new Value(Value.Type.LIST, "LATEST_ANDROID,SECOND_LATEST_ANDROID")).build();
+        ruleBuilder.addAndExpression(expression);
+        Rule rule = ruleBuilder.build();
+
+        assertNotNull(rule);
+        Expression resolved =
+                assertAndCombinedRule(assertOrCombinedRule(rule, 1).getRules().get(0), 1).getExpressions().get(0);
+        // The 'in' multi-value on a symbolic field is resolved to a SYMBOLIC value, preserving the raw tokens.
+        assertEquals(resolved.getValue().getType(), Value.Type.SYMBOLIC);
+        assertEquals(resolved.getValue().getFieldValue(), "LATEST_ANDROID,SECOND_LATEST_ANDROID");
+    }
+
+    @Test
+    public void testCreateRuleWithEqualsOperatorAndValidSymbolicValue() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitionsWithSymbolicField();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("osVersion").operator("equals")
+                .value("LATEST_ANDROID").build();
+        ruleBuilder.addAndExpression(expression);
+        Rule rule = ruleBuilder.build();
+
+        assertNotNull(rule);
+        Expression resolved =
+                assertAndCombinedRule(assertOrCombinedRule(rule, 1).getRules().get(0), 1).getExpressions().get(0);
+        // A single valid symbolic token is resolved to a SYMBOLIC value.
+        assertEquals(resolved.getValue().getType(), Value.Type.SYMBOLIC);
+        assertEquals(resolved.getValue().getFieldValue(), "LATEST_ANDROID");
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Value INVALID_VERSION is not supported for field osVersion")
+    public void testCreateRuleWithInOperatorAndInvalidSymbolicValue() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitionsWithSymbolicField();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        // One valid token and one invalid token; the invalid one must be rejected at build time.
+        Expression expression = new Expression.Builder().field("osVersion").operator("in")
+                .value(new Value(Value.Type.LIST, "LATEST_ANDROID,INVALID_VERSION")).build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Value INVALID_VERSION is not supported for field osVersion")
+    public void testCreateRuleWithEqualsOperatorAndInvalidSymbolicValue() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitionsWithSymbolicField();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("osVersion").operator("equals")
+                .value("INVALID_VERSION").build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
+    private List<FieldDefinition> getMockedFieldDefinitionsWithSymbolicField() {
+
+        List<FieldDefinition> fieldDefinitionList = new ArrayList<>();
+
+        Field osVersionField = new Field("osVersion", "OS Version");
+        List<Operator> operators = Arrays.asList(new Operator("equals", "equals"), new Operator("in", "in"));
+        List<OptionsValue> osVersionOptions = Arrays.asList(
+                new OptionsValue("LATEST_ANDROID", "Latest Android"),
+                new OptionsValue("SECOND_LATEST_ANDROID", "Second Latest Android"),
+                new OptionsValue("13", "Android 13"),
+                new OptionsValue("14", "Android 14"));
+        org.wso2.carbon.identity.rule.metadata.api.model.Value osVersionValue =
+                new OptionsInputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.SYMBOLIC,
+                        osVersionOptions);
+        fieldDefinitionList.add(new FieldDefinition(osVersionField, operators, osVersionValue));
+
+        return fieldDefinitionList;
     }
 
     private List<FieldDefinition> getMockedFieldDefinitions() {

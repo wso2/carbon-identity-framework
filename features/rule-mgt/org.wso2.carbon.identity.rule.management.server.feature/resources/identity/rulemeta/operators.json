@@ -30,5 +30,13 @@
   "lessThan": {
     "name": "lessThan",
     "displayName": "less than"
+  },
+  "greaterThanOrEquals": {
+    "name": "greaterThanOrEquals",
+    "displayName": "greater than or equal to"
+  },
+  "in": {
+    "name": "in",
+    "displayName": "in"
   }
 }

@@ -79,7 +79,7 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
         boolean evaluationStatus = ruleEvaluator.evaluate(rule, evaluationData);
         LOG.debug("Evaluated rule: " + rule.getId() + " to: " + evaluationStatus + ".");
 
-        return new RuleEvaluationResult(ruleId, evaluationStatus);
+        return new RuleEvaluationResult(ruleId, evaluationStatus, ruleEvaluator.getFailedFields());
     }
 
     private Map<String, FieldValue> getEvaluationData(String ruleId, FlowContext flowContext,
