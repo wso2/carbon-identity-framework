@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResu
 import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.evaluation.api.service.PolicyEvaluationService;
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
+import org.wso2.carbon.identity.policy.evaluation.internal.util.PolicyEvaluationDiagnosticLogger;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
@@ -42,11 +43,14 @@ import java.util.stream.Collectors;
 public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
 
     private static final Log LOG = LogFactory.getLog(PolicyEvaluationServiceImpl.class);
+    private static final PolicyEvaluationDiagnosticLogger DIAGNOSTIC_LOGGER = new PolicyEvaluationDiagnosticLogger();
 
     @Override
     public PolicyEvaluationResult evaluate(String policyId, String target,
                                            PolicyEvaluationContext context, String tenantDomain)
             throws PolicyEvaluationException {
+
+        DIAGNOSTIC_LOGGER.logEvaluationInitiated(policyId, target);
 
         Policy policy;
         try {
@@ -59,6 +63,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
         }
 
         if (policy == null) {
+            DIAGNOSTIC_LOGGER.logPolicyNotFound(policyId);
             throw new PolicyEvaluationException("Policy not found for the given policyId: " + policyId);
         }
         return evaluate(policy, target, context, tenantDomain);
@@ -72,6 +77,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Target is null for policy '" + policy.getName() + "' — treating as compliant.");
             }
+            DIAGNOSTIC_LOGGER.logNoTargetSpecified(policy.getId());
             return new PolicyEvaluationResult(Collections.emptyList());
         }
 
@@ -84,6 +90,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
                 LOG.debug("No resources for target '" + target + "' in policy '" + policy.getName()
                         + "' — treating as compliant.");
             }
+            DIAGNOSTIC_LOGGER.logNoMatchingResources(policy.getId(), target);
             return new PolicyEvaluationResult(Collections.emptyList());
         }
 
@@ -92,12 +99,17 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             PolicyResourceEvaluator evaluator = PolicyEvaluationComponentServiceHolder.getInstance()
                     .getPolicyResourceEvaluator(resource.getResourceType());
             if (evaluator == null) {
+                DIAGNOSTIC_LOGGER.logNoEvaluatorForResourceType(resource);
                 throw new PolicyEvaluationException(
                         "No evaluator for resource type: " + resource.getResourceType());
             }
-            results.add(evaluator.evaluate(resource, context, tenantDomain));
+            ResourceEvaluationResult result = evaluator.evaluate(resource, context, tenantDomain);
+            results.add(result);
+            DIAGNOSTIC_LOGGER.logResourceEvaluationResult(result);
         }
 
-        return new PolicyEvaluationResult(results);
+        PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult(results);
+        DIAGNOSTIC_LOGGER.logEvaluationCompleted(policy.getId(), target, policyEvaluationResult);
+        return policyEvaluationResult;
     }
 }

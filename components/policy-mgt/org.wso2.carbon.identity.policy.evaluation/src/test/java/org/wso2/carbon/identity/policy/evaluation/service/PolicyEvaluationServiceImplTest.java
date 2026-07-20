@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.policy.evaluation.service;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluationException;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResult;
@@ -38,6 +41,7 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +50,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +70,7 @@ public class PolicyEvaluationServiceImplTest {
     private RuleEvaluationService ruleEvaluationService;
     private PolicyEvaluationServiceImpl policyEvaluationService;
     private PolicyEvaluationContext context;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @BeforeMethod
     public void setUp() {
@@ -74,6 +82,15 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationComponentServiceHolder.getInstance().addPolicyResourceEvaluator(new RuleResourceEvaluator());
         policyEvaluationService = new PolicyEvaluationServiceImpl();
         context = PolicyEvaluationContext.create("PRE_ISSUE_ACCESS_TOKEN");
+
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        loggerUtils.close();
     }
 
     private Policy policyWithRule(String target) {
@@ -127,6 +144,8 @@ public class PolicyEvaluationServiceImplTest {
         Assert.assertEquals(result.getResults().get(0).getResourceType(), ResourceType.RULE);
         Assert.assertEquals(result.getResults().get(0).getResourceId(), RULE_ID);
         verify(ruleEvaluationService).evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN));
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), never());
     }
 
     @Test
@@ -296,5 +315,88 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationContext unknownFlow = PolicyEvaluationContext.create("NOT_A_REAL_FLOW");
 
         policyEvaluationService.evaluate(POLICY_ID, "ios", unknownFlow, TENANT_DOMAIN);
+    }
+
+    // --- Diagnostic logging tests ---
+
+    @Test
+    public void testDiagnosticLogsEnabled_SingleRuleSatisfiedLogsInitiationPerResourceAndCompletion()
+            throws PolicyManagementException, RuleEvaluationException, PolicyEvaluationException {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        Policy policy = policyWithRule("ios");
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+
+        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
+
+        // One log each for: evaluation initiated, the single resource evaluated, evaluation completed.
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), times(3));
+    }
+
+    @Test
+    public void testDiagnosticLogsEnabled_MultipleResourcesLogsPerResourceForEach() throws PolicyManagementException,
+            RuleEvaluationException, PolicyEvaluationException {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        String secondRuleId = UUID.randomUUID().toString();
+        Rule rule1 = mock(Rule.class);
+        when(rule1.getId()).thenReturn(RULE_ID);
+        Rule rule2 = mock(Rule.class);
+        when(rule2.getId()).thenReturn(secondRuleId);
+        PolicyResource ruleResource1 = new RulePolicyResource(UUID.randomUUID().toString(), "ios", RULE_ID, rule1);
+        PolicyResource ruleResource2 = new RulePolicyResource(
+                UUID.randomUUID().toString(), "ios", secondRuleId, rule2);
+        Policy policy = new Policy(UUID.randomUUID().toString(), POLICY_NAME, TENANT_DOMAIN,
+                Arrays.asList(ruleResource1, ruleResource2));
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+        when(ruleEvaluationService.evaluate(eq(secondRuleId), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(secondRuleId, true));
+
+        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
+
+        // One log each for: evaluation initiated, the two resources evaluated, evaluation completed.
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), times(4));
+    }
+
+    @Test
+    public void testDiagnosticLogsEnabled_PolicyNotFoundLogsInitiationAndNotFound() {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(null);
+
+        try {
+            policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
+            Assert.fail("Expected PolicyEvaluationException");
+        } catch (PolicyEvaluationException expected) {
+            // Expected.
+        }
+
+        // One log each for: evaluation initiated, policy not found.
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), times(2));
+    }
+
+    @Test
+    public void testDiagnosticLogsDisabled_NoLogEventsFired() throws PolicyManagementException,
+            RuleEvaluationException, PolicyEvaluationException {
+
+        Policy policy = policyWithRule("ios");
+        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
+        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
+                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
+
+        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
+
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), never());
     }
 }
