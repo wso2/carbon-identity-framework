@@ -23,11 +23,13 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
 import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -58,35 +60,44 @@ public class RuleEvaluator {
     }
 
     /**
-     * Evaluate a given rule.
+     * Evaluate a given rule and return the result, including the fields that failed evaluation.
      *
      * @param rule           Rule to evaluate.
      * @param evaluationData Evaluation data.
-     * @return Evaluation result.
+     * @return Rule evaluation result with the satisfied status and the failed fields.
      * @throws RuleEvaluationException If an error occurs while evaluating the rule.
      */
-    public boolean evaluate(Rule rule, Map<String, FieldValue> evaluationData) throws RuleEvaluationException {
+    public RuleEvaluationResult evaluate(Rule rule, Map<String, FieldValue> evaluationData)
+            throws RuleEvaluationException {
 
+        List<String> failedFields = new ArrayList<>();
         ORCombinedRule orRule = (ORCombinedRule) rule;
-        return evaluateORCombinedRule(orRule, evaluationData);
+        boolean ruleSatisfied = evaluateORCombinedRule(orRule, evaluationData, failedFields);
+        return new RuleEvaluationResult(rule.getId(), ruleSatisfied, failedFields);
     }
 
-    private boolean evaluateORCombinedRule(ORCombinedRule orRule, Map<String, FieldValue> evaluationData)
+    private boolean evaluateORCombinedRule(ORCombinedRule orRule, Map<String, FieldValue> evaluationData,
+                                           List<String> failedFields)
             throws RuleEvaluationException {
 
         for (ANDCombinedRule andRule : orRule.getRules()) {
-            if (evaluateANDCombinedRule(andRule, evaluationData)) {
+            List<String> branchFailedFields = new ArrayList<>();
+            if (evaluateANDCombinedRule(andRule, evaluationData, branchFailedFields)) {
+                failedFields.clear();
                 return true; // If any ANDCombinedRule evaluates to true, the ORCombinedRule passes
             }
+            failedFields.addAll(branchFailedFields);
         }
         return false; // If none of the ANDCombinedRules pass, the ORCombinedRule fails
     }
 
-    private boolean evaluateANDCombinedRule(ANDCombinedRule andRule, Map<String, FieldValue> evaluationData)
+    private boolean evaluateANDCombinedRule(ANDCombinedRule andRule, Map<String, FieldValue> evaluationData,
+                                            List<String> branchFailedFields)
             throws RuleEvaluationException {
 
         for (Expression expression : andRule.getExpressions()) {
             if (!evaluateExpression(expression, evaluationData)) {
+                branchFailedFields.add(expression.getField());
                 return false; // If any expression fails, the ANDCombinedRule fails
             }
         }
