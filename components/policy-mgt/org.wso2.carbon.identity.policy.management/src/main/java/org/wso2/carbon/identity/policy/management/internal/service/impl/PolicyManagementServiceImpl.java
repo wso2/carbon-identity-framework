@@ -112,10 +112,18 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * Resources, rules, and actions are replaced wholesale, but the policy name is immutable: the stored name
+     * is retained and any name on the supplied {@code policy} is ignored.
+     *
+     * @param policy Policy with the new state. ID must reference an existing policy; any supplied name is
+     *               ignored — the stored name is retained.
+     */
     @Override
     public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
-        validatePolicyFields(policy);
+        validatePolicyFieldsForUpdate(policy);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating policy with ID: %s for tenant: %s",
                     policy.getId(), tenantDomain));
@@ -126,7 +134,6 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_POLICY_NOT_FOUND, policy.getId());
         }
-        validateUniquePolicyName(policy.getName(), policy.getId(), tenantId);
 
         // Create the new resources first so the old ones remain intact until the DB commit succeeds. The old
         // resources are only deleted after the policy is durably updated, keeping the operation recoverable on
@@ -143,7 +150,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         }
 
         Policy policyWithResourceIds = new Policy(
-                policy.getId(), policy.getName(), tenantDomain, createdResources);
+                policy.getId(), existingPolicy.getName(), tenantDomain, createdResources);
 
         Policy updatedPolicy;
         try {
@@ -288,6 +295,15 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         if (policy.getName() == null || policy.getName().trim().isEmpty()) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
+        }
+        validateUniqueTargetsPerResourceType(policy);
+    }
+
+    private void validatePolicyFieldsForUpdate(Policy policy) throws PolicyManagementClientException {
+
+        if (policy == null) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, "Policy");
         }
         validateUniqueTargetsPerResourceType(policy);
     }
