@@ -56,41 +56,20 @@ import static org.wso2.carbon.identity.flow.execution.engine.Constants.ExecutorS
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.USERNAME_CLAIM_URI;
 
 /**
- * Flow executor for generic device registration.
+ * Flow executor implementing the two-phase device registration challenge-response protocol.
  *
- * Implements a two-phase challenge-response protocol:
- *   Phase 1 — first call, no registrationId in context:
- *     Generates challenge via DeviceRegistrationHandler.initiate(), stores registrationId in
- *     FlowExecutionContext.properties, returns STATUS_CLIENT_INPUT_REQUIRED so the SDK can sign
- *     the challenge natively.
- *
- *   Phase 2 — second call, registrationId present in context:
- *     Verifies the ECDSA signature. If an optional policyName is configured in executor
- *     metadata, evaluates device compliance before persisting. The verified device is always
- *     stored in context for RegistrationFlowCompletionListener to persist once the whole flow
- *     reaches STATUS_COMPLETE — regardless of flow type — so a userId is guaranteed to be
- *     available on FlowUser and a later step failing never leaves a device that needs rolling
- *     back.
+ * Phase 1 (no registrationId in context) generates a challenge via
+ * {@link DeviceRegistrationHandler#initiate}. Phase 2 (registrationId present) verifies the
+ * signature and, if a policy is configured, evaluates device compliance. The verified device is
+ * always deferred to
+ * {@link org.wso2.carbon.identity.device.registration.listener.RegistrationFlowCompletionListener},
+ * since a userId is not guaranteed to be available on FlowUser until the whole flow completes.
  */
 public class DeviceRegistrationExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(DeviceRegistrationExecutor.class);
 
     private final DeviceRegistrationDiagnosticLogger diagnosticLogger = new DeviceRegistrationDiagnosticLogger();
-
-    private static final String CTX_REGISTRATION_ID = "device.registration.id";
-    private static final String CTX_CHALLENGE = "device.registration.challenge";
-
-    private static final String PROP_REGISTRATION_ID = "registrationId";
-    private static final String PROP_CHALLENGE = "challenge";
-
-    private static final String FIELD_PUBLIC_KEY = "publicKey";
-    private static final String FIELD_SIGNATURE = "signature";
-    private static final String FIELD_DEVICE_MODEL = "deviceModel";
-    private static final String FIELD_METADATA = "metadata";
-    private static final String FIELD_DEVICE_DATA = "deviceData";
-
-    private static final String META_POLICY_NAME = "policyName";
 
     @Override
     public String getName() {
@@ -100,7 +79,7 @@ public class DeviceRegistrationExecutor implements Executor {
     @Override
     public ExecutorResponse execute(FlowExecutionContext context) throws FlowEngineException {
 
-        String registrationId = (String) context.getProperty(CTX_REGISTRATION_ID);
+        String registrationId = (String) context.getProperty(DeviceRegistrationConstants.CTX_REGISTRATION_ID);
 
         if (registrationId == null) {
             return initiateRegistration(context);
@@ -147,20 +126,22 @@ public class DeviceRegistrationExecutor implements Executor {
             }
 
             Map<String, String> additionalInfo = new HashMap<>();
-            additionalInfo.put(PROP_REGISTRATION_ID, initiation.getRegistrationId());
-            additionalInfo.put(PROP_CHALLENGE, initiation.getChallenge());
+            additionalInfo.put(DeviceRegistrationConstants.PROP_REGISTRATION_ID, initiation.getRegistrationId());
+            additionalInfo.put(DeviceRegistrationConstants.PROP_CHALLENGE, initiation.getChallenge());
 
             Map<String, Object> contextProperties = new HashMap<>();
-            contextProperties.put(CTX_REGISTRATION_ID, initiation.getRegistrationId());
-            contextProperties.put(CTX_CHALLENGE, initiation.getChallenge());
+            contextProperties.put(DeviceRegistrationConstants.CTX_REGISTRATION_ID, initiation.getRegistrationId());
+            contextProperties.put(DeviceRegistrationConstants.CTX_CHALLENGE, initiation.getChallenge());
 
             List<String> requiredFields = new ArrayList<>(
-                    Arrays.asList(FIELD_PUBLIC_KEY, FIELD_SIGNATURE));
+                    Arrays.asList(DeviceRegistrationConstants.FIELD_PUBLIC_KEY,
+                            DeviceRegistrationConstants.FIELD_SIGNATURE));
             List<String> optionalFields = new ArrayList<>(
-                    Arrays.asList(FIELD_DEVICE_MODEL, FIELD_METADATA));
+                    Arrays.asList(DeviceRegistrationConstants.FIELD_DEVICE_MODEL,
+                            DeviceRegistrationConstants.FIELD_METADATA));
             String policyName = resolvePolicyName(context);
             if (policyName != null) {
-                requiredFields.add(FIELD_DEVICE_DATA);
+                requiredFields.add(DeviceRegistrationConstants.FIELD_DEVICE_DATA);
             }
 
             ExecutorResponse response = new ExecutorResponse();
@@ -188,7 +169,7 @@ public class DeviceRegistrationExecutor implements Executor {
             String registrationId) {
 
         try {
-            String challenge = (String) context.getProperty(CTX_CHALLENGE);
+            String challenge = (String) context.getProperty(DeviceRegistrationConstants.CTX_CHALLENGE);
             if (isBlank(challenge)) {
                 diagnosticLogger.logRegistrationFailure(
                         "Registration context not found for registrationId: " + registrationId);
@@ -202,23 +183,23 @@ public class DeviceRegistrationExecutor implements Executor {
             }
 
             Map<String, String> input = context.getUserInputData();
-            String deviceModel = input.get(FIELD_DEVICE_MODEL);
+            String deviceModel = input.get(DeviceRegistrationConstants.FIELD_DEVICE_MODEL);
             String deviceName = buildDeviceName(context, deviceModel);
 
             // Step 1: Verify signature.
             VerifiedDevice verified = DeviceRegistrationHandler.verify(
                     registrationId,
                     challenge,
-                    input.get(FIELD_PUBLIC_KEY),
-                    input.get(FIELD_SIGNATURE),
+                    input.get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
+                    input.get(DeviceRegistrationConstants.FIELD_SIGNATURE),
                     deviceName,
                     deviceModel,
-                    input.get(FIELD_METADATA));
+                    input.get(DeviceRegistrationConstants.FIELD_METADATA));
 
             // Step 2: Policy compliance check (skipped when policyName not configured).
             String policyName = resolvePolicyName(context);
             if (policyName != null) {
-                if (isBlank(input.get(FIELD_DEVICE_DATA))) {
+                if (isBlank(input.get(DeviceRegistrationConstants.FIELD_DEVICE_DATA))) {
                     diagnosticLogger.logRegistrationFailure("Device data is required for policy evaluation "
                             + "but was not provided.");
                     ExecutorResponse response = new ExecutorResponse();
@@ -234,7 +215,7 @@ public class DeviceRegistrationExecutor implements Executor {
                 }
             }
 
-            context.getProperties().remove(CTX_CHALLENGE);
+            context.getProperties().remove(DeviceRegistrationConstants.CTX_CHALLENGE);
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device registration verified for registrationId: " + registrationId);
@@ -280,7 +261,7 @@ public class DeviceRegistrationExecutor implements Executor {
         if (meta == null) {
             return null;
         }
-        String policyName = meta.get(META_POLICY_NAME);
+        String policyName = meta.get(DeviceRegistrationConstants.META_POLICY_NAME);
         return isBlank(policyName) ? null : policyName;
     }
 
@@ -292,8 +273,8 @@ public class DeviceRegistrationExecutor implements Executor {
         Map<String, Object> deviceData;
         try {
             deviceData = holder.getDeviceTokenVerifier().verifyWithPublicKey(
-                    context.getUserInputData().get(FIELD_DEVICE_DATA),
-                    context.getUserInputData().get(FIELD_PUBLIC_KEY),
+                    context.getUserInputData().get(DeviceRegistrationConstants.FIELD_DEVICE_DATA),
+                    context.getUserInputData().get(DeviceRegistrationConstants.FIELD_PUBLIC_KEY),
                     registrationId,
                     context.getTenantDomain());
         } catch (PolicyManagementClientException e) {
@@ -332,7 +313,7 @@ public class DeviceRegistrationExecutor implements Executor {
                 LOG.debug("Device failed policy: " + policyName + " fields: [" + failedFields + "]");
             }
 
-            context.getProperties().remove(CTX_CHALLENGE);
+            context.getProperties().remove(DeviceRegistrationConstants.CTX_CHALLENGE);
 
             ExecutorResponse response = new ExecutorResponse();
             response.setResult(STATUS_USER_ERROR);

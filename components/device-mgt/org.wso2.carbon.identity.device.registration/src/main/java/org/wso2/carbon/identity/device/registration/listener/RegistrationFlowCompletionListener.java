@@ -36,15 +36,10 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionStep;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.STATUS_COMPLETE;
 
 /**
- * Persists a verified device registration to the database once the whole flow is COMPLETE.
- *
- * DeviceRegistrationExecutor verifies the ECDSA challenge-response (Phase 2) but never persists
- * the device itself — it always stores the verified device in the flow context instead, since a
- * userId is not guaranteed to be available on FlowUser at that point (e.g. a brand-new user is
- * provisioned only later in a REGISTRATION flow). This listener fires once for every flow type,
- * after the flow reaches STATUS_COMPLETE, reads the verified device from the flow context, binds
- * it to the now-available userId, and calls DeviceManagementService.persistDevice(). Deferring to
- * flow completion also means a later step failing never leaves a device that needs rolling back.
+ * Persists a verified device registration once the whole flow reaches STATUS_COMPLETE, for every
+ * flow type. Deferred here because a userId is not guaranteed to be available on FlowUser until
+ * the flow completes (e.g. a brand-new user is only provisioned later in a REGISTRATION flow) —
+ * this also means a later step failing never leaves a device that needs rolling back.
  */
 public class RegistrationFlowCompletionListener extends AbstractFlowExecutionListener {
 
@@ -97,7 +92,7 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
         }
 
         if (StringUtils.isBlank(userId)) {
-            LOG.error("Cannot persist device registration: userId is blank after flow completion for user: "
+            LOG.error("Cannot register device: userId is blank after flow completion for user: "
                     + LoggerUtils.getMaskedContent(context.getFlowUser().getUsername())
                     + " contextId: " + context.getContextIdentifier());
             return true;
@@ -106,16 +101,16 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
         DeviceManagementService service =
                 DeviceRegistrationComponentServiceHolder.getInstance().getDeviceManagementService();
         try {
-            service.persistDevice(pending.bindTo(userId), context.getTenantDomain());
+            service.registerDevice(pending.bindTo(userId), context.getTenantDomain());
             diagnosticLogger.logRegistrationCompleted(pending.getId());
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Device persisted for userId: " + userId
+                LOG.debug("Device registered for userId: " + userId
                         + " deviceId: " + pending.getId()
                         + " tenant: " + context.getTenantDomain());
             }
         } catch (DeviceMgtException e) {
-            diagnosticLogger.logRegistrationFailure("Failed to persist device registration: " + e.getMessage());
-            LOG.error("Failed to persist device registration for userId: " + userId
+            diagnosticLogger.logRegistrationFailure("Failed to register device: " + e.getMessage());
+            LOG.error("Failed to register device for userId: " + userId
                     + " deviceId: " + pending.getId(), e);
         }
         return true;

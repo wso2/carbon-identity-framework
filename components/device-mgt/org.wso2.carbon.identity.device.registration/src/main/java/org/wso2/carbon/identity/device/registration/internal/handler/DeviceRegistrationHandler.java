@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.device.registration.internal.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
 import org.wso2.carbon.identity.device.registration.internal.exception.DeviceRegistrationException;
 import org.wso2.carbon.identity.device.registration.internal.model.DeviceRegistrationChallenge;
 import org.wso2.carbon.identity.device.registration.internal.util.DeviceSignatureVerifier;
@@ -62,8 +63,8 @@ public class DeviceRegistrationHandler {
     public static DeviceRegistrationChallenge initiate(String username, String tenantDomain)
             throws DeviceRegistrationException {
 
-        validateRequiredField(username, "username");
-        validateRequiredField(tenantDomain, "tenantDomain");
+        validateRequiredField(username, DeviceRegistrationConstants.FIELD_USERNAME);
+        validateRequiredField(tenantDomain, DeviceRegistrationConstants.FIELD_TENANT_DOMAIN);
 
         // Generate 32 random bytes as the challenge, encoded as base64url without padding.
         byte[] challengeBytes = new byte[32];
@@ -80,11 +81,9 @@ public class DeviceRegistrationHandler {
     }
 
     /**
-     * Verifies the device registration challenge-response without persisting to the database.
-     * Used during registration flows where the user does not yet have a provisioned userId —
-     * the caller stores the returned object in the flow context and defers the DB write to
-     * {@code DeviceManagementService.persistDevice(Device, String)} once UserProvisioningExecutor
-     * has run.
+     * Verifies the device registration challenge-response. Returns a verified-but-unbound device;
+     * the caller defers persistence via {@code DeviceManagementService.registerDevice(Device, String)}
+     * until a userId is available.
      *
      * @param registrationId Opaque token returned by {@link #initiate(String, String)}.
      * @param challenge      Challenge returned by {@link #initiate(String, String)}. The caller is
@@ -108,11 +107,11 @@ public class DeviceRegistrationHandler {
             String deviceModel,
             String metadata) throws DeviceRegistrationException {
 
-        validateRequiredField(registrationId, "registrationId");
-        validateRequiredField(challenge, "challenge");
-        validateRequiredField(publicKey, "publicKey");
-        validateRequiredField(signature, "signature");
-        validateRequiredField(deviceName, "deviceName");
+        validateRequiredField(registrationId, DeviceRegistrationConstants.PROP_REGISTRATION_ID);
+        validateRequiredField(challenge, DeviceRegistrationConstants.PROP_CHALLENGE);
+        validateRequiredField(publicKey, DeviceRegistrationConstants.FIELD_PUBLIC_KEY);
+        validateRequiredField(signature, DeviceRegistrationConstants.FIELD_SIGNATURE);
+        validateRequiredField(deviceName, DeviceRegistrationConstants.FIELD_DEVICE_NAME);
 
         DeviceSignatureVerifier.verify(registrationId, challenge, publicKey, signature);
 

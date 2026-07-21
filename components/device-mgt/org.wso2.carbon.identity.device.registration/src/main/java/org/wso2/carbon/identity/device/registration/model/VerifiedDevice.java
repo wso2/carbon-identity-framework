@@ -24,15 +24,11 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
- * A device whose challenge-response signature has been verified, but which is not yet bound to a
- * user. It mirrors an IDN_DEVICE row; the user binding lives separately in IDN_USER_DEVICE.
+ * A device whose signature has been verified but is not yet bound to a user — it mirrors an
+ * IDN_DEVICE row without the IDN_USER_DEVICE binding. {@link #bindTo(String)} is the only way to
+ * obtain a persistable {@link Device}, so a device can never be persisted without an owner.
  *
- * During a registration flow the user is not provisioned when the signature is verified, so no
- * userId exists yet. Such a device is carried in the flow context until the flow completes.
- * {@link #bindTo(String)} is the only way to turn it into a persistable {@link Device}, which
- * makes it impossible to persist a device that has no owner.
- *
- * Instances are held in the serializable FlowExecutionContext, hence Serializable.
+ * Serializable because instances are held in the serializable FlowExecutionContext.
  */
 public class VerifiedDevice implements Serializable {
 

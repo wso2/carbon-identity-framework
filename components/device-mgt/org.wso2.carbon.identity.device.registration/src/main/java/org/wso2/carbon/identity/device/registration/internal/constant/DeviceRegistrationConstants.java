@@ -33,6 +33,23 @@ public class DeviceRegistrationConstants {
 
     public static final String CLAIM_USER_ID = "http://wso2.org/claims/userid";
 
+    public static final String CTX_REGISTRATION_ID = "device.registration.id";
+    public static final String CTX_CHALLENGE = "device.registration.challenge";
+
+    public static final String PROP_REGISTRATION_ID = "registrationId";
+    public static final String PROP_CHALLENGE = "challenge";
+
+    public static final String FIELD_PUBLIC_KEY = "publicKey";
+    public static final String FIELD_SIGNATURE = "signature";
+    public static final String FIELD_DEVICE_MODEL = "deviceModel";
+    public static final String FIELD_METADATA = "metadata";
+    public static final String FIELD_DEVICE_DATA = "deviceData";
+    public static final String FIELD_USERNAME = "username";
+    public static final String FIELD_TENANT_DOMAIN = "tenantDomain";
+    public static final String FIELD_DEVICE_NAME = "deviceName";
+
+    public static final String META_POLICY_NAME = "policyName";
+
     private DeviceRegistrationConstants() {
 
     }

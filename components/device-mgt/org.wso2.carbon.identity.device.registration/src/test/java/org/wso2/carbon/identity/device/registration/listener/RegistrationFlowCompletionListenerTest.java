@@ -161,7 +161,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         assertTrue(result);
         verify(deviceManagementService, times(1))
-                .persistDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
+                .registerDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -174,7 +174,7 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(completeStep(), context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
@@ -194,7 +194,7 @@ public class RegistrationFlowCompletionListenerTest {
 
         assertTrue(result);
         verify(deviceManagementService, times(1))
-                .persistDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
+                .registerDevice(argThatUserIdMatches(PROVISIONED_USER_ID), eq(TENANT_DOMAIN));
     }
 
     @Test
@@ -210,7 +210,7 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(incompleteStep, context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
@@ -227,7 +227,7 @@ public class RegistrationFlowCompletionListenerTest {
         boolean result = listener.doPostExecute(completeStep(), context);
 
         assertTrue(result);
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
@@ -238,7 +238,7 @@ public class RegistrationFlowCompletionListenerTest {
         context.setProperty(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION, pendingDevice());
 
         doThrow(new DeviceMgtServerException("Persist failed.", "Simulated failure.", "TEST-001"))
-                .when(deviceManagementService).persistDevice(any(), any());
+                .when(deviceManagementService).registerDevice(any(), any());
 
         boolean result = listener.doPostExecute(completeStep(), context);
 

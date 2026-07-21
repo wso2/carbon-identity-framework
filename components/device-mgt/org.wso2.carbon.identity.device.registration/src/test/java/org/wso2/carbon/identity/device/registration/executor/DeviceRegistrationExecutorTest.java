@@ -312,7 +312,7 @@ public class DeviceRegistrationExecutorTest {
         assertEquals(response.getResult(), STATUS_COMPLETE);
         assertEquals(response.getContextProperties()
                 .get(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION), verified);
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
@@ -336,7 +336,7 @@ public class DeviceRegistrationExecutorTest {
         assertEquals(response.getResult(), STATUS_COMPLETE);
         assertEquals(response.getContextProperties()
                 .get(DeviceRegistrationConstants.CTX_DEVICE_REGISTRATION), verified);
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
@@ -359,7 +359,7 @@ public class DeviceRegistrationExecutorTest {
 
         assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
@@ -476,7 +476,7 @@ public class DeviceRegistrationExecutorTest {
 
         assertEquals(response.getResult(), STATUS_USER_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_DEVICE_POLICY_NOT_COMPLIANT.getCode());
-        verify(deviceManagementService, never()).persistDevice(any(), any());
+        verify(deviceManagementService, never()).registerDevice(any(), any());
     }
 
     @Test
