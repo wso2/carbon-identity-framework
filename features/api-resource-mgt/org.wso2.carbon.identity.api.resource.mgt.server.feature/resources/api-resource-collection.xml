@@ -772,6 +772,9 @@
                 <Scope name="console:apiResources"/>
                 <Scope name="console:apiResources_view"/>
                 <Scope name="console:apiResources_edit"/>
+                <Scope name="console:apiResources_create"/>
+                <Scope name="console:apiResources_update"/>
+                <Scope name="console:apiResources_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_api_resource_update"/>
@@ -793,6 +796,9 @@
                 <Scope name="console:applicationAuthenticationScript"/>
                 <Scope name="console:applicationAuthenticationScript_view"/>
                 <Scope name="console:applicationAuthenticationScript_edit"/>
+                <Scope name="console:applicationAuthenticationScript_create"/>
+                <Scope name="console:applicationAuthenticationScript_update"/>
+                <Scope name="console:applicationAuthenticationScript_delete"/>
                 <Scope name="console:applications"/>
             </Feature>
             <Update>
@@ -810,6 +816,9 @@
                 <Scope name="console:applications"/>
                 <Scope name="console:applications_view"/>
                 <Scope name="console:applications_edit"/>
+                <Scope name="console:applications_create"/>
+                <Scope name="console:applications_update"/>
+                <Scope name="console:applications_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -851,6 +860,9 @@
                 <Scope name="console:application_client_secrets"/>
                 <Scope name="console:application_client_secrets_view"/>
                 <Scope name="console:application_client_secrets_edit"/>
+                <Scope name="console:application_client_secrets_create"/>
+                <Scope name="console:application_client_secrets_update"/>
+                <Scope name="console:application_client_secrets_delete"/>
                 <Scope name="console:applications"/>
             </Feature>
             <Update>
@@ -871,6 +883,9 @@
                 <Scope name="console:application_internal_api_management"/>
                 <Scope name="console:application_internal_api_management_view"/>
                 <Scope name="console:application_internal_api_management_edit"/>
+                <Scope name="console:application_internal_api_management_create"/>
+                <Scope name="console:application_internal_api_management_update"/>
+                <Scope name="console:application_internal_api_management_delete"/>
                 <Scope name="console:applications"/>
             </Feature>
             <Update>
@@ -888,6 +903,9 @@
                 <Scope name="console:branding"/>
                 <Scope name="console:branding_view"/>
                 <Scope name="console:branding_edit"/>
+                <Scope name="console:branding_create"/>
+                <Scope name="console:branding_update"/>
+                <Scope name="console:branding_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_branding_preference_update"/>
@@ -909,6 +927,9 @@
                 <Scope name="console:approvalWorkflows"/>
                 <Scope name="console:approvalWorkflows_view"/>
                 <Scope name="console:approvalWorkflows_edit"/>
+                <Scope name="console:approvalWorkflows_create"/>
+                <Scope name="console:approvalWorkflows_update"/>
+                <Scope name="console:approvalWorkflows_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_workflow_update"/>
@@ -936,6 +957,9 @@
                 <Scope name="console:workflowInstances"/>
                 <Scope name="console:workflowInstances_view"/>
                 <Scope name="console:workflowInstances_edit"/>
+                <Scope name="console:workflowInstances_create"/>
+                <Scope name="console:workflowInstances_update"/>
+                <Scope name="console:workflowInstances_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_workflow_instance_update"/>
@@ -954,6 +978,9 @@
                 <Scope name="console:attributes"/>
                 <Scope name="console:attributes_view"/>
                 <Scope name="console:attributes_edit"/>
+                <Scope name="console:attributes_create"/>
+                <Scope name="console:attributes_update"/>
+                <Scope name="console:attributes_delete"/>
             </Feature>
             <Create>
                 <Scope name="internal_claim_meta_create"/>
@@ -978,6 +1005,9 @@
                 <Scope name="console:certificates"/>
                 <Scope name="console:certificates_view"/>
                 <Scope name="console:certificates_edit"/>
+                <Scope name="console:certificates_create"/>
+                <Scope name="console:certificates_update"/>
+                <Scope name="console:certificates_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_keystore_update"/>
@@ -999,6 +1029,9 @@
                 <Scope name="console:settings"/>
                 <Scope name="console:settings_view"/>
                 <Scope name="console:settings_edit"/>
+                <Scope name="console:settings_create"/>
+                <Scope name="console:settings_update"/>
+                <Scope name="console:settings_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -1031,6 +1064,9 @@
                 <Scope name="console:emailTemplates"/>
                 <Scope name="console:emailTemplates_view"/>
                 <Scope name="console:emailTemplates_edit"/>
+                <Scope name="console:emailTemplates_create"/>
+                <Scope name="console:emailTemplates_update"/>
+                <Scope name="console:emailTemplates_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_email_mgt_update"/>
@@ -1052,6 +1088,9 @@
                 <Scope name="console:smsTemplates"/>
                 <Scope name="console:smsTemplates_view"/>
                 <Scope name="console:smsTemplates_edit"/>
+                <Scope name="console:smsTemplates_create"/>
+                <Scope name="console:smsTemplates_update"/>
+                <Scope name="console:smsTemplates_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_template_mgt_update"/>
@@ -1073,6 +1112,9 @@
                 <Scope name="console:groups"/>
                 <Scope name="console:groups_view"/>
                 <Scope name="console:groups_edit"/>
+                <Scope name="console:groups_create"/>
+                <Scope name="console:groups_update"/>
+                <Scope name="console:groups_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_group_mgt_update"/>
@@ -1098,6 +1140,9 @@
                 <Scope name="console:home"/>
                 <Scope name="console:home_view"/>
                 <Scope name="console:home_edit"/>
+                <Scope name="console:home_create"/>
+                <Scope name="console:home_update"/>
+                <Scope name="console:home_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -1120,6 +1165,9 @@
                 <Scope name="console:idps"/>
                 <Scope name="console:idps_view"/>
                 <Scope name="console:idps_edit"/>
+                <Scope name="console:idps_create"/>
+                <Scope name="console:idps_update"/>
+                <Scope name="console:idps_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_idp_update"/>
@@ -1150,6 +1198,9 @@
                 <Scope name="console:idvps"/>
                 <Scope name="console:idvps_view"/>
                 <Scope name="console:idvps_edit"/>
+                <Scope name="console:idvps_create"/>
+                <Scope name="console:idvps_update"/>
+                <Scope name="console:idvps_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_idvp_update"/>
@@ -1171,6 +1222,9 @@
                 <Scope name="console:loginAndRegistration"/>
                 <Scope name="console:loginAndRegistration_view"/>
                 <Scope name="console:loginAndRegistration_edit"/>
+                <Scope name="console:loginAndRegistration_create"/>
+                <Scope name="console:loginAndRegistration_update"/>
+                <Scope name="console:loginAndRegistration_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_governance_update"/>
@@ -1192,6 +1246,9 @@
                 <Scope name="console:org:loginAndRegistration"/>
                 <Scope name="console:org:loginAndRegistration_view"/>
                 <Scope name="console:org:loginAndRegistration_edit"/>
+                <Scope name="console:org:loginAndRegistration_create"/>
+                <Scope name="console:org:loginAndRegistration_update"/>
+                <Scope name="console:org:loginAndRegistration_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_governance_update"/>
@@ -1213,6 +1270,9 @@
                 <Scope name="console:notificationChannels"/>
                 <Scope name="console:notificationChannels_view"/>
                 <Scope name="console:notificationChannels_edit"/>
+                <Scope name="console:notificationChannels_create"/>
+                <Scope name="console:notificationChannels_update"/>
+                <Scope name="console:notificationChannels_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_notification_senders_update"/>
@@ -1234,6 +1294,9 @@
                 <Scope name="console:scopes:oidc"/>
                 <Scope name="console:scopes:oidc_view"/>
                 <Scope name="console:scopes:oidc_edit"/>
+                <Scope name="console:scopes:oidc_create"/>
+                <Scope name="console:scopes:oidc_update"/>
+                <Scope name="console:scopes:oidc_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_oidc_scope_mgt_update"/>
@@ -1267,6 +1330,9 @@
                 <Scope name="console:organizations"/>
                 <Scope name="console:organizations_view"/>
                 <Scope name="console:organizations_edit"/>
+                <Scope name="console:organizations_create"/>
+                <Scope name="console:organizations_update"/>
+                <Scope name="console:organizations_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_organization_update"/>
@@ -1290,6 +1356,9 @@
                 <Scope name="console:organizationDiscovery"/>
                 <Scope name="console:organizationDiscovery_view"/>
                 <Scope name="console:organizationDiscovery_edit"/>
+                <Scope name="console:organizationDiscovery_create"/>
+                <Scope name="console:organizationDiscovery_update"/>
+                <Scope name="console:organizationDiscovery_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_organization_discovery_update"/>
@@ -1314,6 +1383,9 @@
                 <Scope name="console:residentOutboundProvisioning"/>
                 <Scope name="console:residentOutboundProvisioning_view"/>
                 <Scope name="console:residentOutboundProvisioning_edit"/>
+                <Scope name="console:residentOutboundProvisioning_create"/>
+                <Scope name="console:residentOutboundProvisioning_update"/>
+                <Scope name="console:residentOutboundProvisioning_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -1336,6 +1408,9 @@
                 <Scope name="console:roles"/>
                 <Scope name="console:roles_view"/>
                 <Scope name="console:roles_edit"/>
+                <Scope name="console:roles_create"/>
+                <Scope name="console:roles_update"/>
+                <Scope name="console:roles_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_role_mgt_update"/>
@@ -1364,6 +1439,9 @@
                 <Scope name="console:roles"/>
                 <Scope name="console:roles_view"/>
                 <Scope name="console:roles_edit"/>
+                <Scope name="console:roles_create"/>
+                <Scope name="console:roles_update"/>
+                <Scope name="console:roles_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_role_mgt_update"/>
@@ -1390,6 +1468,9 @@
                 <Scope name="console:userSharing"/>
                 <Scope name="console:userSharing_view"/>
                 <Scope name="console:userSharing_edit"/>
+                <Scope name="console:userSharing_create"/>
+                <Scope name="console:userSharing_update"/>
+                <Scope name="console:userSharing_delete"/>
                 <Scope name="console:users"/>
             </Feature>
             <Create>
@@ -1421,6 +1502,9 @@
                 <Scope name="console:users"/>
                 <Scope name="console:users_view"/>
                 <Scope name="console:users_edit"/>
+                <Scope name="console:users_create"/>
+                <Scope name="console:users_update"/>
+                <Scope name="console:users_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_user_mgt_update"/>
@@ -1464,6 +1548,9 @@
                 <Scope name="console:agents"/>
                 <Scope name="console:agents_view"/>
                 <Scope name="console:agents_edit"/>
+                <Scope name="console:agents_create"/>
+                <Scope name="console:agents_update"/>
+                <Scope name="console:agents_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_agent_mgt_update"/>
@@ -1495,6 +1582,9 @@
                 <Scope name="console:userstores"/>
                 <Scope name="console:userstores_view"/>
                 <Scope name="console:userstores_edit"/>
+                <Scope name="console:userstores_create"/>
+                <Scope name="console:userstores_update"/>
+                <Scope name="console:userstores_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_userstore_update"/>
@@ -1516,6 +1606,9 @@
                 <Scope name="console:actions"/>
                 <Scope name="console:actions_view"/>
                 <Scope name="console:actions_edit"/>
+                <Scope name="console:actions_create"/>
+                <Scope name="console:actions_update"/>
+                <Scope name="console:actions_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_action_mgt_update"/>
@@ -1540,6 +1633,9 @@
                 <Scope name="console:webhooks"/>
                 <Scope name="console:webhooks_view"/>
                 <Scope name="console:webhooks_edit"/>
+                <Scope name="console:webhooks_create"/>
+                <Scope name="console:webhooks_update"/>
+                <Scope name="console:webhooks_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_webhook_mgt_update"/>
@@ -1562,6 +1658,9 @@
                 <Scope name="console:tenants"/>
                 <Scope name="console:tenants_view"/>
                 <Scope name="console:tenants_edit"/>
+                <Scope name="console:tenants_create"/>
+                <Scope name="console:tenants_update"/>
+                <Scope name="console:tenants_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_modify_tenants"/>
@@ -1583,6 +1682,9 @@
                 <Scope name="console:flows"/>
                 <Scope name="console:flows_view"/>
                 <Scope name="console:flows_edit"/>
+                <Scope name="console:flows_create"/>
+                <Scope name="console:flows_update"/>
+                <Scope name="console:flows_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_flow_update"/>
@@ -1605,6 +1707,9 @@
                 <Scope name="console:flowExtensions"/>
                 <Scope name="console:flowExtensions_view"/>
                 <Scope name="console:flowExtensions_edit"/>
+                <Scope name="console:flowExtensions_create"/>
+                <Scope name="console:flowExtensions_update"/>
+                <Scope name="console:flowExtensions_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_flow_extension_update"/>
@@ -1627,6 +1732,9 @@
                 <Scope name="console:consents"/>
                 <Scope name="console:consents_view"/>
                 <Scope name="console:consents_edit"/>
+                <Scope name="console:consents_create"/>
+                <Scope name="console:consents_update"/>
+                <Scope name="console:consents_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_consent_mgt_purpose_update"/>
@@ -1657,6 +1765,9 @@
                 <Scope name="console:org:consents"/>
                 <Scope name="console:org:consents_view"/>
                 <Scope name="console:org:consents_edit"/>
+                <Scope name="console:org:consents_create"/>
+                <Scope name="console:org:consents_update"/>
+                <Scope name="console:org:consents_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_consent_mgt_purpose_update"/>
@@ -1687,6 +1798,9 @@
                 <Scope name="console:user_credentials"/>
                 <Scope name="console:user_credentials_view"/>
                 <Scope name="console:user_credentials_edit"/>
+                <Scope name="console:user_credentials_create"/>
+                <Scope name="console:user_credentials_update"/>
+                <Scope name="console:user_credentials_delete"/>
             </Feature>
             <Update>
             </Update>
@@ -1708,6 +1822,9 @@
                 <Scope name="console:org:settings"/>
                 <Scope name="console:org:settings_view"/>
                 <Scope name="console:org:settings_edit"/>
+                <Scope name="console:org:settings_create"/>
+                <Scope name="console:org:settings_update"/>
+                <Scope name="console:org:settings_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -1739,6 +1856,9 @@
                 <Scope name="console:org:idps"/>
                 <Scope name="console:org:idps_view"/>
                 <Scope name="console:org:idps_edit"/>
+                <Scope name="console:org:idps_create"/>
+                <Scope name="console:org:idps_update"/>
+                <Scope name="console:org:idps_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_idp_update"/>
@@ -1768,6 +1888,9 @@
                 <Scope name="console:org:userSharing"/>
                 <Scope name="console:org:userSharing_view"/>
                 <Scope name="console:org:userSharing_edit"/>
+                <Scope name="console:org:userSharing_create"/>
+                <Scope name="console:org:userSharing_update"/>
+                <Scope name="console:org:userSharing_delete"/>
                 <Scope name="console:org:users"/>
             </Feature>
             <Create>
@@ -1799,6 +1922,9 @@
                 <Scope name="console:org:users"/>
                 <Scope name="console:org:users_view"/>
                 <Scope name="console:org:users_edit"/>
+                <Scope name="console:org:users_create"/>
+                <Scope name="console:org:users_update"/>
+                <Scope name="console:org:users_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_user_mgt_update"/>
@@ -1834,6 +1960,9 @@
                 <Scope name="console:org:organizations"/>
                 <Scope name="console:org:organizations_view"/>
                 <Scope name="console:org:organizations_edit"/>
+                <Scope name="console:org:organizations_create"/>
+                <Scope name="console:org:organizations_update"/>
+                <Scope name="console:org:organizations_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_organization_update"/>
@@ -1858,6 +1987,9 @@
                 <Scope name="console:org:groups"/>
                 <Scope name="console:org:groups_view"/>
                 <Scope name="console:org:groups_edit"/>
+                <Scope name="console:org:groups_create"/>
+                <Scope name="console:org:groups_update"/>
+                <Scope name="console:org:groups_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_group_mgt_update"/>
@@ -1883,6 +2015,9 @@
                 <Scope name="console:org:roles"/>
                 <Scope name="console:org:roles_view"/>
                 <Scope name="console:org:roles_edit"/>
+                <Scope name="console:org:roles_create"/>
+                <Scope name="console:org:roles_update"/>
+                <Scope name="console:org:roles_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
@@ -1910,6 +2045,9 @@
                 <Scope name="console:org:roles"/>
                 <Scope name="console:org:roles_view"/>
                 <Scope name="console:org:roles_edit"/>
+                <Scope name="console:org:roles_create"/>
+                <Scope name="console:org:roles_update"/>
+                <Scope name="console:org:roles_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
@@ -1934,6 +2072,9 @@
                 <Scope name="console:org:applicationAuthenticationScript"/>
                 <Scope name="console:org:applicationAuthenticationScript_view"/>
                 <Scope name="console:org:applicationAuthenticationScript_edit"/>
+                <Scope name="console:org:applicationAuthenticationScript_create"/>
+                <Scope name="console:org:applicationAuthenticationScript_update"/>
+                <Scope name="console:org:applicationAuthenticationScript_delete"/>
                 <Scope name="console:org:applications"/>
             </Feature>
             <Update>
@@ -1951,6 +2092,9 @@
                 <Scope name="console:org:applications"/>
                 <Scope name="console:org:applications_view"/>
                 <Scope name="console:org:applications_edit"/>
+                <Scope name="console:org:applications_create"/>
+                <Scope name="console:org:applications_update"/>
+                <Scope name="console:org:applications_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -1983,6 +2127,9 @@
                 <Scope name="console:org:application_internal_api_management"/>
                 <Scope name="console:org:application_internal_api_management_view"/>
                 <Scope name="console:org:application_internal_api_management_edit"/>
+                <Scope name="console:org:application_internal_api_management_create"/>
+                <Scope name="console:org:application_internal_api_management_update"/>
+                <Scope name="console:org:application_internal_api_management_delete"/>
                 <Scope name="console:org:applications"/>
             </Feature>
             <Update>
@@ -2000,6 +2147,9 @@
                 <Scope name="console:org:application_client_secrets"/>
                 <Scope name="console:org:application_client_secrets_view"/>
                 <Scope name="console:org:application_client_secrets_edit"/>
+                <Scope name="console:org:application_client_secrets_create"/>
+                <Scope name="console:org:application_client_secrets_update"/>
+                <Scope name="console:org:application_client_secrets_delete"/>
                 <Scope name="console:org:applications"/>
             </Feature>
             <Update>
@@ -2020,6 +2170,9 @@
                 <Scope name="console:org:branding"/>
                 <Scope name="console:org:branding_view"/>
                 <Scope name="console:org:branding_edit"/>
+                <Scope name="console:org:branding_create"/>
+                <Scope name="console:org:branding_update"/>
+                <Scope name="console:org:branding_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_branding_preference_update"/>
@@ -2041,6 +2194,9 @@
                 <Scope name="console:org:approvalWorkflows"/>
                 <Scope name="console:org:approvalWorkflows_view"/>
                 <Scope name="console:org:approvalWorkflows_edit"/>
+                <Scope name="console:org:approvalWorkflows_create"/>
+                <Scope name="console:org:approvalWorkflows_update"/>
+                <Scope name="console:org:approvalWorkflows_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_workflow_update"/>
@@ -2068,6 +2224,9 @@
                 <Scope name="console:org:workflowInstances"/>
                 <Scope name="console:org:workflowInstances_view"/>
                 <Scope name="console:org:workflowInstances_edit"/>
+                <Scope name="console:org:workflowInstances_create"/>
+                <Scope name="console:org:workflowInstances_update"/>
+                <Scope name="console:org:workflowInstances_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_workflow_instance_update"/>
@@ -2086,6 +2245,9 @@
                 <Scope name="console:org:emailTemplates"/>
                 <Scope name="console:org:emailTemplates_view"/>
                 <Scope name="console:org:emailTemplates_edit"/>
+                <Scope name="console:org:emailTemplates_create"/>
+                <Scope name="console:org:emailTemplates_update"/>
+                <Scope name="console:org:emailTemplates_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_email_mgt_update"/>
@@ -2107,6 +2269,9 @@
                 <Scope name="console:org:smsTemplates"/>
                 <Scope name="console:org:smsTemplates_view"/>
                 <Scope name="console:org:smsTemplates_edit"/>
+                <Scope name="console:org:smsTemplates_create"/>
+                <Scope name="console:org:smsTemplates_update"/>
+                <Scope name="console:org:smsTemplates_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_template_mgt_update"/>
@@ -2128,6 +2293,9 @@
                 <Scope name="console:org:home"/>
                 <Scope name="console:org:home_view"/>
                 <Scope name="console:org:home_edit"/>
+                <Scope name="console:org:home_create"/>
+                <Scope name="console:org:home_update"/>
+                <Scope name="console:org:home_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -2150,6 +2318,9 @@
                 <Scope name="console:org:apiResources"/>
                 <Scope name="console:org:apiResources_view"/>
                 <Scope name="console:org:apiResources_edit"/>
+                <Scope name="console:org:apiResources_create"/>
+                <Scope name="console:org:apiResources_update"/>
+                <Scope name="console:org:apiResources_delete"/>
             </Feature>
             <Read>
                 <Scope name="internal_org_api_resource_view"/>
@@ -2162,6 +2333,9 @@
                 <Scope name="console:org:userstores"/>
                 <Scope name="console:org:userstores_view"/>
                 <Scope name="console:org:userstores_edit"/>
+                <Scope name="console:org:userstores_create"/>
+                <Scope name="console:org:userstores_update"/>
+                <Scope name="console:org:userstores_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_userstore_update"/>
@@ -2183,6 +2357,9 @@
                 <Scope name="console:org:attributes"/>
                 <Scope name="console:org:attributes_view"/>
                 <Scope name="console:org:attributes_edit"/>
+                <Scope name="console:org:attributes_create"/>
+                <Scope name="console:org:attributes_update"/>
+                <Scope name="console:org:attributes_delete"/>
             </Feature>
             <Create>
             </Create>
@@ -2203,6 +2380,9 @@
                 <Scope name="console:org:actions"/>
                 <Scope name="console:org:actions_view"/>
                 <Scope name="console:org:actions_edit"/>
+                <Scope name="console:org:actions_create"/>
+                <Scope name="console:org:actions_update"/>
+                <Scope name="console:org:actions_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_action_mgt_update"/>
@@ -2227,6 +2407,9 @@
                 <Scope name="console:org:flows"/>
                 <Scope name="console:org:flows_view"/>
                 <Scope name="console:org:flows_edit"/>
+                <Scope name="console:org:flows_create"/>
+                <Scope name="console:org:flows_update"/>
+                <Scope name="console:org:flows_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_flow_update"/>
@@ -2250,6 +2433,9 @@
                 <Scope name="console:org:flowExtensions"/>
                 <Scope name="console:org:flowExtensions_view"/>
                 <Scope name="console:org:flowExtensions_edit"/>
+                <Scope name="console:org:flowExtensions_create"/>
+                <Scope name="console:org:flowExtensions_update"/>
+                <Scope name="console:org:flowExtensions_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_flow_extension_update"/>
@@ -2272,6 +2458,9 @@
                 <Scope name="console:org:user_credentials"/>
                 <Scope name="console:org:user_credentials_view"/>
                 <Scope name="console:org:user_credentials_edit"/>
+                <Scope name="console:org:user_credentials_create"/>
+                <Scope name="console:org:user_credentials_update"/>
+                <Scope name="console:org:user_credentials_delete"/>
             </Feature>
             <Update>
             </Update>
@@ -2292,6 +2481,9 @@
                 <Scope name="console:org:residentOutboundProvisioning"/>
                 <Scope name="console:org:residentOutboundProvisioning_view"/>
                 <Scope name="console:org:residentOutboundProvisioning_edit"/>
+                <Scope name="console:org:residentOutboundProvisioning_create"/>
+                <Scope name="console:org:residentOutboundProvisioning_update"/>
+                <Scope name="console:org:residentOutboundProvisioning_delete"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>

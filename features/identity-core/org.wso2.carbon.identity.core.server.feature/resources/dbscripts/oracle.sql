@@ -1853,6 +1853,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('12c78d11-65cd-4b6e-b482-98538ecd7a5c', 'FAPI_CONFIGURATION', 'A resource type to keep the FAPI configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('4fed2813-cfa8-40b1-83e6-4ab85d7fcb16', 'DEVICE_MANAGEMENT', 'A resource type to keep tenant level configurations for user device management.')
 SELECT 1 FROM dual
 /
 
@@ -2696,7 +2698,7 @@ CREATE TABLE IDN_PUSH_DEVICE_STORE (
     PROVIDER VARCHAR(45) NOT NULL,
     TENANT_ID INTEGER NOT NULL,
     PRIMARY KEY (ID),
-    UNIQUE (USER_ID)
+    UNIQUE (USER_ID, DEVICE_TOKEN, TENANT_ID)
 )
 /
 
