@@ -275,8 +275,10 @@ public class FrameworkServiceComponent {
                 jitProvisioningIDPMgtListener, null);
         bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
 
-        // This is done to load SessionDataStore and PushedAuthDataStore classes and start the cleanup tasks.
-        SessionDataStore.getInstance();
+        // This is done to load the PushedAuthDataStore class and start its cleanup tasks.
+        // SessionDataStore is resolved lazily on first use: eagerly calling getInstance() here would
+        // fail activation if a non-JDBC store is configured but its OSGi service has not bound yet.
+        // The relational store's own cleanup tasks start when it is first resolved (JDBC active).
         PushedAuthDataStore.getInstance();
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
@@ -550,6 +552,32 @@ public class FrameworkServiceComponent {
             log.debug("Removed session serializer.");
         }
 
+    }
+
+    @Reference(
+            name = "session.data.store",
+            service = SessionDataStore.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSessionDataStore"
+    )
+    protected void setSessionDataStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().addSessionDataStore(sessionDataStore);
+        // A newly-registered store may now be the configured one; drop the cached selection.
+        SessionDataStore.invalidateSelectedStore();
+        if (log.isDebugEnabled()) {
+            log.debug("Session data store registered: " + sessionDataStore.getStoreName());
+        }
+    }
+
+    protected void unsetSessionDataStore(SessionDataStore sessionDataStore) {
+
+        FrameworkServiceDataHolder.getInstance().removeSessionDataStore(sessionDataStore);
+        SessionDataStore.invalidateSelectedStore();
+        if (log.isDebugEnabled()) {
+            log.debug("Session data store unregistered: " + sessionDataStore.getStoreName());
+        }
     }
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {

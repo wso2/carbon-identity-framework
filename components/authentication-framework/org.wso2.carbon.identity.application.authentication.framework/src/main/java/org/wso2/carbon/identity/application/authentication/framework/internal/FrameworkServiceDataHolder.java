@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Se
 import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -70,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Authentication framework data holder.
@@ -116,6 +118,11 @@ public class FrameworkServiceDataHolder {
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
+
+    // Registry of session data stores keyed by getStoreName(). Populated by the OSGi
+    // MULTIPLE/DYNAMIC reference for SessionDataStore plus the self-registered JDBC default.
+    // ConcurrentHashMap because bind/unbind can race SessionDataStore.getInstance()'s resolution.
+    private final Map<String, SessionDataStore> sessionDataStores = new ConcurrentHashMap<>();
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
@@ -734,6 +741,58 @@ public class FrameworkServiceDataHolder {
 
     public void setSessionSerializer(SessionSerializer sessionSerializer) {
         this.sessionSerializer = sessionSerializer;
+    }
+
+    /**
+     * Register a session data store, keyed by {@link SessionDataStore#getStoreName()}.
+     *
+     * @param store the store to register.
+     */
+    public void addSessionDataStore(SessionDataStore store) {
+
+        if (store != null && store.getStoreName() != null) {
+            sessionDataStores.put(normalizeStoreName(store.getStoreName()), store);
+        }
+    }
+
+    /**
+     * Deregister a previously registered session data store.
+     *
+     * @param store the store to remove.
+     */
+    public void removeSessionDataStore(SessionDataStore store) {
+
+        if (store != null && store.getStoreName() != null) {
+            // Remove only if the mapping still points to this exact service instance, so unbinding
+            // an older service does not evict a newer registration under the same name.
+            sessionDataStores.remove(normalizeStoreName(store.getStoreName()), store);
+        }
+    }
+
+    /**
+     * @param storeName the store name (e.g. "JDBC", "Redis"); matched case-insensitively.
+     * @return the registered store for the given name, or {@code null} if none.
+     */
+    public SessionDataStore getSessionDataStore(String storeName) {
+
+        return storeName == null ? null : sessionDataStores.get(normalizeStoreName(storeName));
+    }
+
+    /**
+     * Normalises a store name so registration, removal and lookup share the same case-insensitive
+     * semantics as the configured store selection.
+     */
+    private static String normalizeStoreName(String storeName) {
+
+        return storeName == null ? null : storeName.trim().toLowerCase(java.util.Locale.ENGLISH);
+    }
+
+    /**
+     * @return the live registry of session data stores, keyed by store name.
+     */
+    public Map<String, SessionDataStore> getSessionDataStores() {
+
+        return sessionDataStores;
     }
 
     /**
