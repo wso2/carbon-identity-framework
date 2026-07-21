@@ -22,7 +22,9 @@
     <test name="api-resource-collection-mgt-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManagerTest"/>
+            <class name="org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManagementUtilTest"/>
             <class name="org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionMgtConfigBuilderTest"/>
+            <class name="org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionTest"/>
         </classes>
     </test>
 </suite>

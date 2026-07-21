@@ -275,9 +275,15 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                     // Claim mappings which do not come with the IDP claim mapping set but must not delete.
                     Set<String> indelibleClaimSet = getIndelibleClaims();
+                    boolean isGroupAndRoleSeparationEnabled = IdentityUtil
+                            .isGroupsVsRolesSeparationImprovementsEnabled();
+                    boolean showLegacyRoleClaim = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
                     toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
-                            || indelibleClaimSet.contains(claim.getClaimUri()) ||
-                            userClaims.containsKey(claim.getClaimUri()));
+                            || indelibleClaimSet.contains(claim.getClaimUri())
+                            || (isGroupAndRoleSeparationEnabled
+                                    && !showLegacyRoleClaim
+                                    && FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(claim.getClaimUri()))
+                            || userClaims.containsKey(claim.getClaimUri()));
 
                     // Do not delete the claims updated locally if the attributeSyncMethod is set to preserve
                     // the local claims.

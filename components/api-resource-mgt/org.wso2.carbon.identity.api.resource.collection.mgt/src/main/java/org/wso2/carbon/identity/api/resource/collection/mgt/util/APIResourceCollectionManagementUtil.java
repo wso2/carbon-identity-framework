@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtClientException;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtServerException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
  * Utility class for API Resource Collection Management.
@@ -62,5 +63,16 @@ public class APIResourceCollectionManagementUtil {
             description = String.format(description, data);
         }
         return new APIResourceCollectionMgtServerException(error.getMessage(), description, error.getCode(), e);
+    }
+
+    /**
+     * Check whether the granular console permission model (create/update/delete feature scopes) is enabled. Controlled
+     *
+     * @return True if granular console permissions are enabled.
+     */
+    public static boolean isGranularConsolePermissionsEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(
+                APIResourceCollectionManagementConstants.USE_GRANULAR_CONSOLE_PERMISSIONS_CONFIG));
     }
 }

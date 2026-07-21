@@ -1537,6 +1537,12 @@
         </DeviceRegistrationContext>
     </PushAuthenticator>
 
+    <PushDeviceManagement>
+        <DeviceRegistrationNotificationsEnabled>{{push_device_management.device_registration_notifications_enabled}}</DeviceRegistrationNotificationsEnabled>
+        <MaxDeviceLimitPerUser>{{push_device_management.max_device_limit_per_user}}</MaxDeviceLimitPerUser>
+        <MultipleDeviceSupportEnabled>{{push_device_management.multiple_device_support_enabled}}</MultipleDeviceSupportEnabled>
+    </PushDeviceManagement>
+
     <RestApiAuthentication>
             <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
             <AddRealmUserToError>{{rest_api_authentication.add_realm_user_to_error}}</AddRealmUserToError>
@@ -5084,6 +5090,11 @@
         <AppBaseName>{{console.app_base_name}}</AppBaseName>
         <Origin>{{console.origin}}</Origin>
     </Console>
+
+    <!-- Console settings -->
+    <ConsoleSettings>
+        <UseGranularConsolePermissions>{{console.console_settings.use_granular_console_permissions | default('true')}}</UseGranularConsolePermissions>
+    </ConsoleSettings>
 
     <!-- MyAccount Application configurations -->
     <MyAccount>

@@ -1178,7 +1178,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('82ab7001-fb0e-44da-9169-1f63e4964d9b', 'REMOTE_LOGGING_CONFIG', 'A resource type to store remote server logger configurations.'),
 ('08fbc096-56c5-4ae6-9edc-54198a07e0dc', 'ISSUER_USAGE_SCOPE', 'A resource type to store issuer usage scope for organizations.'),
 ('12c78d11-65cd-4b6e-b482-98538ecd7a5c', 'FAPI_CONFIGURATION', 'A resource type to keep the FAPI configurations.'),
-('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.');
+('4478bfe9-0f1f-4b96-be54-206cd76d3bbc', 'AGENT_CONFIGURATION', 'A resource type to keep the tenant agent configurations.'),
+('4fed2813-cfa8-40b1-83e6-4ab85d7fcb16', 'DEVICE_MANAGEMENT', 'A resource type to keep tenant level configurations for user device management.');
 
 CREATE TABLE IF NOT EXISTS IDN_CONFIG_RESOURCE (
     ID VARCHAR(255) NOT NULL,
@@ -1822,7 +1823,7 @@ CREATE TABLE IF NOT EXISTS IDN_PUSH_DEVICE_STORE (
     PROVIDER VARCHAR(45) NOT NULL,
     TENANT_ID INTEGER NOT NULL,
     PRIMARY KEY (ID),
-    UNIQUE (USER_ID)
+    UNIQUE (USER_ID, DEVICE_TOKEN, TENANT_ID)
 );
 
 CREATE TABLE IF NOT EXISTS IDN_FLOW (
