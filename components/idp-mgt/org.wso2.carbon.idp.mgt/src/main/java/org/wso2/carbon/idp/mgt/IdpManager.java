@@ -91,6 +91,22 @@ public interface IdpManager {
     List<IdentityProvider> getIdPs(String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Retrieves registered Identity providers for a given tenant, applying the given resolution depth to shared
+     * (shadow) identity providers.
+     *
+     * @param tenantDomain Tenant domain whose Identity Providers are requested.
+     * @param resolveType  The resolution depth for a shared (shadow) identity provider (raw / base parent / full
+     *                     parent).
+     * @return List of <code>IdentityProvider</code> for the tenant.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     */
+    default List<IdentityProvider> getIdPs(String tenantDomain, SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return getIdPs(tenantDomain);
+    }
+
+    /**
      * Get all basic identity provider information.
      *
      * @param limit        limit per page.
@@ -240,6 +256,24 @@ public interface IdpManager {
      */
     IdentityProvider getIdPByName(String idPName, String tenantDomain,
                                   boolean ignoreFileBasedIdps) throws IdentityProviderManagementException;
+
+    /**
+     * Retrieves Identity provider information by name, applying the given resolution depth to a shared (shadow)
+     * identity provider.
+     *
+     * @param idPName             Unique name of the Identity provider whose information is requested.
+     * @param tenantDomain        Tenant domain whose information is requested.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @param resolveType         The resolution depth for a shared (shadow) identity provider (raw / base parent /
+     *                            full parent).
+     * @return <code>IdentityProvider</code> Identity Provider information.
+     * @throws IdentityProviderManagementException Error when getting Identity Provider information by IdP name.
+     */
+    default IdentityProvider getIdPByName(String idPName, String tenantDomain, boolean ignoreFileBasedIdps,
+                                          SharedIdPResolveType resolveType) throws IdentityProviderManagementException {
+
+        return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps);
+    }
 
     /**
      * Returns IDP with passed ID.

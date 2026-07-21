@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -35,6 +35,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 /**
  * Internal implementation to listen to IdP CRUD events.
@@ -51,7 +52,8 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         try {
             IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
 
-            IdentityProvider oldIdentityProvider = identityProviderManager.getIdPByName(oldIdPName, tenantDomain);
+            IdentityProvider oldIdentityProvider = identityProviderManager.getIdPByName(oldIdPName, tenantDomain,
+                    false, SharedIdPResolveType.RAW);
             String idpId = oldIdentityProvider.getResourceId();
             if (identityProvider.getResourceId() == null && idpId != null) {
                 identityProvider.setResourceId(idpId);

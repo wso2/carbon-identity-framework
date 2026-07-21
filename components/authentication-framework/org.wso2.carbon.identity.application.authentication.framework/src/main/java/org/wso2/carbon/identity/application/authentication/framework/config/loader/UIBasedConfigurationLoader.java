@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017-2026, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -280,7 +281,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 if (federatedAuthenticator == null) {
                     try {
                         federatedAuthenticator = IdentityProviderManager.getInstance()
-                                .getIdPByName(federatedIDP.getIdentityProviderName(), tenantDomain)
+                                .getIdPByName(federatedIDP.getIdentityProviderName(), tenantDomain, false,
+                                        SharedIdPResolveType.FULL_PARENT)
                                 .getDefaultAuthenticatorConfig();
                     } catch (IdentityProviderManagementException e) {
                         throw new FrameworkException(

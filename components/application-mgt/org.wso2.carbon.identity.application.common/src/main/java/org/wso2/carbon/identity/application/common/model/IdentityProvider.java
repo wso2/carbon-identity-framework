@@ -59,6 +59,8 @@ public class IdentityProvider implements Serializable {
 
     private static final long serialVersionUID = 2199048941051702943L;
 
+    public static final String IS_SHARED_IDP_PROPERTY = "isShared";
+
     private static final Log log = LogFactory.getLog(IdentityProvider.class);
     private static final String FILE_ELEMENT_IDENTITY_PROVIDER_NAME = "IdentityProviderName";
     private static final String FILE_ELEMENT_IDENTITY_PROVIDER_DESCRIPTION = "IdentityProviderDescription";
@@ -1000,7 +1002,7 @@ public class IdentityProvider implements Serializable {
             return false;
         }
         for (IdentityProviderProperty idpProperty : idpProperties) {
-            if (idpProperty.getName().equals("isShared")) {
+            if (idpProperty != null && idpProperty.getName().equals(IS_SHARED_IDP_PROPERTY)) {
                 return Boolean.parseBoolean(idpProperty.getValue());
             }
         }

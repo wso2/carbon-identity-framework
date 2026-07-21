@@ -204,12 +204,15 @@ public interface IdentityProviderMgtListener {
      *
      * @param identityProviders The retrieved identity providers.
      * @param tenantDomain      Tenant domain of the identity providers.
+     * @param requiredAttributes The attributes requested for the retrieved identity providers (empty when no
+     *                           attribute projection was specified, e.g. the full-list paths); a listener may use
+     *                           this to decide how much resolution to perform.
      * @param resolveType       The resolution depth to apply to shared (shadow) identity providers.
      * @return The identity provider list to use (the supplied list by default).
      * @throws IdentityProviderManagementException When an error occurs while handling the event.
      */
     default List<IdentityProvider> doPostGetIdPs(List<IdentityProvider> identityProviders, String tenantDomain,
-                                                 SharedIdPResolveType resolveType)
+                                                 List<String> requiredAttributes, SharedIdPResolveType resolveType)
             throws IdentityProviderManagementException {
 
         return identityProviders;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2015-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -58,6 +58,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -478,7 +479,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         try {
             IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
-                    .getIdentityProviderName(), tenantDomain, false);
+                    .getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
             if (savedIdp.getId() == null) {
                 validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                         idp.getIdentityProviderName()));
@@ -525,7 +526,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         for (IdentityProvider idp : outboundProvisioningConfig.getProvisioningIdentityProviders()) {
             try {
                 IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(
-                        idp.getIdentityProviderName(), tenantDomain, false);
+                        idp.getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
                 if (savedIdp == null) {
                     validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                             idp.getIdentityProviderName()));

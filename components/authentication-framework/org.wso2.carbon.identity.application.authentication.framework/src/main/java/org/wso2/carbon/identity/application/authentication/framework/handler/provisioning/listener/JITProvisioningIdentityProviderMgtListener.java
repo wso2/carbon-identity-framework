@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.concurrent.ExecutorService;
 
@@ -70,7 +71,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
 
         IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_RESOURCE_ID);
         String idpId = IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain,
-                true).getResourceId();
+                true, SharedIdPResolveType.FULL_PARENT).getResourceId();
         IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_RESOURCE_ID, idpId);
         return true;
     }

@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -977,7 +978,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         try {
             String idpId = IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain,
-                    true).getResourceId();
+                    true, SharedIdPResolveType.FULL_PARENT).getResourceId();
             userClaims.put(PROVISIONED_SOURCE_ID_CLAIM, idpId);
         } catch (IdentityProviderManagementException e) {
             throw new FrameworkException("Error while getting the federated IDP name of the IDP: "

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
@@ -95,7 +96,8 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         String tenantDomain = "";
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            List<IdentityProvider> identityProviders = IdentityProviderManager.getInstance().getIdPs(tenantDomain);
+            List<IdentityProvider> identityProviders = IdentityProviderManager.getInstance().getIdPs(tenantDomain,
+                    SharedIdPResolveType.BASE_PARENT);
             for (int i = 0; i < identityProviders.size(); i++) {
                 String providerName = identityProviders.get(i).getIdentityProviderName();
                 if (providerName != null && providerName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
@@ -152,7 +154,8 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         IdpSearchResult idpSearchResult = IdentityProviderManager.getInstance()
                 .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
-                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain, new ArrayList<>());
+                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain, new ArrayList<>(),
+                        SharedIdPResolveType.BASE_PARENT);
         return idpSearchResult.getIdPs().toArray(new IdentityProvider[0]);
     }
 
@@ -264,7 +267,8 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             }
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             IdentityProvider identityProvider =
-                    IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain, true);
+                    IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain, true,
+                            SharedIdPResolveType.BASE_PARENT);
             IdPManagementUtil.removeOriginalPasswords(identityProvider);
             return identityProvider;
         } catch (IdentityProviderManagementException idpException) {

@@ -149,6 +149,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -861,7 +862,7 @@ public class FrameworkUtils {
         IdentityProvider idp;
         try {
             idp = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
-                    .getIdPByName(federatedIdpName, tenantDomain);
+                    .getIdPByName(federatedIdpName, tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
         } catch (IdentityProviderManagementException e) {
             throw new PostAuthenticationFailedException(
                     ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(),

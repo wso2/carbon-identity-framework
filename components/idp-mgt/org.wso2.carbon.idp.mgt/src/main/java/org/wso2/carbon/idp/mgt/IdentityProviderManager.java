@@ -555,15 +555,22 @@ public class IdentityProviderManager implements IdpManager {
     public List<IdentityProvider> getIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
 
+        return getIdPs(tenantDomain, SharedIdPResolveType.BASE_PARENT);
+    }
+
+    @Override
+    public List<IdentityProvider> getIdPs(String tenantDomain, SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<IdentityProvider> identityProviders = dao.getIdPs(null, tenantId, tenantDomain);
-        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain,
-                SharedIdPResolveType.FULL_PARENT);
+        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain, Collections.emptyList(),
+                resolveType);
         return identityProviders;
     }
 
     private List<IdentityProvider> invokePostGetIdPsListeners(List<IdentityProvider> identityProviders,
-                                                              String tenantDomain,
+                                                              String tenantDomain, List<String> requiredAttributes,
                                                               SharedIdPResolveType resolveType)
             throws IdentityProviderManagementException {
 
@@ -574,7 +581,8 @@ public class IdentityProviderManager implements IdpManager {
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable()) {
-                identityProviders = listener.doPostGetIdPs(identityProviders, tenantDomain, resolveType);
+                identityProviders = listener.doPostGetIdPs(identityProviders, tenantDomain, requiredAttributes,
+                        resolveType);
             }
         }
         return identityProviders;
@@ -623,7 +631,7 @@ public class IdentityProviderManager implements IdpManager {
 
         // Defaults to the management view: shared (shadow) identity providers get the base parent overlay.
         return getIdPs(limit, offset, filter, sortOrder, sortBy, tenantDomain, requiredAttributes,
-                SharedIdPResolveType.FULL_PARENT);
+                SharedIdPResolveType.BASE_PARENT);
     }
 
     @Override
@@ -637,9 +645,12 @@ public class IdentityProviderManager implements IdpManager {
         setParameters(limit, offset, filter, sortOrder, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
-        result.setIdpList(invokePostGetIdPsListeners(dao.getPaginatedIdPsSearch(tenantId, expressionNodes,
+        List<IdentityProvider> identityProviders = dao.getPaginatedIdPsSearch(tenantId, expressionNodes,
                 result.getLimit(), result.getOffSet(), result.getSortOrder(), result.getSortBy(),
-                requiredAttributes), tenantDomain, resolveType));
+                requiredAttributes);
+        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain, requiredAttributes,
+                resolveType);
+        result.setIdpList(identityProviders);
         return result;
     }
 
@@ -691,7 +702,7 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         return getIdPs(limit, offset, sortOrder, sortBy, tenantDomain, requiredAttributes, expressionNodes,
-                SharedIdPResolveType.FULL_PARENT);
+                SharedIdPResolveType.BASE_PARENT);
     }
 
     @Override
@@ -707,7 +718,8 @@ public class IdentityProviderManager implements IdpManager {
         List<IdentityProvider> identityProviders = dao.getPaginatedIdPsSearch(tenantId, expressionNodes,
                 result.getLimit(), result.getOffSet(), result.getSortOrder(), result.getSortBy(),
                 requiredAttributes);
-        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain, resolveType);
+        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain, requiredAttributes,
+                resolveType);
         result.setIdpList(identityProviders);
         return result;
     }
@@ -940,8 +952,8 @@ public class IdentityProviderManager implements IdpManager {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<IdentityProvider> identityProviders = dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
-        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain,
-                SharedIdPResolveType.FULL_PARENT);
+        identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain, Collections.emptyList(),
+                SharedIdPResolveType.BASE_PARENT);
         return identityProviders;
     }
 
@@ -980,6 +992,13 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPByName(String idPName, String tenantDomain,
                                          boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
+        return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_PARENT);
+    }
+
+    @Override
+    public IdentityProvider getIdPByName(String idPName, String tenantDomain, boolean ignoreFileBasedIdps,
+                                         SharedIdPResolveType resolveType) throws IdentityProviderManagementException {
+
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (StringUtils.isEmpty(idPName)) {
             String msg = "Invalid argument: Identity Provider Name value is empty";
@@ -1014,7 +1033,7 @@ public class IdentityProviderManager implements IdpManager {
             for (IdentityProviderMgtListener listener : listeners) {
                 if (listener.isEnable()) {
                     identityProvider = listener.doPostGetIdPByName(idPName, identityProvider, tenantDomain,
-                            SharedIdPResolveType.FULL_PARENT);
+                            resolveType);
                 }
             }
         }
@@ -1026,8 +1045,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPById(String id, String tenantDomain,
                                        boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
-        // Defaults to the fully resolved view: a shared (shadow) identity provider is resolved against its parent.
-        return getIdPById(id, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.FULL_PARENT);
+        return getIdPById(id, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_PARENT);
     }
 
     @Override
@@ -1093,8 +1111,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
-        // Defaults to the fully resolved view: shared (shadow) identity providers are resolved against their parent.
-        return getIdPByResourceId(resourceId, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.FULL_PARENT);
+        return getIdPByResourceId(resourceId, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_PARENT);
     }
 
     @Override
@@ -1116,9 +1133,6 @@ public class IdentityProviderManager implements IdpManager {
             return identityProvider;
         }
 
-        // Invoking the post listeners. A listener may enrich/resolve the returned IDP (e.g. resolving a shared
-        // shadow IDP against its parent) and returns the IDP to use; a listener that transforms a cached instance
-        // clones it internally, so the cache is never mutated.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable()) {
@@ -1340,7 +1354,8 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
 
-        IdentityProvider identityProvider = dao.getIdPByName(null, idPName, tenantId, tenantDomain);
+        IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
+                SharedIdPResolveType.FULL_PARENT);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);
@@ -1415,7 +1430,8 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
 
-        IdentityProvider identityProvider = dao.getIdPByName(null, idPName, tenantId, tenantDomain);
+        IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
+                SharedIdPResolveType.FULL_PARENT);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);
@@ -1489,7 +1505,8 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
 
-        IdentityProvider identityProvider = dao.getIdPByName(null, idPName, tenantId, tenantDomain);
+        IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
+                SharedIdPResolveType.FULL_PARENT);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);
@@ -1558,7 +1575,8 @@ public class IdentityProviderManager implements IdpManager {
             String msg = "Invalid argument: Identity Provider Name value is empty";
             throw new IdentityProviderManagementException(msg);
         }
-        IdentityProvider identityProvider = dao.getIdPByName(null, idPName, tenantId, tenantDomain);
+        IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
+                SharedIdPResolveType.FULL_PARENT);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);

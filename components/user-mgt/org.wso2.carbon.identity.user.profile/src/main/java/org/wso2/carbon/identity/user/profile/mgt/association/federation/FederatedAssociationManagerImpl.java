@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
 import org.wso2.carbon.identity.user.profile.mgt.internal.IdentityUserProfileServiceDataHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -490,7 +491,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider idp = idpManager.getIdPByName(idpName, tenantDomain);
+                IdentityProvider idp = idpManager.getIdPByName(idpName, tenantDomain, false,
+                        SharedIdPResolveType.FULL_PARENT);
                 if (idp == null || idp.getId() == null) {
                     if (log.isDebugEnabled()) {
                         log.debug("Identity provider not found for the name: " + idpName + ", in the tenant domain: "
@@ -558,7 +560,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider idp = idpManager.getIdPByName(identityProviderName, tenantDomain);
+                IdentityProvider idp = idpManager.getIdPByName(identityProviderName, tenantDomain, false,
+                        SharedIdPResolveType.FULL_PARENT);
                 return new AssociatedIdentityProvider(
                         idp.getResourceId(),
                         idp.getIdentityProviderName(),
@@ -587,7 +590,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false);
+                IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false,
+                        SharedIdPResolveType.FULL_PARENT);
                 return identityProvider.getIdentityProviderName();
             } else {
                 if (log.isDebugEnabled()) {

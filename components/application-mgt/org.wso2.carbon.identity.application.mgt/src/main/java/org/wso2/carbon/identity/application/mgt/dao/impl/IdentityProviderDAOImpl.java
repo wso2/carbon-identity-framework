@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
             IdentityProvider idp = idpManager.getIdPByName(idpName, CarbonContext
-                    .getThreadLocalCarbonContext().getTenantDomain());
+                    .getThreadLocalCarbonContext().getTenantDomain(), false, SharedIdPResolveType.FULL_PARENT);
             return idp.getDefaultAuthenticatorConfig() != null ? idp
                     .getDefaultAuthenticatorConfig().getName() : null;
         } catch (IdentityProviderManagementException e) {
@@ -79,7 +80,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
             IdentityProvider idp = idpManager.getIdPByName(idpName, CarbonContext
-                    .getThreadLocalCarbonContext().getTenantDomain());
+                    .getThreadLocalCarbonContext().getTenantDomain(), false, SharedIdPResolveType.FULL_PARENT);
 
             IdentityProvider identityProvider = new IdentityProvider();
             identityProvider.setIdentityProviderName(idp.getIdentityProviderName());
@@ -141,7 +142,8 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         List<IdentityProvider> idps;
         try {
             idps = idpManager
-                    .getIdPs(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                    .getIdPs(CarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
+                            SharedIdPResolveType.FULL_PARENT);
         } catch (IdentityProviderManagementException e) {
             throw new IdentityApplicationManagementException("Error when retrieving all identity providers in " +
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain() + " tenant domain.", e);

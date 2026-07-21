@@ -67,6 +67,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
@@ -768,7 +769,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         try {
                             if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
                                 int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain()).getId());
+                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain(), false,
+                                                SharedIdPResolveType.FULL_PARENT).getId());
                                 if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
                                     storeFedAuthSessionWithTenantIdAndIdpId(context.getTenantDomain(),
                                             sessionContextKey, authHistory, idpId);
@@ -894,7 +896,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         UserSessionStore userSessionStore = UserSessionStore.getInstance();
         int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                .getIdPByName(authHistory.getIdpName(), tenantDomain).getId());
+                .getIdPByName(authHistory.getIdpName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT).getId());
         if (!userSessionStore.hasExistingFederatedAuthSessionWithIdpId(authHistory.getIdpSessionIndex(), idpId)) {
             userSessionStore.storeFederatedAuthSessionInfoWithIdpId(sessionContextKey, authHistory, idpId);
         } else {

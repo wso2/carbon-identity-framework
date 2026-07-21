@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -467,7 +468,8 @@ public class OutboundProvisioningManager {
                 boolean jitProvisioningEnabledForIdP = entry.getValue().isJitProvisioningEnabled();
 
                 IdentityProvider provisioningIdp =
-                        IdentityProviderManager.getInstance().getIdPByName(idPName, spTenantDomainName);
+                        IdentityProviderManager.getInstance().getIdPByName(idPName, spTenantDomainName, false,
+                                SharedIdPResolveType.FULL_PARENT);
 
                 if (provisioningIdp == null) {
                     // this is an exception if we cannot find the provisioning identity provider
