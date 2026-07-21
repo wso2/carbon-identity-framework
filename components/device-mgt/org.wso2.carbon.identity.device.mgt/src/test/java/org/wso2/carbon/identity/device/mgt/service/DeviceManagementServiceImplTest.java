@@ -88,23 +88,23 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testPersistDeviceDelegatesToDao() throws Exception {
+    public void testRegisterDeviceDelegatesToDao() throws Exception {
 
         Device device = buildDevice("d1", "alice@example.com");
         when(dao.registerDevice(any(), eq(TENANT_ID))).thenReturn(device);
 
-        service.persistDevice(device, TENANT_DOMAIN);
+        service.registerDevice(device, TENANT_DOMAIN);
 
         verify(dao).registerDevice(any(), eq(TENANT_ID));
     }
 
     @Test
-    public void testPersistDeviceWithoutUserIdThrows() {
+    public void testRegisterDeviceWithoutUserIdThrows() {
 
         Device device = buildDevice("d1", null);
 
         try {
-            service.persistDevice(device, TENANT_DOMAIN);
+            service.registerDevice(device, TENANT_DOMAIN);
             Assert.fail("Expected DeviceMgtServerException");
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_USER_ID_REQUIRED.getCode());
@@ -112,9 +112,9 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testPersistNullDeviceThrows() {
+    public void testRegisterNullDeviceThrows() {
 
-        assertPersistFailsWithFieldRequired(null);
+        assertRegisterFailsWithFieldRequired(null);
     }
 
     @DataProvider(name = "incompleteDevices")
@@ -130,28 +130,28 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test(dataProvider = "incompleteDevices")
-    public void testPersistDeviceWithMissingRequiredFieldThrows(String fieldName, Device device) {
+    public void testRegisterDeviceWithMissingRequiredFieldThrows(String fieldName, Device device) {
 
         // A required field left unset must surface as a coded error, not as a DB constraint
         // violation or an NPE raised inside the DAO.
-        assertPersistFailsWithFieldRequired(device);
+        assertRegisterFailsWithFieldRequired(device);
     }
 
     @Test
-    public void testPersistDeviceWithoutOptionalFieldsSucceeds() throws Exception {
+    public void testRegisterDeviceWithoutOptionalFieldsSucceeds() throws Exception {
 
         // Device model and metadata are nullable in the schema, so they must not be validated.
         Device device = completeDeviceBuilder().deviceModel(null).metadata(null).build();
 
-        service.persistDevice(device, TENANT_DOMAIN);
+        service.registerDevice(device, TENANT_DOMAIN);
 
         verify(dao).registerDevice(any(), eq(TENANT_ID));
     }
 
-    private void assertPersistFailsWithFieldRequired(Device device) {
+    private void assertRegisterFailsWithFieldRequired(Device device) {
 
         try {
-            service.persistDevice(device, TENANT_DOMAIN);
+            service.registerDevice(device, TENANT_DOMAIN);
             Assert.fail("Expected DeviceMgtServerException");
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());

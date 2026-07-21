@@ -15,6 +15,7 @@
     <test name="Device_Management_Util_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.mgt.util.DeviceManagementExceptionHandlerTest"/>
+            <class name="org.wso2.carbon.identity.device.mgt.util.DeviceValidatorTest"/>
         </classes>
     </test>
 </suite>

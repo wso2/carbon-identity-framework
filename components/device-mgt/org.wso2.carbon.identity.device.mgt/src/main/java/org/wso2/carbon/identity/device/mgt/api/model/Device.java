@@ -25,14 +25,6 @@ import java.sql.Timestamp;
  */
 public class Device {
 
-    /**
-     * Device Status Enum.
-     */
-    public enum Status {
-        ACTIVE,
-        INACTIVE
-    }
-
     private final String id;
     private final String userId;
     private final String deviceName;
@@ -276,5 +268,13 @@ public class Device {
 
             return new Device(this);
         }
+    }
+
+    /**
+     * Device Status Enum.
+     */
+    public enum Status {
+        ACTIVE,
+        INACTIVE
     }
 }

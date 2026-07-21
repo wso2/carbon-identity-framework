@@ -24,17 +24,17 @@ import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import java.util.List;
 
 /**
- * DAO contract for registered device persistence.
+ * DAO contract for device registration.
  */
 public interface DeviceManagementDAO {
 
     /**
-     * Persists a new device.
+     * Registers a new device.
      *
-     * @param device Device to persist.
+     * @param device Device to register.
      * @param tenantId Tenant identifier.
-     * @return Persisted device.
-     * @throws DeviceMgtException If persistence fails.
+     * @return Registered device.
+     * @throws DeviceMgtException If registration fails.
      */
     Device registerDevice(Device device, int tenantId)
             throws DeviceMgtException;

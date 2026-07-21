@@ -73,6 +73,11 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -119,6 +124,8 @@
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
+                            org.apache.commons.lang;
+                            version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging;
                             version="${import.package.version.commons.logging}",
                             org.osgi.framework;

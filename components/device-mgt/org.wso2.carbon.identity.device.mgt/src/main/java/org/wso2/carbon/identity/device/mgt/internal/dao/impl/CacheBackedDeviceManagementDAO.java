@@ -55,14 +55,14 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
     }
 
     /**
-     * Persists a new device.
+     * Registers a new device.
      * This method directly invokes the data layer operation — a brand-new device has nothing
      * to invalidate in the cache.
      *
-     * @param device   Device to persist.
+     * @param device   Device to register.
      * @param tenantId Tenant identifier.
-     * @return Persisted device.
-     * @throws DeviceMgtException If persistence fails.
+     * @return Registered device.
+     * @throws DeviceMgtException If registration fails.
      */
     @Override
     public Device registerDevice(Device device, int tenantId) throws DeviceMgtException {

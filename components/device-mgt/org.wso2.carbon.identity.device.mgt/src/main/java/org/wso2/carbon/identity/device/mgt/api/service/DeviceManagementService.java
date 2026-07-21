@@ -29,12 +29,12 @@ import java.util.List;
 public interface DeviceManagementService {
 
     /**
-     * Persists a pre-verified {@link Device} to the database.
+     * Registers a pre-verified {@link Device} in the database.
      *
-     * @param device       The verified device to persist.
+     * @param device       The verified device to register.
      * @param tenantDomain Tenant domain.
      */
-    void persistDevice(Device device, String tenantDomain) throws DeviceMgtException;
+    void registerDevice(Device device, String tenantDomain) throws DeviceMgtException;
 
     /**
      * Retrieves a device by its UUID. Returns the device regardless of its status (ACTIVE or

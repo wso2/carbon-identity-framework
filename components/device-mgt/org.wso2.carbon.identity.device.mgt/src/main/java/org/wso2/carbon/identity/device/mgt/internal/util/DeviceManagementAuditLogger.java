@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.mgt.internal.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -130,15 +131,14 @@ public class DeviceManagementAuditLogger {
         String username = carbonContext.getUsername();
         String tenantDomain = carbonContext.getTenantDomain();
 
-        if (username == null || username.trim().isEmpty()) {
+        if (StringUtils.isBlank(username)) {
             return LoggerUtils.Initiator.System.name();
         }
         String initiator = null;
-        if (tenantDomain != null && !tenantDomain.trim().isEmpty()) {
+        if (StringUtils.isNotBlank(tenantDomain)) {
             initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
         }
-        return initiator != null && !initiator.trim().isEmpty()
-                ? initiator : LoggerUtils.getMaskedContent(username);
+        return StringUtils.isNotBlank(initiator) ? initiator : LoggerUtils.getMaskedContent(username);
     }
 
     /**

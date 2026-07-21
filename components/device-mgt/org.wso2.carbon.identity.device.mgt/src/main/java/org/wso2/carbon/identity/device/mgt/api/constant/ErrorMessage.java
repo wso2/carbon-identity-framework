@@ -29,7 +29,7 @@ public enum ErrorMessage {
             "%s is empty or invalid."),
 
     ERROR_WHILE_REGISTERING_DEVICE("DM-65001", "Error while registering device.",
-            "Error while persisting device registration in the system."),
+            "Error while registering device in the system."),
     ERROR_WHILE_RETRIEVING_DEVICE("DM-65002", "Error while retrieving device.",
             "Error while retrieving device from the system."),
     ERROR_WHILE_UPDATING_DEVICE("DM-65003", "Error while updating device.",
@@ -37,9 +37,9 @@ public enum ErrorMessage {
     ERROR_WHILE_DELETING_DEVICE("DM-65004", "Error while deleting device.",
             "Error while deleting device from the system."),
     ERROR_USER_ID_REQUIRED("DM-65007", "User identifier required.",
-            "Cannot persist device: a valid user identifier (userId) was not set before persistence."),
+            "Cannot register device: a valid user identifier (userId) was not set before registration."),
     ERROR_DEVICE_FIELD_REQUIRED("DM-65008", "Required device field missing.",
-            "Cannot persist device: the required field '%s' was not set before persistence.");
+            "Cannot register device: the required field '%s' was not set before registration.");
 
     private final String code;
     private final String message;
