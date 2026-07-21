@@ -198,7 +198,11 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                                 }
                                 bindPaginationParams(preparedStatement, style, safeOffset, limit);
                             }));
-            return devices != null ? devices : Collections.emptyList();
+            List<Device> result = devices != null ? devices : Collections.emptyList();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved " + result.size() + " devices for tenant ID: " + tenantId);
+            }
+            return result;
         } catch (TransactionException | DataAccessException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);
@@ -231,7 +235,11 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
                                     preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
                                 }
                             }));
-            return count != null ? count : 0;
+            int result = count != null ? count : 0;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieved device count: " + result + " for tenant ID: " + tenantId);
+            }
+            return result;
         } catch (TransactionException e) {
             throw DeviceManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);

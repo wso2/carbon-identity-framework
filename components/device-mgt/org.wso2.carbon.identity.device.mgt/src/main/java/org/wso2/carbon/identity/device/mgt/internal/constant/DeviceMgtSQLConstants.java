@@ -100,7 +100,7 @@ public final class DeviceMgtSQLConstants {
                         "D.REGISTERED_AT, D.METADATA, D.TENANT_ID " +
                         "FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
-                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC, D.ID DESC " +
                         "LIMIT :LIMIT; OFFSET :OFFSET;";
 
         // MS SQL Server.
@@ -109,7 +109,7 @@ public final class DeviceMgtSQLConstants {
                         "D.REGISTERED_AT, D.METADATA, D.TENANT_ID " +
                         "FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
-                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC " +
+                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC, D.ID DESC " +
                         "OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
 
         // Oracle.
@@ -120,17 +120,19 @@ public final class DeviceMgtSQLConstants {
                         "(SELECT D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
                         "D.REGISTERED_AT, D.METADATA, D.TENANT_ID FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
-                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC) " +
-                        "WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET;";
+                        "WHERE D.TENANT_ID = :TENANT_ID; ORDER BY D.REGISTERED_AT DESC, D.ID DESC) " +
+                        "WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET; ORDER BY rnum";
 
         // DB2.
         public static final String GET_ALL_DEVICES_PAGINATED_DB2 =
                 "SELECT ID, USER_ID, DEVICE_NAME, DEVICE_MODEL, PUBLIC_KEY, STATUS, REGISTERED_AT, " +
-                        "METADATA, TENANT_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY D.REGISTERED_AT DESC) AS rn, " +
+                        "METADATA, TENANT_ID FROM (SELECT " +
+                        "ROW_NUMBER() OVER(ORDER BY D.REGISTERED_AT DESC, D.ID DESC) AS rn, " +
                         "D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
                         "D.REGISTERED_AT, D.METADATA, D.TENANT_ID FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
-                        "WHERE D.TENANT_ID = :TENANT_ID;) WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND;";
+                        "WHERE D.TENANT_ID = :TENANT_ID;) WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND; " +
+                        "ORDER BY rn";
 
         public static final String GET_DEVICES_COUNT =
                 "SELECT COUNT(*) FROM IDN_DEVICE D " +
@@ -147,7 +149,7 @@ public final class DeviceMgtSQLConstants {
                         "FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
                         "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; " +
-                        "ORDER BY D.REGISTERED_AT DESC LIMIT :LIMIT; OFFSET :OFFSET;";
+                        "ORDER BY D.REGISTERED_AT DESC, D.ID DESC LIMIT :LIMIT; OFFSET :OFFSET;";
 
         // MS SQL Server.
         public static final String GET_ALL_DEVICES_PAGINATED_BY_USER_MSSQL =
@@ -156,7 +158,7 @@ public final class DeviceMgtSQLConstants {
                         "FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
                         "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; " +
-                        "ORDER BY D.REGISTERED_AT DESC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
+                        "ORDER BY D.REGISTERED_AT DESC, D.ID DESC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
 
         // Oracle.
         public static final String GET_ALL_DEVICES_PAGINATED_BY_USER_ORACLE =
@@ -166,18 +168,20 @@ public final class DeviceMgtSQLConstants {
                         "(SELECT D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
                         "D.REGISTERED_AT, D.METADATA, D.TENANT_ID FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
-                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; ORDER BY D.REGISTERED_AT DESC) " +
-                        "WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET;";
+                        "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID; " +
+                        "ORDER BY D.REGISTERED_AT DESC, D.ID DESC) " +
+                        "WHERE rownum <= :UPPER_BOUND;) WHERE rnum > :OFFSET; ORDER BY rnum";
 
         // DB2.
         public static final String GET_ALL_DEVICES_PAGINATED_BY_USER_DB2 =
                 "SELECT ID, USER_ID, DEVICE_NAME, DEVICE_MODEL, PUBLIC_KEY, STATUS, REGISTERED_AT, " +
-                        "METADATA, TENANT_ID FROM (SELECT ROW_NUMBER() OVER(ORDER BY D.REGISTERED_AT DESC) AS rn, " +
+                        "METADATA, TENANT_ID FROM (SELECT " +
+                        "ROW_NUMBER() OVER(ORDER BY D.REGISTERED_AT DESC, D.ID DESC) AS rn, " +
                         "D.ID, UD.USER_ID, D.DEVICE_NAME, D.DEVICE_MODEL, D.PUBLIC_KEY, D.STATUS, " +
                         "D.REGISTERED_AT, D.METADATA, D.TENANT_ID FROM IDN_DEVICE D " +
                         "INNER JOIN IDN_USER_DEVICE UD ON D.ID = UD.DEVICE_ID AND D.TENANT_ID = UD.TENANT_ID " +
                         "WHERE D.TENANT_ID = :TENANT_ID; AND UD.USER_ID = :USER_ID;) " +
-                        "WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND;";
+                        "WHERE rn BETWEEN :LOWER_BOUND; AND :UPPER_BOUND; ORDER BY rn";
 
         public static final String GET_DEVICES_COUNT_BY_USER =
                 "SELECT COUNT(*) FROM IDN_DEVICE D " +
