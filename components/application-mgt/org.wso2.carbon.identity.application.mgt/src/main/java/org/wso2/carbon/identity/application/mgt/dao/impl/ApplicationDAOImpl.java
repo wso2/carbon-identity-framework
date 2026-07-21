@@ -28,7 +28,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -2342,7 +2341,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
         List<String> associatedRoleIds = new ArrayList<>();
         String allowedAudience =
-                getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+                getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, connection);
         if (RoleConstants.APPLICATION.equalsIgnoreCase(allowedAudience)) {
             try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
                     ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
@@ -4127,7 +4126,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement getAppNamesStmt = connection.prepareStatement(JdbcUtils.isH2DB() ?
+             PreparedStatement getAppNamesStmt = connection.prepareStatement(
+                     JdbcUtils.isH2DB(connection.getMetaData().getDatabaseProductName()) ?
                      ApplicationMgtDBQueries.LOAD_APP_IDS_BY_SP_PROPERTY_H2 :
                      ApplicationMgtDBQueries.LOAD_APP_IDS_BY_SP_PROPERTY)) {
 
@@ -4147,7 +4147,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 return appInfo.toArray(new ApplicationBasicInfo[0]);
             }
-        } catch (SQLException | DataAccessException e) {
+        } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while getting applications from DB", e);
         }
     }
@@ -6354,18 +6354,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String getSPPropertyValueByPropertyKey(String applicationId, String propertyName)
             throws IdentityApplicationManagementException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                     isH2DB() ? ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY_H2 :
-                             ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY)) {
-            statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
-            statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME, propertyName);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VALUE);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            return getSPPropertyValueByPropertyKey(applicationId, propertyName, connection);
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while fetching the property: %s of application with id: %s", propertyName,
+                            applicationId), e);
+        }
+    }
+
+    /**
+     * Get the SP property value for the given property key, reusing an already open DB connection instead of
+     * acquiring a new one from the pool.
+     *
+     * @param applicationId Application resource id.
+     * @param propertyName  Property name.
+     * @param connection    An already open DB connection to reuse.
+     * @return Property value, or empty string if not found.
+     * @throws IdentityApplicationManagementException if an error occurs while fetching the property.
+     */
+    private String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        try {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    isH2DB(databaseProductName) ? ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY_H2 :
+                            ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY)) {
+                statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
+                        applicationId);
+                statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME, propertyName);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    return resultSet.getString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VALUE);
+                }
+                return StringUtils.EMPTY;
             }
-            return StringUtils.EMPTY;
-        } catch (SQLException | DataAccessException e) {
+        } catch (SQLException e) {
             throw new IdentityApplicationManagementServerException(
                     String.format("Error while fetching the property: %s of application with id: %s", propertyName,
                             applicationId), e);
