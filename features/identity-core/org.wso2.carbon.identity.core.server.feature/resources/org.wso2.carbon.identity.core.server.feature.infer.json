@@ -346,7 +346,8 @@
         "consoleSettings.invitedExternalAdmins",
         "consoleSettings.privilegedUsers",
         "consoleSettings.useGranularConsolePermissions"
-      ]
+      ],
+      "token_exchange.limit_scopes_to_subject_token": false
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -421,7 +422,8 @@
         "consoleSettings.invitedExternalAdmins",
         "consoleSettings.privilegedUsers",
         "consoleSettings.useGranularConsolePermissions"
-      ]
+      ],
+      "token_exchange.limit_scopes_to_subject_token": false
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -452,7 +454,8 @@
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
-      "oauth.dcrm.decode_redirect_uris_in_response": false
+      "oauth.dcrm.decode_redirect_uris_in_response": false,
+      "token_exchange.limit_scopes_to_subject_token": false
     },
     "IS_7.3.0": {
       "oauth.dcrm.decode_redirect_uris_in_response": false,
@@ -468,7 +471,8 @@
         "consoleSettings.invitedExternalAdmins",
         "consoleSettings.privilegedUsers",
         "consoleSettings.useGranularConsolePermissions"
-      ]
+      ],
+      "token_exchange.limit_scopes_to_subject_token": false
     }
   }
 }
