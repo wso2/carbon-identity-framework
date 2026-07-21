@@ -2727,4 +2727,48 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    {% if openid4vp.enabled %}
+    <APIResourceCollection name="verifiablePresentationTemplates" displayName="Verifiable Presentation Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:vp_templates"/>
+                <Scope name="console:vp_templates_view"/>
+                <Scope name="console:vp_templates_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_vp_template_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_vp_template_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_vp_template_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_vp_template_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_verifiablePresentationTemplates" displayName="Verifiable Presentation Management" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:vp_templates"/>
+                <Scope name="console:org:vp_templates_view"/>
+                <Scope name="console:org:vp_templates_edit"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_vp_template_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_vp_template_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_vp_template_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_vp_template_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    {% endif %}
 </APIResourceCollections>

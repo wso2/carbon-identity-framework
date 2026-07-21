@@ -1643,6 +1643,7 @@
             <Cache name="IdPCacheByName"             enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="PrivateKeyJWT"              enable="true"  timeout="10" capacity="5000" isDistributed="false"/>
             <Cache id="saml_cert_cache" name="SAMLCertCache" enable="true" timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache id="vp_session_cache" name="VPSessionCache" enable="true" timeout="300" capacity="1000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
 
@@ -3104,4 +3105,10 @@
         <OpenDuration>60000</OpenDuration> <!-- value in milliseconds -->
         <MaxInFlight>20</MaxInFlight>
     </CircuitBreaker>
+
+    <OpenID4VP>
+        <Enabled>false</Enabled>
+        <!-- aud claim for the VP request JWT; per OpenID4VP spec should be "https://self-issued.me/v2" -->
+        <RequestAudience>https://self-issued.me/v2</RequestAudience>
+    </OpenID4VP>
 </Server>

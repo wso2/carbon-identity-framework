@@ -2876,4 +2876,65 @@
                    description="Manage deletes of VC templates from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Verifiable Presentation Definition Management API" identifier="/api/server/v1/vp/template"
+                 requiresAuthorization="true"
+                 description="API representation of the Verifiable Presentation Definition Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Verifiable Presentation Definitions" name="internal_vp_template_view"
+                   description="View Verifiable Presentation Definitions"/>
+            <Scope displayName="Create Verifiable Presentation Definition" name="internal_vp_template_create"
+                   description="Create new Verifiable Presentation Definition"/>
+            <Scope displayName="Update Verifiable Presentation Definition" name="internal_vp_template_update"
+                   description="Update Verifiable Presentation Definition"/>
+            <Scope displayName="Delete Verifiable Presentation Definition" name="internal_vp_template_delete"
+                   description="Delete Verifiable Presentation Definition"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Verifiable Presentation Definition Management API" identifier="/o/api/server/v1/vp/template"
+                 requiresAuthorization="true"
+                 description="API representation of the Verifiable Presentation Definition Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Verifiable Presentation Definitions" name="internal_org_vp_template_view"
+                   description="View Verifiable Presentation Definitions"/>
+            <Scope displayName="Create Verifiable Presentation Definition" name="internal_org_vp_template_create"
+                   description="Create new Verifiable Presentation Definition"/>
+            <Scope displayName="Update Verifiable Presentation Definition" name="internal_org_vp_template_update"
+                   description="Update Verifiable Presentation Definition"/>
+            <Scope displayName="Delete Verifiable Presentation Definition" name="internal_org_vp_template_delete"
+                   description="Delete Verifiable Presentation Definition"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Verifiable Presentation Verification API" identifier="/api/server/v1/vp/verification"
+                 requiresAuthorization="true"
+                 description="API for standalone Verifiable Presentation verification" type="TENANT">
+        <Scopes>
+            <Scope displayName="Initiate Verifiable Presentation Verification" name="internal_vp_verification_create"
+                   description="Initiate a new Verifiable Presentation verification session"/>
+            <Scope displayName="View Verifiable Presentation Verification Status" name="internal_vp_verification_view"
+                   description="Poll the status of a Verifiable Presentation verification session"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Verifiable Presentation Verification API" identifier="/o/api/server/v1/vp/verification"
+                 requiresAuthorization="true"
+                 description="API for standalone Verifiable Presentation verification" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Initiate Verifiable Presentation Verification" name="internal_org_vp_verification_create"
+                   description="Initiate a new Verifiable Presentation verification session"/>
+            <Scope displayName="View Verifiable Presentation Verification Status" name="internal_org_vp_verification_view"
+                   description="Poll the status of a Verifiable Presentation verification session"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Verifiable Presentation Management Feature" identifier="console:vp_templates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Verifiable Presentation Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="VP Templates Feature" name="console:vp_templates"
+                   description="Manage VP templates from the Console"/>
+            <Scope displayName="VP Templates View Feature" name="console:vp_templates_view"
+                   description="Manage views of VP templates from the Console"/>
+            <Scope displayName="VP Templates Edit Feature" name="console:vp_templates_edit"
+                   description="Manage edits of VP templates from the Console"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
