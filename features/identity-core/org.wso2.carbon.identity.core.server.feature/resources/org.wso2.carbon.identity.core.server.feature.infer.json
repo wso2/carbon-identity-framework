@@ -327,7 +327,6 @@
       "oauth.jwt_x5t_enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
       "saml.artifact.disable_double_encoding": false,
-      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
       "outbound_provisioning_management.enable_scim_patch_for_updates": false,
       "outbound_provisioning_management.confidential_data_protection_enabled": false,
       "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
@@ -341,7 +340,13 @@
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
-      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true
+      "identity_mgt.inactive_account_suspension.revoke_grant_cache_upon_login": true,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
     },
     "IS_7.1.0": {
       "oauth.dcrm.return_null_fields_in_response": true,
@@ -410,7 +415,13 @@
       "actions.action_request.case_insensitive_header_filtering": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
-      "saas.enable_cross_tenant_operations": false
+      "saas.enable_cross_tenant_operations": false,
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
     },
     "IS_7.2.0": {
       "authenticationendpoint.authenticator_validation.enabled": false,
@@ -422,7 +433,6 @@
       "resolve_tenant_domain_from_username.enabled": true,
       "identity_mgt.challenge_questions.skip_sending_questions_in_url": false,
       "saml.artifact.disable_double_encoding": false,
-      "identity_mgt.recovery.enable_normalized_retry_error_response": false,
       "outbound_provisioning_management.enable_scim_patch_for_updates": false,
       "outbound_provisioning_management.confidential_data_protection_enabled": false,
       "outbound_provisioning_management.enable_scim_compliant_email_attribute": false,
@@ -441,7 +451,24 @@
       "actions.action_request.case_insensitive_header_filtering": false,
       "enhanced_organization_authentication.enabled_by_default_for_new_apps" : false,
       "saas.enable_app_creation": true,
-      "saas.enable_cross_tenant_operations": false
+      "saas.enable_cross_tenant_operations": false,
+      "oauth.dcrm.decode_redirect_uris_in_response": false
+    },
+    "IS_7.3.0": {
+      "oauth.dcrm.decode_redirect_uris_in_response": false,
+      "consent_mgt.enable_v2_api": false,
+      "identity_mgt.events.schemes.ConsentEventHook.properties.enable": false,
+      "identity_mgt.events.schemes.ConsentPurposeEventHook.properties.enable": false,
+      "webhooks.event_profiles.disabled_channels": [
+        "https://schemas.identity.wso2.org/events/consent-purpose",
+        "https://schemas.identity.wso2.org/events/consent"
+      ],
+      "console.console_settings.use_granular_console_permissions": false,
+      "console.console_settings.disabled_features": [
+        "consoleSettings.invitedExternalAdmins",
+        "consoleSettings.privilegedUsers",
+        "consoleSettings.useGranularConsolePermissions"
+      ]
     }
   }
 }

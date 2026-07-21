@@ -597,4 +597,16 @@
         <Cookie name="sessionNonceCookie"/>
         <Cookie name="ALOR"/>
     </CookiesToInvalidate>
+
+    <CircuitBreaker>
+        <Enabled>true</Enabled>
+        <TenantServiceCacheCapacity>2</TenantServiceCacheCapacity>
+        <TenantServiceEvictionThreshold>0.8</TenantServiceEvictionThreshold>
+        <TenantServiceEntryIdleTimeout>600000</TenantServiceEntryIdleTimeout>
+        <WindowSize>2</WindowSize>
+        <MinCallsToEvaluate>2</MinCallsToEvaluate>
+        <FailureRateThreshold>0.50</FailureRateThreshold>
+        <OpenDuration>600000</OpenDuration>
+        <MaxInFlight>2</MaxInFlight>
+    </CircuitBreaker>
 </Server>

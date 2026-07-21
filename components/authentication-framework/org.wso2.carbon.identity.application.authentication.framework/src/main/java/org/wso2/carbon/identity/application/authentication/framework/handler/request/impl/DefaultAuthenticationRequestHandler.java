@@ -65,6 +65,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
@@ -82,8 +83,10 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -513,27 +516,17 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     SessionContext loadedSessionContext = FrameworkUtils.getSessionContextFromCache(
                             sessionContextKey, context.getLoginTenantDomain());
                     if (loadedSessionContext != null) {
-                        if (context.isSharedAppLogin()) {
-                            String authenticatedOrgId =
-                                    context.getOrganizationLoginData().getAccessingOrganization().getId();
-                            if (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()) &&
-                                    loadedSessionContext.getAuthenticatedOrgData().get(authenticatedOrgId) != null) {
-                                sessionContext = loadedSessionContext;
-                            }
-                        } else if (context.isOrgApplicationLogin()) {
-                            String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                    .getAccessingOrganizationId();
-                            if (MapUtils.isNotEmpty(loadedSessionContext.getAuthenticatedOrgData()) &&
-                                    loadedSessionContext.getAuthenticatedOrgData().get(accessingOrgId) != null) {
-                                sessionContext = loadedSessionContext;
-                            }
-                        } else {
+                        boolean isSubOrgLogin = context.isSharedAppLogin() || context.isOrgApplicationLogin();
+                        boolean isPreviousSessionApplicable = !isSubOrgLogin
+                                || isAuthenticatedOrgSessionsApplicable(context, loadedSessionContext);
+
+                        if (isPreviousSessionApplicable) {
                             sessionContext = loadedSessionContext;
-                        }
-                        if (sessionContext == null) {
+                        } else {
                             if (log.isDebugEnabled()) {
-                                log.debug("Previous session context is not applicable for the current authentication." +
-                                        " Hence, a new session context will be created for the authentication flow.");
+                                log.debug("Previous session context is not applicable for the current " +
+                                        "authentication. Hence, a new session context will be created for the " +
+                                        "authentication flow.");
                             }
                             FrameworkUtils.removeSessionContextFromCache(sessionContextKey,
                                     context.getLoginTenantDomain());
@@ -558,15 +551,30 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     }
                     AuthenticatedOrgData authenticatedOrgData =
                             sessionContext.getAuthenticatedOrgData().get(organizationId);
-                    authenticatedOrgData.getAuthenticatedSequences()
-                            .put(appConfig.getApplicationName(), sequenceConfig);
-                    authenticatedOrgData.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
-                    if (!context.isPassiveAuthenticate()) {
-                        setAuthenticatedIDPsOfApp(authenticatedOrgData, context.getCurrentAuthenticatedIdPs(),
-                                appConfig.getApplicationName());
-                    }
                     if (context.isSharedAppLogin()) {
                         sessionContext.setAuthenticatedSharedAppOrgId(organizationId);
+                    }
+                    if (authenticatedOrgData != null) {
+                        authenticatedOrgData.getAuthenticatedSequences()
+                                .put(appConfig.getApplicationName(), sequenceConfig);
+                        authenticatedOrgData.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                        if (!context.isPassiveAuthenticate()) {
+                            setAuthenticatedIDPsOfApp(authenticatedOrgData, context.getCurrentAuthenticatedIdPs(),
+                                    appConfig.getApplicationName());
+                        }
+                    } else {
+                        // currently accessing org is not previously authenticated.
+                        AuthenticatedOrgData accessingOrgAuthenticatedOrgData = new AuthenticatedOrgData();
+                        accessingOrgAuthenticatedOrgData.getAuthenticatedSequences().put(appConfig.getApplicationName(),
+                                sequenceConfig);
+                        // Consider both the previous and the current authenticated IdPs when an IdP with the same
+                        // name is present in both.
+                        accessingOrgAuthenticatedOrgData.setAuthenticatedIdPs(mergeAuthenticatedIdPs(
+                                context.getPreviousAuthenticatedIdPs(), context.getCurrentAuthenticatedIdPs()));
+                        setAuthenticatedIDPsOfApp(accessingOrgAuthenticatedOrgData,
+                                context.getCurrentAuthenticatedIdPs(), appConfig.getApplicationName());
+                        accessingOrgAuthenticatedOrgData.setRememberMe(context.isRememberMe());
+                        sessionContext.getAuthenticatedOrgData().put(organizationId, accessingOrgAuthenticatedOrgData);
                     }
                 } else {
                     sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
@@ -659,8 +667,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         request, response, context);
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
-                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
-                        context.getLoginTenantDomain(), organizationId);
+                addSessionContextToCache(sessionContextKey, sessionContext,
+                        applicationTenantDomain, context, organizationId);
                 // Since the session context is already available, audit log will be added with updated details.
                 addAuditLogs(SessionMgtConstants.UPDATE_SESSION_ACTION, authenticationResult.getSubject(),
                         sessionContextKey, FrameworkUtils.getCorrelation(),
@@ -856,6 +864,47 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    /**
+     * Adds the session context to the cache against the login tenant domain (also persisting it to the session data
+     * store) and additionally caches it against all other tenant domains the session spans across.
+     *
+     * @param sessionContextKey       Session context cache key.
+     * @param sessionContext          Session context to be cached.
+     * @param applicationTenantDomain Application tenant domain used to resolve session timeout configurations.
+     * @param context                 Authentication context.
+     * @param organizationId          Organization id used to resolve authenticated sequences for cache cleanup.
+     */
+    private void addSessionContextToCache(String sessionContextKey, SessionContext sessionContext,
+                                          String applicationTenantDomain,
+                                          AuthenticationContext context, String organizationId) {
+
+        String loginTenantDomain = context.getLoginTenantDomain();
+        FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
+                loginTenantDomain, organizationId);
+        Set<String> authenticatedOrganizations = new HashSet<>();
+        if (MapUtils.isNotEmpty(sessionContext.getAuthenticatedOrgData())) {
+            for (String authenticatedOrgId : sessionContext.getAuthenticatedOrgData().keySet()) {
+                try {
+                    authenticatedOrganizations.add(FrameworkServiceDataHolder.getInstance()
+                            .getOrganizationManager().resolveTenantDomain(authenticatedOrgId));
+                } catch (OrganizationManagementException e) {
+                    log.error("Error while resolving the tenant domain of the organization with id: " +
+                            authenticatedOrgId, e);
+                }
+            }
+        }
+
+        if (context.getOrganizationLoginData() != null && StringUtils.isNotBlank(
+                context.getOrganizationLoginData().getRootOrganizationTenantDomain())) {
+            authenticatedOrganizations.add(context.getOrganizationLoginData().getRootOrganizationTenantDomain());
+        }
+        authenticatedOrganizations.remove(loginTenantDomain);
+        for (String tenantDomain : authenticatedOrganizations) {
+            FrameworkUtils.addSessionContextToCacheWithoutPersisting(sessionContextKey, sessionContext,
+                    applicationTenantDomain, tenantDomain, organizationId);
+        }
     }
 
     private void storeFedAuthSessionMapping(String sessionContextKey, AuthHistory authHistory)
@@ -1389,6 +1438,73 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         authenticatedOrgData.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
     }
 
+    /**
+     * Merges the given authenticated IdP data maps into a single map
+     * adding only the authenticators which are not already present.
+     *
+     * @param previousAuthenticatedIdPs The authenticated IdP data to be used as the base.
+     * @param currentAuthenticatedIdPs  The authenticated IdP data to be merged into the base.
+     * @return A new map containing the merged authenticated IdP data.
+     * @throws FrameworkException If an error occurs while cloning the authenticated IdP data.
+     */
+    private Map<String, AuthenticatedIdPData> mergeAuthenticatedIdPs(
+            Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs,
+            Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs) throws FrameworkException {
+
+        Map<String, AuthenticatedIdPData> mergedAuthenticatedIdPs = new HashMap<>();
+        mergeAuthenticatedIdPsInto(mergedAuthenticatedIdPs, previousAuthenticatedIdPs);
+        mergeAuthenticatedIdPsInto(mergedAuthenticatedIdPs, currentAuthenticatedIdPs);
+        return mergedAuthenticatedIdPs;
+    }
+
+    /**
+     * Merges the authenticated IdP data of the given source map into the target merged map. When an IdP with the same
+     * name is already present in the merged map, only the authenticators which are not already present are added to
+     * the existing entry.
+     *
+     * @param mergedAuthenticatedIdPs The target map to merge into.
+     * @param authenticatedIdPs       The source authenticated IdP data to merge.
+     * @throws FrameworkException If an error occurs while cloning the authenticated IdP data.
+     */
+    private void mergeAuthenticatedIdPsInto(Map<String, AuthenticatedIdPData> mergedAuthenticatedIdPs,
+                                            Map<String, AuthenticatedIdPData> authenticatedIdPs)
+            throws FrameworkException {
+
+        if (MapUtils.isEmpty(authenticatedIdPs)) {
+            return;
+        }
+
+        for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
+            String idpName = entry.getKey();
+            if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
+                AuthenticatedIdPData authenticatedIdPData = entry.getValue();
+                AuthenticatedIdPData existingAuthenticatedIdPData = mergedAuthenticatedIdPs.get(idpName);
+                if (existingAuthenticatedIdPData == null) {
+                    try {
+                        mergedAuthenticatedIdPs.put(idpName, (AuthenticatedIdPData) authenticatedIdPData.clone());
+                    } catch (CloneNotSupportedException e) {
+                        throw new FrameworkException("Error while cloning AuthenticatedIdPData object.", e);
+                    }
+                } else {
+                    // An IdP with the same name is already added. Add only the authenticators which are not already
+                    // present in the existing entry.
+                    List<AuthenticatorConfig> existingAuthenticators = existingAuthenticatedIdPData.getAuthenticators();
+                    List<AuthenticatorConfig> newAuthenticators = authenticatedIdPData.getAuthenticators();
+                    if (CollectionUtils.isNotEmpty(newAuthenticators)) {
+                        for (AuthenticatorConfig newAuthenticator : newAuthenticators) {
+                            boolean alreadyPresent = existingAuthenticators != null && existingAuthenticators.stream()
+                                    .anyMatch(existing -> StringUtils.equals(existing.getName(),
+                                            newAuthenticator.getName()));
+                            if (!alreadyPresent) {
+                                existingAuthenticatedIdPData.addAuthenticator(newAuthenticator);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private void addAuditLogs(String sessionAction, AuthenticatedUser authenticatedUser, String sessionKey,
                               String traceId, Long lastAccessedTimestamp, boolean isRememberMe) {
 
@@ -1447,5 +1563,57 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             return null;
         }
         return federatedTokens.stream().map(FederatedToken::getIdp).collect(Collectors.toList());
+    }
+
+    /**
+     * Determines whether the organization sessions held in an already existing session context are applicable to
+     * the current organization login, and can therefore be reused instead of creating a new session context.
+     *
+     * @param context        Authentication context of the current authentication flow.
+     * @param sessionContext Existing session context loaded from the cache.
+     * @return {@code true} if the organization sessions in the existing session context are applicable to the
+     * current login; {@code false} otherwise.
+     */
+    private boolean isAuthenticatedOrgSessionsApplicable(AuthenticationContext context,
+                                                         SessionContext sessionContext) {
+
+        Map<String, AuthenticatedOrgData> authenticatedOrgDataMap = sessionContext.getAuthenticatedOrgData();
+        if (MapUtils.isEmpty(authenticatedOrgDataMap)) {
+            return false;
+        }
+
+        AuthenticatedUser currentAuthenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+        String accessingOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getAccessingOrganizationId();
+        if (context.isSharedAppLogin()) {
+            accessingOrgId = context.getOrganizationLoginData().getAccessingOrganization().getId();
+        }
+
+        if (accessingOrgId == null) {
+            return false;
+        }
+
+        if (!currentAuthenticatedUser.isSharedUser() &&
+                sessionContext.getAuthenticatedOrgData().get(accessingOrgId) == null) {
+            return false;
+        }
+
+        try {
+            String currentAuthenticatedUserId = currentAuthenticatedUser.getUserId();
+            for (AuthenticatedOrgData authenticatedOrgData : authenticatedOrgDataMap.values()) {
+                for (SequenceConfig sequenceConfig : authenticatedOrgData.getAuthenticatedSequences().values()) {
+                    if (sequenceConfig != null && sequenceConfig.getAuthenticatedUser() != null &&
+                            !StringUtils.equals(currentAuthenticatedUserId,
+                                    sequenceConfig.getAuthenticatedUser().getUserId())) {
+                        return false;
+                    }
+                }
+            }
+        } catch (UserIdNotFoundException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while resolving userId for user: " +
+                        currentAuthenticatedUser.getLoggableMaskedUserId());
+            }
+        }
+        return true;
     }
 }

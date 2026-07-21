@@ -27,15 +27,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Builds the controlled In-Flow Extension context tree returned by the metadata endpoint.
+ * Builds the controlled Flow Extension context tree returned by the metadata endpoint.
  * The set of exposed attributes is governed at code level by this builder so the frontend
- * receives the user/flow/properties tree shape the Console UI expects.
+ * receives the user/flow tree shape the Console UI expects.
  */
 public class FlowExtensionContextTreeBuilder {
-
-    // Flow context attributes that appear under the "flow" branch of the tree.
-    private static final List<String> FLOW_BRANCH_ATTRS =
-            Arrays.asList("flowType", "portalUrl");
 
     /**
      * Build the metadata response for the given flow type.
@@ -47,10 +43,9 @@ public class FlowExtensionContextTreeBuilder {
 
         List<FlowExtensionContextTreeNode> tree = new ArrayList<>();
         tree.add(buildUserNode());
-//        tree.add(buildPropertiesNode());
-//        tree.add(buildTenantNode());
+        tree.add(buildTenantNode());
         tree.add(buildApplicationNode());
-//        tree.add(buildOrganizationNode());
+        tree.add(buildOrganizationNode());
         tree.add(buildFlowNode());
 
         return new FlowExtensionContextTreeMetadata(
@@ -70,50 +65,42 @@ public class FlowExtensionContextTreeBuilder {
      * will be wired into.</p>
      */
     static boolean allowReadOnlyClaimsModification(String flowType) {
-
-        if (flowType == null) {
-            return true;
-        }
-        switch (flowType) {
-            case ContextTree.FLOW_REGISTRATION, ContextTree.FLOW_INVITED_USER_REGISTRATION:
-                return true;
-            case ContextTree.FLOW_PASSWORD_RECOVERY:
-            default:
-                return false;
-        }
+        return flowType == null
+                || ContextTree.FLOW_REGISTRATION.equals(flowType)
+                || ContextTree.FLOW_INVITED_USER_REGISTRATION.equals(flowType);
     }
 
     private FlowExtensionContextTreeNode buildUserNode() {
 
         List<FlowExtensionContextTreeNode> children = new ArrayList<>();
 
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("id")
-//                .title("User ID")
-//                .path("/user/id")
-//                .dataType(ContextTree.DATA_TYPE_STRING)
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .replaceable(false)
-//                .build());
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("username")
-//                .title("Username")
-//                .path("/user/username")
-//                .dataType(ContextTree.DATA_TYPE_STRING)
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .replaceable(false)
-//                .build());
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("userStoreDomain")
-//                .title("User Store Domain")
-//                .path("/user/userStoreDomain")
-//                .dataType(ContextTree.DATA_TYPE_STRING)
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .replaceable(false)
-//                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("id")
+                .title("User ID")
+                .path(FlowContextPaths.USER_ID_PATH)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .replaceable(false)
+                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("username")
+                .title("Username")
+                .path(FlowContextPaths.USER_USERNAME_PATH)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .replaceable(false)
+                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("userStoreDomain")
+                .title("User Store Domain")
+                .path(FlowContextPaths.USER_STORE_DOMAIN_PATH)
+                .dataType(ContextTree.DATA_TYPE_STRING)
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .replaceable(false)
+                .build());
 
         children.add(FlowExtensionContextTreeNode.builder()
                 .key("claims")
@@ -127,31 +114,30 @@ public class FlowExtensionContextTreeBuilder {
                 .children(Collections.emptyList())
                 .build());
 
-//        List<FlowExtensionContextTreeNode> credentialsChildren = new ArrayList<>();
-//        credentialsChildren.add(FlowExtensionContextTreeNode.builder()
-//                .key("password")
-//                .title("Password")
-//                .path("/user/credentials/password")
-//                .dataType("char[]")
-//                .nodeType(ContextTree.NODE_LEAF)
-//                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
-//                .build());
-//
-//        children.add(FlowExtensionContextTreeNode.builder()
-//                .key("credentials")
-//                .title("Credentials")
-//                .path("/user/credentials/")
-//                .dataType("Map<String, char[]>")
-//                .nodeType(ContextTree.NODE_MAP)
-//                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
-//                .dynamicEntryAllowed(false)
-//                .children(credentialsChildren)
-//                .build());
+        List<FlowExtensionContextTreeNode> credentialsChildren = new ArrayList<>();
+        credentialsChildren.add(FlowExtensionContextTreeNode.builder()
+                .key("password")
+                .title("Password")
+                .path(FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX + "password")
+                .dataType("char[]")
+                .nodeType(ContextTree.NODE_LEAF)
+                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
+                .build());
+        children.add(FlowExtensionContextTreeNode.builder()
+                .key("credentials")
+                .title("Credentials")
+                .path(FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)
+                .dataType("Map<String, char[]>")
+                .nodeType(ContextTree.NODE_MAP)
+                .allowedOperations(Arrays.asList(ContextTree.OP_EXPOSE, ContextTree.OP_MODIFY))
+                .dynamicEntryAllowed(false)
+                .children(credentialsChildren)
+                .build());
 
         return FlowExtensionContextTreeNode.builder()
                 .key("user")
                 .title("User")
-                .path("/user/")
+                .path(FlowContextPaths.USER_PREFIX)
                 .dataType("")
                 .nodeType(ContextTree.NODE_OBJECT)
                 .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
@@ -162,9 +148,8 @@ public class FlowExtensionContextTreeBuilder {
     private FlowExtensionContextTreeNode buildFlowNode() {
 
         List<FlowExtensionContextTreeNode> children = new ArrayList<>();
-        for (String attr : FLOW_BRANCH_ATTRS) {
-            children.add(readOnlyLeaf(attr, attrTitle(attr), FlowContextPaths.FLOW_PREFIX + attr));
-        }
+        children.add(readOnlyLeaf("flowType", "Flow Type", FlowContextPaths.FLOW_TYPE_PATH));
+        children.add(readOnlyLeaf("portalUrl", "Portal URL", FlowContextPaths.FLOW_PORTAL_URL_PATH));
         return FlowExtensionContextTreeNode.builder()
                 .key("flow")
                 .title("Flow")
@@ -177,21 +162,21 @@ public class FlowExtensionContextTreeBuilder {
                 .build();
     }
 
-//    private FlowExtensionContextTreeNode buildTenantNode() {
-//
-//        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
-//        children.add(readOnlyLeaf("domain", "Tenant Domain", FlowContextPaths.TENANT_DOMAIN_PATH));
-//        return FlowExtensionContextTreeNode.builder()
-//                .key("tenant")
-//                .title("Tenant")
-//                .path(FlowContextPaths.TENANT_PREFIX)
-//                .dataType("")
-//                .nodeType(ContextTree.NODE_OBJECT)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .readOnly(true)
-//                .children(children)
-//                .build();
-//    }
+    private FlowExtensionContextTreeNode buildTenantNode() {
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(readOnlyLeaf("domain", "Tenant Domain", FlowContextPaths.TENANT_DOMAIN_PATH));
+        return FlowExtensionContextTreeNode.builder()
+                .key("tenant")
+                .title("Tenant")
+                .path(FlowContextPaths.TENANT_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .children(children)
+                .build();
+    }
 
     private FlowExtensionContextTreeNode buildApplicationNode() {
 
@@ -209,24 +194,24 @@ public class FlowExtensionContextTreeBuilder {
                 .build();
     }
 
-//    private FlowExtensionContextTreeNode buildOrganizationNode() {
-//
-//        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
-//        children.add(readOnlyLeaf("id", "Organization ID", FlowContextPaths.ORGANIZATION_ID_PATH));
-//        children.add(readOnlyLeaf("name", "Organization Name", FlowContextPaths.ORGANIZATION_NAME_PATH));
-//        children.add(readOnlyLeaf("orgHandle", "Organization Handle", FlowContextPaths.ORGANIZATION_HANDLE_PATH));
-//        children.add(readOnlyLeaf("depth", "Organization Depth", FlowContextPaths.ORGANIZATION_DEPTH_PATH));
-//        return FlowExtensionContextTreeNode.builder()
-//                .key("organization")
-//                .title("Organization")
-//                .path(FlowContextPaths.ORGANIZATION_PREFIX)
-//                .dataType("")
-//                .nodeType(ContextTree.NODE_OBJECT)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
-//                .readOnly(true)
-//                .children(children)
-//                .build();
-//    }
+    private FlowExtensionContextTreeNode buildOrganizationNode() {
+
+        List<FlowExtensionContextTreeNode> children = new ArrayList<>();
+        children.add(readOnlyLeaf("id", "Organization ID", FlowContextPaths.ORGANIZATION_ID_PATH));
+        children.add(readOnlyLeaf("name", "Organization Name", FlowContextPaths.ORGANIZATION_NAME_PATH));
+        children.add(readOnlyLeaf("orgHandle", "Organization Handle", FlowContextPaths.ORGANIZATION_HANDLE_PATH));
+        children.add(readOnlyLeaf("depth", "Organization Depth", FlowContextPaths.ORGANIZATION_DEPTH_PATH));
+        return FlowExtensionContextTreeNode.builder()
+                .key("organization")
+                .title("Organization")
+                .path(FlowContextPaths.ORGANIZATION_PREFIX)
+                .dataType("")
+                .nodeType(ContextTree.NODE_OBJECT)
+                .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
+                .readOnly(true)
+                .children(children)
+                .build();
+    }
 
     private FlowExtensionContextTreeNode readOnlyLeaf(String key, String title, String path) {
 
@@ -239,29 +224,5 @@ public class FlowExtensionContextTreeBuilder {
                 .allowedOperations(Collections.singletonList(ContextTree.OP_EXPOSE))
                 .readOnly(true)
                 .build();
-    }
-
-//    private FlowExtensionContextTreeNode buildPropertiesNode() {
-//
-//        return FlowExtensionContextTreeNode.builder()
-//                .key("properties")
-//                .title("Properties")
-//                .path("/properties/")
-//                .dataType("Map<String, Object>")
-//                .nodeType(ContextTree.NODE_COMPLEX_MAP)
-//                .allowedOperations(Collections.singletonList(ContextTree.OP_MODIFY))
-//                .dynamicEntryAllowed(true)
-//                .dynamicEntryType("Object")
-//                .children(Collections.emptyList())
-//                .build();
-//    }
-
-    private static String attrTitle(String attr) {
-
-        switch (attr) {
-            case "flowType":       return "Flow Type";
-            case "portalUrl":      return "Portal URL";
-            default:               return attr;
-        }
     }
 }

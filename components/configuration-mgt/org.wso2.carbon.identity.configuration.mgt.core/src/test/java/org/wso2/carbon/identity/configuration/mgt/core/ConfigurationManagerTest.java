@@ -30,6 +30,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
@@ -37,6 +38,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceIdentifier;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
@@ -64,6 +66,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -887,6 +890,77 @@ public class ConfigurationManagerTest {
                 .thenReturn(SUPER_TENANT_DOMAIN_NAME);
 
         configurationManager = new ConfigurationManagerImpl(configurationHolder);
+    }
+
+    @Test(priority = 44)
+    public void testAddAndGetDefaultConfigResolver() {
+
+        ConfigurationManagerComponentDataHolder dataHolder =
+                ConfigurationManagerComponentDataHolder.getInstance();
+        DefaultConfigResolver resolver = mock(DefaultConfigResolver.class);
+        when(resolver.getResourceIdentifier()).thenReturn(new ResourceIdentifier("testType", "testName"));
+        try {
+            dataHolder.addDefaultConfigResolver(resolver);
+            assertEquals("Resolver should be present after bind", resolver,
+                    dataHolder.getDefaultConfigResolver("testType", "testName"));
+        } finally {
+            dataHolder.removeDefaultConfigResolver(resolver);
+        }
+        assertNull("Resolver should be absent after unbind",
+                dataHolder.getDefaultConfigResolver("testType", "testName"));
+    }
+
+    @Test(priority = 45)
+    public void testGetDefaultResourceUsesMatchingResolver() throws Exception {
+
+        ConfigurationManagerComponentDataHolder dataHolder =
+                ConfigurationManagerComponentDataHolder.getInstance();
+        Resource expected = new Resource();
+        expected.setResourceName("default");
+
+        DefaultConfigResolver matching = mock(DefaultConfigResolver.class);
+        when(matching.getResourceIdentifier()).thenReturn(new ResourceIdentifier("anyType", "anyName"));
+        when(matching.getDefaultConfigs(anyString(), anyString())).thenReturn(expected);
+
+        DefaultConfigResolver shouldNotBeCalled = mock(DefaultConfigResolver.class);
+        when(shouldNotBeCalled.getResourceIdentifier())
+                .thenReturn(new ResourceIdentifier("otherType", "otherName"));
+
+        try {
+            dataHolder.addDefaultConfigResolver(matching);
+            dataHolder.addDefaultConfigResolver(shouldNotBeCalled);
+
+            Resource actual = configurationManager.getDefaultResource("anyType", "anyName");
+
+            assertEquals(expected, actual);
+            verify(matching, times(1)).getDefaultConfigs("anyType", "anyName");
+            verify(shouldNotBeCalled, times(0)).getDefaultConfigs(anyString(), anyString());
+        } finally {
+            dataHolder.removeDefaultConfigResolver(matching);
+            dataHolder.removeDefaultConfigResolver(shouldNotBeCalled);
+        }
+    }
+
+    @Test(priority = 46, expectedExceptions = ConfigurationManagementException.class)
+    public void testGetDefaultResourceThrowsWhenNoResolverMatches() throws Exception {
+
+        ConfigurationManagerComponentDataHolder dataHolder =
+                ConfigurationManagerComponentDataHolder.getInstance();
+        DefaultConfigResolver nonMatching = mock(DefaultConfigResolver.class);
+        when(nonMatching.getResourceIdentifier()).thenReturn(new ResourceIdentifier("someType", "someName"));
+
+        try {
+            dataHolder.addDefaultConfigResolver(nonMatching);
+            configurationManager.getDefaultResource("unknownType", "unknownName");
+        } finally {
+            dataHolder.removeDefaultConfigResolver(nonMatching);
+        }
+    }
+
+    @Test(priority = 47, expectedExceptions = ConfigurationManagementException.class)
+    public void testGetDefaultResourceThrowsWhenNoResolversRegistered() throws Exception {
+
+        configurationManager.getDefaultResource("anyType", "anyName");
     }
 
     private void mockCarbonContextForTenant(int tenantId, String tenantDomain,

@@ -1172,6 +1172,7 @@
             <EnableTLSCertificateBoundAccessTokensViaBindingType>{{oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type}}</EnableTLSCertificateBoundAccessTokensViaBindingType>
             <EnableHybridFlowAppLevelValidation>{{oauth.oidc.enable_hybrid_flow_app_level_validation}}</EnableHybridFlowAppLevelValidation>
             <EnableClaimsSeparationForAccessToken>{{oauth.oidc.enable_claims_separation_for_access_tokens}}</EnableClaimsSeparationForAccessToken>
+            <RestrictAssertionClaimsToConfiguredAttributes>{{oauth.oidc.restrict_assertion_claims_to_configured_attributes}}</RestrictAssertionClaimsToConfiguredAttributes>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -1297,6 +1298,7 @@
             <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
             <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
             <ReturnNullFieldsInResponse>{{oauth.dcrm.return_null_fields_in_response}}</ReturnNullFieldsInResponse>
+            <DecodeRedirectUrisInResponse>{{oauth.dcrm.decode_redirect_uris_in_response}}</DecodeRedirectUrisInResponse>
         </DCRM>
 
         <!--
@@ -1391,6 +1393,12 @@
             <EnableDefaultRequestedScopesForBackChannelGrant>{{oauth.allow_default_requested_scopes_for_back_channel_grant}}</EnableDefaultRequestedScopesForBackChannelGrant>
         {% endif %}
 
+        {% if oauth.use_app_authorized_scopes_as_default is defined %}
+            <!-- When enabled, requests with no scope default to the application's authorized scopes
+                 (filtered by the caller's entitlement) instead of the static DefaultRequestedScopes list. -->
+            <UseAppAuthorizedScopesAsDefault>{{oauth.use_app_authorized_scopes_as_default}}</UseAppAuthorizedScopesAsDefault>
+        {% endif %}
+
         {% if oauth.drop_unregistered_scopes is defined %}
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
@@ -1482,6 +1490,7 @@
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
         <AuthorizeInternalScopes>{{oauth.authorize_internal_scopes}}</AuthorizeInternalScopes>
+        <MergeAuthorizedScopesByPolicy>{{oauth.merge_authorized_scopes_by_policy}}</MergeAuthorizedScopesByPolicy>
 
         <!--
             When this configuration is enabled, the system supports the features defined in RFC9396,
@@ -1527,6 +1536,12 @@
             <ValidityPeriod>{{push_authenticator.device_registration_context.validity_period}}</ValidityPeriod>
         </DeviceRegistrationContext>
     </PushAuthenticator>
+
+    <PushDeviceManagement>
+        <DeviceRegistrationNotificationsEnabled>{{push_device_management.device_registration_notifications_enabled}}</DeviceRegistrationNotificationsEnabled>
+        <MaxDeviceLimitPerUser>{{push_device_management.max_device_limit_per_user}}</MaxDeviceLimitPerUser>
+        <MultipleDeviceSupportEnabled>{{push_device_management.multiple_device_support_enabled}}</MultipleDeviceSupportEnabled>
+    </PushDeviceManagement>
 
     <RestApiAuthentication>
             <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
@@ -1611,6 +1626,14 @@
         <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
         <SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>{{saml.slo.front_channel.post_binding.logout_request_signature_with_tenant_cert}}</SAMLSLOFrontChannelPostBindingLogoutRequestSignatureWithTenantCert>
         <SAMLAllowNestedAssertionsInResponse>{{saml.response.allow_nested_assertions}}</SAMLAllowNestedAssertionsInResponse>
+        {% if saml.endpoints.v2 is defined %}
+        <!-- V2 configs for saml endpoints -->
+        <V2>
+            {% if saml.endpoints.v2.logout is defined %}
+            <DefaultLogoutEndpoint>{{saml.endpoints.v2.logout}}</DefaultLogoutEndpoint>
+            {% endif %}
+        </V2>
+        {% endif %}
     </SSOService>
 
     <Consent>
@@ -1649,6 +1672,7 @@
         <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
         <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
         <SOAPEnabled>{{passive_sts.soap_enabled}}</SOAPEnabled>
+        <EnableClaimDescriptionInAttributeName>{{passive_sts.enable_claim_description_in_attribute_name}}</EnableClaimDescriptionInAttributeName>
     </PassiveSTS>
 
     <UserAccountAssociation>
@@ -1875,6 +1899,9 @@
     </SCIM2>
 
     <Captcha>
+        <DisableForConsole>
+            <Login>{{captcha.disable_for_console.login}}</Login>
+        </DisableForConsole>
         <EnableCaptchaForLocalOTPAuthenticators>{{captcha.enable_captcha_for_local_otp_authenticators}}</EnableCaptchaForLocalOTPAuthenticators>
     </Captcha>
 
@@ -2548,6 +2575,15 @@
         <Registration>
             <SkipSignupConfirmationIfAccountLockDisabled>{{webhooks.registration.skip_signup_confirmation_if_account_lock_disabled}}</SkipSignupConfirmationIfAccountLockDisabled>
         </Registration>
+        {% if webhooks.event_profiles.disabled_channels is defined %}
+        <EventProfiles>
+            <DisabledChannels>
+                {% for channel in webhooks.event_profiles.disabled_channels %}
+                <ChannelUri>{{channel}}</ChannelUri>
+                {% endfor %}
+            </DisabledChannels>
+        </EventProfiles>
+        {% endif %}
     </Webhooks>
 
     <LocalAuthenticators>
@@ -2928,6 +2964,7 @@
                 <StreamVersion>{{analytics.moesif.stream_version}}</StreamVersion>
                 <InlineBody>{{analytics.moesif.inline_body}}</InlineBody>
                 <Enabled>{{analytics.moesif.enabled}}</Enabled>
+                <AlwaysPublish>{{analytics.moesif.always_publish}}</AlwaysPublish>
             </Moesif>
             {% endif %}
     </Analytics>
@@ -4487,6 +4524,10 @@
         <AsyncSequenceExecutorPoolSize>{{authentication.adaptive.async_executer_pool_size}}</AsyncSequenceExecutorPoolSize>
         <MaxTotalConnections>{{authentication.adaptive.http_connections.max}}</MaxTotalConnections>
         <MaxTotalConnectionsPerRoute>{{authentication.adaptive.http_connections.max_per_route}}</MaxTotalConnectionsPerRoute>
+        <HTTPFunctions>
+            <MaxConnections>{{authentication.adaptive.http_functions.max_connections}}</MaxConnections>
+            <MaxConnectionsPerRoute>{{authentication.adaptive.http_functions.max_connections_per_route}}</MaxConnectionsPerRoute>
+        </HTTPFunctions>
 
         <!--Timeouts in milliseconds-->
         <!--Default configs for timeouts-->
@@ -5050,6 +5091,11 @@
         <Origin>{{console.origin}}</Origin>
     </Console>
 
+    <!-- Console settings -->
+    <ConsoleSettings>
+        <UseGranularConsolePermissions>{{console.console_settings.use_granular_console_permissions | default('true')}}</UseGranularConsolePermissions>
+    </ConsoleSettings>
+
     <!-- MyAccount Application configurations -->
     <MyAccount>
         <CallbackURL>{{myaccount.callback_url}}</CallbackURL>
@@ -5292,6 +5338,7 @@
     <PASTRCookieMaxAge>{{pastr_cookie.max_age}}</PASTRCookieMaxAge>
     <ResolveTenantDomainFromUsername>{{resolve_tenant_domain_from_username.enabled | default(false)}}</ResolveTenantDomainFromUsername>
     <MarkStepCompletedOnInterrupt>{{authentication.mark_step_completed_on_interrupt}}</MarkStepCompletedOnInterrupt>
+    <ReturnRolesInSaaSAppsInIDToken>{{saas_apps.return_roles_in_id_token}}</ReturnRolesInSaaSAppsInIDToken>
 
     <!-- API filtering controls -->
     <APIFiltering>
@@ -5318,4 +5365,34 @@
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>{{app_native_authentication.handle_fail_completed_authenticator_status}}</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>
+
+    <!-- Circuit Breaker configuration -->
+    <CircuitBreaker>
+        <!-- Master switch. Set to false to disable the circuit breaker globally across all tenants and services. -->
+        <Enabled>{{circuit_breaker.enabled}}</Enabled>
+        <!-- Maximum number of (tenant, service) breaker entries held in memory at once.
+             Each unique tenant-service pair occupies one slot. -->
+        <TenantServiceCacheCapacity>{{circuit_breaker.tenant_service_cache_capacity}}</TenantServiceCacheCapacity>
+        <!-- Fraction of TenantServiceCacheCapacity at which eviction is triggered to make room for new entries.
+             Must be between 0 and 1. -->
+        <TenantServiceEvictionThreshold>{{circuit_breaker.tenant_service_eviction_threshold}}</TenantServiceEvictionThreshold>
+        <!-- Time after which an idle (tenant, service) entry with no active calls is eligible for eviction.
+             Controls memory reclamation for inactive tenants. Value in milliseconds. -->
+        <TenantServiceEntryIdleTimeout>{{circuit_breaker.tenant_service_entry_idle_timeout}}</TenantServiceEntryIdleTimeout>
+        <!-- Size of the sliding call window per (tenant, service) entry.
+             The breaker tracks the last N calls to compute the live failure rate. -->
+        <WindowSize>{{circuit_breaker.window_size}}</WindowSize>
+        <!-- Minimum number of recorded calls required in the window before the failure rate is acted on.
+             Prevents premature tripping on a statistically insignificant sample. -->
+        <MinCallsToEvaluate>{{circuit_breaker.min_calls_to_evaluate}}</MinCallsToEvaluate>
+        <!-- Fraction of failures (0.0–1.0) within the window that triggers the circuit to open.
+             For example, 0.5 means 50% failure rate opens the circuit. -->
+        <FailureRateThreshold>{{circuit_breaker.failure_rate_threshold}}</FailureRateThreshold>
+        <!-- Duration the circuit stays OPEN before transitioning to HALF_OPEN and allowing one probe
+             call to test service recovery. Value in milliseconds. -->
+        <OpenDuration>{{circuit_breaker.open_duration}}</OpenDuration>
+        <!-- Maximum number of concurrent in-flight calls allowed per (tenant, service) entry.
+             Excess calls are rejected with BULKHEAD_FULL before reaching the downstream service. -->
+        <MaxInFlight>{{circuit_breaker.max_in_flight}}</MaxInFlight>
+    </CircuitBreaker>
 </Server>

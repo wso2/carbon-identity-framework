@@ -91,10 +91,13 @@ public class APIClientTest {
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws IOException {
 
         if (httpServer != null) {
             httpServer.stop(0);
+        }
+        if (apiClient != null) {
+            apiClient.close();
         }
         System.clearProperty(ServerConstants.CARBON_HOME);
     }
@@ -698,6 +701,111 @@ public class APIClientTest {
         assertEquals(receivedPayload[0], requestPayload);
     }
 
+    @Test
+    public void testAPICallFailsWhenProxyIsUnreachable() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Configure a proxy at a port where nothing is listening.
+        int unusedProxyPort = serverPort + 10000;
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(1000)
+                .httpConnectionRequestTimeoutInMillis(1000)
+                .httpConnectionTimeoutInMillis(1000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .proxyHost("localhost")
+                .proxyPort(unusedProxyPort)
+                .build();
+        APIClient proxiedClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        try {
+            proxiedClient.callAPI(requestContext, invocationConfig);
+            fail("Expected APIClientInvocationException when configured proxy is unreachable.");
+        } catch (APIClientInvocationException e) {
+            assertEquals(e.getErrorCode(),
+                    ErrorMessageConstant.ErrorMessage.ERROR_CODE_WHILE_INVOKING_API.getCode());
+        }
+    }
+
+    @Test
+    public void testAPICallSucceedsWhenProxyHostIsBlank() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        // Blank proxy host must be ignored; the client should connect directly.
+        APIClientConfig config = new APIClientConfig.Builder()
+                .httpReadTimeoutInMillis(5000)
+                .httpConnectionRequestTimeoutInMillis(3000)
+                .httpConnectionTimeoutInMillis(3000)
+                .poolSizeToBeSet(5)
+                .defaultMaxPerRoute(5)
+                .proxyHost("   ")
+                .proxyPort(8080)
+                .build();
+        APIClient directClient = new APIClient(config);
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = directClient.callAPI(requestContext, invocationConfig);
+
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+        assertEquals(response.getResponseBody(), RESPONSE_BODY);
+    }
+
     /**
      * Test that a per-invocation response limit override higher than the client default allows a
      * response that would otherwise be blocked by the client-level limit.
@@ -752,5 +860,54 @@ public class APIClientTest {
 
         assertNotNull(response);
         assertEquals(response.getResponseBody(), body);
+    }
+
+    /**
+     * Test that close() completes without throwing an exception on a newly created client.
+     */
+    @Test
+    public void testCloseSucceeds() throws IOException {
+
+        apiClient.close();
+    }
+
+    /**
+     * Test that close() completes without throwing an exception after the client has served requests.
+     */
+    @Test
+    public void testCloseAfterSuccessfulRequestSucceeds() throws Exception {
+
+        httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+        httpServer.createContext(TEST_ENDPOINT, new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+
+                byte[] response = RESPONSE_BODY.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response);
+                }
+            }
+        });
+        httpServer.start();
+        baseUrl = "http://localhost:" + serverPort;
+
+        APIAuthentication authentication = new APIAuthentication.Builder()
+                .authType(APIAuthentication.AuthType.NONE)
+                .build();
+        APIRequestContext requestContext = new APIRequestContext.Builder()
+                .httpMethod(APIRequestContext.HttpMethod.GET)
+                .apiAuthentication(authentication)
+                .endpointUrl(baseUrl + TEST_ENDPOINT)
+                .headers(new HashMap<>())
+                .build();
+        APIInvocationConfig invocationConfig = new APIInvocationConfig();
+        invocationConfig.setAllowedRetryCount(0);
+
+        APIResponse response = apiClient.callAPI(requestContext, invocationConfig);
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), 200);
+
+        apiClient.close();
     }
 }

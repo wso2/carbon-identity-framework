@@ -58,6 +58,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -131,6 +133,63 @@ public class ApplicationMgtUtil {
 
     private ApplicationMgtUtil() {
 
+    }
+
+    /**
+     * Enter an application management flow in the {@link IdentityContext} so that downstream components
+     * (e.g. event handlers/webhooks) can identify the application operation being performed.
+     * <p>
+     * If a flow is already active in the current context, a new flow will not be started (the existing flow is
+     * preserved). The flow is also not started if the initiating persona cannot be resolved from the actor.
+     * <p>
+     * Callers must invoke {@link IdentityContext#exitFlow()} in a finally block only when this method returns
+     * {@code true}.
+     *
+     * @param flowName The name of the application management flow being started.
+     * @return {@code true} if a new flow was started (and must be exited by the caller); {@code false} otherwise.
+     */
+    public static boolean enterApplicationManagementFlow(Flow.Name flowName) {
+
+        IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
+        if (identityContext.getCurrentFlow() != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("A flow is already active in the identity context. Hence, not starting the flow: "
+                        + flowName);
+            }
+            return false;
+        }
+        Flow.InitiatingPersona initiatingPersona = resolveFlowInitiatingPersona();
+        if (initiatingPersona == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Unable to resolve the initiating persona. Hence, not entering the flow: " + flowName);
+            }
+            return false;
+        }
+        identityContext.enterFlow(new Flow.Builder()
+                .name(flowName)
+                .initiatingPersona(initiatingPersona)
+                .build());
+        return true;
+    }
+
+    /**
+     * Resolve the initiating persona for an application management flow based on the actor set in the current
+     * identity context.
+     *
+     * @return The resolved initiating persona, or {@code null} if it cannot be determined.
+     */
+    private static Flow.InitiatingPersona resolveFlowInitiatingPersona() {
+
+        IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
+        if (identityContext.isApplicationActor()) {
+            return Flow.InitiatingPersona.APPLICATION;
+        } else if (identityContext.isUserActor()) {
+            return Flow.InitiatingPersona.ADMIN;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Actor is not set in the identity context.");
+        }
+        return null;
     }
 
     public static org.wso2.carbon.user.api.Permission[] buildPermissions(String applicationName,
@@ -1215,15 +1274,23 @@ public class ApplicationMgtUtil {
         }
 
         if (StringUtils.isEmpty(basePath)) {
-            return resolveOriginUrlFromPlaceholders(absoluteUrl);
+            basePath = getAbsolutePublicUrlWithoutPath();
         }
         absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
 
         if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             String consoleBasePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
+            if (StringUtils.isEmpty(consoleBasePath)) {
+                consoleBasePath = getAbsolutePublicUrlWithoutPath();
+            }
             absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_CUSTOM_PLACEHOLDER, consoleBasePath);
         }
         return absoluteUrl;
+    }
+
+    private static String getAbsolutePublicUrlWithoutPath() throws URLBuilderException {
+
+        return ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
     }
 
     /**

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.wso2.carbon.identity.action.execution.api.model.User;
 
 /**
- * Models the {@code flow} object nested inside the In-Flow Extension Event.
+ * Models the {@code flow} object nested inside the Flow Extension Event.
  * Groups flow-scoped context: the flow type, flow identifier, and the acting user.
  */
 public class FlowExtensionFlow {

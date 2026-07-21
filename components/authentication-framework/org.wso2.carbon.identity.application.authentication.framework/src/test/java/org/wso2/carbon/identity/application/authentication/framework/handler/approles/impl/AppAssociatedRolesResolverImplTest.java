@@ -22,9 +22,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -35,9 +35,9 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
-import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -54,9 +54,12 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_ORG_ID;
 
 /**
  * Unit tests for {@link AppAssociatedRolesResolverImpl}.
@@ -77,6 +80,8 @@ public class AppAssociatedRolesResolverImplTest {
     private RoleManagementService roleManagementService;
     @Mock
     private ApplicationManagementService applicationManagementService;
+    @Mock
+    private OrganizationManager organizationManager;
     @Mock
     private FrameworkServiceDataHolder frameworkServiceDataHolderInstance;
     @Mock
@@ -135,6 +140,12 @@ public class AppAssociatedRolesResolverImplTest {
             identityTenantUtilMock.close();
         }
         closeable.close();
+    }
+
+    @AfterMethod
+    public void resetMocks() {
+
+        reset(organizationManager);
     }
 
     @Test
@@ -201,20 +212,19 @@ public class AppAssociatedRolesResolverImplTest {
     @Test
     public void testGetAppAssociatedRolesOfLocalUserOrgLogin() throws Exception {
 
-        List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
+        when(frameworkServiceDataHolderInstance.getOrganizationManager()).thenReturn(organizationManager);
+        when(organizationManager.resolveOrganizationId(appTenantDomain)).thenReturn("appOrgId");
+        when(organizationManager.resolveOrganizationId(tenantDomain)).thenReturn("userOrgId");
+        when(applicationManagementService.getSharedAppId(applicationId, "appOrgId", "userOrgId"))
+                .thenReturn("sharedAppId");
+
+        RoleV2 sharedRole = new RoleV2();
+        sharedRole.setId("sharedRoleId1");
+        sharedRole.setName("sharedRole1");
+        when(applicationManagementService.getAssociatedRolesOfApplication("sharedAppId", tenantDomain))
+                .thenReturn(Collections.singletonList(sharedRole));
         when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
-                .thenReturn(Arrays.asList("sharedRoleId1"));
-        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, appTenantDomain))
-                .thenReturn(mainRoles);
-
-        Map<String, String> roleMapping = new HashMap<>();
-        roleMapping.put("roleId1", "sharedRoleId1");
-        when(roleManagementService.getMainRoleToSharedRoleMappingsBySubOrg(
-                Arrays.asList("roleId1", "roleId2"), tenantDomain)).thenReturn(roleMapping);
-
-        RoleBasicInfo sharedRoleInfo = new RoleBasicInfo("sharedRoleId1", "sharedRole1");
-        when(roleManagementService.getRoleBasicInfoById("sharedRoleId1", tenantDomain))
-                .thenReturn(sharedRoleInfo);
+                .thenReturn(Collections.singletonList("sharedRoleId1"));
 
         AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
         String[] resolvedRoles = resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
@@ -223,15 +233,19 @@ public class AppAssociatedRolesResolverImplTest {
     }
 
     @Test
-    public void testGetAppAssociatedRolesOfLocalUserOrgLoginEmptyMapping() throws Exception {
+    public void testGetAppAssociatedRolesOfLocalUserOrgLoginNoMatchingRoles() throws Exception {
 
-        List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
+        when(frameworkServiceDataHolderInstance.getOrganizationManager()).thenReturn(organizationManager);
+        when(organizationManager.resolveOrganizationId(appTenantDomain)).thenReturn("appOrgId");
+        when(organizationManager.resolveOrganizationId(tenantDomain)).thenReturn("userOrgId");
+        when(applicationManagementService.getSharedAppId(applicationId, "appOrgId", "userOrgId"))
+                .thenReturn("sharedAppId");
+
+        List<RoleV2> sharedAppRoles = generateTestRoleListForAppAssociation(2);
+        when(applicationManagementService.getAssociatedRolesOfApplication("sharedAppId", tenantDomain))
+                .thenReturn(sharedAppRoles);
         when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
-                .thenReturn(Arrays.asList("roleId1", "roleId2"));
-        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, appTenantDomain))
-                .thenReturn(mainRoles);
-        when(roleManagementService.getMainRoleToSharedRoleMappingsBySubOrg(
-                Arrays.asList("roleId1", "roleId2"), tenantDomain)).thenReturn(Collections.emptyMap());
+                .thenReturn(Collections.emptyList());
 
         AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
         String[] resolvedRoles = resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
@@ -242,23 +256,41 @@ public class AppAssociatedRolesResolverImplTest {
     @Test
     public void testGetAppAssociatedRolesOfLocalUserOrgLoginException() throws Exception {
 
-        List<RoleV2> mainRoles = generateTestRoleListForAppAssociation(2);
+        when(frameworkServiceDataHolderInstance.getOrganizationManager()).thenReturn(organizationManager);
+        when(organizationManager.resolveOrganizationId(appTenantDomain))
+                .thenThrow(new OrganizationManagementException("Error resolving org ID"));
         when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
                 .thenReturn(Arrays.asList("roleId1", "roleId2"));
-        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, appTenantDomain))
-                .thenReturn(mainRoles);
-        when(roleManagementService.getMainRoleToSharedRoleMappingsBySubOrg(
-                Arrays.asList("roleId1", "roleId2"), tenantDomain))
-                .thenThrow(new IdentityRoleManagementException("65001", "Error resolving shared roles"));
 
         AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
         try {
             resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
-            throw new AssertionError("Expected ApplicationRolesException was not thrown");
+            fail("Expected ApplicationRolesException was not thrown.");
         } catch (ApplicationRolesException e) {
-            assertEquals(e.getErrorCode(),
-                    AppRolesConstants.ErrorMessages.ERROR_CODE_RESOLVING_SHARED_ROLES.getCode());
+            assertEquals(e.getErrorCode(), ERROR_CODE_RETRIEVING_ORG_ID.getCode());
         }
+    }
+
+    @Test
+    public void testGetAppAssociatedRolesOfLocalUserLegacySaasApp() throws Exception {
+
+        when(frameworkServiceDataHolderInstance.getOrganizationManager()).thenReturn(organizationManager);
+        when(organizationManager.resolveOrganizationId(appTenantDomain)).thenReturn("appOrgId");
+        when(organizationManager.resolveOrganizationId(tenantDomain)).thenReturn("userOrgId");
+        // Legacy SaaS: no shared app in user's tenant.
+        when(applicationManagementService.getSharedAppId(applicationId, "appOrgId", "userOrgId"))
+                .thenReturn(null);
+
+        List<RoleV2> appRoles = generateTestRoleListForAppAssociation(2);
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, tenantDomain))
+                .thenReturn(appRoles);
+        when(roleManagementService.getRoleIdListOfUser("userId1", tenantDomain))
+                .thenReturn(Arrays.asList("roleId1", "roleId2"));
+
+        AuthenticatedUser user = createLocalAuthenticatedUser("userId1", tenantDomain);
+        String[] resolvedRoles = resolver.getAppAssociatedRolesOfLocalUser(user, applicationId, appTenantDomain);
+
+        assertEquals(resolvedRoles, new String[]{"Internal/role1", "Internal/role2"});
     }
 
     private AuthenticatedUser createLocalAuthenticatedUser(String userId, String userTenantDomain) {

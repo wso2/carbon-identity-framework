@@ -226,6 +226,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP_UUID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
@@ -760,8 +761,8 @@ public class FrameworkUtils {
     }
 
     /**
-     * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
-     * be fetched from request parameters or referer.
+     * This method is used to append sp name, sp uuid and sp tenant domain as parameter to a given url. Those
+     * information will be fetched from request parameters or referer.
      *
      * @param redirectURL Redirect URL.
      * @param request     HttpServlet Request.
@@ -770,9 +771,14 @@ public class FrameworkUtils {
     public static String getRedirectURL(String redirectURL, HttpServletRequest request) {
 
         String spName = (String) request.getAttribute(REQUEST_PARAM_SP);
+        String spId = (String) request.getAttribute(REQUEST_PARAM_SP_UUID);
         String tenantDomain = (String) request.getAttribute(TENANT_DOMAIN);
         if (StringUtils.isBlank(spName)) {
             spName = getServiceProviderNameByReferer(request);
+        }
+
+        if (StringUtils.isBlank(spId)) {
+            spId = getServiceProviderUuidByReferer(request);
         }
 
         if (StringUtils.isBlank(tenantDomain)) {
@@ -782,6 +788,10 @@ public class FrameworkUtils {
         try {
             if (StringUtils.isNotBlank(spName)) {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
+            }
+
+            if (StringUtils.isNotBlank(spId)) {
+                redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP_UUID, spId);
             }
 
             if (StringUtils.isNotBlank(MDC.get(CORRELATION_ID_MDC))) {
@@ -944,6 +954,23 @@ public class FrameworkUtils {
         }
 
         return serviceProviderName;
+    }
+
+    private static String getServiceProviderUuidByReferer(HttpServletRequest request) {
+
+        String serviceProviderUuid = null;
+        String refererHeader = request.getHeader("referer");
+        if (StringUtils.isNotBlank(refererHeader)) {
+            String[] queryParams = refererHeader.split(QUERY_SEPARATOR);
+            for (String queryParam : queryParams) {
+                if (queryParam.contains(REQUEST_PARAM_SP_UUID + EQUAL)) {
+                    serviceProviderUuid = queryParam.substring(queryParam.lastIndexOf(EQUAL) + 1);
+                    break;
+                }
+            }
+        }
+
+        return serviceProviderUuid;
     }
 
     private static String getTenantDomainByReferer(HttpServletRequest request) {
@@ -1325,6 +1352,47 @@ public class FrameworkUtils {
                                                 String loginTenantDomain, String orgId) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = buildSessionContextCacheEntry(key, sessionContext, tenantDomain, orgId);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
+    }
+
+    /**
+     * Adds the given session context to the session context cache only, without persisting it to the session data
+     * store.
+     *
+     * @param key               Session context cache key.
+     * @param sessionContext    Session context to be cached.
+     * @param applicationTenantDomain      Application tenant domain used to resolve session timeout configurations.
+     * @param tenantDomain      Tenant domain under which the cache entry is stored.
+     * @param orgId             Organization id used to look up authenticated sequences from
+     *                          {@link SessionContext#getAuthenticatedOrgData()}.
+     */
+    public static void addSessionContextToCacheWithoutPersisting(String key, SessionContext sessionContext,
+                                                                 String applicationTenantDomain, String tenantDomain,
+                                                                 String orgId) {
+
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry =
+                buildSessionContextCacheEntry(key, sessionContext, applicationTenantDomain, orgId);
+        SessionContextCache.getInstance().addToCacheWithoutPersisting(cacheKey, cacheEntry, tenantDomain);
+    }
+
+    /**
+     * Builds a {@link SessionContextCacheEntry} for the given session context. When an {@code orgId} is provided and
+     * the session context holds an {@link AuthenticatedOrgData} entry for that organization, the authenticated
+     * sequences of that organization are used for cleanup (clearing user attributes and the authentication graph).
+     * Otherwise, the top-level authenticated sequences of the session context are used.
+     *
+     * @param key            Session context cache key.
+     * @param sessionContext Session context to be cached.
+     * @param tenantDomain   Application tenant domain used to resolve session timeout configurations.
+     * @param orgId          Organization id used to look up authenticated sequences from
+     *                       {@link SessionContext#getAuthenticatedOrgData()}.
+     * @return The built session context cache entry.
+     */
+    private static SessionContextCacheEntry buildSessionContextCacheEntry(String key, SessionContext sessionContext,
+                                                                          String tenantDomain, String orgId) {
+
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
         cacheEntry.setContextIdentifier(key);
 
@@ -1365,7 +1433,7 @@ public class FrameworkUtils {
 
         cacheEntry.setContext(sessionContext);
         cacheEntry.setValidityPeriod(timeoutPeriod);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry, loginTenantDomain);
+        return cacheEntry;
     }
 
     /**

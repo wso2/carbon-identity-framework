@@ -144,6 +144,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP_UUID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ROLES_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
@@ -158,6 +159,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     private static final String ROOT_DOMAIN = "/";
     private static final String DUMMY_TENANT_DOMAIN = "ABC";
     private static final String DUMMY_SP_NAME = "wso2carbon-local-sp";
+    private static final String DUMMY_SP_UUID = "65ac1c50-7bc4-4aae-971c-d0e824c2a218";
+    private static final String DUMMY_SP_UUID_2 = "11111111-2222-3333-4444-555555555555";
     private static final String REDIRECT_URL = "custom-page?";
     private static final String DUMMY_CACHE_KEY = "cache-key";
 
@@ -677,9 +680,70 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                 .put(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS, true);
         when(request.getAttribute(REQUEST_PARAM_SP)).thenReturn(spName);
         when(request.getAttribute(TENANT_DOMAIN)).thenReturn(tenantDomain);
+        lenient().when(request.getAttribute(REQUEST_PARAM_SP_UUID)).thenReturn(null);
 
         String redirectURL = FrameworkUtils.getRedirectURL(REDIRECT_URL, request);
         assertEquals(redirectURL, expectedOut);
+    }
+
+    @DataProvider(name = "provideSpIdRequestAttributes")
+    public Object[][] provideSpIdRequestAttributes() {
+
+        // spName attribute, spId attribute, expected output.
+        return new Object[][]{
+                {DUMMY_SP_NAME, DUMMY_SP_UUID,
+                        REDIRECT_URL + "&sp=" + DUMMY_SP_NAME + "&spId=" + DUMMY_SP_UUID},
+                {null, DUMMY_SP_UUID, REDIRECT_URL + "&spId=" + DUMMY_SP_UUID},
+                {DUMMY_SP_NAME, null, REDIRECT_URL + "&sp=" + DUMMY_SP_NAME},
+                {null, null, REDIRECT_URL}
+        };
+    }
+
+    @Test(dataProvider = "provideSpIdRequestAttributes")
+    public void testGetRedirectURLAppendsSpIdFromAttribute(String spName, String spId, String expectedOut) {
+
+        IdentityConfigParser.getInstance().getConfiguration()
+                .put(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS, true);
+        when(request.getAttribute(REQUEST_PARAM_SP)).thenReturn(spName);
+        when(request.getAttribute(REQUEST_PARAM_SP_UUID)).thenReturn(spId);
+
+        String redirectURL = FrameworkUtils.getRedirectURL(REDIRECT_URL, request);
+        assertEquals(redirectURL, expectedOut);
+    }
+
+    @DataProvider(name = "provideSpIdRefererHeaders")
+    public Object[][] provideSpIdRefererHeaders() {
+
+        return new Object[][]{
+                {"https://localhost:9443/authenticationendpoint/login.do?sp=" + DUMMY_SP_NAME
+                        + "&spId=" + DUMMY_SP_UUID + "&sessionDataKey=key", DUMMY_SP_UUID},
+                {"https://localhost:9443/authenticationendpoint/login.do?sp=" + DUMMY_SP_NAME
+                        + "&sessionDataKey=key", null},
+                {"https://localhost:9443/authenticationendpoint/login.do?spId=" + DUMMY_SP_UUID
+                        + "&spId=" + DUMMY_SP_UUID_2, DUMMY_SP_UUID},
+                {"https://localhost:9443/authenticationendpoint/login.do?spId=&sessionDataKey=key", null},
+                {null, null}
+        };
+    }
+
+    @Test(dataProvider = "provideSpIdRefererHeaders")
+    public void testGetRedirectURLAppendsSpIdFromReferer(String refererHeader, String expectedSpId) {
+
+        IdentityConfigParser.getInstance().getConfiguration()
+                .put(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS, true);
+        lenient().when(request.getAttribute(REQUEST_PARAM_SP)).thenReturn(null);
+        lenient().when(request.getAttribute(REQUEST_PARAM_SP_UUID)).thenReturn(null);
+        lenient().when(request.getAttribute(TENANT_DOMAIN)).thenReturn(null);
+        lenient().when(request.getHeader("referer")).thenReturn(refererHeader);
+
+        String redirectURL = FrameworkUtils.getRedirectURL(REDIRECT_URL, request);
+        if (expectedSpId == null) {
+            assertFalse(redirectURL.contains("spId="),
+                    "spId must not be appended when it cannot be resolved. Got: " + redirectURL);
+        } else {
+            assertTrue(redirectURL.contains("spId=" + expectedSpId),
+                    "Expected spId=" + expectedSpId + " in redirect URL. Got: " + redirectURL);
+        }
     }
 
     private Cookie[] getAuthenticationCookies() {

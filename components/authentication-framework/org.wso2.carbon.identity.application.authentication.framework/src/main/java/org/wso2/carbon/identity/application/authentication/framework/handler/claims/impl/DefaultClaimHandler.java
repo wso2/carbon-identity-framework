@@ -84,6 +84,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ALLOW_AUTHENTICATED_SUB_UPDATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_USERNAME_UPDATED_EXTERNALLY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RETURN_ROLES_IN_SAAS_APPS_IN_ID_TOKEN;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
@@ -429,9 +430,10 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (serviceProvider == null) {
             return null;
         }
-        /* Application and user should be in same tenant domain in order to match the application assigned roles for
-            the user. */
-        if (!StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain())) {
+        /* If the application and user are in different tenant domains and the ReturnRolesInSaaSAppsInIDToken config
+           is disabled, return an empty list. */
+        if (!StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain()) &&
+                !Boolean.parseBoolean(IdentityUtil.getProperty(RETURN_ROLES_IN_SAAS_APPS_IN_ID_TOKEN))) {
             return new ArrayList<>();
         }
         String applicationId = serviceProvider.getApplicationResourceId();

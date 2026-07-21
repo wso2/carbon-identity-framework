@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.organization.management.service.exception.Organi
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
-import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -60,12 +59,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RESOLVING_SHARED_ROLES;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_APP_ROLES;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_LOCAL_USER_GROUPS;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_ORG_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_USER_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.INTERNAL_ROLE;
@@ -162,14 +160,27 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
                                                        String appTenantDomain) throws ApplicationRolesException {
 
         Set<String> userRoleIds = getAllRolesOfLocalUser(authenticatedUser);
-        List<RoleV2> mainRolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId, appTenantDomain);
-        List<RoleV2> rolesAssociatedWithApp = mainRolesAssociatedWithApp;
+
+        /*
+         For cross-tenant access without a shared user, resolve the shared application in the user's org
+         (B2B SaaS) or keep the original app ID (legacy SaaS), then fetch roles from the user's tenant.
+         This handles both B2B SaaS (shared app ID found) and legacy SaaS (no shared app, user tenant
+         has direct role assignments for the SaaS app).
+        */
+        if (StringUtils.isEmpty(authenticatedUser.getSharedUserId())
+                && !StringUtils.equals(appTenantDomain, authenticatedUser.getTenantDomain())) {
+            String sharedAppId = getSharedAppId(applicationId, appTenantDomain,
+                    authenticatedUser.getTenantDomain());
+            if (StringUtils.isNotBlank(sharedAppId)) {
+                applicationId = sharedAppId;
+            }
+            appTenantDomain = authenticatedUser.getTenantDomain();
+        }
+
+        List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId, appTenantDomain);
         if (StringUtils.isNotEmpty(authenticatedUser.getSharedUserId())) {
             // Add the shared role details to the roles list which are associated with the application.
             addSharedRoleAssociations(authenticatedUser, rolesAssociatedWithApp, userRoleIds);
-        } else if (!StringUtils.equals(appTenantDomain, authenticatedUser.getTenantDomain())) {
-            rolesAssociatedWithApp =
-                    getSharedRoleAssociations(mainRolesAssociatedWithApp, authenticatedUser.getTenantDomain());
         }
 
         return rolesAssociatedWithApp.stream()
@@ -178,38 +189,30 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
                 .toArray(String[]::new);
     }
 
-    private List<RoleV2> getSharedRoleAssociations(List<RoleV2> mainRolesAssociatedWithApp, String userTenantDomain)
+    private String getSharedAppId(String applicationId, String appTenantDomain, String userTenantDomain)
             throws ApplicationRolesException {
 
-        if (CollectionUtils.isEmpty(mainRolesAssociatedWithApp)) {
-            return Collections.emptyList();
-        }
-        List<RoleV2> sharedRoles = new ArrayList<>();
+        String appOrgId;
         try {
-            List<String> mainRoleIds = mainRolesAssociatedWithApp.stream()
-                    .map(RoleV2::getId)
-                    .collect(Collectors.toList());
-            RoleManagementService roleManagementService = FrameworkServiceDataHolder.getInstance()
-                    .getRoleManagementServiceV2();
-            Map<String, String> mainRoleToSharedRoleMapping = roleManagementService
-                    .getMainRoleToSharedRoleMappingsBySubOrg(mainRoleIds, userTenantDomain);
-            if (mainRoleToSharedRoleMapping == null || mainRoleToSharedRoleMapping.isEmpty()) {
-                return sharedRoles;
-            }
-            for (String mainRoleId : mainRoleIds) {
-                String sharedRoleId = mainRoleToSharedRoleMapping.get(mainRoleId);
-                if (sharedRoleId != null) {
-                    RoleBasicInfo sharedRoleBasicInfo = roleManagementService.getRoleBasicInfoById(
-                            sharedRoleId, userTenantDomain);
-                    RoleV2 sharedRole = new RoleV2();
-                    sharedRole.setId(sharedRoleBasicInfo.getId());
-                    sharedRole.setName(sharedRoleBasicInfo.getName());
-                    sharedRoles.add(sharedRole);
-                }
-            }
-            return sharedRoles;
-        } catch (IdentityRoleManagementException e) {
-            throw RoleResolverUtils.handleServerException(ERROR_CODE_RESOLVING_SHARED_ROLES, e, userTenantDomain);
+            appOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(appTenantDomain);
+        } catch (OrganizationManagementException e) {
+            throw RoleResolverUtils.handleServerException(ERROR_CODE_RETRIEVING_ORG_ID, e, appTenantDomain);
+        }
+
+        String userOrgId;
+        try {
+            userOrgId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(userTenantDomain);
+        } catch (OrganizationManagementException e) {
+            throw RoleResolverUtils.handleServerException(ERROR_CODE_RETRIEVING_ORG_ID, e, userTenantDomain);
+        }
+
+        try {
+            return FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                    .getSharedAppId(applicationId, appOrgId, userOrgId);
+        } catch (IdentityApplicationManagementException e) {
+            throw RoleResolverUtils.handleServerException(ERROR_CODE_RETRIEVING_APP_ROLES, e);
         }
     }
 

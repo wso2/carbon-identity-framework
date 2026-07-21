@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.flow.extension.executor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
@@ -51,9 +52,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Executes In-Flow Extension actions during flow execution by delegating to
+ * Executes Flow Extension actions during flow execution by delegating to
  * {@link ActionExecutorService} and mapping the result to an {@link ExecutorResponse}.
- * On success, pending context updates (claims, credentials, properties) are forwarded
+ * On success, pending context updates (claims, credentials) are forwarded
  * to the flow engine through the response object.
  */
 public class FlowExtensionExecutor implements Executor {
@@ -62,6 +63,7 @@ public class FlowExtensionExecutor implements Executor {
     private static final String EXECUTOR_NAME = "FlowExtensionExecutor";
     private static final String CONFIG_PARAM_ACTION_TYPE = "actionType";
     private static final String CONFIG_PARAM_ACTION_ID = "actionId";
+
     @Override
     public String getName() {
 
@@ -73,7 +75,7 @@ public class FlowExtensionExecutor implements Executor {
 
         String actionId = getMetadataValue(context, FlowExtensionConstants.ACTION_ID_METADATA_KEY);
         if (actionId == null || actionId.isEmpty()) {
-            triggerDiagnosticFailure(FlowExtensionConstants.Log.ActionIDs.EXECUTE, null,
+            triggerDiagnosticFailure(ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION, null,
                 "Flow Extension action execution failed: action ID is not configured.");
             return buildErrorResponse(FlowExtensionConstants.ErrorMessages.NOT_CONFIGURED_MESSAGE,
                 FlowExtensionConstants.ErrorMessages.NOT_CONFIGURED_DESCRIPTION);
@@ -85,7 +87,7 @@ public class FlowExtensionExecutor implements Executor {
                     + ", tenant: " + context.getTenantDomain());
         }
 
-        ActionExecutorService actionExecutorService = getActionExecutorService(actionId);
+        ActionExecutorService actionExecutorService = getActionExecutorService();
 
         if (!actionExecutorService.isExecutionEnabled(ActionType.FLOW_EXTENSION)) {
             if (LOG.isDebugEnabled()) {
@@ -97,22 +99,19 @@ public class FlowExtensionExecutor implements Executor {
         }
 
         try {
-            // Hand the action framework only a FILTERED copy of the FlowExecutionContext
-            // (non-whitelisted fields nulled out). Policy is sourced from compile-time constants.
+            // Pass only the filtered copy of the FlowExecutionContext to the action framework.
             FlowExecutionContext filteredContext = FlowExtensionUtil.filterContext(context);
 
-            FlowContext flowContext = FlowContext.create()
+            FlowContext actionFlowContext = FlowContext.create()
                     .add(FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, filteredContext);
 
             ActionExecutionStatus<?> executionStatus = actionExecutorService.execute(
-                    ActionType.FLOW_EXTENSION, actionId, flowContext, context.getTenantDomain());
+                    ActionType.FLOW_EXTENSION, actionId, actionFlowContext, context.getTenantDomain());
 
-            ExecutorResponse executionResponse = mapExecutionStatus(executionStatus, flowContext, context, actionId);
+            ExecutorResponse executionResponse = mapExecutionStatus(executionStatus, actionFlowContext, actionId);
 
-            // On success, extract pending context updates collected by the response processor
-            // and forward them to TaskExecutionNode via ExecutorResponse fields.
             if (ExecutorStatus.STATUS_COMPLETE.equals(executionResponse.getResult())) {
-                applyPendingContextUpdates(executionResponse, flowContext, actionId);
+                applyPendingContextUpdates(executionResponse, actionFlowContext, actionId);
             }
 
             return executionResponse;
@@ -143,13 +142,12 @@ public class FlowExtensionExecutor implements Executor {
      * maintains between its own redirect-side identifier and the IS flow context).
      *
      * @param executionStatus The status returned by ActionExecutorService.
-     * @param flowContext     The action {@link FlowContext} where the response processor stashed the redirect URL.
-     * @param context         The engine {@link FlowExecutionContext}.
+     * @param actionFlowContext     The action {@link FlowContext} where the response processor stashed the redirect URL.
      * @param actionId        The action ID for logging retry metadata.
      * @return The ExecutorResponse for the flow execution engine.
      */
     private ExecutorResponse mapExecutionStatus(ActionExecutionStatus<?> executionStatus,
-                                                FlowContext flowContext, FlowExecutionContext context, String actionId) {
+                                                FlowContext actionFlowContext, String actionId) {
 
         ExecutorResponse response = new ExecutorResponse();
 
@@ -175,7 +173,7 @@ public class FlowExtensionExecutor implements Executor {
                 return response;
 
             case INCOMPLETE:
-                return handleIncompleteExecutionStatus(response, flowContext, context);
+                return handleIncompleteExecutionStatus(response, actionFlowContext, actionId);
 
             default:
                 return handleUnknownExecutionStatus(response, executionStatus);
@@ -190,22 +188,6 @@ public class FlowExtensionExecutor implements Executor {
         response.setErrorMessage(errorMessage);
         response.setErrorDescription(errorDescription);
         return response;
-    }
-
-    private void applyRetryMetadata(ExecutorResponse response, String actionId) {
-
-        Map<String, String> additionalInfo = response.getAdditionalInfo();
-        if (additionalInfo == null) {
-            additionalInfo = new HashMap<>();
-        }
-        additionalInfo.put(FlowExtensionConstants.FAILURE_TYPE_KEY,
-                FlowExtensionConstants.FLOW_EXTENSION_FAILURE_TYPE);
-        response.setAdditionalInfo(additionalInfo);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Flow Extension action returned FAILED. actionId: " + actionId
-                    + ", reason: " + additionalInfo.get(FlowExtensionConstants.FAILURE_MESSAGE_KEY));
-        }
     }
 
     private void handleFailedStatus(ExecutorResponse response, ActionExecutionStatus<?> executionStatus) {
@@ -241,14 +223,14 @@ public class FlowExtensionExecutor implements Executor {
         response.setErrorDescription(errorDescription);
     }
 
-    private ExecutorResponse handleIncompleteExecutionStatus(ExecutorResponse response, FlowContext flowContext,
-                                                             FlowExecutionContext context) {
+    private ExecutorResponse handleIncompleteExecutionStatus(ExecutorResponse response, FlowContext actionFlowContext,
+                                                             String actionId) {
 
-        String redirectUrl = flowContext.getValue(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, String.class);
+        String redirectUrl = actionFlowContext.getValue(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, String.class);
         if (redirectUrl == null || redirectUrl.isEmpty()) {
             // Defensive: response processor should have rejected this earlier.
             LOG.debug("Flow Extension returned INCOMPLETE without a redirect URL.");
-            triggerDiagnosticFailure(FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE, null,
+            triggerDiagnosticFailure(ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE, actionId,
                 "Flow Extension returned INCOMPLETE without a redirect URL.");
             return buildErrorResponse(FlowExtensionConstants.ErrorMessages.INCOMPLETE_NO_REDIRECT_MESSAGE,
                 FlowExtensionConstants.ErrorMessages.INCOMPLETE_NO_REDIRECT_DESCRIPTION);
@@ -259,7 +241,7 @@ public class FlowExtensionExecutor implements Executor {
         response.setAdditionalInfo(redirectInfo);
 
         response.setResult(ExecutorStatus.STATUS_EXTERNAL_REDIRECTION);
-        triggerDiagnosticSuccess(FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE, null,
+        triggerDiagnosticSuccess(ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE, actionId,
                 "Flow Extension returned INCOMPLETE with a redirect URL.");
 
         if (LOG.isDebugEnabled()) {
@@ -280,32 +262,24 @@ public class FlowExtensionExecutor implements Executor {
         return response;
     }
 
-    @SuppressWarnings("unchecked")
-    private void applyPendingContextUpdates(ExecutorResponse response, FlowContext flowContext, String actionId) {
+    private void applyPendingContextUpdates(ExecutorResponse response, FlowContext actionFlowContext, String actionId) {
 
         Map<String, Object> pendingClaims =
-                flowContext.getValue(FlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class);
+                actionFlowContext.getValue(FlowExtensionConstants.PENDING_CLAIMS_KEY, Map.class);
         if (pendingClaims != null && !pendingClaims.isEmpty()) {
             response.setUpdatedUserClaims(pendingClaims);
         }
 
         Map<String, char[]> pendingCredentials =
-                flowContext.getValue(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, Map.class);
+                actionFlowContext.getValue(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, Map.class);
         if (pendingCredentials != null && !pendingCredentials.isEmpty()) {
             response.setUserCredentials(pendingCredentials);
-        }
-
-        Map<String, Object> pendingProperties =
-                flowContext.getValue(FlowExtensionConstants.PENDING_PROPERTIES_KEY, Map.class);
-        if (pendingProperties != null && !pendingProperties.isEmpty()) {
-            response.setContextProperty(pendingProperties);
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flow Extension action succeeded. actionId: " + actionId
                     + ", pendingClaims: " + (pendingClaims != null ? pendingClaims.size() : 0)
-                    + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0)
-                    + ", pendingProperties: " + (pendingProperties != null ? pendingProperties.size() : 0));
+                    + ", pendingCredentials: " + (pendingCredentials != null ? pendingCredentials.size() : 0));
         }
     }
 
@@ -316,7 +290,7 @@ public class FlowExtensionExecutor implements Executor {
         }
 
         DiagnosticLog.DiagnosticLogBuilder builder = new DiagnosticLog.DiagnosticLogBuilder(
-            FlowExtensionConstants.Log.COMPONENT_ID, diagnosticActionId)
+            ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID, diagnosticActionId)
                 .resultMessage(resultMessage)
                 .configParam(CONFIG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -336,7 +310,7 @@ public class FlowExtensionExecutor implements Executor {
         }
 
         DiagnosticLog.DiagnosticLogBuilder builder = new DiagnosticLog.DiagnosticLogBuilder(
-            FlowExtensionConstants.Log.COMPONENT_ID, diagnosticActionId)
+            ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID, diagnosticActionId)
                 .resultMessage(resultMessage)
                 .configParam(CONFIG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -349,7 +323,7 @@ public class FlowExtensionExecutor implements Executor {
         LoggerUtils.triggerDiagnosticLogEvent(builder);
     }
 
-    private ActionExecutorService getActionExecutorService(String actionId) throws FlowEngineException {
+    private ActionExecutorService getActionExecutorService() throws FlowEngineException {
 
         ActionExecutorService actionExecutorService =
                 FlowExtensionDataHolder.getInstance().getActionExecutorService();

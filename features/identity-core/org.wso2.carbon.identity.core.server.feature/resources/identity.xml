@@ -831,6 +831,12 @@
         </DeviceRegistrationContext>
     </PushAuthenticator>
 
+    <PushDeviceManagement>
+        <DeviceRegistrationNotificationsEnabled>true</DeviceRegistrationNotificationsEnabled>
+        <MaxDeviceLimitPerUser>10</MaxDeviceLimitPerUser>
+        <MultipleDeviceSupportEnabled>true</MultipleDeviceSupportEnabled>
+    </PushDeviceManagement>
+
     <RestApiAuthentication>
         <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
         <AddRealmUserToError>false</AddRealmUserToError>
@@ -2792,6 +2798,10 @@
         <AsyncSequenceExecutorPoolSize>5</AsyncSequenceExecutorPoolSize>
         <MaxTotalConnections>20</MaxTotalConnections>
         <MaxTotalConnectionsPerRoute>20</MaxTotalConnectionsPerRoute>
+        <HTTPFunctions>
+            <MaxConnections>20</MaxConnections>
+            <MaxConnectionsPerRoute>2</MaxConnectionsPerRoute>
+        </HTTPFunctions>
 
         <!--Timeouts in milliseconds-->
         <!--Default configs for timeouts-->
@@ -2977,6 +2987,11 @@
         </Username>
     </InputValidation>
 
+    <!-- Console settings -->
+    <ConsoleSettings>
+        <UseGranularConsolePermissions>true</UseGranularConsolePermissions>
+    </ConsoleSettings>
+
     <!-- Configuration settings for the API responses. -->
     <APIResponse>
         <!-- When set to true, this enables sending a specific authentication failure message in the API response
@@ -3049,6 +3064,7 @@
     </NotificationChannel>
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <MarkStepCompletedOnInterrupt>true</MarkStepCompletedOnInterrupt>
+    <ReturnRolesInSaaSAppsInIDToken>false</ReturnRolesInSaaSAppsInIDToken>
 
     <TenantLevelAuthenticationConfigForAuthSequence>true</TenantLevelAuthenticationConfigForAuthSequence>
     <EnhancedOrganizationAuthenticationFeatureEnabled>true</EnhancedOrganizationAuthenticationFeatureEnabled>
@@ -3078,6 +3094,20 @@
             <StreamVersion>1.0.0</StreamVersion>
             <InlineBody></InlineBody>
             <Enabled>false</Enabled>
+            <AlwaysPublish>false</AlwaysPublish>
         </Moesif>
     </Analytics>
+
+    <!-- Circuit Breaker configuration -->
+    <CircuitBreaker>
+        <Enabled>true</Enabled>
+        <TenantServiceCacheCapacity>5000</TenantServiceCacheCapacity>
+        <TenantServiceEvictionThreshold>0.75</TenantServiceEvictionThreshold>
+        <TenantServiceEntryIdleTimeout>600000</TenantServiceEntryIdleTimeout> <!-- value in milliseconds -->
+        <WindowSize>30</WindowSize>
+        <MinCallsToEvaluate>15</MinCallsToEvaluate>
+        <FailureRateThreshold>0.5</FailureRateThreshold>
+        <OpenDuration>60000</OpenDuration> <!-- value in milliseconds -->
+        <MaxInFlight>20</MaxInFlight>
+    </CircuitBreaker>
 </Server>

@@ -303,6 +303,8 @@ public abstract class FrameworkConstants {
     public static final String AMR = "amr";
     public static final String USER_ASSERTION = "userAssertion";
 
+    public static final String RETURN_ROLES_IN_SAAS_APPS_IN_ID_TOKEN = "ReturnRolesInSaaSAppsInIDToken";
+
     // Authentication entity constants.
     public static final String AUTH_ENTITY = "auth_entity";
     public static final String AUTH_ENTITY_AGENT = "agent";
