@@ -52,21 +52,41 @@ public class PolicyMgtComponentServiceHolder {
         return INSTANCE;
     }
 
+    /**
+     * Get the RuleManagementService.
+     *
+     * @return RuleManagementService instance.
+     */
     public RuleManagementService getRuleManagementService() {
 
         return ruleManagementService;
     }
 
+    /**
+     * Set the RuleManagementService.
+     *
+     * @param ruleManagementService RuleManagementService instance.
+     */
     public void setRuleManagementService(RuleManagementService ruleManagementService) {
 
         this.ruleManagementService = ruleManagementService;
     }
 
+    /**
+     * Get the PolicyManagementService.
+     *
+     * @return PolicyManagementService instance.
+     */
     public PolicyManagementService getPolicyManagementService() {
 
         return policyManagementService;
     }
 
+    /**
+     * Set the PolicyManagementService.
+     *
+     * @param policyManagementService PolicyManagementService instance.
+     */
     public void setPolicyManagementService(PolicyManagementService policyManagementService) {
 
         this.policyManagementService = policyManagementService;

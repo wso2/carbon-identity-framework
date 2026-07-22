@@ -53,21 +53,41 @@ public class PolicyEvaluationComponentServiceHolder {
         return INSTANCE;
     }
 
+    /**
+     * Get the PolicyManagementService.
+     *
+     * @return PolicyManagementService instance.
+     */
     public PolicyManagementService getPolicyManagementService() {
 
         return policyManagementService;
     }
 
+    /**
+     * Set the PolicyManagementService.
+     *
+     * @param policyManagementService PolicyManagementService instance.
+     */
     public void setPolicyManagementService(PolicyManagementService policyManagementService) {
 
         this.policyManagementService = policyManagementService;
     }
 
+    /**
+     * Get the RuleEvaluationService.
+     *
+     * @return RuleEvaluationService instance.
+     */
     public RuleEvaluationService getRuleEvaluationService() {
 
         return ruleEvaluationService;
     }
 
+    /**
+     * Set the RuleEvaluationService.
+     *
+     * @param ruleEvaluationService RuleEvaluationService instance.
+     */
     public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
 
         this.ruleEvaluationService = ruleEvaluationService;

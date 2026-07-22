@@ -33,6 +33,13 @@ public class PolicyManagementExceptionHandler {
 
     }
 
+    /**
+     * Handle Policy Management client exceptions.
+     *
+     * @param error Error message.
+     * @param data  Data to be formatted into the error description.
+     * @return PolicyManagementClientException.
+     */
     public static PolicyManagementClientException handleClientException(ErrorMessage error, String... data) {
 
         String description = error.getDescription();
@@ -43,6 +50,14 @@ public class PolicyManagementExceptionHandler {
         return new PolicyManagementClientException(error.getMessage(), description, error.getCode());
     }
 
+    /**
+     * Handle Policy Management client exceptions with a throwable.
+     *
+     * @param error Error message.
+     * @param e     Throwable.
+     * @param data  Data to be formatted into the error description.
+     * @return PolicyManagementClientException.
+     */
     public static PolicyManagementClientException handleClientException(ErrorMessage error, Throwable e,
                                                                         String... data) {
 
@@ -54,6 +69,14 @@ public class PolicyManagementExceptionHandler {
         return new PolicyManagementClientException(error.getMessage(), description, error.getCode(), e);
     }
 
+    /**
+     * Handle Policy Management server exceptions with a throwable.
+     *
+     * @param error Error message.
+     * @param e     Throwable.
+     * @param data  Data to be formatted into the error description.
+     * @return PolicyManagementServerException.
+     */
     public static PolicyManagementServerException handleServerException(ErrorMessage error, Throwable e,
                                                                         String... data) {
 
@@ -65,6 +88,13 @@ public class PolicyManagementExceptionHandler {
         return new PolicyManagementServerException(error.getMessage(), description, error.getCode(), e);
     }
 
+    /**
+     * Handle Policy Management server exceptions.
+     *
+     * @param error Error message.
+     * @param data  Data to be formatted into the error description.
+     * @return PolicyManagementServerException.
+     */
     public static PolicyManagementServerException handleServerException(ErrorMessage error, String... data) {
 
         String description = error.getDescription();
