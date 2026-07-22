@@ -372,7 +372,7 @@ public class RuleBuilderTest {
 
     @Test(expectedExceptions = RuleManagementClientException.class,
             expectedExceptionsMessageRegExp = "Rule validation failed: " +
-                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 5 Provided: 6")
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 15 Provided: 16")
     public void testCreateRuleWithMaxAllowedExpressionsCombinedWithAND() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -382,7 +382,7 @@ public class RuleBuilderTest {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 16; i++) {
             Expression expression = new Expression.Builder().field("application").operator("equals")
                     .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
             ruleBuilder.addAndExpression(expression);

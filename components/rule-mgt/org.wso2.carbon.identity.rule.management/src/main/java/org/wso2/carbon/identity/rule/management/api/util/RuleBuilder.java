@@ -43,7 +43,7 @@ import java.util.Map;
  */
 public class RuleBuilder {
 
-    private static final int MAX_EXPRESSIONS_COMBINED_WITH_AND = 5;
+    private static final int MAX_EXPRESSIONS_COMBINED_WITH_AND = 15;
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
