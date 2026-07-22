@@ -1561,6 +1561,48 @@
     "internal_webhook_mgt_update"
   ],
   "console.webhooks.scopes.delete": ["internal_webhook_mgt_delete"],
+  "console.customer_data_profile_attributes.enabled": false,
+  "console.customer_data_profile_attributes.scopes.feature": ["console:customerData"],
+  "console.customer_data_profile_attributes.scopes.create": ["internal_cds_profile_schema_create"],
+  "console.customer_data_profile_attributes.scopes.read": [
+    "internal_cds_profile_schema_view",
+    "internal_cds_profile_view"
+  ],
+  "console.customer_data_profile_attributes.scopes.update": [
+    "internal_cds_profile_schema_update",
+    "internal_cds_profile_update"
+  ],
+  "console.customer_data_profile_attributes.scopes.delete": ["internal_cds_profile_schema_delete"],
+  "console.customer_data_profiles.enabled": false,
+  "console.customer_data_profiles.scopes.feature": ["console:customerData"],
+  "console.customer_data_profiles.scopes.create": ["internal_cds_profile_create"],
+  "console.customer_data_profiles.scopes.read": [
+    "internal_cds_admin_config_view",
+    "internal_cds_profile_view"
+  ],
+  "console.customer_data_profiles.scopes.update": [
+    "internal_cds_admin_config_update",
+    "internal_cds_profile_update"
+  ],
+  "console.customer_data_profiles.scopes.delete": ["internal_cds_profile_delete"],
+  "console.customer_data_service.enabled": false,
+  "console.customer_data_service.scopes.feature": [],
+  "console.customer_data_service.scopes.create": [],
+  "console.customer_data_service.scopes.read": ["internal_cds_admin_config_view"],
+  "console.customer_data_service.scopes.update": ["internal_cds_profile_update"],
+  "console.customer_data_service.scopes.delete": [],
+  "console.customer_data_unification_rules.enabled": false,
+  "console.customer_data_unification_rules.scopes.feature": ["console:customerData"],
+  "console.customer_data_unification_rules.scopes.create": ["internal_cds_unification_rule_create"],
+  "console.customer_data_unification_rules.scopes.read": [
+    "internal_cds_admin_config_view",
+    "internal_cds_unification_rule_view"
+  ],
+  "console.customer_data_unification_rules.scopes.update": [
+    "internal_cds_admin_config_update",
+    "internal_cds_unification_rule_update"
+  ],
+  "console.customer_data_unification_rules.scopes.delete": ["internal_cds_unification_rule_delete"],
   "console.administrators.enabled": false,
   "console.administrators.scopes.feature": [],
   "console.administrators.scopes.create": [],
