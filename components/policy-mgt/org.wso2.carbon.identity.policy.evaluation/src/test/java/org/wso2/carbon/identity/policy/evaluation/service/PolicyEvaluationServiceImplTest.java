@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationResu
 import org.wso2.carbon.identity.policy.evaluation.internal.component.PolicyEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.policy.evaluation.internal.evaluator.RuleResourceEvaluator;
 import org.wso2.carbon.identity.policy.evaluation.internal.service.impl.PolicyEvaluationServiceImpl;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
@@ -43,7 +44,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationServic
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.utils.DiagnosticLog;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -93,7 +93,7 @@ public class PolicyEvaluationServiceImplTest {
         loggerUtils.close();
     }
 
-    private Policy policyWithRule(String target) {
+    private Policy policyWithRule(String target) throws PolicyManagementClientException {
 
         Rule rule = mock(Rule.class);
         when(rule.getId()).thenReturn(RULE_ID);
@@ -185,31 +185,6 @@ public class PolicyEvaluationServiceImplTest {
     }
 
     @Test
-    public void testResourceWithNullTargetIsSkipped() throws PolicyManagementException, PolicyEvaluationException {
-
-        Rule rule = mock(Rule.class);
-        when(rule.getId()).thenReturn(RULE_ID);
-        // Resource with a null target — the filter must not NPE on equalsIgnoreCase.
-        PolicyResource nullTargetResource = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .resourceId(RULE_ID)
-                .rule(rule)
-                .build();
-        Policy policy = new Policy.Builder()
-                .id(UUID.randomUUID().toString())
-                .name(POLICY_NAME)
-                .tenantDomain(TENANT_DOMAIN)
-                .resources(Collections.singletonList(nullTargetResource))
-                .build();
-        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
-
-        Assert.assertTrue(result.isSatisfied());
-        Assert.assertTrue(result.getResults().isEmpty());
-    }
-
-    @Test
     public void testSelectorMatchIsCaseInsensitive() throws PolicyManagementException, RuleEvaluationException,
             PolicyEvaluationException {
 
@@ -222,84 +197,6 @@ public class PolicyEvaluationServiceImplTest {
 
         Assert.assertTrue(result.isSatisfied());
         verify(ruleEvaluationService).evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN));
-    }
-
-    @Test
-    public void testMultipleResourcesAndSemantics_AllSatisfied() throws PolicyManagementException,
-            RuleEvaluationException, PolicyEvaluationException {
-
-        String secondRuleId = UUID.randomUUID().toString();
-        Rule rule1 = mock(Rule.class);
-        when(rule1.getId()).thenReturn(RULE_ID);
-        Rule rule2 = mock(Rule.class);
-        when(rule2.getId()).thenReturn(secondRuleId);
-        PolicyResource ruleResource1 = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .target("ios")
-                .resourceId(RULE_ID)
-                .rule(rule1)
-                .build();
-        PolicyResource ruleResource2 = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .target("ios")
-                .resourceId(secondRuleId)
-                .rule(rule2)
-                .build();
-        Policy policy = new Policy.Builder()
-                .id(UUID.randomUUID().toString())
-                .name(POLICY_NAME)
-                .tenantDomain(TENANT_DOMAIN)
-                .resources(Arrays.asList(ruleResource1, ruleResource2))
-                .build();
-        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
-        when(ruleEvaluationService.evaluate(eq(secondRuleId), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(secondRuleId, true));
-
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
-
-        Assert.assertTrue(result.isSatisfied());
-        Assert.assertEquals(result.getResults().size(), 2);
-    }
-
-    @Test
-    public void testMultipleResourcesAndSemantics_OneUnsatisfiedFailsAll() throws PolicyManagementException,
-            RuleEvaluationException, PolicyEvaluationException {
-
-        String secondRuleId = UUID.randomUUID().toString();
-        Rule rule1 = mock(Rule.class);
-        when(rule1.getId()).thenReturn(RULE_ID);
-        Rule rule2 = mock(Rule.class);
-        when(rule2.getId()).thenReturn(secondRuleId);
-        PolicyResource ruleResource1 = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .target("ios")
-                .resourceId(RULE_ID)
-                .rule(rule1)
-                .build();
-        PolicyResource ruleResource2 = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .target("ios")
-                .resourceId(secondRuleId)
-                .rule(rule2)
-                .build();
-        Policy policy = new Policy.Builder()
-                .id(UUID.randomUUID().toString())
-                .name(POLICY_NAME)
-                .tenantDomain(TENANT_DOMAIN)
-                .resources(Arrays.asList(ruleResource1, ruleResource2))
-                .build();
-        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
-        when(ruleEvaluationService.evaluate(eq(secondRuleId), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(secondRuleId, false));
-
-        PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
-
-        Assert.assertFalse(result.isSatisfied());
-        Assert.assertEquals(result.getResults().size(), 2);
     }
 
     @Test(expectedExceptions = PolicyEvaluationException.class)
@@ -376,48 +273,6 @@ public class PolicyEvaluationServiceImplTest {
         // One log each for: evaluation initiated, the single resource evaluated, evaluation completed.
         loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
                 any(DiagnosticLog.DiagnosticLogBuilder.class)), times(3));
-    }
-
-    @Test
-    public void testDiagnosticLogsEnabled_MultipleResourcesLogsPerResourceForEach() throws PolicyManagementException,
-            RuleEvaluationException, PolicyEvaluationException {
-
-        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
-
-        String secondRuleId = UUID.randomUUID().toString();
-        Rule rule1 = mock(Rule.class);
-        when(rule1.getId()).thenReturn(RULE_ID);
-        Rule rule2 = mock(Rule.class);
-        when(rule2.getId()).thenReturn(secondRuleId);
-        PolicyResource ruleResource1 = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .target("ios")
-                .resourceId(RULE_ID)
-                .rule(rule1)
-                .build();
-        PolicyResource ruleResource2 = new RulePolicyResource.Builder()
-                .id(UUID.randomUUID().toString())
-                .target("ios")
-                .resourceId(secondRuleId)
-                .rule(rule2)
-                .build();
-        Policy policy = new Policy.Builder()
-                .id(UUID.randomUUID().toString())
-                .name(POLICY_NAME)
-                .tenantDomain(TENANT_DOMAIN)
-                .resources(Arrays.asList(ruleResource1, ruleResource2))
-                .build();
-        when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
-        when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(RULE_ID, true));
-        when(ruleEvaluationService.evaluate(eq(secondRuleId), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(secondRuleId, true));
-
-        policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
-
-        // One log each for: evaluation initiated, the two resources evaluated, evaluation completed.
-        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
-                any(DiagnosticLog.DiagnosticLogBuilder.class)), times(4));
     }
 
     @Test

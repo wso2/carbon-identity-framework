@@ -24,4 +24,9 @@
             <class name="org.wso2.carbon.identity.policy.evaluation.service.PolicyEvaluationServiceImplTest"/>
         </classes>
     </test>
+    <test name="policy-evaluation-model-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.policy.evaluation.model.PolicyEvaluationResultTest"/>
+        </classes>
+    </test>
 </suite>
