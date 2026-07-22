@@ -28,6 +28,8 @@ import java.util.List;
 public class IdPManagementConstants {
 
     public static final String SHARED_IDP_PREFIX = "SHARED_";
+    // Identity provider property name marking a shared idp resolved from a parent organization.
+    public static final String IS_SHARED_IDP_PROPERTY = "isShared";
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
     public static final String IDP_GROUP_LIST_PLACEHOLDER = "_IDP_GROUP_LIST_";
     public static final String IDP_METADATA_PROPERTY_LIST_PLACEHOLDER = "_IDP_METADATA_PROPERTY_LIST_";
@@ -767,6 +769,11 @@ public class IdPManagementConstants {
                 " is already taken."),
         ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
                 " regex pattern %s."),
+        ERROR_CODE_RESTRICTED_SHARED_IDP_UPDATE("IDP-60016", "Restricted update on shared identity provider."),
+        ERROR_CODE_SHARED_IDP_DIRECT_CREATION("IDP-60017", "A shared identity provider cannot be created " +
+                "directly. It is created only through the connection sharing process."),
+        ERROR_CODE_SHARED_IDP_DIRECT_DELETION("IDP-60018", "A shared identity provider cannot be deleted " +
+                "directly. It is removed only through the connection unsharing process."),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),

@@ -39,6 +39,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -230,7 +231,7 @@ public class OptimizedSessionContext implements Serializable {
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
-            idp = manager.getIdPByName(idPName, tenantDomain);
+            idp = manager.getIdPByName(idPName, tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
             if (idp == null) {
                 throw new SessionDataStorageOptimizationClientException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));

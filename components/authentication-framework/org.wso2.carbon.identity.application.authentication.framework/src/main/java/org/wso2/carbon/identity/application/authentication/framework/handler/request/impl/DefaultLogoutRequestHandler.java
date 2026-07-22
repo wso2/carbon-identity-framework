@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -60,6 +60,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
@@ -150,7 +151,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                                 .getIdpName())) {
                             try {
                                 int fedIdpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                                        .getIdPByName(fedIdpName, context.getTenantDomain()).getId());
+                                        .getIdPByName(fedIdpName, context.getTenantDomain(), false,
+                                                SharedIdPResolveType.FULL_PARENT).getId());
                                 UserSessionStore.getInstance().removeFederatedAuthSessionInfo(
                                         context.getSessionIdentifier(), fedIdpId);
                                 break;

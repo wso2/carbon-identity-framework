@@ -20,6 +20,7 @@ package org.wso2.carbon.idp.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.List;
 
@@ -128,6 +129,93 @@ public interface IdentityProviderMgtListener {
             IdentityProviderManagementException {
 
         return true;
+    }
+
+    /**
+     * Define any additional actions after getting an identity provider by its resource ID. Listeners may use this
+     * hook to enrich or resolve the returned identity provider (for example, resolving a shared/shadow identity
+     * provider against its parent per the {@link SharedIdPResolveType}) and <b>return</b> the (possibly new)
+     * identity provider to use — a listener that needs to transform a cached instance should clone it and return
+     * the clone rather than mutating the supplied instance in place. The returned value is fed to the next listener
+     * and is the final result.
+     *
+     * @param resourceId       Resource ID of the identity provider.
+     * @param identityProvider The retrieved identity provider.
+     * @param tenantDomain     Tenant domain of the identity provider.
+     * @param resolveType      The resolution depth to apply to a shared (shadow) identity provider.
+     * @return The identity provider to use (the supplied instance by default).
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    default IdentityProvider doPostGetIdPByResourceId(String resourceId, IdentityProvider identityProvider,
+                                                      String tenantDomain, SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return identityProvider;
+    }
+
+    /**
+     * Define any additional actions after getting an identity provider by its name. Listeners may use this hook to
+     * enrich or resolve the returned identity provider (per the {@link SharedIdPResolveType}) and <b>return</b> the
+     * (possibly new) identity provider to use — a listener that needs to transform a cached instance should clone it
+     * and return the clone rather than mutating the supplied instance in place. The returned value is fed to the
+     * next listener and is the final result.
+     *
+     * @param idPName          Name of the identity provider.
+     * @param identityProvider The retrieved identity provider.
+     * @param tenantDomain     Tenant domain of the identity provider.
+     * @param resolveType      The resolution depth to apply to a shared (shadow) identity provider.
+     * @return The identity provider to use (the supplied instance by default).
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    default IdentityProvider doPostGetIdPByName(String idPName, IdentityProvider identityProvider, String tenantDomain,
+                                                SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return identityProvider;
+    }
+
+    /**
+     * Define any additional actions after getting an identity provider by its id. Listeners may use this hook to
+     * enrich or resolve the returned identity provider (per the {@link SharedIdPResolveType}) and <b>return</b> the
+     * (possibly new) identity provider to use — a listener that needs to transform a cached instance should clone it
+     * and return the clone rather than mutating the supplied instance in place. The returned value is fed to the
+     * next listener and is the final result.
+     *
+     * @param id               Id of the identity provider.
+     * @param identityProvider The retrieved identity provider.
+     * @param tenantDomain     Tenant domain of the identity provider.
+     * @param resolveType      The resolution depth to apply to a shared (shadow) identity provider.
+     * @return The identity provider to use (the supplied instance by default).
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    default IdentityProvider doPostGetIdPById(String id, IdentityProvider identityProvider, String tenantDomain,
+                                              SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return identityProvider;
+    }
+
+    /**
+     * Define any additional actions after retrieving a list of identity providers. Listeners may use this hook to
+     * enrich or resolve the returned identity providers (per the {@link SharedIdPResolveType}) and <b>return</b> the
+     * (possibly new) list to use — a listener that needs to transform cached instances should replace them with
+     * clones in the returned list rather than mutating them in place. The returned value is fed to the next listener
+     * and is the final result.
+     *
+     * @param identityProviders The retrieved identity providers.
+     * @param tenantDomain      Tenant domain of the identity providers.
+     * @param requiredAttributes The attributes requested for the retrieved identity providers (empty when no
+     *                           attribute projection was specified, e.g. the full-list paths); a listener may use
+     *                           this to decide how much resolution to perform.
+     * @param resolveType       The resolution depth to apply to shared (shadow) identity providers.
+     * @return The identity provider list to use (the supplied list by default).
+     * @throws IdentityProviderManagementException When an error occurs while handling the event.
+     */
+    default List<IdentityProvider> doPostGetIdPs(List<IdentityProvider> identityProviders, String tenantDomain,
+                                                 List<String> requiredAttributes, SharedIdPResolveType resolveType)
+            throws IdentityProviderManagementException {
+
+        return identityProviders;
     }
 
     /**

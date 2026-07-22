@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -295,7 +297,8 @@ public class TaskExecutionNodeTest {
 
         try (MockedStatic<IdentityProviderManager> idpManagerStatic = mockStatic(IdentityProviderManager.class)) {
             idpManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(idpManager);
-            when(idpManager.getIdPByName("invalidIDP", TENANT_DOMAIN)).thenReturn(null);
+            when(idpManager.getIdPByName(eq("invalidIDP"), eq(TENANT_DOMAIN), anyBoolean(), any()))
+                    .thenReturn(null);
 
             try (MockedStatic<FlowExecutionEngineDataHolder> engineMock = mockStatic(
                     FlowExecutionEngineDataHolder.class)) {
@@ -367,7 +370,7 @@ public class TaskExecutionNodeTest {
 
         try (MockedStatic<IdentityProviderManager> idpManagerStatic = mockStatic(IdentityProviderManager.class)) {
             idpManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(idpManager);
-            when(idpManager.getIdPByName("validIdp", TENANT_DOMAIN)).thenThrow(
+            when(idpManager.getIdPByName(eq("validIdp"), eq(TENANT_DOMAIN), anyBoolean(), any())).thenThrow(
                     IdentityProviderManagementException.class);
 
             try (MockedStatic<FlowExecutionEngineDataHolder> engineMock = mockStatic(
@@ -400,7 +403,7 @@ public class TaskExecutionNodeTest {
         try (MockedStatic<FlowExecutionEngineDataHolder> mocked = mockExecutorResponseFlow(executorResponse);
              MockedStatic<IdentityProviderManager> idpManagerStatic = mockStatic(IdentityProviderManager.class)) {
             idpManagerStatic.when(IdentityProviderManager::getInstance).thenReturn(idpManager);
-            when(idpManager.getIdPByName("validIdp", TENANT_DOMAIN)).thenReturn(idp);
+            when(idpManager.getIdPByName(eq("validIdp"), eq(TENANT_DOMAIN), anyBoolean(), any())).thenReturn(idp);
 
             taskExecutionNode.execute(context, nodeConfig);
             assertNotNull(context.getExternalIdPConfig());

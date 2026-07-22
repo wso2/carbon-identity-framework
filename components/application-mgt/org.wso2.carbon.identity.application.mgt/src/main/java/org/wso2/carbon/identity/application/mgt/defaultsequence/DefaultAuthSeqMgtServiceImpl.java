@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.mgt.dao.impl.DefaultAuthSeqMgtDAOImp
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -461,7 +462,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
 
         try {
             IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
-                    .getIdentityProviderName(), tenantDomain, false);
+                    .getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
             if (savedIdp.getId() == null) {
                 validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                         idp.getIdentityProviderName()));

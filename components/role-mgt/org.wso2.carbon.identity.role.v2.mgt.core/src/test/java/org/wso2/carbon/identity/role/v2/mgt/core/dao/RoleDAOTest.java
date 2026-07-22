@@ -1159,7 +1159,7 @@ public class RoleDAOTest {
         IdentityProvider mockIdentityProvider = mock(IdentityProvider.class);
         IdPGroup[] idpGroups = buildIdPGroups().toArray(new IdPGroup[0]);
         ;
-        when(mockIdpManager.getIdPByResourceId(anyString(), anyString(), anyBoolean())).thenReturn(
+        when(mockIdpManager.getIdPByResourceId(anyString(), anyString(), anyBoolean(), any())).thenReturn(
                 mockIdentityProvider);
         when(mockIdentityProvider.getIdPGroupConfig()).thenReturn(idpGroups);
         RoleManagementServiceComponentHolder.getInstance().setIdentityProviderManager(mockIdpManager);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,6 +37,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -146,7 +147,8 @@ public class OptimizedApplicationConfig implements Serializable {
                 if (StringUtils.isBlank(idPFromAuthStep.getResourceId())) {
                     try {
                         IdentityProvider idPByName =
-                                manager.getIdPByName(idPFromAuthStep.getIdentityProviderName(), tenantDomain);
+                                manager.getIdPByName(idPFromAuthStep.getIdentityProviderName(), tenantDomain, false,
+                                        SharedIdPResolveType.FULL_PARENT);
                         if (idPByName == null) {
                             throw new SessionDataStorageOptimizationException(String.format(
                                     "Cannot find the Identity Provider by the name: %s tenant domain: %s",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2010-2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.Fe
 import org.wso2.carbon.identity.user.profile.mgt.internal.IdentityUserProfileServiceDataHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -1014,7 +1015,8 @@ public class UserProfileAdmin extends AbstractAdmin {
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false);
+                IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false,
+                        SharedIdPResolveType.BASE_PARENT);
                 return identityProvider.getIdentityProviderName();
             } else {
                 if (log.isDebugEnabled()) {

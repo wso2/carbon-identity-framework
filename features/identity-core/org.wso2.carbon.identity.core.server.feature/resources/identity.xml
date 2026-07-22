@@ -3073,6 +3073,12 @@
     </WorkflowEngine>
     <UseResidentUserIdForAuthenticatedSharedUsers>true</UseResidentUserIdForAuthenticatedSharedUsers>
 
+    <ConnectionSharing>
+        <!-- The fallback provisioning user store applied when a shared (shadow) identity provider's inherited JIT
+             provisioning user store does not exist in the sub-organization. -->
+        <DefaultProvisioningUserStore>PRIMARY</DefaultProvisioningUserStore>
+    </ConnectionSharing>
+
     <AppNativeAuthentication>
         <HandleFailCompletedAuthenticatorStatus>true</HandleFailCompletedAuthenticatorStatus>
     </AppNativeAuthentication>

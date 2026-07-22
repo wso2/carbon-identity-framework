@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.NotImplementedException;
@@ -381,7 +382,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
 
         try {
             return FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
-                    .getIdPByName(idpName, tenantDomain, true);
+                    .getIdPByName(idpName, tenantDomain, true, SharedIdPResolveType.FULL_PARENT);
         } catch (IdentityProviderManagementException e) {
             throw RoleResolverUtils.handleServerException(
                     ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER, e, idpName, tenantDomain);

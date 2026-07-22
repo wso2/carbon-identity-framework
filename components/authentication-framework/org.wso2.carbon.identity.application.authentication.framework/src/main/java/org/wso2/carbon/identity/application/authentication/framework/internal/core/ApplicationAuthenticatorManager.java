@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthent
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,7 +210,8 @@ public class ApplicationAuthenticatorManager {
          a FederatedAuthenticatorConfig instance. */
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
-        IdentityProvider idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
+        IdentityProvider idp = manager.getIdPByResourceId(resourceId, tenantDomain, false,
+                SharedIdPResolveType.FULL_PARENT);
 
         if (idp == null || LOCAL_IDP_NAME.equals(idp.getIdentityProviderName())) {
             return idp;

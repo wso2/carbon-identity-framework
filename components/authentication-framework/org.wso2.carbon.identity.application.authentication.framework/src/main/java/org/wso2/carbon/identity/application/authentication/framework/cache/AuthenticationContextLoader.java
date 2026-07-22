@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -43,6 +43,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.model.SharedIdPResolveType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -291,7 +292,7 @@ public class AuthenticationContextLoader {
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
-            idp = manager.getIdPByName(idPName, tenantDomain);
+            idp = manager.getIdPByName(idPName, tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
             if (idp == null) {
                 throw new SessionDataStorageOptimizationClientException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
