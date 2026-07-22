@@ -79,5 +79,501 @@
         }
       ]
     }
+  },
+  "platform": {
+    "field": {
+      "name": "platform",
+      "displayName": "platform"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "android",
+          "displayName": "Android"
+        },
+        {
+          "name": "ios",
+          "displayName": "iOS"
+        },
+        {
+          "name": "macos",
+          "displayName": "macOS"
+        },
+        {
+          "name": "windows",
+          "displayName": "Windows"
+        }
+      ]
+    }
+  },
+  "androidOsVersion": {
+    "field": {
+      "name": "androidOsVersion",
+      "displayName": "Android OS Version"
+    },
+    "operators": [
+      "equals",
+      "greaterThan"
+    ],
+    "value": {
+      "inputType": "input",
+      "valueType": "number"
+    }
+  },
+  "iosOsVersion": {
+    "field": {
+      "name": "iosOsVersion",
+      "displayName": "iOS Version"
+    },
+    "operators": [
+      "equals",
+      "greaterThan"
+    ],
+    "value": {
+      "inputType": "input",
+      "valueType": "number"
+    }
+  },
+  "macosOsVersion": {
+    "field": {
+      "name": "macosOsVersion",
+      "displayName": "macOS Version"
+    },
+    "operators": [
+      "equals",
+      "greaterThan"
+    ],
+    "value": {
+      "inputType": "input",
+      "valueType": "number"
+    }
+  },
+  "windowsOsVersion": {
+    "field": {
+      "name": "windowsOsVersion",
+      "displayName": "Windows Version"
+    },
+    "operators": [
+      "equals",
+      "greaterThan"
+    ],
+    "value": {
+      "inputType": "input",
+      "valueType": "number"
+    }
+  },
+  "isRooted": {
+    "field": {
+      "name": "isRooted",
+      "displayName": "is rooted"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Yes"
+        },
+        {
+          "name": "false",
+          "displayName": "No"
+        }
+      ]
+    }
+  },
+  "usbDebugging": {
+    "field": {
+      "name": "usbDebugging",
+      "displayName": "USB debugging"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "lockScreen": {
+    "field": {
+      "name": "lockScreen",
+      "displayName": "lock screen"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "biometric": {
+    "field": {
+      "name": "biometric",
+      "displayName": "biometric"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "screenLockComplexity": {
+    "field": {
+      "name": "screenLockComplexity",
+      "displayName": "screen lock complexity"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "high",
+          "displayName": "High"
+        },
+        {
+          "name": "medium",
+          "displayName": "Medium"
+        },
+        {
+          "name": "low",
+          "displayName": "Low"
+        }
+      ]
+    }
+  },
+  "hardwareKeystore": {
+    "field": {
+      "name": "hardwareKeystore",
+      "displayName": "hardware keystore"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "diskEncryption": {
+    "field": {
+      "name": "diskEncryption",
+      "displayName": "disk encryption"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "networkProxies": {
+    "field": {
+      "name": "networkProxies",
+      "displayName": "network proxies"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "wifiNetworkSecurity": {
+    "field": {
+      "name": "wifiNetworkSecurity",
+      "displayName": "WiFi network security"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "passcode": {
+    "field": {
+      "name": "passcode",
+      "displayName": "passcode"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "touchIdOrFaceId": {
+    "field": {
+      "name": "touchIdOrFaceId",
+      "displayName": "Touch ID or Face ID"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "jailbreak": {
+    "field": {
+      "name": "jailbreak",
+      "displayName": "jailbreak"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Yes"
+        },
+        {
+          "name": "false",
+          "displayName": "No"
+        }
+      ]
+    }
+  },
+  "secureEnclave": {
+    "field": {
+      "name": "secureEnclave",
+      "displayName": "secure enclave"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "windowsHello": {
+    "field": {
+      "name": "windowsHello",
+      "displayName": "Windows Hello"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "trustedPlatformModule": {
+    "field": {
+      "name": "trustedPlatformModule",
+      "displayName": "Trusted Platform Module"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Enabled"
+        },
+        {
+          "name": "false",
+          "displayName": "Disabled"
+        }
+      ]
+    }
+  },
+  "androidIntegrity": {
+    "field": {
+      "name": "androidIntegrity",
+      "displayName": "Android integrity"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "MEETS_STRONG_INTEGRITY",
+          "displayName": "Meets Strong Integrity"
+        },
+        {
+          "name": "MEETS_DEVICE_INTEGRITY",
+          "displayName": "Meets Device Integrity"
+        },
+        {
+          "name": "MEETS_BASIC_INTEGRITY",
+          "displayName": "Meets Basic Integrity"
+        },
+        {
+          "name": "MEETS_VIRTUAL_INTEGRITY",
+          "displayName": "Meets Virtual Integrity"
+        },
+        {
+          "name": "INTEGRITY_FAILED",
+          "displayName": "Integrity Failed"
+        }
+      ]
+    }
+  },
+  "iosIntegrity": {
+    "field": {
+      "name": "iosIntegrity",
+      "displayName": "iOS device genuine"
+    },
+    "operators": [
+      "equals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "true",
+          "displayName": "Yes"
+        },
+        {
+          "name": "false",
+          "displayName": "No"
+        }
+      ]
+    }
   }
 }
