@@ -28,6 +28,8 @@ import java.util.List;
 public class IdPManagementConstants {
 
     public static final String SHARED_IDP_PREFIX = "SHARED_";
+    // Identity provider property name marking a shared idp resolved from a parent organization.
+    public static final String IS_SHARED_IDP_PROPERTY = "isShared";
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
     public static final String IDP_GROUP_LIST_PLACEHOLDER = "_IDP_GROUP_LIST_";
     public static final String IDP_METADATA_PROPERTY_LIST_PLACEHOLDER = "_IDP_METADATA_PROPERTY_LIST_";
