@@ -898,9 +898,11 @@ public class IdentityManagementEndpointUtil {
                     }
                 }
             } else {
+                // A configured server URL is a bare base URL, so qualify it with the tenant here unless it
+                // already carries one.
                 if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
                         .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware
-                        && !isServerURLAlreadyTenanted(tenantDomain)) {
+                        && !serverUrl.contains(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
                     basePath = serverUrl + FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + context;
                 } else {
                     basePath = serverUrl + context;

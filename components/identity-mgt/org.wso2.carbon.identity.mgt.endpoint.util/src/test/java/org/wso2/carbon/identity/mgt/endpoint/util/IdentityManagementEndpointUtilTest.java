@@ -373,6 +373,62 @@ public class IdentityManagementEndpointUtilTest {
         }
     }
 
+    @DataProvider(name = "getBasePathConfiguredServerUrlData")
+    public Object[][] getBasePathConfiguredServerUrlData() {
+
+        return new Object[][] {
+                // contextUrl (configured server URL)
+                // tenantDomain
+                // isEndpointTenantAware
+                // inboundPath (stubbed serviceURL.getPath() - already tenant-qualified, the case that regressed)
+                // expected value
+
+                // A configured server URL is tenant-qualified even when the inbound request path already
+                // carries the tenant (the fix - the tenant must not be dropped here).
+                { "https://foo.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  true,
+                  "/t/test.com/api/identity/recovery/v0.9",
+                  "https://foo.com/t/test.com/api/identity/recovery/v0.9"
+                },
+                // Configured server URL already carries a tenant: no second /t/ prefix is added.
+                { "https://foo.com/t/test.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  true,
+                  "/t/test.com/api/identity/recovery/v0.9",
+                  "https://foo.com/t/test.com/api/identity/recovery/v0.9"
+                },
+                // Super tenant: no /t/ prefix.
+                { "https://foo.com",
+                  MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
+                  true,
+                  "/t/carbon.super/api/identity/recovery/v0.9",
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                // Not endpoint-tenant-aware: no /t/ prefix.
+                { "https://foo.com",
+                  SAMPLE_TENANT_DOMAIN,
+                  false,
+                  "/t/test.com/api/identity/recovery/v0.9",
+                  "https://foo.com/api/identity/recovery/v0.9"
+                }
+        };
+    }
+
+    @Test(dataProvider = "getBasePathConfiguredServerUrlData")
+    public void testGetBasePathConfiguredServerUrl(String contextUrl, String tenantDomain,
+            boolean isEndpointTenantAware, String inboundPath, String expected) throws Exception {
+
+        String context = IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH;
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+            prepareGetBasePathTest(contextUrl, context, identityTenantUtil, serviceURLBuilder, true, false);
+            lenient().when(serviceURL.getPath()).thenReturn(inboundPath);
+            assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context, isEndpointTenantAware),
+                    expected);
+        }
+    }
+
     @DataProvider(name = "getBasePathUseOrgHandleFalseTestData")
     public Object[][] getBasePathUseOrgHandleFalseTestData() {
 
