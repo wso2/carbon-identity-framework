@@ -18,14 +18,22 @@
 
 package org.wso2.carbon.identity.policy.management.api.model;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Represents a policy.
- * Instances are created through {@link Builder}. Field validation is not performed here; user supplied
- * policies are validated by the service layer so that failures surface as client errors.
+ * Instances are created through {@link Builder}, which validates the resource list so that a policy
+ * holding invalid or conflicting resources can never exist. The name is not validated here because it
+ * is optional on update, where the stored name is retained.
  */
 public class Policy {
 
@@ -67,6 +75,10 @@ public class Policy {
      * Builder for {@link Policy}.
      */
     public static class Builder {
+
+        private static final String RESOURCE_FIELD = "Resource";
+        private static final String RESOURCE_TYPE_FIELD = "Resource type";
+        private static final String TARGET_FIELD = "Target";
 
         private String id;
         private String name;
@@ -142,13 +154,52 @@ public class Policy {
         }
 
         /**
-         * Builds the policy.
+         * Builds the policy after validating its resources.
          *
          * @return Policy instance.
+         * @throws PolicyManagementClientException If a resource is null, reports no resource type, or if two
+         *                                         resources of the same type share a target.
          */
-        public Policy build() {
+        public Policy build() throws PolicyManagementClientException {
 
+            validateResources();
             return new Policy(this);
+        }
+
+        private void validateResources() throws PolicyManagementClientException {
+
+            if (resources == null) {
+                return;
+            }
+            Set<String> seenTargets = new HashSet<>();
+            for (PolicyResource resource : resources) {
+                if (resource == null) {
+                    throw invalidField(RESOURCE_FIELD);
+                }
+                if (resource.getResourceType() == null) {
+                    throw invalidField(RESOURCE_TYPE_FIELD);
+                }
+                if (StringUtils.isBlank(resource.getTarget())) {
+                    throw invalidField(TARGET_FIELD);
+                }
+                String key = resource.getResourceType().name() + "|"
+                        + resource.getTarget().toLowerCase(Locale.ROOT);
+                if (!seenTargets.add(key)) {
+                    throw new PolicyManagementClientException(
+                            ErrorMessage.ERROR_DUPLICATE_TARGET_IN_POLICY.getMessage(),
+                            String.format(ErrorMessage.ERROR_DUPLICATE_TARGET_IN_POLICY.getDescription(),
+                                    name, resource.getTarget()),
+                            ErrorMessage.ERROR_DUPLICATE_TARGET_IN_POLICY.getCode());
+                }
+            }
+        }
+
+        private PolicyManagementClientException invalidField(String field) {
+
+            return new PolicyManagementClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getMessage(),
+                    String.format(ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getDescription(), field),
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getCode());
         }
     }
 }

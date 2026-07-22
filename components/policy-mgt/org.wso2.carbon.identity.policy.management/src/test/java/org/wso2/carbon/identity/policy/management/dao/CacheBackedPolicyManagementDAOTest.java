@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.component.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.internal.cache.PolicyCache;
@@ -81,7 +82,7 @@ public class CacheBackedPolicyManagementDAOTest {
         policyIdByNameCache.clear(TENANT_ID);
     }
 
-    private Policy policy() {
+    private Policy policy() throws PolicyManagementClientException {
 
         return new Policy.Builder()
                 .id(POLICY_ID)

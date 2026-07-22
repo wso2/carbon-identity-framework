@@ -36,4 +36,10 @@
             <class name="org.wso2.carbon.identity.policy.management.util.PolicyValidatorTest"/>
         </classes>
     </test>
+    <test name="policy-management-model-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.policy.management.model.PolicyBuilderTest"/>
+            <class name="org.wso2.carbon.identity.policy.management.model.RulePolicyResourceBuilderTest"/>
+        </classes>
+    </test>
 </suite>

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
@@ -41,6 +42,7 @@ import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagement
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -187,14 +189,12 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
         NamedJdbcTemplate jdbcTemplate =
                 new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            return jdbcTemplate.<Policy, RuntimeException>withTransaction(template -> {
-                Policy base = template.fetchSingleRecord(
+            return jdbcTemplate.<Policy, PolicyManagementClientException>withTransaction(template -> {
+                PolicyBasicInfo base = template.fetchSingleRecord(
                         PolicyMgtSQLConstants.Query.GET_POLICY_BY_ID,
-                        (resultSet, rowNumber) -> new Policy.Builder()
-                                .id(resultSet.getString(PolicyMgtSQLConstants.Column.ID))
-                                .name(resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME))
-                                .tenantDomain(tenantDomain)
-                                .build(),
+                        (resultSet, rowNumber) -> new PolicyBasicInfo(
+                                resultSet.getString(PolicyMgtSQLConstants.Column.ID),
+                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME)),
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_ID, policyId);
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
@@ -203,7 +203,12 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                     return null;
                 }
                 List<PolicyResource> resources = fetchPolicyResources(template, base.getId());
-                return new Policy.Builder(base).resources(resources).build();
+                return new Policy.Builder()
+                        .id(base.getId())
+                        .name(base.getName())
+                        .tenantDomain(tenantDomain)
+                        .resources(resources)
+                        .build();
             });
         } catch (TransactionException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
@@ -218,14 +223,12 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
         NamedJdbcTemplate jdbcTemplate =
                 new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            return jdbcTemplate.<Policy, RuntimeException>withTransaction(template -> {
-                Policy base = template.fetchSingleRecord(
+            return jdbcTemplate.<Policy, PolicyManagementClientException>withTransaction(template -> {
+                PolicyBasicInfo base = template.fetchSingleRecord(
                         PolicyMgtSQLConstants.Query.GET_POLICY_BY_NAME,
-                        (resultSet, rowNumber) -> new Policy.Builder()
-                                .id(resultSet.getString(PolicyMgtSQLConstants.Column.ID))
-                                .name(resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME))
-                                .tenantDomain(tenantDomain)
-                                .build(),
+                        (resultSet, rowNumber) -> new PolicyBasicInfo(
+                                resultSet.getString(PolicyMgtSQLConstants.Column.ID),
+                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME)),
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policyName);
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
@@ -234,7 +237,12 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                     return null;
                 }
                 List<PolicyResource> resources = fetchPolicyResources(template, base.getId());
-                return new Policy.Builder(base).resources(resources).build();
+                return new Policy.Builder()
+                        .id(base.getId())
+                        .name(base.getName())
+                        .tenantDomain(tenantDomain)
+                        .resources(resources)
+                        .build();
             });
         } catch (TransactionException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
@@ -393,33 +401,60 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     }
 
     private List<PolicyResource> fetchPolicyResources(NamedTemplate<Policy> template, String policyId)
-            throws DataAccessException {
+            throws DataAccessException, PolicyManagementClientException {
 
-        List<PolicyResource> resources = template.executeQuery(
+        // The rows are mapped first and the resources are built afterwards, because a row mapper cannot
+        // propagate the client exception raised by the resource builders.
+        List<PolicyResourceRow> rows = template.executeQuery(
                 PolicyMgtSQLConstants.Query.GET_POLICY_RESOURCES,
-                (resultSet, rowNumber) -> mapPolicyResource(
+                (resultSet, rowNumber) -> new PolicyResourceRow(
                         resultSet.getString(PolicyMgtSQLConstants.Column.ID),
                         resultSet.getString(PolicyMgtSQLConstants.Column.TARGET),
                         resultSet.getString(PolicyMgtSQLConstants.Column.RESOURCE_TYPE),
                         resultSet.getString(PolicyMgtSQLConstants.Column.RESOURCE_ID)),
                 preparedStatement -> preparedStatement.setString(
                         PolicyMgtSQLConstants.Column.POLICY_ID, policyId));
-        return resources != null ? resources : Collections.emptyList();
+        if (rows == null) {
+            return Collections.emptyList();
+        }
+        List<PolicyResource> resources = new ArrayList<>();
+        for (PolicyResourceRow row : rows) {
+            resources.add(mapPolicyResource(row));
+        }
+        return resources;
+    }
+
+    /**
+     * Raw IDN_POLICY_RESOURCE row, held between row mapping and resource construction.
+     */
+    private static final class PolicyResourceRow {
+
+        private final String id;
+        private final String target;
+        private final String resourceType;
+        private final String resourceId;
+
+        private PolicyResourceRow(String id, String target, String resourceType, String resourceId) {
+
+            this.id = id;
+            this.target = target;
+            this.resourceType = resourceType;
+            this.resourceId = resourceId;
+        }
     }
 
     // Single extension point: add a branch here (and a matching subclass of PolicyResource) for each new resource type.
-    private PolicyResource mapPolicyResource(String id, String target, String resourceType, String resourceId)
-            throws SQLException {
+    private PolicyResource mapPolicyResource(PolicyResourceRow row) throws PolicyManagementClientException {
 
-        ResourceType type = ResourceType.valueOf(resourceType);
+        ResourceType type = ResourceType.valueOf(row.resourceType);
         if (type == ResourceType.RULE) {
             return new RulePolicyResource.Builder()
-                    .id(id)
-                    .target(target)
-                    .resourceId(resourceId)
+                    .id(row.id)
+                    .target(row.target)
+                    .resourceId(row.resourceId)
                     .build();
         }
-        throw new SQLException("Unsupported policy resource type: " + type);
+        throw new IllegalStateException("Unsupported policy resource type: " + type);
     }
 
 }

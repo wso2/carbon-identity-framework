@@ -22,14 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
-import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
 
 /**
- * Validates user supplied policies before they are persisted.
+ * Validates policy level rules that cannot be enforced by {@link Policy.Builder}, namely the presence of
+ * the policy itself and of a name on creation. Resource level validation is performed by the builders.
  * Every failure is raised as a {@link PolicyManagementClientException} so that the API layer reports it
  * as a client error rather than a server error.
  */
@@ -37,15 +33,12 @@ public class PolicyValidator {
 
     private static final String POLICY_FIELD = "Policy";
     private static final String POLICY_NAME_FIELD = "Policy name";
-    private static final String RESOURCE_FIELD = "Resource";
-    private static final String RESOURCE_TYPE_FIELD = "Resource type";
-    private static final String TARGET_FIELD = "Target";
 
     /**
      * Validate a policy supplied for creation.
      *
      * @param policy Policy to validate.
-     * @throws PolicyManagementClientException If the policy, its name or any of its resources are invalid.
+     * @throws PolicyManagementClientException If the policy is null or its name is missing.
      */
     public void validateForAdd(Policy policy) throws PolicyManagementClientException {
 
@@ -54,7 +47,6 @@ public class PolicyValidator {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
         }
-        validateResources(policy);
     }
 
     /**
@@ -62,26 +54,11 @@ public class PolicyValidator {
      * The name is immutable on update and is therefore not validated here.
      *
      * @param policy Policy to validate.
-     * @throws PolicyManagementClientException If the policy or any of its resources are invalid.
+     * @throws PolicyManagementClientException If the policy is null.
      */
     public void validateForUpdate(Policy policy) throws PolicyManagementClientException {
 
         validateNotNull(policy);
-        validateResources(policy);
-    }
-
-    /**
-     * Validate that a policy name was supplied.
-     *
-     * @param policyName Policy name to validate.
-     * @throws PolicyManagementClientException If the policy name is null or blank.
-     */
-    public void validatePolicyName(String policyName) throws PolicyManagementClientException {
-
-        if (StringUtils.isBlank(policyName)) {
-            throw PolicyManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
-        }
     }
 
     private void validateNotNull(Policy policy) throws PolicyManagementClientException {
@@ -89,39 +66,6 @@ public class PolicyValidator {
         if (policy == null) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_FIELD);
-        }
-    }
-
-    /**
-     * Validate that every resource is present, typed, targeted, and that no two resources of the same
-     * type share a target.
-     *
-     * @param policy Policy whose resources are validated.
-     * @throws PolicyManagementClientException If a resource is invalid or duplicates another target.
-     */
-    private void validateResources(Policy policy) throws PolicyManagementClientException {
-
-        Set<String> seenTargets = new HashSet<>();
-        for (PolicyResource resource : policy.getResources()) {
-            if (resource == null) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, RESOURCE_FIELD);
-            }
-            if (resource.getResourceType() == null) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, RESOURCE_TYPE_FIELD);
-            }
-            if (StringUtils.isBlank(resource.getTarget())) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, TARGET_FIELD);
-            }
-            String key = resource.getResourceType().name() + "|"
-                    + resource.getTarget().toLowerCase(Locale.ROOT);
-            if (!seenTargets.add(key)) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_DUPLICATE_TARGET_IN_POLICY,
-                        policy.getName(), resource.getTarget());
-            }
         }
     }
 }

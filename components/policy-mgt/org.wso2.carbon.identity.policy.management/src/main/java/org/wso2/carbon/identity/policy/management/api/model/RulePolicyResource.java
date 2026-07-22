@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.policy.management.api.model;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
 /**
  * Policy resource backed by an IS-native rule managed by rule-mgt.
- * Instances are created through {@link Builder}. Field validation is not performed here; user supplied
- * resources are validated by the service layer so that failures surface as client errors.
+ * Instances are created through {@link Builder}, which validates the resource so that an invalid
+ * instance can never exist.
  */
 public class RulePolicyResource extends PolicyResource {
 
@@ -55,6 +58,8 @@ public class RulePolicyResource extends PolicyResource {
      * Builder for {@link RulePolicyResource}.
      */
     public static class Builder {
+
+        private static final String TARGET_FIELD = "Target";
 
         private String id;
         private String target;
@@ -110,12 +115,19 @@ public class RulePolicyResource extends PolicyResource {
         }
 
         /**
-         * Builds the rule policy resource.
+         * Builds the rule policy resource after validating that a target is present.
          *
          * @return RulePolicyResource instance.
+         * @throws PolicyManagementClientException If the target is null or blank.
          */
-        public RulePolicyResource build() {
+        public RulePolicyResource build() throws PolicyManagementClientException {
 
+            if (StringUtils.isBlank(target)) {
+                throw new PolicyManagementClientException(
+                        ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getMessage(),
+                        String.format(ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getDescription(), TARGET_FIELD),
+                        ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getCode());
+            }
             return new RulePolicyResource(this);
         }
     }

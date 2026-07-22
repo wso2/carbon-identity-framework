@@ -30,6 +30,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
@@ -63,7 +64,7 @@ public class PolicyManagementAuditLoggerTest {
      * Set up mocks and test data.
      */
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws PolicyManagementClientException {
 
         MockitoAnnotations.openMocks(this);
         auditLogger = new PolicyManagementAuditLogger();

@@ -353,7 +353,7 @@ public class PolicyManagementServiceImplTest {
     }
 
     @Test
-    public void testAddPolicyWithMismatchedResourceForManager_Throws() {
+    public void testAddPolicyWithMismatchedResourceForManager_Throws() throws PolicyManagementClientException {
 
         PolicyResource mismatched = new TestActionPolicyResource(null, "ios", "action-1");
         Policy inputPolicy = new Policy.Builder()
