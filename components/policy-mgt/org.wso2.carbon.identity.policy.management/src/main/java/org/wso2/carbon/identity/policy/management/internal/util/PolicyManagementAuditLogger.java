@@ -83,7 +83,8 @@ public class PolicyManagementAuditLogger {
         data.put(LogConstants.NAME_FIELD, policy.getName() != null ? policy.getName() : JSONObject.NULL);
         data.put(LogConstants.TENANT_DOMAIN_FIELD,
                 policy.getTenantDomain() != null ? policy.getTenantDomain() : JSONObject.NULL);
-        data.put(LogConstants.RESOURCES_FIELD, buildResourcesArray(policy));
+        data.put(LogConstants.RESOURCES_FIELD,
+                policy.getResources() != null ? buildResourcesArray(policy) : JSONObject.NULL);
         return data;
     }
 
@@ -91,15 +92,12 @@ public class PolicyManagementAuditLogger {
      * Build the resource summary array for a policy, containing only each resource's target and
      * type. Resource-specific content (e.g. rule conditions) is deliberately excluded.
      *
-     * @param policy Policy whose resources are summarized.
+     * @param policy Policy whose resources are summarized. Must have a non-null resource list.
      * @return JSONArray of {@code {target, type}} entries.
      */
     private JSONArray buildResourcesArray(Policy policy) {
 
         JSONArray resources = new JSONArray();
-        if (policy.getResources() == null) {
-            return resources;
-        }
         for (PolicyResource resource : policy.getResources()) {
             if (resource == null) {
                 continue;

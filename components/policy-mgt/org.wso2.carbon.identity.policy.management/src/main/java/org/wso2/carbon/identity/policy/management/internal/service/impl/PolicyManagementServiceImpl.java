@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
-import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
@@ -37,12 +36,10 @@ import org.wso2.carbon.identity.policy.management.internal.resourcemanager.Polic
 import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementAuditLogger;
 import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementAuditLogger.Operation;
 import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementExceptionHandler;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyValidator;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -55,30 +52,29 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     private static final Log LOG = LogFactory.getLog(PolicyManagementServiceImpl.class);
     private static final PolicyManagementAuditLogger AUDIT_LOGGER = new PolicyManagementAuditLogger();
     private static final String POLICY_NAME_FIELD = "Policy name";
+    private static final PolicyValidator POLICY_VALIDATOR = new PolicyValidator();
+    private static final PolicyManagementServiceImpl INSTANCE = new PolicyManagementServiceImpl();
     private final PolicyManagementDAO policyManagementDAO;
 
-    /**
-     * Default constructor used by OSGi component. Delegates to the DAO-backed constructor.
-     */
-    public PolicyManagementServiceImpl() {
+    private PolicyManagementServiceImpl() {
 
-        this(new CacheBackedPolicyManagementDAO(new PolicyManagementDAOImpl()));
+        policyManagementDAO = new CacheBackedPolicyManagementDAO(new PolicyManagementDAOImpl());
     }
 
     /**
-     * Constructor for tests or manual instantiation with a custom DAO.
+     * Get the instance of PolicyManagementServiceImpl.
      *
-     * @param policyManagementDAO DAO implementation to use.
+     * @return PolicyManagementServiceImpl instance.
      */
-    public PolicyManagementServiceImpl(PolicyManagementDAO policyManagementDAO) {
+    public static PolicyManagementServiceImpl getInstance() {
 
-        this.policyManagementDAO = policyManagementDAO;
+        return INSTANCE;
     }
 
     @Override
     public Policy addPolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
-        validatePolicyFields(policy);
+        POLICY_VALIDATOR.validateForAdd(policy);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Creating policy with name: %s for tenant: %s",
                     policy.getName(), tenantDomain));
@@ -99,8 +95,12 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
             throw e;
         }
 
-        Policy policyWithResourceIds = new Policy(
-                policyId, policy.getName(), tenantDomain, createdResources);
+        Policy policyWithResourceIds = new Policy.Builder()
+                .id(policyId)
+                .name(policy.getName())
+                .tenantDomain(tenantDomain)
+                .resources(createdResources)
+                .build();
 
         try {
             Policy created = policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);
@@ -123,16 +123,19 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
-        validatePolicyFieldsForUpdate(policy);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Updating policy with ID: %s for tenant: %s",
-                    policy.getId(), tenantDomain));
-        }
+        POLICY_VALIDATOR.validateForUpdate(policy);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         Policy existingPolicy = policyManagementDAO.getPolicyById(policy.getId(), tenantId);
         if (existingPolicy == null) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_POLICY_NOT_FOUND, policy.getId());
+        }
+
+        // The name is immutable on update: the stored name is carried over and any supplied name is ignored.
+        policy = new Policy.Builder(policy).name(existingPolicy.getName()).build();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Updating policy with ID: %s for tenant: %s",
+                    policy.getId(), tenantDomain));
         }
 
         // Create the new resources first so the old ones remain intact until the DB commit succeeds. The old
@@ -149,8 +152,12 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
             throw e;
         }
 
-        Policy policyWithResourceIds = new Policy(
-                policy.getId(), existingPolicy.getName(), tenantDomain, createdResources);
+        Policy policyWithResourceIds = new Policy.Builder()
+                .id(policy.getId())
+                .name(existingPolicy.getName())
+                .tenantDomain(tenantDomain)
+                .resources(createdResources)
+                .build();
 
         Policy updatedPolicy;
         try {
@@ -259,7 +266,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         for (PolicyResource pr : policy.getResources()) {
             hydratedResources.add(getResourceManager(pr.getResourceType()).hydrate(pr, tenantDomain));
         }
-        return new Policy(policy.getId(), policy.getName(), policy.getTenantDomain(), hydratedResources);
+        return new Policy.Builder(policy).resources(hydratedResources).build();
     }
 
 
@@ -284,49 +291,6 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     ErrorMessage.ERROR_NO_RESOURCE_MANAGER_FOR_TYPE, String.valueOf(resourceType));
         }
         return manager;
-    }
-
-    private void validatePolicyFields(Policy policy) throws PolicyManagementClientException {
-
-        if (policy == null) {
-            throw PolicyManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, "Policy");
-        }
-        if (policy.getName() == null || policy.getName().trim().isEmpty()) {
-            throw PolicyManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
-        }
-        validateUniqueTargetsPerResourceType(policy);
-    }
-
-    private void validatePolicyFieldsForUpdate(Policy policy) throws PolicyManagementClientException {
-
-        if (policy == null) {
-            throw PolicyManagementExceptionHandler.handleClientException(
-                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, "Policy");
-        }
-        validateUniqueTargetsPerResourceType(policy);
-    }
-
-    private void validateUniqueTargetsPerResourceType(Policy policy) throws PolicyManagementClientException {
-
-        Set<String> seenTargets = new HashSet<>();
-        for (PolicyResource resource : policy.getResources()) {
-            if (resource == null || resource.getTarget() == null) {
-                continue;
-            }
-            if (resource.getResourceType() == null) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, "Resource type");
-            }
-            String key = resource.getResourceType().name() + "|"
-                    + resource.getTarget().toLowerCase(Locale.ROOT);
-            if (!seenTargets.add(key)) {
-                throw PolicyManagementExceptionHandler.handleClientException(
-                        ErrorMessage.ERROR_DUPLICATE_TARGET_IN_POLICY,
-                        policy.getName(), resource.getTarget());
-            }
-        }
     }
 
     private void validateUniquePolicyName(String name, String excludePolicyId, int tenantId)

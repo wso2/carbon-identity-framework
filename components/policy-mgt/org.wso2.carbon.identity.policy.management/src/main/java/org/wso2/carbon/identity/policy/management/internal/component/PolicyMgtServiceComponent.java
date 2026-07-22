@@ -29,7 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
-import org.wso2.carbon.identity.policy.management.internal.resourcemanager.RuleResourceManager;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.impl.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 
@@ -49,7 +49,7 @@ public class PolicyMgtServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            PolicyManagementServiceImpl policyManagementService = new PolicyManagementServiceImpl();
+            PolicyManagementServiceImpl policyManagementService = PolicyManagementServiceImpl.getInstance();
             bundleCtx.registerService(PolicyManagementService.class.getName(), policyManagementService, null);
             PolicyMgtComponentServiceHolder.getInstance().setPolicyManagementService(policyManagementService);
 

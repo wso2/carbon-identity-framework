@@ -83,8 +83,15 @@ public class PolicyManagementAuditLoggerTest {
         loggerUtilsMockedStatic.when(() -> LoggerUtils.triggerAuditLogEvent(any(AuditLog.AuditLogBuilder.class)))
                 .then(invocation -> null);
 
-        policy = new Policy(POLICY_ID, POLICY_NAME, TENANT_DOMAIN, Collections.singletonList(
-                new RulePolicyResource(null, "android", "rule-1", null)));
+        policy = new Policy.Builder()
+                .id(POLICY_ID)
+                .name(POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(new RulePolicyResource.Builder()
+                        .target("android")
+                        .resourceId("rule-1")
+                        .build()))
+                .build();
     }
 
     /**
@@ -156,7 +163,12 @@ public class PolicyManagementAuditLoggerTest {
     @Test
     public void testCreateAuditLogEntryForPolicyWithNoResources() throws Exception {
 
-        Policy emptyResourcePolicy = new Policy(POLICY_ID, POLICY_NAME, TENANT_DOMAIN, Collections.emptyList());
+        Policy emptyResourcePolicy = new Policy.Builder()
+                .id(POLICY_ID)
+                .name(POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
         JSONObject data = invokeCreateAuditLogEntry(emptyResourcePolicy);
         JSONArray resources = (JSONArray) data.get("Resources");
         Assert.assertEquals(resources.length(), 0);

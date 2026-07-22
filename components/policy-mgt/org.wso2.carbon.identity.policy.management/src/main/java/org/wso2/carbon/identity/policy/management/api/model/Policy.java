@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * Represents a policy.
+ * Instances are created through {@link Builder}. Field validation is not performed here; user supplied
+ * policies are validated by the service layer so that failures surface as client errors.
  */
 public class Policy {
 
@@ -32,13 +34,13 @@ public class Policy {
     private final String tenantDomain;
     private final List<PolicyResource> resources;
 
-    public Policy(String id, String name, String tenantDomain, List<PolicyResource> resources) {
+    private Policy(Builder builder) {
 
-        this.id = id;
-        this.name = name;
-        this.tenantDomain = tenantDomain;
-        this.resources = resources != null
-                ? Collections.unmodifiableList(new ArrayList<>(resources)) : Collections.emptyList();
+        this.id = builder.id;
+        this.name = builder.name;
+        this.tenantDomain = builder.tenantDomain;
+        this.resources = builder.resources != null
+                ? Collections.unmodifiableList(new ArrayList<>(builder.resources)) : Collections.emptyList();
     }
 
     public String getId() {
@@ -59,5 +61,94 @@ public class Policy {
     public List<PolicyResource> getResources() {
 
         return resources;
+    }
+
+    /**
+     * Builder for {@link Policy}.
+     */
+    public static class Builder {
+
+        private String id;
+        private String name;
+        private String tenantDomain;
+        private List<PolicyResource> resources;
+
+        /**
+         * Creates an empty builder.
+         */
+        public Builder() {
+
+        }
+
+        /**
+         * Creates a builder pre-populated from an existing policy.
+         *
+         * @param policy Policy to copy the field values from.
+         */
+        public Builder(Policy policy) {
+
+            this.id = policy.getId();
+            this.name = policy.getName();
+            this.tenantDomain = policy.getTenantDomain();
+            this.resources = policy.getResources();
+        }
+
+        /**
+         * Sets the policy ID.
+         *
+         * @param id Policy ID, or {@code null} if not yet persisted.
+         * @return This builder.
+         */
+        public Builder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * Sets the policy name.
+         *
+         * @param name Policy name.
+         * @return This builder.
+         */
+        public Builder name(String name) {
+
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * Sets the tenant domain.
+         *
+         * @param tenantDomain Tenant domain.
+         * @return This builder.
+         */
+        public Builder tenantDomain(String tenantDomain) {
+
+            this.tenantDomain = tenantDomain;
+            return this;
+        }
+
+        /**
+         * Sets the policy resources.
+         *
+         * @param resources Policy resources.
+         * @return This builder.
+         */
+        public Builder resources(List<PolicyResource> resources) {
+
+            this.resources = resources;
+            return this;
+        }
+
+        /**
+         * Builds the policy.
+         *
+         * @return Policy instance.
+         */
+        public Policy build() {
+
+            return new Policy(this);
+        }
     }
 }

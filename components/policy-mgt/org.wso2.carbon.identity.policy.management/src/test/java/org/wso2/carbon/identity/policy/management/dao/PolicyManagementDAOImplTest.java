@@ -80,13 +80,14 @@ public class PolicyManagementDAOImplTest {
     public void testAddPolicy() throws PolicyManagementException {
 
         List<PolicyResource> resources = Collections.singletonList(
-                new RulePolicyResource(null, "android", TEST_RULE_ID, null));
+                new RulePolicyResource.Builder().target("android").resourceId(TEST_RULE_ID).build());
 
-        Policy policy = new Policy(
-                UUID.randomUUID().toString(),
-                TEST_POLICY_NAME,
-                TENANT_DOMAIN,
-                resources);
+        Policy policy = new Policy.Builder()
+                .id(UUID.randomUUID().toString())
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(resources)
+                .build();
 
         Policy result = policyManagementDAO.addPolicy(policy, TENANT_ID);
 
@@ -117,9 +118,14 @@ public class PolicyManagementDAOImplTest {
         String updatedRuleId = UUID.randomUUID().toString();
 
         List<PolicyResource> updatedResources = Collections.singletonList(
-                new RulePolicyResource(null, "ios", updatedRuleId, null));
+                new RulePolicyResource.Builder().target("ios").resourceId(updatedRuleId).build());
 
-        Policy updatedPolicy = new Policy(createdPolicyId, updatedName, TENANT_DOMAIN, updatedResources);
+        Policy updatedPolicy = new Policy.Builder()
+                .id(createdPolicyId)
+                .name(updatedName)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(updatedResources)
+                .build();
 
         Policy result = policyManagementDAO.updatePolicy(updatedPolicy, TENANT_ID);
 
@@ -149,7 +155,12 @@ public class PolicyManagementDAOImplTest {
 
     private String addPolicy(String name) throws PolicyManagementException {
 
-        Policy policy = new Policy(UUID.randomUUID().toString(), name, TENANT_DOMAIN, Collections.emptyList());
+        Policy policy = new Policy.Builder()
+                .id(UUID.randomUUID().toString())
+                .name(name)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
         return policyManagementDAO.addPolicy(policy, TENANT_ID).getId();
     }
 
@@ -206,8 +217,15 @@ public class PolicyManagementDAOImplTest {
     public void testResourceRoundTripAndTypeStored() throws PolicyManagementException {
 
         String ruleId = UUID.randomUUID().toString();
-        Policy policy = new Policy(UUID.randomUUID().toString(), "ResourceRoundTrip", TENANT_DOMAIN,
-                Collections.singletonList(new RulePolicyResource(null, "ios", ruleId, null)));
+        Policy policy = new Policy.Builder()
+                .id(UUID.randomUUID().toString())
+                .name("ResourceRoundTrip")
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(new RulePolicyResource.Builder()
+                        .target("ios")
+                        .resourceId(ruleId)
+                        .build()))
+                .build();
         String id = policyManagementDAO.addPolicy(policy, TENANT_ID).getId();
 
         Policy fetched = policyManagementDAO.getPolicyById(id, TENANT_ID);
@@ -222,10 +240,18 @@ public class PolicyManagementDAOImplTest {
     public void testDuplicateTargetPerTypeRejected() throws PolicyManagementException {
 
         // Two RULE resources for the same target violate UNIQUE (POLICY_ID, TARGET, RESOURCE_TYPE).
-        Policy policy = new Policy(UUID.randomUUID().toString(), "DuplicateTargetPolicy", TENANT_DOMAIN,
-                Arrays.asList(
-                        new RulePolicyResource(null, "ios", UUID.randomUUID().toString(), null),
-                        new RulePolicyResource(null, "ios", UUID.randomUUID().toString(), null)));
+        Policy policy = new Policy.Builder()
+                .id(UUID.randomUUID().toString())
+                .name("DuplicateTargetPolicy")
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Arrays.asList(new RulePolicyResource.Builder()
+                        .target("ios")
+                        .resourceId(UUID.randomUUID().toString())
+                        .build(), new RulePolicyResource.Builder()
+                                .target("ios")
+                                .resourceId(UUID.randomUUID().toString())
+                                .build()))
+                .build();
 
         policyManagementDAO.addPolicy(policy, TENANT_ID);
     }

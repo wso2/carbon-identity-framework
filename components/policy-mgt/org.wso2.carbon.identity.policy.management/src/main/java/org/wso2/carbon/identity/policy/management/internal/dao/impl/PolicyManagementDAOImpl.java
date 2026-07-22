@@ -190,10 +190,11 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
             return jdbcTemplate.<Policy, RuntimeException>withTransaction(template -> {
                 Policy base = template.fetchSingleRecord(
                         PolicyMgtSQLConstants.Query.GET_POLICY_BY_ID,
-                        (resultSet, rowNumber) -> new Policy(
-                                resultSet.getString(PolicyMgtSQLConstants.Column.ID),
-                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME),
-                                tenantDomain, null),
+                        (resultSet, rowNumber) -> new Policy.Builder()
+                                .id(resultSet.getString(PolicyMgtSQLConstants.Column.ID))
+                                .name(resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME))
+                                .tenantDomain(tenantDomain)
+                                .build(),
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_ID, policyId);
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
@@ -202,7 +203,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                     return null;
                 }
                 List<PolicyResource> resources = fetchPolicyResources(template, base.getId());
-                return new Policy(base.getId(), base.getName(), tenantDomain, resources);
+                return new Policy.Builder(base).resources(resources).build();
             });
         } catch (TransactionException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
@@ -220,10 +221,11 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
             return jdbcTemplate.<Policy, RuntimeException>withTransaction(template -> {
                 Policy base = template.fetchSingleRecord(
                         PolicyMgtSQLConstants.Query.GET_POLICY_BY_NAME,
-                        (resultSet, rowNumber) -> new Policy(
-                                resultSet.getString(PolicyMgtSQLConstants.Column.ID),
-                                resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME),
-                                tenantDomain, null),
+                        (resultSet, rowNumber) -> new Policy.Builder()
+                                .id(resultSet.getString(PolicyMgtSQLConstants.Column.ID))
+                                .name(resultSet.getString(PolicyMgtSQLConstants.Column.POLICY_NAME))
+                                .tenantDomain(tenantDomain)
+                                .build(),
                         preparedStatement -> {
                             preparedStatement.setString(PolicyMgtSQLConstants.Column.POLICY_NAME, policyName);
                             preparedStatement.setInt(PolicyMgtSQLConstants.Column.TENANT_ID, tenantId);
@@ -232,7 +234,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
                     return null;
                 }
                 List<PolicyResource> resources = fetchPolicyResources(template, base.getId());
-                return new Policy(base.getId(), base.getName(), tenantDomain, resources);
+                return new Policy.Builder(base).resources(resources).build();
             });
         } catch (TransactionException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
@@ -411,7 +413,11 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
 
         ResourceType type = ResourceType.valueOf(resourceType);
         if (type == ResourceType.RULE) {
-            return new RulePolicyResource(id, target, resourceId, null);
+            return new RulePolicyResource.Builder()
+                    .id(id)
+                    .target(target)
+                    .resourceId(resourceId)
+                    .build();
         }
         throw new SQLException("Unsupported policy resource type: " + type);
     }

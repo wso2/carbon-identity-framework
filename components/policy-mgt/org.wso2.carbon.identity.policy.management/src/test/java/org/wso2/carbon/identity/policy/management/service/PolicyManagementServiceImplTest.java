@@ -43,13 +43,14 @@ import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
-import org.wso2.carbon.identity.policy.management.internal.resourcemanager.RuleResourceManager;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.impl.RuleResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.service.impl.PolicyManagementServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.utils.AuditLog;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
@@ -111,7 +112,10 @@ public class PolicyManagementServiceImplTest {
     public void setUp() throws Exception {
 
         mocks = MockitoAnnotations.openMocks(this);
-        policyManagementService = new PolicyManagementServiceImpl(policyManagementDAO);
+        policyManagementService = PolicyManagementServiceImpl.getInstance();
+        Field daoField = PolicyManagementServiceImpl.class.getDeclaredField("policyManagementDAO");
+        daoField.setAccessible(true);
+        daoField.set(policyManagementService, policyManagementDAO);
 
         PolicyMgtComponentServiceHolder.getInstance().setRuleManagementService(ruleManagementService);
         PolicyMgtComponentServiceHolder.getInstance().addResourceManager(new RuleResourceManager());
@@ -150,10 +154,17 @@ public class PolicyManagementServiceImplTest {
     @Test
     public void testAddPolicy() throws PolicyManagementException {
 
-        Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.emptyList());
-        Policy savedPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
+        Policy savedPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
 
         when(policyManagementDAO.addPolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(savedPolicy);
 
@@ -168,24 +179,33 @@ public class PolicyManagementServiceImplTest {
     @Test(expectedExceptions = PolicyManagementClientException.class)
     public void testAddPolicy_EmptyName() throws PolicyManagementException {
 
-        Policy inputPolicy = new Policy(null, "", TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy inputPolicy = new Policy.Builder()
+                .name("")
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
         policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = PolicyManagementClientException.class)
     public void testAddPolicy_NullName() throws PolicyManagementException {
 
-        Policy inputPolicy = new Policy(null, null, TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy inputPolicy = new Policy.Builder()
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
         policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
     }
 
     @Test
     public void testGetPolicyById() throws PolicyManagementException {
 
-        Policy expectedPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy expectedPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(expectedPolicy);
 
@@ -203,8 +223,15 @@ public class PolicyManagementServiceImplTest {
 
         String ruleId = UUID.randomUUID().toString();
         Rule hydratedRule = mock(Rule.class);
-        Policy existingPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(new RulePolicyResource(null, "ios", ruleId, null)));
+        Policy existingPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(new RulePolicyResource.Builder()
+                        .target("ios")
+                        .resourceId(ruleId)
+                        .build()))
+                .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
         when(ruleManagementService.getRuleByRuleId(ruleId, TENANT_DOMAIN)).thenReturn(hydratedRule);
@@ -222,10 +249,18 @@ public class PolicyManagementServiceImplTest {
     @Test
     public void testUpdatePolicy() throws PolicyManagementException {
 
-        Policy existingPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.emptyList());
-        Policy updatedPolicy = new Policy(TEST_POLICY_ID, "UpdatedPolicy", TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy existingPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
+        Policy updatedPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name("UpdatedPolicy")
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
         when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(updatedPolicy);
@@ -241,8 +276,12 @@ public class PolicyManagementServiceImplTest {
     @Test(expectedExceptions = PolicyManagementClientException.class)
     public void testUpdatePolicy_PolicyNotFound() throws PolicyManagementException {
 
-        Policy policy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy policy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(null);
 
@@ -252,8 +291,12 @@ public class PolicyManagementServiceImplTest {
     @Test
     public void testDeletePolicy() throws PolicyManagementException {
 
-        Policy existingPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.emptyList());
+        Policy existingPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
 
@@ -284,11 +327,18 @@ public class PolicyManagementServiceImplTest {
         when(created.getId()).thenReturn("rule-1");
         when(ruleManagementService.addRule(any(Rule.class), eq(TENANT_DOMAIN))).thenReturn(created);
 
-        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
-        Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(ruleRes));
-        Policy savedPolicy = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(ruleRes));
+        PolicyResource ruleRes = new RulePolicyResource.Builder().target("ios").rule(mock(Rule.class)).build();
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(ruleRes))
+                .build();
+        Policy savedPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(ruleRes))
+                .build();
         when(policyManagementDAO.addPolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(savedPolicy);
 
         policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
@@ -306,8 +356,11 @@ public class PolicyManagementServiceImplTest {
     public void testAddPolicyWithMismatchedResourceForManager_Throws() {
 
         PolicyResource mismatched = new TestActionPolicyResource(null, "ios", "action-1");
-        Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(mismatched));
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(mismatched))
+                .build();
 
         try {
             policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
@@ -329,9 +382,13 @@ public class PolicyManagementServiceImplTest {
                 .thenReturn(created)
                 .thenThrow(RuleManagementException.class);
 
-        PolicyResource r1 = new RulePolicyResource(null, "ios", null, mock(Rule.class));
-        PolicyResource r2 = new RulePolicyResource(null, "android", null, mock(Rule.class));
-        Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN, Arrays.asList(r1, r2));
+        PolicyResource r1 = new RulePolicyResource.Builder().target("ios").rule(mock(Rule.class)).build();
+        PolicyResource r2 = new RulePolicyResource.Builder().target("android").rule(mock(Rule.class)).build();
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Arrays.asList(r1, r2))
+                .build();
 
         try {
             policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
@@ -355,9 +412,12 @@ public class PolicyManagementServiceImplTest {
         when(policyManagementDAO.addPolicy(any(Policy.class), eq(TENANT_ID)))
                 .thenThrow(PolicyManagementServerException.class);
 
-        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
-        Policy inputPolicy = new Policy(null, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(ruleRes));
+        PolicyResource ruleRes = new RulePolicyResource.Builder().target("ios").rule(mock(Rule.class)).build();
+        Policy inputPolicy = new Policy.Builder()
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(ruleRes))
+                .build();
 
         try {
             policyManagementService.addPolicy(inputPolicy, TENANT_DOMAIN);
@@ -374,18 +434,28 @@ public class PolicyManagementServiceImplTest {
     public void testUpdatePolicyWithRuleResource_DeletesOldRulesAndAddsNew()
             throws PolicyManagementException, RuleManagementException {
 
-        Policy existing = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(
-                        new RulePolicyResource(null, "ios", "old-rule", null)));
+        Policy existing = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(new RulePolicyResource.Builder()
+                        .target("ios")
+                        .resourceId("old-rule")
+                        .build()))
+                .build();
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existing);
 
         Rule created = mock(Rule.class);
         when(created.getId()).thenReturn("new-rule");
         when(ruleManagementService.addRule(any(Rule.class), eq(TENANT_DOMAIN))).thenReturn(created);
 
-        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
-        Policy update = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(ruleRes));
+        PolicyResource ruleRes = new RulePolicyResource.Builder().target("ios").rule(mock(Rule.class)).build();
+        Policy update = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(ruleRes))
+                .build();
         when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(update);
 
         policyManagementService.updatePolicy(update, TENANT_DOMAIN);
@@ -399,9 +469,15 @@ public class PolicyManagementServiceImplTest {
     public void testUpdatePolicyWithRule_KeepsOldRulesWhenPersistenceFails()
             throws PolicyManagementException, RuleManagementException {
 
-        Policy existing = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(
-                        new RulePolicyResource(null, "ios", "old-rule", null)));
+        Policy existing = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(new RulePolicyResource.Builder()
+                        .target("ios")
+                        .resourceId("old-rule")
+                        .build()))
+                .build();
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existing);
 
         Rule created = mock(Rule.class);
@@ -410,9 +486,13 @@ public class PolicyManagementServiceImplTest {
         when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID)))
                 .thenThrow(PolicyManagementServerException.class);
 
-        PolicyResource ruleRes = new RulePolicyResource(null, "ios", null, mock(Rule.class));
-        Policy update = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(ruleRes));
+        PolicyResource ruleRes = new RulePolicyResource.Builder().target("ios").rule(mock(Rule.class)).build();
+        Policy update = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(ruleRes))
+                .build();
 
         try {
             policyManagementService.updatePolicy(update, TENANT_DOMAIN);
@@ -430,9 +510,15 @@ public class PolicyManagementServiceImplTest {
     public void testDeletePolicyWithRuleResource_RemovesRulesFromRuleMgt()
             throws PolicyManagementException, RuleManagementException {
 
-        Policy existing = new Policy(TEST_POLICY_ID, TEST_POLICY_NAME, TENANT_DOMAIN,
-                Collections.singletonList(
-                        new RulePolicyResource(null, "ios", "rule-1", null)));
+        Policy existing = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.singletonList(new RulePolicyResource.Builder()
+                        .target("ios")
+                        .resourceId("rule-1")
+                        .build()))
+                .build();
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existing);
 
         policyManagementService.deletePolicy(TEST_POLICY_ID, TENANT_DOMAIN);

@@ -33,6 +33,7 @@
     <test name="policy-management-util-test">
         <classes>
             <class name="org.wso2.carbon.identity.policy.management.util.PolicyManagementAuditLoggerTest"/>
+            <class name="org.wso2.carbon.identity.policy.management.util.PolicyValidatorTest"/>
         </classes>
     </test>
 </suite>

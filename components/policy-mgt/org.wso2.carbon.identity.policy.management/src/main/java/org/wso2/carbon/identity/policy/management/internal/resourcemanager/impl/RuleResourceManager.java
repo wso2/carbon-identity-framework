@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.policy.management.internal.resourcemanager;
+package org.wso2.carbon.identity.policy.management.internal.resourcemanager.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
 import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementExceptionHandler;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
@@ -59,7 +60,11 @@ public class RuleResourceManager implements PolicyResourceManager {
                 LOG.debug("Rule added for policy target '" + resource.getTarget()
                         + "' with ruleId: " + createdRule.getId());
             }
-            return new RulePolicyResource(resource.getId(), resource.getTarget(), createdRule.getId(), null);
+            return new RulePolicyResource.Builder()
+                    .id(resource.getId())
+                    .target(resource.getTarget())
+                    .resourceId(createdRule.getId())
+                    .build();
         } catch (RuleManagementException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_ADDING_RULE_FOR_POLICY, e, resource.getTarget());
@@ -71,7 +76,12 @@ public class RuleResourceManager implements PolicyResourceManager {
 
         try {
             Rule rule = getRuleManagementService().getRuleByRuleId(resource.getResourceId(), tenantDomain);
-            return new RulePolicyResource(resource.getId(), resource.getTarget(), resource.getResourceId(), rule);
+            return new RulePolicyResource.Builder()
+                    .id(resource.getId())
+                    .target(resource.getTarget())
+                    .resourceId(resource.getResourceId())
+                    .rule(rule)
+                    .build();
         } catch (RuleManagementException e) {
             throw PolicyManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_POLICY, e);
