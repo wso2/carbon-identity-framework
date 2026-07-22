@@ -357,7 +357,7 @@ public class DeviceRegistrationExecutorTest {
         // real crypto validation and fail with a different error code, not this one.
         ExecutorResponse response = executor.execute(afterInitiation);
 
-        assertEquals(response.getResult(), STATUS_USER_ERROR);
+        assertEquals(response.getResult(), STATUS_ERROR);
         assertEquals(response.getErrorCode(), ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
         verify(deviceManagementService, never()).registerDevice(any(), any());
     }
@@ -384,7 +384,7 @@ public class DeviceRegistrationExecutorTest {
         // so this also proves DeviceRegistrationHandler.verify() is not reached a second time.
         ExecutorResponse secondResponse = executor.execute(afterInitiation);
 
-        assertEquals(secondResponse.getResult(), STATUS_USER_ERROR);
+        assertEquals(secondResponse.getResult(), STATUS_ERROR);
         assertEquals(secondResponse.getErrorCode(), ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
     }
 

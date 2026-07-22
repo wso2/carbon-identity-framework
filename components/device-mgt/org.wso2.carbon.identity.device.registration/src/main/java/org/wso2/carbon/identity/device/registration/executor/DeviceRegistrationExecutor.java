@@ -174,7 +174,7 @@ public class DeviceRegistrationExecutor implements Executor {
                 diagnosticLogger.logRegistrationFailure(
                         "Registration context not found for registrationId: " + registrationId);
                 ExecutorResponse response = new ExecutorResponse();
-                response.setResult(STATUS_USER_ERROR);
+                response.setResult(STATUS_ERROR);
                 response.setErrorCode(ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getCode());
                 response.setErrorMessage(ErrorMessage.ERROR_REGISTRATION_CONTEXT_NOT_FOUND.getMessage());
                 response.setErrorDescription(String.format(
