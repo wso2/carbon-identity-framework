@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
+import org.wso2.carbon.identity.application.authentication.framework.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImpl;
@@ -718,6 +719,29 @@ public class FrameworkServiceComponent {
             log.debug("Post Authenticaion Handler : " + postAuthenticationHandler.getName() + " unregistered");
         }
         FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().remove(postAuthenticationHandler);
+    }
+
+    @Reference(
+            name = "device.data.resolver",
+            service = DeviceDataResolver.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetDeviceDataResolver"
+    )
+    protected void setDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Device data resolver : " + deviceDataResolver.getClass().getName() + " registered");
+        }
+        FrameworkServiceDataHolder.getInstance().addDeviceDataResolver(deviceDataResolver);
+    }
+
+    protected void unsetDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Device data resolver : " + deviceDataResolver.getClass().getName() + " unregistered");
+        }
+        FrameworkServiceDataHolder.getInstance().removeDeviceDataResolver(deviceDataResolver);
     }
 
     @Reference(
