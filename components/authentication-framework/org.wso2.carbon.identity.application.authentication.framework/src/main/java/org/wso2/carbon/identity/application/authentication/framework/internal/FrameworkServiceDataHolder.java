@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.load
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.device.DeviceDataResolver;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -91,6 +92,7 @@ public class FrameworkServiceDataHolder {
     private JsGenericGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
+    private List<DeviceDataResolver> deviceDataResolvers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
     private ConsentManager consentManager = null;
     private ConsentAppMappingService consentAppMappingService = null;
@@ -342,6 +344,38 @@ public class FrameworkServiceDataHolder {
     public List<PostAuthenticationHandler> getPostAuthenticationHandlers() {
 
         return this.postAuthenticationHandlers;
+    }
+
+    /**
+     * Adds a device data resolver registered via OSGi service.
+     *
+     * @param deviceDataResolver Device data resolver implementation.
+     */
+    public void addDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        if (deviceDataResolver != null) {
+            this.deviceDataResolvers.add(deviceDataResolver);
+        }
+    }
+
+    /**
+     * Removes a device data resolver.
+     *
+     * @param deviceDataResolver Device data resolver implementation.
+     */
+    public void removeDeviceDataResolver(DeviceDataResolver deviceDataResolver) {
+
+        this.deviceDataResolvers.remove(deviceDataResolver);
+    }
+
+    /**
+     * Gets the list of device data resolvers registered via OSGi services.
+     *
+     * @return List of device data resolvers.
+     */
+    public List<DeviceDataResolver> getDeviceDataResolvers() {
+
+        return this.deviceDataResolvers;
     }
 
     /**
