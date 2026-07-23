@@ -734,8 +734,13 @@ public class InputValidationService {
             conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
             dateValidation.setConditions(conditions);
             addValidationToComponent(component, dateValidation);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Attached future-date validation for claim: " + identifier);
+            }
         } catch (ClaimMetadataException e) {
-            LOG.debug("Error while retrieving claim metadata for date validation of claim: " + identifier, e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while retrieving claim metadata for date validation of claim: " + identifier);
+            }
         }
     }
 
