@@ -1,0 +1,305 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.policy.management.internal.service.impl;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
+import org.wso2.carbon.identity.policy.management.api.model.Policy;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
+import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
+import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
+import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
+import org.wso2.carbon.identity.policy.management.internal.dao.impl.CacheBackedPolicyManagementDAO;
+import org.wso2.carbon.identity.policy.management.internal.dao.impl.PolicyManagementDAOImpl;
+import org.wso2.carbon.identity.policy.management.internal.resourcemanager.PolicyResourceManager;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementAuditLogger;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementAuditLogger.Operation;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyManagementExceptionHandler;
+import org.wso2.carbon.identity.policy.management.internal.util.PolicyValidator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Implementation of Policy Management Service.
+ * Dispatches per-resource create/hydrate/delete to the {@link PolicyResourceManager} registered for
+ * each resource's type, and orchestrates best-effort saga compensation around the DAO layer.
+ */
+public class PolicyManagementServiceImpl implements PolicyManagementService {
+
+    private static final Log LOG = LogFactory.getLog(PolicyManagementServiceImpl.class);
+    private static final PolicyManagementAuditLogger AUDIT_LOGGER = new PolicyManagementAuditLogger();
+    private static final String POLICY_NAME_FIELD = "Policy name";
+    private static final PolicyValidator POLICY_VALIDATOR = new PolicyValidator();
+    private static final PolicyManagementServiceImpl INSTANCE = new PolicyManagementServiceImpl();
+    private final PolicyManagementDAO policyManagementDAO;
+
+    private PolicyManagementServiceImpl() {
+
+        policyManagementDAO = new CacheBackedPolicyManagementDAO(new PolicyManagementDAOImpl());
+    }
+
+    /**
+     * Get the instance of PolicyManagementServiceImpl.
+     *
+     * @return PolicyManagementServiceImpl instance.
+     */
+    public static PolicyManagementServiceImpl getInstance() {
+
+        return INSTANCE;
+    }
+
+    @Override
+    public Policy addPolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
+
+        POLICY_VALIDATOR.validateForAdd(policy);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Creating policy with name: %s for tenant: %s",
+                    policy.getName(), tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        validateUniquePolicyName(policy.getName(), null, tenantId);
+
+        String policyId = UUID.randomUUID().toString();
+
+        List<PolicyResource> createdResources = new ArrayList<>();
+
+        try {
+            for (PolicyResource pr : policy.getResources()) {
+                createdResources.add(getResourceManager(pr.getResourceType()).create(pr, tenantDomain));
+            }
+        } catch (PolicyManagementException e) {
+            deleteResources(createdResources, tenantDomain);
+            throw e;
+        }
+
+        Policy policyWithResourceIds = new Policy.Builder()
+                .id(policyId)
+                .name(policy.getName())
+                .tenantDomain(tenantDomain)
+                .resources(createdResources)
+                .build();
+
+        try {
+            Policy created = policyManagementDAO.addPolicy(policyWithResourceIds, tenantId);
+            AUDIT_LOGGER.printAuditLog(Operation.ADD, created);
+            return created;
+        } catch (PolicyManagementException e) {
+            deleteResources(createdResources, tenantDomain);
+            throw e;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * Resources, rules, and actions are replaced wholesale, but the policy name is immutable: the stored name
+     * is retained and any name on the supplied {@code policy} is ignored.
+     *
+     * @param policy Policy with the new state. ID must reference an existing policy; any supplied name is
+     *               ignored — the stored name is retained.
+     */
+    @Override
+    public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
+
+        POLICY_VALIDATOR.validateForUpdate(policy);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Policy existingPolicy = policyManagementDAO.getPolicyById(policy.getId(), tenantId);
+        if (existingPolicy == null) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_POLICY_NOT_FOUND, policy.getId());
+        }
+
+        // The name is immutable on update: the stored name is carried over and any supplied name is ignored.
+        policy = new Policy.Builder(policy).name(existingPolicy.getName()).build();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Updating policy with ID: %s for tenant: %s",
+                    policy.getId(), tenantDomain));
+        }
+
+        // Create the new resources first so the old ones remain intact until the DB commit succeeds. The old
+        // resources are only deleted after the policy is durably updated, keeping the operation recoverable on
+        // any failure.
+        List<PolicyResource> createdResources = new ArrayList<>();
+
+        try {
+            for (PolicyResource pr : policy.getResources()) {
+                createdResources.add(getResourceManager(pr.getResourceType()).create(pr, tenantDomain));
+            }
+        } catch (PolicyManagementException e) {
+            deleteResources(createdResources, tenantDomain);
+            throw e;
+        }
+
+        Policy policyWithResourceIds = new Policy.Builder()
+                .id(policy.getId())
+                .name(existingPolicy.getName())
+                .tenantDomain(tenantDomain)
+                .resources(createdResources)
+                .build();
+
+        Policy updatedPolicy;
+        try {
+            updatedPolicy = policyManagementDAO.updatePolicy(policyWithResourceIds, tenantId);
+        } catch (PolicyManagementException e) {
+            deleteResources(createdResources, tenantDomain);
+            throw e;
+        }
+
+        // DB commit succeeded; the old resources are now safe to remove (best-effort).
+        deleteResources(existingPolicy.getResources(), tenantDomain);
+        AUDIT_LOGGER.printAuditLog(Operation.UPDATE, updatedPolicy);
+
+        return updatedPolicy;
+    }
+
+    @Override
+    public void deletePolicy(String policyId, String tenantDomain) throws PolicyManagementException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Deleting policy with ID: %s for tenant: %s",
+                    policyId, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Policy existingPolicy = policyManagementDAO.getPolicyById(policyId, tenantId);
+        if (existingPolicy == null) {
+            return;
+        }
+        policyManagementDAO.deletePolicy(policyId, tenantId);
+        deleteResources(existingPolicy.getResources(), tenantDomain);
+        AUDIT_LOGGER.printAuditLog(Operation.DELETE, existingPolicy);
+    }
+
+    @Override
+    public Policy getPolicyById(String policyId, String tenantDomain) throws PolicyManagementException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving policy with ID: %s for tenant: %s",
+                    policyId, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Policy policy = policyManagementDAO.getPolicyById(policyId, tenantId);
+        if (policy == null) {
+            return null;
+        }
+        return hydrateResources(policy, tenantDomain);
+    }
+
+    @Override
+    public Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException {
+
+        if (policyName == null || policyName.trim().isEmpty()) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving policy with name: %s for tenant: %s",
+                    policyName, tenantDomain));
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Policy policy = policyManagementDAO.getPolicyByName(policyName, tenantId);
+        if (policy == null) {
+            return null;
+        }
+        return hydrateResources(policy, tenantDomain);
+    }
+
+    @Override
+    public String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException {
+
+        if (policyName == null || policyName.trim().isEmpty()) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Resolving policy ID for name: %s for tenant: %s",
+                    policyName, tenantDomain));
+        }
+        return policyManagementDAO.getPolicyIdByName(policyName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public List<PolicyBasicInfo> getPolicies(String tenantDomain, String filter, int offset, int limit)
+            throws PolicyManagementException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Listing policies for tenant: %s with filter: %s, offset: %d, limit: %d",
+                    tenantDomain, filter, offset, limit));
+        }
+        return policyManagementDAO.getPolicies(
+                IdentityTenantUtil.getTenantId(tenantDomain), filter, offset, limit);
+    }
+
+    @Override
+    public int getPolicyCount(String tenantDomain, String filter) throws PolicyManagementException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Counting policies for tenant: %s with filter: %s", tenantDomain, filter));
+        }
+        return policyManagementDAO.getPolicyCount(IdentityTenantUtil.getTenantId(tenantDomain), filter);
+    }
+
+    private Policy hydrateResources(Policy policy, String tenantDomain) throws PolicyManagementException {
+
+        List<PolicyResource> hydratedResources = new ArrayList<>();
+        for (PolicyResource pr : policy.getResources()) {
+            hydratedResources.add(getResourceManager(pr.getResourceType()).hydrate(pr, tenantDomain));
+        }
+        return new Policy.Builder(policy).resources(hydratedResources).build();
+    }
+
+
+    private void deleteResources(List<PolicyResource> resources, String tenantDomain) {
+
+        for (PolicyResource resource : resources) {
+            // Best-effort cleanup: look up the manager without throwing and skip if none is registered.
+            PolicyResourceManager manager = PolicyMgtComponentServiceHolder.getInstance()
+                    .getResourceManager(resource.getResourceType());
+            if (manager != null) {
+                manager.delete(resource, tenantDomain);
+            }
+        }
+    }
+
+    private PolicyResourceManager getResourceManager(ResourceType resourceType) throws PolicyManagementException {
+
+        PolicyResourceManager manager = PolicyMgtComponentServiceHolder.getInstance()
+                .getResourceManager(resourceType);
+        if (manager == null) {
+            throw PolicyManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_NO_RESOURCE_MANAGER_FOR_TYPE, String.valueOf(resourceType));
+        }
+        return manager;
+    }
+
+    private void validateUniquePolicyName(String name, String excludePolicyId, int tenantId)
+            throws PolicyManagementException {
+
+        String existingId = policyManagementDAO.getPolicyIdByName(name, tenantId);
+        if (existingId != null && !existingId.equals(excludePolicyId)) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_POLICY_ALREADY_EXISTS, name);
+        }
+    }
+}
