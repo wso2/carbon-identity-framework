@@ -28,6 +28,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -51,6 +52,7 @@ import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.Erro
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.ErrorMessages.SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE;
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.ErrorMessages.UNABLE_TO_ACCESS_AI_SERVICE_WITH_RENEW_ACCESS_TOKEN;
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.HTTP_BEARER;
+import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.HTTP_CLIENT_USE_SYSTEM_PROPERTIES_PROPERTY_NAME;
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME;
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_TIMEOUT_PROPERTY_NAME;
@@ -76,15 +78,24 @@ public class AIHttpClientUtil {
     private static final String USER_AGENT_VALUE = "IAM-AI-Services";
 
     // Singleton instance of CloseableHttpClient with connection pooling.
-    private static final CloseableHttpClient httpClient = HttpClients.custom()
-            .setMaxConnTotal(HTTP_CONNECTION_POOL_SIZE)
-            .setDefaultRequestConfig(
-                    org.apache.http.client.config.RequestConfig.custom()
-                            .setSocketTimeout(HTTP_SOCKET_TIMEOUT)
-                            .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
-                            .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
-                            .build()
-            ).build();
+    private static final CloseableHttpClient httpClient = buildHttpClient();
+
+    private static CloseableHttpClient buildHttpClient() {
+
+        HttpClientBuilder builder = HttpClients.custom()
+                .setMaxConnTotal(HTTP_CONNECTION_POOL_SIZE)
+                .setDefaultRequestConfig(
+                        org.apache.http.client.config.RequestConfig.custom()
+                                .setSocketTimeout(HTTP_SOCKET_TIMEOUT)
+                                .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
+                                .setConnectionRequestTimeout(HTTP_CONNECTION_REQUEST_TIMEOUT)
+                                .build()
+                );
+        if (useSystemPropertiesInHttpClient()) {
+            builder.useSystemProperties();
+        }
+        return builder.build();
+    }
 
     private AIHttpClientUtil() {
 
@@ -207,6 +218,17 @@ public class AIHttpClientUtil {
 
         String value = IdentityUtil.getProperty(key);
         return value != null ? Integer.parseInt(value) : defaultValue;
+    }
+
+    /**
+     * Check whether the AI service HTTP clients should honor JVM system properties (e.g. the
+     * standard proxy configurations -Dhttp.proxyHost, -Dhttps.proxyHost and -Dhttp.nonProxyHosts).
+     *
+     * @return true if the AIServices.HTTPClientUseSystemProperties configuration is set to true, false otherwise.
+     */
+    public static boolean useSystemPropertiesInHttpClient() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(HTTP_CLIENT_USE_SYSTEM_PROPERTIES_PROPERTY_NAME));
     }
 
     /**

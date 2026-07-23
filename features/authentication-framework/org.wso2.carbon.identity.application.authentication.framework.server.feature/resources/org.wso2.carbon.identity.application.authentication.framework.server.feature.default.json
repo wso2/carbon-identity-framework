@@ -311,6 +311,7 @@
   "ai_services.flow_ai.generate_request_path": "/api/server/v1/flow/generate",
   "ai_services.flow_ai.status_request_path": "/api/server/v1/flow/status",
   "ai_services.flow_ai.result_request_path": "/api/server/v1/flow/result",
+  "ai_services.http_client_use_system_properties": true,
 
   "async_operation_status.enable_data_persistence": false
 }

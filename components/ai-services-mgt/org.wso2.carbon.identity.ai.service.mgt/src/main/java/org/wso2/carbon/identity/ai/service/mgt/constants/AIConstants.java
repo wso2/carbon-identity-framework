@@ -40,6 +40,8 @@ public class AIConstants {
     public static final String HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME = "AIServices" +
             ".HTTPConnectionRequestTimeout";
     public static final String HTTP_SOCKET_TIMEOUT_PROPERTY_NAME = "AIServices.HTTPSocketTimeout";
+    public static final String HTTP_CLIENT_USE_SYSTEM_PROPERTIES_PROPERTY_NAME =
+            "AIServices.HTTPClientUseSystemProperties";
 
     // Http constants.
     public static final String HTTP_BASIC = "Basic";
