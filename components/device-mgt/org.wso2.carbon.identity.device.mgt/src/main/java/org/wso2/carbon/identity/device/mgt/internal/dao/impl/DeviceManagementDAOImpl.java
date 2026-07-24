@@ -127,7 +127,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     }
 
     @Override
-    public List<Device> getDevicesByUserId(String userId, int tenantId)
+    public List<Device> getActiveDevicesByUserId(String userId, int tenantId)
             throws DeviceMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -161,11 +161,18 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     @Override
     public List<Device> getDevices(int tenantId, int offset, int limit) throws DeviceMgtException {
 
-        return getDevices(tenantId, offset, limit, null);
+        return getDevicesInternal(tenantId, offset, limit, null);
     }
 
     @Override
-    public List<Device> getDevices(int tenantId, int offset, int limit, String userId) throws DeviceMgtException {
+    public List<Device> getDevicesByUserId(String userId, int tenantId, int offset, int limit)
+            throws DeviceMgtException {
+
+        return getDevicesInternal(tenantId, offset, limit, userId);
+    }
+
+    private List<Device> getDevicesInternal(int tenantId, int offset, int limit, String userId)
+            throws DeviceMgtException {
 
         // FETCH NEXT 0 ROWS (MS SQL) is invalid and an empty page is meaningless, so short-circuit.
         if (limit <= 0) {
@@ -213,11 +220,16 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
     @Override
     public int getDeviceCount(int tenantId) throws DeviceMgtException {
 
-        return getDeviceCount(tenantId, null);
+        return getDeviceCountInternal(tenantId, null);
     }
 
     @Override
-    public int getDeviceCount(int tenantId, String userId) throws DeviceMgtException {
+    public int getDeviceCountByUserId(String userId, int tenantId) throws DeviceMgtException {
+
+        return getDeviceCountInternal(tenantId, userId);
+    }
+
+    private int getDeviceCountInternal(int tenantId, String userId) throws DeviceMgtException {
 
         boolean filterByUser = StringUtils.isNotBlank(userId);
         String query = filterByUser

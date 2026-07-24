@@ -92,11 +92,11 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
-    public List<Device> getDevicesByUserId(String userId, String tenantDomain)
+    public List<Device> getActiveDevicesByUserId(String userId, String tenantDomain)
             throws DeviceMgtException {
 
         DEVICE_VALIDATOR.validateRequiredField(userId, "userId");
-        return deviceManagementDAO.getDevicesByUserId(
+        return deviceManagementDAO.getActiveDevicesByUserId(
                 userId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -108,11 +108,12 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
-    public List<Device> getDevices(String tenantDomain, int offset, int limit, String userId)
+    public List<Device> getDevicesByUserId(String userId, String tenantDomain, int offset, int limit)
             throws DeviceMgtException {
 
-        return deviceManagementDAO.getDevices(
-                IdentityTenantUtil.getTenantId(tenantDomain), offset, DEVICE_VALIDATOR.validateLimit(limit), userId);
+        DEVICE_VALIDATOR.validateRequiredField(userId, "userId");
+        return deviceManagementDAO.getDevicesByUserId(
+                userId, IdentityTenantUtil.getTenantId(tenantDomain), offset, DEVICE_VALIDATOR.validateLimit(limit));
     }
 
     @Override
@@ -122,9 +123,10 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     }
 
     @Override
-    public int getDeviceCount(String tenantDomain, String userId) throws DeviceMgtException {
+    public int getDeviceCountByUserId(String userId, String tenantDomain) throws DeviceMgtException {
 
-        return deviceManagementDAO.getDeviceCount(IdentityTenantUtil.getTenantId(tenantDomain), userId);
+        DEVICE_VALIDATOR.validateRequiredField(userId, "userId");
+        return deviceManagementDAO.getDeviceCountByUserId(userId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override

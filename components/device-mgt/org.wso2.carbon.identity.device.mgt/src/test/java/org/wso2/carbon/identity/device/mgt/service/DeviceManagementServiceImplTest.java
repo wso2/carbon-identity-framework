@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.device.mgt.internal.service.impl.DeviceManagemen
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -308,10 +310,10 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testGetDevicesByUserIdWithBlankUserThrows() {
+    public void testGetActiveDevicesByUserIdWithBlankUserThrows() {
 
         try {
-            service.getDevicesByUserId("", TENANT_DOMAIN);
+            service.getActiveDevicesByUserId("", TENANT_DOMAIN);
             Assert.fail("Expected DeviceMgtClientException");
         } catch (DeviceMgtException ex) {
             Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
@@ -349,48 +351,69 @@ public class DeviceManagementServiceImplTest {
     }
 
     @Test
-    public void testGetDevicesFilteredByUserPassesUserIdThrough() throws Exception {
+    public void testGetDevicesByUserIdPassesUserIdThrough() throws Exception {
 
-        service.getDevices(TENANT_DOMAIN, 5, 20, "alice@example.com");
+        service.getDevicesByUserId("alice@example.com", TENANT_DOMAIN, 5, 20);
 
-        verify(dao).getDevices(TENANT_ID, 5, 20, "alice@example.com");
+        verify(dao).getDevicesByUserId("alice@example.com", TENANT_ID, 5, 20);
     }
 
     @Test
-    public void testGetDevicesFilteredByUserCapsLimitAtMaximumItemsPerPage() throws Exception {
+    public void testGetDevicesByUserIdCapsLimitAtMaximumItemsPerPage() throws Exception {
 
         int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
 
-        service.getDevices(TENANT_DOMAIN, 0, maximumItemsPerPage + 5000, "alice@example.com");
+        service.getDevicesByUserId("alice@example.com", TENANT_DOMAIN, 0, maximumItemsPerPage + 5000);
 
-        verify(dao).getDevices(TENANT_ID, 0, maximumItemsPerPage, "alice@example.com");
+        verify(dao).getDevicesByUserId("alice@example.com", TENANT_ID, 0, maximumItemsPerPage);
     }
 
     @Test
-    public void testGetDevicesFilteredByUserWithNullUserIdDelegatesWithNull() throws Exception {
+    public void testGetDevicesByUserIdWithBlankUserThrows() {
 
-        service.getDevices(TENANT_DOMAIN, 0, 20, null);
-
-        verify(dao).getDevices(TENANT_ID, 0, 20, null);
+        try {
+            service.getDevicesByUserId("", TENANT_DOMAIN, 0, 20);
+            Assert.fail("Expected DeviceMgtClientException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
+        }
     }
 
     @Test
-    public void testGetDeviceCountFilteredByUserPassesUserIdThrough() throws Exception {
+    public void testGetDeviceCountByUserIdPassesUserIdThrough() throws Exception {
 
-        when(dao.getDeviceCount(TENANT_ID, "alice@example.com")).thenReturn(3);
+        when(dao.getDeviceCountByUserId("alice@example.com", TENANT_ID)).thenReturn(3);
 
-        int result = service.getDeviceCount(TENANT_DOMAIN, "alice@example.com");
+        int result = service.getDeviceCountByUserId("alice@example.com", TENANT_DOMAIN);
 
         Assert.assertEquals(result, 3);
-        verify(dao).getDeviceCount(TENANT_ID, "alice@example.com");
+        verify(dao).getDeviceCountByUserId("alice@example.com", TENANT_ID);
     }
 
     @Test
-    public void testGetDeviceCountFilteredByUserWithNullUserIdDelegatesWithNull() throws Exception {
+    public void testGetDeviceCountByUserIdWithBlankUserThrows() {
 
-        service.getDeviceCount(TENANT_DOMAIN, null);
+        try {
+            service.getDeviceCountByUserId("", TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtClientException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
+        }
+    }
 
-        verify(dao).getDeviceCount(TENANT_ID, null);
+    @Test
+    public void testGetActiveDevicesByUserIdExcludesInactive() throws Exception {
+
+        // Regression guard for the getDevicesByUserId -> getActiveDevicesByUserId rename: the
+        // ACTIVE-only "my devices" semantics must be unchanged.
+        Device active = buildDevice("d1", "alice@example.com", Device.Status.ACTIVE);
+        when(dao.getActiveDevicesByUserId("alice@example.com", TENANT_ID))
+                .thenReturn(Collections.singletonList(active));
+
+        List<Device> result = service.getActiveDevicesByUserId("alice@example.com", TENANT_DOMAIN);
+
+        Assert.assertEquals(result, Collections.singletonList(active));
+        verify(dao).getActiveDevicesByUserId("alice@example.com", TENANT_ID);
     }
 
     @Test

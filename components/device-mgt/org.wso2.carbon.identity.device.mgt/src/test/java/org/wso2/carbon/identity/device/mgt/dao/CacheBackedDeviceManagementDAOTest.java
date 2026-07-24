@@ -209,27 +209,44 @@ public class CacheBackedDeviceManagementDAOTest {
     }
 
     @Test
-    public void testGetDevicesFilteredByUserDelegatesToDao() throws DeviceMgtException {
+    public void testGetDevicesByUserIdDelegatesToDao() throws DeviceMgtException {
 
         Device device = mock(Device.class);
-        when(deviceManagementDAO.getDevices(TENANT_ID, 0, 100, "alice@example.com"))
+        when(deviceManagementDAO.getDevicesByUserId("alice@example.com", TENANT_ID, 0, 100))
                 .thenReturn(Collections.singletonList(device));
 
-        List<Device> result = cacheBackedDeviceManagementDAO.getDevices(TENANT_ID, 0, 100, "alice@example.com");
+        List<Device> result = cacheBackedDeviceManagementDAO.getDevicesByUserId(
+                "alice@example.com", TENANT_ID, 0, 100);
 
         assertEquals(result, Collections.singletonList(device));
-        verify(deviceManagementDAO).getDevices(TENANT_ID, 0, 100, "alice@example.com");
+        verify(deviceManagementDAO).getDevicesByUserId("alice@example.com", TENANT_ID, 0, 100);
     }
 
     @Test
-    public void testGetDeviceCountFilteredByUserDelegatesToDao() throws DeviceMgtException {
+    public void testGetDeviceCountByUserIdDelegatesToDao() throws DeviceMgtException {
 
-        when(deviceManagementDAO.getDeviceCount(TENANT_ID, "alice@example.com")).thenReturn(2);
+        when(deviceManagementDAO.getDeviceCountByUserId("alice@example.com", TENANT_ID)).thenReturn(2);
 
-        int result = cacheBackedDeviceManagementDAO.getDeviceCount(TENANT_ID, "alice@example.com");
+        int result = cacheBackedDeviceManagementDAO.getDeviceCountByUserId("alice@example.com", TENANT_ID);
 
         assertEquals(result, 2);
-        verify(deviceManagementDAO).getDeviceCount(TENANT_ID, "alice@example.com");
+        verify(deviceManagementDAO).getDeviceCountByUserId("alice@example.com", TENANT_ID);
+    }
+
+    @Test
+    public void testGetActiveDevicesByUserIdDelegatesToDao() throws DeviceMgtException {
+
+        // Regression guard for the getDevicesByUserId -> getActiveDevicesByUserId rename: this
+        // method must remain a plain passthrough, not accidentally start reading the cache.
+        Device device = mock(Device.class);
+        when(deviceManagementDAO.getActiveDevicesByUserId("alice@example.com", TENANT_ID))
+                .thenReturn(Collections.singletonList(device));
+
+        List<Device> result = cacheBackedDeviceManagementDAO.getActiveDevicesByUserId(
+                "alice@example.com", TENANT_ID);
+
+        assertEquals(result, Collections.singletonList(device));
+        verify(deviceManagementDAO).getActiveDevicesByUserId("alice@example.com", TENANT_ID);
     }
 
     @Test
