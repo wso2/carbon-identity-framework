@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.flow.mgt.model.DataDTO;
 import org.wso2.carbon.identity.flow.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.flow.mgt.model.GraphConfig;
 import org.wso2.carbon.identity.flow.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.flow.mgt.model.ValidationDTO;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
@@ -65,6 +66,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CLAIM_URI_PREFIX;
 import static org.wso2.carbon.identity.flow.execution.engine.Constants.CONSENT_KEY;
@@ -1703,6 +1705,205 @@ public class InputValidationServiceTest {
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    public void testPrepareStepInputsAddsDateValidatorRuleWhenClaimDisallowsFutureDate() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        when(mockLocalClaim.getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY)).thenReturn("true");
+        when(mockClaimService.getLocalClaim(CLAIM_URI_PREFIX + "dob", "test.com"))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "dob", "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+
+        Assert.assertNotNull(validations, "Date field should have validations when claim disallows future dates");
+        List<?> validationsList = (List<?>) validations;
+        Assert.assertEquals(validationsList.size(), 1);
+        ValidationDTO dateValidator = (ValidationDTO) validationsList.get(0);
+        Assert.assertEquals(dateValidator.getName(), "DateValidator");
+        Assert.assertEquals(dateValidator.getType(), "RULE");
+        Assert.assertEquals(dateValidator.getConditions().size(), 1);
+        Assert.assertEquals(dateValidator.getConditions().get(0).getKey(), "disallow.future");
+        Assert.assertEquals(dateValidator.getConditions().get(0).getValue(), "true");
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorWhenClaimPropertyAbsent() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        when(mockLocalClaim.getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY)).thenReturn(null);
+        when(mockClaimService.getLocalClaim(CLAIM_URI_PREFIX + "startdate", "test.com"))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "startdate", "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty(),
+                "Date field should not have validations when claim does not disallow future dates");
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorForNonDateVariant() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "dob", "TEXT", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty(),
+                "Non-date field should not have a DateValidator rule added");
+        verify(mockClaimService, never()).getLocalClaim(anyString(), anyString());
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorWhenClaimMetadataServiceIsNull() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(null);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "dob", "DATE", null);
+
+        // Should not throw any exception when ClaimMetadataManagementService is unavailable.
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty());
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorWhenLocalClaimNotPresent() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+        when(mockClaimService.getLocalClaim(anyString(), anyString())).thenReturn(Optional.empty());
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "dob", "DATE", null);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty());
+    }
+
+    @Test
+    public void testPrepareStepInputsNoDateValidatorWhenClaimMetadataExceptionThrown() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+        when(mockClaimService.getLocalClaim(anyString(), anyString()))
+                .thenThrow(new ClaimMetadataException("Test exception"));
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "dob", "DATE", null);
+
+        // Should not propagate the ClaimMetadataException; it is caught and logged.
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        Object validations = processedDateInput.getConfigs().get(VALIDATIONS);
+        Assert.assertTrue(validations == null || ((List<?>) validations).isEmpty());
+    }
+
+    @Test
+    public void testPrepareStepInputsAppendsDateValidatorToExistingValidations() throws Exception {
+
+        FlowExecutionContext = initiateFlowContext();
+        FlowExecutionContext.setGraphConfig(defaultGraph);
+
+        ClaimMetadataManagementService mockClaimService = mock(ClaimMetadataManagementService.class);
+        FlowExecutionEngineDataHolder.getInstance().setClaimMetadataManagementService(mockClaimService);
+
+        LocalClaim mockLocalClaim = mock(LocalClaim.class);
+        when(mockLocalClaim.getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY)).thenReturn("true");
+        when(mockClaimService.getLocalClaim(CLAIM_URI_PREFIX + "dob", "test.com"))
+                .thenReturn(Optional.of(mockLocalClaim));
+
+        ValidationDTO existingRule = new ValidationDTO();
+        existingRule.setName("RequiredValidator");
+        existingRule.setType("RULE");
+        List<ValidationDTO> existingValidations = new ArrayList<>();
+        existingValidations.add(existingRule);
+
+        DataDTO dataDTO = buildDateFieldDataDTO(CLAIM_URI_PREFIX + "dob", "DATE", existingValidations);
+        inputValidationService.prepareStepInputs(dataDTO, FlowExecutionContext);
+
+        ComponentDTO processedDateInput = dataDTO.getComponents().get(0).getComponents().get(0);
+        List<?> validationsList = (List<?>) processedDateInput.getConfigs().get(VALIDATIONS);
+
+        Assert.assertEquals(validationsList.size(), 2, "The DateValidator rule should be appended, not replace existing rules");
+        Assert.assertEquals(((ValidationDTO) validationsList.get(0)).getName(), "RequiredValidator");
+        Assert.assertEquals(((ValidationDTO) validationsList.get(1)).getName(), "DateValidator");
+    }
+
+    /**
+     * Build a DataDTO with a single FORM containing one DATE (or other variant) INPUT component with the given
+     * identifier, plus a submit BUTTON so that the input is registered as a current step input.
+     */
+    private DataDTO buildDateFieldDataDTO(String identifier, String variant, List<ValidationDTO> existingValidations) {
+
+        Map<String, Object> dateConfig = new HashMap<>();
+        dateConfig.put(IDENTIFIER, identifier);
+        dateConfig.put("required", false);
+        if (existingValidations != null) {
+            dateConfig.put(VALIDATIONS, existingValidations);
+        }
+        ComponentDTO dateInput = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.INPUT)
+                .variant(variant)
+                .configs(dateConfig)
+                .build();
+
+        ComponentDTO button = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.BUTTON)
+                .id("submitButton")
+                .action(new ActionDTO.Builder().type(Constants.ActionTypes.EXECUTOR).nextId("action2").build())
+                .build();
+
+        List<ComponentDTO> formComponents = new ArrayList<>();
+        formComponents.add(dateInput);
+        formComponents.add(button);
+
+        ComponentDTO formDTO = new ComponentDTO.Builder()
+                .type(Constants.ComponentTypes.FORM)
+                .components(formComponents)
+                .build();
+
+        List<ComponentDTO> components = new ArrayList<>();
+        components.add(formDTO);
+
+        return new DataDTO.Builder().components(components).build();
     }
 
     private FlowExecutionContext initiateFlowContext() {
