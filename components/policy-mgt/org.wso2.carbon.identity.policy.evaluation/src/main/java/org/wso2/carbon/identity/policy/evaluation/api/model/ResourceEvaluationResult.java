@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.policy.evaluation.api.model;
 
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 
 /**
  * Result of evaluating a single policy resource. Holds the evaluated {@link PolicyResource} and the

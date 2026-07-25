@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.policy.evaluation.api.exception.PolicyEvaluation
 import org.wso2.carbon.identity.policy.evaluation.api.model.PolicyEvaluationContext;
 import org.wso2.carbon.identity.policy.evaluation.api.model.ResourceEvaluationResult;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 
 /**
  * SPI for evaluating a single {@link PolicyResource} of a specific {@link ResourceType}.

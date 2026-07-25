@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagement
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyBasicInfo;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.service.PolicyManagementService;
 import org.wso2.carbon.identity.policy.management.internal.component.PolicyMgtComponentServiceHolder;
 import org.wso2.carbon.identity.policy.management.internal.dao.PolicyManagementDAO;
@@ -74,6 +74,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public Policy addPolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         POLICY_VALIDATOR.validateForAdd(policy);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Creating policy with name: %s for tenant: %s",
@@ -123,6 +124,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         POLICY_VALIDATOR.validateForUpdate(policy);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         Policy existingPolicy = policyManagementDAO.getPolicyById(policy.getId(), tenantId);
@@ -177,6 +179,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public void deletePolicy(String policyId, String tenantDomain) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deleting policy with ID: %s for tenant: %s",
                     policyId, tenantDomain));
@@ -194,6 +197,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public Policy getPolicyById(String policyId, String tenantDomain) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving policy with ID: %s for tenant: %s",
                     policyId, tenantDomain));
@@ -209,6 +213,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         if (policyName == null || policyName.trim().isEmpty()) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
@@ -228,6 +233,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         if (policyName == null || policyName.trim().isEmpty()) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
@@ -243,6 +249,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     public List<PolicyBasicInfo> getPolicies(String tenantDomain, String filter, int offset, int limit)
             throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Listing policies for tenant: %s with filter: %s, offset: %d, limit: %d",
                     tenantDomain, filter, offset, limit));
@@ -254,6 +261,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     @Override
     public int getPolicyCount(String tenantDomain, String filter) throws PolicyManagementException {
 
+        POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Counting policies for tenant: %s with filter: %s", tenantDomain, filter));
         }

@@ -116,4 +116,22 @@ public class PolicyValidatorTest {
                 .build();
         policyValidator.validateForUpdate(policy);
     }
+
+    @Test(expectedExceptions = PolicyManagementClientException.class)
+    public void testValidateTenantDomainRejectsNull() throws PolicyManagementClientException {
+
+        policyValidator.validateTenantDomain(null);
+    }
+
+    @Test(expectedExceptions = PolicyManagementClientException.class)
+    public void testValidateTenantDomainRejectsBlank() throws PolicyManagementClientException {
+
+        policyValidator.validateTenantDomain("  ");
+    }
+
+    @Test
+    public void testValidateTenantDomainAcceptsValidDomain() throws PolicyManagementClientException {
+
+        policyValidator.validateTenantDomain(TENANT_DOMAIN);
+    }
 }

@@ -33,6 +33,7 @@ public class PolicyValidator {
 
     private static final String POLICY_FIELD = "Policy";
     private static final String POLICY_NAME_FIELD = "Policy name";
+    private static final String TENANT_DOMAIN_FIELD = "Tenant domain";
 
     /**
      * Validate a policy supplied for creation.
@@ -59,6 +60,20 @@ public class PolicyValidator {
     public void validateForUpdate(Policy policy) throws PolicyManagementClientException {
 
         validateNotNull(policy);
+    }
+
+    /**
+     * Validate tenant domain parameter.
+     *
+     * @param tenantDomain Tenant domain.
+     * @throws PolicyManagementClientException If tenant domain is blank.
+     */
+    public void validateTenantDomain(String tenantDomain) throws PolicyManagementClientException {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, TENANT_DOMAIN_FIELD);
+        }
     }
 
     private void validateNotNull(Policy policy) throws PolicyManagementClientException {

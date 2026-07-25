@@ -26,6 +26,16 @@ package org.wso2.carbon.identity.policy.management.api.model;
  */
 public abstract class PolicyResource {
 
+    /**
+     * Type of resource attached to a policy for a given target.
+     * Stored in the database as its {@code name()} value.
+     */
+    public enum ResourceType {
+
+        /** An IS-native rule managed by rule-mgt. */
+        RULE
+    }
+
     private final String id;
     private final String target;
     private final String resourceId;

@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.policy.management.internal.resourcemanager;
 
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementException;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 
 /**
  * Internal contract for managing a specific {@link ResourceType} of policy resource in its backing

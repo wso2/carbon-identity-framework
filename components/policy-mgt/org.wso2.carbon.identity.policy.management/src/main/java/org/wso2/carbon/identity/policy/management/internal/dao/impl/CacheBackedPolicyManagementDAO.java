@@ -86,7 +86,7 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public Policy updatePolicy(Policy policy, int tenantId) throws PolicyManagementException {
 
-        Policy existingPolicy = policyManagementDAO.getPolicyById(policy.getId(), tenantId);
+        Policy existingPolicy = getPolicyById(policy.getId(), tenantId);
         Policy updatedPolicy = policyManagementDAO.updatePolicy(policy, tenantId);
 
         if (existingPolicy != null && !Objects.equals(existingPolicy.getName(), policy.getName())) {
@@ -115,7 +115,7 @@ public class CacheBackedPolicyManagementDAO implements PolicyManagementDAO {
     @Override
     public void deletePolicy(String policyId, int tenantId) throws PolicyManagementException {
 
-        Policy existingPolicy = policyManagementDAO.getPolicyById(policyId, tenantId);
+        Policy existingPolicy = getPolicyById(policyId, tenantId);
         policyManagementDAO.deletePolicy(policyId, tenantId);
         if (existingPolicy != null) {
             policyIdByNameCache.clearCacheEntry(new PolicyNameCacheKey(existingPolicy.getName()), tenantId);

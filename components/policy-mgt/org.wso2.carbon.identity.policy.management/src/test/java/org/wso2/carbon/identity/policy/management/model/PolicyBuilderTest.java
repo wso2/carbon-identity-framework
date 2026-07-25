@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 import org.wso2.carbon.identity.policy.management.api.model.Policy;
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
-import org.wso2.carbon.identity.policy.management.api.model.ResourceType;
+import org.wso2.carbon.identity.policy.management.api.model.PolicyResource.ResourceType;
 import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 
 import java.util.Arrays;
@@ -72,38 +72,6 @@ public class PolicyBuilderTest {
         } catch (PolicyManagementClientException e) {
             Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getCode());
             Assert.assertTrue(e.getDescription().contains("Resource"));
-        }
-    }
-
-    @Test
-    public void testBuildRejectsNullResourceType() {
-
-        try {
-            new Policy.Builder()
-                    .name(POLICY_NAME)
-                    .tenantDomain(TENANT_DOMAIN)
-                    .resources(Collections.singletonList(new TestPolicyResource("android", null)))
-                    .build();
-            Assert.fail("Expected PolicyManagementClientException for a null resource type.");
-        } catch (PolicyManagementClientException e) {
-            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getCode());
-            Assert.assertTrue(e.getDescription().contains("Resource type"));
-        }
-    }
-
-    @Test
-    public void testBuildRejectsBlankTarget() {
-
-        try {
-            new Policy.Builder()
-                    .name(POLICY_NAME)
-                    .tenantDomain(TENANT_DOMAIN)
-                    .resources(Collections.singletonList(new TestPolicyResource("  ", ResourceType.RULE)))
-                    .build();
-            Assert.fail("Expected PolicyManagementClientException for a blank target.");
-        } catch (PolicyManagementClientException e) {
-            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD.getCode());
-            Assert.assertTrue(e.getDescription().contains("Target"));
         }
     }
 

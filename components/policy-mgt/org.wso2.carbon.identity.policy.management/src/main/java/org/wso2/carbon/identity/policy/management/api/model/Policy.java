@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.policy.management.api.model;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.policy.management.api.constant.ErrorMessage;
 import org.wso2.carbon.identity.policy.management.api.exception.PolicyManagementClientException;
 
@@ -77,8 +76,6 @@ public class Policy {
     public static class Builder {
 
         private static final String RESOURCE_FIELD = "Resource";
-        private static final String RESOURCE_TYPE_FIELD = "Resource type";
-        private static final String TARGET_FIELD = "Target";
 
         private String id;
         private String name;
@@ -157,8 +154,8 @@ public class Policy {
          * Builds the policy after validating its resources.
          *
          * @return Policy instance.
-         * @throws PolicyManagementClientException If a resource is null, reports no resource type, or if two
-         *                                         resources of the same type share a target.
+         * @throws PolicyManagementClientException If a resource element is null, or if two resources of the same type
+         *                                         share a target.
          */
         public Policy build() throws PolicyManagementClientException {
 
@@ -175,12 +172,6 @@ public class Policy {
             for (PolicyResource resource : resources) {
                 if (resource == null) {
                     throw invalidField(RESOURCE_FIELD);
-                }
-                if (resource.getResourceType() == null) {
-                    throw invalidField(RESOURCE_TYPE_FIELD);
-                }
-                if (StringUtils.isBlank(resource.getTarget())) {
-                    throw invalidField(TARGET_FIELD);
                 }
                 String key = resource.getResourceType().name() + "|"
                         + resource.getTarget().toLowerCase(Locale.ROOT);
