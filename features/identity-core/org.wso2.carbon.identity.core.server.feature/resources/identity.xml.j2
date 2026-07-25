@@ -264,6 +264,15 @@
     </ClientAttestation>
 
     <OAuth>
+        <!-- When enabled, the UserInfo endpoint recomputes the 'sub' claim from the current value of the
+             application's alternate subject identifier claim instead of the subject identifier persisted at
+             token issuance, aligning UserInfo 'sub' with the ID token 'sub' when the subject-source claim changes
+             and the same access token is reissued. Default: false. -->
+        {% if oauth.userinfo.recompute_subject_claim_for_alternate_subject_identifier is defined %}
+        <RecomputeSubjectClaimForAlternateSubjectIdentifier>{{oauth.userinfo.recompute_subject_claim_for_alternate_subject_identifier}}</RecomputeSubjectClaimForAlternateSubjectIdentifier>
+        {% else %}
+        <RecomputeSubjectClaimForAlternateSubjectIdentifier>false</RecomputeSubjectClaimForAlternateSubjectIdentifier>
+        {% endif %}
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
