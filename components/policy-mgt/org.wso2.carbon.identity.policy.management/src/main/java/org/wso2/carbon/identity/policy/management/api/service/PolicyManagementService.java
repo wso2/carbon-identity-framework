@@ -62,22 +62,22 @@ public interface PolicyManagementService {
     void deletePolicy(String policyId, String tenantDomain) throws PolicyManagementException;
 
     /**
-     * Returns the policy by ID with each rule-typed {@link PolicyResource} hydrated from rule-mgt.
+     * Returns the policy by ID with each rule-typed {@link PolicyResource} enriched from rule-mgt.
      *
      * @param policyId     Policy ID.
      * @param tenantDomain Tenant domain.
-     * @return Policy with hydrated rules, or {@code null} if not found.
-     * @throws PolicyManagementException If retrieval or rule hydration fails.
+     * @return Policy with enriched rules, or {@code null} if not found.
+     * @throws PolicyManagementException If retrieval or rule enrichment fails.
      */
     Policy getPolicyById(String policyId, String tenantDomain) throws PolicyManagementException;
 
     /**
-     * Returns the policy by name with each rule-typed {@link PolicyResource} hydrated from rule-mgt.
+     * Returns the policy by name with each rule-typed {@link PolicyResource} enriched from rule-mgt.
      *
      * @param policyName   Policy name.
      * @param tenantDomain Tenant domain.
-     * @return Policy with hydrated rules, or {@code null} if not found.
-     * @throws PolicyManagementException If retrieval or rule hydration fails.
+     * @return Policy with enriched rules, or {@code null} if not found.
+     * @throws PolicyManagementException If retrieval or rule enrichment fails.
      */
     Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException;
 
@@ -94,7 +94,7 @@ public interface PolicyManagementService {
 
     /**
      * Returns a page of policy summaries for the tenant, optionally filtered by name. Summaries are
-     * lightweight (no hydrated rules); call {@link #getPolicyById} for the full hydrated policy.
+     * lightweight (no enriched rules); call {@link #getPolicyById} for the full enriched policy.
      *
      * @param tenantDomain Tenant domain.
      * @param filter       Name filter; {@code null} or blank returns all policies.

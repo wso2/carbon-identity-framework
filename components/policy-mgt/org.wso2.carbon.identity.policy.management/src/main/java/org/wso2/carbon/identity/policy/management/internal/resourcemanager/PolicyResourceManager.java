@@ -46,14 +46,14 @@ public interface PolicyResourceManager {
     PolicyResource create(PolicyResource resource, String tenantDomain) throws PolicyManagementException;
 
     /**
-     * Hydrates the resource with its backing entity's full payload.
+     * Enriches the resource with its backing entity's full payload.
      *
-     * @param resource     Resource to hydrate.
+     * @param resource     Resource to enrich.
      * @param tenantDomain Tenant domain.
-     * @return A new, hydrated resource.
-     * @throws PolicyManagementException If hydration fails.
+     * @return A new, enriched resource.
+     * @throws PolicyManagementException If enrichment fails.
      */
-    PolicyResource hydrate(PolicyResource resource, String tenantDomain) throws PolicyManagementException;
+    PolicyResource enrich(PolicyResource resource, String tenantDomain) throws PolicyManagementException;
 
     /**
      * Deletes the resource's backing entity from its owning service. Best-effort: used both for

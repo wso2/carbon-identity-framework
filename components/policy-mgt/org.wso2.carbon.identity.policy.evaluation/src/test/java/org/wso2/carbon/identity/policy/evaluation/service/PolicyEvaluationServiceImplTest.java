@@ -81,7 +81,7 @@ public class PolicyEvaluationServiceImplTest {
         PolicyEvaluationComponentServiceHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
         PolicyEvaluationComponentServiceHolder.getInstance().addPolicyResourceEvaluator(new RuleResourceEvaluator());
         policyEvaluationService = new PolicyEvaluationServiceImpl();
-        context = PolicyEvaluationContext.create("PRE_ISSUE_ACCESS_TOKEN");
+        context = new PolicyEvaluationContext("PRE_ISSUE_ACCESS_TOKEN");
 
         loggerUtils = mockStatic(LoggerUtils.class);
         loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
@@ -163,7 +163,7 @@ public class PolicyEvaluationServiceImplTest {
         Policy policy = policyWithRule("ios");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
         when(ruleEvaluationService.evaluate(eq(RULE_ID), any(FlowContext.class), eq(TENANT_DOMAIN)))
-                .thenReturn(new RuleEvaluationResult(RULE_ID, false));
+                .thenReturn(new RuleEvaluationResult(RULE_ID, false, Collections.singletonList("ruleCondition")));
 
         PolicyEvaluationResult result = policyEvaluationService.evaluate(POLICY_ID, "ios", context, TENANT_DOMAIN);
 
@@ -250,7 +250,7 @@ public class PolicyEvaluationServiceImplTest {
         Policy policy = policyWithRule("ios");
         when(policyManagementService.getPolicyById(POLICY_ID, TENANT_DOMAIN)).thenReturn(policy);
 
-        PolicyEvaluationContext unknownFlow = PolicyEvaluationContext.create("NOT_A_REAL_FLOW");
+        PolicyEvaluationContext unknownFlow = new PolicyEvaluationContext("NOT_A_REAL_FLOW");
 
         policyEvaluationService.evaluate(POLICY_ID, "ios", unknownFlow, TENANT_DOMAIN);
     }

@@ -72,7 +72,7 @@ public class RuleResourceManager implements PolicyResourceManager {
     }
 
     @Override
-    public PolicyResource hydrate(PolicyResource resource, String tenantDomain) throws PolicyManagementException {
+    public PolicyResource enrich(PolicyResource resource, String tenantDomain) throws PolicyManagementException {
 
         try {
             Rule rule = getRuleManagementService().getRuleByRuleId(resource.getResourceId(), tenantDomain);

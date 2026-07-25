@@ -77,7 +77,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
                 LOG.debug("Target is null for policy '" + policy.getName() + "' — treating as compliant.");
             }
             DIAGNOSTIC_LOGGER.logNoTargetSpecified(policy.getId());
-            return new PolicyEvaluationResult(Collections.emptyList());
+            return new PolicyEvaluationResult(true, Collections.emptyList());
         }
 
         List<PolicyResource> matchingResources = policy.getResources().stream()
@@ -90,7 +90,7 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
                         + "' — treating as compliant.");
             }
             DIAGNOSTIC_LOGGER.logNoMatchingResources(policy.getId(), target);
-            return new PolicyEvaluationResult(Collections.emptyList());
+            return new PolicyEvaluationResult(true, Collections.emptyList());
         }
 
         List<ResourceEvaluationResult> results = new ArrayList<>();
@@ -107,7 +107,8 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             DIAGNOSTIC_LOGGER.logResourceEvaluationResult(result);
         }
 
-        PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult(results);
+        boolean satisfied = results.stream().allMatch(ResourceEvaluationResult::isSatisfied);
+        PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult(satisfied, results);
         DIAGNOSTIC_LOGGER.logEvaluationCompleted(policy.getId(), target, policyEvaluationResult);
         return policyEvaluationResult;
     }

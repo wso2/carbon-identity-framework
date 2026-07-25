@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.policy.evaluation.api.model;
 
 import org.wso2.carbon.identity.policy.management.api.model.PolicyResource;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,12 +32,12 @@ public class RuleResourceEvaluationResult extends ResourceEvaluationResult {
 
     private final List<String> failedFields;
 
-    private RuleResourceEvaluationResult(PolicyResource resource, boolean satisfied, List<String> failedFields) {
+    private RuleResourceEvaluationResult(Builder builder) {
 
-        super(resource, satisfied);
-        this.failedFields = failedFields == null
-                ? Collections.emptyList()
-                : Collections.unmodifiableList(failedFields);
+        super(builder.resource, builder.satisfied);
+        this.failedFields = builder.failedFields != null
+                ? Collections.unmodifiableList(new ArrayList<>(builder.failedFields))
+                : Collections.emptyList();
     }
 
     /**
@@ -47,7 +48,10 @@ public class RuleResourceEvaluationResult extends ResourceEvaluationResult {
      */
     public static RuleResourceEvaluationResult satisfied(PolicyResource resource) {
 
-        return new RuleResourceEvaluationResult(resource, true, Collections.emptyList());
+        return new Builder()
+                .resource(resource)
+                .satisfied(true)
+                .build();
     }
 
     /**
@@ -59,11 +63,65 @@ public class RuleResourceEvaluationResult extends ResourceEvaluationResult {
      */
     public static RuleResourceEvaluationResult unsatisfied(PolicyResource resource, List<String> failedFields) {
 
-        return new RuleResourceEvaluationResult(resource, false, failedFields);
+        return new Builder()
+                .resource(resource)
+                .satisfied(false)
+                .failedFields(failedFields)
+                .build();
     }
 
     public List<String> getFailedFields() {
 
         return failedFields;
+    }
+
+    /**
+     * Builder for {@link RuleResourceEvaluationResult}.
+     */
+    public static class Builder {
+
+        private PolicyResource resource;
+        private boolean satisfied;
+        private List<String> failedFields;
+
+        public Builder resource(PolicyResource resource) {
+
+            this.resource = resource;
+            return this;
+        }
+
+        public Builder satisfied(boolean satisfied) {
+
+            this.satisfied = satisfied;
+            return this;
+        }
+
+        public Builder failedFields(List<String> failedFields) {
+
+            this.failedFields = failedFields;
+            return this;
+        }
+
+        /**
+         * Builds a {@link RuleResourceEvaluationResult} instance after validating fields.
+         *
+         * @return RuleResourceEvaluationResult instance.
+         * @throws IllegalArgumentException If resource is null or failedFields is inconsistent with satisfied.
+         */
+        public RuleResourceEvaluationResult build() {
+
+            if (resource == null) {
+                throw new IllegalArgumentException("Resource cannot be null.");
+            }
+            if (!satisfied && (failedFields == null || failedFields.isEmpty())) {
+                throw new IllegalArgumentException(
+                        "Failed fields cannot be empty when rule evaluation is unsatisfied.");
+            }
+            if (satisfied && failedFields != null && !failedFields.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Failed fields must be empty when rule evaluation is satisfied.");
+            }
+            return new RuleResourceEvaluationResult(this);
+        }
     }
 }

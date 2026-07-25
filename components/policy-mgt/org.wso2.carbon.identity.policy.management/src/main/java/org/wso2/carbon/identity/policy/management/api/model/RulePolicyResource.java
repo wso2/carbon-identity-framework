@@ -45,9 +45,9 @@ public class RulePolicyResource extends PolicyResource {
     }
 
     /**
-     * Returns the hydrated rule. Non-null only after the resource has been hydrated by the service layer.
+     * Returns the enriched rule. Non-null only after the resource has been enriched by the service layer.
      *
-     * @return Hydrated rule, or {@code null}.
+     * @return Enriched rule, or {@code null}.
      */
     public Rule getRule() {
 

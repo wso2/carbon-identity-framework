@@ -44,7 +44,7 @@ import java.util.UUID;
 
 /**
  * Implementation of Policy Management Service.
- * Dispatches per-resource create/hydrate/delete to the {@link PolicyResourceManager} registered for
+ * Dispatches per-resource create/enrich/delete to the {@link PolicyResourceManager} registered for
  * each resource's type, and orchestrates best-effort saga compensation around the DAO layer.
  */
 public class PolicyManagementServiceImpl implements PolicyManagementService {
@@ -207,7 +207,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         if (policy == null) {
             return null;
         }
-        return hydrateResources(policy, tenantDomain);
+        return enrichResources(policy, tenantDomain);
     }
 
     @Override
@@ -227,7 +227,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         if (policy == null) {
             return null;
         }
-        return hydrateResources(policy, tenantDomain);
+        return enrichResources(policy, tenantDomain);
     }
 
     @Override
@@ -268,13 +268,13 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         return policyManagementDAO.getPolicyCount(IdentityTenantUtil.getTenantId(tenantDomain), filter);
     }
 
-    private Policy hydrateResources(Policy policy, String tenantDomain) throws PolicyManagementException {
+    private Policy enrichResources(Policy policy, String tenantDomain) throws PolicyManagementException {
 
-        List<PolicyResource> hydratedResources = new ArrayList<>();
+        List<PolicyResource> enrichedResources = new ArrayList<>();
         for (PolicyResource pr : policy.getResources()) {
-            hydratedResources.add(getResourceManager(pr.getResourceType()).hydrate(pr, tenantDomain));
+            enrichedResources.add(getResourceManager(pr.getResourceType()).enrich(pr, tenantDomain));
         }
-        return new Policy.Builder(policy).resources(hydratedResources).build();
+        return new Policy.Builder(policy).resources(enrichedResources).build();
     }
 
 

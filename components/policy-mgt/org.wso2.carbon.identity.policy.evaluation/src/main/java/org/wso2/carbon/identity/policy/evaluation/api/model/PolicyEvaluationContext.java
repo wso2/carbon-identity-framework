@@ -33,21 +33,15 @@ public class PolicyEvaluationContext {
     private final String flowType;
     private final Map<String, Object> contextData;
 
-    private PolicyEvaluationContext(String flowType) {
+    /**
+     * Creates a policy evaluation context for the given flow type.
+     *
+     * @param flowType Identifier of the flow this evaluation runs in (e.g. {@code DEVICE_POLICY}).
+     */
+    public PolicyEvaluationContext(String flowType) {
 
         this.flowType = flowType;
         this.contextData = new HashMap<>();
-    }
-
-    /**
-     * Creates a context for the given flow.
-     *
-     * @param flowType Identifier of the flow this evaluation runs in (e.g. {@code DEVICE_POLICY}).
-     * @return A new context.
-     */
-    public static PolicyEvaluationContext create(String flowType) {
-
-        return new PolicyEvaluationContext(flowType);
     }
 
     /**

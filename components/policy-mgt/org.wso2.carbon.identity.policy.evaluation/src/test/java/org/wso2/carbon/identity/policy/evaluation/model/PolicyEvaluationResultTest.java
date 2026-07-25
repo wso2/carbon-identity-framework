@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.policy.management.api.model.RulePolicyResource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Unit test class for PolicyEvaluationResult.
@@ -47,15 +48,17 @@ public class PolicyEvaluationResultTest {
                 .build();
         return satisfied
                 ? RuleResourceEvaluationResult.satisfied(resource)
-                : RuleResourceEvaluationResult.unsatisfied(resource, Collections.emptyList());
+                : RuleResourceEvaluationResult.unsatisfied(resource, Collections.singletonList("ruleCondition"));
     }
 
     @Test
     public void testAllSatisfiedIsSatisfied() throws PolicyManagementClientException {
 
-        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(Arrays.asList(
+        List<ResourceEvaluationResult> results = Arrays.asList(
                 result("ios", "rule-1", true),
-                result("android", "rule-2", true)));
+                result("android", "rule-2", true));
+        boolean satisfied = results.stream().allMatch(ResourceEvaluationResult::isSatisfied);
+        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(satisfied, results);
 
         Assert.assertTrue(evaluationResult.isSatisfied());
         Assert.assertEquals(evaluationResult.getResults().size(), 2);
@@ -64,9 +67,11 @@ public class PolicyEvaluationResultTest {
     @Test
     public void testOneUnsatisfiedFailsAll() throws PolicyManagementClientException {
 
-        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(Arrays.asList(
+        List<ResourceEvaluationResult> results = Arrays.asList(
                 result("ios", "rule-1", true),
-                result("android", "rule-2", false)));
+                result("android", "rule-2", false));
+        boolean satisfied = results.stream().allMatch(ResourceEvaluationResult::isSatisfied);
+        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(satisfied, results);
 
         Assert.assertFalse(evaluationResult.isSatisfied());
         Assert.assertEquals(evaluationResult.getResults().size(), 2);
@@ -75,7 +80,7 @@ public class PolicyEvaluationResultTest {
     @Test
     public void testEmptyResultsAreSatisfied() {
 
-        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(Collections.emptyList());
+        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(true, Collections.emptyList());
 
         Assert.assertTrue(evaluationResult.isSatisfied());
         Assert.assertTrue(evaluationResult.getResults().isEmpty());
@@ -84,7 +89,7 @@ public class PolicyEvaluationResultTest {
     @Test
     public void testNullResultsAreSatisfied() {
 
-        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(null);
+        PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult(true, null);
 
         Assert.assertTrue(evaluationResult.isSatisfied());
         Assert.assertTrue(evaluationResult.getResults().isEmpty());

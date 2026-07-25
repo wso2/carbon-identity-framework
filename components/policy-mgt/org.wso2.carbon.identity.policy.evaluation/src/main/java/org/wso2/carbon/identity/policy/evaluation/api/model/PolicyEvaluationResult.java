@@ -32,17 +32,17 @@ public class PolicyEvaluationResult {
     private final List<ResourceEvaluationResult> results;
 
     /**
-     * Creates a policy evaluation result. Overall satisfaction is derived from the results: the result
-     * is satisfied only if every outcome is satisfied (an empty outcome list is satisfied by default).
+     * Creates a policy evaluation result with explicit overall satisfaction status.
      *
-     * @param results Per-resource evaluation results.
+     * @param satisfied Whether the policy evaluation is satisfied for the target.
+     * @param results   Per-resource evaluation results.
      */
-    public PolicyEvaluationResult(List<ResourceEvaluationResult> results) {
+    public PolicyEvaluationResult(boolean satisfied, List<ResourceEvaluationResult> results) {
 
+        this.satisfied = satisfied;
         this.results = results == null
                 ? Collections.emptyList()
                 : Collections.unmodifiableList(results);
-        this.satisfied = this.results.stream().allMatch(ResourceEvaluationResult::isSatisfied);
     }
 
     public boolean isSatisfied() {

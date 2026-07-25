@@ -222,7 +222,7 @@ public class PolicyManagementServiceImplTest {
     public void testGetPolicyById_HydratesRuleResource() throws PolicyManagementException, RuleManagementException {
 
         String ruleId = UUID.randomUUID().toString();
-        Rule hydratedRule = mock(Rule.class);
+        Rule enrichedRule = mock(Rule.class);
         Policy existingPolicy = new Policy.Builder()
                 .id(TEST_POLICY_ID)
                 .name(TEST_POLICY_NAME)
@@ -234,14 +234,14 @@ public class PolicyManagementServiceImplTest {
                 .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
-        when(ruleManagementService.getRuleByRuleId(ruleId, TENANT_DOMAIN)).thenReturn(hydratedRule);
+        when(ruleManagementService.getRuleByRuleId(ruleId, TENANT_DOMAIN)).thenReturn(enrichedRule);
 
         Policy result = policyManagementService.getPolicyById(TEST_POLICY_ID, TENANT_DOMAIN);
 
         Assert.assertEquals(result.getResources().size(), 1);
         PolicyResource resource = result.getResources().get(0);
         Assert.assertTrue(resource instanceof RulePolicyResource);
-        Assert.assertEquals(((RulePolicyResource) resource).getRule(), hydratedRule);
+        Assert.assertEquals(((RulePolicyResource) resource).getRule(), enrichedRule);
         Assert.assertEquals(resource.getResourceId(), ruleId);
         loggerUtils.verifyNoInteractions();
     }
