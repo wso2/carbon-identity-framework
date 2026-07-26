@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
+import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
 import org.wso2.carbon.identity.device.registration.internal.component.DeviceRegistrationComponentServiceHolder;
 import org.wso2.carbon.identity.device.registration.internal.constant.DeviceRegistrationConstants;
@@ -101,11 +102,12 @@ public class RegistrationFlowCompletionListener extends AbstractFlowExecutionLis
         DeviceManagementService service =
                 DeviceRegistrationComponentServiceHolder.getInstance().getDeviceManagementService();
         try {
-            service.registerDevice(pending.bindTo(userId), context.getTenantDomain());
-            diagnosticLogger.logRegistrationCompleted(pending.getId());
+            Device registeredDevice = service.registerDevice(pending.bindTo(userId), context.getTenantDomain());
+            String registeredDeviceId = registeredDevice != null ? registeredDevice.getId() : pending.getId();
+            diagnosticLogger.logRegistrationCompleted(registeredDeviceId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device registered for userId: " + userId
-                        + " deviceId: " + pending.getId()
+                        + " deviceId: " + registeredDeviceId
                         + " tenant: " + context.getTenantDomain());
             }
         } catch (DeviceMgtException e) {

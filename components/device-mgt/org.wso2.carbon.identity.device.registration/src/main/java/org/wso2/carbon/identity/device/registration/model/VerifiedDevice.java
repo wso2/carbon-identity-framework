@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.device.registration.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * A device whose signature has been verified but is not yet bound to a user — it mirrors an
@@ -215,11 +217,25 @@ public class VerifiedDevice implements Serializable {
         }
 
         /**
-         * Builds a verified, unbound device instance.
+         * Builds a verified, unbound device instance after validating required fields.
          *
          * @return Verified device.
+         * @throws IllegalArgumentException If any required field is missing or blank.
          */
         public VerifiedDevice build() {
+
+            if (StringUtils.isBlank(id)) {
+                throw new IllegalArgumentException("Device id cannot be null or blank.");
+            }
+            if (StringUtils.isBlank(deviceName)) {
+                throw new IllegalArgumentException("Device name cannot be null or blank.");
+            }
+            if (StringUtils.isBlank(publicKey)) {
+                throw new IllegalArgumentException("Public key cannot be null or blank.");
+            }
+            if (registeredAt == null) {
+                this.registeredAt = Timestamp.from(Instant.now());
+            }
 
             return new VerifiedDevice(this);
         }
