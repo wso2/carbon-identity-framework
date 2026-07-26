@@ -88,20 +88,11 @@ public class PolicyEvaluationDiagnosticLoggerTest {
 
         diagnosticLogger.logEvaluationInitiated("policy-1", "ios", "RULE");
 
-        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
-                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
-        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
-
-        Assert.assertNotNull(captor.getValue());
-
         PolicyEvaluationResult result = new PolicyEvaluationResult(true, Collections.emptyList());
         diagnosticLogger.logEvaluationCompleted("policy-1", "ios", "RULE", result);
 
-        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor2 =
-                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
-        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor2.capture()));
-
-        Assert.assertNotNull(captor2.getValue());
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), times(2));
     }
 
     @Test
