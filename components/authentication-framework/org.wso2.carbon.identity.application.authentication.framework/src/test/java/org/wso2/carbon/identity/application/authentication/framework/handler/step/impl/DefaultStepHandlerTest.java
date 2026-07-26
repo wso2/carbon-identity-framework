@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.flow.mgt.utils.FlowMgtConfigUtils;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Collections;
@@ -73,6 +74,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -757,6 +759,77 @@ public class DefaultStepHandlerTest {
             defaultStepHandler.handle(mockRequest, mockResponse, authContext);
 
             verify(orgAuthenticator).process(mockRequest, mockResponse, authContext);
+        }
+    }
+
+    private Method getHandleAuthInitDataOnRetryMethod() throws NoSuchMethodException {
+
+        Method method = DefaultStepHandler.class.getDeclaredMethod("handleAuthInitDataOnRetryForAPIBasedFlow",
+                HttpServletRequest.class, HttpServletResponse.class, AuthenticationContext.class);
+        method.setAccessible(true);
+        return method;
+    }
+
+    @Test
+    public void testHandleAuthInitDataOnRetryForAPIBasedFlowPopulatesData() throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_AUTH_INIT_DATA_ON_RETRY_IN_API_BASED_AUTH_RESPONSE))
+                    .thenReturn("true");
+            IdentityErrorMsgContext errorMsgContext = mock(IdentityErrorMsgContext.class);
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(errorMsgContext);
+            frameworkUtils.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request)).thenReturn(true);
+
+            String basicAuthName = "BasicAuthenticator";
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            when(context.isSendToMultiOptionPage()).thenReturn(true);
+            when(context.getProperty("multiOptionBasicAuthenticator")).thenReturn(basicAuthName);
+            when(context.getCurrentStep()).thenReturn(1);
+
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            StepConfig stepConfig = mock(StepConfig.class);
+            when(sequenceConfig.getStepMap()).thenReturn(Collections.singletonMap(1, stepConfig));
+
+            LocalApplicationAuthenticator basicAuthenticator = mock(LocalApplicationAuthenticator.class);
+            when(basicAuthenticator.getAuthMechanism()).thenReturn("basic");
+            when(basicAuthenticator.isAPIBasedAuthenticationSupported()).thenReturn(true);
+            when(basicAuthenticator.getAuthInitiationData(context)).thenReturn(Optional.empty());
+            when(basicAuthenticator.process(request, response, context))
+                    .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+
+            AuthenticatorConfig basicAuthConfig = mock(AuthenticatorConfig.class);
+            when(basicAuthConfig.getName()).thenReturn(basicAuthName);
+            when(basicAuthConfig.getApplicationAuthenticator()).thenReturn(basicAuthenticator);
+            when(stepConfig.getAuthenticatorList()).thenReturn(Collections.singletonList(basicAuthConfig));
+
+            getHandleAuthInitDataOnRetryMethod().invoke(defaultStepHandler, request, response, context);
+
+            // The resolved basic authenticator should be re-processed to populate the auth initiation data.
+            verify(basicAuthenticator).process(request, response, context);
+            // The context should be marked as retrying so downstream failure handling treats this as a retry.
+            verify(context).setRetrying(true);
+        }
+    }
+
+    @Test
+    public void testHandleAuthInitDataOnRetryForAPIBasedFlowSkippedWhenConfigDisabled() throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            identityUtil.when(() -> IdentityUtil.getProperty(
+                    FrameworkConstants.INCLUDE_AUTH_INIT_DATA_ON_RETRY_IN_API_BASED_AUTH_RESPONSE))
+                    .thenReturn("false");
+            AuthenticationContext context = mock(AuthenticationContext.class);
+
+            getHandleAuthInitDataOnRetryMethod().invoke(defaultStepHandler, request, response, context);
+
+            // When the config is disabled the method must return before touching the context.
+            verify(context, never()).isSendToMultiOptionPage();
+            verify(context, never()).setRetrying(anyBoolean());
         }
     }
 }
