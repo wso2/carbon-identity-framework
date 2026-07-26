@@ -26,11 +26,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.device.mgt.api.model.Device;
 import org.wso2.carbon.utils.AuditLog;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 
@@ -42,7 +37,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
 public class DeviceManagementAuditLogger {
 
     private static final String DEVICE_TARGET_TYPE = "Device";
-    private static final String FINGERPRINT_UNAVAILABLE = "unavailable";
 
     /**
      * Print an audit log for an operation that carries the full device state.
@@ -95,8 +89,8 @@ public class DeviceManagementAuditLogger {
 
     /**
      * Create audit log data for the given device.
-     * The device owner is recorded as the opaque user ID (a UUID, not PII, so not masked) and the
-     * public key is reduced to a fingerprint; the raw public key and free-form metadata are never logged.
+     * The device owner is recorded as the opaque user ID (a UUID, not PII, so not masked);
+     * the raw public key and free-form metadata are never logged.
      *
      * @param device Device to be logged.
      * @return Audit log data as a JSONObject.
@@ -115,8 +109,6 @@ public class DeviceManagementAuditLogger {
                 device.getRegisteredAt() != null ? String.valueOf(device.getRegisteredAt()) : JSONObject.NULL);
         data.put(LogConstants.USER_ID_FIELD, device.getUserId() != null
                 ? device.getUserId() : JSONObject.NULL);
-        data.put(LogConstants.PUBLIC_KEY_FINGERPRINT_FIELD, device.getPublicKey() != null
-                ? fingerprint(device.getPublicKey()) : JSONObject.NULL);
         return data;
     }
 
@@ -139,24 +131,6 @@ public class DeviceManagementAuditLogger {
             initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
         }
         return StringUtils.isNotBlank(initiator) ? initiator : LoggerUtils.getMaskedContent(username);
-    }
-
-    /**
-     * Produce a short, non-reversible fingerprint of the device public key for correlation.
-     *
-     * @param publicKey Base64 encoded public key.
-     * @return Truncated SHA-256 fingerprint, or a placeholder if hashing is unavailable.
-     */
-    private String fingerprint(String publicKey) {
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(publicKey.getBytes(StandardCharsets.UTF_8));
-            String encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
-            return encoded.length() > 16 ? encoded.substring(0, 16) : encoded;
-        } catch (NoSuchAlgorithmException e) {
-            return FINGERPRINT_UNAVAILABLE;
-        }
     }
 
     /**
@@ -198,6 +172,5 @@ public class DeviceManagementAuditLogger {
         private static final String STATUS_FIELD = "Status";
         private static final String REGISTERED_AT_FIELD = "RegisteredAt";
         private static final String USER_ID_FIELD = "UserId";
-        private static final String PUBLIC_KEY_FINGERPRINT_FIELD = "PublicKeyFingerprint";
     }
 }

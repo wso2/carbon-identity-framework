@@ -92,23 +92,7 @@ public class DeviceManagementDAOImplTest {
         Assert.assertNull(result);
     }
 
-    /**
-     * Tests that getActiveDevicesByUserId returns only ACTIVE devices.
-     *
-     * @throws DeviceMgtException If the DAO operation fails.
-     */
-    @Test(priority = 4, dependsOnMethods = {"testRegisterDevice"})
-    public void testGetActiveDevicesByUserIdOnlyActive() throws DeviceMgtException {
 
-        Device inactiveDevice = buildDevice(UUID.randomUUID().toString(), "Old Device", Device.Status.INACTIVE);
-        deviceManagementDAO.registerDevice(inactiveDevice, TENANT_ID);
-
-        List<Device> devices = deviceManagementDAO.getActiveDevicesByUserId(TEST_USER_ID, TENANT_ID);
-
-        Assert.assertEquals(devices.size(), 1);
-        Assert.assertEquals(devices.get(0).getStatus(), Device.Status.ACTIVE);
-        Assert.assertEquals(devices.get(0).getId(), createdDeviceId);
-    }
 
     /**
      * Tests updating a device name.
@@ -214,40 +198,7 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(count, 2);
     }
 
-    /**
-     * Tests that getActiveDevicesByUserId returns all active devices for a user.
-     *
-     * @throws DeviceMgtException If the DAO operation fails.
-     */
-    @Test(priority = 10)
-    public void testGetActiveDevicesByUserIdMultiple() throws DeviceMgtException {
 
-        String userId = "eve@example.com";
-        String id1 = UUID.randomUUID().toString();
-        String id2 = UUID.randomUUID().toString();
-        deviceManagementDAO.registerDevice(
-                buildDeviceForUser(id1, "Eve Phone 1", userId, Device.Status.ACTIVE), TENANT_ID);
-        deviceManagementDAO.registerDevice(
-                buildDeviceForUser(id2, "Eve Phone 2", userId, Device.Status.ACTIVE), TENANT_ID);
-
-        List<Device> devices = deviceManagementDAO.getActiveDevicesByUserId(userId, TENANT_ID);
-
-        Assert.assertEquals(devices.size(), 2);
-    }
-
-    /**
-     * Tests that getActiveDevicesByUserId returns an empty list for an unknown user.
-     *
-     * @throws DeviceMgtException If the DAO operation fails.
-     */
-    @Test(priority = 11)
-    public void testGetActiveDevicesByUserIdEmpty() throws DeviceMgtException {
-
-        List<Device> devices = deviceManagementDAO.getActiveDevicesByUserId("unknown@example.com", TENANT_ID);
-
-        Assert.assertNotNull(devices);
-        Assert.assertTrue(devices.isEmpty());
-    }
 
     /**
      * Tests that updateDeviceName with a wrong tenant id does not affect the row.
@@ -292,7 +243,7 @@ public class DeviceManagementDAOImplTest {
      * @throws DeviceMgtException If the DAO operation fails.
      */
     @Test(priority = 14)
-    public void testChangeDeviceStatusDeactivateExcludesFromUserDeviceList() throws DeviceMgtException {
+    public void testChangeDeviceStatusDeactivateUpdatesStatus() throws DeviceMgtException {
 
         String userId = "heidi@example.com";
         String id = UUID.randomUUID().toString();
@@ -304,9 +255,6 @@ public class DeviceManagementDAOImplTest {
         Assert.assertNotNull(updated);
         Assert.assertEquals(updated.getStatus(), Device.Status.INACTIVE);
 
-        List<Device> userDevices = deviceManagementDAO.getActiveDevicesByUserId(userId, TENANT_ID);
-        Assert.assertTrue(userDevices.isEmpty());
-
         Device byId = deviceManagementDAO.getDeviceById(id, TENANT_ID);
         Assert.assertNotNull(byId);
         Assert.assertEquals(byId.getStatus(), Device.Status.INACTIVE);
@@ -316,19 +264,10 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(foundInPage, 1);
     }
 
-    /**
-     * Tests that changeDeviceStatus(ACTIVE) reinstates a device into getActiveDevicesByUserId
-     * results.
-     *
-     * @throws DeviceMgtException If the DAO operation fails.
-     */
-    @Test(priority = 15, dependsOnMethods = {"testChangeDeviceStatusDeactivateExcludesFromUserDeviceList"})
-    public void testChangeDeviceStatusActivateReincludesInUserDeviceList() throws DeviceMgtException {
+    @Test(priority = 15, dependsOnMethods = {"testChangeDeviceStatusDeactivateUpdatesStatus"})
+    public void testChangeDeviceStatusActivateUpdatesStatus() throws DeviceMgtException {
 
         String userId = "heidi@example.com";
-        List<Device> beforeActivation = deviceManagementDAO.getActiveDevicesByUserId(userId, TENANT_ID);
-        Assert.assertTrue(beforeActivation.isEmpty());
-
         List<Device> allDevices = deviceManagementDAO.getDevices(TENANT_ID, 0, 100);
         String id = allDevices.stream()
                 .filter(d -> d.getUserId().equals(userId))
@@ -339,10 +278,6 @@ public class DeviceManagementDAOImplTest {
         Device updated = deviceManagementDAO.changeDeviceStatus(id, Device.Status.ACTIVE, TENANT_ID);
 
         Assert.assertEquals(updated.getStatus(), Device.Status.ACTIVE);
-
-        List<Device> userDevices = deviceManagementDAO.getActiveDevicesByUserId(userId, TENANT_ID);
-        Assert.assertEquals(userDevices.size(), 1);
-        Assert.assertEquals(userDevices.get(0).getId(), id);
     }
 
     /**

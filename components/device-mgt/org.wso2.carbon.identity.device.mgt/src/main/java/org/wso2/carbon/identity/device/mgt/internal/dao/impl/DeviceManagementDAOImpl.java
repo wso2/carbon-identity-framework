@@ -126,37 +126,7 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
         }
     }
 
-    @Override
-    public List<Device> getActiveDevicesByUserId(String userId, int tenantId)
-            throws DeviceMgtException {
 
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-
-        try {
-            return jdbcTemplate.<List<Device>, RuntimeException>withTransaction(
-                    template -> template.executeQuery(
-                            DeviceMgtSQLConstants.Query.GET_DEVICES_BY_USER_ID,
-                            (resultSet, rowNumber) -> new Device.Builder()
-                                    .id(resultSet.getString(DeviceMgtSQLConstants.Column.ID))
-                                    .userId(resultSet.getString(DeviceMgtSQLConstants.Column.USER_ID))
-                                    .deviceName(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_NAME))
-                                    .deviceModel(resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_MODEL))
-                                    .publicKey(resultSet.getString(DeviceMgtSQLConstants.Column.PUBLIC_KEY))
-                                    .status(Device.Status.valueOf(
-                                            resultSet.getString(DeviceMgtSQLConstants.Column.STATUS)))
-                                    .registeredAt(resultSet.getTimestamp(DeviceMgtSQLConstants.Column.REGISTERED_AT))
-                                    .metadata(resultSet.getString(DeviceMgtSQLConstants.Column.METADATA))
-                                    .build(),
-                            preparedStatement -> {
-                                preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
-                                preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            }));
-
-        } catch (TransactionException e) {
-            throw DeviceManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);
-        }
-    }
 
     @Override
     public List<Device> getDevices(int tenantId, int offset, int limit) throws DeviceMgtException {

@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.device.mgt.api.model;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * Immutable model for a registered device.
@@ -260,11 +263,31 @@ public class Device {
         }
 
         /**
-         * Builds a registered device instance.
+         * Builds a registered device instance after validating required fields.
          *
-         * @return Registered device.
+         * @return Registered device instance.
+         * @throws IllegalArgumentException If any required field is missing or blank.
          */
         public Device build() {
+
+            if (StringUtils.isBlank(id)) {
+                throw new IllegalArgumentException("Device id cannot be null or blank.");
+            }
+            if (StringUtils.isBlank(userId)) {
+                throw new IllegalArgumentException("User ID cannot be null or blank.");
+            }
+            if (StringUtils.isBlank(deviceName)) {
+                throw new IllegalArgumentException("Device name cannot be null or blank.");
+            }
+            if (StringUtils.isBlank(publicKey)) {
+                throw new IllegalArgumentException("Public key cannot be null or blank.");
+            }
+            if (status == null) {
+                this.status = Status.ACTIVE;
+            }
+            if (registeredAt == null) {
+                this.registeredAt = Timestamp.from(Instant.now());
+            }
 
             return new Device(this);
         }

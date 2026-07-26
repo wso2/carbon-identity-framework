@@ -33,9 +33,8 @@ import java.util.List;
  * Cache backed Device Management DAO.
  * This class implements the caching on top of the data layer operations.
  * This caches the Device object, keyed by device ID and tenant. List/aggregate reads
- * (getActiveDevicesByUserId, getDevices, getDevicesByUserId, getDeviceCount,
- * getDeviceCountByUserId) are intentionally not cached since invalidating a list on every write
- * is a different, harder problem.
+ * (getDevices, getDevicesByUserId, getDeviceCount, getDeviceCountByUserId) are
+ * intentionally not cached since invalidating a list on every write is a different, harder problem.
  */
 public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
 
@@ -104,20 +103,7 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
         return device;
     }
 
-    /**
-     * Finds all active devices by user id.
-     * This method is not cached; list results are not invalidated entry-by-entry.
-     *
-     * @param userId   User identifier.
-     * @param tenantId Tenant identifier.
-     * @return Active devices.
-     * @throws DeviceMgtException If retrieval fails.
-     */
-    @Override
-    public List<Device> getActiveDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
 
-        return deviceManagementDAO.getActiveDevicesByUserId(userId, tenantId);
-    }
 
     /**
      * Finds a page of devices registered in the tenant, ordered by registration time (newest first).

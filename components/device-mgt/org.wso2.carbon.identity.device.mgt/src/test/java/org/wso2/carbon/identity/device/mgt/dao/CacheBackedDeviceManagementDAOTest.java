@@ -233,21 +233,7 @@ public class CacheBackedDeviceManagementDAOTest {
         verify(deviceManagementDAO).getDeviceCountByUserId("alice@example.com", TENANT_ID);
     }
 
-    @Test
-    public void testGetActiveDevicesByUserIdDelegatesToDao() throws DeviceMgtException {
 
-        // Regression guard for the getDevicesByUserId -> getActiveDevicesByUserId rename: this
-        // method must remain a plain passthrough, not accidentally start reading the cache.
-        Device device = mock(Device.class);
-        when(deviceManagementDAO.getActiveDevicesByUserId("alice@example.com", TENANT_ID))
-                .thenReturn(Collections.singletonList(device));
-
-        List<Device> result = cacheBackedDeviceManagementDAO.getActiveDevicesByUserId(
-                "alice@example.com", TENANT_ID);
-
-        assertEquals(result, Collections.singletonList(device));
-        verify(deviceManagementDAO).getActiveDevicesByUserId("alice@example.com", TENANT_ID);
-    }
 
     @Test
     public void testTenantIsolation() throws DeviceMgtException {

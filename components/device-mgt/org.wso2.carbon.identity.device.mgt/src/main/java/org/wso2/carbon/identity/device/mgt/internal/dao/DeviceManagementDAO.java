@@ -51,17 +51,6 @@ public interface DeviceManagementDAO {
             throws DeviceMgtException;
 
     /**
-     * Finds all active devices by user id.
-     *
-     * @param userId User identifier.
-     * @param tenantId Tenant identifier.
-     * @return Active devices.
-     * @throws DeviceMgtException If retrieval fails.
-     */
-    List<Device> getActiveDevicesByUserId(String userId, int tenantId)
-            throws DeviceMgtException;
-
-    /**
      * Finds a page of devices registered in the tenant, ordered by registration time (newest first).
      * Returns devices of any status (ACTIVE or INACTIVE).
      *

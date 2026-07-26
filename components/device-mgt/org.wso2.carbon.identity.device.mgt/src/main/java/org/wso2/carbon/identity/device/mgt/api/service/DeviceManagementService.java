@@ -33,42 +33,19 @@ public interface DeviceManagementService {
      *
      * @param device       The verified device to register.
      * @param tenantDomain Tenant domain.
+     * @return Registered device.
      */
-    void registerDevice(Device device, String tenantDomain) throws DeviceMgtException;
+    Device registerDevice(Device device, String tenantDomain) throws DeviceMgtException;
 
     /**
      * Retrieves a device by its UUID. Returns the device regardless of its status (ACTIVE or
      * INACTIVE) — this is an admin/tenant-scoped lookup, not a filtered "my devices" view.
-     * Do not use this to decide whether a device should be trusted for authentication — a
-     * deactivated (revoked) device is still returned. Use {@link #getActiveDeviceById} for that.
      *
      * @param deviceId     UUID of the device (IDN_DEVICE.ID).
      * @param tenantDomain Tenant domain.
      * @return The Device, or null if not found.
      */
     Device getDeviceById(String deviceId, String tenantDomain)
-            throws DeviceMgtException;
-
-    /**
-     * Retrieves a device by its UUID, but only if its status is {@link Device.Status#ACTIVE}.
-     * Returns {@code null} both when the device does not exist and when it exists but has been
-     *
-     * @param deviceId     UUID of the device (IDN_DEVICE.ID).
-     * @param tenantDomain Tenant domain.
-     * @return The Device if it exists and is ACTIVE; {@code null} otherwise.
-     */
-    Device getActiveDeviceById(String deviceId, String tenantDomain)
-            throws DeviceMgtException;
-
-    /**
-     * Retrieves all ACTIVE devices registered by a user. This is the user-facing "my devices"
-     * list: devices deactivated via {@link #deactivateDevice(String, String)} are excluded.
-     *
-     * @param userId       WSO2 user identifier.
-     * @param tenantDomain Tenant domain.
-     * @return List of active Device objects. Empty list if none found.
-     */
-    List<Device> getActiveDevicesByUserId(String userId, String tenantDomain)
             throws DeviceMgtException;
 
     /**
@@ -129,8 +106,7 @@ public interface DeviceManagementService {
             throws DeviceMgtException;
 
     /**
-     * Activates a device, setting its status to {@link Device.Status#ACTIVE}. An activated device
-     * reappears in {@link #getActiveDevicesByUserId(String, String)} results.
+     * Activates a device, setting its status to {@link Device.Status#ACTIVE}.
      *
      * @param deviceId     UUID of the device.
      * @param tenantDomain Tenant domain.
@@ -140,9 +116,7 @@ public interface DeviceManagementService {
     Device activateDevice(String deviceId, String tenantDomain) throws DeviceMgtException;
 
     /**
-     * Deactivates a device, setting its status to {@link Device.Status#INACTIVE}. A deactivated
-     * device is excluded from {@link #getActiveDevicesByUserId(String, String)} results, but
-     * remains visible via {@link #getDeviceById} and {@link #getDevices}.
+     * Deactivates a device, setting its status to {@link Device.Status#INACTIVE}.
      *
      * @param deviceId     UUID of the device.
      * @param tenantDomain Tenant domain.

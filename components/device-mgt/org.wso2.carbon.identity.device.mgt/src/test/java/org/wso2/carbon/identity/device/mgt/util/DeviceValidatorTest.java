@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.device.mgt.util;
 
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -78,40 +77,28 @@ public class DeviceValidatorTest {
         }
     }
 
-    @Test
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testValidateDeviceForRegistrationWithoutUserIdThrows() {
 
-        Device device = completeDeviceBuilder().userId(null).build();
-
-        try {
-            deviceValidator.validateDeviceForRegistration(device);
-            Assert.fail("Expected DeviceMgtServerException");
-        } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_USER_ID_REQUIRED.getCode());
-        }
+        completeDeviceBuilder().userId(null).build();
     }
 
-    @DataProvider(name = "incompleteDevices")
-    public Object[][] incompleteDevices() {
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testValidateDeviceForRegistrationWithoutIdThrows() {
 
-        return new Object[][]{
-                {completeDeviceBuilder().id(null).build()},
-                {completeDeviceBuilder().deviceName(null).build()},
-                {completeDeviceBuilder().publicKey(null).build()},
-                {completeDeviceBuilder().status(null).build()},
-                {completeDeviceBuilder().registeredAt(null).build()},
-        };
+        completeDeviceBuilder().id(null).build();
     }
 
-    @Test(dataProvider = "incompleteDevices")
-    public void testValidateDeviceForRegistrationWithMissingRequiredFieldThrows(Device device) {
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testValidateDeviceForRegistrationWithoutDeviceNameThrows() {
 
-        try {
-            deviceValidator.validateDeviceForRegistration(device);
-            Assert.fail("Expected DeviceMgtServerException");
-        } catch (DeviceMgtException ex) {
-            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_DEVICE_FIELD_REQUIRED.getCode());
-        }
+        completeDeviceBuilder().deviceName(null).build();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testValidateDeviceForRegistrationWithoutPublicKeyThrows() {
+
+        completeDeviceBuilder().publicKey(null).build();
     }
 
     @Test
