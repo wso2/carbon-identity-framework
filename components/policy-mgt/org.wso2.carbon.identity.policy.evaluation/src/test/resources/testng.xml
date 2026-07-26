@@ -26,7 +26,7 @@
     </test>
     <test name="policy-evaluation-evaluator-test">
         <classes>
-            <class name="org.wso2.carbon.identity.policy.evaluation.evaluator.RuleResourceEvaluatorTest"/>
+            <class name="org.wso2.carbon.identity.policy.evaluation.service.RuleResourceEvaluatorTest"/>
         </classes>
     </test>
     <test name="policy-evaluation-util-test">
