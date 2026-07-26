@@ -41,14 +41,13 @@ public interface PolicyManagementService {
     Policy addPolicy(Policy policy, String tenantDomain) throws PolicyManagementException;
 
     /**
-     * Replaces an existing policy (PUT semantics). Resources, rules, and actions are replaced wholesale, but the
-     * policy name is immutable: the stored name is retained and any name on the supplied model is ignored.
+     * Updates an existing policy's resources. Policy ID is immutable and must match an existing policy;
+     * policy name is also immutable: attempting to update the policy name will throw an exception.
      *
-     * @param policy       Policy with the new state. ID must reference an existing policy; any supplied name is
-     *                     ignored — the stored name is retained.
+     * @param policy       Policy with the new state. ID must reference an existing policy.
      * @param tenantDomain Tenant domain.
      * @return Updated policy as persisted.
-     * @throws PolicyManagementException If the policy is not found or persistence fails.
+     * @throws PolicyManagementException If the policy is not found, name update is attempted, or persistence fails.
      */
     Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException;
 

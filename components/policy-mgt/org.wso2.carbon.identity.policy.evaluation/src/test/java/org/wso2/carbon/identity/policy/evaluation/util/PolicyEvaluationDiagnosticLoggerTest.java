@@ -38,6 +38,7 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 
 /**
  * Unit test class for PolicyEvaluationDiagnosticLogger.
@@ -101,6 +102,76 @@ public class PolicyEvaluationDiagnosticLoggerTest {
         loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor2.capture()));
 
         Assert.assertNotNull(captor2.getValue());
+    }
+
+    @Test
+    public void testLogPolicyNotFound_TriggersDiagnosticLog() {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        diagnosticLogger.logPolicyNotFound("policy-1");
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
+        Assert.assertNotNull(captor.getValue());
+    }
+
+    @Test
+    public void testLogNoTargetSpecified_TriggersDiagnosticLog() {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        diagnosticLogger.logNoTargetSpecified("policy-1");
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
+        Assert.assertNotNull(captor.getValue());
+    }
+
+    @Test
+    public void testLogNoMatchingResources_TriggersDiagnosticLog() {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        diagnosticLogger.logNoMatchingResources("policy-1", "ios");
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
+        Assert.assertNotNull(captor.getValue());
+    }
+
+    @Test
+    public void testLogNoEvaluatorForResourceType_TriggersDiagnosticLog() throws PolicyManagementClientException {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        PolicyResource resource = new RulePolicyResource.Builder()
+                .target("ios")
+                .resourceId("rule-1")
+                .build();
+        diagnosticLogger.logNoEvaluatorForResourceType(resource);
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
+        Assert.assertNotNull(captor.getValue());
+    }
+
+    @Test
+    public void testDefaultOverloads_TriggersDiagnosticLog() {
+
+        loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        diagnosticLogger.logEvaluationInitiated("policy-1", "ios");
+
+        PolicyEvaluationResult result = new PolicyEvaluationResult(true, Collections.emptyList());
+        diagnosticLogger.logEvaluationCompleted("policy-1", "ios", result);
+
+        loggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), times(2));
     }
 
     @Test

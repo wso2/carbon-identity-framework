@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.policy.management.internal.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -81,7 +82,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     policy.getName(), tenantDomain));
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        validateUniquePolicyName(policy.getName(), null, tenantId);
+        validateUniquePolicyName(policy.getName(), tenantId);
 
         String policyId = UUID.randomUUID().toString();
 
@@ -117,9 +118,8 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
      * {@inheritDoc}
      * Resources, rules, and actions are replaced wholesale, but the policy name is immutable: the stored name
      * is retained and any name on the supplied {@code policy} is ignored.
-     *
-     * @param policy Policy with the new state. ID must reference an existing policy; any supplied name is
-     *               ignored — the stored name is retained.
+     * @param policy Policy with the new state. ID must reference an existing policy; policy name cannot
+     *               be updated.
      */
     @Override
     public Policy updatePolicy(Policy policy, String tenantDomain) throws PolicyManagementException {
@@ -133,7 +133,12 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
                     ErrorMessage.ERROR_POLICY_NOT_FOUND, policy.getId());
         }
 
-        // The name is immutable on update: the stored name is carried over and any supplied name is ignored.
+        if (StringUtils.isNotBlank(policy.getName())
+                && !policy.getName().equals(existingPolicy.getName())) {
+            throw PolicyManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_POLICY_NAME_IMMUTABLE);
+        }
+
         policy = new Policy.Builder(policy).name(existingPolicy.getName()).build();
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating policy with ID: %s for tenant: %s",
@@ -214,7 +219,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     public Policy getPolicyByName(String policyName, String tenantDomain) throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
-        if (policyName == null || policyName.trim().isEmpty()) {
+        if (StringUtils.isBlank(policyName)) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
         }
@@ -234,7 +239,7 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
     public String getPolicyIdByName(String policyName, String tenantDomain) throws PolicyManagementException {
 
         POLICY_VALIDATOR.validateTenantDomain(tenantDomain);
-        if (policyName == null || policyName.trim().isEmpty()) {
+        if (StringUtils.isBlank(policyName)) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_INVALID_POLICY_REQUEST_FIELD, POLICY_NAME_FIELD);
         }
@@ -301,11 +306,11 @@ public class PolicyManagementServiceImpl implements PolicyManagementService {
         return manager;
     }
 
-    private void validateUniquePolicyName(String name, String excludePolicyId, int tenantId)
+    private void validateUniquePolicyName(String name, int tenantId)
             throws PolicyManagementException {
 
         String existingId = policyManagementDAO.getPolicyIdByName(name, tenantId);
-        if (existingId != null && !existingId.equals(excludePolicyId)) {
+        if (existingId != null) {
             throw PolicyManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_POLICY_ALREADY_EXISTS, name);
         }

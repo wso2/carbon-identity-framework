@@ -255,22 +255,43 @@ public class PolicyManagementServiceImplTest {
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.emptyList())
                 .build();
-        Policy updatedPolicy = new Policy.Builder()
+        Policy updatedPolicyInput = new Policy.Builder()
                 .id(TEST_POLICY_ID)
-                .name("UpdatedPolicy")
+                .name(TEST_POLICY_NAME)
                 .tenantDomain(TENANT_DOMAIN)
                 .resources(Collections.emptyList())
                 .build();
 
         when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
-        when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(updatedPolicy);
+        when(policyManagementDAO.updatePolicy(any(Policy.class), eq(TENANT_ID))).thenReturn(existingPolicy);
 
-        Policy result = policyManagementService.updatePolicy(updatedPolicy, TENANT_DOMAIN);
+        Policy result = policyManagementService.updatePolicy(updatedPolicyInput, TENANT_DOMAIN);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(result.getName(), "UpdatedPolicy");
+        Assert.assertEquals(result.getName(), TEST_POLICY_NAME);
         verify(policyManagementDAO).updatePolicy(any(Policy.class), eq(TENANT_ID));
         loggerUtils.verify(() -> LoggerUtils.triggerAuditLogEvent(any(AuditLog.AuditLogBuilder.class)), times(1));
+    }
+
+    @Test(expectedExceptions = PolicyManagementClientException.class)
+    public void testUpdatePolicy_AttemptToChangeNameThrowsClientException() throws PolicyManagementException {
+
+        Policy existingPolicy = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name(TEST_POLICY_NAME)
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
+        Policy updatedPolicyInput = new Policy.Builder()
+                .id(TEST_POLICY_ID)
+                .name("DifferentPolicyName")
+                .tenantDomain(TENANT_DOMAIN)
+                .resources(Collections.emptyList())
+                .build();
+
+        when(policyManagementDAO.getPolicyById(TEST_POLICY_ID, TENANT_ID)).thenReturn(existingPolicy);
+
+        policyManagementService.updatePolicy(updatedPolicyInput, TENANT_DOMAIN);
     }
 
     @Test(expectedExceptions = PolicyManagementClientException.class)

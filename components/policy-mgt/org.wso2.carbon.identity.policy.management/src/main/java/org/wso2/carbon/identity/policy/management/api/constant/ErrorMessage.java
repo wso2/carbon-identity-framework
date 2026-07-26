@@ -34,6 +34,8 @@ public enum ErrorMessage {
             "A policy with name '%s' already exists for the tenant."),
     ERROR_DUPLICATE_TARGET_IN_POLICY("PM-60005", "Duplicate target in policy.",
             "Policy '%s' has more than one resource of the same type for target '%s'."),
+    ERROR_POLICY_NAME_IMMUTABLE("PM-60006", "Policy name cannot be updated.",
+            "Policy name is immutable and cannot be changed during an update operation."),
 
     // Server errors.
     ERROR_WHILE_ADDING_POLICY("PM-65001", "Error while adding Policy.",

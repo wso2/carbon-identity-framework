@@ -24,9 +24,20 @@
             <class name="org.wso2.carbon.identity.policy.evaluation.service.PolicyEvaluationServiceImplTest"/>
         </classes>
     </test>
+    <test name="policy-evaluation-evaluator-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.policy.evaluation.evaluator.RuleResourceEvaluatorTest"/>
+        </classes>
+    </test>
+    <test name="policy-evaluation-util-test">
+        <classes>
+            <class name="org.wso2.carbon.identity.policy.evaluation.util.PolicyEvaluationDiagnosticLoggerTest"/>
+        </classes>
+    </test>
     <test name="policy-evaluation-model-test">
         <classes>
             <class name="org.wso2.carbon.identity.policy.evaluation.model.PolicyEvaluationResultTest"/>
+            <class name="org.wso2.carbon.identity.policy.evaluation.model.RuleResourceEvaluationResultTest"/>
         </classes>
     </test>
 </suite>

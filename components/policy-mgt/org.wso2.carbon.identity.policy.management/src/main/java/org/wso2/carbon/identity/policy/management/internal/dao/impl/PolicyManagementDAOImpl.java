@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.policy.management.internal.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
@@ -282,7 +283,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
             return Collections.emptyList();
         }
         int safeOffset = Math.max(offset, 0);
-        boolean hasFilter = filter != null && !filter.trim().isEmpty();
+        boolean hasFilter = StringUtils.isNotBlank(filter);
         String filterValue = hasFilter ? "%" + filter.trim() + "%" : null;
 
         NamedJdbcTemplate jdbcTemplate =
@@ -313,7 +314,7 @@ public class PolicyManagementDAOImpl implements PolicyManagementDAO {
     @Override
     public int getPolicyCount(int tenantId, String filter) throws PolicyManagementException {
 
-        boolean hasFilter = filter != null && !filter.trim().isEmpty();
+        boolean hasFilter = StringUtils.isNotBlank(filter);
         String filterValue = hasFilter ? "%" + filter.trim() + "%" : null;
         String query = hasFilter ? PolicyMgtSQLConstants.Query.GET_POLICIES_COUNT_FILTER
                 : PolicyMgtSQLConstants.Query.GET_POLICIES_COUNT;
