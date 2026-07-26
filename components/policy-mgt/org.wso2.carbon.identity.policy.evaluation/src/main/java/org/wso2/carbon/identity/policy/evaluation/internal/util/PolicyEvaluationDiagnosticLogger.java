@@ -35,10 +35,11 @@ public class PolicyEvaluationDiagnosticLogger {
     /**
      * Logs that a policy evaluation has been initiated.
      *
-     * @param policyId Policy ID being evaluated.
-     * @param target   Resource target selector for the evaluation.
+     * @param policyId     Policy ID being evaluated.
+     * @param target       Resource target selector for the evaluation.
+     * @param resourceType Resource type being evaluated.
      */
-    public void logEvaluationInitiated(String policyId, String target) {
+    public void logEvaluationInitiated(String policyId, String target, String resourceType) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
@@ -49,7 +50,21 @@ public class PolicyEvaluationDiagnosticLogger {
                 DiagnosticLog.ResultStatus.SUCCESS)
                 .inputParam(LogConstants.POLICY_ID, policyId)
                 .inputParam(LogConstants.TARGET, target);
+        if (resourceType != null) {
+            diagnosticLogBuilder.inputParam(LogConstants.RESOURCE_TYPE, resourceType);
+        }
         triggerLogEvent(diagnosticLogBuilder);
+    }
+
+    /**
+     * Logs that a policy evaluation has been initiated.
+     *
+     * @param policyId Policy ID being evaluated.
+     * @param target   Resource target selector for the evaluation.
+     */
+    public void logEvaluationInitiated(String policyId, String target) {
+
+        logEvaluationInitiated(policyId, target, null);
     }
 
     /**
@@ -120,9 +135,9 @@ public class PolicyEvaluationDiagnosticLogger {
         }
 
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
-                LogConstants.EVALUATE_RESOURCE, "No evaluator registered for resource type.",
+                LogConstants.EVALUATE_POLICY_RESOURCE, "No evaluator registered for policy resource type.",
                 DiagnosticLog.ResultStatus.FAILED)
-                .inputParam(LogConstants.RESOURCE_TYPE, resource.getResourceType())
+                .inputParam(LogConstants.RESOURCE_TYPE, resource.getResourceType().name())
                 .inputParam(LogConstants.TARGET, resource.getTarget());
         triggerLogEvent(diagnosticLogBuilder);
     }
@@ -140,7 +155,7 @@ public class PolicyEvaluationDiagnosticLogger {
         }
 
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
-                LogConstants.EVALUATE_RESOURCE, "Resource evaluated.",
+                LogConstants.EVALUATE_POLICY_RESOURCE, "Policy resource evaluated.",
                 result.isSatisfied() ? DiagnosticLog.ResultStatus.SUCCESS : DiagnosticLog.ResultStatus.FAILED)
                 .inputParam(LogConstants.RESOURCE_TYPE, result.getResourceType().name())
                 .inputParam(LogConstants.TARGET, result.getResource().getTarget())
@@ -156,11 +171,13 @@ public class PolicyEvaluationDiagnosticLogger {
     /**
      * Logs the final outcome of a policy evaluation.
      *
-     * @param policyId Policy ID that was evaluated.
-     * @param target   Resource target selector for the evaluation.
-     * @param result   Aggregate result of the evaluation.
+     * @param policyId     Policy ID that was evaluated.
+     * @param target       Resource target selector for the evaluation.
+     * @param resourceType Resource type that was evaluated.
+     * @param result       Aggregate result of the evaluation.
      */
-    public void logEvaluationCompleted(String policyId, String target, PolicyEvaluationResult result) {
+    public void logEvaluationCompleted(String policyId, String target, String resourceType,
+                                        PolicyEvaluationResult result) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
@@ -172,7 +189,22 @@ public class PolicyEvaluationDiagnosticLogger {
                 .inputParam(LogConstants.POLICY_ID, policyId)
                 .inputParam(LogConstants.TARGET, target)
                 .inputParam(LogConstants.SATISFIED, result.isSatisfied());
+        if (resourceType != null) {
+            diagnosticLogBuilder.inputParam(LogConstants.RESOURCE_TYPE, resourceType);
+        }
         triggerLogEvent(diagnosticLogBuilder);
+    }
+
+    /**
+     * Logs the final outcome of a policy evaluation.
+     *
+     * @param policyId Policy ID that was evaluated.
+     * @param target   Resource target selector for the evaluation.
+     * @param result   Aggregate result of the evaluation.
+     */
+    public void logEvaluationCompleted(String policyId, String target, PolicyEvaluationResult result) {
+
+        logEvaluationCompleted(policyId, target, null, result);
     }
 
     private DiagnosticLog.DiagnosticLogBuilder initializeDiagnosticLogBuilder(
@@ -197,7 +229,7 @@ public class PolicyEvaluationDiagnosticLogger {
         private static final String COMPONENT_ID = "policy-evaluation";
 
         private static final String EVALUATE_POLICY = "evaluate-policy";
-        private static final String EVALUATE_RESOURCE = "evaluate-resource";
+        private static final String EVALUATE_POLICY_RESOURCE = "evaluate-policy-resource";
 
         private static final String POLICY_ID = "policyId";
         private static final String TARGET = "target";

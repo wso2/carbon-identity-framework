@@ -107,9 +107,10 @@ public class PolicyEvaluationServiceImpl implements PolicyEvaluationService {
             DIAGNOSTIC_LOGGER.logResourceEvaluationResult(result);
         }
 
+        String primaryResourceType = matchingResources.get(0).getResourceType().name();
         boolean satisfied = results.stream().allMatch(ResourceEvaluationResult::isSatisfied);
         PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult(satisfied, results);
-        DIAGNOSTIC_LOGGER.logEvaluationCompleted(policy.getId(), target, policyEvaluationResult);
+        DIAGNOSTIC_LOGGER.logEvaluationCompleted(policy.getId(), target, primaryResourceType, policyEvaluationResult);
         return policyEvaluationResult;
     }
 }
