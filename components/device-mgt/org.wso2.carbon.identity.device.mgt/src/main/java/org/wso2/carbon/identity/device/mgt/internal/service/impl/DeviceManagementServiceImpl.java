@@ -43,6 +43,12 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     private static final DeviceManagementServiceImpl INSTANCE = new DeviceManagementServiceImpl();
     private static final DeviceManagementAuditLogger AUDIT_LOGGER = new DeviceManagementAuditLogger();
     private static final DeviceValidator DEVICE_VALIDATOR = new DeviceValidator();
+    private static final String FIELD_TENANT_DOMAIN = "tenantDomain";
+    private static final String FIELD_DEVICE_ID = "deviceId";
+    private static final String FIELD_USER_ID = "userId";
+    private static final String FIELD_DEVICE_NAME = "deviceName";
+    private static final String LOG_IN_TENANT = " in tenant: ";
+
     private final DeviceManagementDAO deviceManagementDAO;
 
     private DeviceManagementServiceImpl() {
@@ -61,7 +67,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public Device registerDevice(Device device, String tenantDomain) throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         DEVICE_VALIDATOR.validateDeviceForRegistration(device);
         Device registeredDevice = deviceManagementDAO.registerDevice(
                 device, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -71,7 +77,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Device registered for user: " + device.getUserId() +
-                    " in tenant: " + tenantDomain + " with device ID: " + device.getId());
+                    LOG_IN_TENANT + tenantDomain + " with device ID: " + device.getId());
         }
         return registeredDevice != null ? registeredDevice : device;
     }
@@ -80,8 +86,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     public Device getDeviceById(String deviceId, String tenantDomain)
             throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(deviceId, "deviceId");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
         return deviceManagementDAO.getDeviceById(
                 deviceId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
@@ -89,7 +95,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public List<Device> getDevices(String tenantDomain, int offset, int limit) throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         return deviceManagementDAO.getDevices(
                 IdentityTenantUtil.getTenantId(tenantDomain), offset, DEVICE_VALIDATOR.validateLimit(limit));
     }
@@ -98,8 +104,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     public List<Device> getDevicesByUserId(String userId, String tenantDomain, int offset, int limit)
             throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(userId, "userId");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(userId, FIELD_USER_ID);
         return deviceManagementDAO.getDevicesByUserId(
                 userId, IdentityTenantUtil.getTenantId(tenantDomain), offset, DEVICE_VALIDATOR.validateLimit(limit));
     }
@@ -107,15 +113,15 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public int getDeviceCount(String tenantDomain) throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
         return deviceManagementDAO.getDeviceCount(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public int getDeviceCountByUserId(String userId, String tenantDomain) throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(userId, "userId");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(userId, FIELD_USER_ID);
         return deviceManagementDAO.getDeviceCountByUserId(userId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -123,9 +129,9 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     public Device updateDeviceName(String deviceId, String deviceName, String tenantDomain)
             throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(deviceId, "deviceId");
-        DEVICE_VALIDATOR.validateRequiredField(deviceName, "deviceName");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
+        DEVICE_VALIDATOR.validateRequiredField(deviceName, FIELD_DEVICE_NAME);
 
         Device existing = getDeviceById(deviceId, tenantDomain);
         DEVICE_VALIDATOR.validateDeviceExists(existing, deviceId);
@@ -144,8 +150,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public Device activateDevice(String deviceId, String tenantDomain) throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(deviceId, "deviceId");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
 
         Device existing = getDeviceById(deviceId, tenantDomain);
         DEVICE_VALIDATOR.validateDeviceExists(existing, deviceId);
@@ -160,7 +166,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.ACTIVATE, updated);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device activated with ID: " + deviceId + " in tenant: " + tenantDomain);
+            LOG.debug("Device activated with ID: " + deviceId + LOG_IN_TENANT + tenantDomain);
         }
         return updated;
     }
@@ -168,8 +174,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     @Override
     public Device deactivateDevice(String deviceId, String tenantDomain) throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(deviceId, "deviceId");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
 
         Device existing = getDeviceById(deviceId, tenantDomain);
         DEVICE_VALIDATOR.validateDeviceExists(existing, deviceId);
@@ -184,7 +190,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.DEACTIVATE, updated);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device deactivated with ID: " + deviceId + " in tenant: " + tenantDomain);
+            LOG.debug("Device deactivated with ID: " + deviceId + LOG_IN_TENANT + tenantDomain);
         }
         return updated;
     }
@@ -193,8 +199,8 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
     public void deleteDevice(String deviceId, String tenantDomain)
             throws DeviceMgtException {
 
-        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, "tenantDomain");
-        DEVICE_VALIDATOR.validateRequiredField(deviceId, "deviceId");
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+        DEVICE_VALIDATOR.validateRequiredField(deviceId, FIELD_DEVICE_ID);
 
         Device existing = deviceManagementDAO.getDeviceById(
                 deviceId, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -208,7 +214,7 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
         AUDIT_LOGGER.printAuditLog(DeviceManagementAuditLogger.Operation.DELETE, deviceId);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device deleted with ID: " + deviceId + " in tenant: " + tenantDomain);
+            LOG.debug("Device deleted with ID: " + deviceId + LOG_IN_TENANT + tenantDomain);
         }
     }
 }

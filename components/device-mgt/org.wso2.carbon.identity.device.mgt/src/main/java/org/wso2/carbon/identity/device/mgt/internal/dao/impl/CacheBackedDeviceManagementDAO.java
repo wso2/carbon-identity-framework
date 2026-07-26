@@ -39,6 +39,7 @@ import java.util.List;
 public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
 
     private static final Log LOG = LogFactory.getLog(CacheBackedDeviceManagementDAO.class);
+    private static final String LOG_DEVICE_CACHE_CLEARED = "Device cache entry is cleared for device id: ";
 
     private final DeviceManagementDAO deviceManagementDAO;
     private final DeviceCache deviceCache;
@@ -183,7 +184,7 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
 
         deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device cache entry is cleared for device id: " + deviceId + " for device name update.");
+            LOG.debug(LOG_DEVICE_CACHE_CLEARED + deviceId + " for device name update.");
         }
         return deviceManagementDAO.updateDeviceName(deviceId, deviceName, tenantId);
     }
@@ -204,7 +205,7 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
 
         deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device cache entry is cleared for device id: " + deviceId + " for status change.");
+            LOG.debug(LOG_DEVICE_CACHE_CLEARED + deviceId + " for status change.");
         }
         return deviceManagementDAO.changeDeviceStatus(deviceId, status, tenantId);
     }
@@ -222,7 +223,7 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
 
         deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Device cache entry is cleared for device id: " + deviceId + " for device deletion.");
+            LOG.debug(LOG_DEVICE_CACHE_CLEARED + deviceId + " for device deletion.");
         }
         deviceManagementDAO.deleteDevice(deviceId, tenantId);
     }

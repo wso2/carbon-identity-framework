@@ -7,6 +7,11 @@
             <class name="org.wso2.carbon.identity.device.mgt.dao.CacheBackedDeviceManagementDAOTest"/>
         </classes>
     </test>
+    <test name="Device_Management_Model_Tests">
+        <classes>
+            <class name="org.wso2.carbon.identity.device.mgt.model.DeviceTest"/>
+        </classes>
+    </test>
     <test name="Device_Management_Service_Tests">
         <classes>
             <class name="org.wso2.carbon.identity.device.mgt.service.DeviceManagementServiceImplTest"/>
