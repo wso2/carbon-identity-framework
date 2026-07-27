@@ -455,7 +455,8 @@
       "saas.enable_app_creation": true,
       "saas.enable_cross_tenant_operations": false,
       "oauth.dcrm.decode_redirect_uris_in_response": false,
-      "oauth.oidc.honor_multivalued_claim_metadata": false
+      "oauth.oidc.honor_multivalued_claim_metadata": false,
+      "ai_services.http_client_use_system_properties": false
     },
     "IS_7.3.0": {
       "oauth.dcrm.decode_redirect_uris_in_response": false,
@@ -472,7 +473,8 @@
         "consoleSettings.privilegedUsers",
         "consoleSettings.useGranularConsolePermissions"
       ],
-      "oauth.oidc.honor_multivalued_claim_metadata": false
+      "oauth.oidc.honor_multivalued_claim_metadata": false,
+      "ai_services.http_client_use_system_properties": false
     }
   }
 }

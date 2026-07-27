@@ -289,6 +289,15 @@
             <ValidityPeriodMax>{{oauth.graceful_refresh_token_rotation.maximum_validity_period}}</ValidityPeriodMax>
             <ReuseLimitMax>{{oauth.graceful_refresh_token_rotation.maximum_reuse_limit}}</ReuseLimitMax>
         </GracefulRefreshTokenRotation>
+          <!-- When enabled, the UserInfo endpoint recomputes the 'sub' claim from the current value of the
+             application's alternate subject identifier claim instead of the subject identifier persisted at
+             token issuance, aligning UserInfo 'sub' with the ID token 'sub' when the subject-source claim changes
+             and the same access token is reissued. Default: false. -->
+        {% if oauth.userinfo.recompute_subject_claim_for_alternate_subject_identifier is defined %}
+        <RecomputeSubjectClaimForAlternateSubjectIdentifier>{{oauth.userinfo.recompute_subject_claim_for_alternate_subject_identifier}}</RecomputeSubjectClaimForAlternateSubjectIdentifier>
+        {% else %}
+        <RecomputeSubjectClaimForAlternateSubjectIdentifier>false</RecomputeSubjectClaimForAlternateSubjectIdentifier>
+        {% endif %}
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -5209,6 +5218,7 @@
         <HTTPConnectionTimeout>{{ai_services.http_connection_timeout}}</HTTPConnectionTimeout>
         <HTTPConnectionRequestTimeout>{{ai_services.http_connection_request_timeout}}</HTTPConnectionRequestTimeout>
         <HTTPSocketTimeout>{{ai_services.http_socket_timeout}}</HTTPSocketTimeout>
+        <HTTPClientUseSystemProperties>{{ai_services.http_client_use_system_properties}}</HTTPClientUseSystemProperties>
         <LoginFlowAI>
             <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
             <LoginFlowAIGenerateRequestPath>{{ai_services.login_flow_ai.generate_request_path}}</LoginFlowAIGenerateRequestPath>
