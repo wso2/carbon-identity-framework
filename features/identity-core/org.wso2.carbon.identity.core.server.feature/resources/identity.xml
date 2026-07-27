@@ -903,6 +903,7 @@
         <SAML2AuthnRequestsSigningEnabled>false</SAML2AuthnRequestsSigningEnabled>
         <SAMLAssertionEncyptWithAppCert>true</SAMLAssertionEncyptWithAppCert>
         <SAMLAllowNestedAssertionsInResponse>false</SAMLAllowNestedAssertionsInResponse>
+        <SendSAMLAuthFailureResponseToSP>false</SendSAMLAuthFailureResponseToSP>
     </SSOService>
 
     <Consent>
