@@ -169,7 +169,7 @@ public class OptimizedAuthenticatedOrgData implements Serializable {
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
-            idp = manager.getIdPByName(idPName, tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
+            idp = manager.getIdPByName(idPName, tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
             if (idp == null) {
                 throw new SessionDataStorageOptimizationClientException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));

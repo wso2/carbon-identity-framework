@@ -462,7 +462,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
 
         try {
             IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
-                    .getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
+                    .getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
             if (savedIdp.getId() == null) {
                 validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                         idp.getIdentityProviderName()));

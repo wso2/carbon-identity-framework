@@ -492,7 +492,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
                 IdentityProvider idp = idpManager.getIdPByName(idpName, tenantDomain, false,
-                        SharedIdPResolveType.FULL_PARENT);
+                        SharedIdPResolveType.FULL_RESOLVED);
                 if (idp == null || idp.getId() == null) {
                     if (log.isDebugEnabled()) {
                         log.debug("Identity provider not found for the name: " + idpName + ", in the tenant domain: "
@@ -561,7 +561,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
                 IdentityProvider idp = idpManager.getIdPByName(identityProviderName, tenantDomain, false,
-                        SharedIdPResolveType.FULL_PARENT);
+                        SharedIdPResolveType.FULL_RESOLVED);
                 return new AssociatedIdentityProvider(
                         idp.getResourceId(),
                         idp.getIdentityProviderName(),
@@ -591,7 +591,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
                 IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false,
-                        SharedIdPResolveType.FULL_PARENT);
+                        SharedIdPResolveType.FULL_RESOLVED);
                 return identityProvider.getIdentityProviderName();
             } else {
                 if (log.isDebugEnabled()) {

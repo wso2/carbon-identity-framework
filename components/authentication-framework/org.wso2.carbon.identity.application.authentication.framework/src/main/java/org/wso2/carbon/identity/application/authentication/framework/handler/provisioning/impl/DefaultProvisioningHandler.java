@@ -984,7 +984,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         try {
             String idpId = IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain,
-                    true, SharedIdPResolveType.FULL_PARENT).getResourceId();
+                    true, SharedIdPResolveType.FULL_RESOLVED).getResourceId();
             userClaims.put(PROVISIONED_SOURCE_ID_CLAIM, idpId);
         } catch (IdentityProviderManagementException e) {
             throw new FrameworkException("Error while getting the federated IDP name of the IDP: "

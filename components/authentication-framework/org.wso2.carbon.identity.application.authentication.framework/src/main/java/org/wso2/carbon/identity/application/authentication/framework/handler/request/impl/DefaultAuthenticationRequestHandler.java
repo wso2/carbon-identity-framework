@@ -778,7 +778,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
                                 int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
                                         .getIdPByName(authHistory.getIdpName(), context.getTenantDomain(), false,
-                                                SharedIdPResolveType.FULL_PARENT).getId());
+                                                SharedIdPResolveType.FULL_RESOLVED).getId());
                                 if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
                                     storeFedAuthSessionWithTenantIdAndIdpId(context.getTenantDomain(),
                                             sessionContextKey, authHistory, idpId);
@@ -945,7 +945,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         UserSessionStore userSessionStore = UserSessionStore.getInstance();
         int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                .getIdPByName(authHistory.getIdpName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT).getId());
+                .getIdPByName(authHistory.getIdpName(), tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED)
+                .getId());
         if (!userSessionStore.hasExistingFederatedAuthSessionWithIdpId(authHistory.getIdpSessionIndex(), idpId)) {
             userSessionStore.storeFederatedAuthSessionInfoWithIdpId(sessionContextKey, authHistory, idpId);
         } else {

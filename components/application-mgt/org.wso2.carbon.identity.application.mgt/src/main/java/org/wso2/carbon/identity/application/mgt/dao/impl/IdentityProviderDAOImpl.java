@@ -62,7 +62,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
             IdentityProvider idp = idpManager.getIdPByName(idpName, CarbonContext
-                    .getThreadLocalCarbonContext().getTenantDomain(), false, SharedIdPResolveType.FULL_PARENT);
+                    .getThreadLocalCarbonContext().getTenantDomain(), false, SharedIdPResolveType.FULL_RESOLVED);
             return idp.getDefaultAuthenticatorConfig() != null ? idp
                     .getDefaultAuthenticatorConfig().getName() : null;
         } catch (IdentityProviderManagementException e) {
@@ -80,7 +80,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
             IdentityProvider idp = idpManager.getIdPByName(idpName, CarbonContext
-                    .getThreadLocalCarbonContext().getTenantDomain(), false, SharedIdPResolveType.FULL_PARENT);
+                    .getThreadLocalCarbonContext().getTenantDomain(), false, SharedIdPResolveType.FULL_RESOLVED);
 
             IdentityProvider identityProvider = new IdentityProvider();
             identityProvider.setIdentityProviderName(idp.getIdentityProviderName());
@@ -143,7 +143,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         try {
             idps = idpManager
                     .getIdPs(CarbonContext.getThreadLocalCarbonContext().getTenantDomain(),
-                            SharedIdPResolveType.FULL_PARENT);
+                            SharedIdPResolveType.FULL_RESOLVED);
         } catch (IdentityProviderManagementException e) {
             throw new IdentityApplicationManagementException("Error when retrieving all identity providers in " +
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain() + " tenant domain.", e);

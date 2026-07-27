@@ -97,7 +97,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             List<IdentityProvider> identityProviders = IdentityProviderManager.getInstance().getIdPs(tenantDomain,
-                    SharedIdPResolveType.BASE_PARENT);
+                    SharedIdPResolveType.BASE_RESOLVED);
             for (int i = 0; i < identityProviders.size(); i++) {
                 String providerName = identityProviders.get(i).getIdentityProviderName();
                 if (providerName != null && providerName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
@@ -155,7 +155,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         IdpSearchResult idpSearchResult = IdentityProviderManager.getInstance()
                 .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
                         IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain, new ArrayList<>(),
-                        SharedIdPResolveType.BASE_PARENT);
+                        SharedIdPResolveType.BASE_RESOLVED);
         return idpSearchResult.getIdPs().toArray(new IdentityProvider[0]);
     }
 
@@ -268,7 +268,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             IdentityProvider identityProvider =
                     IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain, true,
-                            SharedIdPResolveType.BASE_PARENT);
+                            SharedIdPResolveType.BASE_RESOLVED);
             IdPManagementUtil.removeOriginalPasswords(identityProvider);
             return identityProvider;
         } catch (IdentityProviderManagementException idpException) {

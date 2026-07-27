@@ -479,7 +479,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         try {
             IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(idp
-                    .getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
+                    .getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
             if (savedIdp.getId() == null) {
                 validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                         idp.getIdentityProviderName()));
@@ -526,7 +526,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         for (IdentityProvider idp : outboundProvisioningConfig.getProvisioningIdentityProviders()) {
             try {
                 IdentityProvider savedIdp = IdentityProviderManager.getInstance().getIdPByName(
-                        idp.getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
+                        idp.getIdentityProviderName(), tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
                 if (savedIdp == null) {
                     validationMsg.add(String.format(FEDERATED_IDP_NOT_AVAILABLE,
                             idp.getIdentityProviderName()));

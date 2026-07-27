@@ -71,7 +71,7 @@ public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentity
 
         IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_RESOURCE_ID);
         String idpId = IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain,
-                true, SharedIdPResolveType.FULL_PARENT).getResourceId();
+                true, SharedIdPResolveType.FULL_RESOLVED).getResourceId();
         IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_RESOURCE_ID, idpId);
         return true;
     }

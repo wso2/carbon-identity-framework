@@ -469,7 +469,7 @@ public class OutboundProvisioningManager {
 
                 IdentityProvider provisioningIdp =
                         IdentityProviderManager.getInstance().getIdPByName(idPName, spTenantDomainName, false,
-                                SharedIdPResolveType.FULL_PARENT);
+                                SharedIdPResolveType.FULL_RESOLVED);
 
                 if (provisioningIdp == null) {
                     // this is an exception if we cannot find the provisioning identity provider

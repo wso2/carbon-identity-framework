@@ -382,7 +382,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
 
         try {
             return FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
-                    .getIdPByName(idpName, tenantDomain, true, SharedIdPResolveType.FULL_PARENT);
+                    .getIdPByName(idpName, tenantDomain, true, SharedIdPResolveType.FULL_RESOLVED);
         } catch (IdentityProviderManagementException e) {
             throw RoleResolverUtils.handleServerException(
                     ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER, e, idpName, tenantDomain);

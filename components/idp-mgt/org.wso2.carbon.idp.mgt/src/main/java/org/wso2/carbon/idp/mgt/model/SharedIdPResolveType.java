@@ -37,10 +37,10 @@ public enum SharedIdPResolveType {
      * The shadow plus the always-parent-derived base attributes (e.g. image, description, effective enabled state
      * and the resource identities). This is the management view.
      */
-    BASE_PARENT,
+    BASE_RESOLVED,
 
     /**
      * The shadow fully resolved against the parent's configuration. This is the runtime (engagement) view.
      */
-    FULL_PARENT
+    FULL_RESOLVED
 }

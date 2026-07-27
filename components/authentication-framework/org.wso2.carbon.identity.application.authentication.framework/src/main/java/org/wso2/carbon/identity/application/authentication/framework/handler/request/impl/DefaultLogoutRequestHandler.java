@@ -152,7 +152,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                             try {
                                 int fedIdpId = Integer.parseInt(IdentityProviderManager.getInstance()
                                         .getIdPByName(fedIdpName, context.getTenantDomain(), false,
-                                                SharedIdPResolveType.FULL_PARENT).getId());
+                                                SharedIdPResolveType.FULL_RESOLVED).getId());
                                 UserSessionStore.getInstance().removeFederatedAuthSessionInfo(
                                         context.getSessionIdentifier(), fedIdpId);
                                 break;

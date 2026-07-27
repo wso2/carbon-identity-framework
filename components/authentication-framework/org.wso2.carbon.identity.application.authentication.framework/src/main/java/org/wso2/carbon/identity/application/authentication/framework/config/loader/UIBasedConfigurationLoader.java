@@ -282,7 +282,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                     try {
                         federatedAuthenticator = IdentityProviderManager.getInstance()
                                 .getIdPByName(federatedIDP.getIdentityProviderName(), tenantDomain, false,
-                                        SharedIdPResolveType.FULL_PARENT)
+                                        SharedIdPResolveType.FULL_RESOLVED)
                                 .getDefaultAuthenticatorConfig();
                     } catch (IdentityProviderManagementException e) {
                         throw new FrameworkException(

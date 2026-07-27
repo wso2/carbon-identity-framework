@@ -148,7 +148,7 @@ public class OptimizedApplicationConfig implements Serializable {
                     try {
                         IdentityProvider idPByName =
                                 manager.getIdPByName(idPFromAuthStep.getIdentityProviderName(), tenantDomain, false,
-                                        SharedIdPResolveType.FULL_PARENT);
+                                        SharedIdPResolveType.FULL_RESOLVED);
                         if (idPByName == null) {
                             throw new SessionDataStorageOptimizationException(String.format(
                                     "Cannot find the Identity Provider by the name: %s tenant domain: %s",

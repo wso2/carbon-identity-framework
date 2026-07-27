@@ -555,7 +555,7 @@ public class IdentityProviderManager implements IdpManager {
     public List<IdentityProvider> getIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        return getIdPs(tenantDomain, SharedIdPResolveType.BASE_PARENT);
+        return getIdPs(tenantDomain, SharedIdPResolveType.BASE_RESOLVED);
     }
 
     @Override
@@ -631,7 +631,7 @@ public class IdentityProviderManager implements IdpManager {
 
         // Defaults to the management view: shared (shadow) identity providers get the base parent overlay.
         return getIdPs(limit, offset, filter, sortOrder, sortBy, tenantDomain, requiredAttributes,
-                SharedIdPResolveType.BASE_PARENT);
+                SharedIdPResolveType.BASE_RESOLVED);
     }
 
     @Override
@@ -702,7 +702,7 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         return getIdPs(limit, offset, sortOrder, sortBy, tenantDomain, requiredAttributes, expressionNodes,
-                SharedIdPResolveType.BASE_PARENT);
+                SharedIdPResolveType.BASE_RESOLVED);
     }
 
     @Override
@@ -953,7 +953,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<IdentityProvider> identityProviders = dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
         identityProviders = invokePostGetIdPsListeners(identityProviders, tenantDomain, Collections.emptyList(),
-                SharedIdPResolveType.BASE_PARENT);
+                SharedIdPResolveType.BASE_RESOLVED);
         return identityProviders;
     }
 
@@ -992,7 +992,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPByName(String idPName, String tenantDomain,
                                          boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
-        return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_PARENT);
+        return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_RESOLVED);
     }
 
     @Override
@@ -1045,7 +1045,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPById(String id, String tenantDomain,
                                        boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
-        return getIdPById(id, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_PARENT);
+        return getIdPById(id, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_RESOLVED);
     }
 
     @Override
@@ -1111,7 +1111,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
-        return getIdPByResourceId(resourceId, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_PARENT);
+        return getIdPByResourceId(resourceId, tenantDomain, ignoreFileBasedIdps, SharedIdPResolveType.BASE_RESOLVED);
     }
 
     @Override
@@ -1355,7 +1355,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
-                SharedIdPResolveType.FULL_PARENT);
+                SharedIdPResolveType.FULL_RESOLVED);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);
@@ -1431,7 +1431,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
-                SharedIdPResolveType.FULL_PARENT);
+                SharedIdPResolveType.FULL_RESOLVED);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);
@@ -1506,7 +1506,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
-                SharedIdPResolveType.FULL_PARENT);
+                SharedIdPResolveType.FULL_RESOLVED);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);
@@ -1576,7 +1576,7 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
         IdentityProvider identityProvider = getIdPByName(idPName, tenantDomain, true,
-                SharedIdPResolveType.FULL_PARENT);
+                SharedIdPResolveType.FULL_RESOLVED);
 
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByName(idPName, tenantDomain);

@@ -872,7 +872,7 @@ public class FrameworkUtils {
         IdentityProvider idp;
         try {
             idp = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
-                    .getIdPByName(federatedIdpName, tenantDomain, false, SharedIdPResolveType.FULL_PARENT);
+                    .getIdPByName(federatedIdpName, tenantDomain, false, SharedIdPResolveType.FULL_RESOLVED);
         } catch (IdentityProviderManagementException e) {
             throw new PostAuthenticationFailedException(
                     ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(),

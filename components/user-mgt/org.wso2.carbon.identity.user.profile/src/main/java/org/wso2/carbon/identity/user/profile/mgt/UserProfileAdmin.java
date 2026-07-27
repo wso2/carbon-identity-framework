@@ -1016,7 +1016,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
                 IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false,
-                        SharedIdPResolveType.BASE_PARENT);
+                        SharedIdPResolveType.BASE_RESOLVED);
                 return identityProvider.getIdentityProviderName();
             } else {
                 if (log.isDebugEnabled()) {

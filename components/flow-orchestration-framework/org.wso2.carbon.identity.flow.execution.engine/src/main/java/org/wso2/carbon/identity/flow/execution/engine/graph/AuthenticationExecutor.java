@@ -68,7 +68,7 @@ public abstract class AuthenticationExecutor implements Executor {
         try {
             IdentityProvider idp =
                     IdentityProviderManager.getInstance().getIdPByName(idpName, tenantDomain, false,
-                            SharedIdPResolveType.FULL_PARENT);
+                            SharedIdPResolveType.FULL_RESOLVED);
             if (idp == null || idp.getId() == null || idp.getDefaultAuthenticatorConfig() == null) {
                 throw handleServerException(context.getFlowType(), ERROR_CODE_GET_IDP_CONFIG_FAILURE, idpName,
                         tenantDomain);
