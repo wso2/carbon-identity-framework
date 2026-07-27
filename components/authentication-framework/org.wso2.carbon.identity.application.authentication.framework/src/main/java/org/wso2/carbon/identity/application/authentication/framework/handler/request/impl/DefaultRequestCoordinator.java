@@ -866,6 +866,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Invokes the registered device data resolvers on the initiation request and stores the first
+     * resolved device data payload on the authentication context.
      *
      * @param request The initiation request carrying the device token.
      * @param context The authentication context being initialized.
@@ -877,8 +878,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (deviceDataResolvers.isEmpty()) {
             return;
         }
-        try {
-            for (DeviceDataResolver deviceDataResolver : deviceDataResolvers) {
+        for (DeviceDataResolver deviceDataResolver : deviceDataResolvers) {
+            try {
                 Optional<Map<String, Object>> deviceData =
                         deviceDataResolver.resolveDeviceData(request, context.getTenantDomain());
                 if (deviceData.isPresent()) {
@@ -888,10 +889,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                     break;
                 }
+            } catch (Exception e) {
+                // Device data resolution is best effort and must never break the authentication flow.
+                log.error("Error while resolving device data at initiation. Error: " + e.getMessage());
             }
-        } catch (Exception e) {
-            // Device data resolution is best effort and must never break the authentication flow.
-            log.error("Error while resolving device data at initiation.", e);
         }
     }
 
