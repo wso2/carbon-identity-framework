@@ -101,6 +101,7 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
         Certificate certificate = flowExtensionAction.getCertificate();
 
         List<String> exposePaths = resolveExposePaths(accessConfig);
+        exposePaths = applyFlowSpecificAccessPolicy(exposePaths, execCtx.getFlowType());
         List<ContextPath> modifyPaths = resolveModifyPaths(accessConfig);
         actionFlowContext.add(FlowExtensionConstants.MODIFY_PATHS_KEY, modifyPaths);
 
@@ -258,6 +259,30 @@ public class FlowExtensionRequestBuilder implements ActionExecutionRequestBuilde
             return Collections.emptyList();
         }
         return accessConfig.getExposePaths();
+    }
+
+    /**
+     * Certain claims may only be exposed to an external extension during specific flow types.
+     *
+     * @param exposePaths The resolved expose paths.
+     * @param flowType    The current flow type (e.g. {@code REGISTRATION}).
+     * @return The expose paths with {@code /user/username} removed for non-self-registration flows.
+     */
+    private List<String> applyFlowSpecificAccessPolicy(List<String> exposePaths, String flowType) {
+
+        if (exposePaths.isEmpty()
+                || FlowExtensionConstants.ContextTree.FLOW_REGISTRATION.equals(flowType)
+                || !exposePaths.contains(FlowContextPaths.USER_USERNAME_PATH)) {
+            return exposePaths;
+        }
+
+        List<String> effectivePaths = new ArrayList<>(exposePaths);
+        effectivePaths.remove(FlowContextPaths.USER_USERNAME_PATH);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Dropped '" + FlowContextPaths.USER_USERNAME_PATH
+                    + "' expose path for non self registration flow type: " + flowType);
+        }
+        return effectivePaths;
     }
 
     private List<ContextPath> resolveModifyPaths(AccessConfig accessConfig) {

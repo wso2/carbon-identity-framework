@@ -64,6 +64,7 @@ public class FlowExtensionRequestBuilderTest {
     private static final String TENANT = "carbon.super";
     private static final String CLAIM_PATH = "/user/claims[uri=http://wso2.org/claims/givenname]";
     private static final String CREDENTIAL_PATH = "/user/credentials/password";
+    private static final String USERNAME_PATH = "/user/username";
 
     // A self-signed RSA X.509 certificate (base64-encoded DER, CN=flow-ext-test), valid until 2300.
     // Used only to exercise the outbound credential encryption path.
@@ -102,11 +103,16 @@ public class FlowExtensionRequestBuilderTest {
 
     private FlowExecutionContext execContext() {
 
+        return execContext(FlowExtensionConstants.ContextTree.FLOW_REGISTRATION);
+    }
+
+    private FlowExecutionContext execContext(String flowType) {
+
         FlowExecutionContext execCtx = new FlowExecutionContext();
         execCtx.setContextIdentifier("ctx-1");
         execCtx.setTenantDomain(TENANT);
         execCtx.setApplicationId("app-1");
-        execCtx.setFlowType("REGISTRATION");
+        execCtx.setFlowType(flowType);
         execCtx.setPortalUrl("https://portal");
 
         FlowUser user = new FlowUser();
@@ -288,6 +294,65 @@ public class FlowExtensionRequestBuilderTest {
 
         FlowExtensionEvent event = (FlowExtensionEvent) request.getEvent();
         assertNull(event.getFlow().getUser());
+    }
+
+    // ------------------------------------------------------------------ flow-specific expose policy
+
+    @Test
+    public void testUsernameExposedForSelfRegistrationFlow() throws Exception {
+
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(new ContextPath("/user/id", false), new ContextPath(USERNAME_PATH, false)), null);
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContext(FlowExtensionConstants.ContextTree.FLOW_REGISTRATION)),
+                actionContext(accessConfig));
+
+        FlowExtensionUser user = (FlowExtensionUser) ((FlowExtensionEvent) request.getEvent()).getFlow().getUser();
+        assertNotNull(user);
+        assertEquals(user.getUsername(), "alice");
+    }
+
+    @Test
+    public void testUsernameExposeDroppedForNonSelfRegistrationFlow() throws Exception {
+
+        // '/user/username' is only exposable during self registration; on any other flow type the
+        // path is silently dropped while the rest of the expose configuration is honoured.
+        AccessConfig accessConfig = new AccessConfig(
+                Arrays.asList(new ContextPath("/user/id", false), new ContextPath(USERNAME_PATH, false)), null);
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContext("PASSWORD_RECOVERY")), actionContext(accessConfig));
+
+        FlowExtensionUser user = (FlowExtensionUser) ((FlowExtensionEvent) request.getEvent()).getFlow().getUser();
+        assertNotNull(user, "Remaining expose paths must still produce a user.");
+        assertEquals(user.getId(), "uid");
+        assertNull(user.getUsername(), "Username must not be exposed outside self registration.");
+    }
+
+    @Test
+    public void testExposeUntouchedWhenUsernameNotExposed() throws Exception {
+
+        // Nothing to drop: the policy must leave a username-free expose list alone.
+        AccessConfig accessConfig = new AccessConfig(
+                Collections.singletonList(new ContextPath("/user/id", false)), null);
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContext("PASSWORD_RECOVERY")), actionContext(accessConfig));
+
+        FlowExtensionUser user = (FlowExtensionUser) ((FlowExtensionEvent) request.getEvent()).getFlow().getUser();
+        assertNotNull(user);
+        assertEquals(user.getId(), "uid");
+    }
+
+    @Test
+    public void testEmptyExposeToleratedOnNonSelfRegistrationFlow() throws Exception {
+
+        ActionExecutionRequest request = builder.buildActionExecutionRequest(
+                flowContextWith(execContext("PASSWORD_RECOVERY")),
+                actionContext(new AccessConfig(null, null)));
+
+        assertNull(((FlowExtensionEvent) request.getEvent()).getFlow().getUser());
     }
 
     @Test(expectedExceptions = ActionExecutionRequestBuilderException.class)

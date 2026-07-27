@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.flow.extension.FlowExtensionConstants;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.OperationExecutionResult;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.utils.DiagnosticLog;
 
@@ -109,7 +110,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
                 }
                 results.add(processOperation(
-                        operation, pendingClaims, pendingCredentials, tenantDomain));
+                        operation, pendingClaims, pendingCredentials, tenantDomain, execCtx.getFlowType()));
             }
         } else {
             if (LOG.isDebugEnabled()) {
@@ -139,12 +140,13 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
      * @param tenantDomain        Tenant domain, used for claim URI validation.
+     * @param flowType            The current flow type (e.g. {@code REGISTRATION}).
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
-                                                      String tenantDomain)
+                                                      String tenantDomain, String flowType)
             throws ActionExecutionResponseProcessorException {
 
         String path = operation.getPath();
@@ -161,6 +163,18 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         if (AccessConfig.isReadOnly(path)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Modifications are not allowed for the read-only paths" );
+        }
+
+        if (FlowExtensionUtil.isNonModifiablePath(path)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Modifications are not allowed for the path: " + path);
+        }
+
+        if (FlowExtensionConstants.FlowContextPaths.USER_USERNAME_PATH.equals(path)
+                && !FlowExtensionConstants.ContextTree.FLOW_REGISTRATION.equals(flowType)) {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
+                    "Ignoring REPLACE on '" + path
+                            + "' for non self registration flow type: " + flowType);
         }
 
         if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
@@ -206,10 +220,6 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
                     "Claim URI must be in the local dialect (" +
                             PathTypeAnnotationUtil.LOCAL_CLAIM_DIALECT_PREFIX + "): " + claimUri);
-        }
-        if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Identity-system claims cannot be modified by Flow Extensions: " + claimUri);
         }
 
         Optional<LocalClaim> optionalLocalClaim = getLocalClaim(claimUri, tenantDomain);

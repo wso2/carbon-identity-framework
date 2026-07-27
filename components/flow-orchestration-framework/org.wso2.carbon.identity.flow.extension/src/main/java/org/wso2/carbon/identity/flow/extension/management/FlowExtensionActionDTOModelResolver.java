@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtE
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
+import org.wso2.carbon.identity.flow.extension.util.FlowExtensionUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,6 +90,7 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
         Object modifyValue = actionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         if (modifyValue != null) {
             List<ContextPath> validatedModify = validateAccessConfig(modifyValue);
+            FlowExtensionUtil.validateModifyPaths(validatedModify);
             properties.put(ACCESS_CONFIG_MODIFY, createBlobProperty(validatedModify));
         }
 
@@ -206,7 +208,10 @@ public class FlowExtensionActionDTOModelResolver implements ActionDTOModelResolv
             throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
-            return validateAccessConfig(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
+            List<ContextPath> validatedModify =
+                    validateAccessConfig(updatingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY));
+            FlowExtensionUtil.validateModifyPaths(validatedModify);
+            return validatedModify;
         } else if (existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY) != null) {
             return (List<ContextPath>) existingActionDTO.getPropertyValue(ACCESS_CONFIG_MODIFY);
         }
