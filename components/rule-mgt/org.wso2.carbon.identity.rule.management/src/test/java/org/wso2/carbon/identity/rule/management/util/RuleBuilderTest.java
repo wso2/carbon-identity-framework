@@ -372,7 +372,7 @@ public class RuleBuilderTest {
 
     @Test(expectedExceptions = RuleManagementClientException.class,
             expectedExceptionsMessageRegExp = "Rule validation failed: " +
-                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 15 Provided: 16")
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 5 Provided: 6")
     public void testCreateRuleWithMaxAllowedExpressionsCombinedWithAND() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -381,6 +381,27 @@ public class RuleBuilderTest {
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        for (int i = 0; i < 6; i++) {
+            Expression expression = new Expression.Builder().field("application").operator("equals")
+                    .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
+            ruleBuilder.addAndExpression(expression);
+        }
+
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 15 Provided: 16")
+    public void testCreateRuleWithMaxAllowedExpressionsCombinedWithANDForDevicePolicy() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.DEVICE_POLICY, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.DEVICE_POLICY, "tenant1");
 
         for (int i = 0; i < 16; i++) {
             Expression expression = new Expression.Builder().field("application").operator("equals")

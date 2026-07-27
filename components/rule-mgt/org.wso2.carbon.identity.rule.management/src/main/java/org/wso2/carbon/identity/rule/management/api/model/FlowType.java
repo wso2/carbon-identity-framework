@@ -23,10 +23,31 @@ package org.wso2.carbon.identity.rule.management.api.model;
  */
 public enum FlowType {
 
-    PRE_ISSUE_ACCESS_TOKEN,
-    PRE_UPDATE_PASSWORD,
-    PRE_UPDATE_PROFILE,
-    PRE_ISSUE_ID_TOKEN,
-    APPROVAL_WORKFLOW,
-    DEVICE_POLICY
+    // The value is the built-in baseline for the maximum number of expressions combined with AND for the flow.
+    // Most flows use the default baseline of 5, while device policy allows up to 15.
+    PRE_ISSUE_ACCESS_TOKEN(5),
+    PRE_UPDATE_PASSWORD(5),
+    PRE_UPDATE_PROFILE(5),
+    PRE_ISSUE_ID_TOKEN(5),
+    APPROVAL_WORKFLOW(5),
+    DEVICE_POLICY(15);
+
+    private final int maxExpressionsCombinedWithAnd;
+
+    FlowType(int maxExpressionsCombinedWithAnd) {
+
+        this.maxExpressionsCombinedWithAnd = maxExpressionsCombinedWithAnd;
+    }
+
+    /**
+     * Get the maximum number of expressions that can be combined with AND for this flow type.
+     * This is the built-in baseline for the flow and can be overridden through the
+     * {@code RuleManagement.MaxExpressionsCombinedWithAND} configuration.
+     *
+     * @return Maximum number of expressions that can be combined with AND.
+     */
+    public int getMaxExpressionsCombinedWithAnd() {
+
+        return maxExpressionsCombinedWithAnd;
+    }
 }

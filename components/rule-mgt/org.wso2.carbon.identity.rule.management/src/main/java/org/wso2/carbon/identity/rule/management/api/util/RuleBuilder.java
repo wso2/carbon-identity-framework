@@ -43,12 +43,12 @@ import java.util.Map;
  */
 public class RuleBuilder {
 
-    private static final int MAX_EXPRESSIONS_COMBINED_WITH_AND = 15;
     private static final int MAX_RULES_COMBINED_WITH_OR = 10;
 
     private final ORCombinedRule.Builder orCombinedRuleBuilder = new ORCombinedRule.Builder();
     private ANDCombinedRule.Builder andCombinedRuleBuilder = new ANDCombinedRule.Builder();
     private final Map<String, FieldDefinition> expressionMetadataFieldsMap;
+    private final int maxExpressionsCombinedWithAnd;
 
     private boolean isError = false;
     private String errorMessage;
@@ -56,11 +56,12 @@ public class RuleBuilder {
     private int andRuleCount = 0;
     private int orRuleCount = 0;
 
-    private RuleBuilder(List<FieldDefinition> expressionMetadataFields) {
+    private RuleBuilder(List<FieldDefinition> expressionMetadataFields, int maxExpressionsCombinedWithAnd) {
 
         this.expressionMetadataFieldsMap = expressionMetadataFields.stream()
                 .collect(java.util.stream.Collectors.toMap(fieldDefinition -> fieldDefinition.getField().getName(),
                         fieldDefinition -> fieldDefinition));
+        this.maxExpressionsCombinedWithAnd = maxExpressionsCombinedWithAnd;
     }
 
     /**
@@ -130,7 +131,7 @@ public class RuleBuilder {
                         "Expression metadata from RuleMetadataService is null or empty.");
             }
 
-            return new RuleBuilder(fieldDefinitionList);
+            return new RuleBuilder(fieldDefinitionList, flowType.getMaxExpressionsCombinedWithAnd());
         } catch (RuleMetadataException e) {
             throw new RuleManagementServerException(
                     "Error while retrieving expression metadata from RuleMetadataService.", e);
@@ -209,9 +210,9 @@ public class RuleBuilder {
             return;
         }
 
-        if (andRuleCount > MAX_EXPRESSIONS_COMBINED_WITH_AND) {
+        if (andRuleCount > maxExpressionsCombinedWithAnd) {
             setValidationError("Maximum number of expressions combined with AND exceeded. Maximum allowed: " +
-                    MAX_EXPRESSIONS_COMBINED_WITH_AND + " Provided: " + andRuleCount);
+                    maxExpressionsCombinedWithAnd + " Provided: " + andRuleCount);
         }
     }
 
