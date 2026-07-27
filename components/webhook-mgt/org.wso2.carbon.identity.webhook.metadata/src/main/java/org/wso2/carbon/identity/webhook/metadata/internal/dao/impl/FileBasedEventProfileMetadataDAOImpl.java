@@ -24,8 +24,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataException;
 import org.wso2.carbon.identity.webhook.metadata.api.exception.WebhookMetadataServerException;
+import org.wso2.carbon.identity.webhook.metadata.api.model.Channel;
 import org.wso2.carbon.identity.webhook.metadata.api.model.EventProfile;
 import org.wso2.carbon.identity.webhook.metadata.internal.dao.EventProfileMetadataDAO;
 import org.wso2.carbon.identity.webhook.metadata.internal.util.WebhookMetadataExceptionHandler;
@@ -37,8 +39,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,8 +59,8 @@ public class FileBasedEventProfileMetadataDAOImpl implements EventProfileMetadat
 
     private static final Log log = LogFactory.getLog(FileBasedEventProfileMetadataDAOImpl.class);
     private static final FileBasedEventProfileMetadataDAOImpl INSTANCE = new FileBasedEventProfileMetadataDAOImpl();
+    private static final String DISABLED_CHANNELS_PROPERTY = "Webhooks.EventProfiles.DisabledChannels.ChannelUri";
 
-    // Cache of loaded event profiles
     private final Map<String, EventProfile> profileCache = new HashMap<>();
     private boolean isInitialized = false;
 
@@ -100,6 +105,8 @@ public class FileBasedEventProfileMetadataDAOImpl implements EventProfileMetadat
         try {
             Path eventProfilesPath = WebhookMetadataUtil.getEventProfilesDirectory();
 
+            Set<String> disabledChannels = new HashSet<>(IdentityUtil.getPropertyAsList(DISABLED_CHANNELS_PROPERTY));
+
             // Clear existing cache
             profileCache.clear();
 
@@ -126,6 +133,14 @@ public class FileBasedEventProfileMetadataDAOImpl implements EventProfileMetadat
                         String fileName = FilenameUtils.getBaseName(jsonFile.getFileName().toString());
                         profile = new EventProfile(fileName, profile.getUri(), profile.getChannels());
                         log.debug("Profile name not found in JSON, using filename: " + fileName);
+                    }
+
+                    if (!disabledChannels.isEmpty() && profile.getChannels() != null) {
+                        List<Channel> filteredChannels = profile.getChannels().stream()
+                                .filter(Objects::nonNull)
+                                .filter(channel -> !disabledChannels.contains(channel.getUri()))
+                                .toList();
+                        profile = new EventProfile(profile.getProfile(), profile.getUri(), filteredChannels);
                     }
 
                     profileCache.put(profile.getProfile(), profile);

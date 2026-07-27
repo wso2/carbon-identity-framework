@@ -54,7 +54,7 @@ public class FlowExtensionAction extends Action {
     }
 
     /**
-     * Returns the default access configuration for this In-Flow Extension action.
+     * Returns the default access configuration for this Flow Extension action.
      *
      * @return The access config, or {@code null} if not configured.
      */
@@ -75,7 +75,7 @@ public class FlowExtensionAction extends Action {
     }
 
     /**
-     * Returns the icon URL for this In-Flow Extension action.
+     * Returns the icon URL for this Flow Extension action.
      *
      * @return The icon URL, or {@code null} if not configured.
      */

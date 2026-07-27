@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.action.execution.api.constant.ActionExecutionLog
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.flow.extension.internal.FlowExtensionDataHolder;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
@@ -57,29 +58,16 @@ import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Processes responses from In-Flow Extension actions, applying {@code REPLACE} operations on
- * flow properties, user claims, and user credentials. Updates are collected into pending maps on
- * {@link FlowContext} for the executor to forward via
- * {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse}.
- *
- * <p>Only {@code REPLACE} is supported; gating is done upstream via {@code allowedOperations}
- * (enforced by {@code ActionExecutorServiceImpl}). {@code /flow/} paths are read-only.</p>
- *
- * <p><b>Failure handling.</b> Contract-level failures (non-String on an encrypted path, missing
- * JWE envelope, JWE decryption failure) abort the call via
- * {@link ActionExecutionResponseProcessorException}. Per-operation validation failures (unknown
- * path, read-only path, missing value, unknown claim URI, unknown credential key) drop the
- * offending op, keep the rest, and return {@link SuccessStatus} — surfaced under
- * {@link FlowExtensionConstants.ResponseContext#FAILED_OPERATIONS_KEY} alongside
- * {@link FlowExtensionConstants.ResponseContext#TOTAL_OPERATIONS_KEY} for callers wanting strict
- * semantics.</p>
+ * Processes responses from Flow Extension actions, applying {@code REPLACE} operations on user
+ * claims and credentials into pending maps on the {@link FlowContext} for the executor to forward.
+ * Only {@code REPLACE} is supported and {@code /flow/} paths are read-only.
  */
 public class FlowExtensionResponseProcessor implements ActionExecutionResponseProcessor {
 
@@ -96,26 +84,19 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
     @Override
     @SuppressWarnings("unchecked")
-    public ActionExecutionStatus<Success> processSuccessResponse(FlowContext flowContext,
+    public ActionExecutionStatus<Success> processSuccessResponse(FlowContext actionFlowContext,
                                                                  ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
-        FlowExecutionContext execCtx = getFlowExecutionContext(flowContext);
+        FlowExecutionContext execCtx = getFlowExecutionContext(actionFlowContext);
         String tenantDomain = execCtx.getTenantDomain();
 
-        Map<String, String> pathTypeAnnotations = flowContext.getValue(
-                FlowExtensionConstants.PATH_TYPE_ANNOTATIONS_KEY, Map.class);
-        if (pathTypeAnnotations == null) {
-            pathTypeAnnotations = Collections.emptyMap();
-        }
-
-        List<ContextPath> modifyPaths = flowContext.getValue(
+        List<ContextPath> modifyPaths = actionFlowContext.getValue(
                 FlowExtensionConstants.MODIFY_PATHS_KEY, List.class);
         AccessConfig accessConfig = modifyPaths != null ? new AccessConfig(null, modifyPaths) : null;
 
         Map<String, Object> pendingClaims = new HashMap<>();
         Map<String, char[]> pendingCredentials = new HashMap<>();
-        Map<String, Object> pendingProperties = new HashMap<>();
 
         List<OperationExecutionResult> results = new ArrayList<>();
 
@@ -128,28 +109,24 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     operation = decryptOperationValueIfNeeded(operation, accessConfig, tenantDomain);
                 }
                 results.add(processOperation(
-                        operation, pathTypeAnnotations, pendingClaims, pendingCredentials,
-                        pendingProperties, tenantDomain));
+                        operation, pendingClaims, pendingCredentials, tenantDomain));
             }
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("In-Flow Extension SUCCESS response contained no operations. No context updates applied.");
+                LOG.debug("Flow Extension SUCCESS response contained no operations. No context updates applied.");
             }
         }
 
         if (!pendingClaims.isEmpty()) {
-            flowContext.add(FlowExtensionConstants.PENDING_CLAIMS_KEY, pendingClaims);
+            actionFlowContext.add(FlowExtensionConstants.PENDING_CLAIMS_KEY, pendingClaims);
         }
         if (!pendingCredentials.isEmpty()) {
-            flowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
-        }
-        if (!pendingProperties.isEmpty()) {
-            flowContext.add(FlowExtensionConstants.PENDING_PROPERTIES_KEY, pendingProperties);
+            actionFlowContext.add(FlowExtensionConstants.PENDING_CREDENTIALS_KEY, pendingCredentials);
         }
 
         logOperationExecutionResults(results);
 
-        return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
+        return new SuccessStatus.Builder().setResponseContext(actionFlowContext.getContextData()).build();
     }
 
 
@@ -159,18 +136,14 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
      * {@code TaskExecutionNode} via {@link org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse}.
      *
      * @param operation           The operation to process.
-     * @param pathTypeAnnotations Map of clean paths to their type annotations from allowed operations.
      * @param pendingClaims       Accumulator map for user claim updates.
      * @param pendingCredentials  Accumulator map for user credential updates.
-     * @param pendingProperties   Accumulator map for flow property updates.
      * @param tenantDomain        Tenant domain, used for claim URI validation.
      * @return The result of the operation execution.
      */
     private OperationExecutionResult processOperation(PerformableOperation operation,
-                                                      Map<String, String> pathTypeAnnotations,
                                                       Map<String, Object> pendingClaims,
                                                       Map<String, char[]> pendingCredentials,
-                                                      Map<String, Object> pendingProperties,
                                                       String tenantDomain)
             throws ActionExecutionResponseProcessorException {
 
@@ -190,9 +163,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Modifications are not allowed for the read-only paths" );
         }
 
-        if (path.startsWith(FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX)) {
-            return handlePropertyOperation(operation, pathTypeAnnotations, pendingProperties);
-        } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
+        if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CLAIMS_SELECTOR_PREFIX)) {
             return handleUserClaimOperation(operation, pendingClaims, tenantDomain);
         } else if (path.startsWith(FlowExtensionConstants.FlowContextPaths.USER_CREDENTIALS_PATH_PREFIX)) {
             return handleUserCredentialOperation(operation, pendingCredentials);
@@ -203,69 +174,13 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     }
 
     /**
-     * Handle operation on flow properties — collect into pending properties map.
-     *
-     * <p>Only flat property paths are supported (e.g., {@code /properties/riskScore}).
-     * Value coercion is applied based on path type annotations from the request builder via
-     * {@link PathTypeAnnotationUtil#coerceValue}.</p>
-     *
-     * @param operation           The performable operation.
-     * @param pathTypeAnnotations Path type annotations map from request builder.
-     * @param pendingProperties   Accumulator map for property updates.
-     */
-    private OperationExecutionResult handlePropertyOperation(PerformableOperation operation,
-                                                             Map<String, String> pathTypeAnnotations, Map<String, Object> pendingProperties) {
-
-        String propertyName = extractNameFromPath(operation.getPath(),
-                FlowExtensionConstants.FlowContextPaths.PROPERTIES_PATH_PREFIX);
-
-        if (StringUtils.isBlank(propertyName)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Invalid property path. Property name is required.");
-        }
-
-        if (operation.getValue() == null) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    ERROR_VALUE_REQUIRED_FOR_REPLACE);
-        }
-
-        // Validate complex object structure against annotation schema before coercion.
-        if (!PathTypeAnnotationUtil.validateValueAgainstAnnotation(
-                operation.getPath(), operation.getValue(), pathTypeAnnotations)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Value does not match annotation schema for path: " + operation.getPath());
-        }
-
-        // Coerce value based on path type annotation.
-        Object coercedValue = PathTypeAnnotationUtil.coerceValue(
-                operation.getPath(), operation.getValue(), pathTypeAnnotations);
-
-        // Enforce array item limits after coercion.
-        if (!PathTypeAnnotationUtil.enforceArrayItemLimit(
-                operation.getPath(), coercedValue, pathTypeAnnotations)) {
-            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Array value exceeds maximum item limit for path.");
-        }
-
-        pendingProperties.put(propertyName, coercedValue);
-
-        return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
-                "Property replace applied.");
-    }
-
-    /**
-     * Handle REPLACE operation on user claims — validate the claim URI then collect into pending
-     * claims map. Validation gates:
-     * <ol>
-     *   <li>Claim URI must be in the WSO2 local claim dialect ({@code http://wso2.org/claims/}).</li>
-     *   <li>Identity-system claims ({@code http://wso2.org/claims/identity/}) are rejected.</li>
-     *   <li>The claim URI must correspond to a registered local claim in the tenant; unknown
-     *       claims are rejected per-operation. If the
-     *       {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
-     *       is unavailable or the lookup throws, the whole response aborts via
-     *       {@link ActionExecutionResponseProcessorException}.</li>
-     * </ol>
-     * The value is always stringified via {@code String.valueOf()}.
+     * Handle a REPLACE operation on a user claim by validating the claim URI and collecting the value
+     * into the pending claims map. The claim URI must be in the WSO2 local dialect
+     * ({@code http://wso2.org/claims/}), must not be an identity-system claim
+     * ({@code http://wso2.org/claims/identity/}), and must resolve to a registered local claim in the
+     * tenant. A single-valued claim takes a {@code String} value and a multi-valued claim takes a list
+     * joined with commas. Failing any of these validations drops the operation, while an unavailable
+     * claim metadata service or a lookup error aborts the response.
      *
      * @param operation     The performable operation.
      * @param pendingClaims Accumulator map for user claim updates.
@@ -294,7 +209,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
         if (claimUri.startsWith(PathTypeAnnotationUtil.IDENTITY_CLAIM_URI_PREFIX)) {
             return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
-                    "Identity-system claims cannot be modified by In-Flow Extensions: " + claimUri);
+                    "Identity-system claims cannot be modified by Flow Extensions: " + claimUri);
         }
 
         Optional<LocalClaim> optionalLocalClaim = getLocalClaim(claimUri, tenantDomain);
@@ -303,7 +218,21 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
                     "Unknown local claim URI: " + claimUri);
         }
 
-        String resolvedClaimValue = getResolvedClaimValue(operation.getValue(), optionalLocalClaim.get());
+        Object claimValue = operation.getValue();
+        String resolvedClaimValue;
+        if (isMultiValuedClaim(optionalLocalClaim.get())) {
+            if (!(claimValue instanceof List)) {
+                return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                        "Expected a list value for multi-valued claim: " + claimUri);
+            }
+            resolvedClaimValue = StringUtils.join((List<?>) claimValue, ",");
+        } else if (claimValue instanceof String) {
+            resolvedClaimValue = (String) claimValue;
+        } else {
+            return new OperationExecutionResult(operation, OperationExecutionResult.Status.FAILURE,
+                    "Expected a string value for single-valued claim: " + claimUri);
+        }
+
         pendingClaims.put(claimUri, resolvedClaimValue);
         return new OperationExecutionResult(operation, OperationExecutionResult.Status.SUCCESS,
                 "User claim replace applied.");
@@ -326,27 +255,11 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
     }
 
-    private String getResolvedClaimValue(Object operationValue, LocalClaim localClaim) throws
-            ActionExecutionResponseProcessorException {
-
-        if (isMultiValuedClaim(localClaim)) {
-            if (operationValue instanceof List) {
-                List<String> valueList = (List<String>) operationValue;
-                return StringUtils.join(valueList, ",");
-            }
-            throw new ActionExecutionResponseProcessorException(
-                    "Expected a list value for multi-valued claim: " + localClaim.getClaimURI());
-        } else if (operationValue instanceof String) {
-            return String.valueOf(operationValue);
-        }
-        throw new ActionExecutionResponseProcessorException(
-                "Expected a string value for single-valued claim: " + localClaim.getClaimURI());
-    }
-
     private boolean isMultiValuedClaim(LocalClaim localClaim) {
 
         return Boolean.parseBoolean(localClaim.getClaimProperty(MULTI_VALUED_CLAIM_PROPERTY));
     }
+
     /**
      * Handle REPLACE operation on user credentials — collect into pending credentials map.
      * No key validation is applied; any credential key is accepted. The value is converted
@@ -414,19 +327,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         return null;
     }
 
-    /**
-     * Normalize a claim path for encryption checks.
-     * Internal and external formats now both use the selector form
-     * {@code /user/claims[uri=<claimUri>]}, so no conversion is needed.
-     * All paths are returned unchanged.
-     */
-    private static String normalizeToInternalPath(String path) {
-
-        return path;
-    }
-
     @Override
-    public ActionExecutionStatus<Incomplete> processIncompleteResponse(FlowContext flowContext,
+    public ActionExecutionStatus<Incomplete> processIncompleteResponse(FlowContext actionFlowContext,
                                                                        ActionExecutionResponseContext<ActionInvocationIncompleteResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
@@ -435,10 +337,10 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         validateOperationForIncompleteStatus(operations);
 
         String redirectUrl = operations.get(0).getUrl();
-        flowContext.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, redirectUrl);
+        actionFlowContext.add(FlowExtensionConstants.PENDING_REDIRECT_URL_KEY, redirectUrl);
 
         return new IncompleteStatus.Builder()
-                .responseContext(flowContext.getContextData())
+                .responseContext(actionFlowContext.getContextData())
                 .build();
     }
 
@@ -472,8 +374,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FlowExtensionConstants.Log.COMPONENT_ID,
-                    FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                    ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE)
                     .resultMessage(message)
                     .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
@@ -483,7 +385,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     }
 
     @Override
-    public ActionExecutionStatus<Error> processErrorResponse(FlowContext flowContext,
+    public ActionExecutionStatus<Error> processErrorResponse(FlowContext actionFlowContext,
                                                              ActionExecutionResponseContext<ActionInvocationErrorResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
@@ -491,7 +393,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         String errorDescription = responseContext.getActionInvocationResponse().getErrorDescription();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Processing error response from In-Flow Extension. Error: " + errorMessage +
+            LOG.debug("Processing error response from Flow Extension. Error: " + errorMessage +
                     ", Description: " + errorDescription);
         }
 
@@ -499,7 +401,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
     }
 
     @Override
-    public ActionExecutionStatus<Failure> processFailureResponse(FlowContext flowContext,
+    public ActionExecutionStatus<Failure> processFailureResponse(FlowContext actionFlowContext,
                                                                  ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext)
             throws ActionExecutionResponseProcessorException {
 
@@ -507,7 +409,7 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         String failureDescription = responseContext.getActionInvocationResponse().getFailureDescription();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Processing failure response from In-Flow Extension. Reason: " + failureReason +
+            LOG.debug("Processing failure response from Flow Extension. Reason: " + failureReason +
                     ", Description: " + failureDescription);
         }
 
@@ -567,14 +469,16 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
     /**
      * Decrypt the operation value if the operation path has encryption enabled in the AccessConfig.
-     * Uses {@link AccessConfig#isModifyPathEncrypted(String)} for canonical checking.
-     * For operations with encrypted paths, checks if the value looks like a JWE compact
-     * serialization and decrypts it using the IS's private key.
+     * Uses {@link AccessConfig#isModifyPathEncrypted(String)} for canonical checking. A scalar value
+     * is treated as a single JWE compact string, while a multi-valued claim arrives as a
+     * single-element array holding one JWE string that encrypts the comma-joined values; that element
+     * is decrypted and its plaintext split on commas back into a list. The decrypted value(s) replace
+     * the original on the returned operation.
      *
      * @param operation    The operation to potentially decrypt.
      * @param accessConfig The access config with encryption flags (may be null).
      * @param tenantDomain Tenant domain for IS private key resolution.
-     * @return The operation with decrypted value, or the original operation if no decryption needed.
+     * @return The operation with decrypted value(s), or the original operation if no decryption needed.
      */
     private PerformableOperation decryptOperationValueIfNeeded(PerformableOperation operation,
                                                                AccessConfig accessConfig, String tenantDomain)
@@ -584,53 +488,81 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
             return operation;
         }
 
-        String internalPath = normalizeToInternalPath(operation.getPath());
-        if (!accessConfig.isModifyPathEncrypted(internalPath)) {
+        if (!accessConfig.isModifyPathEncrypted(operation.getPath())) {
             return operation;
         }
 
         Object value = operation.getValue();
+        Object decryptedValue;
+        if (value instanceof List<?> encryptedList) {
+
+            if (encryptedList.size() != 1 || !(encryptedList.getFirst() instanceof String jweString)) {
+                emitEncryptionContractViolation(operation.getPath(),
+                        "Encrypted multi-valued claim must be a single-element array holding one JWE string.");
+                throw new ActionExecutionResponseProcessorException(
+                        "Value for encrypted modify path '" + operation.getPath() +
+                                "' must be a single-element array holding one JWE-encrypted string.");
+            }
+
+            String plaintext = decryptJWEValue(jweString, operation.getPath(), tenantDomain);
+            decryptedValue = Arrays.asList(plaintext.split(","));
+        } else {
+            decryptedValue = decryptJWEValue(value, operation.getPath(), tenantDomain);
+        }
+
+        PerformableOperation decryptedOp = new PerformableOperation();
+        decryptedOp.setOp(operation.getOp());
+        decryptedOp.setPath(operation.getPath());
+        decryptedOp.setValue(decryptedValue);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Successfully decrypted inbound JWE value for path: " + operation.getPath());
+        }
+        return decryptedOp;
+    }
+
+    /**
+     * Decrypt a single JWE-encrypted value from an encrypted modify path using the IS private key.
+     * The value must be a JWE compact string; a non-String value or a non-JWE string breaks the
+     * encryption contract and aborts the response.
+     *
+     * @param value        The value to decrypt, expected to be a JWE compact string.
+     * @param path         The modify path, used for diagnostics and error messages.
+     * @param tenantDomain Tenant domain for IS private key resolution.
+     * @return The decrypted plaintext value.
+     */
+    private String decryptJWEValue(Object value, String path, String tenantDomain)
+            throws ActionExecutionResponseProcessorException {
 
         if (!(value instanceof String)) {
-            emitEncryptionContractViolation(operation.getPath(),
-                    "Value for encrypted modify path is not a String.");
+            emitEncryptionContractViolation(path, "Value for encrypted modify path is not a String.");
             throw new ActionExecutionResponseProcessorException(
-                    "Value for encrypted modify path '" + operation.getPath() +
+                    "Value for encrypted modify path '" + path +
                             "' must be a JWE-encrypted string, but received a non-String value.");
         }
 
         String stringValue = (String) value;
         if (!JWEEncryptionUtil.isJWEEncrypted(stringValue)) {
-            emitEncryptionContractViolation(operation.getPath(),
-                    "Value for encrypted modify path is not JWE-encrypted.");
+            emitEncryptionContractViolation(path, "Value for encrypted modify path is not JWE-encrypted.");
             throw new ActionExecutionResponseProcessorException(
-                    "Value for encrypted modify path '" + operation.getPath() +
+                    "Value for encrypted modify path '" + path +
                             "' must be JWE-encrypted, but received a plaintext value.");
         }
 
         try {
-            String decrypted = JWEEncryptionUtil.decrypt(stringValue, tenantDomain);
-            PerformableOperation decryptedOp = new PerformableOperation();
-            decryptedOp.setOp(operation.getOp());
-            decryptedOp.setPath(operation.getPath());
-            decryptedOp.setValue(decrypted);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Successfully decrypted inbound JWE value for path: " + operation.getPath());
-            }
-            return decryptedOp;
-        } catch (Exception e) {
+            return JWEEncryptionUtil.decrypt(stringValue, tenantDomain);
+        } catch (ActionExecutionException e) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        FlowExtensionConstants.Log.COMPONENT_ID,
-                        FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                        ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                        ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE)
                         .resultMessage("Failed to decrypt inbound JWE value for modify path.")
                         .configParam("actionType", ActionType.FLOW_EXTENSION.getDisplayName())
-                        .inputParam("path", operation.getPath())
+                        .inputParam("path", path)
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             throw new ActionExecutionResponseProcessorException(
-                    "Failed to decrypt inbound JWE value for path: " + operation.getPath(), e);
+                    "Failed to decrypt inbound JWE value for path: " + path, e);
         }
     }
 
@@ -642,8 +574,8 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FlowExtensionConstants.Log.COMPONENT_ID,
-                    FlowExtensionConstants.Log.ActionIDs.PROCESS_RESPONSE)
+                    ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
+                    ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_RESPONSE)
                     .resultMessage(reason)
                     .configParam(DIAG_PARAM_ACTION_TYPE, ActionType.FLOW_EXTENSION.getDisplayName())
                     .inputParam("path", path)
@@ -652,10 +584,10 @@ public class FlowExtensionResponseProcessor implements ActionExecutionResponsePr
         }
     }
 
-    private FlowExecutionContext getFlowExecutionContext(FlowContext flowContext)
+    private FlowExecutionContext getFlowExecutionContext(FlowContext actionFlowContext)
             throws ActionExecutionResponseProcessorException {
 
-        FlowExecutionContext execCtx = flowContext.getValue(
+        FlowExecutionContext execCtx = actionFlowContext.getValue(
                 FlowExtensionConstants.FLOW_EXECUTION_CONTEXT_KEY, FlowExecutionContext.class);
         if (execCtx == null) {
             throw new ActionExecutionResponseProcessorException(

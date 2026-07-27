@@ -33,6 +33,7 @@ public class Constants {
     public static final String PASSWORD_KEY = "password";
     public static final String CONSENT_KEY = "consent";
     public static final String PREFERENCE_KEY = "preference";
+    public static final String ANONYMOUS_PROFILE_TRACKER = "anonymous_profile_tracker";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";

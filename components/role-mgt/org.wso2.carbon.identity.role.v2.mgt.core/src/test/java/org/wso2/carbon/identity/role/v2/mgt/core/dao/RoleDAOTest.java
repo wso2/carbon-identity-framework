@@ -531,6 +531,50 @@ public class RoleDAOTest {
     }
 
     @Test
+    public void testDeleteRolesByApplicationAndReturnDeletedRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+        userCoreUtil.when(() -> UserCoreUtil.addDomainToName(anyString(), anyString())).thenCallRealMethod();
+
+        // Two roles associated with the application and one organization role that should not be deleted.
+        RoleBasicInfo appRole1 = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo appRole2 = addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        mockRealmConfiguration();
+
+        List<RoleBasicInfo> deletedRoles = roleDAO.deleteRolesByApplicationAndReturnRoles(SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN);
+
+        assertEquals(deletedRoles.size(), 2);
+        List<String> deletedRoleIds = deletedRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.toList());
+        assertTrue(deletedRoleIds.contains(appRole1.getId()));
+        assertTrue(deletedRoleIds.contains(appRole2.getId()));
+        // The deleted roles should carry their names.
+        List<String> deletedRoleNames = deletedRoles.stream().map(RoleBasicInfo::getName)
+                .collect(Collectors.toList());
+        assertTrue(deletedRoleNames.contains(roleNamesList.get(0)));
+        assertTrue(deletedRoleNames.contains(roleNamesList.get(1)));
+        assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
+        assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
+        // The organization role should remain intact.
+        assertTrue(roleDAO.isExistingRoleName(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID,
+                SAMPLE_TENANT_DOMAIN));
+    }
+
+    @Test
     public void testGetPermissionListOfRole() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());

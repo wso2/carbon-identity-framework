@@ -26,15 +26,21 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedOrgData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -55,6 +61,9 @@ import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.OrganizationUserSharingService;
+import org.wso2.carbon.identity.organization.management.organization.user.sharing.models.UserAssociation;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
@@ -62,7 +71,10 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -84,12 +96,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.OrgDiscoveryInputParameters.ORG_DISCOVERY_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CALLER_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
@@ -987,5 +1002,388 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             assertEquals(context.getContextIdIncludedQueryParams(), expectedQueryParams);
             assertEquals(context.getQueryParams(), expectedQueryParams);
         }
+    }
+
+    @DataProvider(name = "orgDiscoveryParamProvider")
+    public Object[][] provideOrgDiscoveryParams() {
+
+        return new Object[][]{
+                // orgId, orgHandle, org, login_hint, orgDiscoveryType, expected.
+                {null, null, null, null, null, false},
+                {"org-id-123", null, null, null, null, true},
+                {null, "org.example.com", null, null, null, true},
+                {null, null, "exampleOrg", null, null, true},
+                {null, null, null, "user@example.com", null, false},
+                {null, null, null, "user@example.com", "email", true},
+                {null, null, null, null, "email", false},
+                {"", "", "", "", "", false},
+        };
+    }
+
+    @Test(dataProvider = "orgDiscoveryParamProvider")
+    public void testHasOrganizationDiscoveryParameters(String orgId, String orgHandle, String org, String loginHint,
+                                                       String orgDiscoveryType, boolean expected) throws Exception {
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_ID)).thenReturn(orgId);
+        when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_HANDLE)).thenReturn(orgHandle);
+        when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.ORG_NAME)).thenReturn(org);
+        when(request.getParameter(FrameworkConstants.OrgDiscoveryInputParameters.LOGIN_HINT)).thenReturn(loginHint);
+        when(request.getParameter(ORG_DISCOVERY_TYPE)).thenReturn(orgDiscoveryType);
+
+        Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                "hasOrganizationDiscoveryParameters", HttpServletRequest.class);
+        method.setAccessible(true);
+        boolean result = (boolean) method.invoke(requestCoordinator, request);
+
+        assertEquals(result, expected);
+    }
+
+    private boolean invokeIsAuthenticatedUserSharedToAccessingOrg(SessionContext sessionContext, String accessingOrgId)
+            throws Exception {
+
+        Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                "isAuthenticatedUserSharedToAccessingOrg", SessionContext.class, String.class);
+        method.setAccessible(true);
+        return (boolean) method.invoke(requestCoordinator, sessionContext, accessingOrgId);
+    }
+
+    /**
+     * Builds a session context whose first authenticated organization data holds a sequence config carrying the
+     * given authenticated user.
+     */
+    private SessionContext buildSessionContextWithAuthenticatedUser(AuthenticatedUser authenticatedUser) {
+
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setAuthenticatedUser(authenticatedUser);
+        AuthenticatedOrgData orgData = new AuthenticatedOrgData();
+        orgData.getAuthenticatedSequences().put("app", sequenceConfig);
+        SessionContext sessionContext = new SessionContext();
+        Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
+        authenticatedOrgData.put("source-org-id", orgData);
+        sessionContext.setAuthenticatedOrgData(authenticatedOrgData);
+        return sessionContext;
+    }
+
+    @Test(description = "The shared-user check returns false when the accessing organization ID is blank.")
+    public void testIsAuthenticatedUserSharedToAccessingOrgWithBlankOrgId() throws Exception {
+
+        SessionContext sessionContext = buildSessionContextWithAuthenticatedUser(new AuthenticatedUser());
+        assertFalse(invokeIsAuthenticatedUserSharedToAccessingOrg(sessionContext, "  "));
+    }
+
+    @Test(description = "The shared-user check returns false when no authenticated user is found in the session.")
+    public void testIsAuthenticatedUserSharedToAccessingOrgWithoutAuthenticatedUser() throws Exception {
+
+        SessionContext sessionContext = new SessionContext();
+        sessionContext.setAuthenticatedOrgData(new HashMap<>());
+        assertFalse(invokeIsAuthenticatedUserSharedToAccessingOrg(sessionContext, "accessing-org-id"));
+    }
+
+    @Test(description = "The shared-user check returns true when the user has an association in the accessing org.")
+    public void testIsAuthenticatedUserSharedToAccessingOrgWhenShared() throws Exception {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+        SessionContext sessionContext = buildSessionContextWithAuthenticatedUser(authenticatedUser);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId("user-id-123", "accessing-org-id"))
+                .thenReturn(mock(UserAssociation.class));
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+        try {
+            assertTrue(invokeIsAuthenticatedUserSharedToAccessingOrg(sessionContext, "accessing-org-id"));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    @Test(description = "The shared-user check returns false when the user has no association in the accessing org.")
+    public void testIsAuthenticatedUserSharedToAccessingOrgWhenNotShared() throws Exception {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+        SessionContext sessionContext = buildSessionContextWithAuthenticatedUser(authenticatedUser);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId("user-id-123", "accessing-org-id"))
+                .thenReturn(null);
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+        try {
+            assertFalse(invokeIsAuthenticatedUserSharedToAccessingOrg(sessionContext, "accessing-org-id"));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    @Test(description = "The shared-user check returns false and swallows OrganizationManagementException.")
+    public void testIsAuthenticatedUserSharedToAccessingOrgOnException() throws Exception {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+        SessionContext sessionContext = buildSessionContextWithAuthenticatedUser(authenticatedUser);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId(anyString(), anyString()))
+                .thenThrow(new OrganizationManagementException("error"));
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+        try {
+            assertFalse(invokeIsAuthenticatedUserSharedToAccessingOrg(sessionContext, "accessing-org-id"));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    @Test(description = "Populating context with previous org sessions is a no-op when the session holds no " +
+            "authenticated organization data.")
+    public void testPopulateContextWithNoAuthenticatedOrgData() throws Exception {
+
+        AuthenticationContext context = new AuthenticationContext();
+        SessionContext sessionContext = new SessionContext();
+        sessionContext.setAuthenticatedOrgData(new HashMap<>());
+
+        invokePopulateContext("accessing-org-id", context, new SequenceConfig(), sessionContext);
+
+        assertFalse(context.isPreviousSessionFound());
+        assertTrue(context.getPreviousAuthenticatedIdPs().isEmpty());
+    }
+
+    @Test(description = "Populating context with previous org sessions is a no-op when the user is not shared to the " +
+            "accessing organization.")
+    public void testPopulateContextWhenUserNotSharedToAccessingOrg() throws Exception {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+        SessionContext sessionContext = buildSessionContextWithAuthenticatedUser(authenticatedUser);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId(anyString(), anyString())).thenReturn(null);
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+
+        AuthenticationContext context = new AuthenticationContext();
+        try {
+            invokePopulateContext("accessing-org-id", context, new SequenceConfig(), sessionContext);
+            assertFalse(context.isPreviousSessionFound());
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    @Test(description = "Populating context marks the matching step as authenticated and carries over the " +
+            "authenticated IdP data when the shared user has a previous organization session.")
+    public void testPopulateContextCarriesOverPreviousOrganizationSession() throws Exception {
+
+        // Step requiring the federated IdP.
+        AuthenticatorConfig stepAuthenticator = new AuthenticatorConfig("OIDCAuthenticator", true, null);
+        stepAuthenticator.setIdPNames(Arrays.asList("FederatedIdP"));
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setOrder(1);
+        stepConfig.setAuthenticatorList(Arrays.asList(stepAuthenticator));
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepConfig);
+        effectiveSequence.setStepMap(stepMap);
+
+        // Authenticated user shared to the accessing org.
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+
+        // Authenticated IdP data already satisfied in another organization.
+        AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+        authenticatedIdPData.setIdpName("FederatedIdP");
+        authenticatedIdPData.setUser(authenticatedUser);
+        authenticatedIdPData.addAuthenticator(new AuthenticatorConfig("OIDCAuthenticator", true, null));
+
+        SequenceConfig sourceSequenceConfig = new SequenceConfig();
+        sourceSequenceConfig.setAuthenticatedUser(authenticatedUser);
+        AuthenticatedOrgData orgData = new AuthenticatedOrgData();
+        orgData.getAuthenticatedSequences().put("app", sourceSequenceConfig);
+        orgData.getAuthenticatedIdPs().put("FederatedIdP", authenticatedIdPData);
+
+        SessionContext sessionContext = new SessionContext();
+        Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
+        authenticatedOrgData.put("source-org-id", orgData);
+        sessionContext.setAuthenticatedOrgData(authenticatedOrgData);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId("user-id-123", "accessing-org-id"))
+                .thenReturn(mock(UserAssociation.class));
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+
+        AuthenticationContext context = new AuthenticationContext();
+        try {
+            invokePopulateContext("accessing-org-id", context, effectiveSequence, sessionContext);
+
+            assertTrue(context.isPreviousSessionFound());
+            Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = context.getPreviousAuthenticatedIdPs();
+            assertNotNull(previousAuthenticatedIdPs);
+            assertTrue(previousAuthenticatedIdPs.containsKey("FederatedIdP"));
+
+            // The matching step should be marked as authenticated with the carried over authenticator.
+            assertEquals(stepConfig.getAuthenticatedIdP(), "FederatedIdP");
+            assertNotNull(stepConfig.getAuthenticatedAutenticator());
+            assertEquals(stepConfig.getAuthenticatedAutenticator().getName(), "OIDCAuthenticator");
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    @Test(description = "Populating context switches the accessing organization of the carried over authenticated " +
+            "user (and its IdP data) to the current accessing organization without mutating the cached entry.")
+    public void testPopulateContextSwitchesAccessingOrganizationForSharedUser() throws Exception {
+
+        // Step requiring the federated IdP.
+        AuthenticatorConfig stepAuthenticator = new AuthenticatorConfig("OIDCAuthenticator", true, null);
+        stepAuthenticator.setIdPNames(List.of("FederatedIdP"));
+        StepConfig stepConfig = new StepConfig();
+        stepConfig.setOrder(1);
+        stepConfig.setAuthenticatorList(List.of(stepAuthenticator));
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        Map<Integer, StepConfig> stepMap = new HashMap<>();
+        stepMap.put(1, stepConfig);
+        effectiveSequence.setStepMap(stepMap);
+
+        // Authenticated user that was accessing another (source) organization.
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+        authenticatedUser.setAccessingOrganization("source-org-id");
+
+        AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+        authenticatedIdPData.setIdpName("FederatedIdP");
+        authenticatedIdPData.setUser(authenticatedUser);
+        authenticatedIdPData.addAuthenticator(new AuthenticatorConfig("OIDCAuthenticator", true, null));
+
+        SequenceConfig sourceSequenceConfig = new SequenceConfig();
+        sourceSequenceConfig.setAuthenticatedUser(authenticatedUser);
+        AuthenticatedOrgData orgData = new AuthenticatedOrgData();
+        orgData.getAuthenticatedSequences().put("app", sourceSequenceConfig);
+        orgData.getAuthenticatedIdPs().put("FederatedIdP", authenticatedIdPData);
+
+        SessionContext sessionContext = new SessionContext();
+        Map<String, AuthenticatedOrgData> authenticatedOrgData = new HashMap<>();
+        authenticatedOrgData.put("source-org-id", orgData);
+        sessionContext.setAuthenticatedOrgData(authenticatedOrgData);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId("user-id-123", "accessing-org-id"))
+                .thenReturn(mock(UserAssociation.class));
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+
+        AuthenticationContext context = new AuthenticationContext();
+        try {
+            invokePopulateContext("accessing-org-id", context, effectiveSequence, sessionContext);
+
+            // The step's authenticated user should now point to the current accessing organization.
+            assertNotNull(stepConfig.getAuthenticatedUser());
+            assertEquals(stepConfig.getAuthenticatedUser().getAccessingOrganization(), "accessing-org-id");
+
+            // The carried over IdP data should be a clone (not the cached instance) whose user's accessing
+            // organization was switched as well.
+            AuthenticatedIdPData carriedOverIdPData = context.getPreviousAuthenticatedIdPs().get("FederatedIdP");
+            assertNotNull(carriedOverIdPData);
+            assertNotSame(carriedOverIdPData, authenticatedIdPData);
+            assertEquals(carriedOverIdPData.getUser().getAccessingOrganization(), "accessing-org-id");
+
+            // The cached entry should remain untouched.
+            assertEquals(authenticatedUser.getAccessingOrganization(), "source-org-id");
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    @Test(description = "Populating context merges authenticators for the same IdP that the shared user satisfied " +
+            "across different organizations, appending only the authenticators not already carried over.")
+    public void testPopulateContextMergesAuthenticatorsAcrossOrganizations() throws Exception {
+
+        // Two LOCAL steps, each requiring a distinct local authenticator.
+        ApplicationAuthenticator basicAppAuthenticator = mock(ApplicationAuthenticator.class);
+        when(basicAppAuthenticator.getAuthMechanism()).thenReturn("basic");
+        AuthenticatorConfig step1Authenticator = new AuthenticatorConfig("BasicAuthenticator", true, null);
+        step1Authenticator.setIdPNames(List.of(FrameworkConstants.LOCAL));
+        step1Authenticator.setApplicationAuthenticator(basicAppAuthenticator);
+        StepConfig step1 = new StepConfig();
+        step1.setOrder(1);
+        step1.setAuthenticatorList(List.of(step1Authenticator));
+
+        ApplicationAuthenticator totpAppAuthenticator = mock(ApplicationAuthenticator.class);
+        when(totpAppAuthenticator.getAuthMechanism()).thenReturn("totp");
+        AuthenticatorConfig step2Authenticator = new AuthenticatorConfig("TOTPAuthenticator", true, null);
+        step2Authenticator.setIdPNames(List.of(FrameworkConstants.LOCAL));
+        step2Authenticator.setApplicationAuthenticator(totpAppAuthenticator);
+        StepConfig step2 = new StepConfig();
+        step2.setOrder(2);
+        step2.setAuthenticatorList(List.of(step2Authenticator));
+
+        SequenceConfig effectiveSequence = new SequenceConfig();
+        Map<Integer, StepConfig> stepMap = new LinkedHashMap<>();
+        stepMap.put(1, step1);
+        stepMap.put(2, step2);
+        effectiveSequence.setStepMap(stepMap);
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("user-id-123");
+
+        // Org A satisfied the BasicAuthenticator only.
+        AuthenticatedIdPData orgALocalIdPData = new AuthenticatedIdPData();
+        orgALocalIdPData.setIdpName(FrameworkConstants.LOCAL);
+        orgALocalIdPData.setUser(authenticatedUser);
+        orgALocalIdPData.addAuthenticator(new AuthenticatorConfig("BasicAuthenticator", true, null));
+        SequenceConfig orgASequenceConfig = new SequenceConfig();
+        orgASequenceConfig.setAuthenticatedUser(authenticatedUser);
+        AuthenticatedOrgData orgAData = new AuthenticatedOrgData();
+        orgAData.getAuthenticatedSequences().put("app", orgASequenceConfig);
+        orgAData.getAuthenticatedIdPs().put(FrameworkConstants.LOCAL, orgALocalIdPData);
+
+        // Org B satisfied the TOTPAuthenticator only.
+        AuthenticatedIdPData orgBLocalIdPData = new AuthenticatedIdPData();
+        orgBLocalIdPData.setIdpName(FrameworkConstants.LOCAL);
+        orgBLocalIdPData.setUser(authenticatedUser);
+        orgBLocalIdPData.addAuthenticator(new AuthenticatorConfig("TOTPAuthenticator", true, null));
+        AuthenticatedOrgData orgBData = new AuthenticatedOrgData();
+        orgBData.getAuthenticatedIdPs().put(FrameworkConstants.LOCAL, orgBLocalIdPData);
+
+        // Preserve iteration order so org A wins step 1 and org B wins step 2.
+        SessionContext sessionContext = new SessionContext();
+        Map<String, AuthenticatedOrgData> authenticatedOrgData = new LinkedHashMap<>();
+        authenticatedOrgData.put("org-a-id", orgAData);
+        authenticatedOrgData.put("org-b-id", orgBData);
+        sessionContext.setAuthenticatedOrgData(authenticatedOrgData);
+
+        OrganizationUserSharingService sharingService = mock(OrganizationUserSharingService.class);
+        when(sharingService.getUserAssociationOfAssociatedUserByOrgId("user-id-123", "accessing-org-id"))
+                .thenReturn(mock(UserAssociation.class));
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(sharingService);
+
+        AuthenticationContext context = new AuthenticationContext();
+        try {
+            invokePopulateContext("accessing-org-id", context, effectiveSequence, sessionContext);
+
+            assertTrue(context.isPreviousSessionFound());
+            AuthenticatedIdPData mergedLocalIdPData =
+                    context.getPreviousAuthenticatedIdPs().get(FrameworkConstants.LOCAL);
+            assertNotNull(mergedLocalIdPData);
+
+            // The authenticator satisfied in org B should have been appended to org A's carried over entry.
+            List<String> mergedAuthenticatorNames = new ArrayList<>();
+            for (AuthenticatorConfig authenticatorConfig : mergedLocalIdPData.getAuthenticators()) {
+                mergedAuthenticatorNames.add(authenticatorConfig.getName());
+            }
+            assertEquals(mergedAuthenticatorNames.size(), 2);
+            assertTrue(mergedAuthenticatorNames.contains("BasicAuthenticator"));
+            assertTrue(mergedAuthenticatorNames.contains("TOTPAuthenticator"));
+        } finally {
+            FrameworkServiceDataHolder.getInstance().setOrganizationUserSharingService(null);
+        }
+    }
+
+    private void invokePopulateContext(String accessingOrgId, AuthenticationContext context,
+                                       SequenceConfig effectiveSequence, SessionContext loadedSessionContext)
+            throws Exception {
+
+        Method method = DefaultRequestCoordinator.class.getDeclaredMethod(
+                "populateContextWithPreviousAuthenticatedOrganizationSessions", String.class,
+                AuthenticationContext.class, SequenceConfig.class, SessionContext.class);
+        method.setAccessible(true);
+        method.invoke(requestCoordinator, accessingOrgId, context, effectiveSequence, loadedSessionContext);
     }
 }

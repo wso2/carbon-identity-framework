@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.handleServerException;
+import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.isGranularConsolePermissionsEnabled;
 
 /**
  * API Resource Collection Manager Implementation.
@@ -127,22 +128,51 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
         }
         try {
             APIResourceCollection clonedCollection = cloneAPIResourceCollection(collection);
+            boolean granularEnabled = isGranularConsolePermissionsEnabled();
 
-            // Combine read and write scopes for a single fetch.
+            Set<String> writeScopes = new HashSet<>();
+            Optional.ofNullable(clonedCollection.getReadScopes()).ifPresent(writeScopes::addAll);
+            Optional.ofNullable(clonedCollection.getWriteScopes()).ifPresent(writeScopes::addAll);
+
             Set<String> combinedScopes = new HashSet<>();
             Optional.ofNullable(clonedCollection.getReadScopes()).ifPresent(combinedScopes::addAll);
             Optional.ofNullable(clonedCollection.getWriteScopes()).ifPresent(combinedScopes::addAll);
+            if (granularEnabled) {
+                Optional.ofNullable(clonedCollection.getCreateScopes()).ifPresent(combinedScopes::addAll);
+                Optional.ofNullable(clonedCollection.getUpdateScopes()).ifPresent(combinedScopes::addAll);
+                Optional.ofNullable(clonedCollection.getDeleteScopes()).ifPresent(combinedScopes::addAll);
+            }
             List<APIResource> allAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
                     .getAPIResourceManagementService().getScopeMetadata(new ArrayList<>(combinedScopes), tenantDomain);
 
             List<APIResource> readAPIResources =
                     filterAPIResources(allAPIResources, clonedCollection.getReadScopes());
             List<APIResource> writeAPIResources =
-                    filterAPIResources(allAPIResources, new ArrayList<>(combinedScopes));
+                    filterAPIResources(allAPIResources, new ArrayList<>(writeScopes));
 
             Map<String, List<APIResource>> apiResourcesMap = new HashMap<>();
             apiResourcesMap.put(APIResourceCollectionManagementConstants.READ, readAPIResources);
             apiResourcesMap.put(APIResourceCollectionManagementConstants.WRITE, writeAPIResources);
+            if (granularEnabled) {
+                Set<String> createScopes = new HashSet<>();
+                Optional.ofNullable(clonedCollection.getReadScopes()).ifPresent(createScopes::addAll);
+                Optional.ofNullable(clonedCollection.getCreateScopes()).ifPresent(createScopes::addAll);
+
+                Set<String> updateScopes = new HashSet<>();
+                Optional.ofNullable(clonedCollection.getReadScopes()).ifPresent(updateScopes::addAll);
+                Optional.ofNullable(clonedCollection.getUpdateScopes()).ifPresent(updateScopes::addAll);
+
+                Set<String> deleteScopes = new HashSet<>();
+                Optional.ofNullable(clonedCollection.getReadScopes()).ifPresent(deleteScopes::addAll);
+                Optional.ofNullable(clonedCollection.getDeleteScopes()).ifPresent(deleteScopes::addAll);
+
+                apiResourcesMap.put(APIResourceCollectionManagementConstants.CREATE,
+                        filterAPIResources(allAPIResources, new ArrayList<>(createScopes)));
+                apiResourcesMap.put(APIResourceCollectionManagementConstants.UPDATE,
+                        filterAPIResources(allAPIResources, new ArrayList<>(updateScopes)));
+                apiResourcesMap.put(APIResourceCollectionManagementConstants.DELETE,
+                        filterAPIResources(allAPIResources, new ArrayList<>(deleteScopes)));
+            }
             clonedCollection.setApiResources(apiResourcesMap);
             return clonedCollection;
         } catch (APIResourceMgtException e) {
@@ -199,10 +229,16 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
                 .type(apiResourceCollection.getType())
                 .readScopes(apiResourceCollection.getReadScopes())
                 .writeScopes(apiResourceCollection.getWriteScopes())
+                .createScopes(apiResourceCollection.getCreateScopes())
+                .updateScopes(apiResourceCollection.getUpdateScopes())
+                .deleteScopes(apiResourceCollection.getDeleteScopes())
                 .legacyReadScopes(apiResourceCollection.getLegacyReadScopes())
                 .legacyWriteScopes(apiResourceCollection.getLegacyWriteScopes())
                 .viewFeatureScope(apiResourceCollection.getViewFeatureScope())
                 .editFeatureScope(apiResourceCollection.getEditFeatureScope())
+                .createFeatureScope(apiResourceCollection.getCreateFeatureScope())
+                .updateFeatureScope(apiResourceCollection.getUpdateFeatureScope())
+                .deleteFeatureScope(apiResourceCollection.getDeleteFeatureScope())
                 .apiResources(apiResourceCollection.getApiResources())
                 .build();
     }

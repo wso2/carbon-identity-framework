@@ -34,6 +34,8 @@ public class APIClientConfig {
     private final int poolSizeToBeSet;
     private final int maxPerRoute;
     private final long responseLimitInBytes;
+    private final String proxyHost;
+    private final int proxyPort;
 
     public APIClientConfig(Builder builder) {
 
@@ -43,6 +45,8 @@ public class APIClientConfig {
         this.poolSizeToBeSet = builder.poolSizeToBeSet;
         this.maxPerRoute = builder.defaultMaxPerRoute;
         this.responseLimitInBytes = builder.responseLimitInBytes;
+        this.proxyHost = builder.proxyHost;
+        this.proxyPort = builder.proxyPort;
     }
 
     /**
@@ -106,6 +110,26 @@ public class APIClientConfig {
     }
 
     /**
+     * Get the proxy host.
+     *
+     * @return proxy host, or null if no proxy is configured.
+     */
+    public String getProxyHost() {
+
+        return proxyHost;
+    }
+
+    /**
+     * Get the proxy port.
+     *
+     * @return proxy port, or 0 if no proxy is configured.
+     */
+    public int getProxyPort() {
+
+        return proxyPort;
+    }
+
+    /**
      * Builder class for APIClientConfig.
      */
     public static class Builder {
@@ -117,6 +141,8 @@ public class APIClientConfig {
         protected int poolSizeToBeSet = APIClientUtils.getDefaultPoolSizeToBeSet();
         protected int defaultMaxPerRoute = APIClientUtils.getDefaultMaxPerRoute();
         protected long responseLimitInBytes = APIClientUtils.getDefaultResponseLimit();
+        protected String proxyHost = null;
+        protected int proxyPort = 0;
 
         public APIClientConfig.Builder httpReadTimeoutInMillis(int httpReadTimeoutInMillis) {
 
@@ -157,6 +183,30 @@ public class APIClientConfig {
         public APIClientConfig.Builder responseLimitInBytes(long responseLimitInBytes) {
 
             this.responseLimitInBytes = responseLimitInBytes;
+            return this;
+        }
+
+        /**
+         * Set the proxy host. If blank or null, no proxy will be configured.
+         *
+         * @param proxyHost proxy host name or IP address.
+         * @return this builder.
+         */
+        public APIClientConfig.Builder proxyHost(String proxyHost) {
+
+            this.proxyHost = proxyHost;
+            return this;
+        }
+
+        /**
+         * Set the proxy port. Required when a proxy host is set.
+         *
+         * @param proxyPort proxy port number.
+         * @return this builder.
+         */
+        public APIClientConfig.Builder proxyPort(int proxyPort) {
+
+            this.proxyPort = proxyPort;
             return this;
         }
 

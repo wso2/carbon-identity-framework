@@ -56,6 +56,12 @@
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtServiceTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingServiceImplTest"/>
+
+            <class name="org.wso2.carbon.identity.application.authentication.framework.listener.ConsentAppMappingApplicationDeleteListenerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.listener.ConsentAppMappingPurposeDeleteListenerTest"/>
+
+            <class name="org.wso2.carbon.identity.application.authentication.framework.exception.ConsentAppMappingExceptionTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServletTest"/>
 

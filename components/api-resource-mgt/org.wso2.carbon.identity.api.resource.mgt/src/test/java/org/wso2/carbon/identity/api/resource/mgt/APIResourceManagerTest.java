@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,18 +37,23 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
-import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -78,10 +83,27 @@ public class APIResourceManagerTest {
     private IdentityEventService identityEventService;
 
     @BeforeMethod
-    public void setUp() throws IdentityEventException {
+    public void setUp() throws Exception {
 
         apiResourceManager = APIResourceManagerImpl.getInstance();
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+        // System API resources are stored under tenant id 0 (tenant-agnostic), so adding one invalidates the scope
+        // metadata cache under tenant 0 while normal resources use the real tenant. The shared test TenantManager
+        // maps every tenant id to "carbon.super", collapsing those into one owner-guarded cache region and causing a
+        // cross-tenant SecurityException. Give each tenant id its own domain (as a real deployment does) so each
+        // tenant gets its own cache region.
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getTenantId(anyString())).thenReturn(MultitenantConstants.SUPER_TENANT_ID);
+        when(tenantManager.getDomain(anyInt())).thenAnswer(invocation -> {
+            int id = invocation.getArgument(0);
+            return id == MultitenantConstants.SUPER_TENANT_ID
+                    ? MultitenantConstants.SUPER_TENANT_DOMAIN_NAME : "tenant-" + id;
+        });
+        IdentityTenantUtil.setRealmService(realmService);
+
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);

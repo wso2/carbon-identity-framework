@@ -32,6 +32,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
@@ -80,7 +81,11 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.im
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
+import org.wso2.carbon.identity.application.authentication.framework.listener.ConsentAppMappingApplicationDeleteListener;
+import org.wso2.carbon.identity.application.authentication.framework.listener.ConsentAppMappingPurposeDeleteListener;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
+import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingService;
+import org.wso2.carbon.identity.application.authentication.framework.services.ConsentAppMappingServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
@@ -98,6 +103,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
@@ -303,6 +309,14 @@ public class FrameworkServiceComponent {
                 .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
+
+        ConsentAppMappingService consentAppMappingService = new ConsentAppMappingServiceImpl();
+        dataHolder.setConsentAppMappingService(consentAppMappingService);
+        bundleContext.registerService(ConsentAppMappingService.class.getName(), consentAppMappingService, null);
+        bundleContext.registerService(ConsentManagementListener.class.getName(),
+                new ConsentAppMappingPurposeDeleteListener(), null);
+        bundleContext.registerService(ApplicationMgtListener.class.getName(),
+                new ConsentAppMappingApplicationDeleteListener(), null);
 
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");

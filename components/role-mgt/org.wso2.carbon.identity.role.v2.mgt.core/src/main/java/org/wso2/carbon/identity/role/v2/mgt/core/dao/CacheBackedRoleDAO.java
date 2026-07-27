@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 
+import java.util.List;
+
 /**
  * Cache layer implementation of the {@link RoleDAO} interface.
  * Delegates calls to the underlying RoleDAO implementation.
@@ -123,12 +125,24 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
         clearRoleBasicInfoCache(roleId, tenantDomain);
     }
 
+    @Deprecated
     @Override
     public void deleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        super.deleteRolesByApplication(applicationId, tenantDomain);
-        clearRoleBasicInfoCacheByTenant(tenantDomain);
+        deleteRolesByApplicationAndReturnRoles(applicationId, tenantDomain);
+    }
+
+    @Override
+    public List<RoleBasicInfo> deleteRolesByApplicationAndReturnRoles(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleBasicInfo> deletedRoles = super.deleteRolesByApplicationAndReturnRoles(applicationId,
+                tenantDomain);
+        for (RoleBasicInfo deletedRole : deletedRoles) {
+            clearRoleBasicInfoCache(deletedRole.getId(), tenantDomain);
+        }
+        return deletedRoles;
     }
 
     /**
@@ -143,20 +157,6 @@ public class CacheBackedRoleDAO extends RoleDAOImpl {
         roleBasicInfoCache.clearCacheEntry(cacheKey, tenantDomain);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Cleared role basic info cache for role ID: " + roleId);
-        }
-    }
-
-    /**
-     * Clear all role basic info cache entries for a tenant.
-     * This is useful when application names change, which affects the audience name in cached role info.
-     *
-     * @param tenantDomain Tenant domain.
-     */
-    private void clearRoleBasicInfoCacheByTenant(String tenantDomain) {
-
-        roleBasicInfoCache.clear(tenantDomain);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Cleared all role basic info cache entries for tenant: " + tenantDomain);
         }
     }
 }

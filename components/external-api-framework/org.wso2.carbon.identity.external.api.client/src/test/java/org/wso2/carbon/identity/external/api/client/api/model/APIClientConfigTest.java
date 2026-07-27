@@ -29,6 +29,7 @@ import org.wso2.carbon.utils.ServerConstants;
 import java.io.File;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -111,5 +112,68 @@ public class APIClientConfigTest {
     public void testBuilderThrowsOnNegativeResponseLimit() throws APIClientConfigException {
 
         new APIClientConfig.Builder().responseLimitInBytes(-1L).build();
+    }
+
+    /**
+     * Test that the builder stores a proxy host correctly.
+     */
+    @Test
+    public void testBuilderStoresProxyHost() throws APIClientConfigException {
+
+        APIClientConfig config = new APIClientConfig.Builder()
+                .proxyHost("proxy.example.com")
+                .proxyPort(8080)
+                .build();
+        assertEquals(config.getProxyHost(), "proxy.example.com",
+                "Proxy host should reflect the value supplied to the builder.");
+    }
+
+    /**
+     * Test that the builder stores a proxy port correctly.
+     */
+    @Test
+    public void testBuilderStoresProxyPort() throws APIClientConfigException {
+
+        APIClientConfig config = new APIClientConfig.Builder()
+                .proxyHost("proxy.example.com")
+                .proxyPort(3128)
+                .build();
+        assertEquals(config.getProxyPort(), 3128,
+                "Proxy port should reflect the value supplied to the builder.");
+    }
+
+    /**
+     * Test that the default proxy host is null when not configured.
+     */
+    @Test
+    public void testDefaultProxyHostIsNull() throws APIClientConfigException {
+
+        APIClientConfig config = new APIClientConfig.Builder().build();
+        assertNull(config.getProxyHost(),
+                "Default proxy host should be null when not configured.");
+    }
+
+    /**
+     * Test that the default proxy port is zero when not configured.
+     */
+    @Test
+    public void testDefaultProxyPortIsZero() throws APIClientConfigException {
+
+        APIClientConfig config = new APIClientConfig.Builder().build();
+        assertEquals(config.getProxyPort(), 0,
+                "Default proxy port should be 0 when not configured.");
+    }
+
+    /**
+     * Test that explicitly setting a null proxy host stores null.
+     */
+    @Test
+    public void testBuilderWithNullProxyHostStoresNull() throws APIClientConfigException {
+
+        APIClientConfig config = new APIClientConfig.Builder()
+                .proxyHost(null)
+                .build();
+        assertNull(config.getProxyHost(),
+                "Explicitly null proxy host should be stored as null.");
     }
 }

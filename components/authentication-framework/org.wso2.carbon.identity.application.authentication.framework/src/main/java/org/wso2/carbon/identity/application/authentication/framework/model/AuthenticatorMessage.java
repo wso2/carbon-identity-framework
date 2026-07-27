@@ -34,6 +34,7 @@ public class AuthenticatorMessage implements Serializable {
     private String code;
     private String message;
     private Map<String, String> context = new HashMap<>();
+    private String authenticatorName;
 
     public AuthenticatorMessage() {
 
@@ -94,5 +95,15 @@ public class AuthenticatorMessage implements Serializable {
     public void setContext(Map<String, String> context) {
 
         this.context = context;
+    }
+
+    public void setAuthenticatorName(String authenticatorName) {
+
+        this.authenticatorName = authenticatorName;
+    }
+
+    public String getAuthenticatorName() {
+
+        return this.authenticatorName;
     }
 }

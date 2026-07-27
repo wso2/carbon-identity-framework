@@ -78,5 +78,12 @@
         "targetValue" : {{compatibility_setting.webhook.registration.skip_signup_confirmation_if_account_lock_disabled.target_value | default("false")}},
         "defaultValue" : {{compatibility_setting.webhook.registration.skip_signup_confirmation_if_account_lock_disabled.default_value | default("true")}}
     }
+  },
+  "dcr": {
+    "decodeRedirectUrisInResponse" : {
+        "timestampReference" : "{{compatibility_setting.dcr.decode_redirect_uris_in_response.timestamp_reference | default('2026-08-01T00:00:00Z')}}",
+        "targetValue" : {{compatibility_setting.dcr.decode_redirect_uris_in_response.target_value | default("false")}},
+        "defaultValue" : {{compatibility_setting.dcr.decode_redirect_uris_in_response.default_value | default("true")}}
+    }
   }
 }

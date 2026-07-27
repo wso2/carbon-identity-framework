@@ -34,10 +34,16 @@ public class APIResourceCollection {
     private String type;
     private List<String> readScopes;
     private List<String> writeScopes;
+    private List<String> createScopes;
+    private List<String> updateScopes;
+    private List<String> deleteScopes;
     private List<String> legacyReadScopes;
     private List<String> legacyWriteScopes;
     private String viewFeatureScope;
     private String editFeatureScope;
+    private String createFeatureScope;
+    private String updateFeatureScope;
+    private String deleteFeatureScope;
     private Map<String, List<APIResource>> apiResources;
 
     public APIResourceCollection() {
@@ -52,10 +58,16 @@ public class APIResourceCollection {
             this.apiResources = apiResourceCollectionBuilder.apiResources;
             this.readScopes = apiResourceCollectionBuilder.readScopes;
             this.writeScopes = apiResourceCollectionBuilder.writeScopes;
+            this.createScopes = apiResourceCollectionBuilder.createScopes;
+            this.updateScopes = apiResourceCollectionBuilder.updateScopes;
+            this.deleteScopes = apiResourceCollectionBuilder.deleteScopes;
             this.legacyReadScopes = apiResourceCollectionBuilder.legacyReadScopes;
             this.legacyWriteScopes = apiResourceCollectionBuilder.legacyWriteScopes;
             this.viewFeatureScope = apiResourceCollectionBuilder.viewFeatureScope;
             this.editFeatureScope = apiResourceCollectionBuilder.editFeatureScope;
+            this.createFeatureScope = apiResourceCollectionBuilder.createFeatureScope;
+            this.updateFeatureScope = apiResourceCollectionBuilder.updateFeatureScope;
+            this.deleteFeatureScope = apiResourceCollectionBuilder.deleteFeatureScope;
     }
 
     public String getId() {
@@ -108,6 +120,36 @@ public class APIResourceCollection {
         this.writeScopes = writeScopes;
     }
 
+    public List<String> getCreateScopes() {
+
+        return createScopes;
+    }
+
+    public void setCreateScopes(List<String> createScopes) {
+
+        this.createScopes = createScopes;
+    }
+
+    public List<String> getUpdateScopes() {
+
+        return updateScopes;
+    }
+
+    public void setUpdateScopes(List<String> updateScopes) {
+
+        this.updateScopes = updateScopes;
+    }
+
+    public List<String> getDeleteScopes() {
+
+        return deleteScopes;
+    }
+
+    public void setDeleteScopes(List<String> deleteScopes) {
+
+        this.deleteScopes = deleteScopes;
+    }
+
     public List<String> getLegacyReadScopes() {
 
         return legacyReadScopes;
@@ -148,6 +190,36 @@ public class APIResourceCollection {
         this.editFeatureScope = editFeatureScope;
     }
 
+    public String getCreateFeatureScope() {
+
+        return createFeatureScope;
+    }
+
+    public void setCreateFeatureScope(String createFeatureScope) {
+
+        this.createFeatureScope = createFeatureScope;
+    }
+
+    public String getUpdateFeatureScope() {
+
+        return updateFeatureScope;
+    }
+
+    public void setUpdateFeatureScope(String updateFeatureScope) {
+
+        this.updateFeatureScope = updateFeatureScope;
+    }
+
+    public String getDeleteFeatureScope() {
+
+        return deleteFeatureScope;
+    }
+
+    public void setDeleteFeatureScope(String deleteFeatureScope) {
+
+        this.deleteFeatureScope = deleteFeatureScope;
+    }
+
     /**
      * Builder class for API Resource Collection.
      */
@@ -159,10 +231,16 @@ public class APIResourceCollection {
         private String type;
         private List<String> readScopes;
         private List<String> writeScopes;
+        private List<String> createScopes;
+        private List<String> updateScopes;
+        private List<String> deleteScopes;
         private List<String> legacyReadScopes;
         private List<String> legacyWriteScopes;
         private String viewFeatureScope;
         private String editFeatureScope;
+        private String createFeatureScope;
+        private String updateFeatureScope;
+        private String deleteFeatureScope;
         private Map<String, List<APIResource>> apiResources;
 
         public APIResourceCollectionBuilder() {
@@ -204,6 +282,24 @@ public class APIResourceCollection {
             return this;
         }
 
+        public APIResourceCollectionBuilder createScopes(List<String> createScopes) {
+
+            this.createScopes = createScopes;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder updateScopes(List<String> updateScopes) {
+
+            this.updateScopes = updateScopes;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder deleteScopes(List<String> deleteScopes) {
+
+            this.deleteScopes = deleteScopes;
+            return this;
+        }
+
 
         public APIResourceCollectionBuilder legacyReadScopes(List<String> legacyReadScopes) {
 
@@ -226,6 +322,24 @@ public class APIResourceCollection {
         public APIResourceCollectionBuilder editFeatureScope(String editFeatureScope) {
 
             this.editFeatureScope = editFeatureScope;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder createFeatureScope(String createFeatureScope) {
+
+            this.createFeatureScope = createFeatureScope;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder updateFeatureScope(String updateFeatureScope) {
+
+            this.updateFeatureScope = updateFeatureScope;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder deleteFeatureScope(String deleteFeatureScope) {
+
+            this.deleteFeatureScope = deleteFeatureScope;
             return this;
         }
 

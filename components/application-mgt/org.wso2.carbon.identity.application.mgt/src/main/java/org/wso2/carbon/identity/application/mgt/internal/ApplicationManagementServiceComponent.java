@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.AuthorizedScopesCacheInvalidationHandler;
 import org.wso2.carbon.identity.application.mgt.listener.ConsoleAuthorizedAPIListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
@@ -73,6 +74,7 @@ import org.wso2.carbon.identity.certificate.management.service.ApplicationCertif
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -145,6 +147,11 @@ public class ApplicationManagementServiceComponent {
 
             bundleContext.registerService(AuthorizedAPIManagementService.class,
                     new AuthorizedAPIManagementServiceImpl(), null);
+
+            // Invalidates the authorized-scopes cache on API resource / scope mutations. Fires once the handler
+            // is subscribed to the relevant events via the identity-event configuration.
+            bundleContext.registerService(AbstractEventHandler.class,
+                    new AuthorizedScopesCacheInvalidationHandler(), null);
 
             bundleContext.registerService(LoginFlowAIManager.class, new LoginFlowAIManagerImpl(), null);
 
