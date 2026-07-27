@@ -41,7 +41,7 @@ public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims {
     @Override
     public Object getMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             return getRuntimeClaim(claimUri);
         }
         return null;
@@ -50,7 +50,7 @@ public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims {
     @Override
     public boolean hasMember(String claimUri) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             return hasRuntimeClaim(claimUri);
         }
         return false;
@@ -59,7 +59,7 @@ public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims {
     @Override
     public void setMember(String claimUri, Object claimValue) {
 
-        if (authenticatedUser != null) {
+        if (isAuthenticatedUserInCurrentTenant()) {
             setRuntimeClaim(claimUri, claimValue);
         }
     }
