@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -386,4 +386,14 @@ public interface ConfigurationManager {
 
         throw new NotImplementedException("This functionality is not implemented.");
     }
+
+    /**
+     * Retrieves the default configuration for the given resource type and resource name, if it exists.
+     * @param resourceTypeName
+     * @param resourceName
+     * @return the resource object corresponding to the resource with default configurations.
+     * @throws ConfigurationManagementException
+     */
+    Resource getDefaultResource(String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException;
 }

@@ -399,8 +399,9 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
+        RoleBasicInfo roleBasicInfo = roleDAO.getRoleBasicInfoById(roleId, tenantDomain);
         roleDAO.deleteRole(roleId, tenantDomain);
-        roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostDeleteRole(roleBasicInfo, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postDeleteRole(roleId, tenantDomain);
@@ -946,7 +947,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 roleManagementListener.preDeleteRolesByApplication(applicationId, tenantDomain);
             }
         }
-        roleDAO.deleteRolesByApplication(applicationId, tenantDomain);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        List<RoleBasicInfo> deletedRoles = roleDAO.deleteRolesByApplicationAndReturnRoles(applicationId,
+                tenantDomain);
+        for (RoleBasicInfo deletedRole : deletedRoles) {
+            roleManagementEventPublisherProxy.publishPostDeleteRole(deletedRole, tenantDomain);
+        }
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.postDeleteRolesByApplication(applicationId, tenantDomain);

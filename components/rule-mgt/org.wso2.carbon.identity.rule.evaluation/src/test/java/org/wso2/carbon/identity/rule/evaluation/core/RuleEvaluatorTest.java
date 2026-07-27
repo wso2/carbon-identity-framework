@@ -26,6 +26,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.OperatorRegistry;
@@ -60,6 +61,7 @@ import java.util.Objects;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -161,7 +163,7 @@ public class RuleEvaluatorTest {
     public void testEvaluateRule(Rule rule, Map<String, FieldValue> evaluationData, boolean expectedResult) throws
             RuleEvaluationException {
 
-        boolean result = ruleEvaluator.evaluate(rule, evaluationData);
+        boolean result = ruleEvaluator.evaluate(rule, evaluationData).isRuleSatisfied();
         if (expectedResult) {
             assertTrue(result);
         } else {
@@ -175,6 +177,29 @@ public class RuleEvaluatorTest {
 
         ruleEvaluator.evaluate(createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
                 Collections.emptyMap());
+    }
+
+    @Test
+    public void testFailedFieldsPopulatedWhenRuleFails() throws Exception {
+
+        RuleEvaluationResult result = ruleEvaluator.evaluate(
+                createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
+                createEvaluationData("testApp", "client-credentials"));
+
+        assertFalse(result.isRuleSatisfied());
+        // The rule fails on the first failing expression (application), so it is reported as a failed field.
+        assertEquals(result.getFailedFields(), Collections.singletonList("application"));
+    }
+
+    @Test
+    public void testFailedFieldsEmptyWhenRulePasses() throws Exception {
+
+        RuleEvaluationResult result = ruleEvaluator.evaluate(
+                createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes(),
+                createEvaluationData("testapp", "authorization_code"));
+
+        assertTrue(result.isRuleSatisfied());
+        assertTrue(result.getFailedFields().isEmpty());
     }
 
     private Rule createRuleWithTwoANDExpressionsUsingReferenceAndStringValueTypes() throws Exception {

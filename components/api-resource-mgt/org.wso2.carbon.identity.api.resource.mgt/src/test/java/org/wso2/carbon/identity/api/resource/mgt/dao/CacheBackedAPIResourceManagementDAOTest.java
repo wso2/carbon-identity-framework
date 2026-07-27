@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -42,6 +42,8 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -63,7 +65,7 @@ import static org.mockito.Mockito.when;
 public class CacheBackedAPIResourceManagementDAOTest {
 
     private static final int TENANT_ID = 2;
-    private static final String TENANT_DOMAIN = "carbon.super";
+    private static final String TENANT_DOMAIN = "tenant-2.com";
     private static final int INVALID_TENANT_ID = 3;
     private static final String INVALID_TENANT_DOMAIN = "invalid.tenant";
     private static final String DB_NAME = "cache_backed_api_resource_mgt_dao_db";
@@ -76,6 +78,16 @@ public class CacheBackedAPIResourceManagementDAOTest {
     public void setUp() throws Exception {
 
         setUpCarbonHome();
+
+        // The cache-backed DAO resolves the tenant domain (via IdentityTenantUtil -> RealmService) when it starts
+        // a tenant flow to clear/populate the scope metadata cache on writes. Wire a RealmService so this resolves
+        // for every test; tests that mock IdentityTenantUtil statically still override this.
+        RealmService realmService = mock(RealmService.class);
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(tenantManager.getDomain(anyInt())).thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
+        IdentityTenantUtil.setRealmService(realmService);
+
         APIResourceManagementDAOImpl apiResourceManagementDAO = new APIResourceManagementDAOImpl();
         daoImpl = new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
         initiateH2Database(getFilePath());
@@ -190,6 +202,8 @@ public class CacheBackedAPIResourceManagementDAOTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
             String apiId = addAPIResourceToDB(name, getConnection(), tenantId, identityDatabaseUtil,
                     organizationManagementUtil).getId();
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(true)).thenReturn(getConnection());
@@ -215,6 +229,8 @@ public class CacheBackedAPIResourceManagementDAOTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
             addAPIResourceToDB(identifierPostFix, getConnection(), tenantId, identityDatabaseUtil,
                     organizationManagementUtil);
             identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(true)).thenReturn(getConnection());
@@ -241,6 +257,8 @@ public class CacheBackedAPIResourceManagementDAOTest {
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                    .thenAnswer(invocation -> getTenantDomain(invocation.getArgument(0)));
             APIResource apiresource =
                     addAPIResourceToDB("testIsAPIResourceExistById", getConnection(), tenantId, identityDatabaseUtil,
                             organizationManagementUtil);
@@ -630,8 +648,11 @@ public class CacheBackedAPIResourceManagementDAOTest {
     private APIResource addAPIResourceToDB(String namePostFix, Connection connection, int tenantId) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
              MockedStatic<OrganizationManagementUtil> organizationManagementUtil =
                      mockStatic(OrganizationManagementUtil.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(tenantId))
+                    .thenReturn(getTenantDomain(tenantId));
             return addAPIResourceToDB(namePostFix, connection, tenantId, identityDatabaseUtil,
                     organizationManagementUtil);
         }
@@ -688,6 +709,10 @@ public class CacheBackedAPIResourceManagementDAOTest {
         dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
         dataSource.setTestOnBorrow(true);
         dataSource.setValidationQuery("select 1");
+        // Stubbed IdentityDatabaseUtil.getDBConnection borrows a pooled connection eagerly; cache-served reads
+        // never consume it, so it is not returned to the pool. Remove the borrow cap so the pool never blocks
+        // (leaked in-memory H2 connections are released when the test JVM exits).
+        dataSource.setMaxActive(-1);
         try (Connection connection = dataSource.getConnection()) {
             connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
         }

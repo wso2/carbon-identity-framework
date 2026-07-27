@@ -233,6 +233,8 @@
         <Scopes>
             <Scope displayName="Update Branding Preference" name="internal_branding_preference_update"
                    description="Update branding preferences of the organization (root)"/>
+            <Scope displayName="Update Branding Policy URLs" name="internal_branding_preference_policy_update"
+                               description="Update policy URLs in branding preferences of the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Preference Management API"
@@ -242,6 +244,8 @@
         <Scopes>
             <Scope displayName="Update Branding Preference" name="internal_org_branding_preference_update"
                    description="Update branding preferences on user interfaces of the organization"/>
+            <Scope displayName="Update Branding Policy URLs" name="internal_org_branding_preference_policy_update"
+                               description="Update policy URLs in branding preferences of the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Claim Management API" identifier="/api/server/v1/claim-dialects"
@@ -1004,6 +1008,18 @@
                    description="Delete Consent Purpose"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Consent Management V2 Consents API" identifier="/api/identity/consent-mgt/v2.0/consents"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Consents API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Consent" name="internal_consent_mgt_consent_view"
+                   description="View Consents"/>
+            <Scope displayName="Create Consent" name="internal_consent_mgt_consent_create"
+                   description="Create new Consent"/>
+            <Scope displayName="Update Consent" name="internal_consent_mgt_consent_update"
+                   description="Update Consent"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Consent Management V2 Elements API" identifier="/o/api/identity/consent-mgt/v2.0/elements"
                  requiresAuthorization="true"
                  description="API representation of the Consent Management V2 Elements API for organizations" type="ORGANIZATION">
@@ -1028,6 +1044,50 @@
                    description="Update Consent Purpose in the organization"/>
             <Scope displayName="Delete Consent Purpose" name="internal_org_consent_mgt_purpose_delete"
                    description="Delete Consent Purpose in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Management V2 Consents API" identifier="/o/api/identity/consent-mgt/v2.0/consents"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Management V2 Consents API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Consent" name="internal_org_consent_mgt_consent_view"
+                   description="View Consents in the organization"/>
+            <Scope displayName="Create Consent" name="internal_org_consent_mgt_consent_create"
+                   description="Create new Consent in the organization"/>
+            <Scope displayName="Update Consent" name="internal_org_consent_mgt_consent_update"
+                   description="Update Consent in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Purpose Application Mapping API"
+                 identifier="/api/server/v1/configs/consent/purposes"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Purpose Application Mapping API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Consent Purpose Application Mapping"
+                   name="internal_consent_mgt_purpose_app_view"
+                   description="View Consent Purpose Application Mappings"/>
+            <Scope displayName="Add Application to Consent Purpose"
+                   name="internal_consent_mgt_purpose_app_create"
+                   description="Add Application to Consent Purpose"/>
+            <Scope displayName="Remove Application from Consent Purpose"
+                   name="internal_consent_mgt_purpose_app_delete"
+                   description="Remove Application from Consent Purpose"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Purpose Application Mapping API"
+                 identifier="/o/api/server/v1/configs/consent/purposes"
+                 requiresAuthorization="true"
+                 description="API representation of the Consent Purpose Application Mapping API for organizations" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Consent Purpose Application Mapping"
+                   name="internal_org_consent_mgt_purpose_app_view"
+                   description="View Consent Purpose Application Mappings in the organization"/>
+            <Scope displayName="Add Application to Consent Purpose"
+                   name="internal_org_consent_mgt_purpose_app_create"
+                   description="Add Application to Consent Purpose in the organization"/>
+            <Scope displayName="Remove Application from Consent Purpose"
+                   name="internal_org_consent_mgt_purpose_app_delete"
+                   description="Remove Application from Consent Purpose in the organization"/>
         </Scopes>
     </APIResource>
     {% endif %}
@@ -1329,6 +1389,12 @@
                                 description="Manage views of applications from the Console"/>
             <Scope displayName="Application Edit Feature" name="console:applications_edit"
                                 description="Manage edits of applications from the Console"/>
+            <Scope displayName="Application Update Feature" name="console:applications_update"
+                                description="Manage updates of applications from the Console"/>
+            <Scope displayName="Application Create Feature" name="console:applications_create"
+                                description="Manage creates of applications from the Console"/>
+            <Scope displayName="Application Delete Feature" name="console:applications_delete"
+                                description="Manage deletes of applications from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management Feature" identifier="console:org:applications"
@@ -1342,6 +1408,12 @@
                    description="Manage views of applications in the organization from the Console"/>
             <Scope displayName="Application Edit Feature" name="console:org:applications_edit"
                    description="Manage edits of applications in the organization from the Console"/>
+            <Scope displayName="Application Update Feature" name="console:org:applications_update"
+                   description="Manage updates of applications in the organization from the Console"/>
+            <Scope displayName="Application Create Feature" name="console:org:applications_create"
+                   description="Manage creates of applications in the organization from the Console"/>
+            <Scope displayName="Application Delete Feature" name="console:org:applications_delete"
+                   description="Manage deletes of applications in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Internal API management feature" identifier="console:application_internal_api_management"
@@ -1355,6 +1427,12 @@
                     description="Manage views of application internal APIs from the Console"/>
             <Scope displayName="Application Internal API Management Edit Feature" name="console:application_internal_api_management_edit"
                     description="Manage edits of application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management Update Feature" name="console:application_internal_api_management_update"
+                    description="Manage updates of application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management Create Feature" name="console:application_internal_api_management_create"
+                    description="Manage creates of application internal APIs from the Console"/>
+            <Scope displayName="Application Internal API Management Delete Feature" name="console:application_internal_api_management_delete"
+                    description="Manage deletes of application internal APIs from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Internal API management feature" identifier="console:org:application_internal_api_management"
@@ -1368,6 +1446,12 @@
                     description="Manage views of application internal APIs in the organization from the Console"/>
             <Scope displayName="Application Internal API Management Edit Feature" name="console:org:application_internal_api_management_edit"
                     description="Manage edits of application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management Update Feature" name="console:org:application_internal_api_management_update"
+                    description="Manage updates of application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management Create Feature" name="console:org:application_internal_api_management_create"
+                    description="Manage creates of application internal APIs in the organization from the Console"/>
+            <Scope displayName="Application Internal API Management Delete Feature" name="console:org:application_internal_api_management_delete"
+                    description="Manage deletes of application internal APIs in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application client secret management feature" identifier="console:application_client_secrets"
@@ -1381,6 +1465,12 @@
                     description="Manage views of application client secrets from the Console"/>
             <Scope displayName="Application Secret Management Edit Feature" name="console:application_client_secrets_edit"
                     description="Manage edits of application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management Update Feature" name="console:application_client_secrets_update"
+                    description="Manage updates of application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management Create Feature" name="console:application_client_secrets_create"
+                    description="Manage creates of application client secrets from the Console"/>
+            <Scope displayName="Application Secret Management Delete Feature" name="console:application_client_secrets_delete"
+                    description="Manage deletes of application client secrets from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application client secret management feature" identifier="console:org:application_client_secrets"
@@ -1394,6 +1484,12 @@
                     description="Manage views of application client secrets in the organization from the Console"/>
             <Scope displayName="Application Secret Management Edit Feature" name="console:org:application_client_secrets_edit"
                     description="Manage edits of application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management Update Feature" name="console:org:application_client_secrets_update"
+                    description="Manage updates of application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management Create Feature" name="console:org:application_client_secrets_create"
+                    description="Manage creates of application client secrets in the organization from the Console"/>
+            <Scope displayName="Application Secret Management Delete Feature" name="console:org:application_client_secrets_delete"
+                    description="Manage deletes of application client secrets in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Authentication Script Management Feature" identifier="console:applicationAuthenticationScript"
@@ -1407,6 +1503,12 @@
                    description="Manage views of application authentication script from the Console"/>
             <Scope displayName="Application Authentication Script Edit Feature" name="console:applicationAuthenticationScript_edit"
                    description="Manage edits of application authentication script from the Console"/>
+            <Scope displayName="Application Authentication Script Update Feature" name="console:applicationAuthenticationScript_update"
+                   description="Manage updates of application authentication script from the Console"/>
+            <Scope displayName="Application Authentication Script Create Feature" name="console:applicationAuthenticationScript_create"
+                   description="Manage creates of application authentication script from the Console"/>
+            <Scope displayName="Application Authentication Script Delete Feature" name="console:applicationAuthenticationScript_delete"
+                   description="Manage deletes of application authentication script from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Authentication Script Management Feature" identifier="console:org:applicationAuthenticationScript"
@@ -1420,6 +1522,12 @@
                    description="Manage views of application authentication script from the Console"/>
             <Scope displayName="Application Authentication Script Edit Feature" name="console:org:applicationAuthenticationScript_edit"
                    description="Manage edits of application authentication script from the Console"/>
+            <Scope displayName="Application Authentication Script Update Feature" name="console:org:applicationAuthenticationScript_update"
+                   description="Manage updates of application authentication script from the Console"/>
+            <Scope displayName="Application Authentication Script Create Feature" name="console:org:applicationAuthenticationScript_create"
+                   description="Manage creates of application authentication script from the Console"/>
+            <Scope displayName="Application Authentication Script Delete Feature" name="console:org:applicationAuthenticationScript_delete"
+                   description="Manage deletes of application authentication script from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"
@@ -1433,6 +1541,12 @@
                     description="Manage views of branding from the Console"/>
             <Scope displayName="Branding Edit Feature" name="console:branding_edit"
                     description="Manage edits of branding from the Console"/>
+            <Scope displayName="Branding Update Feature" name="console:branding_update"
+                    description="Manage updates of branding from the Console"/>
+            <Scope displayName="Branding Create Feature" name="console:branding_create"
+                    description="Manage creates of branding from the Console"/>
+            <Scope displayName="Branding Delete Feature" name="console:branding_delete"
+                    description="Manage deletes of branding from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:org:branding"
@@ -1446,6 +1560,12 @@
                    description="Manage views of branding in the organization from the Console"/>
             <Scope displayName="Branding Edit Feature" name="console:org:branding_edit"
                    description="Manage edits of branding in the organization from the Console"/>
+            <Scope displayName="Branding Update Feature" name="console:org:branding_update"
+                   description="Manage updates of branding in the organization from the Console"/>
+            <Scope displayName="Branding Create Feature" name="console:org:branding_create"
+                   description="Manage creates of branding in the organization from the Console"/>
+            <Scope displayName="Branding Delete Feature" name="console:org:branding_delete"
+                   description="Manage deletes of branding in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Attribute Management Feature" identifier="console:attributes"
@@ -1459,6 +1579,12 @@
                     description="Manage views of user attributes from the Console"/>
             <Scope displayName="Attribute Edit Feature" name="console:attributes_edit"
                     description="Manage edits of user attributes from the Console"/>
+            <Scope displayName="Attribute Update Feature" name="console:attributes_update"
+                    description="Manage updates of user attributes from the Console"/>
+            <Scope displayName="Attribute Create Feature" name="console:attributes_create"
+                    description="Manage creates of user attributes from the Console"/>
+            <Scope displayName="Attribute Delete Feature" name="console:attributes_delete"
+                    description="Manage deletes of user attributes from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Attribute Management Feature" identifier="console:org:attributes"
@@ -1472,6 +1598,12 @@
                        description="Manage views of user attributes from the Console"/>
                <Scope displayName="Attribute Edit Feature" name="console:org:attributes_edit"
                        description="Manage edits of user attributes from the Console"/>
+               <Scope displayName="Attribute Update Feature" name="console:org:attributes_update"
+                       description="Manage updates of user attributes from the Console"/>
+               <Scope displayName="Attribute Create Feature" name="console:org:attributes_create"
+                       description="Manage creates of user attributes from the Console"/>
+               <Scope displayName="Attribute Delete Feature" name="console:org:attributes_delete"
+                       description="Manage deletes of user attributes from the Console"/>
            </Scopes>
     </APIResource>
     <APIResource name="User Store Management Feature" identifier="console:userstores"
@@ -1485,6 +1617,12 @@
                     description="Manage user stores from the Console"/>
             <Scope displayName="User Store Edit Feature" name="console:userstores_edit"
                     description="Manage edits of user stores from the Console"/>
+            <Scope displayName="User Store Update Feature" name="console:userstores_update"
+                    description="Manage updates of user stores from the Console"/>
+            <Scope displayName="User Store Create Feature" name="console:userstores_create"
+                    description="Manage creates of user stores from the Console"/>
+            <Scope displayName="User Store Delete Feature" name="console:userstores_delete"
+                    description="Manage deletes of user stores from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Store Management Feature" identifier="console:org:userstores"
@@ -1498,6 +1636,12 @@
                     description="Manage views of user stores from the Console"/>
             <Scope displayName="User Store Edit Feature" name="console:org:userstores_edit"
                     description="Manage edits of user stores from the Console"/>
+            <Scope displayName="User Store Update Feature" name="console:org:userstores_update"
+                    description="Manage updates of user stores from the Console"/>
+            <Scope displayName="User Store Create Feature" name="console:org:userstores_create"
+                    description="Manage creates of user stores from the Console"/>
+            <Scope displayName="User Store Delete Feature" name="console:org:userstores_delete"
+                    description="Manage deletes of user stores from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Group Management Feature" identifier="console:groups"
@@ -1511,6 +1655,12 @@
                     description="Manage views of groups from the Console"/>
             <Scope displayName="Group Edit Feature" name="console:groups_edit"
                     description="Manage edits of groups from the Console"/>
+            <Scope displayName="Group Update Feature" name="console:groups_update"
+                    description="Manage updates of groups from the Console"/>
+            <Scope displayName="Group Create Feature" name="console:groups_create"
+                    description="Manage creates of groups from the Console"/>
+            <Scope displayName="Group Delete Feature" name="console:groups_delete"
+                    description="Manage deletes of groups from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Group Management Feature" identifier="console:org:groups"
@@ -1524,6 +1674,12 @@
                    description="Manage views of groups in the organization from the Console"/>
             <Scope displayName="Group Edit Feature" name="console:org:groups_edit"
                    description="Manage edits of groups in the organization from the Console"/>
+            <Scope displayName="Group Update Feature" name="console:org:groups_update"
+                   description="Manage updates of groups in the organization from the Console"/>
+            <Scope displayName="Group Create Feature" name="console:org:groups_create"
+                   description="Manage creates of groups in the organization from the Console"/>
+            <Scope displayName="Group Delete Feature" name="console:org:groups_delete"
+                   description="Manage deletes of groups in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Provider Management Feature" identifier="console:idps"
@@ -1537,6 +1693,12 @@
                     description="Manage views of identity providers from the Console"/>
             <Scope displayName="Identity Provider Edit Feature" name="console:idps_edit"
                     description="Manage edits of identity providers from the Console"/>
+            <Scope displayName="Identity Provider Update Feature" name="console:idps_update"
+                    description="Manage updates of identity providers from the Console"/>
+            <Scope displayName="Identity Provider Create Feature" name="console:idps_create"
+                    description="Manage creates of identity providers from the Console"/>
+            <Scope displayName="Identity Provider Delete Feature" name="console:idps_delete"
+                    description="Manage deletes of identity providers from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Provider Management Feature" identifier="console:org:idps"
@@ -1550,6 +1712,12 @@
                    description="Manage views of identity providers in the organization from the Console"/>
             <Scope displayName="Identity Provider Edit Feature" name="console:org:idps_edit"
                    description="Manage edits of identity providers in the organization from the Console"/>
+            <Scope displayName="Identity Provider Update Feature" name="console:org:idps_update"
+                   description="Manage updates of identity providers in the organization from the Console"/>
+            <Scope displayName="Identity Provider Create Feature" name="console:org:idps_create"
+                   description="Manage creates of identity providers in the organization from the Console"/>
+            <Scope displayName="Identity Provider Delete Feature" name="console:org:idps_delete"
+                   description="Manage deletes of identity providers in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="API Resource Management Feature" identifier="console:apiResources"
@@ -1563,6 +1731,12 @@
                                 description="Manage views of api resources from the Console"/>
             <Scope displayName="API Resource Edit Feature" name="console:apiResources_edit"
                                 description="Manage edits of api resources from the Console"/>
+            <Scope displayName="API Resource Update Feature" name="console:apiResources_update"
+                                description="Manage updates of api resources from the Console"/>
+            <Scope displayName="API Resource Create Feature" name="console:apiResources_create"
+                                description="Manage creates of api resources from the Console"/>
+            <Scope displayName="API Resource Delete Feature" name="console:apiResources_delete"
+                                description="Manage deletes of api resources from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="API Resource Management Feature" identifier="console:org:apiResources"
@@ -1576,6 +1750,12 @@
                     description="Manage views of api resources in the organization from the Console"/>
             <Scope displayName="API Resource Edit Feature" name="console:org:apiResources_edit"
                     description="Manage edits of api resources in the organization from the Console"/>
+            <Scope displayName="API Resource Update Feature" name="console:org:apiResources_update"
+                    description="Manage updates of api resources in the organization from the Console"/>
+            <Scope displayName="API Resource Create Feature" name="console:org:apiResources_create"
+                    description="Manage creates of api resources in the organization from the Console"/>
+            <Scope displayName="API Resource Delete Feature" name="console:org:apiResources_delete"
+                    description="Manage deletes of api resources in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="OIDC Scope Management Feature" identifier="console:scopes:oidc"
@@ -1589,6 +1769,12 @@
                     description="Manage views of OIDC scopes from the Console"/>
             <Scope displayName="OIDC Scope Edit Feature" name="console:scopes:oidc_edit"
                     description="Manage edits of OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope Update Feature" name="console:scopes:oidc_update"
+                    description="Manage updates of OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope Create Feature" name="console:scopes:oidc_create"
+                    description="Manage creates of OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope Delete Feature" name="console:scopes:oidc_delete"
+                    description="Manage deletes of OIDC scopes from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="OIDC Scope Management Feature" identifier="console:org:scopes:oidc"
@@ -1613,6 +1799,12 @@
                     description="Manage views of login and regisgtration from the Console"/>
             <Scope displayName="Login And Registration Edit Feature" name="console:loginAndRegistration_edit"
                     description="Manage edits of login and regisgtration from the Console"/>
+            <Scope displayName="Login And Registration Update Feature" name="console:loginAndRegistration_update"
+                    description="Manage updates of login and regisgtration from the Console"/>
+            <Scope displayName="Login And Registration Create Feature" name="console:loginAndRegistration_create"
+                    description="Manage creates of login and regisgtration from the Console"/>
+            <Scope displayName="Login And Registration Delete Feature" name="console:loginAndRegistration_delete"
+                    description="Manage deletes of login and regisgtration from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Login And Registration Management Feature" identifier="console:org:loginAndRegistration"
@@ -1626,6 +1818,12 @@
                    description="Manage views of login and registration from the Console"/>
            <Scope displayName="Login And Registration Edit Feature" name="console:org:loginAndRegistration_edit"
                    description="Manage edits of login and registration from the Console"/>
+           <Scope displayName="Login And Registration Update Feature" name="console:org:loginAndRegistration_update"
+                   description="Manage updates of login and registration from the Console"/>
+           <Scope displayName="Login And Registration Create Feature" name="console:org:loginAndRegistration_create"
+                   description="Manage creates of login and registration from the Console"/>
+           <Scope displayName="Login And Registration Delete Feature" name="console:org:loginAndRegistration_delete"
+                   description="Manage deletes of login and registration from the Console"/>
        </Scopes>
    </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:organizations"
@@ -1639,6 +1837,12 @@
                     description="Manage views of organizations from the Console"/>
             <Scope displayName="Organization Edit Feature" name="console:organizations_edit"
                     description="Manage edits of organizations from the Console"/>
+            <Scope displayName="Organization Update Feature" name="console:organizations_update"
+                    description="Manage updates of organizations from the Console"/>
+            <Scope displayName="Organization Create Feature" name="console:organizations_create"
+                    description="Manage creates of organizations from the Console"/>
+            <Scope displayName="Organization Delete Feature" name="console:organizations_delete"
+                    description="Manage deletes of organizations from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:org:organizations"
@@ -1652,6 +1856,12 @@
                    description="Manage views of organizations in the organization from the Console"/>
             <Scope displayName="Organization Edit Feature" name="console:org:organizations_edit"
                    description="Manage edits of organizations in the organization from the Console"/>
+            <Scope displayName="Organization Update Feature" name="console:org:organizations_update"
+                   description="Manage updates of organizations in the organization from the Console"/>
+            <Scope displayName="Organization Create Feature" name="console:org:organizations_create"
+                   description="Manage creates of organizations in the organization from the Console"/>
+            <Scope displayName="Organization Delete Feature" name="console:org:organizations_delete"
+                   description="Manage deletes of organizations in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Discovery Management Feature" identifier="console:organizationDiscovery"
@@ -1665,6 +1875,12 @@
                     description="Manage views of organization discovery from the Console"/>
             <Scope displayName="Organization Discovery Edit Feature" name="console:organizationDiscovery_edit"
                     description="Manage edits of organization discovery from the Console"/>
+            <Scope displayName="Organization Discovery Update Feature" name="console:organizationDiscovery_update"
+                    description="Manage updates of organization discovery from the Console"/>
+            <Scope displayName="Organization Discovery Create Feature" name="console:organizationDiscovery_create"
+                    description="Manage creates of organization discovery from the Console"/>
+            <Scope displayName="Organization Discovery Delete Feature" name="console:organizationDiscovery_delete"
+                    description="Manage deletes of organization discovery from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Resident Application Outbound Provisioning Configuration Feature" identifier="console:residentOutboundProvisioning"
@@ -1678,6 +1894,12 @@
                     description="Manage views of resident application outbound provisioning configuration from the Console"/>
             <Scope displayName="Resident Application Outbound Provisioning Edit Feature" name="console:residentOutboundProvisioning_edit"
                     description="Manage edits of resident application outbound provisioning configuration from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Update Feature" name="console:residentOutboundProvisioning_update"
+                    description="Manage updates of resident application outbound provisioning configuration from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Create Feature" name="console:residentOutboundProvisioning_create"
+                    description="Manage creates of resident application outbound provisioning configuration from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Delete Feature" name="console:residentOutboundProvisioning_delete"
+                    description="Manage deletes of resident application outbound provisioning configuration from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Resident Application Outbound Provisioning Configuration Feature" identifier="console:org:residentOutboundProvisioning"
@@ -1691,6 +1913,12 @@
                    description="Manage views of resident application outbound provisioning configuration in the organization from the Console"/>
             <Scope displayName="Resident Application Outbound Provisioning Edit Feature" name="console:org:residentOutboundProvisioning_edit"
                    description="Manage edits of resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Update Feature" name="console:org:residentOutboundProvisioning_update"
+                   description="Manage updates of resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Create Feature" name="console:org:residentOutboundProvisioning_create"
+                   description="Manage creates of resident application outbound provisioning configuration in the organization from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Delete Feature" name="console:org:residentOutboundProvisioning_delete"
+                   description="Manage deletes of resident application outbound provisioning configuration in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
@@ -1704,6 +1932,12 @@
                     description="Manage views of roles from the Console"/>
             <Scope displayName="Role Edit Feature" name="console:roles_edit"
                     description="Manage edits of roles from the Console"/>
+            <Scope displayName="Role Update Feature" name="console:roles_update"
+                    description="Manage updates of roles from the Console"/>
+            <Scope displayName="Role Create Feature" name="console:roles_create"
+                    description="Manage creates of roles from the Console"/>
+            <Scope displayName="Role Delete Feature" name="console:roles_delete"
+                    description="Manage deletes of roles from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Management Feature" identifier="console:org:roles"
@@ -1717,6 +1951,12 @@
                    description="Manage views of roles in the organization from the Console"/>
             <Scope displayName="Role Edit Feature" name="console:org:roles_edit"
                    description="Manage edits of roles in the organization from the Console"/>
+            <Scope displayName="Role Update Feature" name="console:org:roles_update"
+                   description="Manage updates of roles in the organization from the Console"/>
+            <Scope displayName="Role Create Feature" name="console:org:roles_create"
+                   description="Manage creates of roles in the organization from the Console"/>
+            <Scope displayName="Role Delete Feature" name="console:org:roles_delete"
+                   description="Manage deletes of roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Assignments Feature" identifier="console:role_assignments"
@@ -1730,6 +1970,12 @@
                 description="Manage views of role assignments from the Console"/>
             <Scope displayName="Role Assignments Edit Feature" name="console:role_assignments_edit"
                 description="Manage edits of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Update Feature" name="console:role_assignments_update"
+                description="Manage updates of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Create Feature" name="console:role_assignments_create"
+                description="Manage creates of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Delete Feature" name="console:role_assignments_delete"
+                description="Manage deletes of role assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Assignments Feature" identifier="console:org:role_assignments"
@@ -1743,6 +1989,12 @@
                 description="Manage views of role assignments from the Console"/>
             <Scope displayName="Role Assignments Edit Feature" name="console:org:role_assignments_edit"
                 description="Manage edits of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Update Feature" name="console:org:role_assignments_update"
+                description="Manage updates of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Create Feature" name="console:org:role_assignments_create"
+                description="Manage creates of role assignments from the Console"/>
+            <Scope displayName="Role Assignments Delete Feature" name="console:org:role_assignments_delete"
+                description="Manage deletes of role assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Permission Assignments Feature" identifier="console:role_permission_assignments"
@@ -1756,6 +2008,12 @@
                 description="Manage views of role permission assignments from the Console"/>
             <Scope displayName="Role Permission Assignments Edit Feature" name="console:role_permission_assignments_edit"
                 description="Manage edits of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Update Feature" name="console:role_permission_assignments_update"
+                description="Manage updates of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Create Feature" name="console:role_permission_assignments_create"
+                description="Manage creates of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Delete Feature" name="console:role_permission_assignments_delete"
+                description="Manage deletes of role permission assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Permission Assignments Feature" identifier="console:org:role_permission_assignments"
@@ -1769,6 +2027,12 @@
                 description="Manage views of role permission assignments from the Console"/>
             <Scope displayName="Role Permission Assignments Edit Feature" name="console:org:role_permission_assignments_edit"
                 description="Manage edits of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Update Feature" name="console:org:role_permission_assignments_update"
+                description="Manage updates of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Create Feature" name="console:org:role_permission_assignments_create"
+                description="Manage creates of role permission assignments from the Console"/>
+            <Scope displayName="Role Permission Assignments Delete Feature" name="console:org:role_permission_assignments_delete"
+                description="Manage deletes of role permission assignments from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"
@@ -1782,6 +2046,12 @@
                     description="Manage views of users from the Console"/>
             <Scope displayName="User Edit Feature" name="console:users_edit"
                     description="Manage edits of users from the Console"/>
+            <Scope displayName="User Update Feature" name="console:users_update"
+                    description="Manage updates of users from the Console"/>
+            <Scope displayName="User Create Feature" name="console:users_create"
+                    description="Manage creates of users from the Console"/>
+            <Scope displayName="User Delete Feature" name="console:users_delete"
+                    description="Manage deletes of users from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Sharing Management Feature" identifier="console:userSharing"
@@ -1794,6 +2064,12 @@
             <Scope displayName="User Sharing Management View Feature" name="console:userSharing_view"
                    description="View user sharing status from the Console"/>
             <Scope displayName="User Sharing Management Edit Feature" name="console:userSharing_edit"
+                   description="Update user sharing status from the Console"/>
+            <Scope displayName="User Sharing Management Update Feature" name="console:userSharing_update"
+                   description="Update user sharing status from the Console"/>
+            <Scope displayName="User Sharing Management Create Feature" name="console:userSharing_create"
+                   description="Update user sharing status from the Console"/>
+            <Scope displayName="User Sharing Management Delete Feature" name="console:userSharing_delete"
                    description="Update user sharing status from the Console"/>
         </Scopes>
     </APIResource>
@@ -1808,6 +2084,12 @@
                    description="Manage views of users in the organization from the Console"/>
             <Scope displayName="User Edit Feature" name="console:org:users_edit"
                    description="Manage edits of users in the organization from the Console"/>
+            <Scope displayName="User Update Feature" name="console:org:users_update"
+                   description="Manage updates of users in the organization from the Console"/>
+            <Scope displayName="User Create Feature" name="console:org:users_create"
+                   description="Manage creates of users in the organization from the Console"/>
+            <Scope displayName="User Delete Feature" name="console:org:users_delete"
+                   description="Manage deletes of users in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Sharing Management Feature" identifier="console:org:userSharing"
@@ -1821,6 +2103,12 @@
                    description="View the shared status of users within the organization from the Console"/>
             <Scope displayName="User Sharing Management Edit Feature" name="console:org:userSharing_edit"
                    description="Manage edits of user sharing status in the organization from the Console"/>
+            <Scope displayName="User Sharing Management Update Feature" name="console:org:userSharing_update"
+                   description="Manage updates of user sharing status in the organization from the Console"/>
+            <Scope displayName="User Sharing Management Create Feature" name="console:org:userSharing_create"
+                   description="Manage creates of user sharing status in the organization from the Console"/>
+            <Scope displayName="User Sharing Management Delete Feature" name="console:org:userSharing_delete"
+                   description="Manage deletes of user sharing status in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Agent Management Feature" identifier="console:agents"
@@ -1834,6 +2122,12 @@
                     description="Manage views of agents from the Console"/>
             <Scope displayName="User Edit Feature" name="console:agents_edit"
                     description="Manage edits of agents from the Console"/>
+            <Scope displayName="User Update Feature" name="console:agents_update"
+                    description="Manage updates of agents from the Console"/>
+            <Scope displayName="User Create Feature" name="console:agents_create"
+                    description="Manage creates of agents from the Console"/>
+            <Scope displayName="User Delete Feature" name="console:agents_delete"
+                    description="Manage deletes of agents from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
@@ -1856,6 +2150,12 @@
                     description="Manage views of workflows from the Console"/>
             <Scope displayName="Approval Workflow Edit Feature" name="console:approvalWorkflows_edit"
                     description="Manage edits of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Update Feature" name="console:approvalWorkflows_update"
+                    description="Manage updates of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Create Feature" name="console:approvalWorkflows_create"
+                    description="Manage creates of workflows from the Console"/>
+            <Scope displayName="Approval Workflow Delete Feature" name="console:approvalWorkflows_delete"
+                    description="Manage deletes of workflows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Approval Workflow Management Feature Organization" identifier="console:org:approvalWorkflows"
@@ -1869,6 +2169,12 @@
                     description="Manage views of approval workflows from the Console"/>
             <Scope displayName="Approval Workflow Edit Feature" name="console:org:approvalWorkflows_edit"
                     description="Manage edits of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Update Feature" name="console:org:approvalWorkflows_update"
+                    description="Manage updates of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Create Feature" name="console:org:approvalWorkflows_create"
+                    description="Manage creates of approval workflows from the Console"/>
+            <Scope displayName="Approval Workflow Delete Feature" name="console:org:approvalWorkflows_delete"
+                    description="Manage deletes of approval workflows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Workflow Instance Management Feature" identifier="console:workflowInstances"
@@ -1882,6 +2188,12 @@
                     description="Manage views of workflow instances from the Console"/>
             <Scope displayName="Workflow Instance Edit Feature" name="console:workflowInstances_edit"
                     description="Manage edits of workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance Update Feature" name="console:workflowInstances_update"
+                    description="Manage updates of workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance Create Feature" name="console:workflowInstances_create"
+                    description="Manage creates of workflow instances from the Console"/>
+            <Scope displayName="Workflow Instance Delete Feature" name="console:workflowInstances_delete"
+                    description="Manage deletes of workflow instances from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Workflow Instance Management Feature" identifier="console:org:workflowInstances"
@@ -1895,6 +2207,12 @@
                     description="Manage views of workflow instances in the organization from the Console"/>
             <Scope displayName="Workflow Instance Edit Feature" name="console:org:workflowInstances_edit"
                     description="Manage edits of workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance Update Feature" name="console:org:workflowInstances_update"
+                    description="Manage updates of workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance Create Feature" name="console:org:workflowInstances_create"
+                    description="Manage creates of workflow instances in the organization from the Console"/>
+            <Scope displayName="Workflow Instance Delete Feature" name="console:org:workflowInstances_delete"
+                    description="Manage deletes of workflow instances in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
@@ -1908,6 +2226,12 @@
                     description="Manage views of notification channels from the Console"/>
             <Scope displayName="Notification Channel Edit Feature" name="console:notificationChannels_edit"
                     description="Manage edits of notification channels from the Console"/>
+            <Scope displayName="Notification Channel Update Feature" name="console:notificationChannels_update"
+                    description="Manage updates of notification channels from the Console"/>
+            <Scope displayName="Notification Channel Create Feature" name="console:notificationChannels_create"
+                    description="Manage creates of notification channels from the Console"/>
+            <Scope displayName="Notification Channel Delete Feature" name="console:notificationChannels_delete"
+                    description="Manage deletes of notification channels from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Verification Provider Management Feature" identifier="console:idvps"
@@ -1921,6 +2245,12 @@
                     description="Manage views of identity verfication providers from the Console"/>
             <Scope displayName="Identity Verification Provider Edit Feature" name="console:idvps_edit"
                     description="Manage edits of identity verfication providers from the Console"/>
+            <Scope displayName="Identity Verification Provider Update Feature" name="console:idvps_update"
+                    description="Manage updates of identity verfication providers from the Console"/>
+            <Scope displayName="Identity Verification Provider Create Feature" name="console:idvps_create"
+                    description="Manage creates of identity verfication providers from the Console"/>
+            <Scope displayName="Identity Verification Provider Delete Feature" name="console:idvps_delete"
+                    description="Manage deletes of identity verfication providers from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Event Publishing Management Feature" identifier="console:eventPublishing"
@@ -1943,6 +2273,12 @@
                     description="Manage views of email templates from the Console"/>
             <Scope displayName="Email Template Edit Feature" name="console:emailTemplates_edit"
                     description="Manage edits of email templates from the Console"/>
+            <Scope displayName="Email Template Update Feature" name="console:emailTemplates_update"
+                    description="Manage updates of email templates from the Console"/>
+            <Scope displayName="Email Template Create Feature" name="console:emailTemplates_create"
+                    description="Manage creates of email templates from the Console"/>
+            <Scope displayName="Email Template Delete Feature" name="console:emailTemplates_delete"
+                    description="Manage deletes of email templates from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management Feature" identifier="console:org:emailTemplates"
@@ -1956,6 +2292,12 @@
                    description="Manage views of email templates in the organization from the Console"/>
             <Scope displayName="Email Template Edit Feature" name="console:org:emailTemplates_edit"
                    description="Manage edits of email templates in the organization from the Console"/>
+            <Scope displayName="Email Template Update Feature" name="console:org:emailTemplates_update"
+                   description="Manage updates of email templates in the organization from the Console"/>
+            <Scope displayName="Email Template Create Feature" name="console:org:emailTemplates_create"
+                   description="Manage creates of email templates in the organization from the Console"/>
+            <Scope displayName="Email Template Delete Feature" name="console:org:emailTemplates_delete"
+                   description="Manage deletes of email templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="SMS Template Management Feature" identifier="console:smsTemplates"
@@ -1969,6 +2311,12 @@
                    description="Manage views of SMS templates from the Console"/>
             <Scope displayName="SMS Template Edit Feature" name="console:smsTemplates_edit"
                    description="Manage edits of SMS templates from the Console"/>
+            <Scope displayName="SMS Template Update Feature" name="console:smsTemplates_update"
+                   description="Manage updates of SMS templates from the Console"/>
+            <Scope displayName="SMS Template Create Feature" name="console:smsTemplates_create"
+                   description="Manage creates of SMS templates from the Console"/>
+            <Scope displayName="SMS Template Delete Feature" name="console:smsTemplates_delete"
+                   description="Manage deletes of SMS templates from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="SMS Template Management Feature" identifier="console:org:smsTemplates"
@@ -1982,6 +2330,12 @@
                    description="Manage views of SMS templates in the organization from the Console"/>
             <Scope displayName="SMS Template Edit Feature" name="console:org:smsTemplates_edit"
                    description="Manage edits of SMS templates in the organization from the Console"/>
+            <Scope displayName="SMS Template Update Feature" name="console:org:smsTemplates_update"
+                   description="Manage updates of SMS templates in the organization from the Console"/>
+            <Scope displayName="SMS Template Create Feature" name="console:org:smsTemplates_create"
+                   description="Manage creates of SMS templates in the organization from the Console"/>
+            <Scope displayName="SMS Template Delete Feature" name="console:org:smsTemplates_delete"
+                   description="Manage deletes of SMS templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:settings"
@@ -1995,6 +2349,12 @@
                     description="Manage views of console setting from the Console"/>
             <Scope displayName="Console Setting Edit Feature" name="console:settings_edit"
                     description="Manage edits of console setting from the Console"/>
+            <Scope displayName="Console Setting Update Feature" name="console:settings_update"
+                    description="Manage updates of console setting from the Console"/>
+            <Scope displayName="Console Setting Create Feature" name="console:settings_create"
+                    description="Manage creates of console setting from the Console"/>
+            <Scope displayName="Console Setting Delete Feature" name="console:settings_delete"
+                    description="Manage deletes of console setting from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:org:settings"
@@ -2008,6 +2368,12 @@
                    description="Manage views of console setting in the organization from the Console"/>
             <Scope displayName="Console Setting Edit Feature" name="console:org:settings_edit"
                    description="Manage edits of console setting in the organization from the Console"/>
+            <Scope displayName="Console Setting Update Feature" name="console:org:settings_update"
+                   description="Manage updates of console setting in the organization from the Console"/>
+            <Scope displayName="Console Setting Create Feature" name="console:org:settings_create"
+                   description="Manage creates of console setting in the organization from the Console"/>
+            <Scope displayName="Console Setting Delete Feature" name="console:org:settings_delete"
+                   description="Manage deletes of console setting in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Getting Started Feature" identifier="console:home"
@@ -2021,6 +2387,12 @@
                     description="Manage views of home settings from the Console"/>
             <Scope displayName="Getting Started Edit Feature" name="console:home_edit"
                     description="Manage edits of home settings from the Console"/>
+            <Scope displayName="Getting Started Update Feature" name="console:home_update"
+                    description="Manage updates of home settings from the Console"/>
+            <Scope displayName="Getting Started Create Feature" name="console:home_create"
+                    description="Manage creates of home settings from the Console"/>
+            <Scope displayName="Getting Started Delete Feature" name="console:home_delete"
+                    description="Manage deletes of home settings from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Getting Started Feature" identifier="console:org:home"
@@ -2034,6 +2406,12 @@
                    description="Manage views of home settings in the organization from the Console"/>
             <Scope displayName="Getting Started Edit Feature" name="console:org:home_edit"
                    description="Manage edits of home settings in the organization from the Console"/>
+            <Scope displayName="Getting Started Update Feature" name="console:org:home_update"
+                   description="Manage updates of home settings in the organization from the Console"/>
+            <Scope displayName="Getting Started Create Feature" name="console:org:home_create"
+                   description="Manage creates of home settings in the organization from the Console"/>
+            <Scope displayName="Getting Started Delete Feature" name="console:org:home_delete"
+                   description="Manage deletes of home settings in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Secret Management Feature" identifier="console:secretsManagement"
@@ -2056,6 +2434,12 @@
                     description="Manage views of certificates from the Console"/>
             <Scope displayName="Certificate Edit Feature" name="console:certificates_edit"
                     description="Manage edits of certificates from the Console"/>
+            <Scope displayName="Certificate Update Feature" name="console:certificates_update"
+                    description="Manage updates of certificates from the Console"/>
+            <Scope displayName="Certificate Create Feature" name="console:certificates_create"
+                    description="Manage creates of certificates from the Console"/>
+            <Scope displayName="Certificate Delete Feature" name="console:certificates_delete"
+                    description="Manage deletes of certificates from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Action Management Feature" identifier="console:actions"
@@ -2069,6 +2453,12 @@
                     description="Manage views of actions from the Console"/>
             <Scope displayName="Action Edit Feature" name="console:actions_edit"
                     description="Manage edits of actions from the Console"/>
+            <Scope displayName="Action Update Feature" name="console:actions_update"
+                    description="Manage updates of actions from the Console"/>
+            <Scope displayName="Action Create Feature" name="console:actions_create"
+                    description="Manage creates of actions from the Console"/>
+            <Scope displayName="Action Delete Feature" name="console:actions_delete"
+                    description="Manage deletes of actions from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Action Management Feature" identifier="console:org:actions"
@@ -2082,6 +2472,12 @@
                 description="Manage views of actions from the Console"/>
             <Scope displayName="Action Edit Feature" name="console:org:actions_edit"
                 description="Manage edits of actions from the Console"/>
+            <Scope displayName="Action Update Feature" name="console:org:actions_update"
+                description="Manage updates of actions from the Console"/>
+            <Scope displayName="Action Create Feature" name="console:org:actions_create"
+                description="Manage creates of actions from the Console"/>
+            <Scope displayName="Action Delete Feature" name="console:org:actions_delete"
+                description="Manage deletes of actions from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Webhook Management Feature" identifier="console:webhooks"
@@ -2095,6 +2491,12 @@
                    description="Manage views of webhooks from the Console"/>
             <Scope displayName="Webhook Edit Feature" name="console:webhooks_edit"
                    description="Manage edits of webhooks from the Console"/>
+            <Scope displayName="Webhook Update Feature" name="console:webhooks_update"
+                   description="Manage updates of webhooks from the Console"/>
+            <Scope displayName="Webhook Create Feature" name="console:webhooks_create"
+                   description="Manage creates of webhooks from the Console"/>
+            <Scope displayName="Webhook Delete Feature" name="console:webhooks_delete"
+                   description="Manage deletes of webhooks from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management Feature" identifier="console:tenants"
@@ -2108,6 +2510,12 @@
                    description="Manage views of tenants from the Console"/>
             <Scope displayName="Tenants Edit Feature" name="console:tenants_edit"
                    description="Manage edits of tenants from the Console"/>
+            <Scope displayName="Tenants Update Feature" name="console:tenants_update"
+                   description="Manage updates of tenants from the Console"/>
+            <Scope displayName="Tenants Create Feature" name="console:tenants_create"
+                   description="Manage creates of tenants from the Console"/>
+            <Scope displayName="Tenants Delete Feature" name="console:tenants_delete"
+                   description="Manage deletes of tenants from the Console"/>
         </Scopes>
     </APIResource>
     {% if consent_mgt.enable_v2_api %}
@@ -2122,6 +2530,12 @@
                    description="Manage views of consent from the Console"/>
             <Scope displayName="Consent Management Edit Feature" name="console:consents_edit"
                    description="Manage edits of consent from the Console"/>
+            <Scope displayName="Consent Management Update Feature" name="console:consents_update"
+                   description="Manage updates of consent from the Console"/>
+            <Scope displayName="Consent Management Create Feature" name="console:consents_create"
+                   description="Manage creates of consent from the Console"/>
+            <Scope displayName="Consent Management Delete Feature" name="console:consents_delete"
+                   description="Manage deletes of consent from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Consent Management Feature" identifier="console:org:consents"
@@ -2135,6 +2549,12 @@
                    description="Manage views of consent in the organization from the Console"/>
             <Scope displayName="Consent Management Edit Feature" name="console:org:consents_edit"
                    description="Manage edits of consent in the organization from the Console"/>
+            <Scope displayName="Consent Management Update Feature" name="console:org:consents_update"
+                   description="Manage updates of consent in the organization from the Console"/>
+            <Scope displayName="Consent Management Create Feature" name="console:org:consents_create"
+                   description="Manage creates of consent in the organization from the Console"/>
+            <Scope displayName="Consent Management Delete Feature" name="console:org:consents_delete"
+                   description="Manage deletes of consent in the organization from the Console"/>
         </Scopes>
     </APIResource>
     {% endif %}
@@ -2149,6 +2569,12 @@
                    description="Manage views of flows from the Console"/>
             <Scope displayName="Flows Edit Feature" name="console:flows_edit"
                    description="Manage edits of flows from the Console"/>
+            <Scope displayName="Flows Update Feature" name="console:flows_update"
+                   description="Manage updates of flows from the Console"/>
+            <Scope displayName="Flows Create Feature" name="console:flows_create"
+                   description="Manage creates of flows from the Console"/>
+            <Scope displayName="Flows Delete Feature" name="console:flows_delete"
+                   description="Manage deletes of flows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Flows Feature" identifier="console:org:flows"
@@ -2162,6 +2588,12 @@
                    description="Manage views of flows from the Console"/>
             <Scope displayName="Flows Edit Feature" name="console:org:flows_edit"
                    description="Manage edits of flows from the Console"/>
+            <Scope displayName="Flows Update Feature" name="console:org:flows_update"
+                   description="Manage updates of flows from the Console"/>
+            <Scope displayName="Flows Create Feature" name="console:org:flows_create"
+                   description="Manage creates of flows from the Console"/>
+            <Scope displayName="Flows Delete Feature" name="console:org:flows_delete"
+                   description="Manage deletes of flows from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Flow Extensions Feature" identifier="console:flowExtensions"
@@ -2175,6 +2607,12 @@
                    description="Manage views of flow extensions from the Console"/>
             <Scope displayName="Flow Extensions Edit Feature" name="console:flowExtensions_edit"
                    description="Manage edits of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Update Feature" name="console:flowExtensions_update"
+                   description="Manage updates of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Create Feature" name="console:flowExtensions_create"
+                   description="Manage creates of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Delete Feature" name="console:flowExtensions_delete"
+                   description="Manage deletes of flow extensions from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Flow Extensions Feature" identifier="console:org:flowExtensions"
@@ -2188,6 +2626,12 @@
                    description="Manage views of flow extensions from the Console"/>
             <Scope displayName="Flow Extensions Edit Feature" name="console:org:flowExtensions_edit"
                    description="Manage edits of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Update Feature" name="console:org:flowExtensions_update"
+                   description="Manage updates of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Create Feature" name="console:org:flowExtensions_create"
+                   description="Manage creates of flow extensions from the Console"/>
+            <Scope displayName="Flow Extensions Delete Feature" name="console:org:flowExtensions_delete"
+                   description="Manage deletes of flow extensions from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
@@ -2444,6 +2888,30 @@
                        description="Delete credentials of end users in the organization"/>
             </Scopes>
     </APIResource>
+    <APIResource name="User Credential Management API v2" identifier="/api/users/v2/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API v2" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_user_credential_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Create Credential" name="internal_user_credential_mgt_create"
+                   description="Create credentials for end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_user_credential_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Credential Management API v2" identifier="/o/api/users/v2/(.*)/credentials"
+                 requiresAuthorization="true"
+                 description="API representation of the User Credential Management API v2" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Credential" name="internal_org_user_credential_mgt_view"
+                   description="View credentials of end users in the organization"/>
+            <Scope displayName="Create Credential" name="internal_org_user_credential_mgt_create"
+                   description="Create credentials for end users in the organization"/>
+            <Scope displayName="Delete Credential" name="internal_org_user_credential_mgt_delete"
+                   description="Delete credentials of end users in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="VC Templates Management API" identifier="/api/server/v1/vc-templates"
                  requiresAuthorization="true"
                  description="API representation of the VC Templates Management API" type="TENANT">
@@ -2469,6 +2937,12 @@
                                    description="Manage views of VC templates from the Console"/>
             <Scope displayName="VC Templates Edit Feature" name="console:vc_templates_edit"
                                    description="Manage edits of VC templates from the Console"/>
+            <Scope displayName="VC Templates Update Feature" name="console:vc_templates_update"
+                                   description="Manage updates of VC templates from the Console"/>
+            <Scope displayName="VC Templates Create Feature" name="console:vc_templates_create"
+                                   description="Manage creates of VC templates from the Console"/>
+            <Scope displayName="VC Templates Delete Feature" name="console:vc_templates_delete"
+                                   description="Manage deletes of VC templates from the Console"/>
         </Scopes>
     </APIResource>
 </APIResources>

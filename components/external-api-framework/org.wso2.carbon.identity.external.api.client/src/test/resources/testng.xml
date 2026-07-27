@@ -40,6 +40,7 @@
     <test name="Service Tests">
         <classes>
             <class name="org.wso2.carbon.identity.external.api.client.internal.service.APIClientTest"/>
+            <class name="org.wso2.carbon.identity.external.api.client.api.service.AbstractAPIClientManagerTest"/>
         </classes>
     </test>
 

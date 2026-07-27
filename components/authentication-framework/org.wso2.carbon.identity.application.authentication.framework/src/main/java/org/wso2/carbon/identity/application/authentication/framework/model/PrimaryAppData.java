@@ -28,6 +28,7 @@ public class PrimaryAppData implements Serializable {
     private static final long serialVersionUID = -3925617004643909936L;
 
     private int id;
+    private String tenantDomain;
 
     public int getId() {
 
@@ -37,5 +38,15 @@ public class PrimaryAppData implements Serializable {
     public void setId(int id) {
 
         this.id = id;
+    }
+
+    public String getTenantDomain() {
+
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+
+        this.tenantDomain = tenantDomain;
     }
 }

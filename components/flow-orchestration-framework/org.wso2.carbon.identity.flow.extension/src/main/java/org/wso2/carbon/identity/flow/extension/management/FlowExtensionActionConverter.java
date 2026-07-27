@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.flow.extension.management;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionProperty;
@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.flow.extension.model.AccessConfig;
 import org.wso2.carbon.identity.flow.extension.model.ContextPath;
 import org.wso2.carbon.identity.flow.extension.model.FlowExtensionAction;
-
-import com.ctc.wstx.util.StringUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,11 +39,9 @@ import static org.wso2.carbon.identity.flow.extension.FlowExtensionConstants.Act
 
 /**
  * ActionConverter implementation for Flow Extension actions.
- * <p>
  * Handles the conversion between {@link FlowExtensionAction} (domain model) and
  * {@link ActionDTO} (data transfer object) by mapping the {@link AccessConfig} fields
  * to/from action properties.
- * </p>
  */
 public class FlowExtensionActionConverter implements ActionConverter {
 
@@ -104,12 +100,12 @@ public class FlowExtensionActionConverter implements ActionConverter {
         }
         String content = certificate.getCertificateContent();
         if (StringUtils.isBlank(content)) {
-            properties.put(CERTIFICATE,
-                    new ActionProperty.BuilderForService(certificate).build());
-        } else {
-            // Certificate with no content — signals explicit removal at the resolver layer.
+            // Certificate with no content signals explicit removal at the resolver layer.
             properties.put(CERTIFICATE,
                     new ActionProperty.BuilderForService("").build());
+        } else {
+            properties.put(CERTIFICATE,
+                    new ActionProperty.BuilderForService(certificate).build());
         }
     }
 

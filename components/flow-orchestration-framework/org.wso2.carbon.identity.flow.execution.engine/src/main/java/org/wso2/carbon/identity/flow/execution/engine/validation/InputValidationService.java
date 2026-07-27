@@ -98,6 +98,9 @@ public class InputValidationService {
     private static final Log LOG = LogFactory.getLog(InputValidationService.class);
     private static final InputValidationService instance = new InputValidationService();
     public static final String CONFIRMATION_CODE = "confirmationCode";
+    private static final String DATE_VARIANT = "DATE";
+    private static final String DATE_VALIDATOR = "DateValidator";
+    private static final String DISALLOW_FUTURE_CONDITION = "disallow.future";
 
     private InputValidationService() {
 
@@ -664,11 +667,12 @@ public class InputValidationService {
             }
         }
         // Process all components and apply validations at once.
-        processComponentValidations(dataDTO.getComponents(), validationMap);
+        processComponentValidations(dataDTO.getComponents(), validationMap, context.getTenantDomain());
     }
 
     private void processComponentValidations(List<ComponentDTO> components,
-                                             Map<String, ArrayList<ValidationDTO>> validationMap) {
+                                             Map<String, ArrayList<ValidationDTO>> validationMap,
+                                             String tenantDomain) {
 
         if (components == null || components.isEmpty()) {
             return;
@@ -678,9 +682,10 @@ public class InputValidationService {
             if (Constants.ComponentTypes.INPUT.equals(component.getType())) {
                 String identifier = (String) component.getConfigs().get(IDENTIFIER);
                 applyValidationIfNeeded(component, identifier, validationMap);
+                applyDateValidationIfNeeded(component, identifier, tenantDomain);
             } else if (Constants.ComponentTypes.FORM.equals(component.getType())) {
                 // Process nested components.
-                processComponentValidations(component.getComponents(), validationMap);
+                processComponentValidations(component.getComponents(), validationMap, tenantDomain);
             }
         }
     }
@@ -691,6 +696,66 @@ public class InputValidationService {
         if (identifier != null && validationMap.containsKey(identifier)) {
             component.getConfigs().put(VALIDATIONS, validationMap.get(identifier));
         }
+    }
+
+    /**
+     * Attach a client-side date validation rule to a date input component when its claim is
+     * configured to disallow future values (claim property {@code disallowFutureDate=true}).
+     * The rule is consumed by the client to show an inline error before submission. Server-side
+     * enforcement is handled separately by the user store operation listeners.
+     *
+     * @param component    Input component.
+     * @param identifier   Component identifier (claim URI for claim-backed inputs).
+     * @param tenantDomain Tenant domain.
+     */
+    private void applyDateValidationIfNeeded(ComponentDTO component, String identifier, String tenantDomain) {
+
+        if (identifier == null || !DATE_VARIANT.equalsIgnoreCase(component.getVariant())) {
+            return;
+        }
+        if (FlowExecutionEngineDataHolder.getInstance().getClaimMetadataManagementService() == null) {
+            return;
+        }
+        try {
+            Optional<LocalClaim> localClaim = FlowExecutionEngineDataHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaim(identifier, tenantDomain);
+            if (!localClaim.isPresent()) {
+                return;
+            }
+            String disallowFutureDate = localClaim.get()
+                    .getClaimProperty(ClaimConstants.DISALLOW_FUTURE_DATE_PROPERTY);
+            if (!Boolean.parseBoolean(disallowFutureDate)) {
+                return;
+            }
+            ValidationDTO dateValidation = new ValidationDTO();
+            dateValidation.setName(DATE_VALIDATOR);
+            dateValidation.setType(RULES);
+            List<ValidationDTO.Condition> conditions = new ArrayList<>();
+            conditions.add(new ValidationDTO.Condition(DISALLOW_FUTURE_CONDITION, Boolean.TRUE.toString()));
+            dateValidation.setConditions(conditions);
+            addValidationToComponent(component, dateValidation);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Attached future-date validation for claim: " + identifier);
+            }
+        } catch (ClaimMetadataException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Error while retrieving claim metadata for date validation of claim: " + identifier);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addValidationToComponent(ComponentDTO component, ValidationDTO validationDTO) {
+
+        Object existing = component.getConfigs().get(VALIDATIONS);
+        List<ValidationDTO> validations;
+        if (existing instanceof List) {
+            validations = (List<ValidationDTO>) existing;
+        } else {
+            validations = new ArrayList<>();
+            component.getConfigs().put(VALIDATIONS, validations);
+        }
+        validations.add(validationDTO);
     }
 
     private ArrayList<ValidationDTO> getValidationDTOs(String tenantDomain, String key)
