@@ -25,6 +25,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementClientException;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementServerException;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
@@ -52,7 +53,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.mockito.Mockito.mockStatic;
@@ -65,7 +68,10 @@ public class RuleBuilderTest {
 
     @Mock
     RuleMetadataService ruleMetadataService;
+    @Mock
+    private IdentityConfigParser mockIdentityConfigParser;
     private MockedStatic<RuleMetadataConfigFactory> ruleMetadataConfigFactoryMockedStatic;
+    private MockedStatic<IdentityConfigParser> identityConfigParserMockedStatic;
     OperatorConfig operatorConfig;
 
     @BeforeClass
@@ -85,12 +91,17 @@ public class RuleBuilderTest {
 
         MockitoAnnotations.openMocks(this);
         RuleManagementComponentServiceHolder.getInstance().setRuleMetadataService(ruleMetadataService);
+
+        identityConfigParserMockedStatic = mockStatic(IdentityConfigParser.class);
+        identityConfigParserMockedStatic.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(new HashMap<>());
     }
 
     @AfterMethod
     public void tearDownMethod() {
 
         ruleMetadataConfigFactoryMockedStatic.close();
+        identityConfigParserMockedStatic.close();
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
@@ -372,7 +383,7 @@ public class RuleBuilderTest {
 
     @Test(expectedExceptions = RuleManagementClientException.class,
             expectedExceptionsMessageRegExp = "Rule validation failed: " +
-                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 15 Provided: 16")
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 5 Provided: 6")
     public void testCreateRuleWithMaxAllowedExpressionsCombinedWithAND() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -382,6 +393,51 @@ public class RuleBuilderTest {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
+        for (int i = 0; i < 6; i++) {
+            Expression expression = new Expression.Builder().field("application").operator("equals")
+                    .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
+            ruleBuilder.addAndExpression(expression);
+        }
+
+        ruleBuilder.build();
+    }
+
+    @Test
+    public void testCreateRuleWithExpressionsAtDefaultMaxAllowedLimitCombinedWithAND() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        for (int i = 0; i < 5; i++) {
+            Expression expression = new Expression.Builder().field("application").operator("equals")
+                    .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
+            ruleBuilder.addAndExpression(expression);
+        }
+
+        Rule rule = ruleBuilder.build();
+        assertNotNull(rule);
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 15 Provided: 16")
+    public void testCreateRuleWithMaxAllowedExpressionsCombinedWithANDOverriddenPerFlowType() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.DevicePolicy.MaxExpressionsCombinedWithAnd", "15");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.DEVICE_POLICY, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.DEVICE_POLICY, "tenant1");
+
         for (int i = 0; i < 16; i++) {
             Expression expression = new Expression.Builder().field("application").operator("equals")
                     .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
@@ -389,6 +445,54 @@ public class RuleBuilderTest {
         }
 
         ruleBuilder.build();
+    }
+
+    @Test
+    public void testCreateRuleWithExpressionsAtOverriddenMaxAllowedLimitCombinedWithAND() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.DevicePolicy.MaxExpressionsCombinedWithAnd", "15");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.DEVICE_POLICY, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.DEVICE_POLICY, "tenant1");
+
+        for (int i = 0; i < 15; i++) {
+            Expression expression = new Expression.Builder().field("application").operator("equals")
+                    .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
+            ruleBuilder.addAndExpression(expression);
+        }
+
+        Rule rule = ruleBuilder.build();
+        assertNotNull(rule);
+    }
+
+    @Test
+    public void testCreateRuleWithInvalidMaxExpressionsCombinedWithANDConfigFallsBackToDefault() throws Exception {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Rules.PreIssueAccessToken.MaxExpressionsCombinedWithAnd", "invalid");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        for (int i = 0; i < 5; i++) {
+            Expression expression = new Expression.Builder().field("application").operator("equals")
+                    .value(new Value(Value.Type.REFERENCE, "testapp" + i)).build();
+            ruleBuilder.addAndExpression(expression);
+        }
+
+        Rule rule = ruleBuilder.build();
+        assertNotNull(rule);
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
