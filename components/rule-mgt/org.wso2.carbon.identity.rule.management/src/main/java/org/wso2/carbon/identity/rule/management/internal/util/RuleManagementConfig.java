@@ -34,6 +34,8 @@ public class RuleManagementConfig {
 
     private static final Log LOG = LogFactory.getLog(RuleManagementConfig.class);
 
+    private static final int DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND = 5;
+
     private RuleManagementConfig() {
 
     }
@@ -51,15 +53,14 @@ public class RuleManagementConfig {
     /**
      * Returns the maximum number of expressions that can be combined with AND for the given flow type.
      * The value can be overridden per flow type in identity.xml. If the property is not configured or invalid,
-     * the given default value is returned.
+     * the default value is returned.
      *
-     * @param flowType     Flow type.
-     * @param defaultValue Default value to be used if the configuration is missing or invalid.
+     * @param flowType Flow type.
      * @return The maximum number of expressions that can be combined with AND for the given flow type.
      */
-    public int getMaxExpressionsCombinedWithAnd(FlowType flowType, int defaultValue) {
+    public int getMaxExpressionsCombinedWithAnd(FlowType flowType) {
 
-        int maxExpressionsCombinedWithAnd = defaultValue;
+        int maxExpressionsCombinedWithAnd = DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
         try {
             IdentityConfigParser configParser = IdentityConfigParser.getInstance();
             if (configParser != null && configParser.getConfiguration() != null) {
@@ -74,12 +75,13 @@ public class RuleManagementConfig {
                         } else if (LOG.isDebugEnabled()) {
                             LOG.debug("Non-positive value " + parsedValue + " configured for " +
                                     propertyKey + " in identity.xml. Expects a positive number." +
-                                    " Using the default value: " + defaultValue);
+                                    " Using the default value: " + DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND);
                         }
                     } catch (NumberFormatException e) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Failed to read " + propertyKey + " property in identity.xml." +
-                                    " Expects a number. Using the default value: " + defaultValue, e);
+                                    " Expects a number. Using the default value: " +
+                                    DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND, e);
                         }
                     }
                 }
@@ -87,7 +89,7 @@ public class RuleManagementConfig {
         } catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("IdentityConfigParser is uninitialized or unavailable. Using the default value: " +
-                        defaultValue, e);
+                        DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND, e);
             }
         }
         return maxExpressionsCombinedWithAnd;
