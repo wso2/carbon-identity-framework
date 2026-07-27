@@ -76,6 +76,9 @@
     } catch (ClassNotFoundException e) {
         // Fix APIMANAGER-5713 - issue due to removing jars of admin service
         // Intentionally skipping handling the exception for class not found for admin service.
+    } catch (java.rmi.RemoteException e) {
+        // AxisFault thrown when the caller lacks /permission/admin/manage for getConnectorList.
+        // Intentionally skipping - catMap remains empty and the Governance Connectors section is not rendered.
     }
 
     String homeRealmId = residentIdentityProvider.getHomeRealmId();
