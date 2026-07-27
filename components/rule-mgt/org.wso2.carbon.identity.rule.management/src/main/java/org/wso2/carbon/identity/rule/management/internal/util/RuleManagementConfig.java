@@ -64,7 +64,13 @@ public class RuleManagementConfig {
         String propertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
         if (StringUtils.isNotBlank(propertyValue)) {
             try {
-                maxExpressionsCombinedWithAnd = Integer.parseInt(propertyValue);
+                int parsedValue = Integer.parseInt(propertyValue);
+                if (parsedValue > 0) {
+                    maxExpressionsCombinedWithAnd = parsedValue;
+                } else if (LOG.isDebugEnabled()) {
+                    LOG.debug("Non-positive value " + parsedValue + " configured for " + propertyKey +
+                            " in identity.xml. Expects a positive number. Using the default value: " + defaultValue);
+                }
             } catch (NumberFormatException e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Failed to read " + propertyKey + " property in identity.xml." +
@@ -94,6 +100,12 @@ public class RuleManagementConfig {
             this.maxExpressionsCombinedWithAndProperty = maxExpressionsCombinedWithAndProperty;
         }
 
+        /**
+         * Get the identity.xml property key that holds the maximum number of expressions
+         * combined with AND for this flow type.
+         *
+         * @return The configuration property key.
+         */
         public String getMaxExpressionsCombinedWithAndProperty() {
 
             return maxExpressionsCombinedWithAndProperty;
