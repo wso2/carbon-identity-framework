@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.device.mgt.internal.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
@@ -27,6 +28,7 @@ import org.wso2.carbon.identity.device.mgt.api.exception.DeviceMgtException;
 import org.wso2.carbon.identity.device.mgt.internal.service.impl.DeviceManagementServiceImpl;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 /**
  * User operation event listener that removes a user's registered devices when the user is deleted,
@@ -35,10 +37,11 @@ import org.wso2.carbon.user.core.UserStoreManager;
 public class DeviceUserOperationListener extends AbstractIdentityUserOperationEventListener {
 
     private static final Log LOG = LogFactory.getLog(DeviceUserOperationListener.class);
-    private static final int DEFAULT_EXECUTION_ORDER_ID = 100;
+    private static final int DEFAULT_EXECUTION_ORDER_ID = 353;
 
     /**
-     * Returns the execution order of this listener.
+     * Returns the execution order of this listener. An order id configured in identity.xml takes
+     * precedence; otherwise the default is used.
      *
      * @return Execution order id.
      */
@@ -53,32 +56,42 @@ public class DeviceUserOperationListener extends AbstractIdentityUserOperationEv
     }
 
     /**
-     * Deletes the devices registered by the user after the user has been deleted.
-     * A cleanup failure is logged but does not abort the user deletion, matching the behaviour of
-     * other post-delete cleanup listeners in the framework.
+     * Deletes the devices registered by the user as part of the user deletion.
+     * The cleanup runs in the pre-delete phase so the user identifier can still be resolved from the
+     * user name (the device tables are keyed by the user id, which cannot be resolved once the user
+     * is gone). This mirrors other user-scoped cleanup listeners such as the session termination
+     * listener. A cleanup failure is logged but does not abort the user deletion.
      *
-     * @param userID           Identifier of the deleted user.
+     * @param userName         Name of the user being deleted.
      * @param userStoreManager User store manager.
      * @return {@code true} to let the user deletion flow continue.
-     * @throws UserStoreException If the tenant id cannot be resolved.
+     * @throws UserStoreException If the user store cannot be accessed.
      */
     @Override
-    public boolean doPostDeleteUserWithID(String userID, UserStoreManager userStoreManager)
+    public boolean doPreDeleteUser(String userName, UserStoreManager userStoreManager)
             throws UserStoreException {
 
         if (!isEnable()) {
             return true;
         }
+        if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+            return true;
+        }
+
+        String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(userName);
+        if (StringUtils.isBlank(userId)) {
+            return true;
+        }
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
         try {
-            DeviceManagementServiceImpl.getInstance().deleteDevicesByUserId(userID, tenantDomain);
+            DeviceManagementServiceImpl.getInstance().deleteDevicesByUserId(userId, tenantDomain);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Deleted devices for user id: " + userID + " in tenant: " + tenantDomain
+                LOG.debug("Deleted devices for user id: " + userId + " in tenant: " + tenantDomain
                         + " on user deletion.");
             }
         } catch (DeviceMgtException e) {
-            LOG.error("Error while deleting devices for user id: " + userID + " in tenant: "
+            LOG.error("Error while deleting devices for user id: " + userId + " in tenant: "
                     + tenantDomain + " on user deletion.", e);
         }
         return true;

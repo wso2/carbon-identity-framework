@@ -200,6 +200,10 @@ public final class DeviceMgtSQLConstants {
                 "SELECT DEVICE_ID FROM IDN_USER_DEVICE " +
                         "WHERE USER_ID = :USER_ID; AND TENANT_ID = :TENANT_ID;";
 
+        public static final String DELETE_USER_DEVICE_BY_USER_ID =
+                "DELETE FROM IDN_USER_DEVICE " +
+                        "WHERE USER_ID = :USER_ID; AND TENANT_ID = :TENANT_ID;";
+
         public static final String DELETE_DEVICES_BY_USER =
                 "DELETE FROM IDN_DEVICE WHERE ID IN " +
                         "(SELECT DEVICE_ID FROM IDN_USER_DEVICE " +
