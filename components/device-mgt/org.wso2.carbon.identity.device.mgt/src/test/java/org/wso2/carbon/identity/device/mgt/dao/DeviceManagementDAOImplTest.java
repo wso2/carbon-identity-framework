@@ -336,6 +336,38 @@ public class DeviceManagementDAOImplTest {
         Assert.assertEquals(count, devices.size());
     }
 
+    /**
+     * Tests that deleteDevicesByUserId removes all of a user's devices (and their mappings) while
+     * leaving other users' devices untouched.
+     *
+     * @throws DeviceMgtException If the DAO operation fails.
+     */
+    @Test(priority = 19)
+    public void testDeleteDevicesByUserId() throws DeviceMgtException {
+
+        String userId = "wanda@example.com";
+        String otherUserId = "victor@example.com";
+        String id1 = UUID.randomUUID().toString();
+        String id2 = UUID.randomUUID().toString();
+        String otherId = UUID.randomUUID().toString();
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id1, "Wanda Phone", userId, Device.Status.ACTIVE), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(id2, "Wanda Tablet", userId, Device.Status.INACTIVE), TENANT_ID);
+        deviceManagementDAO.registerDevice(
+                buildDeviceForUser(otherId, "Victor Phone", otherUserId, Device.Status.ACTIVE), TENANT_ID);
+
+        Assert.assertEquals(deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID).size(), 2);
+
+        deviceManagementDAO.deleteDevicesByUserId(userId, TENANT_ID);
+
+        Assert.assertTrue(deviceManagementDAO.getDeviceIdsByUserId(userId, TENANT_ID).isEmpty());
+        Assert.assertNull(deviceManagementDAO.getDeviceById(id1, TENANT_ID));
+        Assert.assertNull(deviceManagementDAO.getDeviceById(id2, TENANT_ID));
+        // The other user's device must remain.
+        Assert.assertNotNull(deviceManagementDAO.getDeviceById(otherId, TENANT_ID));
+    }
+
     private Device buildDevice(String id, String deviceName, Device.Status status) {
 
         return new Device.Builder()

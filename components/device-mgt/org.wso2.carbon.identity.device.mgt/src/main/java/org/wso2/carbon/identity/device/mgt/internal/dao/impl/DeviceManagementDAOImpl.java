@@ -391,4 +391,51 @@ public class DeviceManagementDAOImpl implements DeviceManagementDAO {
             LOG.debug("Device deleted with ID: " + deviceId);
         }
     }
+
+    @Override
+    public List<String> getDeviceIdsByUserId(String userId, int tenantId) throws DeviceMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+
+        try {
+            return jdbcTemplate.<List<String>, RuntimeException>withTransaction(
+                    template -> template.executeQuery(
+                            DeviceMgtSQLConstants.Query.GET_DEVICE_IDS_BY_USER,
+                            (resultSet, rowNumber) -> resultSet.getString(DeviceMgtSQLConstants.Column.DEVICE_ID),
+                            preparedStatement -> {
+                                preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
+                                preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
+                            }));
+
+        } catch (TransactionException e) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_DEVICE, e);
+        }
+    }
+
+    @Override
+    public void deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+
+        try {
+            jdbcTemplate.<Void, RuntimeException>withTransaction(template -> {
+                template.executeUpdate(
+                        DeviceMgtSQLConstants.Query.DELETE_DEVICES_BY_USER,
+                        preparedStatement -> {
+                            preparedStatement.setString(DeviceMgtSQLConstants.Column.USER_ID, userId);
+                            preparedStatement.setInt(DeviceMgtSQLConstants.Column.TENANT_ID, tenantId);
+                        });
+                return null;
+            });
+
+        } catch (TransactionException e) {
+            throw DeviceManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_DELETING_DEVICE, e);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Devices deleted for user ID: " + userId + " in tenant: " + tenantId);
+        }
+    }
 }

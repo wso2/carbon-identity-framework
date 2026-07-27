@@ -217,4 +217,17 @@ public class DeviceManagementServiceImpl implements DeviceManagementService {
             LOG.debug("Device deleted with ID: " + deviceId + LOG_IN_TENANT + tenantDomain);
         }
     }
+
+    @Override
+    public void deleteDevicesByUserId(String userId, String tenantDomain) throws DeviceMgtException {
+
+        DEVICE_VALIDATOR.validateRequiredField(userId, FIELD_USER_ID);
+        DEVICE_VALIDATOR.validateRequiredField(tenantDomain, FIELD_TENANT_DOMAIN);
+
+        deviceManagementDAO.deleteDevicesByUserId(userId, IdentityTenantUtil.getTenantId(tenantDomain));
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Devices deleted for user id: " + userId + LOG_IN_TENANT + tenantDomain);
+        }
+    }
 }

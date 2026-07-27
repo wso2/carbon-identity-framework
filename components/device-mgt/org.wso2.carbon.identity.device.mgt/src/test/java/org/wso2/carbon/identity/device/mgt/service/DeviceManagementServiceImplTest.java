@@ -441,6 +441,25 @@ public class DeviceManagementServiceImplTest {
         }
     }
 
+    @Test
+    public void testDeleteDevicesByUserIdDelegatesToDao() throws Exception {
+
+        service.deleteDevicesByUserId("u1", TENANT_DOMAIN);
+
+        verify(dao).deleteDevicesByUserId("u1", TENANT_ID);
+    }
+
+    @Test
+    public void testDeleteDevicesByUserIdWithBlankUserIdThrows() {
+
+        try {
+            service.deleteDevicesByUserId("", TENANT_DOMAIN);
+            Assert.fail("Expected DeviceMgtClientException");
+        } catch (DeviceMgtException ex) {
+            Assert.assertEquals(ex.getErrorCode(), ErrorMessage.ERROR_INVALID_DEVICE_FIELD.getCode());
+        }
+    }
+
     private static Device buildDevice(String id, String userId) {
 
         return buildDevice(id, userId, Device.Status.ACTIVE);

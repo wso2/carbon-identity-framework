@@ -133,4 +133,15 @@ public interface DeviceManagementService {
      */
     void deleteDevice(String deviceId, String tenantDomain)
             throws DeviceMgtException;
+
+    /**
+     * Deletes (hard delete) all device registration records owned by a user. Intended for cleanup
+     * when the user itself is deleted.
+     *
+     * @param userId       User identifier.
+     * @param tenantDomain Tenant domain.
+     * @throws DeviceMgtException If the deletion fails.
+     */
+    void deleteDevicesByUserId(String userId, String tenantDomain)
+            throws DeviceMgtException;
 }

@@ -26,7 +26,9 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.device.mgt.api.service.DeviceManagementService;
+import org.wso2.carbon.identity.device.mgt.internal.listener.DeviceUserOperationListener;
 import org.wso2.carbon.identity.device.mgt.internal.service.impl.DeviceManagementServiceImpl;
+import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
 /**
  * OSGi component that registers the device management service.
@@ -52,6 +54,10 @@ public class DeviceMgtServiceComponent {
             bundleCtx.registerService(
                     DeviceManagementService.class.getName(),
                     DeviceManagementServiceImpl.getInstance(),
+                    null);
+            bundleCtx.registerService(
+                    UserOperationEventListener.class.getName(),
+                    new DeviceUserOperationListener(),
                     null);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Device management bundle is activated.");

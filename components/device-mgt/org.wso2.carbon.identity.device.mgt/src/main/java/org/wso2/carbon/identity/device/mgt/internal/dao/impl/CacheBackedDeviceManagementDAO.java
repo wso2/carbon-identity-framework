@@ -227,4 +227,42 @@ public class CacheBackedDeviceManagementDAO implements DeviceManagementDAO {
         }
         deviceManagementDAO.deleteDevice(deviceId, tenantId);
     }
+
+    /**
+     * Returns the identifiers of all devices registered by a user.
+     * This method is not cached.
+     *
+     * @param userId   User identifier.
+     * @param tenantId Tenant identifier.
+     * @return Device identifiers for the user.
+     * @throws DeviceMgtException If retrieval fails.
+     */
+    @Override
+    public List<String> getDeviceIdsByUserId(String userId, int tenantId) throws DeviceMgtException {
+
+        return deviceManagementDAO.getDeviceIdsByUserId(userId, tenantId);
+    }
+
+    /**
+     * Deletes all devices registered by a user.
+     * This method resolves the affected device ids first so that each cached entry can be evicted
+     * after the bulk delete, keeping the cache consistent with the data layer.
+     *
+     * @param userId   User identifier.
+     * @param tenantId Tenant identifier.
+     * @throws DeviceMgtException If deletion fails.
+     */
+    @Override
+    public void deleteDevicesByUserId(String userId, int tenantId) throws DeviceMgtException {
+
+        List<String> deviceIds = deviceManagementDAO.getDeviceIdsByUserId(userId, tenantId);
+        deviceManagementDAO.deleteDevicesByUserId(userId, tenantId);
+        for (String deviceId : deviceIds) {
+            deviceCache.clearCacheEntry(new DeviceCacheKey(deviceId), tenantId);
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cleared " + deviceIds.size() + " device cache entries for user id: " + userId
+                    + " after bulk deletion.");
+        }
+    }
 }
