@@ -212,7 +212,7 @@ public class RuleBuilder {
         }
 
         int maxExpressionsCombinedWithAnd = RuleManagementConfig.getInstance()
-                .getMaxExpressionsCombinedWithAnd(flowType);
+                .getMaxAndExpressionCount(flowType);
         if (andRuleCount > maxExpressionsCombinedWithAnd) {
             setValidationError("Maximum number of expressions combined with AND exceeded. Maximum allowed: " +
                     maxExpressionsCombinedWithAnd + " Provided: " + andRuleCount);

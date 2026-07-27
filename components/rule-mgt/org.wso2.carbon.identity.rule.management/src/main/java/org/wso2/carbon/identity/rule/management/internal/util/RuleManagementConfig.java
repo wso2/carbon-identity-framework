@@ -58,41 +58,29 @@ public class RuleManagementConfig {
      * @param flowType Flow type.
      * @return The maximum number of expressions that can be combined with AND for the given flow type.
      */
-    public int getMaxExpressionsCombinedWithAnd(FlowType flowType) {
+    public int getMaxAndExpressionCount(FlowType flowType) {
 
-        int maxExpressionsCombinedWithAnd = DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
+        String propertyKey = FlowTypeConfig.valueOf(flowType.name()).getMaxExpressionsCombinedWithAndProperty();
         try {
-            IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-            if (configParser != null && configParser.getConfiguration() != null) {
-                String propertyKey = FlowTypeConfig.valueOf(flowType.name())
-                        .getMaxExpressionsCombinedWithAndProperty();
-                String propertyValue = (String) configParser.getConfiguration().get(propertyKey);
-                if (StringUtils.isNotBlank(propertyValue)) {
-                    try {
-                        int parsedValue = Integer.parseInt(propertyValue);
-                        if (parsedValue > 0) {
-                            maxExpressionsCombinedWithAnd = parsedValue;
-                        } else if (LOG.isDebugEnabled()) {
-                            LOG.debug("Non-positive value " + parsedValue + " configured for " +
-                                    propertyKey + " in identity.xml. Expects a positive number." +
-                                    " Using the default value: " + DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND);
-                        }
-                    } catch (NumberFormatException e) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Failed to read " + propertyKey + " property in identity.xml." +
-                                    " Expects a number. Using the default value: " +
-                                    DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND, e);
-                        }
-                    }
+            String propertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(propertyKey);
+            if (StringUtils.isNotBlank(propertyValue)) {
+                int parsedValue = Integer.parseInt(propertyValue);
+                if (parsedValue > 0) {
+                    return parsedValue;
                 }
             }
-        } catch (Exception e) {
+        } catch (NullPointerException | NumberFormatException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("IdentityConfigParser is uninitialized or unavailable. Using the default value: " +
+                LOG.debug("Failed to resolve " + propertyKey + " from identity.xml. Using the default value: " +
                         DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND, e);
             }
         }
-        return maxExpressionsCombinedWithAnd;
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Positive value not configured for " + propertyKey +
+                    ". Using the default value: " + DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND);
+        }
+        return DEFAULT_MAX_EXPRESSIONS_COMBINED_WITH_AND;
     }
 
     /**
