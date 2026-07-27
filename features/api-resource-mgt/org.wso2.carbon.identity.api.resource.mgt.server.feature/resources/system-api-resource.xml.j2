@@ -418,6 +418,18 @@
                    description="View shared organizations of the identity provider"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Identity Provider Sharing API" identifier="/o/api/server/v1/identity-providers/share"
+                 requiresAuthorization="true"
+                 description="API representation of the identity provider share API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Share Identity Providers" name="internal_org_idp_share"
+                   description="Share identity providers with organizations"/>
+            <Scope displayName="Unshare Identity Providers" name="internal_org_idp_unshare"
+                   description="Unshare identity providers from organizations"/>
+            <Scope displayName="View Shared Identity Providers" name="internal_org_idp_shared_access_view"
+                   description="View shared organizations of the identity provider"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Identity Verification Provider Management API"
                 identifier="/api/server/v1/idv-providers" requiresAuthorization="true"
                 description="API representation of the Identity Verification Provider Management API" type="TENANT">

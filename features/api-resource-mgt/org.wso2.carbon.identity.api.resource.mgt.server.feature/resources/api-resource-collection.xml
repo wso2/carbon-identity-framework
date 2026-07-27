@@ -535,13 +535,16 @@
             </Update>
             <Delete>
                 <Scope name="internal_org_idp_delete"/>
+                <Scope name="internal_org_idp_unshare"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_idp_create"/>
+                <Scope name="internal_org_idp_share"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_idp_shared_access_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
                 <Scope name="internal_org_authenticator_view"/>
@@ -1737,13 +1740,16 @@
             </Update>
             <Delete>
                 <Scope name="internal_org_idp_delete"/>
+                <Scope name="internal_org_idp_unshare"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_idp_create"/>
+                <Scope name="internal_org_idp_share"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_idp_shared_access_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_group_mgt_view"/>
                 <Scope name="internal_org_claim_meta_view"/>
