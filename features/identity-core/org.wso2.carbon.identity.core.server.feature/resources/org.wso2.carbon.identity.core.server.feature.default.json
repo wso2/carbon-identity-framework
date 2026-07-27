@@ -325,6 +325,7 @@
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
   "oauth.oidc.enable_claims_separation_for_access_tokens": true,
   "oauth.oidc.restrict_assertion_claims_to_configured_attributes": false,
+  "oauth.oidc.honor_multivalued_claim_metadata": true,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
